@@ -1,25 +1,35 @@
 # RepSync
 
-**Flutter-приложение для управления репертуаром кавер-групп и музыкальных коллективов**
+**Flutter app for managing band repertoires, setlists, and shared song databases for cover bands**
 
-## Что умеет RepSync
-- Общая база песен с уникальным ID  
-- Сетлисты для концертов и репетиций (drag-and-drop, overrides для разных исполнителей/тональностей)  
-- Shared-доступ для группы (мульти-группы на одного участника)  
-- Экспорт сетлистов в PDF  
-- Web-first (работает в браузере на iPhone/Android)  
+## Features
+- Shared song database with unique IDs  
+- Setlists for gigs and rehearsals (drag & drop, per-event overrides)  
+- Multi-group support (one user in several bands)  
+- PDF export for setlists  
+- Web-first (works in browser on iPhone/Android)
 
-## Ключевые слова
-flutter app, repertoire manager, setlist app, cover band tool, shared song database, music group organizer, gig setlist
+## Tech Stack
+- Flutter (web-first)  
+- Dart  
+- Firebase (auth, Firestore realtime sync)  
+- Hive (local offline storage)  
+- pdf & printing packages (PDF generation)
 
-## Установка и запуск (локально)
-1. `git clone https://github.com/berlogabob/flutter-repsync-app.git`
-2. `cd flutter-repsync-app`
-3. `flutter pub get`
-4. `flutter run -d chrome` (web-версия)
+## Badges
+[![Flutter Version](https://img.shields.io/badge/Flutter-3.19+-blue.svg)](https://flutter.dev)
+[![Dart Version](https://img.shields.io/badge/Dart-3.3+-blue.svg)](https://dart.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/network/members)
 
-## Roadmap (MVP — февраль 2026)
-- Web-версия, ручной ввод песен, экспорт PDF  
-- Post-MVP: MusicBrainz autofill, мобильные сборки, премиум-функции
+## Project Roadmap (MVP - February 2026)
 
-Лицензия: MIT
+Web version with manual song input & PDF export
+Post-MVP: MusicBrainz autofill, mobile builds, premium features
+
+## License
+MIT License — see LICENSE file
+
+---
+### Built with ❤️ for musicians and cover bands
