@@ -18,14 +18,19 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _artistController = TextEditingController();
-  final _originalKeyController = TextEditingController();
   final _originalBpmController = TextEditingController();
-  final _ourKeyController = TextEditingController();
   final _ourBpmController = TextEditingController();
   final _notesController = TextEditingController();
   final List<Link> _links = [];
   final List<String> _selectedTags = [];
 
+  String _originalKeyBase = 'C';
+  String _originalKeyModifier = '';
+  String _ourKeyBase = 'C';
+  String _ourKeyModifier = '';
+
+  final List<String> _keyBases = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  final List<String> _keyModifiers = ['', '#', 'b', 'm'];
   final List<String> _availableTags = [
     'ready',
     'learning',
@@ -34,50 +39,16 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     'fast',
   ];
 
-  final List<String> _keys = [
-    'C',
-    'C#',
-    'Db',
-    'D',
-    'D#',
-    'Eb',
-    'E',
-    'F',
-    'F#',
-    'Gb',
-    'G',
-    'G#',
-    'Ab',
-    'A',
-    'A#',
-    'Bb',
-    'B',
-    'Cm',
-    'C#m',
-    'Dbm',
-    'Dm',
-    'D#m',
-    'Ebm',
-    'Em',
-    'Fm',
-    'F#m',
-    'Gbm',
-    'Gm',
-    'G#m',
-    'Abm',
-    'Am',
-    'A#m',
-    'Bbm',
-    'Bm',
-  ];
+  String _buildKey(String base, String modifier) {
+    if (modifier == 'm') return '${base.toLowerCase()}m';
+    return '$base$modifier';
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _artistController.dispose();
-    _originalKeyController.dispose();
     _originalBpmController.dispose();
-    _ourKeyController.dispose();
     _ourBpmController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -85,7 +56,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
 
   void _copyFromOriginal() {
     setState(() {
-      _ourKeyController.text = _originalKeyController.text;
+      _ourKeyBase = _originalKeyBase;
+      _ourKeyModifier = _originalKeyModifier;
       _ourBpmController.text = _originalBpmController.text;
     });
   }
@@ -163,20 +135,19 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
       return;
     }
 
+    final originalKey = _buildKey(_originalKeyBase, _originalKeyModifier);
+    final ourKey = _buildKey(_ourKeyBase, _ourKeyModifier);
+
     try {
       final song = Song(
         id: const Uuid().v4(),
         title: _titleController.text.trim(),
         artist: _artistController.text.trim(),
-        originalKey: _originalKeyController.text.trim().isNotEmpty
-            ? _originalKeyController.text.trim()
-            : null,
+        originalKey: originalKey.isNotEmpty ? originalKey : null,
         originalBPM: _originalBpmController.text.trim().isNotEmpty
             ? int.tryParse(_originalBpmController.text.trim())
             : null,
-        ourKey: _ourKeyController.text.trim().isNotEmpty
-            ? _ourKeyController.text.trim()
-            : null,
+        ourKey: ourKey.isNotEmpty ? ourKey : null,
         ourBPM: _ourBpmController.text.trim().isNotEmpty
             ? int.tryParse(_ourBpmController.text.trim())
             : null,
@@ -205,6 +176,85 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
+  }
+
+  Widget _buildKeyRow(
+    String label,
+    String base,
+    String modifier,
+    TextEditingController bpmController,
+    Function(String, String) onChanged,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+        ),
+        const SizedBox(height: 4),
+        IntrinsicHeight(
+          child: Row(
+            children: [
+              _buildMiniDropdown(
+                base,
+                _keyBases,
+                (v) => onChanged(v ?? 'C', modifier),
+              ),
+              const SizedBox(width: 4),
+              _buildMiniDropdown(
+                modifier,
+                _keyModifiers,
+                (v) => onChanged(base, v ?? ''),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextFormField(
+                  controller: bpmController,
+                  decoration: const InputDecoration(
+                    labelText: 'BPM',
+                    isDense: true,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMiniDropdown(
+    String value,
+    List<String> items,
+    Function(String?) onChanged,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: DropdownButton<String>(
+        value: value,
+        isDense: true,
+        underline: const SizedBox(),
+        items: items
+            .map(
+              (k) => DropdownMenuItem(
+                value: k,
+                child: Text(
+                  k.isEmpty ? '-' : k,
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            )
+            .toList(),
+        onChanged: onChanged,
+      ),
+    );
   }
 
   @override
@@ -239,34 +289,15 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
               onFieldSubmitted: (_) => _saveSong(),
             ),
             const SizedBox(height: 24),
-            const Text(
+            _buildKeyRow(
               'Original',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _originalKeyController.text.isEmpty
-                        ? null
-                        : _originalKeyController.text,
-                    decoration: const InputDecoration(labelText: 'Key'),
-                    items: _keys
-                        .map((k) => DropdownMenuItem(value: k, child: Text(k)))
-                        .toList(),
-                    onChanged: (v) => _originalKeyController.text = v ?? '',
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _originalBpmController,
-                    decoration: const InputDecoration(labelText: 'BPM'),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
+              _originalKeyBase,
+              _originalKeyModifier,
+              _originalBpmController,
+              (b, m) => setState(() {
+                _originalKeyBase = b;
+                _originalKeyModifier = m;
+              }),
             ),
             const SizedBox(height: 24),
             Row(
@@ -284,29 +315,15 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _ourKeyController.text.isEmpty
-                        ? null
-                        : _ourKeyController.text,
-                    decoration: const InputDecoration(labelText: 'Key'),
-                    items: _keys
-                        .map((k) => DropdownMenuItem(value: k, child: Text(k)))
-                        .toList(),
-                    onChanged: (v) => _ourKeyController.text = v ?? '',
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _ourBpmController,
-                    decoration: const InputDecoration(labelText: 'BPM'),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
+            _buildKeyRow(
+              'Our',
+              _ourKeyBase,
+              _ourKeyModifier,
+              _ourBpmController,
+              (b, m) => setState(() {
+                _ourKeyBase = b;
+                _ourKeyModifier = m;
+              }),
             ),
             const SizedBox(height: 24),
             Row(
