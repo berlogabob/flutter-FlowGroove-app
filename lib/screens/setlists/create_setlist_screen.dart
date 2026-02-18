@@ -118,6 +118,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 labelText: 'Setlist Name *',
                 prefixIcon: Icon(Icons.queue_music),
               ),
+              textInputAction: TextInputAction.next,
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
@@ -128,6 +129,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 labelText: 'Event Date',
                 prefixIcon: Icon(Icons.calendar_today),
               ),
+              textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -136,6 +138,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 labelText: 'Event Location',
                 prefixIcon: Icon(Icons.location_on),
               ),
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _createSetlist(),
             ),
             const SizedBox(height: 16),
             TextFormField(

@@ -121,6 +121,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                   labelText: 'Band Name *',
                   prefixIcon: Icon(Icons.groups),
                 ),
+                textInputAction: TextInputAction.next,
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
@@ -128,6 +129,8 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(labelText: 'Description'),
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _createBand(),
                 maxLines: 3,
               ),
               const SizedBox(height: 32),

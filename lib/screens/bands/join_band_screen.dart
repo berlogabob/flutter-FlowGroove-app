@@ -113,6 +113,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
               TextFormField(
                 controller: _codeController,
                 textCapitalization: TextCapitalization.characters,
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _joinBand(),
                 decoration: const InputDecoration(
                   labelText: 'Invite Code *',
                   prefixIcon: Icon(Icons.vpn_key),

@@ -227,6 +227,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(labelText: 'Title *'),
+              textInputAction: TextInputAction.next,
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Title required' : null,
             ),
@@ -234,6 +235,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
             TextFormField(
               controller: _artistController,
               decoration: const InputDecoration(labelText: 'Artist'),
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _saveSong(),
             ),
             const SizedBox(height: 24),
             const Text(
