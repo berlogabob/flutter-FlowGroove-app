@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../providers/data_providers.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/song.dart';
 import '../../models/link.dart';
 import '../../theme/app_theme.dart';
@@ -118,17 +119,12 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
                   DropdownMenuItem(value: Link.typeDrums, child: Text('Drums')),
                   DropdownMenuItem(value: Link.typeOther, child: Text('Other')),
                 ],
-                onChanged: (value) {
-                  selectedType = value!;
-                },
+                onChanged: (value) => selectedType = value!,
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: urlController,
-                decoration: const InputDecoration(
-                  labelText: 'URL',
-                  hintText: 'https://...',
-                ),
+                decoration: const InputDecoration(labelText: 'URL'),
               ),
             ],
           ),
@@ -140,11 +136,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
             ElevatedButton(
               onPressed: () {
                 if (urlController.text.isNotEmpty) {
-                  setState(() {
-                    _links.add(
+                  setState(
+                    () => _links.add(
                       Link(type: selectedType, url: urlController.text),
-                    );
-                  });
+                    ),
+                  );
                   Navigator.pop(context);
                 }
               },
@@ -156,8 +152,18 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     );
   }
 
-  void _saveSong() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> _saveSong() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final user = ref.read(currentUserProvider);
+    if (user == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please login first')));
+      return;
+    }
+
+    try {
       final song = Song(
         id: const Uuid().v4(),
         title: _titleController.text.trim(),
@@ -183,11 +189,21 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
         updatedAt: DateTime.now(),
       );
 
-      ref.read(songsProvider.notifier).addSong(song);
-      Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('${song.title} added')));
+      final firestore = ref.read(firestoreProvider);
+      await firestore.saveSong(song, user.uid);
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${song.title} added')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -205,179 +221,152 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView(
+        child: ListView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Title *',
-                  hintText: 'Song title',
+          children: [
+            TextFormField(
+              controller: _titleController,
+              decoration: const InputDecoration(labelText: 'Title *'),
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Title required' : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _artistController,
+              decoration: const InputDecoration(labelText: 'Artist'),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Original',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _originalKeyController.text.isEmpty
+                        ? null
+                        : _originalKeyController.text,
+                    decoration: const InputDecoration(labelText: 'Key'),
+                    items: _keys
+                        .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                        .toList(),
+                    onChanged: (v) => _originalKeyController.text = v ?? '',
+                  ),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Title is required';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _artistController,
-                decoration: const InputDecoration(
-                  labelText: 'Artist',
-                  hintText: 'Artist name',
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text('Original', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _originalKeyController.text.isEmpty
-                          ? null
-                          : _originalKeyController.text,
-                      decoration: const InputDecoration(labelText: 'Key'),
-                      items: _keys.map((key) {
-                        return DropdownMenuItem(value: key, child: Text(key));
-                      }).toList(),
-                      onChanged: (value) {
-                        _originalKeyController.text = value ?? '';
-                      },
-                    ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _originalBpmController,
+                    decoration: const InputDecoration(labelText: 'BPM'),
+                    keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _originalBpmController,
-                      decoration: const InputDecoration(
-                        labelText: 'BPM',
-                        hintText: '120',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Our Key & BPM',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  TextButton.icon(
-                    onPressed: _copyFromOriginal,
-                    icon: const Icon(Icons.copy, size: 16),
-                    label: const Text('Copy from original'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _ourKeyController.text.isEmpty
-                          ? null
-                          : _ourKeyController.text,
-                      decoration: const InputDecoration(labelText: 'Key'),
-                      items: _keys.map((key) {
-                        return DropdownMenuItem(value: key, child: Text(key));
-                      }).toList(),
-                      onChanged: (value) {
-                        _ourKeyController.text = value ?? '';
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _ourBpmController,
-                      decoration: const InputDecoration(
-                        labelText: 'BPM',
-                        hintText: '120',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Links', style: Theme.of(context).textTheme.titleMedium),
-                  TextButton.icon(
-                    onPressed: _addLink,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Link'),
-                  ),
-                ],
-              ),
-              if (_links.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _links.asMap().entries.map((entry) {
-                    return Chip(
-                      label: Text(
-                        entry.value.type.replaceAll('_', ' '),
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      deleteIcon: const Icon(Icons.close, size: 16),
-                      onDeleted: () {
-                        setState(() {
-                          _links.removeAt(entry.key);
-                        });
-                      },
-                    );
-                  }).toList(),
                 ),
               ],
-              const SizedBox(height: 24),
-              Text('Notes', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(
-                  hintText: 'Song structure, notes for band members...',
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Our Key & BPM',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                maxLines: 5,
-              ),
-              const SizedBox(height: 24),
-              Text('Tags', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 12),
+                TextButton.icon(
+                  onPressed: _copyFromOriginal,
+                  icon: const Icon(Icons.copy, size: 16),
+                  label: const Text('Copy'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _ourKeyController.text.isEmpty
+                        ? null
+                        : _ourKeyController.text,
+                    decoration: const InputDecoration(labelText: 'Key'),
+                    items: _keys
+                        .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                        .toList(),
+                    onChanged: (v) => _ourKeyController.text = v ?? '',
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: _ourBpmController,
+                    decoration: const InputDecoration(labelText: 'BPM'),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Links',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextButton.icon(
+                  onPressed: _addLink,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add'),
+                ),
+              ],
+            ),
+            if (_links.isNotEmpty)
               Wrap(
                 spacing: 8,
-                runSpacing: 8,
-                children: _availableTags.map((tag) {
-                  final isSelected = _selectedTags.contains(tag);
-                  return FilterChip(
-                    label: Text(tag),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _selectedTags.add(tag);
-                        } else {
-                          _selectedTags.remove(tag);
-                        }
-                      });
-                    },
-                    selectedColor: AppColors.color1.withOpacity(0.3),
-                  );
-                }).toList(),
+                children: _links
+                    .asMap()
+                    .entries
+                    .map(
+                      (e) => Chip(
+                        label: Text(
+                          e.value.type.replaceAll('_', ' '),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        deleteIcon: const Icon(Icons.close, size: 16),
+                        onDeleted: () => setState(() => _links.removeAt(e.key)),
+                      ),
+                    )
+                    .toList(),
               ),
-              const SizedBox(height: 32),
-            ],
-          ),
+            const SizedBox(height: 24),
+            const Text('Notes', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _notesController,
+              decoration: const InputDecoration(hintText: 'Notes...'),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 24),
+            const Text('Tags', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: _availableTags
+                  .map(
+                    (tag) => FilterChip(
+                      label: Text(tag),
+                      selected: _selectedTags.contains(tag),
+                      onSelected: (s) => setState(
+                        () => s
+                            ? _selectedTags.add(tag)
+                            : _selectedTags.remove(tag),
+                      ),
+                      selectedColor: AppColors.color1.withValues(alpha: 0.3),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
         ),
       ),
     );

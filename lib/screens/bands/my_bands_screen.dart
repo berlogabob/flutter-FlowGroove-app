@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data_providers.dart';
-import '../../providers/auth_provider.dart';
 import '../../models/band.dart';
 import '../../theme/app_theme.dart';
 
@@ -10,20 +9,22 @@ class MyBandsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bands = ref.watch(bandsProvider);
+    final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Bands')),
-      body: bands.isEmpty
-          ? _buildEmptyState(context)
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: bands.length,
-              itemBuilder: (context, index) {
-                final band = bands[index];
-                return _buildBandCard(context, band);
-              },
-            ),
+      body: bandsAsync.when(
+        data: (bands) => bands.isEmpty
+            ? _buildEmptyState(context)
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: bands.length,
+                itemBuilder: (context, index) =>
+                    _buildBandCard(context, bands[index]),
+              ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
+      ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -50,26 +51,14 @@ class MyBandsScreen extends ConsumerWidget {
         children: [
           Icon(Icons.groups, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          Text(
-            'No bands yet',
-            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-          ),
+          const Text('No bands yet', style: TextStyle(fontSize: 18)),
           const SizedBox(height: 8),
-          Text(
-            'Create or join a band to get started',
-            style: TextStyle(color: Colors.grey[500]),
-          ),
+          const Text('Create or join a band'),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => Navigator.pushNamed(context, '/create-band'),
             icon: const Icon(Icons.add),
             label: const Text('Create Band'),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: () => Navigator.pushNamed(context, '/join-band'),
-            icon: const Icon(Icons.group_add),
-            label: const Text('Join Band'),
           ),
         ],
       ),
@@ -96,9 +85,6 @@ class MyBandsScreen extends ConsumerWidget {
         ),
         subtitle: Text('${band.members.length} members'),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-          Navigator.pushNamed(context, '/band-settings', arguments: band);
-        },
       ),
     );
   }

@@ -38,58 +38,55 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
   Future<void> _createBand() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final user = ref.read(currentUserProvider);
-      final inviteCode = _generateInviteCode();
+      if (user == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Please login first')));
+        return;
+      }
 
+      final inviteCode = _generateInviteCode();
       final band = Band(
         id: const Uuid().v4(),
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim().isNotEmpty
             ? _descriptionController.text.trim()
             : null,
-        createdBy: user?.uid ?? '',
+        createdBy: user.uid,
         members: [
           BandMember(
-            uid: user?.uid ?? '',
+            uid: user.uid,
             role: BandMember.roleAdmin,
-            displayName: user?.displayName,
-            email: user?.email,
+            displayName: user.displayName,
+            email: user.email,
           ),
         ],
         inviteCode: inviteCode,
         createdAt: DateTime.now(),
       );
 
-      ref.read(bandsProvider.notifier).addBand(band);
+      await ref.read(firestoreProvider).saveBand(band, user.uid);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Band "${band.name}" created! Invite code: $inviteCode',
-            ),
+            content: Text('Band "${band.name}" created! Code: $inviteCode'),
             duration: const Duration(seconds: 5),
           ),
         );
         Navigator.pop(context);
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted)
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -113,10 +110,8 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Invite your bandmates to join',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                'Invite your bandmates',
+                style: TextStyle(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -126,20 +121,13 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                   labelText: 'Band Name *',
                   prefixIcon: Icon(Icons.groups),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter band name';
-                  }
-                  return null;
-                },
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (optional)',
-                  prefixIcon: Icon(Icons.description),
-                ),
+                decoration: const InputDecoration(labelText: 'Description'),
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
@@ -149,14 +137,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
+                    ? const CircularProgressIndicator(color: Colors.white)
                     : const Text('Create Band'),
               ),
             ],

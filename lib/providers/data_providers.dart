@@ -1,187 +1,139 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/song.dart';
 import '../models/band.dart';
 import '../models/setlist.dart';
-import '../services/firestore_service.dart';
 import 'auth_provider.dart';
 
-final songsProvider = StateNotifierProvider<SongsNotifier, List<Song>>((ref) {
-  return SongsNotifier(ref);
+final firestoreProvider = Provider<FirestoreService>((ref) {
+  return FirestoreService();
 });
 
-class SongsNotifier extends StateNotifier<List<Song>> {
-  final Ref ref;
-  bool _initialized = false;
-
-  SongsNotifier(this.ref) : super([]) {
-    _init();
+class FirestoreService {
+  Future<void> saveSong(Song song, String uid) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('songs')
+        .doc(song.id)
+        .set(song.toJson());
   }
 
-  void _init() {
-    ref.listen(currentUserProvider, (previous, next) {
-      if (next != null && !_initialized) {
-        _initialized = true;
-        _loadFromFirestore(next.uid);
-      }
-    }, fireImmediately: true);
+  Future<void> deleteSong(String songId, String uid) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('songs')
+        .doc(songId)
+        .delete();
   }
 
-  void _loadFromFirestore(String uid) {
-    final firestore = ref.read(firestoreServiceProvider);
-    firestore.watchSongs(uid).listen((songs) {
-      state = songs;
-    });
+  Stream<List<Song>> watchSongs(String uid) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('songs')
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Song.fromJson(doc.data())).toList(),
+        );
   }
 
-  Future<void> addSong(Song song) async {
-    state = [...state, song];
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      await ref.read(firestoreServiceProvider).saveSong(song, user.uid);
-    }
+  Future<void> saveBand(Band band, String uid) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('bands')
+        .doc(band.id)
+        .set(band.toJson());
   }
 
-  Future<void> updateSong(Song song) async {
-    state = state.map((s) => s.id == song.id ? song : s).toList();
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      await ref.read(firestoreServiceProvider).saveSong(song, user.uid);
-    }
+  Future<void> deleteBand(String bandId, String uid) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('bands')
+        .doc(bandId)
+        .delete();
   }
 
-  Future<void> deleteSong(String id) async {
-    state = state.where((s) => s.id != id).toList();
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      await ref.read(firestoreServiceProvider).deleteSong(id, user.uid);
-    }
+  Stream<List<Band>> watchBands(String uid) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('bands')
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Band.fromJson(doc.data())).toList(),
+        );
   }
 
-  int get songCount => state.length;
+  Future<void> saveSetlist(Setlist setlist, String uid) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('setlists')
+        .doc(setlist.id)
+        .set(setlist.toJson());
+  }
+
+  Future<void> deleteSetlist(String setlistId, String uid) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('setlists')
+        .doc(setlistId)
+        .delete();
+  }
+
+  Stream<List<Setlist>> watchSetlists(String uid) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('setlists')
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Setlist.fromJson(doc.data())).toList(),
+        );
+  }
 }
 
-final bandsProvider = StateNotifierProvider<BandsNotifier, List<Band>>((ref) {
-  return BandsNotifier(ref);
+final songsProvider = StreamProvider<List<Song>>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value([]);
+  return ref.watch(firestoreProvider).watchSongs(user.uid);
 });
 
-class BandsNotifier extends StateNotifier<List<Band>> {
-  final Ref ref;
-  bool _initialized = false;
+final bandsProvider = StreamProvider<List<Band>>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value([]);
+  return ref.watch(firestoreProvider).watchBands(user.uid);
+});
 
-  BandsNotifier(this.ref) : super([]) {
-    _init();
-  }
-
-  void _init() {
-    ref.listen(currentUserProvider, (previous, next) {
-      if (next != null && !_initialized) {
-        _initialized = true;
-        _loadFromFirestore(next.uid);
-      }
-    }, fireImmediately: true);
-  }
-
-  void _loadFromFirestore(String uid) {
-    final firestore = ref.read(firestoreServiceProvider);
-    firestore.watchBands(uid).listen((bands) {
-      state = bands;
-    });
-  }
-
-  Future<void> addBand(Band band) async {
-    state = [...state, band];
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      await ref.read(firestoreServiceProvider).saveBand(band, user.uid);
-    }
-  }
-
-  Future<void> updateBand(Band band) async {
-    state = state.map((b) => b.id == band.id ? band : b).toList();
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      await ref.read(firestoreServiceProvider).saveBand(band, user.uid);
-    }
-  }
-
-  Future<void> deleteBand(String id) async {
-    state = state.where((b) => b.id != id).toList();
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      await ref.read(firestoreServiceProvider).deleteBand(id, user.uid);
-    }
-  }
-
-  int get bandCount => state.length;
-}
-
-final setlistsProvider = StateNotifierProvider<SetlistsNotifier, List<Setlist>>(
-  (ref) {
-    return SetlistsNotifier(ref);
-  },
-);
-
-class SetlistsNotifier extends StateNotifier<List<Setlist>> {
-  final Ref ref;
-  bool _initialized = false;
-
-  SetlistsNotifier(this.ref) : super([]) {
-    _init();
-  }
-
-  void _init() {
-    ref.listen(currentUserProvider, (previous, next) {
-      if (next != null && !_initialized) {
-        _initialized = true;
-        _loadFromFirestore(next.uid);
-      }
-    }, fireImmediately: true);
-  }
-
-  void _loadFromFirestore(String uid) {
-    final firestore = ref.read(firestoreServiceProvider);
-    firestore.watchSetlists(uid).listen((setlists) {
-      state = setlists;
-    });
-  }
-
-  Future<void> addSetlist(Setlist setlist) async {
-    state = [...state, setlist];
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      await ref.read(firestoreServiceProvider).saveSetlist(setlist, user.uid);
-    }
-  }
-
-  Future<void> updateSetlist(Setlist setlist) async {
-    state = state.map((s) => s.id == setlist.id ? setlist : s).toList();
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      await ref.read(firestoreServiceProvider).saveSetlist(setlist, user.uid);
-    }
-  }
-
-  Future<void> deleteSetlist(String id) async {
-    state = state.where((s) => s.id != id).toList();
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      await ref.read(firestoreServiceProvider).deleteSetlist(id, user.uid);
-    }
-  }
-
-  int get setlistCount => state.length;
-}
+final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value([]);
+  return ref.watch(firestoreProvider).watchSetlists(user.uid);
+});
 
 final selectedBandProvider = StateProvider<Band?>((ref) => null);
 
 final songCountProvider = Provider<int>((ref) {
-  return ref.watch(songsProvider).length;
+  return ref.watch(songsProvider).whenOrNull(data: (songs) => songs.length) ??
+      0;
 });
 
 final bandCountProvider = Provider<int>((ref) {
-  return ref.watch(bandsProvider).length;
+  return ref.watch(bandsProvider).whenOrNull(data: (bands) => bands.length) ??
+      0;
 });
 
 final setlistCountProvider = Provider<int>((ref) {
-  return ref.watch(setlistsProvider).length;
+  return ref
+          .watch(setlistsProvider)
+          .whenOrNull(data: (setlists) => setlists.length) ??
+      0;
 });

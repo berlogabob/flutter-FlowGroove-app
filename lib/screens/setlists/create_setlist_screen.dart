@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../providers/data_providers.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 
@@ -31,7 +32,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   }
 
   void _showSongPicker() async {
-    final songs = ref.read(songsProvider);
+    final songsAsync = ref.read(songsProvider);
+    final songs = songsAsync.valueOrNull ?? [];
+
     final result = await showModalBottomSheet<List<Song>>(
       context: context,
       isScrollControlled: true,
@@ -45,23 +48,25 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           selectedSongs: _selectedSongs,
           scrollController: scrollController,
           onConfirm: (selected) {
-            setState(() {
-              _selectedSongs = selected;
-            });
+            setState(() => _selectedSongs = selected);
             Navigator.pop(context);
           },
         ),
       ),
     );
-    if (result != null) {
-      setState(() {
-        _selectedSongs = result;
-      });
-    }
+    if (result != null) setState(() => _selectedSongs = result);
   }
 
-  void _createSetlist() {
+  Future<void> _createSetlist() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final user = ref.read(currentUserProvider);
+    if (user == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please login first')));
+      return;
+    }
 
     final setlist = Setlist(
       id: const Uuid().v4(),
@@ -81,11 +86,13 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       updatedAt: DateTime.now(),
     );
 
-    ref.read(setlistsProvider.notifier).addSetlist(setlist);
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Setlist "${setlist.name}" created')),
-    );
+    await ref.read(firestoreProvider).saveSetlist(setlist, user.uid);
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Setlist "${setlist.name}" created')),
+      );
+    }
   }
 
   @override
@@ -111,12 +118,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 labelText: 'Setlist Name *',
                 prefixIcon: Icon(Icons.queue_music),
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter setlist name';
-                }
-                return null;
-              },
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -124,7 +127,6 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
               decoration: const InputDecoration(
                 labelText: 'Event Date',
                 prefixIcon: Icon(Icons.calendar_today),
-                hintText: 'e.g. 15.03.2026',
               ),
             ),
             const SizedBox(height: 16),
@@ -138,10 +140,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                prefixIcon: Icon(Icons.description),
-              ),
+              decoration: const InputDecoration(labelText: 'Description'),
               maxLines: 2,
             ),
             const SizedBox(height: 24),
@@ -155,7 +154,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 TextButton.icon(
                   onPressed: _showSongPicker,
                   icon: const Icon(Icons.add),
-                  label: const Text('Add Songs'),
+                  label: const Text('Add'),
                 ),
               ],
             ),
@@ -167,50 +166,35 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   border: Border.all(color: Colors.grey[300]!),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
+                child: const Column(
                   children: [
-                    Icon(Icons.music_note, size: 48, color: Colors.grey[400]),
-                    const SizedBox(height: 8),
-                    Text(
-                      'No songs added',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
+                    Icon(Icons.music_note, size: 48, color: Colors.grey),
+                    SizedBox(height: 8),
+                    Text('No songs added'),
                   ],
                 ),
               )
             else
-              ReorderableListView.builder(
+              ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _selectedSongs.length,
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    if (newIndex > oldIndex) newIndex--;
-                    final song = _selectedSongs.removeAt(oldIndex);
-                    _selectedSongs.insert(newIndex, song);
-                  });
-                },
                 itemBuilder: (context, index) {
                   final song = _selectedSongs[index];
                   return Card(
-                    key: Key(song.id),
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
-                      leading: const Icon(Icons.drag_handle),
                       title: Text(song.title),
                       subtitle: Text(song.artist),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (song.ourBPM != null) Text('${song.ourBPM}'),
-                          if (song.ourKey != null) Text(' ${song.ourKey}'),
+                          if (song.ourBPM != null) Text('${song.ourBPM} '),
+                          if (song.ourKey != null) Text(song.ourKey!),
                           IconButton(
                             icon: const Icon(Icons.close),
-                            onPressed: () {
-                              setState(() {
-                                _selectedSongs.removeAt(index);
-                              });
-                            },
+                            onPressed: () =>
+                                setState(() => _selectedSongs.removeAt(index)),
                           ),
                         ],
                       ),
@@ -254,11 +238,14 @@ class _SongPickerSheetState extends State<_SongPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredSongs = widget.songs.where((song) {
-      final query = _searchQuery.toLowerCase();
-      return song.title.toLowerCase().contains(query) ||
-          song.artist.toLowerCase().contains(query);
-    }).toList();
+    final filteredSongs = widget.songs
+        .where(
+          (s) =>
+              _searchQuery.isEmpty ||
+              s.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              s.artist.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
+        .toList();
 
     return Column(
       children: [
@@ -282,10 +269,10 @@ class _SongPickerSheetState extends State<_SongPickerSheet> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: TextField(
             decoration: const InputDecoration(
-              hintText: 'Search songs...',
+              hintText: 'Search...',
               prefixIcon: Icon(Icons.search),
             ),
-            onChanged: (value) => setState(() => _searchQuery = value),
+            onChanged: (v) => setState(() => _searchQuery = v),
           ),
         ),
         const SizedBox(height: 8),
@@ -298,24 +285,13 @@ class _SongPickerSheetState extends State<_SongPickerSheet> {
               final isSelected = _tempSelected.any((s) => s.id == song.id);
               return CheckboxListTile(
                 value: isSelected,
-                onChanged: (value) {
-                  setState(() {
-                    if (value == true) {
-                      _tempSelected.add(song);
-                    } else {
-                      _tempSelected.removeWhere((s) => s.id == song.id);
-                    }
-                  });
-                },
+                onChanged: (v) => setState(
+                  () => v == true
+                      ? _tempSelected.add(song)
+                      : _tempSelected.removeWhere((s) => s.id == song.id),
+                ),
                 title: Text(song.title),
                 subtitle: Text(song.artist),
-                secondary: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (song.ourBPM != null) Text('${song.ourBPM} '),
-                    if (song.ourKey != null) Text(song.ourKey!),
-                  ],
-                ),
               );
             },
           ),

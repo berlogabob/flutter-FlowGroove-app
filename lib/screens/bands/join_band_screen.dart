@@ -25,44 +25,33 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
   Future<void> _joinBand() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      final code = _codeController.text.trim().toUpperCase();
-      final bands = ref.read(bandsProvider);
+      final user = ref.read(currentUserProvider);
+      if (user == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Please login first')));
+        return;
+      }
 
+      final bandsAsync = ref.read(bandsProvider);
+      final bands = bandsAsync.valueOrNull ?? [];
+      final code = _codeController.text.trim().toUpperCase();
       final band = bands.where((b) => b.inviteCode == code).firstOrNull;
 
       if (band == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Invalid invite code')));
-        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Invalid code')));
         return;
       }
 
-      final user = ref.read(currentUserProvider);
-      if (user == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Please login first')));
-        }
-        return;
-      }
-
-      final isMember = band.members.any((m) => m.uid == user.uid);
-      if (isMember) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('You are already a member of this band'),
-            ),
-          );
-        }
+      if (band.members.any((m) => m.uid == user.uid)) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Already a member')));
         return;
       }
 
@@ -78,7 +67,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         ],
       );
 
-      ref.read(bandsProvider.notifier).updateBand(updatedBand);
+      await ref.read(firestoreProvider).saveBand(updatedBand, user.uid);
 
       if (mounted) {
         ScaffoldMessenger.of(
@@ -87,17 +76,12 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted)
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -121,10 +105,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter the invite code from your bandmate',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                'Enter invite code',
+                style: TextStyle(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -134,17 +116,11 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Invite Code *',
                   prefixIcon: Icon(Icons.vpn_key),
-                  hintText: 'e.g. ABC123',
+                  hintText: 'ABC123',
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter invite code';
-                  }
-                  if (value.trim().length < 6) {
-                    return 'Invite code is 6 characters';
-                  }
-                  return null;
-                },
+                validator: (v) => (v == null || v.trim().length < 6)
+                    ? 'Enter 6-char code'
+                    : null,
               ),
               const SizedBox(height: 32),
               ElevatedButton(
@@ -153,14 +129,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
+                    ? const CircularProgressIndicator(color: Colors.white)
                     : const Text('Join Band'),
               ),
             ],

@@ -9,20 +9,22 @@ class SetlistsListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final setlists = ref.watch(setlistsProvider);
+    final setlistsAsync = ref.watch(setlistsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Setlists')),
-      body: setlists.isEmpty
-          ? _buildEmptyState(context)
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: setlists.length,
-              itemBuilder: (context, index) {
-                final setlist = setlists[index];
-                return _buildSetlistCard(context, setlist);
-              },
-            ),
+      body: setlistsAsync.when(
+        data: (setlists) => setlists.isEmpty
+            ? _buildEmptyState()
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: setlists.length,
+                itemBuilder: (context, index) =>
+                    _buildSetlistCard(context, setlists[index]),
+              ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, '/create-setlist'),
         child: const Icon(Icons.add),
@@ -30,22 +32,16 @@ class SetlistsListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
+  Widget _buildEmptyState() {
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.queue_music, size: 80, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            'No setlists yet',
-            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Create a setlist for your next gig',
-            style: TextStyle(color: Colors.grey[500]),
-          ),
+          Icon(Icons.queue_music, size: 80, color: Colors.grey),
+          SizedBox(height: 16),
+          Text('No setlists yet', style: TextStyle(fontSize: 18)),
+          SizedBox(height: 8),
+          Text('Create a setlist for your gig'),
         ],
       ),
     );
@@ -63,18 +59,8 @@ class SetlistsListScreen extends ConsumerWidget {
           setlist.name,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${setlist.songIds.length} songs'),
-            if (setlist.eventDate != null) Text('📅 ${setlist.eventDate}'),
-          ],
-        ),
+        subtitle: Text('${setlist.songIds.length} songs'),
         trailing: const Icon(Icons.chevron_right),
-        isThreeLine: setlist.eventDate != null,
-        onTap: () {
-          Navigator.pushNamed(context, '/edit-setlist', arguments: setlist);
-        },
       ),
     );
   }
