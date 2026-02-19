@@ -5,13 +5,18 @@ import '../models/band.dart';
 import '../models/setlist.dart';
 import 'auth_provider.dart';
 
+// Export firestore service for global band operations
+export '../services/firestore_service.dart' show firestoreServiceProvider;
+
 final firestoreProvider = Provider<FirestoreService>((ref) {
   return FirestoreService();
 });
 
 class FirestoreService {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   Future<void> saveSong(Song song, String uid) async {
-    await FirebaseFirestore.instance
+    await _firestore
         .collection('users')
         .doc(uid)
         .collection('songs')
@@ -20,7 +25,7 @@ class FirestoreService {
   }
 
   Future<void> deleteSong(String songId, String uid) async {
-    await FirebaseFirestore.instance
+    await _firestore
         .collection('users')
         .doc(uid)
         .collection('songs')
@@ -29,7 +34,7 @@ class FirestoreService {
   }
 
   Stream<List<Song>> watchSongs(String uid) {
-    return FirebaseFirestore.instance
+    return _firestore
         .collection('users')
         .doc(uid)
         .collection('songs')
@@ -41,7 +46,7 @@ class FirestoreService {
   }
 
   Future<void> saveBand(Band band, String uid) async {
-    await FirebaseFirestore.instance
+    await _firestore
         .collection('users')
         .doc(uid)
         .collection('bands')
@@ -50,7 +55,7 @@ class FirestoreService {
   }
 
   Future<void> deleteBand(String bandId, String uid) async {
-    await FirebaseFirestore.instance
+    await _firestore
         .collection('users')
         .doc(uid)
         .collection('bands')
@@ -58,16 +63,31 @@ class FirestoreService {
         .delete();
   }
 
+  /// Watches bands for a user by fetching from the global collection.
+  /// 
+  /// First gets the user's band IDs from their collection,
+  /// then fetches full band data from the global 'bands' collection.
   Stream<List<Band>> watchBands(String uid) {
-    return FirebaseFirestore.instance
+    return _firestore
         .collection('users')
         .doc(uid)
         .collection('bands')
         .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs.map((doc) => Band.fromJson(doc.data())).toList(),
-        );
+        .asyncMap((snapshot) async {
+          final bandIds = snapshot.docs.map((doc) => doc.id).toList();
+          
+          if (bandIds.isEmpty) return <Band>[];
+          
+          // Fetch full band data from global collection
+          final bands = <Band>[];
+          for (final bandId in bandIds) {
+            final bandDoc = await _firestore.collection('bands').doc(bandId).get();
+            if (bandDoc.exists) {
+              bands.add(Band.fromJson(bandDoc.data() as Map<String, dynamic>));
+            }
+          }
+          return bands;
+        });
   }
 
   Future<void> saveSetlist(Setlist setlist, String uid) async {

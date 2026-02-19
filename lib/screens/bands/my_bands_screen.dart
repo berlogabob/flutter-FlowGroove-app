@@ -2,30 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:uuid/uuid.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/band.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/band_card.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/confirmation_dialog.dart';
 
-class MyBandsScreen extends ConsumerWidget {
+/// Screen for displaying the user's bands with search functionality.
+///
+/// This screen shows all bands the user is a member of with the ability
+/// to search by band name.
+class MyBandsScreen extends ConsumerStatefulWidget {
   const MyBandsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyBandsScreen> createState() => _MyBandsScreenState();
+}
+
+class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
+  String _searchQuery = '';
+
+  /// Filter bands based on the search query.
+  ///
+  /// Searches in band name (case-insensitive).
+  List<Band> _filterBands(List<Band> bands) {
+    if (_searchQuery.trim().isEmpty) {
+      return bands;
+    }
+
+    final query = _searchQuery.toLowerCase().trim();
+    return bands.where((band) {
+      return band.name.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Bands')),
       body: bandsAsync.when(
-        data: (bands) => bands.isEmpty
-            ? _buildEmptyState(context)
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: bands.length,
-                itemBuilder: (context, index) =>
-                    _buildBandCard(context, ref, bands[index]),
-              ),
+        data: (bands) => _buildContent(context, ref, bands),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
@@ -48,65 +69,79 @@ class MyBandsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.groups, size: 80, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          const Text('No bands yet', style: TextStyle(fontSize: 18)),
-          const SizedBox(height: 8),
-          const Text('Create or join a band'),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pushNamed(context, '/create-band'),
-            icon: const Icon(Icons.add),
-            label: const Text('Create Band'),
+  Widget _buildContent(BuildContext context, WidgetRef ref, List<Band> bands) {
+    final filteredBands = _filterBands(bands);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: CustomTextField(
+            hint: 'Search bands...',
+            prefixIcon: Icons.search,
+            onChanged: (value) => setState(() => _searchQuery = value),
           ),
-        ],
-      ),
+        ),
+        Expanded(
+          child: filteredBands.isEmpty
+              ? _buildEmptyState(bands.isEmpty)
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: filteredBands.length,
+                  itemBuilder: (context, index) =>
+                      _buildBandCard(context, ref, filteredBands[index]),
+                ),
+        ),
+      ],
     );
   }
 
+  Widget _buildEmptyState(bool isEmpty) {
+    if (isEmpty) {
+      return EmptyState.bands(
+        onCreate: () => Navigator.pushNamed(context, '/create-band'),
+      );
+    }
+    return EmptyState.search(query: _searchQuery);
+  }
+
   Widget _buildBandCard(BuildContext context, WidgetRef ref, Band band) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppColors.color5,
-          child: Text(
-            band.name.isNotEmpty ? band.name[0].toUpperCase() : 'B',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        title: Text(
-          band.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text('${band.members.length} members'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit, size: 20),
-              onPressed: () =>
-                  Navigator.pushNamed(context, '/edit-band', arguments: band),
-              tooltip: 'Edit band',
-            ),
-            IconButton(
-              icon: const Icon(Icons.person_add),
-              onPressed: () => _showInviteDialog(context, ref, band),
-              tooltip: 'Invite members',
-            ),
-            const Icon(Icons.chevron_right),
-          ],
-        ),
-      ),
+    return BandCard(
+      id: band.id,
+      name: band.name,
+      memberCount: band.members.length,
+      description: band.description,
+      onTap: () => _showInviteDialog(context, ref, band),
+      onEdit: () =>
+          Navigator.pushNamed(context, '/edit-band', arguments: band),
+      onDelete: () => _confirmDelete(context, ref, band),
     );
+  }
+
+  void _confirmDelete(BuildContext context, WidgetRef ref, Band band) async {
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Leave Band',
+      message: 'Are you sure you want to leave this band?',
+      confirmLabel: 'Leave',
+    );
+
+    if (confirmed) {
+      final user = ref.read(currentUserProvider);
+      if (user != null) {
+        final service = ref.read(firestoreServiceProvider);
+        
+        // Remove user from global band members
+        final updatedMembers = band.members
+            .where((m) => m.uid != user.uid)
+            .toList();
+        final updatedBand = band.copyWith(members: updatedMembers);
+        await service.saveBandToGlobal(updatedBand);
+        
+        // Remove from user's bands collection
+        await service.removeUserFromBand(band.id, user.uid);
+      }
+    }
   }
 
   void _showInviteDialog(BuildContext context, WidgetRef ref, Band band) {
@@ -147,12 +182,15 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
 
   void _generateNewCode() async {
     setState(() => _isRegenerating = true);
-    final newCode = const Uuid().v4().substring(0, 8).toUpperCase();
+    final newCode = Band.generateUniqueInviteCode();
 
     final updatedBand = widget.band.copyWith(inviteCode: newCode);
-    await ref
-        .read(firestoreProvider)
-        .saveBand(updatedBand, widget.currentUserId);
+    
+    // Save to global collection
+    await ref.read(firestoreServiceProvider).saveBandToGlobal(updatedBand);
+    
+    // Save to user's collection
+    await ref.read(firestoreProvider).saveBand(updatedBand, widget.currentUserId);
 
     setState(() {
       _inviteCode = newCode;

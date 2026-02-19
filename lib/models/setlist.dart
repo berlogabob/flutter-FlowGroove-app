@@ -1,3 +1,11 @@
+// Sentinel value to detect if a parameter was passed to copyWith
+const Object _sentinel = _Sentinel();
+class _Sentinel {
+  const _Sentinel();
+  @override
+  String toString() => '_sentinel';
+}
+
 class Setlist {
   final String id;
   final String bandId;
@@ -27,11 +35,11 @@ class Setlist {
     String? id,
     String? bandId,
     String? name,
-    String? description,
-    String? eventDate,
-    String? eventLocation,
+    Object? description = _sentinel,
+    Object? eventDate = _sentinel,
+    Object? eventLocation = _sentinel,
     List<String>? songIds,
-    int? totalDuration,
+    Object? totalDuration = _sentinel,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -39,11 +47,11 @@ class Setlist {
       id: id ?? this.id,
       bandId: bandId ?? this.bandId,
       name: name ?? this.name,
-      description: description ?? this.description,
-      eventDate: eventDate ?? this.eventDate,
-      eventLocation: eventLocation ?? this.eventLocation,
+      description: description == _sentinel ? this.description : description as String?,
+      eventDate: eventDate == _sentinel ? this.eventDate : eventDate as String?,
+      eventLocation: eventLocation == _sentinel ? this.eventLocation : eventLocation as String?,
       songIds: songIds ?? this.songIds,
-      totalDuration: totalDuration ?? this.totalDuration,
+      totalDuration: totalDuration == _sentinel ? this.totalDuration : totalDuration as int?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

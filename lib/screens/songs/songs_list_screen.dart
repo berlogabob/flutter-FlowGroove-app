@@ -4,13 +4,44 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/song.dart';
-import '../../theme/app_theme.dart';
+import '../../widgets/song_card.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/confirmation_dialog.dart';
 
-class SongsListScreen extends ConsumerWidget {
+/// Screen for displaying the list of songs with search functionality.
+///
+/// This screen shows all songs for the current user with the ability
+/// to search by title, artist, or tags.
+class SongsListScreen extends ConsumerStatefulWidget {
   const SongsListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SongsListScreen> createState() => _SongsListScreenState();
+}
+
+class _SongsListScreenState extends ConsumerState<SongsListScreen> {
+  String _searchQuery = '';
+
+  /// Filter songs based on the search query.
+  ///
+  /// Searches in title, artist, and tags (case-insensitive).
+  List<Song> _filterSongs(List<Song> songs) {
+    if (_searchQuery.trim().isEmpty) {
+      return songs;
+    }
+
+    final query = _searchQuery.toLowerCase().trim();
+    return songs.where((song) {
+      final titleMatch = song.title.toLowerCase().contains(query);
+      final artistMatch = song.artist.toLowerCase().contains(query);
+      final tagsMatch = song.tags.any((tag) => tag.toLowerCase().contains(query));
+      return titleMatch || artistMatch || tagsMatch;
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final songsAsync = ref.watch(songsProvider);
 
     return Scaffold(
@@ -28,27 +59,25 @@ class SongsListScreen extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, List<Song> songs) {
+    final filteredSongs = _filterSongs(songs);
+
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
-          child: TextField(
-            decoration: const InputDecoration(
-              hintText: 'Search songs...',
-              prefixIcon: Icon(Icons.search),
-            ),
-            onChanged: (value) {
-              // Simple filter - in real app would use a search provider
-            },
+          child: CustomTextField(
+            hint: 'Search songs...',
+            prefixIcon: Icons.search,
+            onChanged: (value) => setState(() => _searchQuery = value),
           ),
         ),
         Expanded(
-          child: songs.isEmpty
-              ? _buildEmptyState()
+          child: filteredSongs.isEmpty
+              ? _buildEmptyState(songs.isEmpty)
               : ListView.builder(
-                  itemCount: songs.length,
+                  itemCount: filteredSongs.length,
                   itemBuilder: (context, index) {
-                    final song = songs[index];
+                    final song = filteredSongs[index];
                     return _buildSongCard(context, ref, song);
                   },
                 ),
@@ -57,19 +86,13 @@ class SongsListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.music_note, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text('No songs yet', style: TextStyle(fontSize: 18)),
-          SizedBox(height: 8),
-          Text('Tap + to add your first song'),
-        ],
-      ),
-    );
+  Widget _buildEmptyState(bool isEmpty) {
+    if (isEmpty) {
+      return EmptyState.songs(
+        onAdd: () => Navigator.pushNamed(context, '/add-song'),
+      );
+    }
+    return EmptyState.search(query: _searchQuery);
   }
 
   Widget _buildSongCard(BuildContext context, WidgetRef ref, Song song) {
@@ -82,73 +105,32 @@ class SongsListScreen extends ConsumerWidget {
         padding: const EdgeInsets.only(right: 16),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
+      confirmDismiss: (direction) async {
+        return await ConfirmationDialog.showDeleteDialog(
+          context,
+          title: 'Delete Song',
+          message: 'Are you sure you want to delete this song?',
+          confirmLabel: 'Delete',
+        );
+      },
       onDismissed: (direction) async {
         final user = ref.read(currentUserProvider);
         if (user != null) {
           await ref.read(firestoreProvider).deleteSong(song.id, user.uid);
         }
       },
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: AppColors.color1,
-            child: const Icon(Icons.music_note, color: Colors.white),
-          ),
-          title: Text(song.title),
-          subtitle: Text(song.artist),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (song.spotifyUrl != null)
-                IconButton(
-                  icon: const Icon(
-                    Icons.play_circle_fill,
-                    color: Colors.green,
-                    size: 28,
-                  ),
-                  onPressed: () async {
-                    final uri = Uri.parse(song.spotifyUrl!);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(
-                        uri,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    }
-                  },
-                  tooltip: 'Play on Spotify',
-                ),
-              if (song.ourBPM != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.color5.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '${song.ourBPM}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              if (song.ourKey != null) ...[
-                const SizedBox(width: 8),
-                Text(
-                  song.ourKey!,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.edit, size: 20),
-                onPressed: () =>
-                    Navigator.pushNamed(context, '/edit-song', arguments: song),
-              ),
-            ],
-          ),
-        ),
+      child: SongCard(
+        song: song,
+        onEdit: () =>
+            Navigator.pushNamed(context, '/edit-song', arguments: song),
+        onPlaySpotify: () async {
+          if (song.spotifyUrl != null) {
+            final uri = Uri.parse(song.spotifyUrl!);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          }
+        },
       ),
     );
   }

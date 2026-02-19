@@ -7,6 +7,10 @@
 .buildlog/
 .history
 
+# Environment variables (contains secrets)
+.env
+web/config.js
+
 
 
 # Flutter repo-specific

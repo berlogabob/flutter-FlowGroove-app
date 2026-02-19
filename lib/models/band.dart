@@ -1,3 +1,13 @@
+import 'dart:math';
+
+// Sentinel value to detect if a parameter was passed to copyWith
+const Object _sentinel = _Sentinel();
+class _Sentinel {
+  const _Sentinel();
+  @override
+  String toString() => '_sentinel';
+}
+
 class BandMember {
   final String uid;
   final String role;
@@ -52,19 +62,19 @@ class Band {
   Band copyWith({
     String? id,
     String? name,
-    String? description,
+    Object? description = _sentinel,
     String? createdBy,
     List<BandMember>? members,
-    String? inviteCode,
+    Object? inviteCode = _sentinel,
     DateTime? createdAt,
   }) {
     return Band(
       id: id ?? this.id,
       name: name ?? this.name,
-      description: description ?? this.description,
+      description: description == _sentinel ? this.description : description as String?,
       createdBy: createdBy ?? this.createdBy,
       members: members ?? this.members,
-      inviteCode: inviteCode ?? this.inviteCode,
+      inviteCode: inviteCode == _sentinel ? this.inviteCode : inviteCode as String?,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -94,4 +104,18 @@ class Band {
         ? DateTime.parse(json['createdAt'])
         : DateTime.now(),
   );
+
+  /// Generates a unique 6-character invite code using cryptographically secure random.
+  /// 
+  /// The code consists of uppercase letters and digits (36 characters total).
+  /// Collision handling should be done at the service layer.
+  static String generateUniqueInviteCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random.secure();
+    String code = '';
+    for (int i = 0; i < 6; i++) {
+      code += chars[random.nextInt(chars.length)];
+    }
+    return code;
+  }
 }

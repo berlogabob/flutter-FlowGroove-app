@@ -1,22 +1,65 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'web_config.stub.dart' if (dart.library.html) 'web_config.web.dart';
 
 /// Spotify Service for searching songs and getting audio features (BPM, key).
 ///
 /// To enable Spotify:
 /// 1. Go to https://developer.spotify.com/dashboard
 /// 2. Create an app to get Client ID and Client Secret
-/// 3. Replace _clientId and _clientSecret below
+/// 3. Add credentials to .env file (SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
+///    OR for web: set window.env in web/config.js
 class SpotifyService {
-  // TODO: Replace with your Spotify API credentials from developer.spotify.com
-  static const String _clientId = '92576bcea9074252ad0f02f95d093a3b';
-  static const String _clientSecret = '5a09b161559b4a3386dd340ec1519e6c';
+  /// Get Spotify Client ID from environment variables
+  /// For web, also checks window.env object
+  static String get _clientId {
+    if (kIsWeb) {
+      // Try dotenv first
+      final fromDotenv = dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
+      if (fromDotenv.isNotEmpty &&
+          fromDotenv != 'your_client_id_here') {
+        return fromDotenv;
+      }
+      // Fallback to web config (window.env)
+      final fromWeb = getWebConfig('SPOTIFY_CLIENT_ID');
+      if (fromWeb.isNotEmpty && fromWeb != 'your_client_id_here') {
+        return fromWeb;
+      }
+      return '';
+    }
+    return dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
+  }
+
+  /// Get Spotify Client Secret from environment variables
+  /// For web, also checks window.env object
+  static String get _clientSecret {
+    if (kIsWeb) {
+      // Try dotenv first
+      final fromDotenv = dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
+      if (fromDotenv.isNotEmpty &&
+          fromDotenv != 'your_client_secret_here') {
+        return fromDotenv;
+      }
+      // Fallback to web config (window.env)
+      final fromWeb = getWebConfig('SPOTIFY_CLIENT_SECRET');
+      if (fromWeb.isNotEmpty && fromWeb != 'your_client_secret_here') {
+        return fromWeb;
+      }
+      return '';
+    }
+    return dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
+  }
+  
   static const String _baseUrl = 'https://api.spotify.com/v1';
 
   /// Check if Spotify API is configured
   static bool get isConfigured =>
-      _clientId != 'YOUR_SPOTIFY_CLIENT_ID' &&
-      _clientSecret != 'YOUR_SPOTIFY_CLIENT_SECRET';
+      _clientId.isNotEmpty &&
+      _clientId != 'your_client_id_here' &&
+      _clientSecret.isNotEmpty &&
+      _clientSecret != 'your_client_secret_here';
 
   static String? _accessToken;
   static DateTime? _tokenExpiry;

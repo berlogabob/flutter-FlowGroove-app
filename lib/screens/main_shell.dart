@@ -29,12 +29,12 @@ class MainShell extends ConsumerWidget {
     return Scaffold(
       body: IndexedStack(
         index: currentIndex,
-        children: [
-          const HomeScreen(),
-          const SongsListScreen(),
-          const MyBandsScreen(),
-          const SetlistsListScreen(),
-          const ProfileScreen(),
+        children: const [
+          HomeScreen(),
+          SongsListScreen(),
+          MyBandsScreen(),
+          SetlistsListScreen(),
+          ProfileScreen(),
         ],
       ),
       bottomNavigationBar: NavigationBar(

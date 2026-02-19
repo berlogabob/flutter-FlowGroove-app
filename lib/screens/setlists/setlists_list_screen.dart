@@ -2,29 +2,54 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data_providers.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../services/pdf_service.dart';
-import '../../theme/app_theme.dart';
+import '../../widgets/setlist_card.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/confirmation_dialog.dart';
 
-class SetlistsListScreen extends ConsumerWidget {
+/// Screen for displaying the list of setlists with search functionality.
+///
+/// This screen shows all setlists with the ability to search by name
+/// and description.
+class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SetlistsListScreen> createState() => _SetlistsListScreenState();
+}
+
+class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
+  String _searchQuery = '';
+
+  /// Filter setlists based on the search query.
+  ///
+  /// Searches in name and description (case-insensitive).
+  List<Setlist> _filterSetlists(List<Setlist> setlists) {
+    if (_searchQuery.trim().isEmpty) {
+      return setlists;
+    }
+
+    final query = _searchQuery.toLowerCase().trim();
+    return setlists.where((setlist) {
+      final nameMatch = setlist.name.toLowerCase().contains(query);
+      final descMatch =
+          setlist.description?.toLowerCase().contains(query) ?? false;
+      return nameMatch || descMatch;
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final setlistsAsync = ref.watch(setlistsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Setlists')),
       body: setlistsAsync.when(
-        data: (setlists) => setlists.isEmpty
-            ? _buildEmptyState()
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: setlists.length,
-                itemBuilder: (context, index) =>
-                    _buildSetlistCard(context, ref, setlists[index]),
-              ),
+        data: (setlists) => _buildContent(context, ref, setlists),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
@@ -35,19 +60,47 @@ class SetlistsListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.queue_music, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text('No setlists yet', style: TextStyle(fontSize: 18)),
-          SizedBox(height: 8),
-          Text('Create a setlist for your gig'),
-        ],
-      ),
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    List<Setlist> setlists,
+  ) {
+    final filteredSetlists = _filterSetlists(setlists);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: CustomTextField(
+            hint: 'Search setlists...',
+            prefixIcon: Icons.search,
+            onChanged: (value) => setState(() => _searchQuery = value),
+          ),
+        ),
+        Expanded(
+          child: filteredSetlists.isEmpty
+              ? _buildEmptyState(setlists.isEmpty)
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: filteredSetlists.length,
+                  itemBuilder: (context, index) => _buildSetlistCard(
+                    context,
+                    ref,
+                    filteredSetlists[index],
+                  ),
+                ),
+        ),
+      ],
     );
+  }
+
+  Widget _buildEmptyState(bool isEmpty) {
+    if (isEmpty) {
+      return EmptyState.setlists(
+        onCreate: () => Navigator.pushNamed(context, '/create-setlist'),
+      );
+    }
+    return EmptyState.search(query: _searchQuery);
   }
 
   Widget _buildSetlistCard(
@@ -55,51 +108,50 @@ class SetlistsListScreen extends ConsumerWidget {
     WidgetRef ref,
     Setlist setlist,
   ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppColors.color3,
-          child: const Icon(Icons.queue_music, color: AppColors.color4),
-        ),
-        title: Text(
-          setlist.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text('${setlist.songIds.length} songs'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.picture_as_pdf, size: 20),
-              onPressed: () => _exportSetlist(context, ref, setlist),
-              tooltip: 'Export PDF',
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit, size: 20),
-              onPressed: () => Navigator.pushNamed(
-                context,
-                '/edit-setlist',
-                arguments: setlist,
-              ),
-            ),
-            const Icon(Icons.chevron_right),
-          ],
-        ),
+    return SetlistCard(
+      id: setlist.id,
+      name: setlist.name,
+      songCount: setlist.songIds.length,
+      bandName: setlist.bandId,
+      date: setlist.eventDate,
+      onEdit: () => Navigator.pushNamed(
+        context,
+        '/edit-setlist',
+        arguments: setlist,
       ),
+      onDelete: () => _confirmDelete(context, ref, setlist),
+      onTap: () => _showExportOptions(context, ref, setlist),
     );
   }
 
-  void _exportSetlist(
+  void _confirmDelete(
     BuildContext context,
     WidgetRef ref,
     Setlist setlist,
   ) async {
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Delete Setlist',
+      message: 'Are you sure you want to delete this setlist?',
+    );
+
+    if (confirmed) {
+      final user = ref.read(currentUserProvider);
+      if (user != null) {
+        await ref.read(firestoreProvider).deleteSetlist(setlist.id, user.uid);
+      }
+    }
+  }
+
+  void _showExportOptions(
+    BuildContext context,
+    WidgetRef ref,
+    Setlist setlist,
+  ) {
     final songsAsync = ref.read(songsProvider);
     final allSongs = songsAsync.value ?? [];
-    final setlistSongs = allSongs
-        .where((s) => setlist.songIds.contains(s.id))
-        .toList();
+    final setlistSongs =
+        allSongs.where((s) => setlist.songIds.contains(s.id)).toList();
 
     showModalBottomSheet(
       context: context,

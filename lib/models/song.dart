@@ -1,5 +1,13 @@
 import 'link.dart';
 
+// Sentinel value to detect if a parameter was passed to copyWith
+const Object _sentinel = _Sentinel();
+class _Sentinel {
+  const _Sentinel();
+  @override
+  String toString() => '_sentinel';
+}
+
 class Song {
   final String id;
   final String title;
@@ -37,15 +45,15 @@ class Song {
     String? id,
     String? title,
     String? artist,
-    String? originalKey,
-    int? originalBPM,
-    String? ourKey,
-    int? ourBPM,
+    Object? originalKey = _sentinel,
+    Object? originalBPM = _sentinel,
+    Object? ourKey = _sentinel,
+    Object? ourBPM = _sentinel,
     List<Link>? links,
-    String? notes,
+    Object? notes = _sentinel,
     List<String>? tags,
-    String? bandId,
-    String? spotifyUrl,
+    Object? bandId = _sentinel,
+    Object? spotifyUrl = _sentinel,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -53,15 +61,15 @@ class Song {
       id: id ?? this.id,
       title: title ?? this.title,
       artist: artist ?? this.artist,
-      originalKey: originalKey ?? this.originalKey,
-      originalBPM: originalBPM ?? this.originalBPM,
-      ourKey: ourKey ?? this.ourKey,
-      ourBPM: ourBPM ?? this.ourBPM,
+      originalKey: originalKey == _sentinel ? this.originalKey : originalKey as String?,
+      originalBPM: originalBPM == _sentinel ? this.originalBPM : originalBPM as int?,
+      ourKey: ourKey == _sentinel ? this.ourKey : ourKey as String?,
+      ourBPM: ourBPM == _sentinel ? this.ourBPM : ourBPM as int?,
       links: links ?? this.links,
-      notes: notes ?? this.notes,
+      notes: notes == _sentinel ? this.notes : notes as String?,
       tags: tags ?? this.tags,
-      bandId: bandId ?? this.bandId,
-      spotifyUrl: spotifyUrl ?? this.spotifyUrl,
+      bandId: bandId == _sentinel ? this.bandId : bandId as String?,
+      spotifyUrl: spotifyUrl == _sentinel ? this.spotifyUrl : spotifyUrl as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

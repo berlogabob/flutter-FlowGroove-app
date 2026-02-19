@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is the owner
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Helper function to get band data from global collection
+    function getGlobalBand(bandId) {
+      return get(/databases/$(database)/documents/bands/$(bandId)).data;
+    }
+
+    // Helper function to check if user is a member of a global band
+    function isGlobalBandMember(bandId) {
+      let band = getGlobalBand(bandId);
+      return band != null &&
+        band.members.map(m, m.uid).hasAny([request.auth.uid]);
+    }
+
+    // Helper function to check if user is an admin of a global band
+    function isGlobalBandAdmin(bandId) {
+      let band = getGlobalBand(bandId);
+      let member = band.members.filter(m, m.uid == request.auth.uid);
+      return band != null && member.size() > 0 && member[0].role == 'admin';
+    }
+
+    // ============================================================
+    // Global Bands Collection
+    // ============================================================
+    // Stores all bands in a single collection for cross-user access
+    match /bands/{bandId} {
+      // Any authenticated user can read bands (needed for join by code)
+      allow read: if isAuthenticated();
+
+      // Create: Any authenticated user can create a band
+      allow create: if isAuthenticated() &&
+        request.resource.data.members.map(m, m.uid).hasAny([request.auth.uid]);
+
+      // Update: Only band admins can update band details
+      allow update: if isAuthenticated() && isGlobalBandAdmin(bandId);
+
+      // Delete: Only band admins can delete a band
+      allow delete: if isAuthenticated() && isGlobalBandAdmin(bandId);
+    }
+
+    // ============================================================
+    // Users Collection - each user has their own subcollections
+    // ============================================================
+    match /users/{userId} {
+      // Allow users to read/write their own user document
+      allow read, write: if isAuthenticated() && isOwner(userId);
+
+      // Songs subcollection - only owner can read/write
+      match /songs/{songId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
+
+      // Bands subcollection - stores references to global bands
+      // Band members can read, owner can write
+      match /bands/{bandId} {
+        allow read: if isAuthenticated() && (isOwner(userId) || isGlobalBandMember(bandId));
+        allow write: if isAuthenticated() && isOwner(userId);
+        allow create: if isAuthenticated() && isOwner(userId);
+        allow delete: if isAuthenticated() && isOwner(userId);
+
+        // Band members subcollection (legacy, kept for compatibility)
+        match /members/{memberId} {
+          allow read: if isAuthenticated() && (isOwner(userId) || isGlobalBandMember(bandId));
+          allow write: if isAuthenticated() && isOwner(userId);
+        }
+      }
+
+      // Setlists subcollection - only owner can read/write
+      match /setlists/{setlistId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+      }
+    }
+  }
+}

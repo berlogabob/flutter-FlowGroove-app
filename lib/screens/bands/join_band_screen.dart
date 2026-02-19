@@ -36,25 +36,28 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         return;
       }
 
-      final bandsAsync = ref.read(bandsProvider);
-      final bands = bandsAsync.value ?? [];
+      final service = ref.read(firestoreServiceProvider);
       final code = _codeController.text.trim().toUpperCase();
-      final band = bands.where((b) => b.inviteCode == code).firstOrNull;
+      
+      // Search in GLOBAL bands collection
+      final band = await service.getBandByInviteCode(code);
 
       if (band == null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Invalid code')));
+        ).showSnackBar(const SnackBar(content: Text('Invalid invite code')));
         return;
       }
 
+      // Check if already a member
       if (band.members.any((m) => m.uid == user.uid)) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Already a member')));
+        ).showSnackBar(const SnackBar(content: Text('You are already a member')));
         return;
       }
 
+      // Add user to band members
       final updatedBand = band.copyWith(
         members: [
           ...band.members,
@@ -67,7 +70,11 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         ],
       );
 
-      await ref.read(firestoreProvider).saveBand(updatedBand, user.uid);
+      // Save to global collection
+      await service.saveBandToGlobal(updatedBand);
+      
+      // Add to user's bands collection (for quick access)
+      await service.addUserToBand(band.id, user.uid);
 
       if (mounted) {
         ScaffoldMessenger.of(

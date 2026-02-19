@@ -38,13 +38,28 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
     super.dispose();
   }
 
-  String _generateInviteCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = DateTime.now().millisecondsSinceEpoch;
-    String code = '';
-    for (int i = 0; i < 6; i++) {
-      code += chars[(random + i * 7) % chars.length];
-    }
+  /// Generates a unique invite code with collision detection.
+  /// 
+  /// Retries up to 10 times if a generated code is already taken.
+  /// Throws an exception if unable to generate a unique code.
+  Future<String> _generateUniqueInviteCode() async {
+    final service = ref.read(firestoreServiceProvider);
+    
+    String code;
+    bool isTaken;
+    int attempts = 0;
+    const maxAttempts = 10;
+    
+    do {
+      code = Band.generateUniqueInviteCode();
+      isTaken = await service.isInviteCodeTaken(code);
+      attempts++;
+      
+      if (attempts > maxAttempts) {
+        throw Exception('Failed to generate unique invite code after $maxAttempts attempts');
+      }
+    } while (isTaken);
+    
     return code;
   }
 
@@ -61,6 +76,11 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
         ).showSnackBar(const SnackBar(content: Text('Please login first')));
         return;
       }
+
+      // Generate unique invite code for new bands
+      final inviteCode = _isEditing
+          ? widget.band!.inviteCode
+          : await _generateUniqueInviteCode();
 
       final band = Band(
         id: _isEditing ? widget.band!.id : const Uuid().v4(),
@@ -79,12 +99,14 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                   email: user.email,
                 ),
               ],
-        inviteCode: _isEditing
-            ? widget.band!.inviteCode
-            : _generateInviteCode(),
+        inviteCode: inviteCode,
         createdAt: _isEditing ? widget.band!.createdAt : DateTime.now(),
       );
 
+      // Save to global collection (for cross-user access)
+      await ref.read(firestoreServiceProvider).saveBandToGlobal(band);
+
+      // Save to user's collection (for quick access and listing)
       await ref.read(firestoreProvider).saveBand(band, user.uid);
 
       if (mounted) {

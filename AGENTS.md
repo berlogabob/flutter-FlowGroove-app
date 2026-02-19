@@ -6,6 +6,19 @@ RepSync is a Flutter web application for band repertoire management. Built with 
 
 ---
 
+## 📚 Build & Deployment Documentation
+
+For comprehensive build and deployment guides, see:
+
+| Document | Description |
+|----------|-------------|
+| [BUILD_GUIDE.md](BUILD_GUIDE.md) | Complete build instructions for all platforms |
+| [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment checklists |
+| [RELEASE_PROCESS.md](RELEASE_PROCESS.md) | Version management and release workflow |
+| [docs/PLATFORMS.md](docs/PLATFORMS.md) | Platform support and features |
+
+---
+
 ## Build / Lint / Test Commands
 
 ### Dependencies
