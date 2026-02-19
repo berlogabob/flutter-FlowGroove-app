@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/song.dart';
@@ -128,6 +129,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
                 initialValue: selectedType,
                 items: const [
                   DropdownMenuItem(
+                    value: Link.typeSpotify,
+                    child: Text('Spotify'),
+                  ),
+                  DropdownMenuItem(
                     value: Link.typeYoutubeOriginal,
                     child: Text('YouTube Original'),
                   ),
@@ -226,6 +231,18 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
   }
 
   void _showSpotifySearch() {
+    if (!SpotifyService.isConfigured) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Spotify API not configured. Edit lib/services/spotify_service.dart',
+          ),
+          duration: Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     final title = _titleController.text.trim();
     final artist = _artistController.text.trim();
     final query = '$title $artist'.trim();
@@ -287,6 +304,64 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
         ),
       ),
     );
+  }
+
+  void _searchOnWeb() {
+    final title = _titleController.text.trim();
+    final artist = _artistController.text.trim();
+    final query = '$title $artist'.trim();
+
+    if (query.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a song title to search')),
+      );
+      return;
+    }
+
+    // Open Spotify search in browser
+    final encodedQuery = Uri.encodeComponent(query);
+    final spotifyUrl = 'https://open.spotify.com/search/$encodedQuery';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Search on Web'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Open Spotify search in browser?'),
+            const SizedBox(height: 16),
+            Text(query, style: const TextStyle(fontStyle: FontStyle.italic)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _openUrl(spotifyUrl);
+            },
+            child: const Text('Open Spotify'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Could not open: $url')));
+      }
+    }
   }
 
   Future<void> _saveSong() async {
@@ -471,6 +546,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
                     onPressed: _showSpotifySearch,
                     icon: const Icon(Icons.music_note, size: 18),
                     label: const Text('Spotify'),
+                  ),
+                  TextButton.icon(
+                    onPressed: _searchOnWeb,
+                    icon: const Icon(Icons.search, size: 18),
+                    label: const Text('Web'),
                   ),
                 ],
               ),
@@ -791,8 +871,9 @@ class _SpotifySearchSheetState extends State<_SpotifySearchSheet> {
                       Text('No results found'),
                       SizedBox(height: 8),
                       Text(
-                        'Configure Spotify API credentials',
+                        'Spotify API not configured.\nSee lib/services/spotify_service.dart',
                         style: TextStyle(color: Colors.grey, fontSize: 12),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),

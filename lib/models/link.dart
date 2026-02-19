@@ -15,6 +15,7 @@ class Link {
 
   static const String typeYoutubeOriginal = 'youtube_original';
   static const String typeYoutubeCover = 'youtube_cover';
+  static const String typeSpotify = 'spotify';
   static const String typeTabs = 'tabs';
   static const String typeDrums = 'drums';
   static const String typeChords = 'chords';

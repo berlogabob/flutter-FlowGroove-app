@@ -1,11 +1,22 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+/// Spotify Service for searching songs and getting audio features (BPM, key).
+///
+/// To enable Spotify:
+/// 1. Go to https://developer.spotify.com/dashboard
+/// 2. Create an app to get Client ID and Client Secret
+/// 3. Replace _clientId and _clientSecret below
 class SpotifyService {
-  // Replace these with your Spotify API credentials from developer.spotify.com
-  static const String _clientId = 'YOUR_SPOTIFY_CLIENT_ID';
-  static const String _clientSecret = 'YOUR_SPOTIFY_CLIENT_SECRET';
+  // TODO: Replace with your Spotify API credentials from developer.spotify.com
+  static const String _clientId = '92576bcea9074252ad0f02f95d093a3b';
+  static const String _clientSecret = '5a09b161559b4a3386dd340ec1519e6c';
   static const String _baseUrl = 'https://api.spotify.com/v1';
+
+  /// Check if Spotify API is configured
+  static bool get isConfigured =>
+      _clientId != 'YOUR_SPOTIFY_CLIENT_ID' &&
+      _clientSecret != 'YOUR_SPOTIFY_CLIENT_SECRET';
 
   static String? _accessToken;
   static DateTime? _tokenExpiry;
