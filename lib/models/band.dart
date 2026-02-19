@@ -1,3 +1,5 @@
+import 'dart:math';
+
 // Sentinel value to detect if a parameter was passed to copyWith
 const Object _sentinel = _Sentinel();
 class _Sentinel {
@@ -102,4 +104,18 @@ class Band {
         ? DateTime.parse(json['createdAt'])
         : DateTime.now(),
   );
+
+  /// Generates a unique 6-character invite code using cryptographically secure random.
+  /// 
+  /// The code consists of uppercase letters and digits (36 characters total).
+  /// Collision handling should be done at the service layer.
+  static String generateUniqueInviteCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random.secure();
+    String code = '';
+    for (int i = 0; i < 6; i++) {
+      code += chars[random.nextInt(chars.length)];
+    }
+    return code;
+  }
 }

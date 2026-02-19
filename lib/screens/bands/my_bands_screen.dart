@@ -130,7 +130,17 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (confirmed) {
       final user = ref.read(currentUserProvider);
       if (user != null) {
-        await ref.read(firestoreProvider).deleteBand(band.id, user.uid);
+        final service = ref.read(firestoreServiceProvider);
+        
+        // Remove user from global band members
+        final updatedMembers = band.members
+            .where((m) => m.uid != user.uid)
+            .toList();
+        final updatedBand = band.copyWith(members: updatedMembers);
+        await service.saveBandToGlobal(updatedBand);
+        
+        // Remove from user's bands collection
+        await service.removeUserFromBand(band.id, user.uid);
       }
     }
   }
@@ -173,12 +183,15 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
 
   void _generateNewCode() async {
     setState(() => _isRegenerating = true);
-    final newCode = const Uuid().v4().substring(0, 8).toUpperCase();
+    final newCode = Band.generateUniqueInviteCode();
 
     final updatedBand = widget.band.copyWith(inviteCode: newCode);
-    await ref
-        .read(firestoreProvider)
-        .saveBand(updatedBand, widget.currentUserId);
+    
+    // Save to global collection
+    await ref.read(firestoreServiceProvider).saveBandToGlobal(updatedBand);
+    
+    // Save to user's collection
+    await ref.read(firestoreProvider).saveBand(updatedBand, widget.currentUserId);
 
     setState(() {
       _inviteCode = newCode;

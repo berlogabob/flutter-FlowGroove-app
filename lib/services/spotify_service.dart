@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'web_config.stub.dart' if (dart.library.html) 'web_config.web.dart';
 
 /// Spotify Service for searching songs and getting audio features (BPM, key).
 ///
@@ -15,13 +16,17 @@ class SpotifyService {
   /// For web, also checks window.env object
   static String get _clientId {
     if (kIsWeb) {
-      // Try dotenv first, then check web config
+      // Try dotenv first
       final fromDotenv = dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
-      if (fromDotenv.isNotEmpty && 
+      if (fromDotenv.isNotEmpty &&
           fromDotenv != 'your_client_id_here') {
         return fromDotenv;
       }
-      // Fallback to web config (will be empty if not set)
+      // Fallback to web config (window.env)
+      final fromWeb = getWebConfig('SPOTIFY_CLIENT_ID');
+      if (fromWeb.isNotEmpty && fromWeb != 'your_client_id_here') {
+        return fromWeb;
+      }
       return '';
     }
     return dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
@@ -31,13 +36,17 @@ class SpotifyService {
   /// For web, also checks window.env object
   static String get _clientSecret {
     if (kIsWeb) {
-      // Try dotenv first, then check web config
+      // Try dotenv first
       final fromDotenv = dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
-      if (fromDotenv.isNotEmpty && 
+      if (fromDotenv.isNotEmpty &&
           fromDotenv != 'your_client_secret_here') {
         return fromDotenv;
       }
-      // Fallback to web config (will be empty if not set)
+      // Fallback to web config (window.env)
+      final fromWeb = getWebConfig('SPOTIFY_CLIENT_SECRET');
+      if (fromWeb.isNotEmpty && fromWeb != 'your_client_secret_here') {
+        return fromWeb;
+      }
       return '';
     }
     return dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';

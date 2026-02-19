@@ -133,6 +133,94 @@ class FirestoreService {
               snapshot.docs.map((doc) => Setlist.fromJson(doc.data())).toList(),
         );
   }
+
+  // ============================================================
+  // Global Bands Collection Methods
+  // ============================================================
+  // These methods enable band sharing across users by storing
+  // bands in a global collection instead of user-specific collections.
+
+  /// Saves a band to the global 'bands' collection.
+  /// 
+  /// This makes the band accessible to all users via invite code.
+  Future<void> saveBandToGlobal(Band band) async {
+    await _firestore
+        .collection('bands')  // Global collection
+        .doc(band.id)
+        .set(band.toJson());
+  }
+
+  /// Retrieves a band by its invite code from the global collection.
+  /// 
+  /// Returns null if no band with the given code exists.
+  Future<Band?> getBandByInviteCode(String code) async {
+    final snapshot = await _firestore
+        .collection('bands')
+        .where('inviteCode', isEqualTo: code)
+        .limit(1)
+        .get();
+    
+    if (snapshot.docs.isEmpty) return null;
+    return Band.fromJson(snapshot.docs.first.data() as Map<String, dynamic>);
+  }
+
+  /// Checks if an invite code is already taken by another band.
+  /// 
+  /// Returns true if a band with the given code exists, false otherwise.
+  Future<bool> isInviteCodeTaken(String code) async {
+    final snapshot = await _firestore
+        .collection('bands')
+        .where('inviteCode', isEqualTo: code)
+        .limit(1)
+        .get();
+    return snapshot.docs.isNotEmpty;
+  }
+
+  /// Adds a user reference to their bands collection for a specific band.
+  /// 
+  /// This creates a link in the user's collection pointing to the global band.
+  /// The bandId is used as the document ID for easy lookup.
+  Future<void> addUserToBand(String bandId, String userId) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('bands')
+        .doc(bandId)
+        .set({'bandId': bandId, 'joinedAt': FieldValue.serverTimestamp()});
+  }
+
+  /// Removes a user reference from their bands collection.
+  /// 
+  /// This removes the link but does not delete the global band document.
+  Future<void> removeUserFromBand(String bandId, String userId) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('bands')
+        .doc(bandId)
+        .delete();
+  }
+
+  /// Gets all band IDs that a user is a member of from their user collection.
+  /// 
+  /// Returns a list of band IDs (not full band data).
+  Future<List<String>> getUserBandIds(String userId) async {
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('bands')
+        .get();
+    return snapshot.docs.map((doc) => doc.id).toList();
+  }
+
+  /// Gets a band by its ID from the global collection.
+  /// 
+  /// Returns null if the band doesn't exist.
+  Future<Band?> getBandById(String bandId) async {
+    final doc = await _firestore.collection('bands').doc(bandId).get();
+    if (!doc.exists) return null;
+    return Band.fromJson(doc.data() as Map<String, dynamic>);
+  }
 }
 
 final firestoreServiceProvider = Provider<FirestoreService>((ref) {
