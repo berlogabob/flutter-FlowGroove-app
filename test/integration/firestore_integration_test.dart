@@ -1,10 +1,10 @@
 /// Firestore Integration Tests
-/// 
+///
 /// These tests verify Firestore CRUD operations using mocks.
-/// 
+///
 /// To run these tests:
 /// 1. Run tests: `flutter test test/integration/firestore_integration_test.dart`
-/// 
+///
 /// Note: For real integration tests with Firebase Emulators,
 /// configure the emulator settings and remove mock behaviors.
 
@@ -79,7 +79,7 @@ void main() {
 
     test('deletes a song', () async {
       final songId = const Uuid().v4();
-      
+
       expect(songId, isNotEmpty);
     });
 
@@ -135,8 +135,8 @@ void main() {
         name: 'Test Band',
         createdBy: testUserId,
         members: [
-          BandMember(uid: testUserId, role: 'admin', joinedAt: DateTime.now()),
-          BandMember(uid: 'member-2', role: 'member', joinedAt: DateTime.now()),
+          BandMember(uid: testUserId, role: BandMember.roleAdmin),
+          BandMember(uid: 'member-2', role: BandMember.roleEditor),
         ],
         description: 'A test band for integration testing',
         inviteCode: 'TEST1234',
@@ -154,7 +154,7 @@ void main() {
         id: bandId,
         name: 'Read Test Band',
         createdBy: testUserId,
-        members: [BandMember(uid: testUserId, role: 'admin', joinedAt: DateTime.now())],
+        members: [BandMember(uid: testUserId, role: BandMember.roleAdmin)],
         createdAt: DateTime.now(),
       );
 
@@ -167,7 +167,7 @@ void main() {
         id: const Uuid().v4(),
         name: 'Original Band Name',
         createdBy: testUserId,
-        members: [BandMember(uid: testUserId, role: 'admin', joinedAt: DateTime.now())],
+        members: [BandMember(uid: testUserId, role: BandMember.roleAdmin)],
         createdAt: DateTime.now(),
       );
 
@@ -182,7 +182,7 @@ void main() {
 
     test('deletes a band', () async {
       final bandId = const Uuid().v4();
-      
+
       expect(bandId, isNotEmpty);
     });
 
@@ -191,11 +191,11 @@ void main() {
         id: const Uuid().v4(),
         name: 'Test Band',
         createdBy: testUserId,
-        members: [BandMember(uid: testUserId, role: 'admin', joinedAt: DateTime.now())],
+        members: [BandMember(uid: testUserId, role: BandMember.roleAdmin)],
         createdAt: DateTime.now(),
       );
 
-      final newMember = BandMember(uid: 'new-member', role: 'member', joinedAt: DateTime.now());
+      final newMember = BandMember(uid: 'new-member', role: BandMember.roleEditor);
       final updatedMembers = [...band.members, newMember];
       final updatedBand = band.copyWith(members: updatedMembers);
 
@@ -209,8 +209,8 @@ void main() {
         name: 'Test Band',
         createdBy: testUserId,
         members: [
-          BandMember(uid: testUserId, role: 'admin', joinedAt: DateTime.now()),
-          BandMember(uid: 'member-to-remove', role: 'member', joinedAt: DateTime.now()),
+          BandMember(uid: testUserId, role: BandMember.roleAdmin),
+          BandMember(uid: 'member-to-remove', role: BandMember.roleEditor),
         ],
         createdAt: DateTime.now(),
       );
@@ -278,7 +278,7 @@ void main() {
 
     test('deletes a setlist', () async {
       final setlistId = const Uuid().v4();
-      
+
       expect(setlistId, isNotEmpty);
     });
 
@@ -353,7 +353,7 @@ void main() {
         id: 'test-band-id',
         name: 'Test Band',
         createdBy: testUserId,
-        members: [BandMember(uid: testUserId, role: 'admin', joinedAt: DateTime(2024, 1, 1))],
+        members: [BandMember(uid: testUserId, role: BandMember.roleAdmin)],
         createdAt: DateTime(2024, 1, 1),
       );
 

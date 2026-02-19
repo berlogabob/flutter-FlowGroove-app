@@ -43,9 +43,9 @@ class BandCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: AppColors.color5,
-          child: const Icon(Icons.groups, color: Colors.white),
+          child: Icon(Icons.groups, color: Colors.white),
         ),
         title: Text(name),
         subtitle: Column(

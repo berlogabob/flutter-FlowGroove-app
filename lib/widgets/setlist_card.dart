@@ -47,9 +47,9 @@ class SetlistCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: AppColors.color1,
-          child: const Icon(Icons.playlist_play, color: Colors.white),
+          child: Icon(Icons.playlist_play, color: Colors.white),
         ),
         title: Text(name),
         subtitle: Column(

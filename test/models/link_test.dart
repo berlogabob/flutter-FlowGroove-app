@@ -233,7 +233,7 @@ void main() {
       });
 
       test('handles very long url', () {
-        final longUrl = 'https://example.com/' + ('a' * 5000);
+        final longUrl = 'https://example.com/${'a' * 5000}';
         final link = Link(
           type: Link.typeOther,
           url: longUrl,

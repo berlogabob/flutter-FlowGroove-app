@@ -161,7 +161,7 @@ class FirestoreService {
         .get();
     
     if (snapshot.docs.isEmpty) return null;
-    return Band.fromJson(snapshot.docs.first.data() as Map<String, dynamic>);
+    return Band.fromJson(snapshot.docs.first.data());
   }
 
   /// Checks if an invite code is already taken by another band.

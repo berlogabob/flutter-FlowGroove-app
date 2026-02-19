@@ -37,9 +37,9 @@ class SongCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: AppColors.color1,
-          child: const Icon(Icons.music_note, color: Colors.white),
+          child: Icon(Icons.music_note, color: Colors.white),
         ),
         title: Text(song.title),
         subtitle: Text(song.artist),
@@ -140,7 +140,7 @@ class CompactSongCard extends StatelessWidget {
             if (song.ourKey != null)
               Text(
                 song.ourKey!,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.color5,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -150,7 +150,7 @@ class CompactSongCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 '${song.ourBPM} BPM',
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.color5,
                   fontSize: 12,
                 ),

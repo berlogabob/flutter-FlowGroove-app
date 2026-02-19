@@ -401,8 +401,8 @@ void main() {
         final user = AppUser(
           uid: longString,
           displayName: longString,
-          email: '${longString}@example.com',
-          photoURL: 'https://example.com/${longString}.jpg',
+          email: '$longString@example.com',
+          photoURL: 'https://example.com/$longString.jpg',
           createdAt: testDate,
         );
 

@@ -5,18 +5,31 @@ import 'package:flutter_repsync_app/screens/bands/my_bands_screen.dart';
 import 'package:flutter_repsync_app/providers/data_providers.dart';
 import 'package:flutter_repsync_app/providers/auth_provider.dart';
 import 'package:flutter_repsync_app/models/band.dart';
-import '../helpers/test_helpers.dart';
-import '../helpers/mocks.dart';
+import 'package:flutter_repsync_app/models/user.dart';
+import '../../helpers/test_helpers.dart';
+import '../../helpers/mocks.dart';
 import '../login_screen_test.dart';
+
+// Test notifier that returns a specific value
+class TestAppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
+  final AppUser? mockUser;
+
+  TestAppUserNotifier(this.mockUser);
+
+  @override
+  AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
+
+  Future<void> signOut() async {
+    state = AsyncValue.data(null);
+  }
+}
 
 void main() {
   group('MyBandsScreen', () {
     late MockFirebaseAuth mockAuth;
-    late MockFirebaseFirestore mockFirestore;
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
-      mockFirestore = MockFirebaseFirestore();
     });
 
     testWidgets('renders my bands screen with title', (WidgetTester tester) async {
@@ -26,11 +39,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -45,11 +56,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -65,11 +74,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -85,11 +92,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -102,20 +107,18 @@ void main() {
     testWidgets('displays list of bands', (WidgetTester tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final bands = [
-        MockDataHelper.createMockBand(id: '1', name: 'Band One', members: [BandMember(uid: '1', role: 'member')]),
-        MockDataHelper.createMockBand(id: '2', name: 'Band Two', members: [BandMember(uid: '1', role: 'member'), BandMember(uid: '2', role: 'member')]),
-        MockDataHelper.createMockBand(id: '3', name: 'Band Three', members: [BandMember(uid: '1', role: 'member')]),
+        MockDataHelper.createMockBand(id: '1', name: 'Band One', members: [BandMember(uid: '1', role: BandMember.roleAdmin)]),
+        MockDataHelper.createMockBand(id: '2', name: 'Band Two', members: [BandMember(uid: '1', role: BandMember.roleAdmin), BandMember(uid: '2', role: BandMember.roleEditor)]),
+        MockDataHelper.createMockBand(id: '3', name: 'Band Three', members: [BandMember(uid: '1', role: BandMember.roleAdmin)]),
       ];
 
       await pumpAppWidget(
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value(bands)),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value(bands)),
         ],
       );
 
@@ -128,20 +131,18 @@ void main() {
     testWidgets('displays member count for each band', (WidgetTester tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final bands = [
-        MockDataHelper.createMockBand(id: '1', name: 'Solo Band', members: [BandMember(uid: '1', role: 'member')]),
-        MockDataHelper.createMockBand(id: '2', name: 'Duo Band', members: [BandMember(uid: '1', role: 'member'), BandMember(uid: '2', role: 'member')]),
-        MockDataHelper.createMockBand(id: '3', name: 'Trio Band', members: [BandMember(uid: '1', role: 'member'), BandMember(uid: '2', role: 'member'), BandMember(uid: '3', role: 'member')]),
+        MockDataHelper.createMockBand(id: '1', name: 'Solo Band', members: [BandMember(uid: '1', role: BandMember.roleAdmin)]),
+        MockDataHelper.createMockBand(id: '2', name: 'Duo Band', members: [BandMember(uid: '1', role: BandMember.roleAdmin), BandMember(uid: '2', role: BandMember.roleEditor)]),
+        MockDataHelper.createMockBand(id: '3', name: 'Trio Band', members: [BandMember(uid: '1', role: BandMember.roleAdmin), BandMember(uid: '2', role: BandMember.roleEditor), BandMember(uid: '3', role: BandMember.roleViewer)]),
       ];
 
       await pumpAppWidget(
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value(bands)),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value(bands)),
         ],
       );
 
@@ -163,11 +164,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value(bands)),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value(bands)),
         ],
       );
 
@@ -192,11 +191,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value(bands)),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value(bands)),
         ],
       );
 
@@ -217,11 +214,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -248,11 +243,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -279,11 +272,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -308,11 +299,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -327,11 +316,9 @@ void main() {
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.error(Exception('Failed to load bands'))),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.error(Exception('Failed to load bands'))),
         ],
       );
 
@@ -345,18 +332,16 @@ void main() {
         id: '1',
         name: 'Test Band',
         description: 'A rock band from NYC',
-        members: [BandMember(uid: '1', role: 'member')],
+        members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
       );
 
       await pumpAppWidget(
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([band])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([band])),
         ],
       );
 
@@ -369,18 +354,16 @@ void main() {
       final band = MockDataHelper.createMockBand(
         id: '1',
         name: 'Test Band',
-        members: [BandMember(uid: '1', role: 'member')],
+        members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
       );
 
       await pumpAppWidget(
         tester,
         const MyBandsScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          currentUserProvider.overrideWithValue(mockUser),
-          bandsProvider.overrideWithValue(Stream.value([band])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          bandsProvider.overrideWith((ref) => Stream.value([band])),
         ],
       );
 

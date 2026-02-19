@@ -4,21 +4,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/screens/home_screen.dart';
 import 'package:flutter_repsync_app/providers/data_providers.dart';
 import 'package:flutter_repsync_app/providers/auth_provider.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/setlist.dart';
-import '../helpers/test_helpers.dart';
-import '../helpers/mocks.dart';
+import 'package:flutter_repsync_app/models/user.dart';
+import '../../helpers/test_helpers.dart';
+import '../../helpers/mocks.dart';
 import 'login_screen_test.dart';
+
+// Test notifier that returns a specific value
+class TestAppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
+  final AppUser? mockUser;
+  
+  TestAppUserNotifier(this.mockUser);
+  
+  @override
+  AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
+  
+  Future<void> signOut() async {
+    state = AsyncValue.data(null);
+  }
+}
 
 void main() {
   group('HomeScreen', () {
     late MockFirebaseAuth mockAuth;
-    late MockFirebaseFirestore mockFirestore;
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
-      mockFirestore = MockFirebaseFirestore();
     });
 
     testWidgets('renders home screen with app title', (WidgetTester tester) async {
@@ -26,12 +36,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(null),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(null)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -46,12 +55,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -67,18 +75,17 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
       // Verify statistics section title
       expect(findText('Statistics'), findsOneWidget);
-      
+
       // Verify stat labels
       expect(findText('Songs'), findsOneWidget);
       expect(findText('Bands'), findsOneWidget);
@@ -95,12 +102,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value(songs)),
-          bandsProvider.overrideWithValue(Stream.value(bands)),
-          setlistsProvider.overrideWithValue(Stream.value(setlists)),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value(songs)),
+          bandsProvider.overrideWith((ref) => Stream.value(bands)),
+          setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
         ],
       );
 
@@ -117,18 +123,17 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
       // Verify quick actions section title
       expect(findText('Quick Actions'), findsOneWidget);
-      
+
       // Verify action buttons
       expect(find.text('+ Song'), findsOneWidget);
       expect(find.text('+ Group'), findsOneWidget);
@@ -143,22 +148,21 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
       // Verify tools section title
       expect(findText('Tools'), findsOneWidget);
-      
+
       // Verify tool labels
       expect(findText('Tuner'), findsOneWidget);
       expect(findText('Metronome'), findsOneWidget);
-      
+
       // Verify "Soon" badges
       expect(find.text('Soon'), findsNWidgets(2));
     });
@@ -168,12 +172,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(null),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(null)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -188,12 +191,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -209,12 +211,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -241,12 +242,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -273,12 +273,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -305,12 +304,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -336,12 +334,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -367,12 +364,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -397,12 +393,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -419,12 +414,11 @@ void main() {
         tester,
         const HomeScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
-          bandsProvider.overrideWithValue(Stream.value([])),
-          setlistsProvider.overrideWithValue(Stream.value([])),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 

@@ -4,20 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/screens/songs/songs_list_screen.dart';
 import 'package:flutter_repsync_app/providers/data_providers.dart';
 import 'package:flutter_repsync_app/providers/auth_provider.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/link.dart';
-import '../helpers/test_helpers.dart';
-import '../helpers/mocks.dart';
-import 'login_screen_test.dart';
+import '../../helpers/test_helpers.dart';
+import '../../helpers/mocks.dart';
+import '../login_screen_test.dart';
 
 void main() {
   group('SongsListScreen', () {
     late MockFirebaseAuth mockAuth;
-    late MockFirebaseFirestore mockFirestore;
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
-      mockFirestore = MockFirebaseFirestore();
     });
 
     testWidgets('renders songs list screen with title', (WidgetTester tester) async {
@@ -27,11 +23,10 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-          appUserProvider.overrideWithValue(mockUser),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
+          songsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -46,11 +41,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
+          songsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -66,11 +61,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
+          songsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -86,11 +81,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
+          songsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -112,11 +107,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value(songs)),
+          songsProvider.overrideWith((ref) => Stream.value(songs)),
         ],
       );
 
@@ -141,11 +136,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value(songs)),
+          songsProvider.overrideWith((ref) => Stream.value(songs)),
         ],
       );
 
@@ -172,11 +167,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value(songs)),
+          songsProvider.overrideWith((ref) => Stream.value(songs)),
         ],
       );
 
@@ -203,11 +198,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value(songs)),
+          songsProvider.overrideWith((ref) => Stream.value(songs)),
         ],
       );
 
@@ -232,11 +227,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value(songs)),
+          songsProvider.overrideWith((ref) => Stream.value(songs)),
         ],
       );
 
@@ -257,11 +252,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
+          songsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -287,11 +282,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
+          songsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (route) {
@@ -316,11 +311,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([])),
+          songsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
@@ -336,9 +331,9 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
           songsProvider.overrideWithValue(Stream.error(Exception('Failed to load songs'))),
         ],
@@ -362,11 +357,11 @@ void main() {
         tester,
         const SongsListScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
-          songsProvider.overrideWithValue(Stream.value([song])),
+          songsProvider.overrideWith((ref) => Stream.value([song])),
         ],
       );
 

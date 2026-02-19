@@ -1,23 +1,19 @@
 /// API Integration Tests
-/// 
+///
 /// These tests verify integration with external APIs (Spotify, MusicBrainz).
-/// 
+///
 /// To run these tests:
 /// 1. Ensure environment variables are set (SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
 /// 2. Run tests: `flutter test test/integration/api_integration_test.dart`
-/// 
+///
 /// Note: These tests use mocked responses for external APIs to ensure
 /// consistent test results and avoid rate limiting.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
 import 'dart:convert';
 
-import '../helpers/mocks.dart';
-
-@GenerateMocks([http.Client])
 void main() {
   group('Spotify API Integration', () {
     test('searches for tracks', () async {
@@ -71,7 +67,7 @@ void main() {
 
       expect(trackData['name'], equals('Bohemian Rhapsody'));
       expect((trackData['artists'] as List)[0]['name'], equals('Queen'));
-      expect(trackData['external_urls']['spotify'], isNotEmpty);
+      expect((trackData['external_urls'] as Map)['spotify'], isNotEmpty);
     });
 
     test('handles audio features response', () async {
@@ -283,7 +279,8 @@ void main() {
         200,
       );
 
-      when(mockClient.get(any)).thenAnswer((_) async => mockResponse);
+      when(mockClient.get(Uri.parse('https://api.example.com/test')))
+          .thenAnswer((_) async => mockResponse);
 
       final response = await mockClient.get(Uri.parse('https://api.example.com/test'));
 
@@ -298,7 +295,10 @@ void main() {
         201,
       );
 
-      when(mockClient.post(any, body: anyNamed('body'))).thenAnswer((_) async => mockResponse);
+      when(mockClient.post(
+        Uri.parse('https://api.example.com/create'),
+        body: anyNamed('body'),
+      )).thenAnswer((_) async => mockResponse);
 
       final response = await mockClient.post(
         Uri.parse('https://api.example.com/create'),
@@ -315,7 +315,8 @@ void main() {
         404,
       );
 
-      when(mockClient.get(any)).thenAnswer((_) async => mockResponse);
+      when(mockClient.get(Uri.parse('https://api.example.com/notfound')))
+          .thenAnswer((_) async => mockResponse);
 
       final response = await mockClient.get(Uri.parse('https://api.example.com/notfound'));
 
@@ -329,7 +330,8 @@ void main() {
         500,
       );
 
-      when(mockClient.get(any)).thenAnswer((_) async => mockResponse);
+      when(mockClient.get(Uri.parse('https://api.example.com/error')))
+          .thenAnswer((_) async => mockResponse);
 
       final response = await mockClient.get(Uri.parse('https://api.example.com/error'));
 
@@ -339,7 +341,7 @@ void main() {
     test('handles timeout', () async {
       final mockClient = MockHttpClient();
 
-      when(mockClient.get(any)).thenAnswer((_) async {
+      when(mockClient.get(Uri.parse('https://api.example.com/timeout'))).thenAnswer((_) async {
         await Future.delayed(const Duration(seconds: 30));
         return http.Response('Timeout', 504);
       });
@@ -376,7 +378,7 @@ void main() {
 
     test('handles malformed JSON', () async {
       const malformedJson = '{invalid json}';
-      
+
       expect(
         () => jsonDecode(malformedJson),
         throwsA(isFormatException),

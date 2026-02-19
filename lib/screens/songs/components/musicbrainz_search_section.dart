@@ -109,7 +109,7 @@ class _MusicBrainzSearchSectionState
                       const SizedBox(height: 8),
                       Text(
                         'Try different keywords',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                        style: const TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                     ],
                   ),

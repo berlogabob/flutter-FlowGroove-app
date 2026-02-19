@@ -1,9 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/providers/data_providers.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/setlist.dart';
 
 import '../helpers/mocks.dart';
 

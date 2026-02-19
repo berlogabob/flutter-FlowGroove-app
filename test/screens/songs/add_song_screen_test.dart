@@ -4,20 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/screens/songs/add_song_screen.dart';
 import 'package:flutter_repsync_app/providers/data_providers.dart';
 import 'package:flutter_repsync_app/providers/auth_provider.dart';
-import 'package:flutter_repsync_app/models/song.dart';
+
 import 'package:flutter_repsync_app/models/link.dart';
-import '../helpers/test_helpers.dart';
-import '../helpers/mocks.dart';
+import '../../helpers/test_helpers.dart';
+import '../../helpers/mocks.dart';
 import '../login_screen_test.dart';
 
 void main() {
   group('AddSongScreen', () {
     late MockFirebaseAuth mockAuth;
-    late MockFirebaseFirestore mockFirestore;
+    
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
-      mockFirestore = MockFirebaseFirestore();
+      
     });
 
     testWidgets('renders add song screen with title', (WidgetTester tester) async {
@@ -27,9 +27,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -50,9 +50,9 @@ void main() {
         tester,
         AddSongScreen(song: song),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -68,9 +68,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -92,9 +92,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -110,9 +110,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -140,9 +140,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -170,9 +170,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -193,9 +193,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -215,9 +215,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -237,9 +237,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -258,9 +258,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -284,9 +284,9 @@ void main() {
         tester,
         AddSongScreen(song: song),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -305,9 +305,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -328,9 +328,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -356,9 +356,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
@@ -375,9 +375,9 @@ void main() {
         tester,
         const AddSongScreen(),
         overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
           currentUserProvider.overrideWithValue(mockUser),
         ],
       );
