@@ -1,29 +1,52 @@
-# =========================
-# Flutter Web → GitHub Pages
-# =========================
-# Как пользоваться:
-# ```Bash
-# make deploy
-# ```
-# Имя репозитория (измени, если переименуешь репозиторий)
-REPO_NAME = flutter-repsync-app
+# ================================================
+# Makefile для деплоя Flutter Web → GitHub Pages
+# Работает на macOS и Linux
+# ================================================
 
-# Автоматически формируется /flutter-repsync-app/
-BASE_HREF = /$(REPO_NAME)/
+# === НАСТРОЙКИ (измени только здесь, если надо) ===
+REPO_NAME     := flutter-repsync-app
+BASE_HREF     := /$(REPO_NAME)/
 
-# Основная команда: собирает + сразу копирует в /docs
+# ================================================
+
+.PHONY: deploy build-web clean help
+
+# Основная команда — всё в одном клике
 deploy:
+	@echo "🚀 Начинаем сборку для GitHub Pages..."
 	flutter build web --release --base-href $(BASE_HREF)
-	@echo "✅ Сборка завершена. Копирую в /docs..."
+	
+	@echo "📁 Копируем сборку в папку docs..."
 	rm -rf docs/*
 	cp -r build/web/* docs/
-	@echo "🎉 Всё готово! Теперь просто сделай:"
-	@echo "   git add docs/ && git commit -m \"Update GitHub Pages\" && git push"
+	
+	@echo "🛡️ Создаём .nojekyll (чтобы _flutter не игнорировался)..."
+	touch docs/.nojekyll
+	
+	@echo "🔄 Создаём 404.html для корректного SPA-роутинга..."
+	cp docs/index.html docs/404.html
+	
+	@echo ""
+	@echo "✅ ГОТОВО!"
+	@echo "   Репозиторий: https://berlogabob.github.io/$(REPO_NAME)/"
+	@echo ""
+	@echo "Теперь выполни:"
+	@echo "   git add docs/"
+	@echo "   git commit -m \"Deploy: update GitHub Pages\""
+	@echo "   git push"
 
-# Если хочешь просто собрать без копирования
+# Просто собрать без копирования
 build-web:
 	flutter build web --release --base-href $(BASE_HREF)
 
 # Очистка
 clean:
 	rm -rf build/web docs/*
+
+# Помощь
+help:
+	@echo "Доступные команды:"
+	@echo "  make deploy     → полная сборка + копирование в docs + .nojekyll + 404.html"
+	@echo "  make build-web  → только сборка Flutter Web"
+	@echo "  make clean      → очистить build и docs"
+	@echo "  make help       → эта справка"
