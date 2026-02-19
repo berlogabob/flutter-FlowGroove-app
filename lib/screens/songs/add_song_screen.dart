@@ -8,6 +8,7 @@ import '../../models/song.dart';
 import '../../models/link.dart';
 import '../../services/musicbrainz_service.dart';
 import '../../services/spotify_service.dart';
+import '../../services/track_analysis_service.dart';
 import '../../theme/app_theme.dart';
 
 class AddSongScreen extends ConsumerStatefulWidget {
@@ -178,6 +179,66 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
         );
       },
     );
+  }
+
+  Future<void> _fetchTrackAnalysis() async {
+    final title = _titleController.text.trim();
+    final artist = _artistController.text.trim();
+
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Enter a song title')));
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Fetching BPM and key...')));
+
+    try {
+      final result = await TrackAnalysisService.analyzeTrack(title, artist);
+
+      if (result != null && mounted) {
+        setState(() {
+          if (result.bpm != null && result.bpm! > 0) {
+            _originalBpmController.text = result.bpm.toString();
+          }
+          if (result.key != null) {
+            final key = result.key!;
+            _originalKeyBase = key
+                .replaceAll(RegExp(r'[#bm]'), '')
+                .substring(0, 1);
+            _originalKeyModifier = key.contains('#')
+                ? '#'
+                : (key.contains('b') ? 'b' : '') +
+                      (result.mode == 'minor' ? 'm' : '');
+          }
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.bpm != null
+                  ? 'Found: ${result.bpm} BPM, ${result.musicalKey}'
+                  : 'Could not find track',
+            ),
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Track not found. Try a different search.'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
   }
 
   void _showMusicBrainzSearch() {
@@ -548,6 +609,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
                     label: const Text('Spotify'),
                   ),
                   TextButton.icon(
+                    onPressed: _fetchTrackAnalysis,
+                    icon: const Icon(Icons.analytics, size: 18),
+                    label: const Text('BPM/Key'),
+                  ),
+                  TextButton.icon(
                     onPressed: _searchOnWeb,
                     icon: const Icon(Icons.search, size: 18),
                     label: const Text('Web'),
@@ -718,22 +784,48 @@ class _MusicBrainzSearchSheetState extends State<_MusicBrainzSearchSheet> {
               }
 
               if (snapshot.hasError) {
+                final errorMsg = snapshot.error.toString();
+                final isPremiumError = errorMsg.contains('Premium');
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.error_outline,
+                      Icon(
+                        isPremiumError ? Icons.lock : Icons.error_outline,
                         size: 48,
-                        color: Colors.red,
+                        color: isPremiumError ? Colors.orange : Colors.red,
                       ),
                       const SizedBox(height: 16),
-                      const Text('Search error'),
+                      Text(
+                        isPremiumError
+                            ? 'Spotify Premium Required'
+                            : 'Search error',
+                      ),
                       const SizedBox(height: 8),
                       Text(
-                        'Try again later',
+                        isPremiumError
+                            ? 'Spotify API needs Premium subscription'
+                            : 'Try again later',
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
+                      if (isPremiumError) ...[
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            final encodedQuery = Uri.encodeComponent(
+                              widget.query,
+                            );
+                            final url =
+                                'https://open.spotify.com/search/$encodedQuery';
+                            await launchUrl(
+                              Uri.parse(url),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          icon: const Icon(Icons.open_in_browser),
+                          label: const Text('Search on Spotify Web'),
+                        ),
+                      ],
                     ],
                   ),
                 );
@@ -817,14 +909,18 @@ class _SpotifySearchSheetState extends State<_SpotifySearchSheet> {
   }
 
   Future<List<SpotifyTrack>> _loadResults() async {
-    final tracks = await SpotifyService.search(widget.query);
-    for (final track in tracks) {
-      final features = await SpotifyService.getAudioFeatures(track.id);
-      if (features != null) {
-        _audioFeatures[track.id] = features;
+    try {
+      final tracks = await SpotifyService.search(widget.query);
+      for (final track in tracks) {
+        final features = await SpotifyService.getAudioFeatures(track.id);
+        if (features != null) {
+          _audioFeatures[track.id] = features;
+        }
       }
+      return tracks;
+    } catch (e) {
+      return [];
     }
-    return tracks;
   }
 
   @override

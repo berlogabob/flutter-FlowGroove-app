@@ -71,9 +71,11 @@ class SpotifyService {
         final data = json.decode(response.body);
         final tracks = data['tracks']['items'] as List<dynamic>? ?? [];
         return tracks.map((t) => SpotifyTrack.fromJson(t)).toList();
+      } else if (response.statusCode == 403) {
+        throw Exception('Spotify Premium required for API access');
       }
     } catch (e) {
-      // Search failed
+      rethrow;
     }
     return [];
   }

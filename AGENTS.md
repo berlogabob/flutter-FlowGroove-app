@@ -290,13 +290,18 @@ allow read, write: if request.auth != null;
 ### MusicBrainz (No API key required)
 - Provides: title, artist, album, BPM
 - No authentication needed
-- Rate limited: 1 request per second
+- Rate limited: 1 request per second (be careful with rapid searches)
 
-### Spotify (Requires API credentials)
-- Provides: title, artist, album, BPM, musical key (major/minor), Camelot notation
-- Requires Spotify Developer account
+### Spotify (Requires API credentials + Premium subscription)
+- Provides: title, artist, album, BPM, musical key (major/minor), Spotify URL
+- Requires Spotify Developer account AND Spotify Premium subscription
 - Get credentials: https://developer.spotify.com/dashboard
 - Edit `lib/services/spotify_service.dart` to add your Client ID and Client Secret
+- Note: Spotify API requires a Premium account to work
+
+### Web Search (Fallback - No API needed)
+- Users can search on Spotify web via browser
+- Useful when Spotify API is unavailable (e.g., no Premium subscription)
 
 ---
 
