@@ -8,7 +8,9 @@ import '../../models/link.dart';
 import '../../theme/app_theme.dart';
 
 class AddSongScreen extends ConsumerStatefulWidget {
-  const AddSongScreen({super.key});
+  final Song? song;
+
+  const AddSongScreen({super.key, this.song});
 
   @override
   ConsumerState<AddSongScreen> createState() => _AddSongScreenState();
@@ -38,6 +40,51 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     'slow',
     'fast',
   ];
+
+  bool get _isEditing => widget.song != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      final song = widget.song!;
+      _titleController.text = song.title;
+      _artistController.text = song.artist;
+      _originalBpmController.text = song.originalBPM?.toString() ?? '';
+      _ourBpmController.text = song.ourBPM?.toString() ?? '';
+      _notesController.text = song.notes ?? '';
+      _links.addAll(song.links);
+      _selectedTags.addAll(song.tags);
+
+      if (song.originalKey != null && song.originalKey!.isNotEmpty) {
+        final orig = song.originalKey!;
+        if (orig.length > 1 && orig.endsWith('m')) {
+          _originalKeyBase = orig[0].toUpperCase();
+          _originalKeyModifier = 'm';
+        } else if (orig.length > 1) {
+          _originalKeyBase = orig[0].toUpperCase();
+          _originalKeyModifier = orig.substring(1);
+        } else {
+          _originalKeyBase = orig.toUpperCase();
+          _originalKeyModifier = '';
+        }
+      }
+
+      if (song.ourKey != null && song.ourKey!.isNotEmpty) {
+        final our = song.ourKey!;
+        if (our.length > 1 && our.endsWith('m')) {
+          _ourKeyBase = our[0].toUpperCase();
+          _ourKeyModifier = 'm';
+        } else if (our.length > 1) {
+          _ourKeyBase = our[0].toUpperCase();
+          _ourKeyModifier = our.substring(1);
+        } else {
+          _ourKeyBase = our.toUpperCase();
+          _ourKeyModifier = '';
+        }
+      }
+    }
+  }
 
   String _buildKey(String base, String modifier) {
     if (modifier == 'm') return '${base.toLowerCase()}m';
@@ -74,7 +121,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedType,
+                initialValue: selectedType,
                 items: const [
                   DropdownMenuItem(
                     value: Link.typeYoutubeOriginal,
@@ -140,7 +187,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
 
     try {
       final song = Song(
-        id: const Uuid().v4(),
+        id: _isEditing ? widget.song!.id : const Uuid().v4(),
         title: _titleController.text.trim(),
         artist: _artistController.text.trim(),
         originalKey: originalKey.isNotEmpty ? originalKey : null,
@@ -156,7 +203,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
             ? _notesController.text.trim()
             : null,
         tags: _selectedTags,
-        createdAt: DateTime.now(),
+        createdAt: _isEditing ? widget.song!.createdAt : DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
@@ -165,9 +212,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${song.title} added')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${song.title} ${_isEditing ? 'updated' : 'added'}'),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -261,7 +310,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Song'),
+        title: Text(_isEditing ? 'Edit Song' : 'Add Song'),
         actions: [
           TextButton(
             onPressed: _saveSong,

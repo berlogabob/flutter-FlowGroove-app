@@ -37,7 +37,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       }
 
       final bandsAsync = ref.read(bandsProvider);
-      final bands = bandsAsync.valueOrNull ?? [];
+      final bands = bandsAsync.value ?? [];
       final code = _codeController.text.trim().toUpperCase();
       final band = bands.where((b) => b.inviteCode == code).firstOrNull;
 
@@ -76,10 +76,11 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

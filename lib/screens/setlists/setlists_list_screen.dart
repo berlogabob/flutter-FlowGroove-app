@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data_providers.dart';
 import '../../models/setlist.dart';
+import '../../services/pdf_service.dart';
 import '../../theme/app_theme.dart';
 
 class SetlistsListScreen extends ConsumerWidget {
@@ -20,7 +21,7 @@ class SetlistsListScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 itemCount: setlists.length,
                 itemBuilder: (context, index) =>
-                    _buildSetlistCard(context, setlists[index]),
+                    _buildSetlistCard(context, ref, setlists[index]),
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
@@ -47,7 +48,11 @@ class SetlistsListScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSetlistCard(BuildContext context, Setlist setlist) {
+  Widget _buildSetlistCard(
+    BuildContext context,
+    WidgetRef ref,
+    Setlist setlist,
+  ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -60,8 +65,48 @@ class SetlistsListScreen extends ConsumerWidget {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text('${setlist.songIds.length} songs'),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf, size: 20),
+              onPressed: () => _exportSetlist(context, ref, setlist),
+              tooltip: 'Export PDF',
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit, size: 20),
+              onPressed: () => Navigator.pushNamed(
+                context,
+                '/edit-setlist',
+                arguments: setlist,
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
       ),
     );
+  }
+
+  void _exportSetlist(
+    BuildContext context,
+    WidgetRef ref,
+    Setlist setlist,
+  ) async {
+    final songsAsync = ref.read(songsProvider);
+    final allSongs = songsAsync.value ?? [];
+    final setlistSongs = allSongs
+        .where((s) => setlist.songIds.contains(s.id))
+        .toList();
+
+    try {
+      await PdfService.exportSetlist(setlist, setlistSongs);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error exporting: $e')));
+      }
+    }
   }
 }

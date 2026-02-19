@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 import '../../providers/data_providers.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/band.dart';
 import '../../theme/app_theme.dart';
 
@@ -20,7 +24,7 @@ class MyBandsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 itemCount: bands.length,
                 itemBuilder: (context, index) =>
-                    _buildBandCard(context, bands[index]),
+                    _buildBandCard(context, ref, bands[index]),
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
@@ -65,7 +69,7 @@ class MyBandsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBandCard(BuildContext context, Band band) {
+  Widget _buildBandCard(BuildContext context, WidgetRef ref, Band band) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -84,8 +88,156 @@ class MyBandsScreen extends ConsumerWidget {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text('${band.members.length} members'),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit, size: 20),
+              onPressed: () =>
+                  Navigator.pushNamed(context, '/edit-band', arguments: band),
+              tooltip: 'Edit band',
+            ),
+            IconButton(
+              icon: const Icon(Icons.person_add),
+              onPressed: () => _showInviteDialog(context, ref, band),
+              tooltip: 'Invite members',
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
       ),
+    );
+  }
+
+  void _showInviteDialog(BuildContext context, WidgetRef ref, Band band) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) =>
+          _InviteMemberDialog(band: band, currentUserId: user.uid),
+    );
+  }
+}
+
+class _InviteMemberDialog extends ConsumerStatefulWidget {
+  final Band band;
+  final String currentUserId;
+
+  const _InviteMemberDialog({required this.band, required this.currentUserId});
+
+  @override
+  ConsumerState<_InviteMemberDialog> createState() =>
+      _InviteMemberDialogState();
+}
+
+class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
+  late String _inviteCode;
+  bool _isRegenerating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _inviteCode = widget.band.inviteCode ?? '';
+    if (_inviteCode.isEmpty) {
+      _generateNewCode();
+    }
+  }
+
+  void _generateNewCode() async {
+    setState(() => _isRegenerating = true);
+    final newCode = const Uuid().v4().substring(0, 8).toUpperCase();
+
+    final updatedBand = widget.band.copyWith(inviteCode: newCode);
+    await ref
+        .read(firestoreProvider)
+        .saveBand(updatedBand, widget.currentUserId);
+
+    setState(() {
+      _inviteCode = newCode;
+      _isRegenerating = false;
+    });
+  }
+
+  Future<void> _shareInvite() async {
+    final message =
+        'Join my band "${widget.band.name}" using invite code: $_inviteCode';
+    final uri = Uri.parse('sms:?body=${Uri.encodeComponent(message)}');
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Share code: $_inviteCode')));
+      }
+    }
+  }
+
+  Future<void> _copyToClipboard() async {
+    await Clipboard.setData(ClipboardData(text: _inviteCode));
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Code copied!')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Invite to ${widget.band.name}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Share this code with band members:'),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.color2,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              _isRegenerating ? 'Generating...' : _inviteCode,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              TextButton.icon(
+                onPressed: _generateNewCode,
+                icon: const Icon(Icons.refresh),
+                label: const Text('New Code'),
+              ),
+              TextButton.icon(
+                onPressed: _copyToClipboard,
+                icon: const Icon(Icons.copy),
+                label: const Text('Copy'),
+              ),
+              TextButton.icon(
+                onPressed: _shareInvite,
+                icon: const Icon(Icons.share),
+                label: const Text('Share'),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
     );
   }
 }

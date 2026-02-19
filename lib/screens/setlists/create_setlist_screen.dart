@@ -5,9 +5,12 @@ import '../../providers/data_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
+import '../../theme/app_theme.dart';
 
 class CreateSetlistScreen extends ConsumerStatefulWidget {
-  const CreateSetlistScreen({super.key});
+  final Setlist? setlist;
+
+  const CreateSetlistScreen({super.key, this.setlist});
 
   @override
   ConsumerState<CreateSetlistScreen> createState() =>
@@ -22,6 +25,31 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   final _eventLocationController = TextEditingController();
   List<Song> _selectedSongs = [];
 
+  bool get _isEditing => widget.setlist != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      final setlist = widget.setlist!;
+      _nameController.text = setlist.name;
+      _descriptionController.text = setlist.description ?? '';
+      _eventDateController.text = setlist.eventDate ?? '';
+      _eventLocationController.text = setlist.eventLocation ?? '';
+      _loadSongsForEditing(setlist.songIds);
+    }
+  }
+
+  void _loadSongsForEditing(List<String> songIds) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final songsAsync = ref.read(songsProvider);
+      final allSongs = songsAsync.value ?? [];
+      setState(() {
+        _selectedSongs = allSongs.where((s) => songIds.contains(s.id)).toList();
+      });
+    });
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -33,7 +61,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
 
   void _showSongPicker() async {
     final songsAsync = ref.read(songsProvider);
-    final songs = songsAsync.valueOrNull ?? [];
+    final songs = songsAsync.value ?? [];
 
     final result = await showModalBottomSheet<List<Song>>(
       context: context,
@@ -57,7 +85,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     if (result != null) setState(() => _selectedSongs = result);
   }
 
-  Future<void> _createSetlist() async {
+  Future<void> _saveSetlist() async {
     if (!_formKey.currentState!.validate()) return;
 
     final user = ref.read(currentUserProvider);
@@ -69,8 +97,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     }
 
     final setlist = Setlist(
-      id: const Uuid().v4(),
-      bandId: '',
+      id: _isEditing ? widget.setlist!.id : const Uuid().v4(),
+      bandId: _isEditing ? widget.setlist!.bandId : '',
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
@@ -82,7 +110,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           ? _eventLocationController.text.trim()
           : null,
       songIds: _selectedSongs.map((s) => s.id).toList(),
-      createdAt: DateTime.now(),
+      createdAt: _isEditing ? widget.setlist!.createdAt : DateTime.now(),
       updatedAt: DateTime.now(),
     );
 
@@ -90,7 +118,11 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Setlist "${setlist.name}" created')),
+        SnackBar(
+          content: Text(
+            'Setlist "${setlist.name}" ${_isEditing ? 'updated' : 'created'}',
+          ),
+        ),
       );
     }
   }
@@ -99,10 +131,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Setlist'),
+        title: Text(_isEditing ? 'Edit Setlist' : 'Create Setlist'),
         actions: [
           TextButton(
-            onPressed: _createSetlist,
+            onPressed: _saveSetlist,
             child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -139,7 +171,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 prefixIcon: Icon(Icons.location_on),
               ),
               textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _createSetlist(),
+              onFieldSubmitted: (_) => _saveSetlist(),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -179,24 +211,58 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 ),
               )
             else
-              ListView.builder(
+              ReorderableListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _selectedSongs.length,
+                onReorder: (oldIndex, newIndex) {
+                  setState(() {
+                    if (newIndex > oldIndex) newIndex--;
+                    final song = _selectedSongs.removeAt(oldIndex);
+                    _selectedSongs.insert(newIndex, song);
+                  });
+                },
                 itemBuilder: (context, index) {
                   final song = _selectedSongs[index];
                   return Card(
+                    key: ValueKey(song.id),
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
+                      leading: ReorderableDragStartListener(
+                        index: index,
+                        child: const Icon(Icons.drag_handle),
+                      ),
                       title: Text(song.title),
                       subtitle: Text(song.artist),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (song.ourBPM != null) Text('${song.ourBPM} '),
-                          if (song.ourKey != null) Text(song.ourKey!),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.color5.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              song.ourKey ?? '-',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (song.ourBPM != null)
+                            Text(
+                              '${song.ourBPM}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           IconButton(
-                            icon: const Icon(Icons.close),
+                            icon: const Icon(Icons.close, size: 20),
                             onPressed: () =>
                                 setState(() => _selectedSongs.removeAt(index)),
                           ),

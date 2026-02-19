@@ -11,22 +11,18 @@ final authStateProvider = StreamProvider<User?>((ref) {
 });
 
 final currentUserProvider = Provider<User?>((ref) {
-  return ref.watch(authStateProvider).valueOrNull;
+  return ref.watch(authStateProvider).value;
 });
 
-final appUserProvider =
-    StateNotifierProvider<AppUserNotifier, AsyncValue<AppUser?>>((ref) {
-      return AppUserNotifier(ref);
-    });
+final appUserProvider = NotifierProvider<AppUserNotifier, AsyncValue<AppUser?>>(
+  () {
+    return AppUserNotifier();
+  },
+);
 
-class AppUserNotifier extends StateNotifier<AsyncValue<AppUser?>> {
-  final Ref ref;
-
-  AppUserNotifier(this.ref) : super(const AsyncValue.loading()) {
-    _init();
-  }
-
-  void _init() {
+class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
+  @override
+  AsyncValue<AppUser?> build() {
     ref.listen(authStateProvider, (previous, next) {
       next.whenData((user) {
         if (user != null) {
@@ -48,6 +44,7 @@ class AppUserNotifier extends StateNotifier<AsyncValue<AppUser?>> {
         }
       });
     }, fireImmediately: true);
+    return const AsyncValue.loading();
   }
 
   Future<void> signOut() async {

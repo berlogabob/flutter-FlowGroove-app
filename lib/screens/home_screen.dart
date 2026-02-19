@@ -15,17 +15,7 @@ class HomeScreen extends ConsumerWidget {
     final setlistCount = ref.watch(setlistCountProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('RepSync'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.pushNamed(context, '/profile');
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('RepSync')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -36,7 +26,7 @@ class HomeScreen extends ConsumerWidget {
                 data: (user) =>
                     _buildGreeting(context, user?.displayName ?? 'User'),
                 loading: () => _buildGreeting(context, 'Loading...'),
-                error: (_, __) => _buildGreeting(context, 'User'),
+                error: (error, stack) => _buildGreeting(context, 'User'),
               ),
               const SizedBox(height: 24),
               _buildStatisticsSection(
@@ -60,7 +50,7 @@ class HomeScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.color1.withOpacity(0.1),
+        color: AppColors.color1.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -176,7 +166,7 @@ class HomeScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -279,7 +269,7 @@ class HomeScreen extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.color1.withOpacity(0.3)),
+            border: Border.all(color: AppColors.color1.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(

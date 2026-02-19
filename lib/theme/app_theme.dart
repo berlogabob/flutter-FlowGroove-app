@@ -51,11 +51,15 @@ class AppTheme {
         fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.color1.withOpacity(0.3)),
+          borderSide: BorderSide(
+            color: AppColors.color1.withValues(alpha: 0.3),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.color1.withOpacity(0.3)),
+          borderSide: BorderSide(
+            color: AppColors.color1.withValues(alpha: 0.3),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -132,11 +136,15 @@ class AppTheme {
         fillColor: const Color(0xFF1A3D3A),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.color5.withOpacity(0.3)),
+          borderSide: BorderSide(
+            color: AppColors.color5.withValues(alpha: 0.3),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.color5.withOpacity(0.3)),
+          borderSide: BorderSide(
+            color: AppColors.color5.withValues(alpha: 0.3),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

@@ -119,7 +119,18 @@ final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
   return ref.watch(firestoreProvider).watchSetlists(user.uid);
 });
 
-final selectedBandProvider = StateProvider<Band?>((ref) => null);
+class SelectedBandNotifier extends Notifier<Band?> {
+  @override
+  Band? build() => null;
+
+  void select(Band? band) {
+    state = band;
+  }
+}
+
+final selectedBandProvider = NotifierProvider<SelectedBandNotifier, Band?>(() {
+  return SelectedBandNotifier();
+});
 
 final songCountProvider = Provider<int>((ref) {
   return ref.watch(songsProvider).whenOrNull(data: (songs) => songs.length) ??

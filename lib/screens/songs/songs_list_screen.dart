@@ -121,6 +121,12 @@ class SongsListScreen extends ConsumerWidget {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.edit, size: 20),
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/edit-song', arguments: song),
+              ),
             ],
           ),
         ),
