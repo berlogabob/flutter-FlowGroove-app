@@ -2,22 +2,26 @@
 
 ## Project Overview
 
-RepSync is a Flutter mobile application with Firebase authentication (Firebase Core + Firebase Auth). The project uses Dart SDK ^3.10.7.
+RepSync is a Flutter web application for band repertoire management. Built with Flutter/Dart, Firebase (Auth + Firestore), and Riverpod for state management. Target platforms: Web → Android → iOS.
 
 ---
 
 ## Build / Lint / Test Commands
 
+### Dependencies
+
+```bash
+flutter pub get
+```
+
 ### Running the App
 
 ```bash
-# Run on connected device/simulator
-flutter run
+# Run on web (development)
+flutter run -d chrome
 
-# Run on specific platform
+# Run on specific device
 flutter run -d <device_id>
-flutter run -d ios
-flutter run -d android
 
 # Run in release mode
 flutter run --release
@@ -33,7 +37,7 @@ flutter analyze
 flutter analyze --fix
 ```
 
-The project uses `flutter_lints: ^6.0.0` (see `analysis_options.yaml`). Default Flutter lints are enabled with no custom rules overridden.
+Uses `flutter_lints: ^6.0.0` (see `analysis_options.yaml`).
 
 ### Testing
 
@@ -45,7 +49,7 @@ flutter test
 flutter test test/widget_test.dart
 
 # Run tests matching a name pattern
-flutter test --name "Counter increments"
+flutter test --name "pattern"
 
 # Run with coverage
 flutter test --coverage
@@ -54,103 +58,72 @@ flutter test --coverage
 ### Building
 
 ```bash
-# Build iOS (requires macOS)
-flutter build ios
-flutter build ios --simulator --no-codesign
+# Build web (primary target)
+flutter build web
 
 # Build Android APK
 flutter build apk --debug
 flutter build apk --release
 
-# Build web
-flutter build web
+# Build iOS (requires macOS)
+flutter build ios --simulator --no-codesign
 ```
 
 ---
 
 ## Code Style Guidelines
 
-### General Principles
-
-- Use `flutter analyze` to check code before committing
-- Prefer const constructors wherever possible
-- Keep functions small and focused (single responsibility)
-- Use meaningful variable and function names
-
 ### Imports
 
-- Use package imports: `import 'package:flutter/material.dart';`
-- Use relative imports for local files: `import 'firebase_options.dart';`
+- Use package imports for external packages: `import 'package:flutter/material.dart';`
+- Use relative imports for local files: `import '../models/song.dart';`
 - Group imports: external packages first, then local relative imports
-- Do not use relative imports for package imports
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'screens/login_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/data_providers.dart';
+import '../../models/song.dart';
 ```
 
 ### Formatting
 
 - Use 2 spaces for indentation (Flutter default)
-- Maximum line length: 80 characters (recommended)
 - Use trailing commas for better formatting in lists/maps
-- Always use curly braces for control flow statements
-
-```dart
-// Good
-const SizedBox(height: 16)
-
-// Good - trailing comma
-Column(
-  children: [
-    const Text('Title'),
-    const Text('Subtitle'),
-  ],
-)
-```
+- Keep lines under 80 characters when practical
 
 ### Naming Conventions
 
-- **Classes**: PascalCase (`MyApp`, `LoginScreen`)
-- **Functions/variables**: camelCase (`isLogin`, `_emailController`)
-- **Private members**: prefix with underscore (`_LoginScreenState`)
-- **Constants**: PascalCase with k prefix (`kPrimaryColor`)
-- **Files**: snake_case (`login_screen.dart`)
+- **Classes**: PascalCase (`Song`, `SongsNotifier`, `AddSongScreen`)
+- **Functions/variables**: camelCase (`addSong`, `_selectedSongs`)
+- **Private members**: prefix with underscore (`_formKey`, `_isLoading`)
+- **Files**: snake_case (`add_song_screen.dart`, `data_providers.dart`)
+- **Providers**: camelCase with `Provider` suffix (`songsProvider`, `firestoreProvider`)
 
 ### Types
 
 - Prefer explicit types over `var` when type is not obvious
 - Use `final` by default, `var` only when reassignment needed
 - Use `const` for compile-time constants
-- Enable strict type checking in analysis_options.yaml
-
-```dart
-// Good
-final TextEditingController emailController = TextEditingController();
-const int maxLength = 100;
-
-// Avoid when type is unclear
-var controller = TextEditingController();
-```
 
 ### Widgets
 
-- Use `const` constructor for stateless widgets
-- Extract widgets into separate widgets for reusability
+- Use `const` constructor for stateless widgets where possible
 - Use `super.key` for widget keys
 - Prefer `SizedBox` over `Container` for spacing
 
-```dart
-class MyWidget extends StatelessWidget {
-  const MyWidget({super.key});
+### State Management (Riverpod)
 
-  @override
-  Widget build(BuildContext context) {
-    return const Text('Hello');
-  }
-}
+- Use `StreamProvider` for async data from Firestore
+- Use `StateProvider` for simple state
+- Use `ConsumerWidget` / `ConsumerStatefulWidget` for widgets that read providers
+
+```dart
+final songsProvider = StreamProvider<List<Song>>((ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value([]);
+  return ref.watch(firestoreProvider).watchSongs(user.uid);
+});
 ```
 
 ### Error Handling
@@ -158,34 +131,23 @@ class MyWidget extends StatelessWidget {
 - Use try-catch for async operations
 - Handle Firebase errors with user-friendly messages
 - Always dispose controllers in `dispose()` method
+- Show errors via `ScaffoldMessenger.of(context).showSnackBar()`
 
 ```dart
-@override
-void dispose() {
-  _emailController.dispose();
-  _passwordController.dispose();
-  super.dispose();
+try {
+  await firestore.saveSong(song, user.uid);
+} catch (e) {
+  if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+  }
 }
 ```
 
-### State Management
+### Firebase / Firestore
 
-- Use StatefulWidget for local state
-- Follow the pattern: `MyWidget` (Stateless) + `MyWidgetState` (State)
-- Use `setState()` only when needed
-
-### Firebase Integration
-
-- Initialize Firebase in `main()` before `runApp()`
-- Use `WidgetsFlutterBinding.ensureInitialized()` before Firebase init
-
-```dart
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
-}
-```
+- Check `currentUserProvider` before Firestore operations
+- Use `FirestoreService` class for all Firestore operations
+- Data stored per-user: `users/{uid}/songs`, `users/{uid}/bands`, `users/{uid}/setlists`
 
 ---
 
@@ -193,13 +155,50 @@ void main() async {
 
 ```
 lib/
-  main.dart                 # App entry point
-  firebase_options.dart     # Firebase configuration
-  screens/
-    login_screen.dart       # Login/Registration screen
-test/
-  widget_test.dart          # Widget tests
+├── main.dart                    # App entry point, routes
+├── firebase_options.dart        # Firebase configuration
+├── models/
+│   ├── song.dart               # Song data model
+│   ├── band.dart               # Band + BandMember models
+│   ├── setlist.dart            # Setlist model
+│   ├── link.dart               # Link model (for song links)
+│   └── user.dart               # AppUser model
+├── providers/
+│   ├── auth_provider.dart      # Firebase auth providers
+│   └── data_providers.dart     # Firestore providers + service
+├── services/
+│   └── firestore_service.dart  # Firestore CRUD operations
+├── screens/
+│   ├── home_screen.dart        # Dashboard with stats
+│   ├── login_screen.dart       # Login form
+│   ├── auth/
+│   │   └── register_screen.dart
+│   ├── songs/
+│   │   ├── songs_list_screen.dart
+│   │   └── add_song_screen.dart
+│   ├── bands/
+│   │   ├── my_bands_screen.dart
+│   │   ├── create_band_screen.dart
+│   │   └── join_band_screen.dart
+│   └── setlists/
+│       ├── setlists_list_screen.dart
+│       └── create_setlist_screen.dart
+└── theme/
+    └── app_theme.dart          # AppColors + light/dark themes
 ```
+
+---
+
+## Key Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| firebase_core | Firebase initialization |
+| firebase_auth | Email/password authentication |
+| cloud_firestore | Data persistence |
+| flutter_riverpod | State management |
+| uuid | Generate unique IDs |
+| intl | Date formatting |
 
 ---
 
@@ -207,41 +206,42 @@ test/
 
 ### Adding a New Screen
 
-1. Create file in `lib/screens/` with snake_case name
-2. Create a StatefulWidget/StatelessWidget
-3. Import and navigate to it from parent screen
+1. Create file in appropriate `lib/screens/` subdirectory
+2. Create a `ConsumerStatefulWidget` or `ConsumerWidget`
+3. Add route in `lib/main.dart` routes map
+4. Navigate with `Navigator.pushNamed(context, '/route-name')`
 
-### Adding a New Dependency
+### Adding a New Model
 
-1. Add to `pubspec.yaml` under `dependencies` or `dev_dependencies`
-2. Run `flutter pub get`
-3. Import in code using `package:` syntax
+1. Create file in `lib/models/`
+2. Define class with `fromJson` and `toJson` methods
+3. Add Firestore methods in `lib/providers/data_providers.dart`
+4. Create `StreamProvider` for live data
 
-### Running Analysis Before Commit
+### Firestore Rules
 
-```bash
-flutter analyze
+Ensure Firestore rules allow authenticated users:
+```
+allow read, write: if request.auth != null;
 ```
 
-Fix any errors or warnings before committing. Errors will block the build; warnings should be addressed for code quality.
+---
+
+## Color Palette
+
+| Color | Hex | Usage |
+|-------|-----|-------|
+| color1 | #96B3D9 | Primary - buttons, headers |
+| color2 | #D5E7F2 | Surface - light mode bg |
+| color3 | #C9EBF2 | Highlight - selections |
+| color4 | #0B2624 | Background - dark mode |
+| color5 | #7EBFB3 | Secondary - accents |
 
 ---
 
-## IDE Setup
+## Pre-Commit Checklist
 
-For VS Code / Cursor / other editors:
-- Install Flutter extension
-- Enable "Format on Save" 
-- Enable Dart analysis on save
-
-For Android Studio:
-- Enable "Format code on save"
-- Enable Flutter inspector
-
----
-
-## Resources
-
-- Flutter Docs: https://flutter.dev/docs
-- Dart Docs: https://dart.dev/guides
-- Firebase Flutter: https://firebase.google.com/docs/flutter/setup
+1. `flutter analyze` - fix all errors/warnings
+2. `flutter build web` - ensure build succeeds
+3. Test login/logout flow
+4. Test CRUD operations for songs/bands/setlists
