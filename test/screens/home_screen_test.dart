@@ -27,7 +27,9 @@ void main() {
       mockAuth = MockFirebaseAuth();
     });
 
-    testWidgets('renders home screen with app title', (WidgetTester tester) async {
+    testWidgets('renders home screen with app title', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const HomeScreen(),
@@ -44,7 +46,9 @@ void main() {
       expect(findText('RepSync'), findsOneWidget);
     });
 
-    testWidgets('displays greeting section with user name', (WidgetTester tester) async {
+    testWidgets('displays greeting section with user name', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser(displayName: 'John');
 
       await pumpAppWidget(
@@ -88,11 +92,22 @@ void main() {
       expect(findText('Setlists'), findsOneWidget);
     });
 
-    testWidgets('displays correct statistics counts', (WidgetTester tester) async {
+    testWidgets('displays correct statistics counts', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
-      final songs = List.generate(5, (i) => MockDataHelper.createMockSong(id: 'song-$i'));
-      final bands = List.generate(2, (i) => MockDataHelper.createMockBand(id: 'band-$i'));
-      final setlists = List.generate(3, (i) => MockDataHelper.createMockSetlist(id: 'setlist-$i'));
+      final songs = List.generate(
+        5,
+        (i) => MockDataHelper.createMockSong(id: 'song-$i'),
+      );
+      final bands = List.generate(
+        2,
+        (i) => MockDataHelper.createMockBand(id: 'band-$i'),
+      );
+      final setlists = List.generate(
+        3,
+        (i) => MockDataHelper.createMockSetlist(id: 'setlist-$i'),
+      );
 
       await pumpAppWidget(
         tester,
@@ -163,7 +178,9 @@ void main() {
       expect(find.text('Soon'), findsNWidgets(2));
     });
 
-    testWidgets('displays loading state when user data is loading', (WidgetTester tester) async {
+    testWidgets('displays loading state when user data is loading', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const HomeScreen(),
@@ -199,7 +216,9 @@ void main() {
       expect(find.text('A'), findsOneWidget);
     });
 
-    testWidgets('navigates to songs screen when tapping Songs stat', (WidgetTester tester) async {
+    testWidgets('navigates to songs screen when tapping Songs stat', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       bool didNavigateToSongs = false;
 
@@ -214,11 +233,13 @@ void main() {
           setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/songs') {
-              didNavigateToSongs = true;
-            }
-          }),
+          MockNavigatorObserver(
+            onPush: (route) {
+              if (route.settings.name == '/songs') {
+                didNavigateToSongs = true;
+              }
+            },
+          ),
         ],
       );
 
@@ -230,7 +251,9 @@ void main() {
       expect(didNavigateToSongs, isTrue);
     });
 
-    testWidgets('navigates to bands screen when tapping Bands stat', (WidgetTester tester) async {
+    testWidgets('navigates to bands screen when tapping Bands stat', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       bool didNavigateToBands = false;
 
@@ -245,11 +268,13 @@ void main() {
           setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/bands') {
-              didNavigateToBands = true;
-            }
-          }),
+          MockNavigatorObserver(
+            onPush: (route) {
+              if (route.settings.name == '/bands') {
+                didNavigateToBands = true;
+              }
+            },
+          ),
         ],
       );
 
@@ -261,7 +286,9 @@ void main() {
       expect(didNavigateToBands, isTrue);
     });
 
-    testWidgets('navigates to setlists screen when tapping Setlists stat', (WidgetTester tester) async {
+    testWidgets('navigates to setlists screen when tapping Setlists stat', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       bool didNavigateToSetlists = false;
 
@@ -276,11 +303,13 @@ void main() {
           setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/setlists') {
-              didNavigateToSetlists = true;
-            }
-          }),
+          MockNavigatorObserver(
+            onPush: (route) {
+              if (route.settings.name == '/setlists') {
+                didNavigateToSetlists = true;
+              }
+            },
+          ),
         ],
       );
 
@@ -292,7 +321,9 @@ void main() {
       expect(didNavigateToSetlists, isTrue);
     });
 
-    testWidgets('navigates to add song screen when tapping + Song', (WidgetTester tester) async {
+    testWidgets('navigates to add song screen when tapping + Song', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       bool didNavigateToAddSong = false;
 
@@ -307,11 +338,13 @@ void main() {
           setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/add-song') {
-              didNavigateToAddSong = true;
-            }
-          }),
+          MockNavigatorObserver(
+            onPush: (route) {
+              if (route.settings.name == '/add-song') {
+                didNavigateToAddSong = true;
+              }
+            },
+          ),
         ],
       );
 
@@ -322,7 +355,9 @@ void main() {
       expect(didNavigateToAddSong, isTrue);
     });
 
-    testWidgets('navigates to create band screen when tapping + Group', (WidgetTester tester) async {
+    testWidgets('navigates to create band screen when tapping + Group', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       bool didNavigateToCreateBand = false;
 
@@ -337,11 +372,13 @@ void main() {
           setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/create-band') {
-              didNavigateToCreateBand = true;
-            }
-          }),
+          MockNavigatorObserver(
+            onPush: (route) {
+              if (route.settings.name == '/create-band') {
+                didNavigateToCreateBand = true;
+              }
+            },
+          ),
         ],
       );
 
@@ -352,7 +389,9 @@ void main() {
       expect(didNavigateToCreateBand, isTrue);
     });
 
-    testWidgets('navigates to create setlist screen when tapping + Setlist', (WidgetTester tester) async {
+    testWidgets('navigates to create setlist screen when tapping + Setlist', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       bool didNavigateToCreateSetlist = false;
 
@@ -367,11 +406,13 @@ void main() {
           setlistsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/create-setlist') {
-              didNavigateToCreateSetlist = true;
-            }
-          }),
+          MockNavigatorObserver(
+            onPush: (route) {
+              if (route.settings.name == '/create-setlist') {
+                didNavigateToCreateSetlist = true;
+              }
+            },
+          ),
         ],
       );
 
@@ -382,7 +423,9 @@ void main() {
       expect(didNavigateToCreateSetlist, isTrue);
     });
 
-    testWidgets('displays correct icons for statistics', (WidgetTester tester) async {
+    testWidgets('displays correct icons for statistics', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -403,7 +446,9 @@ void main() {
       expect(findIcon(Icons.queue_music), findsWidgets);
     });
 
-    testWidgets('displays correct icons for quick actions', (WidgetTester tester) async {
+    testWidgets('displays correct icons for quick actions', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(

@@ -46,11 +46,9 @@ class LoadingIndicator extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               message!,
-              style: messageStyle ??
-                  const TextStyle(
-                    color: AppColors.color4,
-                    fontSize: 14,
-                  ),
+              style:
+                  messageStyle ??
+                  const TextStyle(color: AppColors.color4, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -68,11 +66,7 @@ class LoadingSpinner extends StatelessWidget {
   /// The color of the spinner.
   final Color? color;
 
-  const LoadingSpinner({
-    super.key,
-    this.size = 16,
-    this.color,
-  });
+  const LoadingSpinner({super.key, this.size = 16, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -81,9 +75,7 @@ class LoadingSpinner extends StatelessWidget {
       height: size,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(
-          color ?? Colors.white,
-        ),
+        valueColor: AlwaysStoppedAnimation<Color>(color ?? Colors.white),
       ),
     );
   }

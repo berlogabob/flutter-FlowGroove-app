@@ -195,7 +195,10 @@ void main() {
         createdAt: DateTime.now(),
       );
 
-      final newMember = BandMember(uid: 'new-member', role: BandMember.roleEditor);
+      final newMember = BandMember(
+        uid: 'new-member',
+        role: BandMember.roleEditor,
+      );
       final updatedMembers = [...band.members, newMember];
       final updatedBand = band.copyWith(members: updatedMembers);
 
@@ -215,7 +218,9 @@ void main() {
         createdAt: DateTime.now(),
       );
 
-      final updatedMembers = band.members.where((m) => m.uid != 'member-to-remove').toList();
+      final updatedMembers = band.members
+          .where((m) => m.uid != 'member-to-remove')
+          .toList();
       final updatedBand = band.copyWith(members: updatedMembers);
 
       expect(updatedBand.members.length, equals(1));
@@ -309,7 +314,9 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      final updatedSongIds = setlist.songIds.where((id) => id != 'song-2').toList();
+      final updatedSongIds = setlist.songIds
+          .where((id) => id != 'song-2')
+          .toList();
       final updatedSetlist = setlist.copyWith(songIds: updatedSongIds);
 
       expect(updatedSetlist.songIds.length, equals(2));

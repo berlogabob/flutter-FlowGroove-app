@@ -147,10 +147,13 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
           }
           if (result.key != null) {
             final key = result.key!;
-            _originalKeyBase = key.replaceAll(RegExp(r'[#bm]'), '').substring(0, 1);
+            _originalKeyBase = key
+                .replaceAll(RegExp(r'[#bm]'), '')
+                .substring(0, 1);
             _originalKeyModifier = key.contains('#')
                 ? '#'
-                : (key.contains('b') ? 'b' : '') + (result.mode == 'minor' ? 'm' : '');
+                : (key.contains('b') ? 'b' : '') +
+                      (result.mode == 'minor' ? 'm' : '');
           }
         });
         _showMessage(
@@ -170,7 +173,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
 
   /// Show MusicBrainz search bottom sheet.
   void _showMusicBrainzSearch() {
-    final query = '${_titleController.text.trim()} ${_artistController.text.trim()}'.trim();
+    final query =
+        '${_titleController.text.trim()} ${_artistController.text.trim()}'
+            .trim();
 
     if (query.isEmpty) {
       _showMessage('Enter a song title or artist to search');
@@ -196,7 +201,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
               if (recording.artist != null && _artistController.text.isEmpty) {
                 _artistController.text = recording.artist!;
               }
-              if (recording.bpm != null && _originalBpmController.text.isEmpty) {
+              if (recording.bpm != null &&
+                  _originalBpmController.text.isEmpty) {
                 _originalBpmController.text = recording.bpm.toString();
               }
             });
@@ -218,7 +224,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
       return;
     }
 
-    final query = '${_titleController.text.trim()} ${_artistController.text.trim()}'.trim();
+    final query =
+        '${_titleController.text.trim()} ${_artistController.text.trim()}'
+            .trim();
 
     if (query.isEmpty) {
       _showMessage('Enter a song title or artist to search');
@@ -268,8 +276,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     if (keyParts.isNotEmpty) {
       final key = keyParts[0];
       _originalKeyBase = key.replaceAll(RegExp(r'[#b]'), '').substring(0, 1);
-      _originalKeyModifier =
-          key.contains('#') ? '#' : (key.contains('b') ? 'b' : '');
+      _originalKeyModifier = key.contains('#')
+          ? '#'
+          : (key.contains('b') ? 'b' : '');
       if (keyParts.length > 1 && keyParts[1] == 'minor') {
         _originalKeyModifier = 'm';
       }
@@ -278,7 +287,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
 
   /// Open Spotify search in browser.
   void _searchOnWeb() {
-    final query = '${_titleController.text.trim()} ${_artistController.text.trim()}'.trim();
+    final query =
+        '${_titleController.text.trim()} ${_artistController.text.trim()}'
+            .trim();
 
     if (query.isEmpty) {
       _showMessage('Enter a song title to search');
@@ -328,10 +339,13 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
   }
 
   /// Show a snackbar message.
-  void _showMessage(String message, {Duration duration = const Duration(seconds: 2)}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: duration),
-    );
+  void _showMessage(
+    String message, {
+    Duration duration = const Duration(seconds: 2),
+  }) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message), duration: duration));
   }
 
   /// Save the song to Firestore.

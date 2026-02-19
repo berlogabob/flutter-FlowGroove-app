@@ -109,10 +109,7 @@ class CompactBandCard extends StatelessWidget {
           backgroundColor: AppColors.color5.withValues(alpha: 0.3),
           child: const Icon(Icons.groups, size: 20),
         ),
-        title: Text(
-          name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w500)),
         onTap: onTap,
       ),
     );

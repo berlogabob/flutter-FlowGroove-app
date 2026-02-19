@@ -31,7 +31,9 @@ void main() async {
   } catch (e) {
     // For web development, environment variables can be set via other means
     // This allows the app to run even if .env file is not present
-    debugPrint('Note: .env file not loaded. Using environment variables if available.');
+    debugPrint(
+      'Note: .env file not loaded. Using environment variables if available.',
+    );
   }
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

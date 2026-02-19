@@ -28,8 +28,7 @@ class MusicBrainzSearchSection extends StatefulWidget {
       _MusicBrainzSearchSectionState();
 }
 
-class _MusicBrainzSearchSectionState
-    extends State<MusicBrainzSearchSection> {
+class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
   late Future<List<MusicBrainzRecording>> _searchResults;
 
   @override
@@ -109,7 +108,10 @@ class _MusicBrainzSearchSectionState
                       const SizedBox(height: 8),
                       Text(
                         'Try different keywords',
-                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),

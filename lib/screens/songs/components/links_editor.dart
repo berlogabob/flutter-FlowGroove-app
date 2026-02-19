@@ -31,10 +31,7 @@ class LinksEditor extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Links',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            const Text('Links', style: TextStyle(fontWeight: FontWeight.bold)),
             TextButton.icon(
               onPressed: () => _showAddLinkDialog(context),
               icon: const Icon(Icons.add),
@@ -113,9 +110,7 @@ class LinksEditor extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 if (urlController.text.isNotEmpty) {
-                  onAddLink(
-                    Link(type: selectedType, url: urlController.text),
-                  );
+                  onAddLink(Link(type: selectedType, url: urlController.text));
                   Navigator.pop(context);
                 }
               },

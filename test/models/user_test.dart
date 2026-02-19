@@ -9,10 +9,7 @@ void main() {
 
     group('Constructor', () {
       test('creates AppUser with required fields', () {
-        final user = AppUser(
-          uid: 'user-id-1',
-          createdAt: testDate,
-        );
+        final user = AppUser(uid: 'user-id-1', createdAt: testDate);
 
         expect(user.uid, 'user-id-1');
         expect(user.displayName, isNull);
@@ -182,10 +179,7 @@ void main() {
       });
 
       test('serializes user with null values', () {
-        final user = AppUser(
-          uid: 'user-id-9',
-          createdAt: testDate,
-        );
+        final user = AppUser(uid: 'user-id-9', createdAt: testDate);
 
         final json = user.toJson();
 
@@ -355,10 +349,7 @@ void main() {
       });
 
       test('updates uid field', () {
-        final originalUser = AppUser(
-          uid: 'old-uid',
-          createdAt: testDate,
-        );
+        final originalUser = AppUser(uid: 'old-uid', createdAt: testDate);
 
         final copiedUser = originalUser.copyWith(uid: 'new-uid');
 
@@ -368,10 +359,7 @@ void main() {
 
     group('Edge Cases', () {
       test('handles empty string uid', () {
-        final user = AppUser(
-          uid: '',
-          createdAt: testDate,
-        );
+        final user = AppUser(uid: '', createdAt: testDate);
 
         expect(user.uid, '');
       });
@@ -387,11 +375,7 @@ void main() {
       });
 
       test('handles empty string email', () {
-        final user = AppUser(
-          uid: 'user-id-20',
-          email: '',
-          createdAt: testDate,
-        );
+        final user = AppUser(uid: 'user-id-20', email: '', createdAt: testDate);
 
         expect(user.email, '');
       });
@@ -486,10 +470,7 @@ void main() {
 
     group('Default Values', () {
       test('default bandIds is empty list', () {
-        final user = AppUser(
-          uid: 'user-id-27',
-          createdAt: testDate,
-        );
+        final user = AppUser(uid: 'user-id-27', createdAt: testDate);
 
         expect(user.bandIds, equals([]));
       });
@@ -508,16 +489,22 @@ void main() {
 
       test('fromJson handles missing createdAt with current time', () {
         final beforeParse = DateTime.now();
-        final json = {
-          'uid': 'user-id-29',
-        };
+        final json = {'uid': 'user-id-29'};
 
         final user = AppUser.fromJson(json);
         final afterParse = DateTime.now();
 
         expect(user.createdAt, isNotNull);
-        expect(user.createdAt.isAfter(beforeParse.subtract(const Duration(seconds: 1))), true);
-        expect(user.createdAt.isBefore(afterParse.add(const Duration(seconds: 1))), true);
+        expect(
+          user.createdAt.isAfter(
+            beforeParse.subtract(const Duration(seconds: 1)),
+          ),
+          true,
+        );
+        expect(
+          user.createdAt.isBefore(afterParse.add(const Duration(seconds: 1))),
+          true,
+        );
       });
     });
 

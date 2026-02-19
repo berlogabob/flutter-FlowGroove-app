@@ -6,19 +6,13 @@ import '../helpers/test_helpers.dart';
 void main() {
   group('LoadingIndicator', () {
     testWidgets('renders loading spinner', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingIndicator(),
-      );
+      await pumpAppWidget(tester, const LoadingIndicator());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
     testWidgets('renders with default size', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingIndicator(),
-      );
+      await pumpAppWidget(tester, const LoadingIndicator());
 
       final spinner = tester.widget<CircularProgressIndicator>(
         find.byType(CircularProgressIndicator),
@@ -29,10 +23,7 @@ void main() {
     });
 
     testWidgets('renders with custom size', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingIndicator(size: 60),
-      );
+      await pumpAppWidget(tester, const LoadingIndicator(size: 60));
 
       // Verify the spinner is rendered
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -49,26 +40,22 @@ void main() {
     });
 
     testWidgets('renders without message', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingIndicator(),
-      );
+      await pumpAppWidget(tester, const LoadingIndicator());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       verifyNotFound(findText('Loading...'));
     });
 
     testWidgets('renders centered', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingIndicator(),
-      );
+      await pumpAppWidget(tester, const LoadingIndicator());
 
       // Verify the widget is wrapped in a Center
       expect(find.byType(Center), findsOneWidget);
     });
 
-    testWidgets('renders message with default style', (WidgetTester tester) async {
+    testWidgets('renders message with default style', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const LoadingIndicator(message: 'Please wait'),
@@ -77,7 +64,9 @@ void main() {
       expect(findText('Please wait'), findsOneWidget);
     });
 
-    testWidgets('renders message with custom style', (WidgetTester tester) async {
+    testWidgets('renders message with custom style', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const LoadingIndicator(
@@ -92,19 +81,13 @@ void main() {
 
   group('LoadingSpinner', () {
     testWidgets('renders small spinner', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingSpinner(),
-      );
+      await pumpAppWidget(tester, const LoadingSpinner());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
     testWidgets('renders with default size', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingSpinner(),
-      );
+      await pumpAppWidget(tester, const LoadingSpinner());
 
       final spinner = tester.widget<CircularProgressIndicator>(
         find.byType(CircularProgressIndicator),
@@ -115,28 +98,21 @@ void main() {
     });
 
     testWidgets('renders with custom size', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingSpinner(size: 24),
-      );
+      await pumpAppWidget(tester, const LoadingSpinner(size: 24));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('renders with white color by default', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingSpinner(),
-      );
+    testWidgets('renders with white color by default', (
+      WidgetTester tester,
+    ) async {
+      await pumpAppWidget(tester, const LoadingSpinner());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
     testWidgets('renders with custom color', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const LoadingSpinner(color: Colors.red),
-      );
+      await pumpAppWidget(tester, const LoadingSpinner(color: Colors.red));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });

@@ -61,7 +61,7 @@ void main() {
       test('state can be read after refresh', () async {
         container.refresh(appUserProvider);
         await Future.delayed(const Duration(milliseconds: 50));
-        
+
         final appUserState = container.read(appUserProvider);
         expect(appUserState, isNotNull);
       });
@@ -84,7 +84,7 @@ void main() {
         container.refresh(appUserProvider);
         container.refresh(appUserProvider);
         container.refresh(appUserProvider);
-        
+
         final appUserState = container.read(appUserProvider);
         expect(appUserState, isNotNull);
       });
@@ -93,7 +93,7 @@ void main() {
         final state1 = container.read(appUserProvider);
         container.refresh(appUserProvider);
         final state2 = container.read(appUserProvider);
-        
+
         expect(state1, isNotNull);
         expect(state2, isNotNull);
       });

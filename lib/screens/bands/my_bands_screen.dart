@@ -112,8 +112,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       memberCount: band.members.length,
       description: band.description,
       onTap: () => _showInviteDialog(context, ref, band),
-      onEdit: () =>
-          Navigator.pushNamed(context, '/edit-band', arguments: band),
+      onEdit: () => Navigator.pushNamed(context, '/edit-band', arguments: band),
       onDelete: () => _confirmDelete(context, ref, band),
     );
   }
@@ -130,14 +129,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       final user = ref.read(currentUserProvider);
       if (user != null) {
         final service = ref.read(firestoreProvider);
-        
+
         // Remove user from global band members
         final updatedMembers = band.members
             .where((m) => m.uid != user.uid)
             .toList();
         final updatedBand = band.copyWith(members: updatedMembers);
         await service.saveBandToGlobal(updatedBand);
-        
+
         // Remove from user's bands collection
         await service.removeUserFromBand(band.id, user.uid);
       }
@@ -185,12 +184,14 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
     final newCode = Band.generateUniqueInviteCode();
 
     final updatedBand = widget.band.copyWith(inviteCode: newCode);
-    
+
     // Save to global collection
     await ref.read(firestoreProvider).saveBandToGlobal(updatedBand);
-    
+
     // Save to user's collection
-    await ref.read(firestoreProvider).saveBand(updatedBand, widget.currentUserId);
+    await ref
+        .read(firestoreProvider)
+        .saveBand(updatedBand, widget.currentUserId);
 
     setState(() {
       _inviteCode = newCode;

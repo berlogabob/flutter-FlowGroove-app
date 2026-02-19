@@ -18,8 +18,7 @@ class SpotifyService {
     if (kIsWeb) {
       // Try dotenv first
       final fromDotenv = dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
-      if (fromDotenv.isNotEmpty &&
-          fromDotenv != 'your_client_id_here') {
+      if (fromDotenv.isNotEmpty && fromDotenv != 'your_client_id_here') {
         return fromDotenv;
       }
       // Fallback to web config (window.env)
@@ -38,8 +37,7 @@ class SpotifyService {
     if (kIsWeb) {
       // Try dotenv first
       final fromDotenv = dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
-      if (fromDotenv.isNotEmpty &&
-          fromDotenv != 'your_client_secret_here') {
+      if (fromDotenv.isNotEmpty && fromDotenv != 'your_client_secret_here') {
         return fromDotenv;
       }
       // Fallback to web config (window.env)
@@ -51,7 +49,7 @@ class SpotifyService {
     }
     return dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
   }
-  
+
   static const String _baseUrl = 'https://api.spotify.com/v1';
 
   /// Check if Spotify API is configured

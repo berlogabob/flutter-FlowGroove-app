@@ -1,5 +1,6 @@
 // Sentinel value to detect if a parameter was passed to copyWith
 const Object _sentinel = _Sentinel();
+
 class _Sentinel {
   const _Sentinel();
   @override
@@ -33,7 +34,9 @@ class AppUser {
   }) {
     return AppUser(
       uid: uid ?? this.uid,
-      displayName: displayName == _sentinel ? this.displayName : displayName as String?,
+      displayName: displayName == _sentinel
+          ? this.displayName
+          : displayName as String?,
       email: email == _sentinel ? this.email : email as String?,
       photoURL: photoURL == _sentinel ? this.photoURL : photoURL as String?,
       bandIds: bandIds ?? this.bandIds,

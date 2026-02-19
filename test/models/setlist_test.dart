@@ -289,7 +289,9 @@ void main() {
           updatedAt: testDate,
         );
 
-        final copiedSetlist = originalSetlist.copyWith(name: 'New Setlist Name');
+        final copiedSetlist = originalSetlist.copyWith(
+          name: 'New Setlist Name',
+        );
 
         expect(copiedSetlist.name, 'New Setlist Name');
         expect(copiedSetlist.bandId, 'band-10');
@@ -319,7 +321,9 @@ void main() {
           updatedAt: testDate,
         );
 
-        final copiedSetlist = originalSetlist.copyWith(description: 'New description');
+        final copiedSetlist = originalSetlist.copyWith(
+          description: 'New description',
+        );
 
         expect(copiedSetlist.description, 'New description');
       });
@@ -349,7 +353,9 @@ void main() {
           updatedAt: testDate,
         );
 
-        final copiedSetlist = originalSetlist.copyWith(eventLocation: 'New Venue');
+        final copiedSetlist = originalSetlist.copyWith(
+          eventLocation: 'New Venue',
+        );
 
         expect(copiedSetlist.eventLocation, 'New Venue');
       });

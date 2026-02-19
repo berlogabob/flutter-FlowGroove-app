@@ -33,6 +33,15 @@ service cloud.firestore {
         band.adminUids.hasAny([request.auth.uid]);
     }
 
+    // Helper function to check if user is an editor or admin of a global band
+    // Uses editorUids and adminUids arrays for efficient lookup
+    function isGlobalBandEditorOrAdmin(bandId) {
+      let band = getGlobalBand(bandId);
+      return band != null &&
+        (band.editorUids.hasAny([request.auth.uid]) ||
+         band.adminUids.hasAny([request.auth.uid]));
+    }
+
     // Helper function to check if creating user is in members list
     function isCreatorInMembers(memberUids) {
       return memberUids.hasAny([request.auth.uid]);
@@ -74,6 +83,24 @@ service cloud.firestore {
       );
 
       // Delete: Only band admins can delete a band
+      allow delete: if isAuthenticated() && isGlobalBandAdmin(bandId);
+    }
+
+    // ============================================================
+    // Band Songs Subcollection
+    // ============================================================
+    // Songs stored under bands for collaborative band repertoire
+    match /bands/{bandId}/songs/{songId} {
+      // Band members can read
+      allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+
+      // Band editors/admins can create
+      allow create: if isAuthenticated() && isGlobalBandEditorOrAdmin(bandId);
+
+      // Band editors/admins can update
+      allow update: if isAuthenticated() && isGlobalBandEditorOrAdmin(bandId);
+
+      // Band admins can delete
       allow delete: if isAuthenticated() && isGlobalBandAdmin(bandId);
     }
 

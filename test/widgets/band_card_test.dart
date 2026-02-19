@@ -8,11 +8,7 @@ void main() {
     testWidgets('renders band card with name', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const BandCard(
-          id: 'test-band',
-          name: 'Test Band',
-          memberCount: 4,
-        ),
+        const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
       );
 
       expect(findText('Test Band'), findsOneWidget);
@@ -21,11 +17,7 @@ void main() {
     testWidgets('renders groups icon', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const BandCard(
-          id: 'test-band',
-          name: 'Test Band',
-          memberCount: 4,
-        ),
+        const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
       );
 
       expect(findIcon(Icons.groups), findsOneWidget);
@@ -34,30 +26,26 @@ void main() {
     testWidgets('renders member count', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const BandCard(
-          id: 'test-band',
-          name: 'Test Band',
-          memberCount: 4,
-        ),
+        const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
       );
 
       expect(find.text('4 members'), findsOneWidget);
     });
 
-    testWidgets('renders member count singular for one member', (WidgetTester tester) async {
+    testWidgets('renders member count singular for one member', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
-        const BandCard(
-          id: 'test-band',
-          name: 'Solo Band',
-          memberCount: 1,
-        ),
+        const BandCard(id: 'test-band', name: 'Solo Band', memberCount: 1),
       );
 
       expect(find.text('1 member'), findsOneWidget);
     });
 
-    testWidgets('renders description when provided', (WidgetTester tester) async {
+    testWidgets('renders description when provided', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const BandCard(
@@ -71,7 +59,9 @@ void main() {
       expect(find.text('A rock band from NYC'), findsOneWidget);
     });
 
-    testWidgets('does not render description when null', (WidgetTester tester) async {
+    testWidgets('does not render description when null', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const BandCard(
@@ -85,7 +75,9 @@ void main() {
       verifyNotFound(find.text('A rock band from NYC'));
     });
 
-    testWidgets('does not render description when empty', (WidgetTester tester) async {
+    testWidgets('does not render description when empty', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const BandCard(
@@ -127,27 +119,23 @@ void main() {
       expect(findIcon(Icons.delete), findsOneWidget);
     });
 
-    testWidgets('does not render edit button when onEdit is null', (WidgetTester tester) async {
+    testWidgets('does not render edit button when onEdit is null', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
-        const BandCard(
-          id: 'test-band',
-          name: 'Test Band',
-          memberCount: 4,
-        ),
+        const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
       );
 
       verifyNotFound(findIcon(Icons.edit));
     });
 
-    testWidgets('does not render delete button when onDelete is null', (WidgetTester tester) async {
+    testWidgets('does not render delete button when onDelete is null', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
-        const BandCard(
-          id: 'test-band',
-          name: 'Test Band',
-          memberCount: 4,
-        ),
+        const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
       );
 
       verifyNotFound(findIcon(Icons.delete));
@@ -172,7 +160,9 @@ void main() {
       expect(wasTapped, isTrue);
     });
 
-    testWidgets('calls onEdit when edit button is tapped', (WidgetTester tester) async {
+    testWidgets('calls onEdit when edit button is tapped', (
+      WidgetTester tester,
+    ) async {
       bool wasEdited = false;
 
       await pumpAppWidget(
@@ -191,7 +181,9 @@ void main() {
       expect(wasEdited, isTrue);
     });
 
-    testWidgets('calls onDelete when delete button is tapped', (WidgetTester tester) async {
+    testWidgets('calls onDelete when delete button is tapped', (
+      WidgetTester tester,
+    ) async {
       bool wasDeleted = false;
 
       await pumpAppWidget(
@@ -213,11 +205,7 @@ void main() {
     testWidgets('renders as Card widget', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const BandCard(
-          id: 'test-band',
-          name: 'Test Band',
-          memberCount: 4,
-        ),
+        const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
       );
 
       expect(find.byType(Card), findsOneWidget);
@@ -226,11 +214,7 @@ void main() {
     testWidgets('renders as ListTile', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const BandCard(
-          id: 'test-band',
-          name: 'Test Band',
-          memberCount: 4,
-        ),
+        const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
       );
 
       expect(find.byType(ListTile), findsOneWidget);
@@ -241,10 +225,7 @@ void main() {
     testWidgets('renders compact card with name', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CompactBandCard(
-          id: 'test-band',
-          name: 'Compact Band',
-        ),
+        const CompactBandCard(id: 'test-band', name: 'Compact Band'),
       );
 
       expect(findText('Compact Band'), findsOneWidget);
@@ -253,10 +234,7 @@ void main() {
     testWidgets('renders groups icon', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CompactBandCard(
-          id: 'test-band',
-          name: 'Compact Band',
-        ),
+        const CompactBandCard(id: 'test-band', name: 'Compact Band'),
       );
 
       expect(findIcon(Icons.groups), findsOneWidget);
@@ -283,10 +261,7 @@ void main() {
     testWidgets('renders as Card widget', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CompactBandCard(
-          id: 'test-band',
-          name: 'Compact Band',
-        ),
+        const CompactBandCard(id: 'test-band', name: 'Compact Band'),
       );
 
       expect(find.byType(Card), findsOneWidget);
@@ -295,10 +270,7 @@ void main() {
     testWidgets('renders as ListTile', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CompactBandCard(
-          id: 'test-band',
-          name: 'Compact Band',
-        ),
+        const CompactBandCard(id: 'test-band', name: 'Compact Band'),
       );
 
       expect(find.byType(ListTile), findsOneWidget);

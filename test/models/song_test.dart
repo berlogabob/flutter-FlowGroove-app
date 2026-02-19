@@ -7,8 +7,15 @@ void main() {
     // Test data
     final testDate = DateTime(2024, 1, 15, 10, 30, 0);
     final testLinks = [
-      Link(type: Link.typeYoutubeOriginal, url: 'https://youtube.com/watch?v=test1'),
-      Link(type: Link.typeSpotify, url: 'https://open.spotify.com/track/test1', title: 'Test Song'),
+      Link(
+        type: Link.typeYoutubeOriginal,
+        url: 'https://youtube.com/watch?v=test1',
+      ),
+      Link(
+        type: Link.typeSpotify,
+        url: 'https://open.spotify.com/track/test1',
+        title: 'Test Song',
+      ),
     ];
     final testTags = ['rock', 'classic', 'upbeat'];
 
@@ -84,8 +91,15 @@ void main() {
           'ourKey': 'F Minor',
           'ourBPM': 145,
           'links': [
-            {'type': 'youtube_original', 'url': 'https://youtube.com/watch?v=json1'},
-            {'type': 'spotify', 'url': 'https://spotify.com/track/json1', 'title': 'JSON Song'},
+            {
+              'type': 'youtube_original',
+              'url': 'https://youtube.com/watch?v=json1',
+            },
+            {
+              'type': 'spotify',
+              'url': 'https://spotify.com/track/json1',
+              'title': 'JSON Song',
+            },
           ],
           'notes': 'Notes from JSON',
           'tags': ['jazz', 'smooth'],
@@ -187,7 +201,11 @@ void main() {
           'title': 'Test',
           'artist': 'Artist',
           'links': [
-            {'type': 'youtube_cover', 'url': 'https://youtube.com/cover', 'title': 'Cover Version'},
+            {
+              'type': 'youtube_cover',
+              'url': 'https://youtube.com/cover',
+              'title': 'Cover Version',
+            },
             {'type': 'tabs', 'url': 'https://tabs.com/song'},
           ],
           'tags': ['rock'],

@@ -87,11 +87,7 @@ void main() {
       });
 
       test('handles null values with defaults', () {
-        final json = {
-          'type': null,
-          'url': null,
-          'title': null,
-        };
+        final json = {'type': null, 'url': null, 'title': null};
 
         final link = Link.fromJson(json);
 
@@ -110,9 +106,7 @@ void main() {
       });
 
       test('handles missing type with default other', () {
-        final json = {
-          'url': 'https://example.com',
-        };
+        final json = {'url': 'https://example.com'};
 
         final link = Link.fromJson(json);
 
@@ -121,9 +115,7 @@ void main() {
       });
 
       test('handles missing url with empty string default', () {
-        final json = {
-          'type': 'tabs',
-        };
+        final json = {'type': 'tabs'};
 
         final link = Link.fromJson(json);
 
@@ -143,10 +135,7 @@ void main() {
         ];
 
         for (final type in types) {
-          final json = {
-            'type': type,
-            'url': 'https://example.com/$type',
-          };
+          final json = {'type': type, 'url': 'https://example.com/$type'};
 
           final link = Link.fromJson(json);
 
@@ -199,10 +188,7 @@ void main() {
       });
 
       test('toJson preserves null title', () {
-        final link = Link(
-          type: Link.typeDrums,
-          url: 'https://drums.com/track',
-        );
+        final link = Link(type: Link.typeDrums, url: 'https://drums.com/track');
 
         final json = link.toJson();
 
@@ -214,10 +200,7 @@ void main() {
 
     group('Edge Cases', () {
       test('handles empty string url', () {
-        final link = Link(
-          type: Link.typeOther,
-          url: '',
-        );
+        final link = Link(type: Link.typeOther, url: '');
 
         expect(link.url, '');
       });
@@ -234,10 +217,7 @@ void main() {
 
       test('handles very long url', () {
         final longUrl = 'https://example.com/${'a' * 5000}';
-        final link = Link(
-          type: Link.typeOther,
-          url: longUrl,
-        );
+        final link = Link(type: Link.typeOther, url: longUrl);
 
         expect(link.url.length, greaterThan(5000));
       });
@@ -288,7 +268,8 @@ void main() {
       test('handles URL with query parameters', () {
         final link = Link(
           type: Link.typeSpotify,
-          url: 'https://open.spotify.com/track/abc123?si=xyz789&context=playlist',
+          url:
+              'https://open.spotify.com/track/abc123?si=xyz789&context=playlist',
           title: 'Spotify with params',
         );
 
@@ -305,10 +286,7 @@ void main() {
         ];
 
         for (final url in urls) {
-          final link = Link(
-            type: Link.typeOther,
-            url: url,
-          );
+          final link = Link(type: Link.typeOther, url: url);
 
           expect(link.url, url, reason: 'Failed for URL: $url');
         }

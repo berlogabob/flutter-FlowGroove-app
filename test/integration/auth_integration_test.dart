@@ -1,10 +1,10 @@
 /// Authentication Integration Tests
-/// 
+///
 /// These tests verify authentication functionality using mocks.
-/// 
+///
 /// To run these tests:
 /// 1. Run tests: `flutter test test/integration/auth_integration_test.dart`
-/// 
+///
 /// Note: These tests use mocked Firebase Auth to ensure consistent test results.
 
 import 'package:flutter_test/flutter_test.dart';
@@ -21,7 +21,7 @@ void main() {
     mockAuth = MockFirebaseAuth();
     mockUser = MockUser();
     mockCredential = MockCredential();
-    
+
     // Setup default mock behaviors
     when(mockCredential.user).thenReturn(mockUser);
     when(mockUser.uid).thenReturn('test-user-id');
@@ -40,10 +40,12 @@ void main() {
 
   group('Authentication - User Creation', () {
     test('creates user with email and password', () async {
-      when(mockAuth.createUserWithEmailAndPassword(
-        email: 'newuser@example.com',
-        password: 'password123',
-      )).thenAnswer((_) async => mockCredential);
+      when(
+        mockAuth.createUserWithEmailAndPassword(
+          email: 'newuser@example.com',
+          password: 'password123',
+        ),
+      ).thenAnswer((_) async => mockCredential);
 
       final result = await mockAuth.createUserWithEmailAndPassword(
         email: 'newuser@example.com',
@@ -51,20 +53,26 @@ void main() {
       );
 
       expect(result, equals(mockCredential));
-      verify(mockAuth.createUserWithEmailAndPassword(
-        email: 'newuser@example.com',
-        password: 'password123',
-      )).called(1);
+      verify(
+        mockAuth.createUserWithEmailAndPassword(
+          email: 'newuser@example.com',
+          password: 'password123',
+        ),
+      ).called(1);
     });
 
     test('throws error for weak password', () async {
-      when(mockAuth.createUserWithEmailAndPassword(
-        email: 'test@example.com',
-        password: '123',
-      )).thenThrow(FirebaseAuthException(
-        code: 'weak-password',
-        message: 'Password is too weak',
-      ));
+      when(
+        mockAuth.createUserWithEmailAndPassword(
+          email: 'test@example.com',
+          password: '123',
+        ),
+      ).thenThrow(
+        FirebaseAuthException(
+          code: 'weak-password',
+          message: 'Password is too weak',
+        ),
+      );
 
       expect(
         () => mockAuth.createUserWithEmailAndPassword(
@@ -76,13 +84,17 @@ void main() {
     });
 
     test('throws error for invalid email', () async {
-      when(mockAuth.createUserWithEmailAndPassword(
-        email: 'invalid-email',
-        password: 'password123',
-      )).thenThrow(FirebaseAuthException(
-        code: 'invalid-email',
-        message: 'Invalid email address',
-      ));
+      when(
+        mockAuth.createUserWithEmailAndPassword(
+          email: 'invalid-email',
+          password: 'password123',
+        ),
+      ).thenThrow(
+        FirebaseAuthException(
+          code: 'invalid-email',
+          message: 'Invalid email address',
+        ),
+      );
 
       expect(
         () => mockAuth.createUserWithEmailAndPassword(
@@ -94,13 +106,17 @@ void main() {
     });
 
     test('throws error for email already in use', () async {
-      when(mockAuth.createUserWithEmailAndPassword(
-        email: 'existing@example.com',
-        password: 'password123',
-      )).thenThrow(FirebaseAuthException(
-        code: 'email-already-in-use',
-        message: 'Email already in use',
-      ));
+      when(
+        mockAuth.createUserWithEmailAndPassword(
+          email: 'existing@example.com',
+          password: 'password123',
+        ),
+      ).thenThrow(
+        FirebaseAuthException(
+          code: 'email-already-in-use',
+          message: 'Email already in use',
+        ),
+      );
 
       expect(
         () => mockAuth.createUserWithEmailAndPassword(
@@ -114,10 +130,12 @@ void main() {
 
   group('Authentication - Sign In', () {
     test('signs in with email and password', () async {
-      when(mockAuth.signInWithEmailAndPassword(
-        email: 'test@example.com',
-        password: 'password123',
-      )).thenAnswer((_) async => mockCredential);
+      when(
+        mockAuth.signInWithEmailAndPassword(
+          email: 'test@example.com',
+          password: 'password123',
+        ),
+      ).thenAnswer((_) async => mockCredential);
 
       final result = await mockAuth.signInWithEmailAndPassword(
         email: 'test@example.com',
@@ -125,20 +143,26 @@ void main() {
       );
 
       expect(result, equals(mockCredential));
-      verify(mockAuth.signInWithEmailAndPassword(
-        email: 'test@example.com',
-        password: 'password123',
-      )).called(1);
+      verify(
+        mockAuth.signInWithEmailAndPassword(
+          email: 'test@example.com',
+          password: 'password123',
+        ),
+      ).called(1);
     });
 
     test('throws error for user not found', () async {
-      when(mockAuth.signInWithEmailAndPassword(
-        email: 'nonexistent@example.com',
-        password: 'password123',
-      )).thenThrow(FirebaseAuthException(
-        code: 'user-not-found',
-        message: 'No user found with this email',
-      ));
+      when(
+        mockAuth.signInWithEmailAndPassword(
+          email: 'nonexistent@example.com',
+          password: 'password123',
+        ),
+      ).thenThrow(
+        FirebaseAuthException(
+          code: 'user-not-found',
+          message: 'No user found with this email',
+        ),
+      );
 
       expect(
         () => mockAuth.signInWithEmailAndPassword(
@@ -150,13 +174,17 @@ void main() {
     });
 
     test('throws error for wrong password', () async {
-      when(mockAuth.signInWithEmailAndPassword(
-        email: 'test@example.com',
-        password: 'wrongpassword',
-      )).thenThrow(FirebaseAuthException(
-        code: 'wrong-password',
-        message: 'Wrong password',
-      ));
+      when(
+        mockAuth.signInWithEmailAndPassword(
+          email: 'test@example.com',
+          password: 'wrongpassword',
+        ),
+      ).thenThrow(
+        FirebaseAuthException(
+          code: 'wrong-password',
+          message: 'Wrong password',
+        ),
+      );
 
       expect(
         () => mockAuth.signInWithEmailAndPassword(

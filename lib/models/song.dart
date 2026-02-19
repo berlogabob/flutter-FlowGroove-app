@@ -2,6 +2,7 @@ import 'link.dart';
 
 // Sentinel value to detect if a parameter was passed to copyWith
 const Object _sentinel = _Sentinel();
+
 class _Sentinel {
   const _Sentinel();
   @override
@@ -24,6 +25,12 @@ class Song {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  // NEW: Sharing fields for copying songs from personal banks to band banks
+  final String? originalOwnerId; // User who created original song
+  final String? contributedBy; // User who added to band
+  final bool isCopy; // True if this is a band's copy
+  final DateTime? contributedAt; // When added to band
+
   Song({
     required this.id,
     required this.title,
@@ -39,6 +46,10 @@ class Song {
     this.spotifyUrl,
     required this.createdAt,
     required this.updatedAt,
+    this.originalOwnerId,
+    this.contributedBy,
+    this.isCopy = false,
+    this.contributedAt,
   });
 
   Song copyWith({
@@ -56,22 +67,42 @@ class Song {
     Object? spotifyUrl = _sentinel,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Object? originalOwnerId = _sentinel,
+    Object? contributedBy = _sentinel,
+    Object? isCopy = _sentinel,
+    Object? contributedAt = _sentinel,
   }) {
     return Song(
       id: id ?? this.id,
       title: title ?? this.title,
       artist: artist ?? this.artist,
-      originalKey: originalKey == _sentinel ? this.originalKey : originalKey as String?,
-      originalBPM: originalBPM == _sentinel ? this.originalBPM : originalBPM as int?,
+      originalKey: originalKey == _sentinel
+          ? this.originalKey
+          : originalKey as String?,
+      originalBPM: originalBPM == _sentinel
+          ? this.originalBPM
+          : originalBPM as int?,
       ourKey: ourKey == _sentinel ? this.ourKey : ourKey as String?,
       ourBPM: ourBPM == _sentinel ? this.ourBPM : ourBPM as int?,
       links: links ?? this.links,
       notes: notes == _sentinel ? this.notes : notes as String?,
       tags: tags ?? this.tags,
       bandId: bandId == _sentinel ? this.bandId : bandId as String?,
-      spotifyUrl: spotifyUrl == _sentinel ? this.spotifyUrl : spotifyUrl as String?,
+      spotifyUrl: spotifyUrl == _sentinel
+          ? this.spotifyUrl
+          : spotifyUrl as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      originalOwnerId: originalOwnerId == _sentinel
+          ? this.originalOwnerId
+          : originalOwnerId as String?,
+      contributedBy: contributedBy == _sentinel
+          ? this.contributedBy
+          : contributedBy as String?,
+      isCopy: isCopy == _sentinel ? this.isCopy : isCopy as bool,
+      contributedAt: contributedAt == _sentinel
+          ? this.contributedAt
+          : contributedAt as DateTime?,
     );
   }
 
@@ -90,6 +121,11 @@ class Song {
     'spotifyUrl': spotifyUrl,
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
+    // Sharing fields
+    'originalOwnerId': originalOwnerId,
+    'contributedBy': contributedBy,
+    'isCopy': isCopy,
+    'contributedAt': contributedAt?.toIso8601String(),
   };
 
   factory Song.fromJson(Map<String, dynamic> json) => Song(
@@ -115,5 +151,12 @@ class Song {
     updatedAt: json['updatedAt'] != null
         ? DateTime.parse(json['updatedAt'])
         : DateTime.now(),
+    // Sharing fields (nullable for backward compatibility)
+    originalOwnerId: json['originalOwnerId'],
+    contributedBy: json['contributedBy'],
+    isCopy: json['isCopy'] ?? false,
+    contributedAt: json['contributedAt'] != null
+        ? DateTime.parse(json['contributedAt'])
+        : null,
   );
 }

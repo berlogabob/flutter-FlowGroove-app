@@ -44,7 +44,9 @@ void main() {
       expect(find.text('10 songs'), findsOneWidget);
     });
 
-    testWidgets('renders song count singular for one song', (WidgetTester tester) async {
+    testWidgets('renders song count singular for one song', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -71,7 +73,9 @@ void main() {
       expect(find.text('Test Band'), findsOneWidget);
     });
 
-    testWidgets('does not render band name when null', (WidgetTester tester) async {
+    testWidgets('does not render band name when null', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -85,7 +89,9 @@ void main() {
       verifyNotFound(find.text('Test Band'));
     });
 
-    testWidgets('does not render band name when empty', (WidgetTester tester) async {
+    testWidgets('does not render band name when empty', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -155,7 +161,9 @@ void main() {
       expect(findIcon(Icons.delete), findsOneWidget);
     });
 
-    testWidgets('does not render edit button when onEdit is null', (WidgetTester tester) async {
+    testWidgets('does not render edit button when onEdit is null', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -168,7 +176,9 @@ void main() {
       verifyNotFound(findIcon(Icons.edit));
     });
 
-    testWidgets('does not render delete button when onDelete is null', (WidgetTester tester) async {
+    testWidgets('does not render delete button when onDelete is null', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -200,7 +210,9 @@ void main() {
       expect(wasTapped, isTrue);
     });
 
-    testWidgets('calls onEdit when edit button is tapped', (WidgetTester tester) async {
+    testWidgets('calls onEdit when edit button is tapped', (
+      WidgetTester tester,
+    ) async {
       bool wasEdited = false;
 
       await pumpAppWidget(
@@ -219,7 +231,9 @@ void main() {
       expect(wasEdited, isTrue);
     });
 
-    testWidgets('calls onDelete when delete button is tapped', (WidgetTester tester) async {
+    testWidgets('calls onDelete when delete button is tapped', (
+      WidgetTester tester,
+    ) async {
       bool wasDeleted = false;
 
       await pumpAppWidget(

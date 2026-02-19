@@ -83,11 +83,8 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: filteredSetlists.length,
-                  itemBuilder: (context, index) => _buildSetlistCard(
-                    context,
-                    ref,
-                    filteredSetlists[index],
-                  ),
+                  itemBuilder: (context, index) =>
+                      _buildSetlistCard(context, ref, filteredSetlists[index]),
                 ),
         ),
       ],
@@ -114,11 +111,8 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       songCount: setlist.songIds.length,
       bandName: setlist.bandId,
       date: setlist.eventDate,
-      onEdit: () => Navigator.pushNamed(
-        context,
-        '/edit-setlist',
-        arguments: setlist,
-      ),
+      onEdit: () =>
+          Navigator.pushNamed(context, '/edit-setlist', arguments: setlist),
       onDelete: () => _confirmDelete(context, ref, setlist),
       onTap: () => _showExportOptions(context, ref, setlist),
     );
@@ -150,8 +144,9 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   ) {
     final songsAsync = ref.read(songsProvider);
     final allSongs = songsAsync.value ?? [];
-    final setlistSongs =
-        allSongs.where((s) => setlist.songIds.contains(s.id)).toList();
+    final setlistSongs = allSongs
+        .where((s) => setlist.songIds.contains(s.id))
+        .toList();
 
     showModalBottomSheet(
       context: context,

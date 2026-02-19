@@ -27,14 +27,14 @@ void main() {
     late MockFirebaseAuth mockAuth;
     late MockFirebaseFirestore mockFirestore;
 
-
     setUp(() {
       mockAuth = MockFirebaseAuth();
       mockFirestore = MockFirebaseFirestore();
-
     });
 
-    testWidgets('renders add song screen with title', (WidgetTester tester) async {
+    testWidgets('renders add song screen with title', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -42,7 +42,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -51,7 +51,9 @@ void main() {
       expect(findText('Add Song'), findsOneWidget);
     });
 
-    testWidgets('renders edit song screen with title when editing', (WidgetTester tester) async {
+    testWidgets('renders edit song screen with title when editing', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final song = MockDataHelper.createMockSong(
         id: 'test-song',
@@ -64,7 +66,7 @@ void main() {
         AddSongScreen(song: song),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -81,7 +83,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -104,7 +106,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -113,7 +115,9 @@ void main() {
       expect(findText('Save'), findsOneWidget);
     });
 
-    testWidgets('allows entering song title and artist', (WidgetTester tester) async {
+    testWidgets('allows entering song title and artist', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -121,14 +125,14 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
       // Find text fields
       final textFields = find.byType(TextFormField);
-      
+
       // Enter title
       await tester.enterText(textFields.at(0), 'Test Song');
       await tester.pump();
@@ -150,14 +154,14 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
       // Find BPM fields
       final textFields = find.byType(TextFormField);
-      
+
       // Enter original BPM
       await tester.enterText(textFields.at(2), '120');
       await tester.pump();
@@ -179,7 +183,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -201,7 +205,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -222,7 +226,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -243,7 +247,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -255,7 +259,9 @@ void main() {
       expect(find.text('Web'), findsOneWidget);
     });
 
-    testWidgets('displays copy from original button', (WidgetTester tester) async {
+    testWidgets('displays copy from original button', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -263,7 +269,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -272,7 +278,9 @@ void main() {
       expect(find.text('Copy from Original'), findsOneWidget);
     });
 
-    testWidgets('populates form fields when editing', (WidgetTester tester) async {
+    testWidgets('populates form fields when editing', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final song = MockDataHelper.createMockSong(
         id: 'test-song',
@@ -288,7 +296,7 @@ void main() {
         AddSongScreen(song: song),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -300,7 +308,9 @@ void main() {
       expect(find.text('135'), findsWidgets);
     });
 
-    testWidgets('shows message when saving without title', (WidgetTester tester) async {
+    testWidgets('shows message when saving without title', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -308,7 +318,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -321,7 +331,9 @@ void main() {
       // The form should show validation errors
     });
 
-    testWidgets('shows success message when saving song', (WidgetTester tester) async {
+    testWidgets('shows success message when saving song', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -356,7 +368,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
@@ -374,7 +386,7 @@ void main() {
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );

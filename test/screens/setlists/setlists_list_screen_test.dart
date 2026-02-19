@@ -24,13 +24,13 @@ void main() {
   group('SetlistsListScreen', () {
     late MockFirebaseAuth mockAuth;
 
-
     setUp(() {
       mockAuth = MockFirebaseAuth();
-
     });
 
-    testWidgets('renders setlists list screen with title', (WidgetTester tester) async {
+    testWidgets('renders setlists list screen with title', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -38,7 +38,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -57,7 +57,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -77,7 +77,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -89,7 +89,9 @@ void main() {
       expect(findIcon(Icons.add), findsWidgets);
     });
 
-    testWidgets('displays empty state when no setlists', (WidgetTester tester) async {
+    testWidgets('displays empty state when no setlists', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -97,7 +99,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -113,9 +115,21 @@ void main() {
     testWidgets('displays list of setlists', (WidgetTester tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final setlists = [
-        MockDataHelper.createMockSetlist(id: '1', name: 'Gig Setlist 1', songIds: ['s1', 's2', 's3']),
-        MockDataHelper.createMockSetlist(id: '2', name: 'Gig Setlist 2', songIds: ['s1', 's2']),
-        MockDataHelper.createMockSetlist(id: '3', name: 'Practice Setlist', songIds: ['s1']),
+        MockDataHelper.createMockSetlist(
+          id: '1',
+          name: 'Gig Setlist 1',
+          songIds: ['s1', 's2', 's3'],
+        ),
+        MockDataHelper.createMockSetlist(
+          id: '2',
+          name: 'Gig Setlist 2',
+          songIds: ['s1', 's2'],
+        ),
+        MockDataHelper.createMockSetlist(
+          id: '3',
+          name: 'Practice Setlist',
+          songIds: ['s1'],
+        ),
       ];
 
       await pumpAppWidget(
@@ -123,7 +137,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -136,12 +150,26 @@ void main() {
       expect(find.text('Practice Setlist'), findsOneWidget);
     });
 
-    testWidgets('displays song count for each setlist', (WidgetTester tester) async {
+    testWidgets('displays song count for each setlist', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final setlists = [
-        MockDataHelper.createMockSetlist(id: '1', name: 'Setlist 1', songIds: ['s1', 's2', 's3']),
-        MockDataHelper.createMockSetlist(id: '2', name: 'Setlist 2', songIds: ['s1', 's2']),
-        MockDataHelper.createMockSetlist(id: '3', name: 'Setlist 3', songIds: ['s1']),
+        MockDataHelper.createMockSetlist(
+          id: '1',
+          name: 'Setlist 1',
+          songIds: ['s1', 's2', 's3'],
+        ),
+        MockDataHelper.createMockSetlist(
+          id: '2',
+          name: 'Setlist 2',
+          songIds: ['s1', 's2'],
+        ),
+        MockDataHelper.createMockSetlist(
+          id: '3',
+          name: 'Setlist 3',
+          songIds: ['s1'],
+        ),
       ];
 
       await pumpAppWidget(
@@ -149,7 +177,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -165,8 +193,16 @@ void main() {
     testWidgets('filters setlists by name', (WidgetTester tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final setlists = [
-        MockDataHelper.createMockSetlist(id: '1', name: 'Rock Gig', songIds: []),
-        MockDataHelper.createMockSetlist(id: '2', name: 'Jazz Gig', songIds: []),
+        MockDataHelper.createMockSetlist(
+          id: '1',
+          name: 'Rock Gig',
+          songIds: [],
+        ),
+        MockDataHelper.createMockSetlist(
+          id: '2',
+          name: 'Jazz Gig',
+          songIds: [],
+        ),
         MockDataHelper.createMockSetlist(id: '3', name: 'Pop Gig', songIds: []),
       ];
 
@@ -175,7 +211,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -196,9 +232,33 @@ void main() {
     testWidgets('filters setlists by description', (WidgetTester tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final setlists = [
-        Setlist(id: '1', name: 'Gig 1', songIds: [], description: 'Rock concert', bandId: 'band1', createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Setlist(id: '2', name: 'Gig 2', songIds: [], description: 'Jazz club', bandId: 'band1', createdAt: DateTime.now(), updatedAt: DateTime.now()),
-        Setlist(id: '3', name: 'Gig 3', songIds: [], description: 'Pop festival', bandId: 'band1', createdAt: DateTime.now(), updatedAt: DateTime.now()),
+        Setlist(
+          id: '1',
+          name: 'Gig 1',
+          songIds: [],
+          description: 'Rock concert',
+          bandId: 'band1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Setlist(
+          id: '2',
+          name: 'Gig 2',
+          songIds: [],
+          description: 'Jazz club',
+          bandId: 'band1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+        Setlist(
+          id: '3',
+          name: 'Gig 3',
+          songIds: [],
+          description: 'Pop festival',
+          bandId: 'band1',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
       ];
 
       await pumpAppWidget(
@@ -206,7 +266,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -224,10 +284,16 @@ void main() {
       expect(find.text('Gig 3'), findsNothing);
     });
 
-    testWidgets('displays search empty state when no results', (WidgetTester tester) async {
+    testWidgets('displays search empty state when no results', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final setlists = [
-        MockDataHelper.createMockSetlist(id: '1', name: 'Gig Setlist', songIds: []),
+        MockDataHelper.createMockSetlist(
+          id: '1',
+          name: 'Gig Setlist',
+          songIds: [],
+        ),
       ];
 
       await pumpAppWidget(
@@ -235,7 +301,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -251,7 +317,9 @@ void main() {
       expect(findText('No results found'), findsOneWidget);
     });
 
-    testWidgets('navigates to create setlist screen when tapping FAB', (WidgetTester tester) async {
+    testWidgets('navigates to create setlist screen when tapping FAB', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       bool didNavigate = false;
 
@@ -260,17 +328,19 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/create-setlist') {
-              didNavigate = true;
-            }
-          }),
+          MockNavigatorObserver(
+            onPush: (route) {
+              if (route.settings.name == '/create-setlist') {
+                didNavigate = true;
+              }
+            },
+          ),
         ],
       );
 
@@ -281,45 +351,52 @@ void main() {
       expect(didNavigate, isTrue);
     });
 
-    testWidgets('navigates to create setlist screen when tapping Create Setlist button', (WidgetTester tester) async {
+    testWidgets(
+      'navigates to create setlist screen when tapping Create Setlist button',
+      (WidgetTester tester) async {
+        final mockUser = MockDataHelper.createMockAppUser();
+        bool didNavigate = false;
+
+        await pumpAppWidget(
+          tester,
+          const SetlistsListScreen(),
+          overrides: [
+            firebaseAuthProvider.overrideWith((ref) => mockAuth),
+
+            appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+            setlistsProvider.overrideWith((ref) => Stream.value([])),
+            songsProvider.overrideWith((ref) => Stream.value([])),
+          ],
+          navigatorObservers: [
+            MockNavigatorObserver(
+              onPush: (route) {
+                if (route.settings.name == '/create-setlist') {
+                  didNavigate = true;
+                }
+              },
+            ),
+          ],
+        );
+
+        // Tap Create Setlist button
+        await tester.tap(findText('Create Setlist'));
+        await tester.pump();
+
+        expect(didNavigate, isTrue);
+      },
+    );
+
+    testWidgets('shows loading indicator when loading setlists', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
-      bool didNavigate = false;
 
       await pumpAppWidget(
         tester,
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          setlistsProvider.overrideWith((ref) => Stream.value([])),
-          songsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-        navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/create-setlist') {
-              didNavigate = true;
-            }
-          }),
-        ],
-      );
 
-      // Tap Create Setlist button
-      await tester.tap(findText('Create Setlist'));
-      await tester.pump();
-
-      expect(didNavigate, isTrue);
-    });
-
-    testWidgets('shows loading indicator when loading setlists', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const SetlistsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -330,7 +407,9 @@ void main() {
       expect(find.byType(Scaffold), findsOneWidget);
     });
 
-    testWidgets('displays error message when error occurs', (WidgetTester tester) async {
+    testWidgets('displays error message when error occurs', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -338,27 +417,38 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          setlistsProvider.overrideWith((ref) => Stream.error(Exception('Failed to load setlists'))),
+          setlistsProvider.overrideWith(
+            (ref) => Stream.error(Exception('Failed to load setlists')),
+          ),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
 
       // Verify error message
-      expect(find.text('Error: Exception: Failed to load setlists'), findsOneWidget);
+      expect(
+        find.text('Error: Exception: Failed to load setlists'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('displays setlist cards with correct icons', (WidgetTester tester) async {
+    testWidgets('displays setlist cards with correct icons', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
-      final setlist = MockDataHelper.createMockSetlist(id: '1', name: 'Test Setlist', songIds: ['s1', 's2']);
+      final setlist = MockDataHelper.createMockSetlist(
+        id: '1',
+        name: 'Test Setlist',
+        songIds: ['s1', 's2'],
+      );
 
       await pumpAppWidget(
         tester,
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([setlist])),
           songsProvider.overrideWith((ref) => Stream.value([])),
@@ -371,7 +461,9 @@ void main() {
       expect(findIcon(Icons.delete), findsOneWidget);
     });
 
-    testWidgets('displays band name when available', (WidgetTester tester) async {
+    testWidgets('displays band name when available', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final setlist = MockDataHelper.createMockSetlist(
         id: '1',
@@ -385,7 +477,7 @@ void main() {
         const SetlistsListScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
+
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([setlist])),
           songsProvider.overrideWith((ref) => Stream.value([])),

@@ -98,8 +98,18 @@ class SetlistCard extends StatelessWidget {
     try {
       final date = DateTime.parse(dateStr);
       final months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
       ];
       return '${months[date.month - 1]} ${date.day}, ${date.year}';
     } catch (e) {
@@ -139,10 +149,7 @@ class CompactSetlistCard extends StatelessWidget {
           backgroundColor: AppColors.color1.withValues(alpha: 0.3),
           child: const Icon(Icons.playlist_play, size: 20),
         ),
-        title: Text(
-          name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w500)),
         subtitle: Text('$songCount songs'),
         onTap: onTap,
       ),

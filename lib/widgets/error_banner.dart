@@ -70,10 +70,7 @@ class ErrorBanner extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            message,
-            style: TextStyle(color: Colors.red.shade900),
-          ),
+          Text(message, style: TextStyle(color: Colors.red.shade900)),
           if (showRetry && onRetry != null) ...[
             const SizedBox(height: 12),
             ElevatedButton.icon(
@@ -141,10 +138,7 @@ class ErrorBanner extends StatelessWidget {
           ),
         ),
         if (showRetry && onRetry != null)
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('Retry'),
-          ),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
       ],
     );
   }

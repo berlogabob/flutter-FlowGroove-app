@@ -42,9 +42,7 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final button = _buildButton(context);
 
-    return fullWidth
-        ? SizedBox(width: double.infinity, child: button)
-        : button;
+    return fullWidth ? SizedBox(width: double.infinity, child: button) : button;
   }
 
   Widget _buildButton(BuildContext context) {
@@ -109,10 +107,7 @@ class CustomButton extends StatelessWidget {
             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
           ),
         ),
-        if (label.isNotEmpty) ...[
-          const SizedBox(width: 8),
-          Text(label),
-        ],
+        if (label.isNotEmpty) ...[const SizedBox(width: 8), Text(label)],
       ],
     );
 
@@ -155,10 +150,7 @@ class CustomButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: _iconSize),
-          if (label.isNotEmpty) ...[
-            const SizedBox(width: 8),
-            Text(label),
-          ],
+          if (label.isNotEmpty) ...[const SizedBox(width: 8), Text(label)],
         ],
       );
     }

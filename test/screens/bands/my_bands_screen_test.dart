@@ -28,7 +28,9 @@ void main() {
       mockAuth = MockFirebaseAuth();
     });
 
-    testWidgets('renders my bands screen with title', (WidgetTester tester) async {
+    testWidgets('renders my bands screen with title', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -63,7 +65,9 @@ void main() {
       expect(findIcon(Icons.search), findsWidgets);
     });
 
-    testWidgets('displays floating action buttons', (WidgetTester tester) async {
+    testWidgets('displays floating action buttons', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -81,7 +85,9 @@ void main() {
       expect(fabs, findsNWidgets(2));
     });
 
-    testWidgets('displays empty state when no bands', (WidgetTester tester) async {
+    testWidgets('displays empty state when no bands', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -103,9 +109,24 @@ void main() {
     testWidgets('displays list of bands', (WidgetTester tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final bands = [
-        MockDataHelper.createMockBand(id: '1', name: 'Band One', members: [BandMember(uid: '1', role: BandMember.roleAdmin)]),
-        MockDataHelper.createMockBand(id: '2', name: 'Band Two', members: [BandMember(uid: '1', role: BandMember.roleAdmin), BandMember(uid: '2', role: BandMember.roleEditor)]),
-        MockDataHelper.createMockBand(id: '3', name: 'Band Three', members: [BandMember(uid: '1', role: BandMember.roleAdmin)]),
+        MockDataHelper.createMockBand(
+          id: '1',
+          name: 'Band One',
+          members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
+        ),
+        MockDataHelper.createMockBand(
+          id: '2',
+          name: 'Band Two',
+          members: [
+            BandMember(uid: '1', role: BandMember.roleAdmin),
+            BandMember(uid: '2', role: BandMember.roleEditor),
+          ],
+        ),
+        MockDataHelper.createMockBand(
+          id: '3',
+          name: 'Band Three',
+          members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
+        ),
       ];
 
       await pumpAppWidget(
@@ -124,12 +145,33 @@ void main() {
       expect(find.text('Band Three'), findsOneWidget);
     });
 
-    testWidgets('displays member count for each band', (WidgetTester tester) async {
+    testWidgets('displays member count for each band', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final bands = [
-        MockDataHelper.createMockBand(id: '1', name: 'Solo Band', members: [BandMember(uid: '1', role: BandMember.roleAdmin)]),
-        MockDataHelper.createMockBand(id: '2', name: 'Duo Band', members: [BandMember(uid: '1', role: BandMember.roleAdmin), BandMember(uid: '2', role: BandMember.roleEditor)]),
-        MockDataHelper.createMockBand(id: '3', name: 'Trio Band', members: [BandMember(uid: '1', role: BandMember.roleAdmin), BandMember(uid: '2', role: BandMember.roleEditor), BandMember(uid: '3', role: BandMember.roleViewer)]),
+        MockDataHelper.createMockBand(
+          id: '1',
+          name: 'Solo Band',
+          members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
+        ),
+        MockDataHelper.createMockBand(
+          id: '2',
+          name: 'Duo Band',
+          members: [
+            BandMember(uid: '1', role: BandMember.roleAdmin),
+            BandMember(uid: '2', role: BandMember.roleEditor),
+          ],
+        ),
+        MockDataHelper.createMockBand(
+          id: '3',
+          name: 'Trio Band',
+          members: [
+            BandMember(uid: '1', role: BandMember.roleAdmin),
+            BandMember(uid: '2', role: BandMember.roleEditor),
+            BandMember(uid: '3', role: BandMember.roleViewer),
+          ],
+        ),
       ];
 
       await pumpAppWidget(
@@ -177,7 +219,9 @@ void main() {
       expect(find.text('Pop Band'), findsNothing);
     });
 
-    testWidgets('displays search empty state when no results', (WidgetTester tester) async {
+    testWidgets('displays search empty state when no results', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final bands = [
         MockDataHelper.createMockBand(id: '1', name: 'Rock Band', members: []),
@@ -202,7 +246,9 @@ void main() {
       expect(findText('No results found'), findsOneWidget);
     });
 
-    testWidgets('navigates to create band screen when tapping create FAB', (WidgetTester tester) async {
+    testWidgets('navigates to create band screen when tapping create FAB', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       bool didNavigateToCreate = false;
 
@@ -215,11 +261,13 @@ void main() {
           bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/create-band') {
-              didNavigateToCreate = true;
-            }
-          }),
+          MockNavigatorObserver(
+            onPush: (route) {
+              if (route.settings.name == '/create-band') {
+                didNavigateToCreate = true;
+              }
+            },
+          ),
         ],
       );
 
@@ -231,7 +279,9 @@ void main() {
       expect(didNavigateToCreate, isTrue);
     });
 
-    testWidgets('navigates to join band screen when tapping join FAB', (WidgetTester tester) async {
+    testWidgets('navigates to join band screen when tapping join FAB', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       bool didNavigateToJoin = false;
 
@@ -244,11 +294,13 @@ void main() {
           bandsProvider.overrideWith((ref) => Stream.value([])),
         ],
         navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/join-band') {
-              didNavigateToJoin = true;
-            }
-          }),
+          MockNavigatorObserver(
+            onPush: (route) {
+              if (route.settings.name == '/join-band') {
+                didNavigateToJoin = true;
+              }
+            },
+          ),
         ],
       );
 
@@ -260,35 +312,42 @@ void main() {
       expect(didNavigateToJoin, isTrue);
     });
 
-    testWidgets('navigates to create band screen when tapping Create Band button', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      bool didNavigate = false;
+    testWidgets(
+      'navigates to create band screen when tapping Create Band button',
+      (WidgetTester tester) async {
+        final mockUser = MockDataHelper.createMockAppUser();
+        bool didNavigate = false;
 
-      await pumpAppWidget(
-        tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-        navigatorObservers: [
-          MockNavigatorObserver(onPush: (route) {
-            if (route.settings.name == '/create-band') {
-              didNavigate = true;
-            }
-          }),
-        ],
-      );
+        await pumpAppWidget(
+          tester,
+          const MyBandsScreen(),
+          overrides: [
+            firebaseAuthProvider.overrideWith((ref) => mockAuth),
+            appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+            bandsProvider.overrideWith((ref) => Stream.value([])),
+          ],
+          navigatorObservers: [
+            MockNavigatorObserver(
+              onPush: (route) {
+                if (route.settings.name == '/create-band') {
+                  didNavigate = true;
+                }
+              },
+            ),
+          ],
+        );
 
-      // Tap Create Band button
-      await tester.tap(findText('Create Band'));
-      await tester.pump();
+        // Tap Create Band button
+        await tester.tap(findText('Create Band'));
+        await tester.pump();
 
-      expect(didNavigate, isTrue);
-    });
+        expect(didNavigate, isTrue);
+      },
+    );
 
-    testWidgets('shows loading indicator when loading bands', (WidgetTester tester) async {
+    testWidgets('shows loading indicator when loading bands', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -305,7 +364,9 @@ void main() {
       expect(find.byType(Scaffold), findsOneWidget);
     });
 
-    testWidgets('displays error message when error occurs', (WidgetTester tester) async {
+    testWidgets('displays error message when error occurs', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -314,15 +375,22 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.error(Exception('Failed to load bands'))),
+          bandsProvider.overrideWith(
+            (ref) => Stream.error(Exception('Failed to load bands')),
+          ),
         ],
       );
 
       // Verify error message
-      expect(find.text('Error: Exception: Failed to load bands'), findsOneWidget);
+      expect(
+        find.text('Error: Exception: Failed to load bands'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('displays band description when available', (WidgetTester tester) async {
+    testWidgets('displays band description when available', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final band = MockDataHelper.createMockBand(
         id: '1',
@@ -345,7 +413,9 @@ void main() {
       expect(find.text('A rock band from NYC'), findsOneWidget);
     });
 
-    testWidgets('displays band cards with correct icons', (WidgetTester tester) async {
+    testWidgets('displays band cards with correct icons', (
+      WidgetTester tester,
+    ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final band = MockDataHelper.createMockBand(
         id: '1',

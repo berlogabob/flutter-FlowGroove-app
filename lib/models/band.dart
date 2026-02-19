@@ -2,6 +2,7 @@ import 'dart:math';
 
 // Sentinel value to detect if a parameter was passed to copyWith
 const Object _sentinel = _Sentinel();
+
 class _Sentinel {
   const _Sentinel();
   @override
@@ -46,8 +47,10 @@ class Band {
   final String? description;
   final String createdBy;
   final List<BandMember> members;
-  final List<String> memberUids;  // Derived from members for efficient rules checking
-  final List<String> adminUids;   // Derived from members for efficient rules checking
+  final List<String>
+  memberUids; // Derived from members for efficient rules checking
+  final List<String>
+  adminUids; // Derived from members for efficient rules checking
   final String? inviteCode;
   final DateTime createdAt;
 
@@ -62,7 +65,12 @@ class Band {
     this.inviteCode,
     required this.createdAt,
   }) : memberUids = memberUids ?? members.map((m) => m.uid).toList(),
-       adminUids = adminUids ?? members.where((m) => m.role == BandMember.roleAdmin).map((m) => m.uid).toList();
+       adminUids =
+           adminUids ??
+           members
+               .where((m) => m.role == BandMember.roleAdmin)
+               .map((m) => m.uid)
+               .toList();
 
   Band copyWith({
     String? id,
@@ -79,17 +87,26 @@ class Band {
     final newMembers = members ?? this.members;
     // Recalculate memberUids and adminUids if members changed and not explicitly provided
     final newMemberUids = memberUids ?? newMembers.map((m) => m.uid).toList();
-    final newAdminUids = adminUids ?? newMembers.where((m) => m.role == BandMember.roleAdmin).map((m) => m.uid).toList();
-    
+    final newAdminUids =
+        adminUids ??
+        newMembers
+            .where((m) => m.role == BandMember.roleAdmin)
+            .map((m) => m.uid)
+            .toList();
+
     return Band(
       id: id ?? this.id,
       name: name ?? this.name,
-      description: description == _sentinel ? this.description : description as String?,
+      description: description == _sentinel
+          ? this.description
+          : description as String?,
       createdBy: createdBy ?? this.createdBy,
       members: newMembers,
       memberUids: newMemberUids,
       adminUids: newAdminUids,
-      inviteCode: inviteCode == _sentinel ? this.inviteCode : inviteCode as String?,
+      inviteCode: inviteCode == _sentinel
+          ? this.inviteCode
+          : inviteCode as String?,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -125,7 +142,7 @@ class Band {
   );
 
   /// Generates a unique 6-character invite code using cryptographically secure random.
-  /// 
+  ///
   /// The code consists of uppercase letters and digits (36 characters total).
   /// Collision handling should be done at the service layer.
   static String generateUniqueInviteCode() {

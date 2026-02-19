@@ -39,10 +39,7 @@ class LinkChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chip = Chip(
-      label: Text(
-        _getLinkLabel(),
-        style: const TextStyle(fontSize: 12),
-      ),
+      label: Text(_getLinkLabel(), style: const TextStyle(fontSize: 12)),
       avatar: _getLinkIcon(),
       deleteIcon: showDelete ? const Icon(Icons.close, size: 16) : null,
       onDeleted: onDelete,

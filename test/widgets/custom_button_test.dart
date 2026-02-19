@@ -5,11 +5,10 @@ import '../helpers/test_helpers.dart';
 
 void main() {
   group('CustomButton', () {
-    testWidgets('renders primary button with label', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const CustomButton(label: 'Click Me'),
-      );
+    testWidgets('renders primary button with label', (
+      WidgetTester tester,
+    ) async {
+      await pumpAppWidget(tester, const CustomButton(label: 'Click Me'));
 
       expect(findText('Click Me'), findsOneWidget);
       expect(find.byType(ElevatedButton), findsOneWidget);
@@ -31,10 +30,7 @@ void main() {
     testWidgets('renders outline button', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(
-          label: 'Outline',
-          variant: ButtonVariant.outline,
-        ),
+        const CustomButton(label: 'Outline', variant: ButtonVariant.outline),
       );
 
       expect(findText('Outline'), findsOneWidget);
@@ -44,10 +40,7 @@ void main() {
     testWidgets('renders text button', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(
-          label: 'Text',
-          variant: ButtonVariant.text,
-        ),
+        const CustomButton(label: 'Text', variant: ButtonVariant.text),
       );
 
       expect(findText('Text'), findsOneWidget);
@@ -57,10 +50,7 @@ void main() {
     testWidgets('renders button with icon', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(
-          label: 'With Icon',
-          icon: Icons.add,
-        ),
+        const CustomButton(label: 'With Icon', icon: Icons.add),
       );
 
       expect(findText('With Icon'), findsOneWidget);
@@ -70,23 +60,19 @@ void main() {
     testWidgets('renders loading state', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(
-          label: 'Loading',
-          isLoading: true,
-        ),
+        const CustomButton(label: 'Loading', isLoading: true),
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(findText('Loading'), findsOneWidget);
     });
 
-    testWidgets('renders loading state without label', (WidgetTester tester) async {
+    testWidgets('renders loading state without label', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(
-          label: '',
-          isLoading: true,
-        ),
+        const CustomButton(label: '', isLoading: true),
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -97,10 +83,7 @@ void main() {
 
       await pumpAppWidget(
         tester,
-        CustomButton(
-          label: 'Press Me',
-          onPressed: () => wasPressed = true,
-        ),
+        CustomButton(label: 'Press Me', onPressed: () => wasPressed = true),
       );
 
       await tester.tap(findText('Press Me'));
@@ -109,15 +92,14 @@ void main() {
       expect(wasPressed, isTrue);
     });
 
-    testWidgets('does not call onPressed when disabled', (WidgetTester tester) async {
+    testWidgets('does not call onPressed when disabled', (
+      WidgetTester tester,
+    ) async {
       bool wasPressed = false;
 
       await pumpAppWidget(
         tester,
-        CustomButton(
-          label: 'Disabled',
-          onPressed: null,
-        ),
+        CustomButton(label: 'Disabled', onPressed: null),
       );
 
       await tester.tap(findText('Disabled'));
@@ -126,7 +108,9 @@ void main() {
       expect(wasPressed, isFalse);
     });
 
-    testWidgets('does not call onPressed when loading', (WidgetTester tester) async {
+    testWidgets('does not call onPressed when loading', (
+      WidgetTester tester,
+    ) async {
       bool wasPressed = false;
 
       await pumpAppWidget(
@@ -147,10 +131,7 @@ void main() {
     testWidgets('renders full width button', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(
-          label: 'Full Width',
-          fullWidth: true,
-        ),
+        const CustomButton(label: 'Full Width', fullWidth: true),
       );
 
       final buttonFinder = find.byType(ElevatedButton);
@@ -163,10 +144,7 @@ void main() {
     testWidgets('renders small button', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(
-          label: 'Small',
-          size: ButtonSize.small,
-        ),
+        const CustomButton(label: 'Small', size: ButtonSize.small),
       );
 
       expect(findText('Small'), findsOneWidget);
@@ -175,10 +153,7 @@ void main() {
     testWidgets('renders medium button', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(
-          label: 'Medium',
-          size: ButtonSize.medium,
-        ),
+        const CustomButton(label: 'Medium', size: ButtonSize.medium),
       );
 
       expect(findText('Medium'), findsOneWidget);
@@ -187,22 +162,16 @@ void main() {
     testWidgets('renders large button', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(
-          label: 'Large',
-          size: ButtonSize.large,
-        ),
+        const CustomButton(label: 'Large', size: ButtonSize.large),
       );
 
       expect(findText('Large'), findsOneWidget);
     });
 
-    testWidgets('renders button without icon when icon is null', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const CustomButton(
-          label: 'No Icon',
-        ),
-      );
+    testWidgets('renders button without icon when icon is null', (
+      WidgetTester tester,
+    ) async {
+      await pumpAppWidget(tester, const CustomButton(label: 'No Icon'));
 
       expect(findText('No Icon'), findsOneWidget);
     });

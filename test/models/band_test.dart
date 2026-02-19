@@ -5,10 +5,7 @@ void main() {
   group('BandMember Model', () {
     group('Constructor', () {
       test('creates BandMember with required fields', () {
-        final member = BandMember(
-          uid: 'user-123',
-          role: BandMember.roleAdmin,
-        );
+        final member = BandMember(uid: 'user-123', role: BandMember.roleAdmin);
 
         expect(member.uid, 'user-123');
         expect(member.role, BandMember.roleAdmin);
@@ -88,9 +85,7 @@ void main() {
       });
 
       test('handles missing role with default viewer', () {
-        final json = {
-          'uid': 'user-123',
-        };
+        final json = {'uid': 'user-123'};
 
         final member = BandMember.fromJson(json);
 
@@ -117,10 +112,7 @@ void main() {
       });
 
       test('serializes member with null values', () {
-        final member = BandMember(
-          uid: 'user-222',
-          role: BandMember.roleViewer,
-        );
+        final member = BandMember(uid: 'user-222', role: BandMember.roleViewer);
 
         final json = member.toJson();
 
@@ -153,8 +145,16 @@ void main() {
     // Test data
     final testDate = DateTime(2024, 3, 20, 14, 0, 0);
     final testMembers = [
-      BandMember(uid: 'user-1', role: BandMember.roleAdmin, displayName: 'Admin'),
-      BandMember(uid: 'user-2', role: BandMember.roleEditor, displayName: 'Editor'),
+      BandMember(
+        uid: 'user-1',
+        role: BandMember.roleAdmin,
+        displayName: 'Admin',
+      ),
+      BandMember(
+        uid: 'user-2',
+        role: BandMember.roleEditor,
+        displayName: 'Editor',
+      ),
       BandMember(uid: 'user-3', role: BandMember.roleViewer),
     ];
 
@@ -279,7 +279,12 @@ void main() {
           'name': 'Band with Members',
           'createdBy': 'user-5',
           'members': [
-            {'uid': 'user-a', 'role': 'admin', 'displayName': 'Admin A', 'email': 'a@test.com'},
+            {
+              'uid': 'user-a',
+              'role': 'admin',
+              'displayName': 'Admin A',
+              'email': 'a@test.com',
+            },
             {'uid': 'user-b', 'role': 'viewer'},
           ],
           'createdAt': testDate.toIso8601String(),
@@ -412,7 +417,9 @@ void main() {
           createdAt: testDate,
         );
 
-        final copiedBand = originalBand.copyWith(description: 'New description');
+        final copiedBand = originalBand.copyWith(
+          description: 'New description',
+        );
 
         expect(copiedBand.description, 'New description');
       });
@@ -592,10 +599,7 @@ void main() {
       });
 
       test('fromJson default role is viewer when null', () {
-        final json = {
-          'uid': 'user-23',
-          'role': null,
-        };
+        final json = {'uid': 'user-23', 'role': null};
 
         final member = BandMember.fromJson(json);
 

@@ -23,7 +23,7 @@ void main() {
       group('saveSong', () {
         test('creates valid song for saving', () async {
           final song = MockDataHelper.createMockSong(id: 'song-1');
-          
+
           expect(song.id, 'song-1');
           expect(song.title, 'Test Song');
           expect(song.artist, 'Test Artist');
@@ -41,7 +41,7 @@ void main() {
       group('saveBand', () {
         test('creates valid band for saving', () async {
           final band = MockDataHelper.createMockBand(id: 'band-1');
-          
+
           expect(band.id, 'band-1');
           expect(band.name, 'Test Band');
           expect(band.createdBy, 'test-user-id');
@@ -59,7 +59,7 @@ void main() {
       group('saveSetlist', () {
         test('creates valid setlist for saving', () async {
           final setlist = MockDataHelper.createMockSetlist(id: 'setlist-1');
-          
+
           expect(setlist.id, 'setlist-1');
           expect(setlist.name, 'Test Setlist');
           expect(setlist.bandId, 'test-band-id');
@@ -96,11 +96,14 @@ void main() {
       });
 
       test('selects a band', () {
-        final band = MockDataHelper.createMockBand(id: 'band-1', name: 'Selected Band');
-        
+        final band = MockDataHelper.createMockBand(
+          id: 'band-1',
+          name: 'Selected Band',
+        );
+
         final notifier = container.read(selectedBandProvider.notifier);
         notifier.select(band);
-        
+
         final selectedBand = container.read(selectedBandProvider);
         expect(selectedBand, isNotNull);
         expect(selectedBand?.id, 'band-1');
@@ -109,24 +112,30 @@ void main() {
 
       test('selects null to clear selection', () {
         final band = MockDataHelper.createMockBand(id: 'band-1');
-        
+
         final notifier = container.read(selectedBandProvider.notifier);
         notifier.select(band);
         expect(container.read(selectedBandProvider), isNotNull);
-        
+
         notifier.select(null);
         expect(container.read(selectedBandProvider), isNull);
       });
 
       test('can change selected band', () {
-        final band1 = MockDataHelper.createMockBand(id: 'band-1', name: 'Band 1');
-        final band2 = MockDataHelper.createMockBand(id: 'band-2', name: 'Band 2');
-        
+        final band1 = MockDataHelper.createMockBand(
+          id: 'band-1',
+          name: 'Band 1',
+        );
+        final band2 = MockDataHelper.createMockBand(
+          id: 'band-2',
+          name: 'Band 2',
+        );
+
         final notifier = container.read(selectedBandProvider.notifier);
-        
+
         notifier.select(band1);
         expect(container.read(selectedBandProvider)?.id, 'band-1');
-        
+
         notifier.select(band2);
         expect(container.read(selectedBandProvider)?.id, 'band-2');
       });
@@ -169,15 +178,15 @@ void main() {
     group('State Updates', () {
       test('SelectedBandNotifier state updates correctly', () {
         final notifier = container.read(selectedBandProvider.notifier);
-        
+
         // Initial state
         expect(container.read(selectedBandProvider), isNull);
-        
+
         // Update state
         final band = MockDataHelper.createMockBand(id: 'band-1');
         notifier.select(band);
         expect(container.read(selectedBandProvider), equals(band));
-        
+
         // Clear state
         notifier.select(null);
         expect(container.read(selectedBandProvider), isNull);
@@ -185,17 +194,26 @@ void main() {
 
       test('Multiple state updates work correctly', () {
         final notifier = container.read(selectedBandProvider.notifier);
-        
-        final band1 = MockDataHelper.createMockBand(id: 'band-1', name: 'First Band');
-        final band2 = MockDataHelper.createMockBand(id: 'band-2', name: 'Second Band');
-        final band3 = MockDataHelper.createMockBand(id: 'band-3', name: 'Third Band');
-        
+
+        final band1 = MockDataHelper.createMockBand(
+          id: 'band-1',
+          name: 'First Band',
+        );
+        final band2 = MockDataHelper.createMockBand(
+          id: 'band-2',
+          name: 'Second Band',
+        );
+        final band3 = MockDataHelper.createMockBand(
+          id: 'band-3',
+          name: 'Third Band',
+        );
+
         notifier.select(band1);
         expect(container.read(selectedBandProvider)?.name, 'First Band');
-        
+
         notifier.select(band2);
         expect(container.read(selectedBandProvider)?.name, 'Second Band');
-        
+
         notifier.select(band3);
         expect(container.read(selectedBandProvider)?.name, 'Third Band');
       });

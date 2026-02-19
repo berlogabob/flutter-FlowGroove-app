@@ -18,50 +18,51 @@ void main() {
       mockFirestore = MockFirebaseFirestore();
     });
 
-    testWidgets('renders register screen with all elements', (WidgetTester tester) async {
+    testWidgets('renders register screen with all elements', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Verify screen title
       expect(findText('Create Account'), findsOneWidget);
-      
+
       // Verify header
       expect(findText('Join RepSync'), findsOneWidget);
-      
+
       // Verify subtitle
-      expect(findText('Create an account to manage your band repertoire'), findsOneWidget);
-      
+      expect(
+        findText('Create an account to manage your band repertoire'),
+        findsOneWidget,
+      );
+
       // Verify email field
       expect(findText('Email'), findsOneWidget);
-      
+
       // Verify password field
       expect(findText('Password'), findsOneWidget);
-      
+
       // Verify confirm password field
       expect(findText('Confirm Password'), findsOneWidget);
-      
+
       // Verify create account button
       expect(findText('Create Account'), findsOneWidget);
-      
+
       // Verify sign in link
       expect(findText('Already have an account?'), findsOneWidget);
       expect(findText('Sign In'), findsOneWidget);
     });
 
-    testWidgets('displays icons for all input fields', (WidgetTester tester) async {
+    testWidgets('displays icons for all input fields', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Should have 3 lock icons (password fields) and 1 email icon
@@ -69,19 +70,18 @@ void main() {
       verifyFoundN(findIcon(Icons.lock_outlined), 3);
     });
 
-    testWidgets('allows entering email, password, and confirm password', (WidgetTester tester) async {
+    testWidgets('allows entering email, password, and confirm password', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Find text fields
       final textFields = find.byType(TextFormField);
-      
+
       // Enter email
       await tester.enterText(textFields.at(0), 'test@example.com');
       await tester.pump();
@@ -98,14 +98,13 @@ void main() {
       expect(find.text('test@example.com'), findsOneWidget);
     });
 
-    testWidgets('shows validation error for empty email', (WidgetTester tester) async {
+    testWidgets('shows validation error for empty email', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Tap create account button without entering data
@@ -116,14 +115,13 @@ void main() {
       expect(find.text('Please enter your email'), findsOneWidget);
     });
 
-    testWidgets('shows validation error for invalid email', (WidgetTester tester) async {
+    testWidgets('shows validation error for invalid email', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Find email field and enter invalid email
@@ -139,14 +137,13 @@ void main() {
       expect(find.text('Please enter a valid email'), findsOneWidget);
     });
 
-    testWidgets('shows validation error for empty password', (WidgetTester tester) async {
+    testWidgets('shows validation error for empty password', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Enter email only
@@ -162,14 +159,13 @@ void main() {
       expect(find.text('Please enter a password'), findsOneWidget);
     });
 
-    testWidgets('shows validation error for weak password', (WidgetTester tester) async {
+    testWidgets('shows validation error for weak password', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Enter email and weak password
@@ -183,17 +179,19 @@ void main() {
       await tester.pump();
 
       // Verify validation message appears
-      expect(find.text('Password must be at least 6 characters'), findsOneWidget);
+      expect(
+        find.text('Password must be at least 6 characters'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('shows validation error for empty confirm password', (WidgetTester tester) async {
+    testWidgets('shows validation error for empty confirm password', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Enter email and password
@@ -210,14 +208,13 @@ void main() {
       expect(find.text('Please confirm your password'), findsOneWidget);
     });
 
-    testWidgets('shows validation error for mismatched passwords', (WidgetTester tester) async {
+    testWidgets('shows validation error for mismatched passwords', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Enter email and mismatched passwords
@@ -235,20 +232,21 @@ void main() {
       expect(find.text('Passwords do not match'), findsOneWidget);
     });
 
-    testWidgets('shows loading indicator when registering', (WidgetTester tester) async {
+    testWidgets('shows loading indicator when registering', (
+      WidgetTester tester,
+    ) async {
       // Setup mock to simulate async registration
-      when(mockAuth.createUserWithEmailAndPassword(
-        email: any as String,
-        password: any as String,
-      )).thenAnswer((_) async => createMockUserCredential());
+      when(
+        mockAuth.createUserWithEmailAndPassword(
+          email: any as String,
+          password: any as String,
+        ),
+      ).thenAnswer((_) async => createMockUserCredential());
 
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Enter valid credentials
@@ -266,16 +264,15 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('navigates to login screen when tapping Sign In', (WidgetTester tester) async {
+    testWidgets('navigates to login screen when tapping Sign In', (
+      WidgetTester tester,
+    ) async {
       bool didNavigate = false;
-      
+
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
         navigatorObservers: [
           MockNavigatorObserver(onPush: (_) => didNavigate = true),
         ],
@@ -289,20 +286,21 @@ void main() {
       expect(didNavigate, isTrue);
     });
 
-    testWidgets('displays error message for email already in use', (WidgetTester tester) async {
+    testWidgets('displays error message for email already in use', (
+      WidgetTester tester,
+    ) async {
       // Setup mock to throw auth error
-      when(mockAuth.createUserWithEmailAndPassword(
-        email: any as String,
-        password: any as String,
-      )).thenThrow(FirebaseAuthException(code: 'email-already-in-use'));
+      when(
+        mockAuth.createUserWithEmailAndPassword(
+          email: any as String,
+          password: any as String,
+        ),
+      ).thenThrow(FirebaseAuthException(code: 'email-already-in-use'));
 
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Enter valid credentials
@@ -320,20 +318,21 @@ void main() {
       expect(find.text('This email is already registered'), findsOneWidget);
     });
 
-    testWidgets('displays error message for invalid email', (WidgetTester tester) async {
+    testWidgets('displays error message for invalid email', (
+      WidgetTester tester,
+    ) async {
       // Setup mock to throw auth error
-      when(mockAuth.createUserWithEmailAndPassword(
-        email: any as String,
-        password: any as String,
-      )).thenThrow(FirebaseAuthException(code: 'invalid-email'));
+      when(
+        mockAuth.createUserWithEmailAndPassword(
+          email: any as String,
+          password: any as String,
+        ),
+      ).thenThrow(FirebaseAuthException(code: 'invalid-email'));
 
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Enter valid credentials
@@ -351,20 +350,21 @@ void main() {
       expect(find.text('Invalid email address'), findsOneWidget);
     });
 
-    testWidgets('displays error message for weak password from Firebase', (WidgetTester tester) async {
+    testWidgets('displays error message for weak password from Firebase', (
+      WidgetTester tester,
+    ) async {
       // Setup mock to throw auth error
-      when(mockAuth.createUserWithEmailAndPassword(
-        email: any as String,
-        password: any as String,
-      )).thenThrow(FirebaseAuthException(code: 'weak-password'));
+      when(
+        mockAuth.createUserWithEmailAndPassword(
+          email: any as String,
+          password: any as String,
+        ),
+      ).thenThrow(FirebaseAuthException(code: 'weak-password'));
 
       await pumpAppWidget(
         tester,
         const RegisterScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWithValue(mockAuth),
-          
-        ],
+        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
       );
 
       // Enter valid credentials

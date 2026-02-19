@@ -29,7 +29,9 @@ void main() {
       expect(findText('Are you sure you want to proceed?'), findsOneWidget);
     });
 
-    testWidgets('renders warning icon for destructive action', (WidgetTester tester) async {
+    testWidgets('renders warning icon for destructive action', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -42,7 +44,9 @@ void main() {
       expect(findIcon(Icons.warning_amber), findsOneWidget);
     });
 
-    testWidgets('renders info icon for non-destructive action', (WidgetTester tester) async {
+    testWidgets('renders info icon for non-destructive action', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -55,7 +59,9 @@ void main() {
       expect(findIcon(Icons.info_outline), findsOneWidget);
     });
 
-    testWidgets('renders custom icon when provided', (WidgetTester tester) async {
+    testWidgets('renders custom icon when provided', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -68,19 +74,20 @@ void main() {
       expect(findIcon(Icons.star), findsOneWidget);
     });
 
-    testWidgets('renders confirm button with default label', (WidgetTester tester) async {
+    testWidgets('renders confirm button with default label', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
-        const ConfirmationDialog(
-          title: 'Confirm',
-          message: 'Are you sure?',
-        ),
+        const ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
       );
 
       expect(findText('Confirm'), findsOneWidget);
     });
 
-    testWidgets('renders confirm button with custom label', (WidgetTester tester) async {
+    testWidgets('renders confirm button with custom label', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -92,22 +99,29 @@ void main() {
 
       // Find the ElevatedButton with text 'Delete'
       expect(find.byType(ElevatedButton), findsOneWidget);
-      expect(find.descendant(of: find.byType(ElevatedButton), matching: findText('Delete')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ElevatedButton),
+          matching: findText('Delete'),
+        ),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('renders cancel button with default label', (WidgetTester tester) async {
+    testWidgets('renders cancel button with default label', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
-        const ConfirmationDialog(
-          title: 'Confirm',
-          message: 'Are you sure?',
-        ),
+        const ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
       );
 
       expect(findText('Cancel'), findsOneWidget);
     });
 
-    testWidgets('renders cancel button with custom label', (WidgetTester tester) async {
+    testWidgets('renders cancel button with custom label', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -120,7 +134,9 @@ void main() {
       expect(findText('Go Back'), findsOneWidget);
     });
 
-    testWidgets('renders red confirm button for destructive action', (WidgetTester tester) async {
+    testWidgets('renders red confirm button for destructive action', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -134,15 +150,14 @@ void main() {
       expect(find.byType(ElevatedButton), findsOneWidget);
     });
 
-    testWidgets('closes dialog with false when cancel is tapped', (WidgetTester tester) async {
+    testWidgets('closes dialog with false when cancel is tapped', (
+      WidgetTester tester,
+    ) async {
       bool? result;
 
       await pumpAppWidget(
         tester,
-        ConfirmationDialog(
-          title: 'Confirm',
-          message: 'Are you sure?',
-        ),
+        ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
       );
 
       // Tap the TextButton (cancel button)
@@ -154,15 +169,14 @@ void main() {
       expect(result, isFalse);
     });
 
-    testWidgets('closes dialog with true when confirm is tapped', (WidgetTester tester) async {
+    testWidgets('closes dialog with true when confirm is tapped', (
+      WidgetTester tester,
+    ) async {
       bool? result;
 
       await pumpAppWidget(
         tester,
-        ConfirmationDialog(
-          title: 'Confirm',
-          message: 'Are you sure?',
-        ),
+        ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
       );
 
       // Tap the ElevatedButton (confirm button)
@@ -177,10 +191,7 @@ void main() {
     testWidgets('renders as AlertDialog', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const ConfirmationDialog(
-          title: 'Confirm',
-          message: 'Are you sure?',
-        ),
+        const ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
       );
 
       expect(find.byType(AlertDialog), findsOneWidget);
@@ -188,7 +199,9 @@ void main() {
   });
 
   group('ConfirmationDialog.showDeleteDialog', () {
-    testWidgets('shows delete dialog with default title', (WidgetTester tester) async {
+    testWidgets('shows delete dialog with default title', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -199,10 +212,15 @@ void main() {
       );
 
       expect(findText('Delete Item'), findsOneWidget);
-      expect(findText('Are you sure you want to delete this item?'), findsOneWidget);
+      expect(
+        findText('Are you sure you want to delete this item?'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('shows delete dialog with custom title', (WidgetTester tester) async {
+    testWidgets('shows delete dialog with custom title', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -217,7 +235,9 @@ void main() {
       expect(findText('Delete'), findsOneWidget);
     });
 
-    testWidgets('shows delete dialog with custom message', (WidgetTester tester) async {
+    testWidgets('shows delete dialog with custom message', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -229,13 +249,18 @@ void main() {
       );
 
       expect(findText('Delete Band'), findsOneWidget);
-      expect(findText('Are you sure you want to leave this band?'), findsOneWidget);
+      expect(
+        findText('Are you sure you want to leave this band?'),
+        findsOneWidget,
+      );
       expect(findText('Leave'), findsOneWidget);
     });
   });
 
   group('ConfirmationDialog.showConfirmDialog', () {
-    testWidgets('shows confirm dialog with custom title and message', (WidgetTester tester) async {
+    testWidgets('shows confirm dialog with custom title and message', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -249,7 +274,9 @@ void main() {
       expect(findText('Custom Message'), findsOneWidget);
     });
 
-    testWidgets('shows confirm dialog with custom icon', (WidgetTester tester) async {
+    testWidgets('shows confirm dialog with custom icon', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -263,7 +290,9 @@ void main() {
       expect(findIcon(Icons.check_circle), findsOneWidget);
     });
 
-    testWidgets('shows confirm dialog with custom confirm label', (WidgetTester tester) async {
+    testWidgets('shows confirm dialog with custom confirm label', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(

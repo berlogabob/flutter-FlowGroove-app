@@ -117,8 +117,9 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
                           onPressed: () async {
-                            final encodedQuery =
-                                Uri.encodeComponent(widget.query);
+                            final encodedQuery = Uri.encodeComponent(
+                              widget.query,
+                            );
                             final url =
                                 'https://open.spotify.com/search/$encodedQuery';
                             await launchUrl(

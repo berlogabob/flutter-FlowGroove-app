@@ -72,8 +72,7 @@ class SongCard extends StatelessWidget {
             },
             tooltip: 'Play on Spotify',
           ),
-        if (song.ourBPM != null)
-          _buildBpmBadge(),
+        if (song.ourBPM != null) _buildBpmBadge(),
         if (song.ourKey != null) ...[
           const SizedBox(width: 8),
           Text(
@@ -114,11 +113,7 @@ class CompactSongCard extends StatelessWidget {
   /// Callback when the card is tapped.
   final VoidCallback? onTap;
 
-  const CompactSongCard({
-    super.key,
-    required this.song,
-    this.onTap,
-  });
+  const CompactSongCard({super.key, required this.song, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -150,10 +145,7 @@ class CompactSongCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 '${song.ourBPM} BPM',
-                style: const TextStyle(
-                  color: AppColors.color5,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: AppColors.color5, fontSize: 12),
               ),
             ],
           ],

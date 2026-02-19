@@ -53,9 +53,7 @@ Future<void> pumpWidgetWithProvider(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: providerContainer,
-      child: MaterialApp(
-        home: Scaffold(body: widget),
-      ),
+      child: MaterialApp(home: Scaffold(body: widget)),
     ),
   );
 
@@ -74,9 +72,7 @@ Future<void> pumpWidgetWithProviders(
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: providerContainer,
-      child: MaterialApp(
-        home: Scaffold(body: widget),
-      ),
+      child: MaterialApp(home: Scaffold(body: widget)),
     ),
   );
 

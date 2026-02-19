@@ -38,7 +38,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
 
       final service = ref.read(firestoreProvider);
       final code = _codeController.text.trim().toUpperCase();
-      
+
       // Search in GLOBAL bands collection
       final band = await service.getBandByInviteCode(code);
 
@@ -51,9 +51,9 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
 
       // Check if already a member
       if (band.members.any((m) => m.uid == user.uid)) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('You are already a member')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You are already a member')),
+        );
         return;
       }
 
@@ -72,7 +72,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
 
       // Save to global collection
       await service.saveBandToGlobal(updatedBand);
-      
+
       // Add to user's bands collection (for quick access)
       await service.addUserToBand(band.id, user.uid);
 

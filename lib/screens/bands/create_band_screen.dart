@@ -53,7 +53,9 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
       attempts++;
 
       if (attempts > maxAttempts) {
-        throw Exception('Failed to generate unique invite code after $maxAttempts attempts');
+        throw Exception(
+          'Failed to generate unique invite code after $maxAttempts attempts',
+        );
       }
     } while (isTaken);
 
@@ -68,7 +70,9 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
     try {
       final user = ref.read(currentUserProvider);
       if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please login first')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Please login first')));
         return;
       }
 

@@ -78,7 +78,10 @@ class FirestoreService {
           // Fetch full band data from global collection
           final bands = <Band>[];
           for (final bandId in bandIds) {
-            final bandDoc = await _firestore.collection('bands').doc(bandId).get();
+            final bandDoc = await _firestore
+                .collection('bands')
+                .doc(bandId)
+                .get();
             if (bandDoc.exists) {
               final data = bandDoc.data()!;
               data['id'] = bandDoc.id; // Set the document ID
@@ -141,7 +144,7 @@ class FirestoreService {
 
     if (snapshot.docs.isEmpty) return null;
     final doc = snapshot.docs.first;
-    final data = doc.data()!;
+    final data = doc.data();
     data['id'] = doc.id; // Set the document ID
     return Band.fromJson(data);
   }
@@ -163,10 +166,7 @@ class FirestoreService {
         .doc(userId)
         .collection('bands')
         .doc(bandId)
-        .set({
-          'bandId': bandId,
-          'joinedAt': FieldValue.serverTimestamp(),
-        });
+        .set({'bandId': bandId, 'joinedAt': FieldValue.serverTimestamp()});
   }
 
   /// Removes user reference from a band (for leaving).
@@ -177,6 +177,71 @@ class FirestoreService {
         .collection('bands')
         .doc(bandId)
         .delete();
+  }
+
+  // ============================================================
+  // Band Songs Methods (for sharing songs between personal and band banks)
+  // ============================================================
+
+  /// Adds a song to a band's song collection.
+  ///
+  /// Creates a copy of the personal song with sharing metadata.
+  Future<void> addSongToBand({
+    required Song song,
+    required String bandId,
+    required String contributorId,
+    required String contributorName,
+  }) async {
+    final bandSong = song.copyWith(
+      id: FirebaseFirestore.instance.collection('bands').doc().id,
+      bandId: bandId,
+      originalOwnerId: song.originalOwnerId ?? contributorId,
+      contributedBy: contributorName,
+      isCopy: true,
+      contributedAt: DateTime.now(),
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    await FirebaseFirestore.instance
+        .collection('bands')
+        .doc(bandId)
+        .collection('songs')
+        .doc(bandSong.id)
+        .set(bandSong.toJson());
+  }
+
+  /// Watches songs for a specific band.
+  Stream<List<Song>> watchBandSongs(String bandId) {
+    return FirebaseFirestore.instance
+        .collection('bands')
+        .doc(bandId)
+        .collection('songs')
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Song.fromJson(doc.data())).toList(),
+        );
+  }
+
+  /// Deletes a song from a band's collection.
+  Future<void> deleteBandSong(String bandId, String songId) async {
+    await FirebaseFirestore.instance
+        .collection('bands')
+        .doc(bandId)
+        .collection('songs')
+        .doc(songId)
+        .delete();
+  }
+
+  /// Updates a song in a band's collection.
+  Future<void> updateBandSong(Song song, String bandId) async {
+    await FirebaseFirestore.instance
+        .collection('bands')
+        .doc(bandId)
+        .collection('songs')
+        .doc(song.id)
+        .update(song.toJson());
   }
 }
 
