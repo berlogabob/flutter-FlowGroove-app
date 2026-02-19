@@ -162,16 +162,104 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
 
   Future<void> _shareInvite() async {
     final message =
-        'Join my band "${widget.band.name}" using invite code: $_inviteCode';
+        '🎸 Join my band "${widget.band.name}" on RepSync!\n\n'
+        'Use code: $_inviteCode\n'
+        'Or click the link to join: repsync.app/join/$_inviteCode\n\n'
+        'Download RepSync: repsync.app';
+
     final uri = Uri.parse('sms:?body=${Uri.encodeComponent(message)}');
 
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
+      _showShareOptions(message);
+    }
+  }
+
+  void _showShareOptions(String message) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('Copy to clipboard'),
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: message));
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Copied to clipboard!')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Share via...'),
+              onTap: () {
+                Navigator.pop(context);
+                shareText(message);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.email),
+              title: const Text('Email'),
+              onTap: () {
+                Navigator.pop(context);
+                final emailUri = Uri(
+                  scheme: 'mailto',
+                  queryParameters: {
+                    'subject': 'Join my band "${widget.band.name}"',
+                    'body': message,
+                  },
+                );
+                launchUrl(emailUri);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.telegram),
+              title: const Text('Telegram'),
+              onTap: () {
+                Navigator.pop(context);
+                final telegramUri = Uri.parse(
+                  'https://t.me/share/url?url=${Uri.encodeComponent(message)}',
+                );
+                launchUrl(telegramUri, mode: LaunchMode.externalApplication);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: const Text('WhatsApp'),
+              onTap: () {
+                Navigator.pop(context);
+                final whatsappUri = Uri.parse(
+                  'https://wa.me/?text=${Uri.encodeComponent(message)}',
+                );
+                launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> shareText(String text) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: text));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Link copied! Paste in any app to share.'),
+          ),
+        );
+      }
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Share code: $_inviteCode')));
+        ).showSnackBar(SnackBar(content: Text('Could not share: $e')));
       }
     }
   }

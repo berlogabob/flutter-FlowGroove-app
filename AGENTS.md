@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-RepSync is a Flutter web application for band repertoire management. Built with Flutter/Dart, Firebase (Auth + Firestore), and Riverpod for state management. Target platforms: Web → Android → iOS.
+RepSync is a Flutter web application for band repertoire management. Built with Flutter/Dart, Firebase (Auth + Firestore), and Riverpod 3.x for state management. Target platforms: Web → Android → iOS.
 
 ---
 
@@ -30,14 +30,17 @@ flutter run --release
 ### Code Analysis & Linting
 
 ```bash
-# Analyze code for errors and warnings
+# Analyze code for errors and warnings (REQUIRED before commits)
 flutter analyze
 
 # Analyze with fix suggestions
 flutter analyze --fix
+
+# Format all code
+dart format .
 ```
 
-Uses `flutter_lints: ^6.0.0` (see `analysis_options.yaml`).
+Uses `flutter_lints: ^6.0.0` (see `analysis_options.yaml`). **No issues should remain after analysis.**
 
 ### Testing
 
@@ -91,6 +94,8 @@ import '../../models/song.dart';
 - Use 2 spaces for indentation (Flutter default)
 - Use trailing commas for better formatting in lists/maps
 - Keep lines under 80 characters when practical
+- Run `dart format .` before committing
+- Avoid unnecessary underscores in lambda parameters: use `(error, stack)` not `(_, __)`
 
 ### Naming Conventions
 
@@ -111,18 +116,33 @@ import '../../models/song.dart';
 - Use `const` constructor for stateless widgets where possible
 - Use `super.key` for widget keys
 - Prefer `SizedBox` over `Container` for spacing
+- Avoid deprecated methods like `withOpacity()` - use `withValues(alpha:)` instead
 
-### State Management (Riverpod)
+### State Management (Riverpod 3.x)
 
 - Use `StreamProvider` for async data from Firestore
-- Use `StateProvider` for simple state
+- Use `NotifierProvider` for complex state (replaces `StateNotifierProvider`)
 - Use `ConsumerWidget` / `ConsumerStatefulWidget` for widgets that read providers
+- Avoid deprecated `valueOrNull` - use `value` instead
 
 ```dart
+// StreamProvider for Firestore data
 final songsProvider = StreamProvider<List<Song>>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return Stream.value([]);
   return ref.watch(firestoreProvider).watchSongs(user.uid);
+});
+
+// NotifierProvider for state (Riverpod 3.x)
+class SelectedBandNotifier extends Notifier<Band?> {
+  @override
+  Band? build() => null;
+  
+  void select(Band? band) => state = band;
+}
+
+final selectedBandProvider = NotifierProvider<SelectedBandNotifier, Band?>(() {
+  return SelectedBandNotifier();
 });
 ```
 
@@ -131,7 +151,8 @@ final songsProvider = StreamProvider<List<Song>>((ref) {
 - Use try-catch for async operations
 - Handle Firebase errors with user-friendly messages
 - Always dispose controllers in `dispose()` method
-- Show errors via `ScaffoldMessenger.of(context).showSnackBar()`
+- Use `mounted` check before using context in async callbacks
+- Use curly braces in if statements even for single statements
 
 ```dart
 try {
@@ -167,9 +188,12 @@ lib/
 │   ├── auth_provider.dart      # Firebase auth providers
 │   └── data_providers.dart     # Firestore providers + service
 ├── services/
-│   └── firestore_service.dart  # Firestore CRUD operations
+│   ├── firestore_service.dart  # Firestore CRUD operations
+│   └── pdf_service.dart       # PDF export for setlists
 ├── screens/
+│   ├── main_shell.dart         # Bottom navigation shell
 │   ├── home_screen.dart        # Dashboard with stats
+│   ├── profile_screen.dart     # Profile/settings screen
 │   ├── login_screen.dart       # Login form
 │   ├── auth/
 │   │   └── register_screen.dart
@@ -196,9 +220,12 @@ lib/
 | firebase_core | Firebase initialization |
 | firebase_auth | Email/password authentication |
 | cloud_firestore | Data persistence |
-| flutter_riverpod | State management |
+| flutter_riverpod | State management (v3.x) |
 | uuid | Generate unique IDs |
 | intl | Date formatting |
+| pdf | PDF document generation |
+| printing | PDF printing/export |
+| url_launcher | Open external links |
 
 ---
 
@@ -211,12 +238,20 @@ lib/
 3. Add route in `lib/main.dart` routes map
 4. Navigate with `Navigator.pushNamed(context, '/route-name')`
 
+### Adding Edit Functionality
+
+1. Add optional model parameter to screen constructor
+2. Check `if (_isEditing = model != null)` in initState
+3. Pre-populate form fields from existing data
+4. Use existing ID when saving (don't generate new UUID)
+5. Update title: `_isEditing ? 'Edit' : 'Add'`
+
 ### Adding a New Model
 
 1. Create file in `lib/models/`
 2. Define class with `fromJson` and `toJson` methods
-3. Add Firestore methods in `lib/providers/data_providers.dart`
-4. Create `StreamProvider` for live data
+3. Add Firestore methods in `lib/services/firestore_service.dart`
+4. Create `StreamProvider` for live data in `lib/providers/data_providers.dart`
 
 ### Firestore Rules
 
@@ -241,7 +276,18 @@ allow read, write: if request.auth != null;
 
 ## Pre-Commit Checklist
 
-1. `flutter analyze` - fix all errors/warnings
-2. `flutter build web` - ensure build succeeds
-3. Test login/logout flow
-4. Test CRUD operations for songs/bands/setlists
+1. `flutter analyze` - fix all errors/warnings (no issues allowed)
+2. `dart format .` - format all code
+3. `flutter build web` - ensure build succeeds
+4. Test login/logout flow
+5. Test CRUD operations for songs/bands/setlists
+
+---
+
+## Important Notes for Agents
+
+- **Always run `flutter analyze` before finishing any task** - no issues should remain
+- **Use Riverpod 3.x syntax**: `NotifierProvider` instead of `StateNotifierProvider`
+- **Avoid deprecated methods**: `withOpacity()` → `withValues(alpha:)`, `valueOrNull` → `value`
+- **Keep responses concise** - max 3-4 lines unless user requests detail
+- **Do NOT commit changes unless explicitly asked by user**
