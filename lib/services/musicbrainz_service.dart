@@ -11,25 +11,48 @@ class MusicBrainzService {
     if (query.trim().isEmpty) return [];
 
     try {
-      final encodedQuery = Uri.encodeComponent(query);
-      // Request more data including releases for better metadata
-      final url =
-          '$_baseUrl/recording?query=$encodedQuery&fmt=json&limit=10&inc=artist-credits+releases';
+      // Clean query - remove special characters
+      final cleanQuery = query.trim().replaceAll(RegExp(r'[^\w\s]'), ' ');
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {'User-Agent': _userAgent, 'Accept': 'application/json'},
-      );
+      // Try different query formats to improve results
+      final queries = [
+        // Try exact phrase first
+        'recording:"$cleanQuery"',
+        // Then try with artist: prefix
+        'recording:$cleanQuery OR artist:$cleanQuery',
+        // Fallback to simple query
+        cleanQuery,
+      ];
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final recordings = data['recordings'] as List<dynamic>? ?? [];
+      for (final searchQuery in queries) {
+        final encodedQuery = Uri.encodeComponent(searchQuery);
+        final url =
+            '$_baseUrl/recording?query=$encodedQuery&fmt=json&limit=15&inc=artist-credits+releases';
 
-        return recordings
-            .map(
-              (r) => MusicBrainzRecording.fromJson(r as Map<String, dynamic>),
-            )
-            .toList();
+        final response = await http.get(
+          Uri.parse(url),
+          headers: {'User-Agent': _userAgent, 'Accept': 'application/json'},
+        );
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          final recordings = data['recordings'] as List<dynamic>? ?? [];
+
+          if (recordings.isNotEmpty) {
+            return recordings
+                .map(
+                  (r) =>
+                      MusicBrainzRecording.fromJson(r as Map<String, dynamic>),
+                )
+                .toList();
+          }
+        } else if (response.statusCode == 503) {
+          // Rate limited
+          break;
+        }
+
+        // Small delay between queries to avoid rate limiting
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     } catch (e) {
       // Return empty list on error

@@ -637,16 +637,47 @@ class _MusicBrainzSearchSheetState extends State<_MusicBrainzSearchSheet> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final results = snapshot.data ?? [];
-
-              if (results.isEmpty) {
-                return const Center(
+              if (snapshot.hasError) {
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.search_off, size: 48, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text('No results found'),
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('Search error'),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Try again later',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              final results = snapshot.data ?? [];
+
+              if (results.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.search_off,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('No results found'),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Try different keywords',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
                     ],
                   ),
                 );
