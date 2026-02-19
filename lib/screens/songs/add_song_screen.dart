@@ -6,12 +6,19 @@ import '../../providers/data_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/song.dart';
 import '../../models/link.dart';
-import '../../services/musicbrainz_service.dart';
 import '../../services/spotify_service.dart';
 import '../../services/track_analysis_service.dart';
-import '../../theme/app_theme.dart';
+import 'components/song_form.dart';
+import 'components/spotify_search_section.dart';
+import 'components/musicbrainz_search_section.dart';
 
+/// Screen for adding or editing a song.
+///
+/// This screen provides a form for entering song details including
+/// title, artist, key, BPM, links, notes, and tags. It supports
+/// fetching track information from Spotify and MusicBrainz.
 class AddSongScreen extends ConsumerStatefulWidget {
+  /// The song to edit. If null, a new song will be created.
   final Song? song;
 
   const AddSongScreen({super.key, this.song});
@@ -36,8 +43,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
   String _ourKeyBase = 'C';
   String _ourKeyModifier = '';
 
-  final List<String> _keyBases = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-  final List<String> _keyModifiers = ['', '#', 'b', 'm'];
   final List<String> _availableTags = [
     'ready',
     'learning',
@@ -52,7 +57,13 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
   void initState() {
     super.initState();
     if (_isEditing) {
-      final song = widget.song!;
+      _initializeFromSong(widget.song!);
+    }
+  }
+
+  /// Initialize form fields from an existing song.
+  void _initializeFromSong(Song song) {
+    setState(() {
       _titleController.text = song.title;
       _artistController.text = song.artist;
       _originalBpmController.text = song.originalBPM?.toString() ?? '';
@@ -61,40 +72,32 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
       _links.addAll(song.links);
       _selectedTags.addAll(song.tags);
       _spotifyUrl = song.spotifyUrl;
-
-      if (song.originalKey != null && song.originalKey!.isNotEmpty) {
-        final orig = song.originalKey!;
-        if (orig.length > 1 && orig.endsWith('m')) {
-          _originalKeyBase = orig[0].toUpperCase();
-          _originalKeyModifier = 'm';
-        } else if (orig.length > 1) {
-          _originalKeyBase = orig[0].toUpperCase();
-          _originalKeyModifier = orig.substring(1);
-        } else {
-          _originalKeyBase = orig.toUpperCase();
-          _originalKeyModifier = '';
-        }
-      }
-
-      if (song.ourKey != null && song.ourKey!.isNotEmpty) {
-        final our = song.ourKey!;
-        if (our.length > 1 && our.endsWith('m')) {
-          _ourKeyBase = our[0].toUpperCase();
-          _ourKeyModifier = 'm';
-        } else if (our.length > 1) {
-          _ourKeyBase = our[0].toUpperCase();
-          _ourKeyModifier = our.substring(1);
-        } else {
-          _ourKeyBase = our.toUpperCase();
-          _ourKeyModifier = '';
-        }
-      }
-    }
+      _parseKey(song.originalKey, isOriginal: true);
+      _parseKey(song.ourKey, isOriginal: false);
+    });
   }
 
-  String _buildKey(String base, String modifier) {
-    if (modifier == 'm') return '${base.toLowerCase()}m';
-    return '$base$modifier';
+  /// Parse a key string into base and modifier components.
+  void _parseKey(String? key, {required bool isOriginal}) {
+    if (key == null || key.isEmpty) return;
+
+    final setStateCallback = isOriginal
+        ? (base, modifier) {
+            _originalKeyBase = base;
+            _originalKeyModifier = modifier;
+          }
+        : (base, modifier) {
+            _ourKeyBase = base;
+            _ourKeyModifier = modifier;
+          };
+
+    if (key.length > 1 && key.endsWith('m')) {
+      setStateCallback(key[0].toUpperCase(), 'm');
+    } else if (key.length > 1) {
+      setStateCallback(key[0].toUpperCase(), key.substring(1));
+    } else {
+      setStateCallback(key.toUpperCase(), '');
+    }
   }
 
   @override
@@ -107,6 +110,13 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     super.dispose();
   }
 
+  /// Build a key string from base and modifier.
+  String _buildKey(String base, String modifier) {
+    if (modifier == 'm') return '${base.toLowerCase()}m';
+    return '$base$modifier';
+  }
+
+  /// Copy key and BPM from original to "our" fields.
   void _copyFromOriginal() {
     setState(() {
       _ourKeyBase = _originalKeyBase;
@@ -115,86 +125,17 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     });
   }
 
-  void _addLink() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final urlController = TextEditingController();
-        String selectedType = Link.typeYoutubeOriginal;
-        return AlertDialog(
-          title: const Text('Add Link'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                initialValue: selectedType,
-                items: const [
-                  DropdownMenuItem(
-                    value: Link.typeSpotify,
-                    child: Text('Spotify'),
-                  ),
-                  DropdownMenuItem(
-                    value: Link.typeYoutubeOriginal,
-                    child: Text('YouTube Original'),
-                  ),
-                  DropdownMenuItem(
-                    value: Link.typeYoutubeCover,
-                    child: Text('YouTube Cover'),
-                  ),
-                  DropdownMenuItem(
-                    value: Link.typeTabs,
-                    child: Text('Tabs/Chords'),
-                  ),
-                  DropdownMenuItem(value: Link.typeDrums, child: Text('Drums')),
-                  DropdownMenuItem(value: Link.typeOther, child: Text('Other')),
-                ],
-                onChanged: (value) => selectedType = value!,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: urlController,
-                decoration: const InputDecoration(labelText: 'URL'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (urlController.text.isNotEmpty) {
-                  setState(
-                    () => _links.add(
-                      Link(type: selectedType, url: urlController.text),
-                    ),
-                  );
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Add'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+  /// Fetch track analysis from external API.
   Future<void> _fetchTrackAnalysis() async {
     final title = _titleController.text.trim();
     final artist = _artistController.text.trim();
 
     if (title.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Enter a song title')));
+      _showMessage('Enter a song title');
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Fetching BPM and key...')));
+    _showMessage('Fetching BPM and key...');
 
     try {
       final result = await TrackAnalysisService.analyzeTrack(title, artist);
@@ -206,50 +147,33 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
           }
           if (result.key != null) {
             final key = result.key!;
-            _originalKeyBase = key
-                .replaceAll(RegExp(r'[#bm]'), '')
-                .substring(0, 1);
+            _originalKeyBase = key.replaceAll(RegExp(r'[#bm]'), '').substring(0, 1);
             _originalKeyModifier = key.contains('#')
                 ? '#'
-                : (key.contains('b') ? 'b' : '') +
-                      (result.mode == 'minor' ? 'm' : '');
+                : (key.contains('b') ? 'b' : '') + (result.mode == 'minor' ? 'm' : '');
           }
         });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result.bpm != null
-                  ? 'Found: ${result.bpm} BPM, ${result.musicalKey}'
-                  : 'Could not find track',
-            ),
-          ),
+        _showMessage(
+          result.bpm != null
+              ? 'Found: ${result.bpm} BPM, ${result.musicalKey}'
+              : 'Could not find track',
         );
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Track not found. Try a different search.'),
-          ),
-        );
+        _showMessage('Track not found. Try a different search.');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        _showMessage('Error: $e');
       }
     }
   }
 
+  /// Show MusicBrainz search bottom sheet.
   void _showMusicBrainzSearch() {
-    final title = _titleController.text.trim();
-    final artist = _artistController.text.trim();
-    final query = '$title $artist'.trim();
+    final query = '${_titleController.text.trim()} ${_artistController.text.trim()}'.trim();
 
     if (query.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a song title or artist to search')),
-      );
+      _showMessage('Enter a song title or artist to search');
       return;
     }
 
@@ -261,7 +185,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
         minChildSize: 0.5,
         maxChildSize: 0.9,
         expand: false,
-        builder: (context, scrollController) => _MusicBrainzSearchSheet(
+        builder: (context, scrollController) => MusicBrainzSearchSection(
           query: query,
           scrollController: scrollController,
           onSelect: (recording) {
@@ -272,46 +196,32 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
               if (recording.artist != null && _artistController.text.isEmpty) {
                 _artistController.text = recording.artist!;
               }
-              if (recording.bpm != null &&
-                  _originalBpmController.text.isEmpty) {
+              if (recording.bpm != null && _originalBpmController.text.isEmpty) {
                 _originalBpmController.text = recording.bpm.toString();
               }
             });
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Added: ${recording.title} - ${recording.artist}',
-                ),
-              ),
-            );
+            _showMessage('Added: ${recording.title} - ${recording.artist}');
           },
         ),
       ),
     );
   }
 
+  /// Show Spotify search bottom sheet.
   void _showSpotifySearch() {
     if (!SpotifyService.isConfigured) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Spotify API not configured. Edit lib/services/spotify_service.dart',
-          ),
-          duration: Duration(seconds: 4),
-        ),
+      _showMessage(
+        'Spotify API not configured. Edit lib/services/spotify_service.dart',
+        duration: const Duration(seconds: 4),
       );
       return;
     }
 
-    final title = _titleController.text.trim();
-    final artist = _artistController.text.trim();
-    final query = '$title $artist'.trim();
+    final query = '${_titleController.text.trim()} ${_artistController.text.trim()}'.trim();
 
     if (query.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a song title or artist to search')),
-      );
+      _showMessage('Enter a song title or artist to search');
       return;
     }
 
@@ -323,7 +233,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
         minChildSize: 0.5,
         maxChildSize: 0.9,
         expand: false,
-        builder: (context, scrollController) => _SpotifySearchSheet(
+        builder: (context, scrollController) => SpotifySearchSection(
           query: query,
           scrollController: scrollController,
           onSelect: (track, features) {
@@ -341,45 +251,40 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
                   features.bpm > 0 &&
                   _originalBpmController.text.isEmpty) {
                 _originalBpmController.text = features.bpm.toString();
-                // Set key from Spotify
-                final keyParts = features.musicalKey.split(' ');
-                if (keyParts.isNotEmpty) {
-                  final key = keyParts[0];
-                  _originalKeyBase = key
-                      .replaceAll(RegExp(r'[#b]'), '')
-                      .substring(0, 1);
-                  _originalKeyModifier = key.contains('#')
-                      ? '#'
-                      : (key.contains('b') ? 'b' : '');
-                  if (keyParts.length > 1 && keyParts[1] == 'minor') {
-                    _originalKeyModifier = 'm';
-                  }
-                }
+                _parseKeyFromSpotify(features.musicalKey);
               }
             });
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Added: ${track.name} - ${track.artist}')),
-            );
+            _showMessage('Added: ${track.name} - ${track.artist}');
           },
         ),
       ),
     );
   }
 
+  /// Parse key string from Spotify audio features.
+  void _parseKeyFromSpotify(String keyString) {
+    final keyParts = keyString.split(' ');
+    if (keyParts.isNotEmpty) {
+      final key = keyParts[0];
+      _originalKeyBase = key.replaceAll(RegExp(r'[#b]'), '').substring(0, 1);
+      _originalKeyModifier =
+          key.contains('#') ? '#' : (key.contains('b') ? 'b' : '');
+      if (keyParts.length > 1 && keyParts[1] == 'minor') {
+        _originalKeyModifier = 'm';
+      }
+    }
+  }
+
+  /// Open Spotify search in browser.
   void _searchOnWeb() {
-    final title = _titleController.text.trim();
-    final artist = _artistController.text.trim();
-    final query = '$title $artist'.trim();
+    final query = '${_titleController.text.trim()} ${_artistController.text.trim()}'.trim();
 
     if (query.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a song title to search')),
-      );
+      _showMessage('Enter a song title to search');
       return;
     }
 
-    // Open Spotify search in browser
     final encodedQuery = Uri.encodeComponent(query);
     final spotifyUrl = 'https://open.spotify.com/search/$encodedQuery';
 
@@ -412,27 +317,30 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
     );
   }
 
+  /// Open a URL in external browser.
   void _openUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Could not open: $url')));
-      }
+    } else if (mounted) {
+      _showMessage('Could not open: $url');
     }
   }
 
+  /// Show a snackbar message.
+  void _showMessage(String message, {Duration duration = const Duration(seconds: 2)}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: duration),
+    );
+  }
+
+  /// Save the song to Firestore.
   Future<void> _saveSong() async {
     if (!_formKey.currentState!.validate()) return;
 
     final user = ref.read(currentUserProvider);
     if (user == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please login first')));
+      _showMessage('Please login first');
       return;
     }
 
@@ -467,98 +375,13 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${song.title} ${_isEditing ? 'updated' : 'added'}'),
-          ),
-        );
+        _showMessage('${song.title} ${_isEditing ? 'updated' : 'added'}');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        _showMessage('Error: $e');
       }
     }
-  }
-
-  Widget _buildKeyRow(
-    String label,
-    String base,
-    String modifier,
-    TextEditingController bpmController,
-    Function(String, String) onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-        ),
-        const SizedBox(height: 4),
-        IntrinsicHeight(
-          child: Row(
-            children: [
-              _buildMiniDropdown(
-                base,
-                _keyBases,
-                (v) => onChanged(v ?? 'C', modifier),
-              ),
-              const SizedBox(width: 4),
-              _buildMiniDropdown(
-                modifier,
-                _keyModifiers,
-                (v) => onChanged(base, v ?? ''),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: bpmController,
-                  decoration: const InputDecoration(
-                    labelText: 'BPM',
-                    isDense: true,
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMiniDropdown(
-    String value,
-    List<String> items,
-    Function(String?) onChanged,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: DropdownButton<String>(
-        value: value,
-        isDense: true,
-        underline: const SizedBox(),
-        items: items
-            .map(
-              (k) => DropdownMenuItem(
-                value: k,
-                child: Text(
-                  k.isEmpty ? '-' : k,
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ),
-            )
-            .toList(),
-        onChanged: onChanged,
-      ),
-    );
   }
 
   @override
@@ -573,449 +396,85 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen> {
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title *'),
-              textInputAction: TextInputAction.next,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Title required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _artistController,
-              decoration: const InputDecoration(labelText: 'Artist'),
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _saveSong(),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextButton.icon(
-                    onPressed: _showMusicBrainzSearch,
-                    icon: const Icon(Icons.search, size: 18),
-                    label: const Text('MusicBrainz'),
-                  ),
-                  TextButton.icon(
-                    onPressed: _showSpotifySearch,
-                    icon: const Icon(Icons.music_note, size: 18),
-                    label: const Text('Spotify'),
-                  ),
-                  TextButton.icon(
-                    onPressed: _fetchTrackAnalysis,
-                    icon: const Icon(Icons.analytics, size: 18),
-                    label: const Text('BPM/Key'),
-                  ),
-                  TextButton.icon(
-                    onPressed: _searchOnWeb,
-                    icon: const Icon(Icons.search, size: 18),
-                    label: const Text('Web'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            _buildKeyRow(
-              'Original',
-              _originalKeyBase,
-              _originalKeyModifier,
-              _originalBpmController,
-              (b, m) => setState(() {
-                _originalKeyBase = b;
-                _originalKeyModifier = m;
-              }),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // Song form with all fields
+          SongForm(
+            formKey: _formKey,
+            titleController: _titleController,
+            artistController: _artistController,
+            originalBpmController: _originalBpmController,
+            ourBpmController: _ourBpmController,
+            notesController: _notesController,
+            links: _links,
+            selectedTags: _selectedTags,
+            availableTags: _availableTags,
+            originalKeyBase: _originalKeyBase,
+            originalKeyModifier: _originalKeyModifier,
+            ourKeyBase: _ourKeyBase,
+            ourKeyModifier: _ourKeyModifier,
+            onOriginalKeyChanged: (b, m) => setState(() {
+              _originalKeyBase = b;
+              _originalKeyModifier = m;
+            }),
+            onOurKeyChanged: (b, m) => setState(() {
+              _ourKeyBase = b;
+              _ourKeyModifier = m;
+            }),
+            onAddLink: (link) => setState(() => _links.add(link)),
+            onRemoveLink: (index) => setState(() => _links.removeAt(index)),
+            onTagChanged: (tag, selected) => setState(() {
+              if (selected) {
+                _selectedTags.add(tag);
+              } else {
+                _selectedTags.remove(tag);
+              }
+            }),
+            isEditing: _isEditing,
+          ),
+          const SizedBox(height: 24),
+          // Search buttons row
+          Align(
+            alignment: Alignment.centerRight,
+            child: Wrap(
+              spacing: 4,
               children: [
-                const Text(
-                  'Our Key & BPM',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                TextButton.icon(
+                  onPressed: _showMusicBrainzSearch,
+                  icon: const Icon(Icons.search, size: 18),
+                  label: const Text('MusicBrainz'),
                 ),
                 TextButton.icon(
-                  onPressed: _copyFromOriginal,
-                  icon: const Icon(Icons.copy, size: 16),
-                  label: const Text('Copy'),
+                  onPressed: _showSpotifySearch,
+                  icon: const Icon(Icons.music_note, size: 18),
+                  label: const Text('Spotify'),
+                ),
+                TextButton.icon(
+                  onPressed: _fetchTrackAnalysis,
+                  icon: const Icon(Icons.analytics, size: 18),
+                  label: const Text('BPM/Key'),
+                ),
+                TextButton.icon(
+                  onPressed: _searchOnWeb,
+                  icon: const Icon(Icons.search, size: 18),
+                  label: const Text('Web'),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            _buildKeyRow(
-              'Our',
-              _ourKeyBase,
-              _ourKeyModifier,
-              _ourBpmController,
-              (b, m) => setState(() {
-                _ourKeyBase = b;
-                _ourKeyModifier = m;
-              }),
+          ),
+          const SizedBox(height: 16),
+          // Copy from original button
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _copyFromOriginal,
+              icon: const Icon(Icons.copy, size: 16),
+              label: const Text('Copy from Original'),
             ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Links',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextButton.icon(
-                  onPressed: _addLink,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add'),
-                ),
-              ],
-            ),
-            if (_links.isNotEmpty)
-              Wrap(
-                spacing: 8,
-                children: _links
-                    .asMap()
-                    .entries
-                    .map(
-                      (e) => Chip(
-                        label: Text(
-                          e.value.type.replaceAll('_', ' '),
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        deleteIcon: const Icon(Icons.close, size: 16),
-                        onDeleted: () => setState(() => _links.removeAt(e.key)),
-                      ),
-                    )
-                    .toList(),
-              ),
-            const SizedBox(height: 24),
-            const Text('Notes', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(hintText: 'Notes...'),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 24),
-            const Text('Tags', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: _availableTags
-                  .map(
-                    (tag) => FilterChip(
-                      label: Text(tag),
-                      selected: _selectedTags.contains(tag),
-                      onSelected: (s) => setState(
-                        () => s
-                            ? _selectedTags.add(tag)
-                            : _selectedTags.remove(tag),
-                      ),
-                      selectedColor: AppColors.color1.withValues(alpha: 0.3),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-class _MusicBrainzSearchSheet extends StatefulWidget {
-  final String query;
-  final ScrollController scrollController;
-  final Function(MusicBrainzRecording) onSelect;
-
-  const _MusicBrainzSearchSheet({
-    required this.query,
-    required this.scrollController,
-    required this.onSelect,
-  });
-
-  @override
-  State<_MusicBrainzSearchSheet> createState() =>
-      _MusicBrainzSearchSheetState();
-}
-
-class _MusicBrainzSearchSheetState extends State<_MusicBrainzSearchSheet> {
-  late Future<List<MusicBrainzRecording>> _searchResults;
-
-  @override
-  void initState() {
-    super.initState();
-    _searchResults = MusicBrainzService.searchRecording(widget.query);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'MusicBrainz: ${widget.query}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: FutureBuilder<List<MusicBrainzRecording>>(
-            future: _searchResults,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (snapshot.hasError) {
-                final errorMsg = snapshot.error.toString();
-                final isPremiumError = errorMsg.contains('Premium');
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        isPremiumError ? Icons.lock : Icons.error_outline,
-                        size: 48,
-                        color: isPremiumError ? Colors.orange : Colors.red,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        isPremiumError
-                            ? 'Spotify Premium Required'
-                            : 'Search error',
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        isPremiumError
-                            ? 'Spotify API needs Premium subscription'
-                            : 'Try again later',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                      if (isPremiumError) ...[
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () async {
-                            final encodedQuery = Uri.encodeComponent(
-                              widget.query,
-                            );
-                            final url =
-                                'https://open.spotify.com/search/$encodedQuery';
-                            await launchUrl(
-                              Uri.parse(url),
-                              mode: LaunchMode.externalApplication,
-                            );
-                          },
-                          icon: const Icon(Icons.open_in_browser),
-                          label: const Text('Search on Spotify Web'),
-                        ),
-                      ],
-                    ],
-                  ),
-                );
-              }
-
-              final results = snapshot.data ?? [];
-
-              if (results.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.search_off,
-                        size: 48,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text('No results found'),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Try different keywords',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return ListView.builder(
-                controller: widget.scrollController,
-                itemCount: results.length,
-                itemBuilder: (context, index) {
-                  final recording = results[index];
-                  return ListTile(
-                    title: Text(recording.title ?? 'Unknown'),
-                    subtitle: Text(recording.artist ?? 'Unknown artist'),
-                    trailing: recording.bpm != null
-                        ? Chip(
-                            label: Text('${recording.bpm} BPM'),
-                            backgroundColor: AppColors.color5.withValues(
-                              alpha: 0.2,
-                            ),
-                          )
-                        : null,
-                    onTap: () => widget.onSelect(recording),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SpotifySearchSheet extends StatefulWidget {
-  final String query;
-  final ScrollController scrollController;
-  final Function(SpotifyTrack track, SpotifyAudioFeatures? features) onSelect;
-
-  const _SpotifySearchSheet({
-    required this.query,
-    required this.scrollController,
-    required this.onSelect,
-  });
-
-  @override
-  State<_SpotifySearchSheet> createState() => _SpotifySearchSheetState();
-}
-
-class _SpotifySearchSheetState extends State<_SpotifySearchSheet> {
-  late Future<List<SpotifyTrack>> _searchResults;
-  final Map<String, SpotifyAudioFeatures> _audioFeatures = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _searchResults = _loadResults();
-  }
-
-  Future<List<SpotifyTrack>> _loadResults() async {
-    try {
-      final tracks = await SpotifyService.search(widget.query);
-      for (final track in tracks) {
-        final features = await SpotifyService.getAudioFeatures(track.id);
-        if (features != null) {
-          _audioFeatures[track.id] = features;
-        }
-      }
-      return tracks;
-    } catch (e) {
-      return [];
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'Spotify: ${widget.query}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: FutureBuilder<List<SpotifyTrack>>(
-            future: _searchResults,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              final results = snapshot.data ?? [];
-
-              if (results.isEmpty) {
-                return const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.music_off, size: 48, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text('No results found'),
-                      SizedBox(height: 8),
-                      Text(
-                        'Spotify API not configured.\nSee lib/services/spotify_service.dart',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return ListView.builder(
-                controller: widget.scrollController,
-                itemCount: results.length,
-                itemBuilder: (context, index) {
-                  final track = results[index];
-                  final features = _audioFeatures[track.id];
-
-                  return ListTile(
-                    title: Text(track.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(track.artist),
-                        if (features != null)
-                          Text(
-                            '${features.musicalKey} • ${features.bpm} BPM',
-                            style: const TextStyle(
-                              color: AppColors.color5,
-                              fontSize: 12,
-                            ),
-                          ),
-                      ],
-                    ),
-                    isThreeLine: features != null,
-                    trailing: features != null
-                        ? Chip(
-                            label: Text('${features.bpm}'),
-                            backgroundColor: AppColors.color5.withValues(
-                              alpha: 0.2,
-                            ),
-                          )
-                        : null,
-                    onTap: () => widget.onSelect(track, features),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 }

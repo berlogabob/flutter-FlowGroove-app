@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 /// Spotify Service for searching songs and getting audio features (BPM, key).
@@ -6,17 +7,22 @@ import 'package:http/http.dart' as http;
 /// To enable Spotify:
 /// 1. Go to https://developer.spotify.com/dashboard
 /// 2. Create an app to get Client ID and Client Secret
-/// 3. Replace _clientId and _clientSecret below
+/// 3. Add credentials to .env file (SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
 class SpotifyService {
-  // TODO: Replace with your Spotify API credentials from developer.spotify.com
-  static const String _clientId = '92576bcea9074252ad0f02f95d093a3b';
-  static const String _clientSecret = '5a09b161559b4a3386dd340ec1519e6c';
+  /// Get Spotify Client ID from environment variables
+  static String get _clientId => dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
+  
+  /// Get Spotify Client Secret from environment variables
+  static String get _clientSecret => dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
+  
   static const String _baseUrl = 'https://api.spotify.com/v1';
 
   /// Check if Spotify API is configured
   static bool get isConfigured =>
-      _clientId != 'YOUR_SPOTIFY_CLIENT_ID' &&
-      _clientSecret != 'YOUR_SPOTIFY_CLIENT_SECRET';
+      _clientId.isNotEmpty &&
+      _clientId != 'your_client_id_here' &&
+      _clientSecret.isNotEmpty &&
+      _clientSecret != 'your_client_secret_here';
 
   static String? _accessToken;
   static DateTime? _tokenExpiry;

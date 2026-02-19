@@ -117,10 +117,10 @@ class ProfileScreen extends ConsumerWidget {
           Card(
             child: Column(
               children: [
-                ListTile(
-                  leading: const Icon(Icons.info),
-                  title: const Text('App Version'),
-                  trailing: const Text('1.0.0'),
+                const ListTile(
+                  leading: Icon(Icons.info),
+                  title: Text('App Version'),
+                  trailing: Text('1.0.0'),
                 ),
                 const Divider(height: 1),
                 ListTile(

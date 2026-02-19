@@ -13,12 +13,12 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: "AIzaSyAxQ53DQzyEkKXjo3Ry2B9pcTMvcyk4d5o",
-    appId: "1:703941154390:web:43dfeaf2f6a0495e004df7",
-    messagingSenderId: "703941154390",
-    projectId: "repsync-app-8685c",
-    authDomain: "repsync-app-8685c.firebaseapp.com",
-    storageBucket: "repsync-app-8685c.firebasestorage.app",
-    // measurementId: "G-DQC026CRM8" — можно оставить или убрать (не обязательно)
+    apiKey: 'AIzaSyAxQ53DQzyEkKXjo3Ry2B9pcTMvcyk4d5o',
+    appId: '1:703941154390:web:43dfeaf2f6a0495e004df7',
+    messagingSenderId: '703941154390',
+    projectId: 'repsync-app-8685c',
+    authDomain: 'repsync-app-8685c.firebaseapp.com',
+    storageBucket: 'repsync-app-8685c.firebasestorage.app',
+    // measurementId: 'G-DQC026CRM8' — можно оставить или убрать (не обязательно)
   );
 }

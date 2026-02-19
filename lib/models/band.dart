@@ -1,3 +1,11 @@
+// Sentinel value to detect if a parameter was passed to copyWith
+const Object _sentinel = _Sentinel();
+class _Sentinel {
+  const _Sentinel();
+  @override
+  String toString() => '_sentinel';
+}
+
 class BandMember {
   final String uid;
   final String role;
@@ -52,19 +60,19 @@ class Band {
   Band copyWith({
     String? id,
     String? name,
-    String? description,
+    Object? description = _sentinel,
     String? createdBy,
     List<BandMember>? members,
-    String? inviteCode,
+    Object? inviteCode = _sentinel,
     DateTime? createdAt,
   }) {
     return Band(
       id: id ?? this.id,
       name: name ?? this.name,
-      description: description ?? this.description,
+      description: description == _sentinel ? this.description : description as String?,
       createdBy: createdBy ?? this.createdBy,
       members: members ?? this.members,
-      inviteCode: inviteCode ?? this.inviteCode,
+      inviteCode: inviteCode == _sentinel ? this.inviteCode : inviteCode as String?,
       createdAt: createdAt ?? this.createdAt,
     );
   }
