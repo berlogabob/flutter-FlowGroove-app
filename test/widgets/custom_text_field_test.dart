@@ -143,7 +143,7 @@ void main() {
         ),
       );
 
-      final textField = tester.widget<TextFormField>(find.byType(TextFormField));
+      final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.keyboardType, equals(TextInputType.emailAddress));
     });
 
@@ -155,7 +155,7 @@ void main() {
         ),
       );
 
-      final textField = tester.widget<TextFormField>(find.byType(TextFormField));
+      final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.keyboardType, equals(TextInputType.number));
     });
 
@@ -167,7 +167,7 @@ void main() {
         ),
       );
 
-      final textField = tester.widget<TextFormField>(find.byType(TextFormField));
+      final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.obscureText, isTrue);
     });
 
@@ -179,7 +179,7 @@ void main() {
         ),
       );
 
-      final textField = tester.widget<TextFormField>(find.byType(TextFormField));
+      final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.maxLines, equals(3));
     });
 
@@ -191,21 +191,21 @@ void main() {
         ),
       );
 
-      final textField = tester.widget<TextFormField>(find.byType(TextFormField));
+      final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.readOnly, isTrue);
     });
 
     testWidgets('applies input formatters', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const CustomTextField(
+        CustomTextField(
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
           ],
         ),
       );
 
-      final textField = tester.widget<TextFormField>(find.byType(TextFormField));
+      final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.inputFormatters, isNotEmpty);
     });
 

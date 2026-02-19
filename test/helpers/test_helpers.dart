@@ -5,9 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/mockito.dart';
 import 'mocks.dart';
 
-// ProviderOverride for testing
-typedef ProviderOverride = Override;
-
 /// Creates a [ProviderContainer] for testing
 ProviderContainer createProviderContainer() {
   final container = ProviderContainer();
@@ -69,9 +66,9 @@ Future<void> pumpWidgetWithProvider(
 Future<void> pumpWidgetWithProviders(
   WidgetTester tester,
   Widget widget, {
-  List<Override> overrides = const [],
+  List<dynamic> overrides = const [],
 }) async {
-  final providerContainer = ProviderContainer(overrides: overrides);
+  final providerContainer = ProviderContainer(overrides: overrides.cast());
   addTearDown(providerContainer.dispose);
 
   await tester.pumpWidget(
@@ -90,10 +87,10 @@ Future<void> pumpWidgetWithProviders(
 Future<void> pumpAppWidget(
   WidgetTester tester,
   Widget widget, {
-  List<Override> overrides = const [],
+  List<dynamic> overrides = const [],
   List<NavigatorObserver>? navigatorObservers,
 }) async {
-  final providerContainer = ProviderContainer(overrides: overrides);
+  final providerContainer = ProviderContainer(overrides: overrides.cast());
   addTearDown(providerContainer.dispose);
 
   await tester.pumpWidget(

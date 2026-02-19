@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "703941154390",
+    "project_id": "repsync-app-8685c",
+    "storage_bucket": "repsync-app-8685c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:703941154390:android:43dfeaf2f6a0495e004df7",
+        "android_client_info": {
+          "package_name": "com.example.flutter_repsync_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxQ53DQzyEkKXjo3Ry2B9pcTMvcyk4d5o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,7 +1,20 @@
 # RepSync - Quick Start Guide
 
-**Date:** February 19, 2026  
+**Date:** February 19, 2026
 **Status:** ✅ READY TO USE
+
+---
+
+## 📚 Additional Documentation
+
+For more detailed information, see:
+
+| Document | Description |
+|----------|-------------|
+| [BUILD_GUIDE.md](BUILD_GUIDE.md) | Complete build instructions for all platforms |
+| [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment checklists |
+| [RELEASE_PROCESS.md](RELEASE_PROCESS.md) | Version management and release workflow |
+| [docs/PLATFORMS.md](docs/PLATFORMS.md) | Platform support and features |
 
 ---
 
@@ -209,14 +222,21 @@ web/
 ### Web (GitHub Pages)
 
 ```bash
-# Build
-flutter build web --release
+# Quick deploy (using Makefile)
+make deploy
 
-# Deploy
-make deploy  # Or manually copy to docs/
+# Manual build
+flutter clean
+flutter build web --release --base-href "/flutter-repsync-app/"
+cp -r build/web/* docs/
+git add docs/
+git commit -m "Deploy: update GitHub Pages"
+git push
 ```
 
-### Firebase Hosting
+**Access URL:** `https://berlogabob.github.io/flutter-repsync-app/`
+
+### Web (Firebase Hosting)
 
 ```bash
 # Build
@@ -226,17 +246,61 @@ flutter build web --release
 firebase deploy --only hosting
 ```
 
+**Access URL:** `https://repsync-app-8685c.web.app`
+
+### Android
+
+```bash
+# Debug APK
+flutter build apk --debug
+
+# Release APK
+flutter build apk --release
+
+# App Bundle (Play Store)
+flutter build appbundle --release
+```
+
+### iOS
+
+```bash
+# Simulator
+flutter build ios --simulator --no-codesign
+
+# Device
+flutter build ios --release
+```
+
+### Desktop
+
+```bash
+# Linux
+flutter build linux --release
+
+# macOS
+flutter build macos --release
+
+# Windows
+flutter build windows --release
+```
+
+**For detailed build instructions, see [BUILD_GUIDE.md](BUILD_GUIDE.md).**
+
 ---
 
 ## Documentation
 
 | Document | Purpose |
 |----------|---------|
-| `IMPLEMENTATION_REPORT.md` | Technical implementation details |
-| `TROUBLESHOOTING.md` | Common issues & solutions |
-| `SPOTIFY_SETUP.md` | Spotify configuration guide |
-| `ENV_SETUP.md` | Environment variables guide |
-| `QUICK_START.md` | This file |
+| [BUILD_GUIDE.md](BUILD_GUIDE.md) | Complete build instructions for all platforms |
+| [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment checklists |
+| [RELEASE_PROCESS.md](RELEASE_PROCESS.md) | Version management and release workflow |
+| [docs/PLATFORMS.md](docs/PLATFORMS.md) | Platform support and features |
+| [IMPLEMENTATION_REPORT.md](IMPLEMENTATION_REPORT.md) | Technical implementation details |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues & solutions |
+| [SPOTIFY_SETUP.md](SPOTIFY_SETUP.md) | Spotify configuration guide |
+| [ENV_SETUP.md](ENV_SETUP.md) | Environment variables guide |
+| [QUICK_START.md](QUICK_START.md) | This file |
 
 ---
 

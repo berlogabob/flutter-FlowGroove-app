@@ -1,7 +1,20 @@
 # Firebase Deployment Guide
 
-**Last Updated:** February 19, 2026  
+**Last Updated:** February 19, 2026
 **Status:** ✅ Rules Deployed
+
+---
+
+## 📚 Related Documentation
+
+For comprehensive build and deployment guides, see:
+
+| Document | Description |
+|----------|-------------|
+| [BUILD_GUIDE.md](BUILD_GUIDE.md) | Complete build instructions for all platforms |
+| [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment checklists |
+| [RELEASE_PROCESS.md](RELEASE_PROCESS.md) | Version management and release workflow |
+| [docs/PLATFORMS.md](docs/PLATFORMS.md) | Platform support and features |
 
 ---
 

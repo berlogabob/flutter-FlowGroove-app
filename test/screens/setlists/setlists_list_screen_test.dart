@@ -5,18 +5,29 @@ import 'package:flutter_repsync_app/screens/setlists/setlists_list_screen.dart';
 import 'package:flutter_repsync_app/providers/data_providers.dart';
 import 'package:flutter_repsync_app/providers/auth_provider.dart';
 import 'package:flutter_repsync_app/models/setlist.dart';
+import 'package:flutter_repsync_app/models/user.dart';
 import '../../helpers/test_helpers.dart';
 import '../../helpers/mocks.dart';
 import '../login_screen_test.dart';
 
+// Test notifier that returns a specific value
+class TestAppUserNotifier extends AppUserNotifier {
+  final AppUser? mockUser;
+
+  TestAppUserNotifier(this.mockUser);
+
+  @override
+  AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
+}
+
 void main() {
   group('SetlistsListScreen', () {
     late MockFirebaseAuth mockAuth;
-    
+
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
-      
+
     });
 
     testWidgets('renders setlists list screen with title', (WidgetTester tester) async {
@@ -28,8 +39,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -48,8 +58,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -69,8 +78,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -90,8 +98,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -117,8 +124,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -144,8 +150,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -171,8 +176,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -203,8 +207,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -233,8 +236,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value(setlists)),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -259,8 +261,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -290,8 +291,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -320,8 +320,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -340,9 +339,8 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
-          setlistsProvider.overrideWithValue(Stream.error(Exception('Failed to load setlists'))),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          setlistsProvider.overrideWith((ref) => Stream.error(Exception('Failed to load setlists'))),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
       );
@@ -361,8 +359,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([setlist])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],
@@ -389,8 +386,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           setlistsProvider.overrideWith((ref) => Stream.value([setlist])),
           songsProvider.overrideWith((ref) => Stream.value([])),
         ],

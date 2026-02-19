@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mockito/mockito.dart';
 import 'package:flutter_repsync_app/screens/auth/register_screen.dart';
 import 'package:flutter_repsync_app/providers/auth_provider.dart';
 import '../helpers/test_helpers.dart';
@@ -237,8 +238,8 @@ void main() {
     testWidgets('shows loading indicator when registering', (WidgetTester tester) async {
       // Setup mock to simulate async registration
       when(mockAuth.createUserWithEmailAndPassword(
-        email: anyNamed('email'),
-        password: anyNamed('password'),
+        email: any as String,
+        password: any as String,
       )).thenAnswer((_) async => createMockUserCredential());
 
       await pumpAppWidget(
@@ -291,8 +292,8 @@ void main() {
     testWidgets('displays error message for email already in use', (WidgetTester tester) async {
       // Setup mock to throw auth error
       when(mockAuth.createUserWithEmailAndPassword(
-        email: anyNamed('email'),
-        password: anyNamed('password'),
+        email: any as String,
+        password: any as String,
       )).thenThrow(FirebaseAuthException(code: 'email-already-in-use'));
 
       await pumpAppWidget(
@@ -322,8 +323,8 @@ void main() {
     testWidgets('displays error message for invalid email', (WidgetTester tester) async {
       // Setup mock to throw auth error
       when(mockAuth.createUserWithEmailAndPassword(
-        email: anyNamed('email'),
-        password: anyNamed('password'),
+        email: any as String,
+        password: any as String,
       )).thenThrow(FirebaseAuthException(code: 'invalid-email'));
 
       await pumpAppWidget(
@@ -353,8 +354,8 @@ void main() {
     testWidgets('displays error message for weak password from Firebase', (WidgetTester tester) async {
       // Setup mock to throw auth error
       when(mockAuth.createUserWithEmailAndPassword(
-        email: anyNamed('email'),
-        password: anyNamed('password'),
+        email: any as String,
+        password: any as String,
       )).thenThrow(FirebaseAuthException(code: 'weak-password'));
 
       await pumpAppWidget(

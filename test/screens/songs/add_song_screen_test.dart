@@ -1,23 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mockito/mockito.dart';
 import 'package:flutter_repsync_app/screens/songs/add_song_screen.dart';
 import 'package:flutter_repsync_app/providers/data_providers.dart';
 import 'package:flutter_repsync_app/providers/auth_provider.dart';
+import 'package:flutter_repsync_app/models/user.dart';
 
 import 'package:flutter_repsync_app/models/link.dart';
 import '../../helpers/test_helpers.dart';
 import '../../helpers/mocks.dart';
 import '../login_screen_test.dart';
 
+// Test notifier that returns a specific value
+class TestAppUserNotifier extends AppUserNotifier {
+  final AppUser? mockUser;
+
+  TestAppUserNotifier(this.mockUser);
+
+  @override
+  AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
+}
+
 void main() {
   group('AddSongScreen', () {
     late MockFirebaseAuth mockAuth;
-    
+    late MockFirebaseFirestore mockFirestore;
+
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
-      
+      mockFirestore = MockFirebaseFirestore();
+
     });
 
     testWidgets('renders add song screen with title', (WidgetTester tester) async {
@@ -29,8 +43,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -52,8 +65,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -70,8 +82,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -94,8 +105,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -112,8 +122,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -142,8 +151,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -172,8 +180,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -195,8 +202,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -217,8 +223,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -239,8 +244,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -260,8 +264,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -286,8 +289,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -307,8 +309,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -322,16 +323,14 @@ void main() {
 
     testWidgets('shows success message when saving song', (WidgetTester tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
-      when(mockFirestore.saveSong(any, any)).thenAnswer((_) async => {});
 
       await pumpAppWidget(
         tester,
         const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -358,8 +357,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 
@@ -377,8 +375,7 @@ void main() {
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           
-          appUserProvider.overrideWith((ref) => AsyncValue.data(mockUser)),
-          currentUserProvider.overrideWithValue(mockUser),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
         ],
       );
 

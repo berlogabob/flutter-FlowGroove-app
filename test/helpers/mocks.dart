@@ -51,6 +51,7 @@ class MockDataHelper {
     String? ourKey,
     String? notes,
     List<String>? tags,
+    String? spotifyUrl,
   }) {
     return Song(
       id: id,
@@ -63,6 +64,7 @@ class MockDataHelper {
       ourKey: ourKey,
       notes: notes,
       tags: tags ?? [],
+      spotifyUrl: spotifyUrl,
       createdAt: DateTime(2024, 1, 1),
       updatedAt: DateTime(2024, 1, 1),
     );

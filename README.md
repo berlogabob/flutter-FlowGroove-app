@@ -1,6 +1,12 @@
 
 # RepSync
 
+[![Flutter Version](https://img.shields.io/badge/Flutter-3.19+-blue.svg)](https://flutter.dev)
+[![Dart Version](https://img.shields.io/badge/Dart-3.3+-blue.svg)](https://dart.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/network/members)
+
 **Flutter app for managing band repertoires, setlists, and shared song databases for cover bands**
 
 ## Features
@@ -9,6 +15,8 @@
 - Multi-group support (one user in several bands)
 - PDF export for setlists
 - Web-first (works in browser on iPhone/Android)
+- Spotify integration for BPM & key detection
+- Real-time collaboration with band members
 
 ## Tech Stack
 - Flutter (web-first)
@@ -21,6 +29,17 @@
 
 Web version with manual song input & PDF export
 Post-MVP: MusicBrainz autofill, mobile builds, premium features
+
+## Quick Links
+
+| Documentation | Description |
+|---------------|-------------|
+| [📖 Build Guide](BUILD_GUIDE.md) | Complete build instructions for all platforms |
+| [✅ Deployment Checklist](DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment checklists |
+| [🚀 Release Process](RELEASE_PROCESS.md) | Version management and release workflow |
+| [📱 Platform Guide](docs/PLATFORMS.md) | Platform support and features |
+| [⚡ Quick Start](QUICK_START.md) | Get started in 5 minutes |
+| [🔧 Troubleshooting](TROUBLESHOOTING.md) | Common issues and solutions |
 
 ## Security
 
@@ -72,10 +91,3 @@ MIT License — see LICENSE file
 
 ---
 ### Built with ❤️ for musicians and cover bands
-
-
-[![Flutter Version](https://img.shields.io/badge/Flutter-3.19+-blue.svg)](https://flutter.dev)
-[![Dart Version](https://img.shields.io/badge/Dart-3.3+-blue.svg)](https://dart.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/network/members)

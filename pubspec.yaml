@@ -1,7 +1,7 @@
 name: flutter_repsync_app
 description: "RepSync - Band repertoire management for cover bands"
-publish_to: 'none'
-version: 1.0.0+1
+publish_to: "none"
+version: 0.8.3+1
 
 environment:
   sdk: ^3.10.7
@@ -36,7 +36,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

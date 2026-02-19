@@ -11,17 +11,13 @@ import '../../helpers/mocks.dart';
 import '../login_screen_test.dart';
 
 // Test notifier that returns a specific value
-class TestAppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
+class TestAppUserNotifier extends AppUserNotifier {
   final AppUser? mockUser;
 
   TestAppUserNotifier(this.mockUser);
 
   @override
   AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
-
-  Future<void> signOut() async {
-    state = AsyncValue.data(null);
-  }
 }
 
 void main() {
