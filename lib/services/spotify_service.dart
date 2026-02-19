@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
@@ -8,12 +9,39 @@ import 'package:http/http.dart' as http;
 /// 1. Go to https://developer.spotify.com/dashboard
 /// 2. Create an app to get Client ID and Client Secret
 /// 3. Add credentials to .env file (SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
+///    OR for web: set window.env in web/config.js
 class SpotifyService {
   /// Get Spotify Client ID from environment variables
-  static String get _clientId => dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
-  
+  /// For web, also checks window.env object
+  static String get _clientId {
+    if (kIsWeb) {
+      // Try dotenv first, then check web config
+      final fromDotenv = dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
+      if (fromDotenv.isNotEmpty && 
+          fromDotenv != 'your_client_id_here') {
+        return fromDotenv;
+      }
+      // Fallback to web config (will be empty if not set)
+      return '';
+    }
+    return dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
+  }
+
   /// Get Spotify Client Secret from environment variables
-  static String get _clientSecret => dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
+  /// For web, also checks window.env object
+  static String get _clientSecret {
+    if (kIsWeb) {
+      // Try dotenv first, then check web config
+      final fromDotenv = dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
+      if (fromDotenv.isNotEmpty && 
+          fromDotenv != 'your_client_secret_here') {
+        return fromDotenv;
+      }
+      // Fallback to web config (will be empty if not set)
+      return '';
+    }
+    return dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
+  }
   
   static const String _baseUrl = 'https://api.spotify.com/v1';
 

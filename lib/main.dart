@@ -23,10 +23,17 @@ import 'providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Load environment variables before Firebase initialization
-  await dotenv.load(fileName: '.env');
-  
+
+  // Load environment variables
+  // For web, .env file is optional - use default values if not found
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    // For web development, environment variables can be set via other means
+    // This allows the app to run even if .env file is not present
+    debugPrint('Note: .env file not loaded. Using environment variables if available.');
+  }
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const ProviderScope(child: RepSyncApp()));
 }
