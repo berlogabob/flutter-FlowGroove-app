@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/setlist.dart';
@@ -261,6 +262,25 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                          if (song.spotifyUrl != null) ...[
+                            const SizedBox(width: 4),
+                            InkWell(
+                              onTap: () async {
+                                final uri = Uri.parse(song.spotifyUrl!);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(
+                                    uri,
+                                    mode: LaunchMode.externalApplication,
+                                  );
+                                }
+                              },
+                              child: const Icon(
+                                Icons.play_circle_fill,
+                                color: Colors.green,
+                                size: 24,
+                              ),
+                            ),
+                          ],
                           IconButton(
                             icon: const Icon(Icons.close, size: 20),
                             onPressed: () =>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/data_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/song.dart';
@@ -99,6 +100,24 @@ class SongsListScreen extends ConsumerWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (song.spotifyUrl != null)
+                IconButton(
+                  icon: const Icon(
+                    Icons.play_circle_fill,
+                    color: Colors.green,
+                    size: 28,
+                  ),
+                  onPressed: () async {
+                    final uri = Uri.parse(song.spotifyUrl!);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
+                  },
+                  tooltip: 'Play on Spotify',
+                ),
               if (song.ourBPM != null)
                 Container(
                   padding: const EdgeInsets.symmetric(

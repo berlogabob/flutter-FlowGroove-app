@@ -1,0 +1,29 @@
+# =========================
+# Flutter Web → GitHub Pages
+# =========================
+# Как пользоваться:
+# ```Bash
+# make deploy
+# ```
+# Имя репозитория (измени, если переименуешь репозиторий)
+REPO_NAME = flutter-repsync-app
+
+# Автоматически формируется /flutter-repsync-app/
+BASE_HREF = /$(REPO_NAME)/
+
+# Основная команда: собирает + сразу копирует в /docs
+deploy:
+	flutter build web --release --base-href $(BASE_HREF)
+	@echo "✅ Сборка завершена. Копирую в /docs..."
+	rm -rf docs/*
+	cp -r build/web/* docs/
+	@echo "🎉 Всё готово! Теперь просто сделай:"
+	@echo "   git add docs/ && git commit -m \"Update GitHub Pages\" && git push"
+
+# Если хочешь просто собрать без копирования
+build-web:
+	flutter build web --release --base-href $(BASE_HREF)
+
+# Очистка
+clean:
+	rm -rf build/web docs/*

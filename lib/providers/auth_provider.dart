@@ -23,14 +23,16 @@ final appUserProvider = NotifierProvider<AppUserNotifier, AsyncValue<AppUser?>>(
 class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   @override
   AsyncValue<AppUser?> build() {
-    ref.listen(authStateProvider, (previous, next) {
-      next.whenData((user) {
+    final authState = ref.watch(authStateProvider);
+
+    return authState.when(
+      data: (user) {
         if (user != null) {
           String displayName = user.displayName ?? '';
           if (displayName.isEmpty && user.email != null) {
             displayName = user.email!.split('@').first;
           }
-          state = AsyncValue.data(
+          return AsyncValue.data(
             AppUser(
               uid: user.uid,
               email: user.email,
@@ -39,12 +41,12 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
               createdAt: DateTime.now(),
             ),
           );
-        } else {
-          state = const AsyncValue.data(null);
         }
-      });
-    }, fireImmediately: true);
-    return const AsyncValue.loading();
+        return const AsyncValue.data(null);
+      },
+      loading: () => const AsyncValue.loading(),
+      error: (error, stack) => AsyncValue.error(error, stack),
+    );
   }
 
   Future<void> signOut() async {

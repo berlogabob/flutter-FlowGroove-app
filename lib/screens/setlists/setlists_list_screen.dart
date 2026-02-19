@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data_providers.dart';
 import '../../models/setlist.dart';
+import '../../models/song.dart';
 import '../../services/pdf_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -99,14 +101,68 @@ class SetlistsListScreen extends ConsumerWidget {
         .where((s) => setlist.songIds.contains(s.id))
         .toList();
 
-    try {
-      await PdfService.exportSetlist(setlist, setlistSongs);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error exporting: $e')));
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf),
+              title: const Text('Export as PDF'),
+              subtitle: const Text('Generate printable PDF document'),
+              onTap: () async {
+                Navigator.pop(context);
+                try {
+                  await PdfService.exportSetlist(setlist, setlistSongs);
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  }
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: const Text('Share as Links'),
+              subtitle: const Text('Copy song links to share'),
+              onTap: () {
+                Navigator.pop(context);
+                _shareAsLinks(context, setlist, setlistSongs);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _shareAsLinks(BuildContext context, Setlist setlist, List<Song> songs) {
+    final buffer = StringBuffer();
+    buffer.writeln('🎵 ${setlist.name}');
+    if (setlist.description != null) {
+      buffer.writeln(setlist.description);
+    }
+    buffer.writeln();
+    buffer.writeln('Songs:');
+    for (int i = 0; i < songs.length; i++) {
+      final song = songs[i];
+      buffer.writeln('${i + 1}. ${song.title} - ${song.artist}');
+      if (song.spotifyUrl != null) {
+        buffer.writeln('   🎧 ${song.spotifyUrl}');
+      } else {
+        final searchUrl = Uri.encodeComponent('${song.title} ${song.artist}');
+        buffer.writeln('   🔍 https://open.spotify.com/search/$searchUrl');
       }
     }
+    buffer.writeln();
+    buffer.writeln('Created with RepSync');
+
+    Clipboard.setData(ClipboardData(text: buffer.toString()));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Setlist links copied to clipboard!')),
+    );
   }
 }

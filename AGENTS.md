@@ -189,7 +189,9 @@ lib/
 │   └── data_providers.dart     # Firestore providers + service
 ├── services/
 │   ├── firestore_service.dart  # Firestore CRUD operations
-│   └── pdf_service.dart       # PDF export for setlists
+│   ├── pdf_service.dart       # PDF export for setlists
+│   ├── musicbrainz_service.dart # Music metadata search (title, artist, BPM)
+│   └── spotify_service.dart  # Spotify API (BPM, key) - requires API credentials
 ├── screens/
 │   ├── main_shell.dart         # Bottom navigation shell
 │   ├── home_screen.dart        # Dashboard with stats
@@ -226,6 +228,7 @@ lib/
 | pdf | PDF document generation |
 | printing | PDF printing/export |
 | url_launcher | Open external links |
+| http | HTTP requests for API calls |
 
 ---
 
@@ -281,6 +284,19 @@ allow read, write: if request.auth != null;
 3. `flutter build web` - ensure build succeeds
 4. Test login/logout flow
 5. Test CRUD operations for songs/bands/setlists
+
+## Music Services
+
+### MusicBrainz (No API key required)
+- Provides: title, artist, album, BPM
+- No authentication needed
+- Rate limited: 1 request per second
+
+### Spotify (Requires API credentials)
+- Provides: title, artist, album, BPM, musical key (major/minor), Camelot notation
+- Requires Spotify Developer account
+- Get credentials: https://developer.spotify.com/dashboard
+- Edit `lib/services/spotify_service.dart` to add your Client ID and Client Secret
 
 ---
 

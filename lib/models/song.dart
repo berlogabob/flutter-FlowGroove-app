@@ -12,6 +12,7 @@ class Song {
   final String? notes;
   final List<String> tags;
   final String? bandId;
+  final String? spotifyUrl;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -27,6 +28,7 @@ class Song {
     this.notes,
     this.tags = const [],
     this.bandId,
+    this.spotifyUrl,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -43,6 +45,7 @@ class Song {
     String? notes,
     List<String>? tags,
     String? bandId,
+    String? spotifyUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -58,6 +61,7 @@ class Song {
       notes: notes ?? this.notes,
       tags: tags ?? this.tags,
       bandId: bandId ?? this.bandId,
+      spotifyUrl: spotifyUrl ?? this.spotifyUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -75,6 +79,7 @@ class Song {
     'notes': notes,
     'tags': tags,
     'bandId': bandId,
+    'spotifyUrl': spotifyUrl,
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
   };
@@ -95,6 +100,7 @@ class Song {
     notes: json['notes'],
     tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
     bandId: json['bandId'],
+    spotifyUrl: json['spotifyUrl'],
     createdAt: json['createdAt'] != null
         ? DateTime.parse(json['createdAt'])
         : DateTime.now(),
