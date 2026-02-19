@@ -46,6 +46,8 @@ class Band {
   final String? description;
   final String createdBy;
   final List<BandMember> members;
+  final List<String> memberUids;  // Derived from members for efficient rules checking
+  final List<String> adminUids;   // Derived from members for efficient rules checking
   final String? inviteCode;
   final DateTime createdAt;
 
@@ -55,9 +57,12 @@ class Band {
     this.description,
     required this.createdBy,
     this.members = const [],
+    List<String>? memberUids,
+    List<String>? adminUids,
     this.inviteCode,
     required this.createdAt,
-  });
+  }) : memberUids = memberUids ?? members.map((m) => m.uid).toList(),
+       adminUids = adminUids ?? members.where((m) => m.role == BandMember.roleAdmin).map((m) => m.uid).toList();
 
   Band copyWith({
     String? id,
@@ -65,15 +70,25 @@ class Band {
     Object? description = _sentinel,
     String? createdBy,
     List<BandMember>? members,
+    List<String>? memberUids,
+    List<String>? adminUids,
     Object? inviteCode = _sentinel,
     DateTime? createdAt,
   }) {
+    // Use provided members or existing members
+    final newMembers = members ?? this.members;
+    // Recalculate memberUids and adminUids if members changed and not explicitly provided
+    final newMemberUids = memberUids ?? newMembers.map((m) => m.uid).toList();
+    final newAdminUids = adminUids ?? newMembers.where((m) => m.role == BandMember.roleAdmin).map((m) => m.uid).toList();
+    
     return Band(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description == _sentinel ? this.description : description as String?,
       createdBy: createdBy ?? this.createdBy,
-      members: members ?? this.members,
+      members: newMembers,
+      memberUids: newMemberUids,
+      adminUids: newAdminUids,
       inviteCode: inviteCode == _sentinel ? this.inviteCode : inviteCode as String?,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -85,6 +100,8 @@ class Band {
     'description': description,
     'createdBy': createdBy,
     'members': members.map((m) => m.toJson()).toList(),
+    'memberUids': memberUids,
+    'adminUids': adminUids,
     'inviteCode': inviteCode,
     'createdAt': createdAt.toIso8601String(),
   };
@@ -99,6 +116,8 @@ class Band {
             ?.map((m) => BandMember.fromJson(m as Map<String, dynamic>))
             .toList() ??
         [],
+    memberUids: (json['memberUids'] as List<dynamic>?)?.cast<String>() ?? [],
+    adminUids: (json['adminUids'] as List<dynamic>?)?.cast<String>() ?? [],
     inviteCode: json['inviteCode'],
     createdAt: json['createdAt'] != null
         ? DateTime.parse(json['createdAt'])

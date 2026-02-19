@@ -5,9 +5,6 @@ import '../models/band.dart';
 import '../models/setlist.dart';
 import 'auth_provider.dart';
 
-// Export firestore service for global band operations
-export '../services/firestore_service.dart' show firestoreServiceProvider;
-
 final firestoreProvider = Provider<FirestoreService>((ref) {
   return FirestoreService();
 });
@@ -64,7 +61,7 @@ class FirestoreService {
   }
 
   /// Watches bands for a user by fetching from the global collection.
-  /// 
+  ///
   /// First gets the user's band IDs from their collection,
   /// then fetches full band data from the global 'bands' collection.
   Stream<List<Band>> watchBands(String uid) {
@@ -75,15 +72,17 @@ class FirestoreService {
         .snapshots()
         .asyncMap((snapshot) async {
           final bandIds = snapshot.docs.map((doc) => doc.id).toList();
-          
+
           if (bandIds.isEmpty) return <Band>[];
-          
+
           // Fetch full band data from global collection
           final bands = <Band>[];
           for (final bandId in bandIds) {
             final bandDoc = await _firestore.collection('bands').doc(bandId).get();
             if (bandDoc.exists) {
-              bands.add(Band.fromJson(bandDoc.data() as Map<String, dynamic>));
+              final data = bandDoc.data()!;
+              data['id'] = bandDoc.id; // Set the document ID
+              bands.add(Band.fromJson(data));
             }
           }
           return bands;
@@ -118,6 +117,66 @@ class FirestoreService {
           (snapshot) =>
               snapshot.docs.map((doc) => Setlist.fromJson(doc.data())).toList(),
         );
+  }
+
+  // ============================================================
+  // Global Bands Collection Methods (for cross-user sharing)
+  // ============================================================
+
+  /// Saves a band to the global 'bands' collection.
+  Future<void> saveBandToGlobal(Band band) async {
+    await FirebaseFirestore.instance
+        .collection('bands')
+        .doc(band.id)
+        .set(band.toJson());
+  }
+
+  /// Gets a band by invite code from global collection.
+  Future<Band?> getBandByInviteCode(String code) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('bands')
+        .where('inviteCode', isEqualTo: code)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+    final doc = snapshot.docs.first;
+    final data = doc.data()!;
+    data['id'] = doc.id; // Set the document ID
+    return Band.fromJson(data);
+  }
+
+  /// Checks if invite code is already taken.
+  Future<bool> isInviteCodeTaken(String code) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('bands')
+        .where('inviteCode', isEqualTo: code)
+        .limit(1)
+        .get();
+    return snapshot.docs.isNotEmpty;
+  }
+
+  /// Adds user reference to a band (for joining).
+  Future<void> addUserToBand(String bandId, String userId) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('bands')
+        .doc(bandId)
+        .set({
+          'bandId': bandId,
+          'joinedAt': FieldValue.serverTimestamp(),
+        });
+  }
+
+  /// Removes user reference from a band (for leaving).
+  Future<void> removeUserFromBand(String bandId, String userId) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('bands')
+        .doc(bandId)
+        .delete();
   }
 }
 

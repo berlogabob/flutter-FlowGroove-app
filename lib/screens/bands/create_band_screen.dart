@@ -39,27 +39,24 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
   }
 
   /// Generates a unique invite code with collision detection.
-  /// 
-  /// Retries up to 10 times if a generated code is already taken.
-  /// Throws an exception if unable to generate a unique code.
   Future<String> _generateUniqueInviteCode() async {
-    final service = ref.read(firestoreServiceProvider);
-    
+    final service = ref.read(firestoreProvider);
+
     String code;
     bool isTaken;
     int attempts = 0;
     const maxAttempts = 10;
-    
+
     do {
       code = Band.generateUniqueInviteCode();
       isTaken = await service.isInviteCodeTaken(code);
       attempts++;
-      
+
       if (attempts > maxAttempts) {
         throw Exception('Failed to generate unique invite code after $maxAttempts attempts');
       }
     } while (isTaken);
-    
+
     return code;
   }
 
@@ -71,11 +68,11 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
     try {
       final user = ref.read(currentUserProvider);
       if (user == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Please login first')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please login first')));
         return;
       }
+
+      final service = ref.read(firestoreProvider);
 
       // Generate unique invite code for new bands
       final inviteCode = _isEditing
@@ -104,10 +101,10 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
       );
 
       // Save to global collection (for cross-user access)
-      await ref.read(firestoreServiceProvider).saveBandToGlobal(band);
+      await service.saveBandToGlobal(band);
 
       // Save to user's collection (for quick access and listing)
-      await ref.read(firestoreProvider).saveBand(band, user.uid);
+      await service.saveBand(band, user.uid);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

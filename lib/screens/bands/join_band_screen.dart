@@ -36,7 +36,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         return;
       }
 
-      final service = ref.read(firestoreServiceProvider);
+      final service = ref.read(firestoreProvider);
       final code = _codeController.text.trim().toUpperCase();
       
       // Search in GLOBAL bands collection

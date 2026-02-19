@@ -18,17 +18,40 @@ service cloud.firestore {
     }
 
     // Helper function to check if user is a member of a global band
+    // Uses memberUids array for efficient lookup (no map/filter available in rules)
     function isGlobalBandMember(bandId) {
       let band = getGlobalBand(bandId);
       return band != null &&
-        band.members.map(m, m.uid).hasAny([request.auth.uid]);
+        band.memberUids.hasAny([request.auth.uid]);
     }
 
     // Helper function to check if user is an admin of a global band
+    // Uses memberUids and adminUids arrays for efficient lookup
     function isGlobalBandAdmin(bandId) {
       let band = getGlobalBand(bandId);
-      let member = band.members.filter(m, m.uid == request.auth.uid);
-      return band != null && member.size() > 0 && member[0].role == 'admin';
+      return band != null &&
+        band.adminUids.hasAny([request.auth.uid]);
+    }
+
+    // Helper function to check if creating user is in members list
+    function isCreatorInMembers(memberUids) {
+      return memberUids.hasAny([request.auth.uid]);
+    }
+
+    // Helper function to check if user is adding themselves to members
+    // Used for join band flow - user can add themselves but not modify others
+    function isSelfJoinOnly(bandId) {
+      let existingBand = getGlobalBand(bandId);
+      let newMemberUids = request.resource.data.memberUids;
+      // User can only join if:
+      // 1. Band exists
+      // 2. User is not already a member
+      // 3. New members = existing members + current user
+      return existingBand != null &&
+        !existingBand.memberUids.hasAny([request.auth.uid]) &&
+        newMemberUids.hasAll(existingBand.memberUids) &&
+        newMemberUids.hasAll([request.auth.uid]) &&
+        newMemberUids.size() == existingBand.memberUids.size() + 1;
     }
 
     // ============================================================
@@ -39,12 +62,16 @@ service cloud.firestore {
       // Any authenticated user can read bands (needed for join by code)
       allow read: if isAuthenticated();
 
-      // Create: Any authenticated user can create a band
+      // Create: Any authenticated user can create a band (must be in members list)
       allow create: if isAuthenticated() &&
-        request.resource.data.members.map(m, m.uid).hasAny([request.auth.uid]);
+        isCreatorInMembers(request.resource.data.memberUids);
 
       // Update: Only band admins can update band details
-      allow update: if isAuthenticated() && isGlobalBandAdmin(bandId);
+      // OR user can add themselves to members (join band flow)
+      allow update: if isAuthenticated() && (
+        isGlobalBandAdmin(bandId) || 
+        isSelfJoinOnly(bandId)
+      );
 
       // Delete: Only band admins can delete a band
       allow delete: if isAuthenticated() && isGlobalBandAdmin(bandId);

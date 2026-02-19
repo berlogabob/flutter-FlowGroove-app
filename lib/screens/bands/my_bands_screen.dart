@@ -129,7 +129,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (confirmed) {
       final user = ref.read(currentUserProvider);
       if (user != null) {
-        final service = ref.read(firestoreServiceProvider);
+        final service = ref.read(firestoreProvider);
         
         // Remove user from global band members
         final updatedMembers = band.members
@@ -187,7 +187,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
     final updatedBand = widget.band.copyWith(inviteCode: newCode);
     
     // Save to global collection
-    await ref.read(firestoreServiceProvider).saveBandToGlobal(updatedBand);
+    await ref.read(firestoreProvider).saveBandToGlobal(updatedBand);
     
     // Save to user's collection
     await ref.read(firestoreProvider).saveBand(updatedBand, widget.currentUserId);
