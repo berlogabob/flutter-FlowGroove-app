@@ -27,19 +27,24 @@ service cloud.firestore {
 
     // Helper function to check if user is an admin of a global band
     // Uses memberUids and adminUids arrays for efficient lookup
+    // NOTE: Handles missing fields by checking if field exists
     function isGlobalBandAdmin(bandId) {
       let band = getGlobalBand(bandId);
       return band != null &&
+        band.adminUids != null &&
         band.adminUids.hasAny([request.auth.uid]);
     }
 
     // Helper function to check if user is an editor or admin of a global band
     // Uses editorUids and adminUids arrays for efficient lookup
+    // NOTE: Handles missing/null fields by checking existence first
     function isGlobalBandEditorOrAdmin(bandId) {
       let band = getGlobalBand(bandId);
-      return band != null &&
-        (band.editorUids.hasAny([request.auth.uid]) ||
-         band.adminUids.hasAny([request.auth.uid]));
+      let isAdmin = band != null && band.adminUids != null && 
+                    band.adminUids.hasAny([request.auth.uid]);
+      let isEditor = band != null && band.editorUids != null && 
+                     band.editorUids.hasAny([request.auth.uid]);
+      return isAdmin || isEditor;
     }
 
     // Helper function to check if creating user is in members list
