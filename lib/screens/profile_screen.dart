@@ -41,8 +41,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             // Convert to Lisbon timezone (UTC+0 in winter, UTC+1 in summer)
             // For simplicity, use UTC offset for Portugal
             final lisbonDate = utcDate.toLocal(); // Flutter web runs in browser timezone
-            buildDate = 
-                '${lisbonDate.day.toString().padLeft(2, '0')}/${lisbonDate.month.toString().padLeft(2, '0')}/${lisbonDate.year} '
+            buildDate =
+                '${lisbonDate.year}-${lisbonDate.month.toString().padLeft(2, '0')}-${lisbonDate.day.toString().padLeft(2, '0')} '
                 '${lisbonDate.hour.toString().padLeft(2, '0')}:${lisbonDate.minute.toString().padLeft(2, '0')}';
           } catch (e) {
             buildDate = '';

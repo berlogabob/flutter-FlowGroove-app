@@ -14,10 +14,6 @@ class MockUser extends Mock implements User {}
 
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
 
-class MockCollectionReference extends Mock implements CollectionReference {}
-
-class MockQuerySnapshot extends Mock implements QuerySnapshot {}
-
 class MockCredential extends Mock implements UserCredential {}
 
 // Alias for consistency

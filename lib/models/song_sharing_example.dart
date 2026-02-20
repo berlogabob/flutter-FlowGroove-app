@@ -53,29 +53,6 @@ void main() {
   //   Is Copy: ${bandSong.isCopy}
   //   Contributed At: ${bandSong.contributedAt}
 
-  // Example 3: Using copyWith to convert a personal song to a band copy
-  final copiedSong = personalSong.copyWith(
-    id: 'band_song_002',
-    bandId: 'band_123',
-    originalOwnerId: 'user_456',
-    contributedBy: 'user_789',
-    isCopy: true,
-    contributedAt: DateTime.now(),
-    updatedAt: DateTime.now(),
-  );
-
-  // Copied Song (using copyWith) info:
-  //   Title: ${copiedSong.title}
-  //   Band ID: ${copiedSong.bandId}
-  //   Is Copy: ${copiedSong.isCopy}
-
-  // Example 4: Serialization to JSON
-  final json = bandSong.toJson();
-  // Serialized to JSON info:
-  //   Keys: ${json.keys.join(', ')}
-  //   Has originalOwnerId: ${json.containsKey('originalOwnerId')}
-  //   Has isCopy: ${json.containsKey('isCopy')}
-
   // Example 5: Deserialization from JSON (backward compatible)
   final oldFormatJson = {
     'id': 'old_song_001',
@@ -88,13 +65,6 @@ void main() {
     'updatedAt': DateTime.now().toIso8601String(),
     // No sharing fields - simulating old format
   };
-
-  final oldFormatSong = Song.fromJson(oldFormatJson);
-  // Old Format Song (backward compatible) info:
-  //   Title: ${oldFormatSong.title}
-  //   Is Copy: ${oldFormatSong.isCopy} (default: false)
-  //   Original Owner: ${oldFormatSong.originalOwnerId} (default: null)
-  //   Contributed By: ${oldFormatSong.contributedBy} (default: null)
 
   // Example 6: Check if a song is from a personal bank
   bool isFromPersonalBank(Song song) {
