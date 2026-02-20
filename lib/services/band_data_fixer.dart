@@ -2,10 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/band.dart';
 
-/// Extension to fix band data integrity issues.
+/// Console script to fix band data integrity issues.
 ///
-/// This adds validation and auto-repair for adminUids/editorUids fields.
-extension BandDataFix on Band {
+/// For Flutter app, use: await Firebase.initializeApp();
+void main() async {
+  if (kDebugMode) {
+    print('Starting band data repair...\n');
+  }
   /// Validates and repairs the band's uid arrays.
   /// Returns true if repairs were made.
   bool validateAndRepair() {
