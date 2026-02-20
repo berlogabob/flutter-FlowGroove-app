@@ -28,26 +28,26 @@ void main() {
       );
 
       // Verify screen title
-      expect(findText('Welcome Back'), findsOneWidget);
+      expect(find.text('Welcome Back'), findsOneWidget);
 
       // Verify app name
-      expect(findText('RepSync'), findsOneWidget);
+      expect(find.text('RepSync'), findsOneWidget);
 
       // Verify subtitle
-      expect(findText('Sign in to manage your band'), findsOneWidget);
+      expect(find.text('Sign in to manage your band'), findsOneWidget);
 
       // Verify email field
-      expect(findText('Email'), findsOneWidget);
+      expect(find.text('Email'), findsOneWidget);
 
       // Verify password field
-      expect(findText('Password'), findsOneWidget);
+      expect(find.text('Password'), findsOneWidget);
 
       // Verify sign in button
-      expect(findText('Sign In'), findsOneWidget);
+      expect(find.text('Sign In'), findsOneWidget);
 
       // Verify sign up link
-      expect(findText("Don't have an account?"), findsOneWidget);
-      expect(findText('Sign Up'), findsOneWidget);
+      expect(find.text("Don't have an account?"), findsOneWidget);
+      expect(find.text('Sign Up'), findsOneWidget);
     });
 
     testWidgets('displays email icon and password icon', (
@@ -98,7 +98,7 @@ void main() {
       );
 
       // Tap sign in button without entering data
-      await tester.tap(findText('Sign In'));
+      await tester.tap(find.text('Sign In'));
       await tester.pump();
 
       // Verify validation message appears
@@ -120,7 +120,7 @@ void main() {
       await tester.pump();
 
       // Tap sign in button
-      await tester.tap(findText('Sign In'));
+      await tester.tap(find.text('Sign In'));
       await tester.pump();
 
       // Verify validation message appears
@@ -152,7 +152,7 @@ void main() {
       await tester.pump();
 
       // Tap sign in button
-      await tester.tap(findText('Sign In'));
+      await tester.tap(find.text('Sign In'));
       await tester.pump();
 
       // Verify loading indicator appears
@@ -174,7 +174,7 @@ void main() {
       );
 
       // Tap Sign Up button
-      await tester.tap(findText('Sign Up'));
+      await tester.tap(find.text('Sign Up'));
       await tester.pump();
 
       // Verify navigation occurred
@@ -206,7 +206,7 @@ void main() {
       await tester.pump();
 
       // Tap sign in button
-      await tester.tap(findText('Sign In'));
+      await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 
       // Verify error message appears
@@ -238,7 +238,7 @@ void main() {
       await tester.pump();
 
       // Tap sign in button
-      await tester.tap(findText('Sign In'));
+      await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 
       // Verify error message appears
@@ -270,29 +270,11 @@ void main() {
       await tester.pump();
 
       // Tap sign in button
-      await tester.tap(findText('Sign In'));
+      await tester.tap(find.text('Sign In'));
       await tester.pumpAndSettle();
 
       // Verify error message appears
       expect(find.text('Invalid email address'), findsOneWidget);
     });
   });
-}
-
-/// Mock navigator observer for testing navigation
-class MockNavigatorObserver extends NavigatorObserver {
-  final Function(Route<dynamic>)? onPush;
-  final Function(Route<dynamic>)? onPop;
-
-  MockNavigatorObserver({this.onPush, this.onPop});
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    onPush?.call(route);
-  }
-
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    onPop?.call(route);
-  }
 }

@@ -67,7 +67,7 @@ class SongSharingExample {
       contributorId: userId,
       contributorName: 'John Doe', // Get from user profile
     );
-    print('Song "${personalSong.title}" added to band!');
+    // Song "${personalSong.title}" added to band!
   }
 
   /// Example 2: Watch band songs in real-time.
@@ -82,7 +82,7 @@ class SongSharingExample {
   /// Only band members should be able to delete band songs.
   Future<void> exampleDeleteBandSong(String bandId, String songId) async {
     await firestore.deleteBandSong(bandId, songId);
-    print('Song deleted from band collection');
+    // Song deleted from band collection
   }
 
   /// Example 4: Update a song in band's collection.
@@ -90,7 +90,7 @@ class SongSharingExample {
   /// Useful when band members collaborate on song details.
   Future<void> exampleUpdateBandSong(Song updatedSong, String bandId) async {
     await firestore.updateBandSong(updatedSong, bandId);
-    print('Song updated in band collection');
+    // Song updated in band collection
   }
 
   /// Example 5: Complete workflow - copy song and watch for changes.

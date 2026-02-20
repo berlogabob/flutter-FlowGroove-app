@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/band.dart';
 
 /// Extension to fix band data integrity issues.
@@ -77,7 +78,7 @@ class BandDataFixer {
       final bandDoc = await _firestore.collection('bands').doc(bandId).get();
 
       if (!bandDoc.exists) {
-        print('❌ Band $bandId does not exist');
+        if (kDebugMode) print('❌ Band $bandId does not exist');
         return false;
       }
 
@@ -110,7 +111,7 @@ class BandDataFixer {
           !_listsEqual(existingEditorUids, editorUids);
 
       if (!needsFix) {
-        print('✅ Band "$bandId" already has valid uid arrays');
+        if (kDebugMode) print('✅ Band "$bandId" already has valid uid arrays');
         return false;
       }
 
@@ -121,12 +122,14 @@ class BandDataFixer {
         'editorUids': editorUids,
       });
 
-      print(
-        '✅ Fixed band "$bandId": ${adminUids.length} admins, ${editorUids.length} editors, ${memberUids.length} members',
-      );
+      if (kDebugMode) {
+        print(
+          '✅ Fixed band "$bandId": ${adminUids.length} admins, ${editorUids.length} editors, ${memberUids.length} members',
+        );
+      }
       return true;
     } catch (e) {
-      print('❌ Error fixing band $bandId: $e');
+      if (kDebugMode) print('❌ Error fixing band $bandId: $e');
       return false;
     }
   }
@@ -141,7 +144,7 @@ class BandDataFixer {
       final bandsSnapshot = await _firestore.collection('bands').get();
       total = bandsSnapshot.size;
 
-      print('🔍 Checking $total bands...');
+      if (kDebugMode) print('🔍 Checking $total bands...');
 
       for (final bandDoc in bandsSnapshot.docs) {
         try {
@@ -149,23 +152,25 @@ class BandDataFixer {
           if (wasFixed) fixed++;
         } catch (e) {
           errors++;
-          print('❌ Error processing band ${bandDoc.id}: $e');
+          if (kDebugMode) print('❌ Error processing band ${bandDoc.id}: $e');
         }
       }
 
-      print('');
-      print('=' * 50);
-      print('📊 FIX SUMMARY');
-      print('=' * 50);
-      print('Total bands: $total');
-      print('Fixed: $fixed');
-      print('Already valid: ${total - fixed - errors}');
-      print('Errors: $errors');
-      print('=' * 50);
+      if (kDebugMode) {
+        print('');
+        print('=' * 50);
+        print('📊 FIX SUMMARY');
+        print('=' * 50);
+        print('Total bands: $total');
+        print('Fixed: $fixed');
+        print('Already valid: ${total - fixed - errors}');
+        print('Errors: $errors');
+        print('=' * 50);
+      }
 
       return {'total': total, 'fixed': fixed, 'errors': errors};
     } catch (e) {
-      print('❌ Fatal error: $e');
+      if (kDebugMode) print('❌ Fatal error: $e');
       return {'total': total, 'fixed': fixed, 'errors': errors};
     }
   }

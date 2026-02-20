@@ -6,7 +6,6 @@ import 'package:flutter_repsync_app/screens/auth/register_screen.dart';
 import 'package:flutter_repsync_app/providers/auth_provider.dart';
 import '../helpers/test_helpers.dart';
 import '../helpers/mocks.dart';
-import 'login_screen_test.dart';
 
 void main() {
   group('RegisterScreen', () {

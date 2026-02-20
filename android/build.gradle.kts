@@ -27,6 +27,13 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+    
+    // Configure Java 17 for all Java compilation tasks to avoid obsolete Java 8 warnings
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = JavaVersion.VERSION_17.toString()
+        targetCompatibility = JavaVersion.VERSION_17.toString()
+        options.compilerArgs.add("-Xlint:-options")
+    }
 }
 
 tasks.register<Delete>("clean") {

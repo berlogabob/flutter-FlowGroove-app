@@ -20,6 +20,9 @@ class MockQuerySnapshot extends Mock implements QuerySnapshot {}
 
 class MockCredential extends Mock implements UserCredential {}
 
+// Alias for consistency
+class MockUserCredential extends Mock implements UserCredential {}
+
 // Mock HTTP client for API testing
 class MockHttpClient extends Mock implements http.Client {}
 

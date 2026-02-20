@@ -22,11 +22,10 @@ void main() {
     // isCopy: false (default)
   );
 
-  print('Personal Song:');
-  print('  Title: ${personalSong.title}');
-  print('  Is Copy: ${personalSong.isCopy}');
-  print('  Original Owner: ${personalSong.originalOwnerId}');
-  print('');
+  // Personal Song info:
+  //   Title: ${personalSong.title}
+  //   Is Copy: ${personalSong.isCopy}
+  //   Original Owner: ${personalSong.originalOwnerId}
 
   // Example 2: Copy a personal song to a band bank
   final bandSong = Song(
@@ -46,14 +45,13 @@ void main() {
     updatedAt: DateTime.now(),
   );
 
-  print('Band Song (Copy):');
-  print('  Title: ${bandSong.title}');
-  print('  Band ID: ${bandSong.bandId}');
-  print('  Original Owner: ${bandSong.originalOwnerId}');
-  print('  Contributed By: ${bandSong.contributedBy}');
-  print('  Is Copy: ${bandSong.isCopy}');
-  print('  Contributed At: ${bandSong.contributedAt}');
-  print('');
+  // Band Song (Copy) info:
+  //   Title: ${bandSong.title}
+  //   Band ID: ${bandSong.bandId}
+  //   Original Owner: ${bandSong.originalOwnerId}
+  //   Contributed By: ${bandSong.contributedBy}
+  //   Is Copy: ${bandSong.isCopy}
+  //   Contributed At: ${bandSong.contributedAt}
 
   // Example 3: Using copyWith to convert a personal song to a band copy
   final copiedSong = personalSong.copyWith(
@@ -66,19 +64,17 @@ void main() {
     updatedAt: DateTime.now(),
   );
 
-  print('Copied Song (using copyWith):');
-  print('  Title: ${copiedSong.title}');
-  print('  Band ID: ${copiedSong.bandId}');
-  print('  Is Copy: ${copiedSong.isCopy}');
-  print('');
+  // Copied Song (using copyWith) info:
+  //   Title: ${copiedSong.title}
+  //   Band ID: ${copiedSong.bandId}
+  //   Is Copy: ${copiedSong.isCopy}
 
   // Example 4: Serialization to JSON
   final json = bandSong.toJson();
-  print('Serialized to JSON:');
-  print('  Keys: ${json.keys.join(', ')}');
-  print('  Has originalOwnerId: ${json.containsKey('originalOwnerId')}');
-  print('  Has isCopy: ${json.containsKey('isCopy')}');
-  print('');
+  // Serialized to JSON info:
+  //   Keys: ${json.keys.join(', ')}
+  //   Has originalOwnerId: ${json.containsKey('originalOwnerId')}
+  //   Has isCopy: ${json.containsKey('isCopy')}
 
   // Example 5: Deserialization from JSON (backward compatible)
   final oldFormatJson = {
@@ -94,24 +90,20 @@ void main() {
   };
 
   final oldFormatSong = Song.fromJson(oldFormatJson);
-  print('Old Format Song (backward compatible):');
-  print('  Title: ${oldFormatSong.title}');
-  print('  Is Copy: ${oldFormatSong.isCopy} (default: false)');
-  print('  Original Owner: ${oldFormatSong.originalOwnerId} (default: null)');
-  print('  Contributed By: ${oldFormatSong.contributedBy} (default: null)');
-  print('');
+  // Old Format Song (backward compatible) info:
+  //   Title: ${oldFormatSong.title}
+  //   Is Copy: ${oldFormatSong.isCopy} (default: false)
+  //   Original Owner: ${oldFormatSong.originalOwnerId} (default: null)
+  //   Contributed By: ${oldFormatSong.contributedBy} (default: null)
 
   // Example 6: Check if a song is from a personal bank
   bool isFromPersonalBank(Song song) {
     return song.originalOwnerId != null && song.isCopy;
   }
 
-  print('Song Origin Checks:');
-  print(
-    '  personalSong is from personal bank: ${isFromPersonalBank(personalSong)}',
-  );
-  print('  bandSong is from personal bank: ${isFromPersonalBank(bandSong)}');
-  print('');
+  // Song Origin Checks:
+  //   personalSong is from personal bank: ${isFromPersonalBank(personalSong)}
+  //   bandSong is from personal bank: ${isFromPersonalBank(bandSong)}
 
   // Example 7: Get the original owner's ID
   String? getOriginalOwner(Song song) {
@@ -122,7 +114,7 @@ void main() {
     return null; // Or handle based on your auth system
   }
 
-  print('Original Owner Lookup:');
-  print('  personalSong original owner: ${getOriginalOwner(personalSong)}');
-  print('  bandSong original owner: ${getOriginalOwner(bandSong)}');
+  // Original Owner Lookup:
+  //   personalSong original owner: ${getOriginalOwner(personalSong)}
+  //   bandSong original owner: ${getOriginalOwner(bandSong)}
 }

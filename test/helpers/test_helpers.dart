@@ -161,7 +161,7 @@ UserCredential createMockUserCredential({
   String? email = 'test@example.com',
   String? displayName,
 }) {
-  final mockCredential = MockCredential();
+  final mockCredential = MockUserCredential();
   final mockUser = MockUser();
 
   when(mockCredential.user).thenReturn(mockUser);
@@ -171,4 +171,22 @@ UserCredential createMockUserCredential({
   when(mockUser.isAnonymous).thenReturn(false);
 
   return mockCredential;
+}
+
+/// Mock navigator observer for testing navigation
+class MockNavigatorObserver extends NavigatorObserver {
+  final Function(Route<dynamic>)? onPush;
+  final Function(Route<dynamic>)? onPop;
+
+  MockNavigatorObserver({this.onPush, this.onPop});
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    onPush?.call(route);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    onPop?.call(route);
+  }
 }
