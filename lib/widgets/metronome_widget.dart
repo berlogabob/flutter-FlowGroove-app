@@ -8,7 +8,7 @@ class MetronomeWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(metronomeStateProvider);
+    final controller = ref.watch(metronomeControllerProvider);
 
     return Card(
       elevation: 2,

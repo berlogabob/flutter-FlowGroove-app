@@ -9,7 +9,7 @@ class MetronomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(metronomeStateProvider);
+    final controller = ref.watch(metronomeControllerProvider);
 
     return Scaffold(
       appBar: AppBar(

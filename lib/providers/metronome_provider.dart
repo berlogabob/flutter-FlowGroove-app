@@ -40,9 +40,11 @@ final metronomeServiceProvider = Provider<MetronomeService>((ref) {
   return MetronomeService();
 });
 
-/// Provider for MetronomeState - Simple Provider (not StateNotifier)
-final metronomeStateProvider = ChangeNotifierProvider<MetronomeController>((ref) {
-  return MetronomeController(ref.watch(metronomeServiceProvider));
+/// Provider for MetronomeController
+final metronomeControllerProvider = Provider<MetronomeController>((ref) {
+  final controller = MetronomeController(ref.watch(metronomeServiceProvider));
+  ref.onDispose(() => controller.dispose());
+  return controller;
 });
 
 /// Controller for metronome (extends ChangeNotifier)
