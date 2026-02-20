@@ -16,6 +16,7 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
   final _bpmController = TextEditingController();
   late TextEditingController _accentFreqController;
   late TextEditingController _beatFreqController;
+  late TextEditingController _accentPatternController;
   int _bpm = 120;
   TimeSignature _timeSignature = TimeSignature.commonTime; // 4/4
 
