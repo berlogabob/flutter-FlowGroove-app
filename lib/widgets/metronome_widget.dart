@@ -158,12 +158,12 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _metronome.isPlaying && _metronome.currentBeat == index
-                          ? (_metronome.accentPattern[index] ?? false) && _metronome.accentEnabled
+                          ? (_metronome.accentPattern[index] && _metronome.accentEnabled)
                               ? Colors.red
                               : Colors.blue
                           : Colors.grey.shade300,
                       border: Border.all(
-                        color: (_metronome.accentPattern[index] ?? false)
+                        color: _metronome.accentPattern[index]
                             ? Colors.red.shade700
                             : Colors.blue.shade700,
                         width: 2,
@@ -171,7 +171,7 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
                       boxShadow: _metronome.isPlaying && _metronome.currentBeat == index
                           ? [
                               BoxShadow(
-                                color: ((_metronome.accentPattern[index] ?? false) && _metronome.accentEnabled
+                                color: ((_metronome.accentPattern[index] && _metronome.accentEnabled)
                                         ? Colors.red
                                         : Colors.blue)
                                     .withOpacity(0.4),
