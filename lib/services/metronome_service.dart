@@ -19,6 +19,9 @@ class MetronomeService extends ChangeNotifier {
   String _waveType = 'sine';
   double _volume = 0.5;
   bool _accentEnabled = true;
+  double _accentFrequency = 1600; // Hz (Reaper-style)
+  double _beatFrequency = 800;    // Hz (Reaper-style)
+  List<bool> _accentPattern = [true, false, false, false]; // ABBB for 4/4
 
   bool get isPlaying => _isPlaying;
   int get bpm => _bpm;
@@ -28,19 +31,25 @@ class MetronomeService extends ChangeNotifier {
   String get waveType => _waveType;
   double get volume => _volume;
   bool get accentEnabled => _accentEnabled;
+  double get accentFrequency => _accentFrequency;
+  double get beatFrequency => _beatFrequency;
+  List<bool> get accentPattern => List.unmodifiable(_accentPattern);
   
   /// Start the metronome
   void start(int bpm, int beatsPerMeasure) {
     if (_isPlaying) return;
-
+    
     _bpm = bpm.clamp(40, 220);
     _timeSignature = TimeSignature(numerator: beatsPerMeasure, denominator: _timeSignature.denominator);
     _currentBeat = -1; // Will be 0 on first tick
     _isPlaying = true;
-
+    
+    // Auto-generate accent pattern for new time signature
+    updateAccentPatternFromTimeSignature();
+    
     // Initialize audio on first start (requires user interaction)
     _audioEngine.initialize();
-
+    
     _startTimer();
     notifyListeners();
   }
@@ -104,7 +113,43 @@ class MetronomeService extends ChangeNotifier {
     _accentEnabled = enabled;
     notifyListeners();
   }
+
+  /// Set accent frequency
+  void setAccentFrequency(double freq) {
+    _accentFrequency = freq;
+    notifyListeners();
+  }
+
+  /// Set beat frequency
+  void setBeatFrequency(double freq) {
+    _beatFrequency = freq;
+    notifyListeners();
+  }
   
+  /// Set custom accent pattern
+  /// [pattern] - List of booleans where true = accent, false = regular
+  void setAccentPattern(List<bool> pattern) {
+    if (pattern.isEmpty) return;
+    _accentPattern = pattern;
+    notifyListeners();
+  }
+  
+  /// Auto-generate accent pattern from time signature
+  /// Default: accent on beat 1, regular on all others (e.g., ABBB for 4/4)
+  void updateAccentPatternFromTimeSignature() {
+    _accentPattern = List.generate(
+      _timeSignature.numerator,
+      (index) => index == 0, // First beat is accent, rest are regular
+    );
+    notifyListeners();
+  }
+  
+  /// Check if a beat index should be accented based on current pattern
+  bool isAccentBeat(int beatIndex) {
+    if (beatIndex < 0 || beatIndex >= _accentPattern.length) return false;
+    return _accentPattern[beatIndex];
+  }
+
   /// Play test sound
   Future<void> playTest() async {
     await _audioEngine.playTest();
@@ -128,17 +173,20 @@ class MetronomeService extends ChangeNotifier {
   /// Handle timer tick
   void _onTick(Timer timer) {
     if (!_isPlaying) return;
-
+    
     _currentBeat = (_currentBeat + 1) % _timeSignature.numerator;
-
+    
     // Play sound on each beat
-    final isAccent = _accentEnabled && _currentBeat == 0;
+    // Use accent pattern to determine if this beat should be accented
+    final isAccent = _accentEnabled && isAccentBeat(_currentBeat);
     _audioEngine.playClick(
       isAccent: isAccent,
       waveType: _waveType,
       volume: _volume,
+      accentFrequency: _accentFrequency,
+      beatFrequency: _beatFrequency,
     );
-
+    
     notifyListeners();
   }
   

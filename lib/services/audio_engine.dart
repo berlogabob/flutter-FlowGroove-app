@@ -24,10 +24,14 @@ class AudioEngine {
   /// [isAccent] - true for accented beat (higher pitch)
   /// [waveType] - 'sine', 'square', 'triangle', or 'sawtooth'
   /// [volume] - 0.0 to 1.0
+  /// [accentFrequency] - frequency for accented beat in Hz (default: 1600)
+  /// [beatFrequency] - frequency for regular beat in Hz (default: 800)
   Future<void> playClick({
     required bool isAccent,
     required String waveType,
     required double volume,
+    double? accentFrequency,
+    double? beatFrequency,
   }) async {
     if (!_initialized || _audioContext == null) {
       await initialize();
@@ -42,7 +46,11 @@ class AudioEngine {
       oscillator.type = waveType;
 
       // Frequency: accented beat = higher pitch (Reaper style)
-      oscillator.frequency.value = isAccent ? 2000 : 1200;
+      // Default values if not provided
+      final frequency = isAccent 
+          ? (accentFrequency ?? 1600) 
+          : (beatFrequency ?? 800);
+      oscillator.frequency.value = frequency;
 
       // Volume envelope to avoid clicking
       final now = _audioContext!.currentTime;
@@ -64,9 +72,21 @@ class AudioEngine {
 
   /// Play test sound to verify audio works
   Future<void> playTest() async {
-    await playClick(isAccent: true, waveType: 'sine', volume: 0.5);
+    await playClick(
+      isAccent: true,
+      waveType: 'sine',
+      volume: 0.5,
+      accentFrequency: 1600,
+      beatFrequency: 800,
+    );
     await Future.delayed(const Duration(milliseconds: 200));
-    await playClick(isAccent: false, waveType: 'sine', volume: 0.5);
+    await playClick(
+      isAccent: false,
+      waveType: 'sine',
+      volume: 0.5,
+      accentFrequency: 1600,
+      beatFrequency: 800,
+    );
   }
 
   /// Dispose audio resources
