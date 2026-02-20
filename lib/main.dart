@@ -19,6 +19,7 @@ import 'screens/bands/join_band_screen.dart';
 import 'screens/setlists/setlists_list_screen.dart';
 import 'screens/setlists/create_setlist_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/metronome_screen.dart';
 import 'providers/auth_provider.dart';
 
 void main() async {
@@ -88,6 +89,7 @@ class RepSyncApp extends ConsumerWidget {
           return CreateSetlistScreen(setlist: setlist);
         },
         '/profile': (context) => const ProfileScreen(),
+        '/metronome': (context) => const MetronomeScreen(),
       },
     );
   }
