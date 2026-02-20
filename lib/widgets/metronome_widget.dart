@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../models/time_signature.dart';
 import '../services/metronome_service.dart';
+import 'time_signature_dropdown.dart';
 
 /// Simple metronome widget - with sound controls
 class MetronomeWidget extends StatefulWidget {
@@ -12,7 +14,7 @@ class MetronomeWidget extends StatefulWidget {
 class _MetronomeWidgetState extends State<MetronomeWidget> {
   final _metronome = MetronomeService();
   int _bpm = 120;
-  int _beatsPerMeasure = 4;
+  TimeSignature _timeSignature = TimeSignature.commonTime; // 4/4
 
   @override
   void initState() {
@@ -92,7 +94,7 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                _beatsPerMeasure,
+                _timeSignature.numerator,
                 (index) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: AnimatedContainer(
@@ -116,24 +118,25 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
 
             const SizedBox(height: 16),
 
-            // Time Signature Selector (simplified - just numerator for now)
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: [2, 3, 4, 5, 6, 7].map((beats) {
-                final isSelected = _beatsPerMeasure == beats;
-                return ChoiceChip(
-                  label: Text('$beats/4'),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() => _beatsPerMeasure = beats);
-                      _metronome.setBeatsPerMeasure(beats);
-                    }
-                  },
-                );
-              }).toList(),
+            // Time Signature Selector (two dropdowns)
+            Card(
+              elevation: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    const Text('Time Signature', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    TimeSignatureDropdown(
+                      value: _timeSignature,
+                      onChanged: (ts) {
+                        setState(() => _timeSignature = ts);
+                        _metronome.setTimeSignature(ts);
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
 
             const SizedBox(height: 16),
