@@ -51,6 +51,8 @@ class Band {
   memberUids; // Derived from members for efficient rules checking
   final List<String>
   adminUids; // Derived from members for efficient rules checking
+  final List<String>
+  editorUids; // Derived from members for efficient rules checking
   final String? inviteCode;
   final DateTime createdAt;
 
@@ -62,6 +64,7 @@ class Band {
     this.members = const [],
     List<String>? memberUids,
     List<String>? adminUids,
+    List<String>? editorUids,
     this.inviteCode,
     required this.createdAt,
   }) : memberUids = memberUids ?? members.map((m) => m.uid).toList(),
@@ -69,6 +72,13 @@ class Band {
            adminUids ??
            members
                .where((m) => m.role == BandMember.roleAdmin)
+               .map((m) => m.uid)
+               .toList(),
+       editorUids =
+           editorUids ??
+           members
+               .where((m) => m.role == BandMember.roleEditor)
+               .where((m) => m.role != BandMember.roleAdmin)
                .map((m) => m.uid)
                .toList();
 
@@ -80,17 +90,25 @@ class Band {
     List<BandMember>? members,
     List<String>? memberUids,
     List<String>? adminUids,
+    List<String>? editorUids,
     Object? inviteCode = _sentinel,
     DateTime? createdAt,
   }) {
     // Use provided members or existing members
     final newMembers = members ?? this.members;
-    // Recalculate memberUids and adminUids if members changed and not explicitly provided
+    // Recalculate memberUids, adminUids, and editorUids if members changed and not explicitly provided
     final newMemberUids = memberUids ?? newMembers.map((m) => m.uid).toList();
     final newAdminUids =
         adminUids ??
         newMembers
             .where((m) => m.role == BandMember.roleAdmin)
+            .map((m) => m.uid)
+            .toList();
+    final newEditorUids =
+        editorUids ??
+        newMembers
+            .where((m) => m.role == BandMember.roleEditor)
+            .where((m) => m.role != BandMember.roleAdmin)
             .map((m) => m.uid)
             .toList();
 
@@ -104,6 +122,7 @@ class Band {
       members: newMembers,
       memberUids: newMemberUids,
       adminUids: newAdminUids,
+      editorUids: newEditorUids,
       inviteCode: inviteCode == _sentinel
           ? this.inviteCode
           : inviteCode as String?,
@@ -119,6 +138,7 @@ class Band {
     'members': members.map((m) => m.toJson()).toList(),
     'memberUids': memberUids,
     'adminUids': adminUids,
+    'editorUids': editorUids,
     'inviteCode': inviteCode,
     'createdAt': createdAt.toIso8601String(),
   };
@@ -135,6 +155,7 @@ class Band {
         [],
     memberUids: (json['memberUids'] as List<dynamic>?)?.cast<String>() ?? [],
     adminUids: (json['adminUids'] as List<dynamic>?)?.cast<String>() ?? [],
+    editorUids: (json['editorUids'] as List<dynamic>?)?.cast<String>() ?? [],
     inviteCode: json['inviteCode'],
     createdAt: json['createdAt'] != null
         ? DateTime.parse(json['createdAt'])
