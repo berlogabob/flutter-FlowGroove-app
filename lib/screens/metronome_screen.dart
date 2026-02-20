@@ -42,57 +42,6 @@ class _MetronomeScreenState extends State<MetronomeScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Visual beat indicator (large)
-          Card(
-            elevation: 4,
-            child: Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: _metronome.isPlaying
-                    ? (_metronome.currentBeat == 0
-                        ? Colors.red.shade100
-                        : Colors.blue.shade100)
-                    : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: _metronome.isPlaying
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _metronome.currentBeat == 0
-                                ? Icons.fiber_manual_record
-                                : Icons.circle_outlined,
-                            size: 64,
-                            color: _metronome.currentBeat == 0
-                                ? Colors.red.shade700
-                                : Colors.blue.shade700,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Beat ${_metronome.currentBeat + 1}',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: _metronome.currentBeat == 0
-                                  ? Colors.red.shade700
-                                  : Colors.blue.shade700,
-                            ),
-                          ),
-                        ],
-                      )
-                    : const Text(
-                        'Press Start',
-                        style: TextStyle(fontSize: 24, color: Colors.grey),
-                      ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
           // Metronome controls
           const MetronomeWidget(),
 

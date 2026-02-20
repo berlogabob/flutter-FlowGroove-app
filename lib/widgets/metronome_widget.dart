@@ -108,9 +108,6 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
                         color: index == 0 ? Colors.red.shade700 : Colors.blue.shade700,
                         width: 2,
                       ),
-                      boxShadow: index == 0 && _metronome.accentEnabled && _metronome.currentBeat == 0
-                          ? [BoxShadow(color: Colors.red.shade400, blurRadius: 20, spreadRadius: 5)]
-                          : [],
                     ),
                   ),
                 ),
@@ -197,13 +194,6 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
                       onChanged: (value) {
                         _metronome.setAccentEnabled(value);
                       },
-                    ),
-
-                    // Test Sound Button
-                    TextButton.icon(
-                      icon: const Icon(Icons.play_arrow),
-                      label: const Text('Test Sound'),
-                      onPressed: _metronome.playTest,
                     ),
                   ],
                 ),
