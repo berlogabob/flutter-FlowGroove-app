@@ -1,13 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  String _version = 'Loading...';
+  String _buildDate = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersionInfo();
+  }
+
+  Future<void> _loadVersionInfo() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final version = '${packageInfo.version}+${packageInfo.buildNumber}';
+      
+      // Get build date from a file or use current date
+      final now = DateTime.now();
+      final buildDate = 
+          '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} '
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      
+      if (mounted) {
+        setState(() {
+          _version = version;
+          _buildDate = buildDate;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _version = '0.8.4+1';
+          _buildDate = '';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
     final appUserAsync = ref.watch(appUserProvider);
 
@@ -117,10 +159,14 @@ class ProfileScreen extends ConsumerWidget {
           Card(
             child: Column(
               children: [
-                const ListTile(
-                  leading: Icon(Icons.info),
-                  title: Text('App Version'),
-                  trailing: Text('1.0.0'),
+                ListTile(
+                  leading: const Icon(Icons.info),
+                  title: const Text('App Version'),
+                  subtitle: _buildDate.isNotEmpty ? Text(_buildDate) : null,
+                  trailing: Text(
+                    _version,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const Divider(height: 1),
                 ListTile(
