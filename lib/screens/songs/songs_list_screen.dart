@@ -253,14 +253,22 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                     onSelected: (bandId) =>
                         _addToBand(context, ref, song, bandId),
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'select',
-                        child: Row(
-                          children: [
-                            Icon(Icons.groups, size: 18),
-                            SizedBox(width: 8),
-                            Text('Select Band...'),
-                          ],
+                      // Show all bands as popup menu items
+                      ...bands.map(
+                        (band) => PopupMenuItem<String>(
+                          value: band.id,
+                          child: Row(
+                            children: [
+                              Icon(Icons.groups, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  band.name,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
