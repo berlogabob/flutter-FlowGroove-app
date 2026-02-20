@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 
@@ -23,22 +24,45 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _loadVersionInfo() async {
     try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      final version = '${packageInfo.version}+${packageInfo.buildNumber}';
+      // Try to load version from web/version.json
+      final response = await http.get(Uri.parse('version.json'));
       
-      // Get build date from a file or use current date
-      final now = DateTime.now();
-      final buildDate = 
-          '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} '
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-      
-      if (mounted) {
-        setState(() {
-          _version = version;
-          _buildDate = buildDate;
-        });
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final version = data['version'] as String;
+        final buildNumber = data['buildNumber'] as String;
+        final buildDateStr = data['buildDate'] as String?;
+        
+        // Parse build date
+        String buildDate = '';
+        if (buildDateStr != null && buildDateStr.isNotEmpty) {
+          try {
+            final date = DateTime.parse(buildDateStr);
+            buildDate = 
+                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} '
+                '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+          } catch (e) {
+            buildDate = '';
+          }
+        }
+        
+        if (mounted) {
+          setState(() {
+            _version = '$version+$buildNumber';
+            _buildDate = buildDate;
+          });
+        }
+      } else {
+        // Fallback to hardcoded version
+        if (mounted) {
+          setState(() {
+            _version = '0.8.4+1';
+            _buildDate = '';
+          });
+        }
       }
     } catch (e) {
+      // Fallback to hardcoded version
       if (mounted) {
         setState(() {
           _version = '0.8.4+1';
