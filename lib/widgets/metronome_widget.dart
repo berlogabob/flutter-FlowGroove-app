@@ -55,12 +55,10 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
     });
   }
 
-  Future<int> _getMeasureCount() async {
-    return _measureCount;
-  }
-
   int _measureCount = 1;
   int _lastBeat = -1;
+
+  int _getMeasureCount() => _measureCount;
 
   void _setBpm(int value) {
     final bpm = value.clamp(40, 220);

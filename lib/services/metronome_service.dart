@@ -191,7 +191,9 @@ class MetronomeService extends ChangeNotifier {
   }
   
   /// Dispose resources
+  @override
   void dispose() {
     stop();
+    super.dispose();
   }
 }

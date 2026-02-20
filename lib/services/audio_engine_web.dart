@@ -1,7 +1,6 @@
 // Web-only audio engine using Web Audio API
 // ignore_for_file: web_unsafe_total
 
-import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
 /// Audio engine for metronome sound synthesis
