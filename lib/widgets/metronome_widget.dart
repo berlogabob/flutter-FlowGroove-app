@@ -305,6 +305,11 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
 
             const SizedBox(height: 16),
 
+            // Tap BPM Widget
+            const TapBPMWidget(),
+
+            const SizedBox(height: 16),
+
             // Sound Controls
             Card(
               elevation: 1,
