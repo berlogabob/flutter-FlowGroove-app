@@ -47,8 +47,20 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
   void _onMetronomeUpdate() {
     setState(() {
       _accentPatternController.text = _generatePatternString();
+      // Increment measure counter when beat cycles
+      if (_metronome.currentBeat == 0 && _lastBeat == _timeSignature.numerator - 1) {
+        _measureCount++;
+      }
+      _lastBeat = _metronome.currentBeat;
     });
   }
+
+  Future<int> _getMeasureCount() async {
+    return _measureCount;
+  }
+
+  int _measureCount = 1;
+  int _lastBeat = -1;
 
   void _setBpm(int value) {
     final bpm = value.clamp(40, 220);
@@ -133,7 +145,7 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
 
             const SizedBox(height: 16),
 
-            // Beat Indicators
+            // Beat Indicators with Blink Animation
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
@@ -141,18 +153,35 @@ class _MetronomeWidgetState extends State<MetronomeWidget> {
                 (index) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 100),
-                    width: 20,
-                    height: 20,
+                    duration: const Duration(milliseconds: 150),
+                    curve: Curves.easeInOut,
+                    width: _metronome.isPlaying && _metronome.currentBeat == index ? 24 : 20,
+                    height: _metronome.isPlaying && _metronome.currentBeat == index ? 24 : 20,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: _metronome.isPlaying && _metronome.currentBeat == index
-                          ? (index == 0 && _metronome.accentEnabled ? Colors.red : Colors.blue)
+                          ? (_metronome.accentPattern[index] ?? false) && _metronome.accentEnabled
+                              ? Colors.red
+                              : Colors.blue
                           : Colors.grey.shade300,
                       border: Border.all(
-                        color: index == 0 ? Colors.red.shade700 : Colors.blue.shade700,
+                        color: (_metronome.accentPattern[index] ?? false)
+                            ? Colors.red.shade700
+                            : Colors.blue.shade700,
                         width: 2,
                       ),
+                      boxShadow: _metronome.isPlaying && _metronome.currentBeat == index
+                          ? [
+                              BoxShadow(
+                                color: ((_metronome.accentPattern[index] ?? false) && _metronome.accentEnabled
+                                        ? Colors.red
+                                        : Colors.blue)
+                                    .withOpacity(0.4),
+                                blurRadius: 12,
+                                spreadRadius: 2,
+                              ),
+                            ]
+                          : [],
                     ),
                   ),
                 ),
