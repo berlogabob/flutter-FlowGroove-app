@@ -1,40 +1,38 @@
-import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:audioplayers/audioplayers.dart';
 
-/// Metronome service that handles timing and sound playback
-class MetronomeService {
-  final AudioPlayer _audioPlayer = AudioPlayer();
+/// Simple singleton metronome service - MVP version
+/// Visual only for now - no audio dependencies
+class MetronomeService extends ChangeNotifier {
+  static final MetronomeService _instance = MetronomeService._internal();
+  factory MetronomeService() => _instance;
+  MetronomeService._internal();
   
   Timer? _timer;
   bool _isPlaying = false;
   int _bpm = 120;
   int _beatsPerMeasure = 4;
   int _currentBeat = 0;
-  double _volume = 0.5;
   
-  /// Callback when beat changes
-  Function(int)? onBeatChanged;
+  bool get isPlaying => _isPlaying;
+  int get bpm => _bpm;
+  int get currentBeat => _currentBeat;
+  int get beatsPerMeasure => _beatsPerMeasure;
   
   /// Start the metronome
-  Future<void> start(int bpm, int beatsPerMeasure, double volume) async {
+  void start(int bpm, int beatsPerMeasure) {
     if (_isPlaying) return;
     
     _bpm = bpm.clamp(40, 220);
     _beatsPerMeasure = beatsPerMeasure;
-    _volume = volume.clamp(0.0, 1.0);
-    _currentBeat = 0;
+    _currentBeat = -1; // Will be 0 on first tick
     _isPlaying = true;
     
-    // Preload sounds
-    await _preloadSounds();
-    
-    // Start timer
     _startTimer();
+    notifyListeners();
   }
   
   /// Stop the metronome
-  Future<void> stop() async {
+  void stop() {
     if (!_isPlaying) return;
     
     _isPlaying = false;
@@ -42,7 +40,7 @@ class MetronomeService {
     _timer = null;
     _currentBeat = 0;
     
-    await _audioPlayer.stop();
+    notifyListeners();
   }
   
   /// Update BPM while playing
@@ -52,23 +50,32 @@ class MetronomeService {
       _timer?.cancel();
       _startTimer();
     }
+    notifyListeners();
   }
   
   /// Update beats per measure
   void setBeatsPerMeasure(int beats) {
     _beatsPerMeasure = beats;
+    if (_isPlaying) {
+      _timer?.cancel();
+      _startTimer();
+    }
+    notifyListeners();
   }
   
-  /// Update volume
-  void setVolume(double volume) {
-    _volume = volume.clamp(0.0, 1.0);
-    _audioPlayer.setVolume(_volume);
+  /// Toggle play/stop
+  void toggle() {
+    if (_isPlaying) {
+      stop();
+    } else {
+      start(_bpm, _beatsPerMeasure);
+    }
   }
   
-  /// Start the timer
+  /// Start timer
   void _startTimer() {
-    final interval = Duration(milliseconds: (60000 / _bpm).round());
-    _timer = Timer.periodic(interval, _onTick);
+    final intervalMs = 60000 ~/ _bpm;
+    _timer = Timer.periodic(Duration(milliseconds: intervalMs), _onTick);
   }
   
   /// Handle timer tick
@@ -76,50 +83,11 @@ class MetronomeService {
     if (!_isPlaying) return;
     
     _currentBeat = (_currentBeat + 1) % _beatsPerMeasure;
-    _playBeat(_currentBeat);
-    onBeatChanged?.call(_currentBeat);
+    notifyListeners();
   }
-  
-  /// Play beat sound
-  Future<void> _playBeat(int beat) async {
-    try {
-      // First beat of measure gets accent (higher pitch)
-      final isAccent = beat == 0;
-      await _audioPlayer.play(
-        AssetSource(isAccent ? 'sounds/metronome_accent.mp3' : 'sounds/metronome_click.mp3'),
-        volume: _volume,
-      );
-    } catch (e) {
-      // If sound fails, use fallback beep
-      debugPrint('Metronome sound error: $e');
-    }
-  }
-  
-  /// Preload sounds
-  Future<void> _preloadSounds() async {
-    try {
-      await _audioPlayer.setSource(AssetSource('sounds/metronome_click.mp3'));
-      await _audioPlayer.setVolume(_volume);
-    } catch (e) {
-      debugPrint('Metronome preload error: $e');
-    }
-  }
-  
-  /// Check if currently playing
-  bool get isPlaying => _isPlaying;
-  
-  /// Get current BPM
-  int get bpm => _bpm;
-  
-  /// Get current beat
-  int get currentBeat => _currentBeat;
-  
-  /// Get beats per measure
-  int get beatsPerMeasure => _beatsPerMeasure;
   
   /// Dispose resources
   void dispose() {
     stop();
-    _audioPlayer.dispose();
   }
 }

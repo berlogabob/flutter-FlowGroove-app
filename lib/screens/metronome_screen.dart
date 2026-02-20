@@ -1,16 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/metronome_provider.dart';
+import '../services/metronome_service.dart';
 import '../widgets/metronome_widget.dart';
 
-/// Full screen metronome
-class MetronomeScreen extends ConsumerWidget {
+/// Full screen metronome - MVP version
+class MetronomeScreen extends StatefulWidget {
   const MetronomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.watch(metronomeControllerProvider);
+  State<MetronomeScreen> createState() => _MetronomeScreenState();
+}
 
+class _MetronomeScreenState extends State<MetronomeScreen> {
+  final _metronome = MetronomeService();
+
+  @override
+  void initState() {
+    super.initState();
+    _metronome.addListener(_onMetronomeUpdate);
+  }
+
+  @override
+  void dispose() {
+    _metronome.removeListener(_onMetronomeUpdate);
+    super.dispose();
+  }
+
+  void _onMetronomeUpdate() {
+    setState(() {
+      // Trigger rebuild
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Metronome'),
@@ -27,34 +49,34 @@ class MetronomeScreen extends ConsumerWidget {
               height: 200,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: controller.isPlaying
-                    ? (controller.currentBeat == 0
+                color: _metronome.isPlaying
+                    ? (_metronome.currentBeat == 0
                         ? Colors.red.shade100
                         : Colors.blue.shade100)
                     : Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
-                child: controller.isPlaying
+                child: _metronome.isPlaying
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            controller.currentBeat == 0
+                            _metronome.currentBeat == 0
                                 ? Icons.fiber_manual_record
                                 : Icons.circle_outlined,
                             size: 64,
-                            color: controller.currentBeat == 0
+                            color: _metronome.currentBeat == 0
                                 ? Colors.red.shade700
                                 : Colors.blue.shade700,
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Beat ${controller.currentBeat + 1}',
+                            'Beat ${_metronome.currentBeat + 1}',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: controller.currentBeat == 0
+                              color: _metronome.currentBeat == 0
                                   ? Colors.red.shade700
                                   : Colors.blue.shade700,
                             ),
