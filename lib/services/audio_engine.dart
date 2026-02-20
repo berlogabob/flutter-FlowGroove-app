@@ -38,8 +38,8 @@ class AudioEngine {
       final oscillator = _audioContext!.createOscillator();
       final gainNode = _audioContext!.createGain();
 
-      // Set wave type
-      oscillator.type = waveType.toJS;
+      // Set wave type (use Dart String directly, not .toJS)
+      oscillator.type = waveType;
 
       // Frequency: accented beat = higher pitch (Reaper style)
       oscillator.frequency.value = isAccent ? 2000 : 1200;
