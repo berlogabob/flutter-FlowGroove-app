@@ -1,6 +1,15 @@
 <!doctype html>
 <html>
     <head>
+        <script>
+          (function() {
+            if (!window.location.hash && 
+                window.location.hostname !== 'localhost' && 
+                !window.location.hostname.startsWith('127.')) {
+              window.location.replace(window.location.pathname + '#/home' + window.location.search);
+            }
+          })();
+        </script>
         <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
@@ -36,15 +45,6 @@
         <script src="config.js"></script>
     </head>
     <body
-       <script>
-         (function() {
-           if (!window.location.hash && 
-               window.location.hostname !== 'localhost' && 
-               !window.location.hostname.startsWith('127.')) {
-             window.location.replace(window.location.pathname + '#/home' + window.location.search);
-           }
-         })();
-       </script>
         <script src="flutter_bootstrap.js" async></script>
     </body>
 </html>

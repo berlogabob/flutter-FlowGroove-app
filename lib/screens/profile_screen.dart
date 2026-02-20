@@ -33,14 +33,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         final buildNumber = data['buildNumber'] as String;
         final buildDateStr = data['buildDate'] as String?;
         
-        // Parse build date
+        // Parse build date and convert to Lisbon timezone
         String buildDate = '';
         if (buildDateStr != null && buildDateStr.isNotEmpty) {
           try {
-            final date = DateTime.parse(buildDateStr);
+            final utcDate = DateTime.parse(buildDateStr);
+            // Convert to Lisbon timezone (UTC+0 in winter, UTC+1 in summer)
+            // For simplicity, use UTC offset for Portugal
+            final lisbonDate = utcDate.toLocal(); // Flutter web runs in browser timezone
             buildDate = 
-                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} '
-                '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+                '${lisbonDate.day.toString().padLeft(2, '0')}/${lisbonDate.month.toString().padLeft(2, '0')}/${lisbonDate.year} '
+                '${lisbonDate.hour.toString().padLeft(2, '0')}:${lisbonDate.minute.toString().padLeft(2, '0')}';
           } catch (e) {
             buildDate = '';
           }
@@ -56,7 +59,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         // Fallback to hardcoded version
         if (mounted) {
           setState(() {
-            _version = '0.8.4+1';
+            _version = '0.9.0+1';
             _buildDate = '';
           });
         }
@@ -65,7 +68,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       // Fallback to hardcoded version
       if (mounted) {
         setState(() {
-          _version = '0.8.4+1';
+          _version = '0.9.0+1';
           _buildDate = '';
         });
       }
