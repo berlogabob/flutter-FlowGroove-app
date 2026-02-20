@@ -9,6 +9,12 @@ void main() async {
   if (kDebugMode) {
     print('Starting band data repair...\n');
   }
+}
+
+/// Extension to fix band data integrity issues.
+///
+/// This adds validation and auto-repair for adminUids/editorUids fields.
+extension BandDataFix on Band {
   /// Validates and repairs the band's uid arrays.
   /// Returns true if repairs were made.
   bool validateAndRepair() {
