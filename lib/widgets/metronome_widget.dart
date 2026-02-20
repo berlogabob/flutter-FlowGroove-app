@@ -4,12 +4,11 @@ import '../providers/metronome_provider.dart';
 
 /// Simple metronome widget that can be embedded in other screens
 class MetronomeWidget extends ConsumerWidget {
-  const MetronomeWidget({Key? key}) : super(key: key);
+  const MetronomeWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final metronomeState = ref.watch(metronomeStateProvider);
-    final metronomeNotifier = ref.read(metronomeStateProvider.notifier);
+    final controller = ref.watch(metronomeStateProvider);
 
     return Card(
       elevation: 2,
@@ -25,7 +24,7 @@ class MetronomeWidget extends ConsumerWidget {
                 // Decrease BPM
                 IconButton(
                   icon: const Icon(Icons.remove),
-                  onPressed: () => metronomeNotifier.setBpm(metronomeState.bpm - 1),
+                  onPressed: () => controller.setBpm(controller.bpm - 1),
                 ),
                 // BPM Value
                 Expanded(
@@ -38,15 +37,15 @@ class MetronomeWidget extends ConsumerWidget {
                           thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
                         ),
                         child: Slider(
-                          value: metronomeState.bpm.toDouble(),
+                          value: controller.bpm.toDouble(),
                           min: 40,
                           max: 220,
                           divisions: 180,
-                          onChanged: (value) => metronomeNotifier.setBpm(value.round()),
+                          onChanged: (value) => controller.setBpm(value.round()),
                         ),
                       ),
                       Text(
-                        '${metronomeState.bpm}',
+                        '${controller.bpm}',
                         style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -55,7 +54,7 @@ class MetronomeWidget extends ConsumerWidget {
                 // Increase BPM
                 IconButton(
                   icon: const Icon(Icons.add),
-                  onPressed: () => metronomeNotifier.setBpm(metronomeState.bpm + 1),
+                  onPressed: () => controller.setBpm(controller.bpm + 1),
                 ),
               ],
             ),
@@ -66,7 +65,7 @@ class MetronomeWidget extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                metronomeState.beatsPerMeasure,
+                controller.beatsPerMeasure,
                 (index) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: AnimatedContainer(
@@ -75,7 +74,7 @@ class MetronomeWidget extends ConsumerWidget {
                     height: 16,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: metronomeState.currentBeat == index
+                      color: controller.currentBeat == index
                           ? (index == 0 ? Colors.red : Colors.blue)
                           : Colors.grey.shade300,
                       border: Border.all(
@@ -96,13 +95,13 @@ class MetronomeWidget extends ConsumerWidget {
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [2, 3, 4, 5, 6, 7].map((beats) {
-                final isSelected = metronomeState.beatsPerMeasure == beats;
+                final isSelected = controller.beatsPerMeasure == beats;
                 return ChoiceChip(
                   label: Text(getTimeSignatureLabel(beats)),
                   selected: isSelected,
                   onSelected: (selected) {
                     if (selected) {
-                      metronomeNotifier.setBeatsPerMeasure(beats);
+                      controller.setBeatsPerMeasure(beats);
                     }
                   },
                 );
@@ -115,14 +114,14 @@ class MetronomeWidget extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: Icon(metronomeState.isPlaying ? Icons.stop : Icons.play_arrow),
-                label: Text(metronomeState.isPlaying ? 'Stop' : 'Start'),
+                icon: Icon(controller.isPlaying ? Icons.stop : Icons.play_arrow),
+                label: Text(controller.isPlaying ? 'Stop' : 'Start'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: metronomeState.isPlaying ? Colors.red : Colors.green,
+                  backgroundColor: controller.isPlaying ? Colors.red : Colors.green,
                   foregroundColor: Colors.white,
                 ),
-                onPressed: () => metronomeNotifier.toggle(),
+                onPressed: () => controller.toggle(),
               ),
             ),
           ],

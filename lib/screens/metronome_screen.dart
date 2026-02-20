@@ -5,11 +5,11 @@ import '../widgets/metronome_widget.dart';
 
 /// Full screen metronome
 class MetronomeScreen extends ConsumerWidget {
-  const MetronomeScreen({Key? key}) : super(key: key);
+  const MetronomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final metronomeState = ref.watch(metronomeStateProvider);
+    final controller = ref.watch(metronomeStateProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -27,34 +27,34 @@ class MetronomeScreen extends ConsumerWidget {
               height: 200,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: metronomeState.isPlaying
-                    ? (metronomeState.currentBeat == 0
+                color: controller.isPlaying
+                    ? (controller.currentBeat == 0
                         ? Colors.red.shade100
                         : Colors.blue.shade100)
                     : Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
-                child: metronomeState.isPlaying
+                child: controller.isPlaying
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            metronomeState.currentBeat == 0
+                            controller.currentBeat == 0
                                 ? Icons.fiber_manual_record
                                 : Icons.circle_outlined,
                             size: 64,
-                            color: metronomeState.currentBeat == 0
+                            color: controller.currentBeat == 0
                                 ? Colors.red.shade700
                                 : Colors.blue.shade700,
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Beat ${metronomeState.currentBeat + 1}',
+                            'Beat ${controller.currentBeat + 1}',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: metronomeState.currentBeat == 0
+                              color: controller.currentBeat == 0
                                   ? Colors.red.shade700
                                   : Colors.blue.shade700,
                             ),

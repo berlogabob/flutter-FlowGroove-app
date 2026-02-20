@@ -39,42 +39,57 @@ final metronomeServiceProvider = Provider<MetronomeService>((ref) {
   return MetronomeService();
 });
 
-/// Provider for MetronomeState
-final metronomeStateProvider = StateNotifierProvider<MetronomeNotifier, MetronomeState>((ref) {
-  return MetronomeNotifier(ref.watch(metronomeServiceProvider));
+/// Provider for MetronomeState - Simple Provider (not StateNotifier)
+final metronomeStateProvider = ChangeNotifierProvider<MetronomeController>((ref) {
+  return MetronomeController(ref.watch(metronomeServiceProvider));
 });
 
-/// StateNotifier for metronome
-class MetronomeNotifier extends StateNotifier<MetronomeState> {
+/// Controller for metronome (extends ChangeNotifier)
+class MetronomeController extends ChangeNotifier {
   final MetronomeService _service;
+  bool _isPlaying = false;
+  int _bpm = 120;
+  int _currentBeat = 0;
+  int _beatsPerMeasure = 4;
+  double _volume = 0.5;
 
-  MetronomeNotifier(this._service) : super(const MetronomeState()) {
+  MetronomeController(this._service) {
     _service.onBeatChanged = _onBeatChanged;
   }
 
   void _onBeatChanged(int beat) {
-    state = state.copyWith(currentBeat: beat);
+    _currentBeat = beat;
+    notifyListeners();
   }
+
+  bool get isPlaying => _isPlaying;
+  int get bpm => _bpm;
+  int get currentBeat => _currentBeat;
+  int get beatsPerMeasure => _beatsPerMeasure;
+  double get volume => _volume;
 
   /// Start the metronome
   Future<void> start() async {
-    if (!state.isPlaying) {
-      await _service.start(state.bpm, state.beatsPerMeasure, state.volume);
-      state = state.copyWith(isPlaying: true);
+    if (!_isPlaying) {
+      await _service.start(_bpm, _beatsPerMeasure, _volume);
+      _isPlaying = true;
+      notifyListeners();
     }
   }
 
   /// Stop the metronome
   Future<void> stop() async {
-    if (state.isPlaying) {
+    if (_isPlaying) {
       await _service.stop();
-      state = state.copyWith(isPlaying: false, currentBeat: 0);
+      _isPlaying = false;
+      _currentBeat = 0;
+      notifyListeners();
     }
   }
 
   /// Toggle play/stop
   Future<void> toggle() async {
-    if (state.isPlaying) {
+    if (_isPlaying) {
       await stop();
     } else {
       await start();
@@ -83,26 +98,27 @@ class MetronomeNotifier extends StateNotifier<MetronomeState> {
 
   /// Set BPM (40-220)
   void setBpm(int bpm) {
-    final clamped = bpm.clamp(40, 220);
-    state = state.copyWith(bpm: clamped);
-    if (state.isPlaying) {
-      _service.setBpm(clamped);
+    _bpm = bpm.clamp(40, 220);
+    if (_isPlaying) {
+      _service.setBpm(_bpm);
     }
+    notifyListeners();
   }
 
   /// Set beats per measure (time signature)
   void setBeatsPerMeasure(int beats) {
-    state = state.copyWith(beatsPerMeasure: beats);
-    if (state.isPlaying) {
+    _beatsPerMeasure = beats;
+    if (_isPlaying) {
       _service.setBeatsPerMeasure(beats);
     }
+    notifyListeners();
   }
 
   /// Set volume (0.0-1.0)
   void setVolume(double volume) {
-    final clamped = volume.clamp(0.0, 1.0);
-    state = state.copyWith(volume: clamped);
-    _service.setVolume(clamped);
+    _volume = volume.clamp(0.0, 1.0);
+    _service.setVolume(_volume);
+    notifyListeners();
   }
 
   @override
