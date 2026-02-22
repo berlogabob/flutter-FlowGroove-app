@@ -5,9 +5,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
+import 'providers/auth/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/auth/register_screen.dart';
-import 'screens/home_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/songs/songs_list_screen.dart';
 import 'screens/songs/add_song_screen.dart';
@@ -50,15 +50,23 @@ class RepSyncApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch auth state
+    final userAsync = ref.watch(appUserProvider);
+
     return MaterialApp(
       title: 'RepSync',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
-      initialRoute: '/',
+      // Show splash screen while checking auth
+      home: userAsync.when(
+        data: (user) => user != null ? const MainShell() : const LoginScreen(),
+        loading: () =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
+        error: (error, stack) => const LoginScreen(),
+      ),
       routes: {
-        '/': (context) => const HomeScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/main': (context) => const MainShell(),

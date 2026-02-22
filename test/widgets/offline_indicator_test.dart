@@ -92,7 +92,6 @@ void main() {
         overrides: [offlineProvider.overrideWith((ref) => true)],
       );
 
-      final container = tester.widget<Container>(find.byType(Container).first);
       // Container should have constraints for full width
       expect(find.byType(Container), findsOneWidget);
     });
@@ -238,7 +237,7 @@ void main() {
       );
 
       final padding = tester.widget<Padding>(find.byType(Padding));
-      expect(padding.padding.right, equals(8));
+      expect(padding.padding.horizontal, equals(8));
     });
 
     testWidgets('icon size is 24', (WidgetTester tester) async {

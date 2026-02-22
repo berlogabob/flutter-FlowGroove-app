@@ -59,6 +59,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'setlists_fab',
         onPressed: () => Navigator.pushNamed(context, '/setlists/create'),
         child: const Icon(Icons.add),
       ),
