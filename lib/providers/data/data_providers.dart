@@ -2,8 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/song.dart';
 import '../../models/band.dart';
 import '../../models/setlist.dart';
-import '../../services/api/firestore_service.dart';
-import '../../services/api/cache_service.dart';
+import '../../services/firestore_service.dart';
+import '../../services/cache_service.dart';
 import '../auth/auth_provider.dart';
 
 /// Provider for the FirestoreService.

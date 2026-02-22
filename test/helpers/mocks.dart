@@ -10,6 +10,7 @@ import 'package:flutter_repsync_app/models/user.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 import 'package:flutter_repsync_app/models/band.dart';
 import 'package:flutter_repsync_app/models/setlist.dart';
+import 'package:flutter_repsync_app/services/firestore_service.dart';
 
 @GenerateMocks([
   FirebaseAuth,
@@ -26,6 +27,7 @@ import 'package:flutter_repsync_app/models/setlist.dart';
   QuerySnapshot,
   DocumentSnapshot,
   WriteBatch,
+  FirestoreService,
 ])
 void main() {}
 

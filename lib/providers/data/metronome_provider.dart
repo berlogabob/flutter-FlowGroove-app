@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/metronome_state.dart';
-import '../models/time_signature.dart';
-import '../services/audio/audio_engine.dart';
+import '../../models/metronome_state.dart';
+import '../../models/time_signature.dart';
+import '../../services/audio/audio_engine.dart';
 
 /// Notifier for metronome state management using Riverpod
 ///

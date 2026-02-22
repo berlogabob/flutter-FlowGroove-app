@@ -3,7 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:flutter_repsync_app/services/spotify_service.dart';
+import 'package:flutter_repsync_app/services/api/spotify_service.dart';
 import 'package:flutter_repsync_app/models/api_error.dart';
 
 void main() {

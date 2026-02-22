@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/api_error.dart';
 import '../../models/user.dart';
-import '../../services/api/cache_service.dart';
+import '../../services/cache_service.dart';
 
 /// Provider for the FirebaseAuth instance.
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {

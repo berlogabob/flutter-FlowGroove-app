@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import '../models/band.dart';
+import '../../models/band.dart';
 
 /// Console script to fix band data integrity issues.
 ///

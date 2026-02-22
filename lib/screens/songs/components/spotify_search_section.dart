@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../services/spotify_service.dart';
+import '../../../services/api/spotify_service.dart';
 import '../../../theme/app_theme.dart';
 
 /// A bottom sheet widget for searching and selecting tracks from Spotify.

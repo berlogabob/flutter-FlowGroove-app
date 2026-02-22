@@ -18,6 +18,10 @@ import 'package:firebase_auth/firebase_auth.dart' as _i4;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart'
     as _i3;
 import 'package:firebase_core/firebase_core.dart' as _i2;
+import 'package:flutter_repsync_app/models/band.dart' as _i19;
+import 'package:flutter_repsync_app/models/setlist.dart' as _i20;
+import 'package:flutter_repsync_app/models/song.dart' as _i18;
+import 'package:flutter_repsync_app/services/firestore_service.dart' as _i17;
 import 'package:hive/hive.dart' as _i13;
 import 'package:http/http.dart' as _i8;
 import 'package:mockito/mockito.dart' as _i1;
@@ -2736,4 +2740,179 @@ class MockWriteBatch extends _i1.Mock implements _i6.WriteBatch {
     Invocation.method(#update, [document, data]),
     returnValueForMissingStub: null,
   );
+}
+
+/// A class which mocks [FirestoreService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockFirestoreService extends _i1.Mock implements _i17.FirestoreService {
+  MockFirestoreService() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i7.Future<void> saveSong(_i18.Song? song, String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveSong, [song, uid]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> deleteSong(String? songId, String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteSong, [songId, uid]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Stream<List<_i18.Song>> watchSongs(String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchSongs, [uid]),
+            returnValue: _i7.Stream<List<_i18.Song>>.empty(),
+          )
+          as _i7.Stream<List<_i18.Song>>);
+
+  @override
+  _i7.Future<void> saveBand(_i19.Band? band, String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveBand, [band, uid]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> deleteBand(String? bandId, String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteBand, [bandId, uid]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Stream<List<_i19.Band>> watchBands(String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchBands, [uid]),
+            returnValue: _i7.Stream<List<_i19.Band>>.empty(),
+          )
+          as _i7.Stream<List<_i19.Band>>);
+
+  @override
+  _i7.Future<void> saveSetlist(_i20.Setlist? setlist, String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveSetlist, [setlist, uid]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> deleteSetlist(String? setlistId, String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteSetlist, [setlistId, uid]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Stream<List<_i20.Setlist>> watchSetlists(String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchSetlists, [uid]),
+            returnValue: _i7.Stream<List<_i20.Setlist>>.empty(),
+          )
+          as _i7.Stream<List<_i20.Setlist>>);
+
+  @override
+  _i7.Future<void> saveBandToGlobal(_i19.Band? band) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveBandToGlobal, [band]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<_i19.Band?> getBandByInviteCode(String? code) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBandByInviteCode, [code]),
+            returnValue: _i7.Future<_i19.Band?>.value(),
+          )
+          as _i7.Future<_i19.Band?>);
+
+  @override
+  _i7.Future<bool> isInviteCodeTaken(String? code) =>
+      (super.noSuchMethod(
+            Invocation.method(#isInviteCodeTaken, [code]),
+            returnValue: _i7.Future<bool>.value(false),
+          )
+          as _i7.Future<bool>);
+
+  @override
+  _i7.Future<void> addUserToBand(String? bandId, String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#addUserToBand, [bandId, userId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> removeUserFromBand(String? bandId, String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#removeUserFromBand, [bandId, userId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> addSongToBand({
+    required _i18.Song? song,
+    required String? bandId,
+    required String? contributorId,
+    required String? contributorName,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#addSongToBand, [], {
+              #song: song,
+              #bandId: bandId,
+              #contributorId: contributorId,
+              #contributorName: contributorName,
+            }),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Stream<List<_i18.Song>> watchBandSongs(String? bandId) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchBandSongs, [bandId]),
+            returnValue: _i7.Stream<List<_i18.Song>>.empty(),
+          )
+          as _i7.Stream<List<_i18.Song>>);
+
+  @override
+  _i7.Future<void> deleteBandSong(String? bandId, String? songId) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteBandSong, [bandId, songId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> updateBandSong(_i18.Song? song, String? bandId) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateBandSong, [song, bandId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
 }

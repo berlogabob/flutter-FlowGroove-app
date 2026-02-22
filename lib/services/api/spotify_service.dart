@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import '../models/api_error.dart';
+import '../../models/api_error.dart';
 import 'web_config.stub.dart' if (dart.library.html) 'web_config.web.dart';
 
 /// Spotify Service for searching songs and getting audio features (BPM, key).

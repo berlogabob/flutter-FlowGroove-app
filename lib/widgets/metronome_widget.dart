@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/ui/metronome_provider.dart';
+import '../providers/data/metronome_provider.dart';
 import 'metronome/bpm_controls_widget.dart';
 import 'metronome/time_signature_controls_widget.dart';
 import 'metronome/accent_pattern_editor_widget.dart';

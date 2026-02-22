@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/api_error.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
-import '../../providers/ui/error_provider.dart';
+import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/band_card.dart';

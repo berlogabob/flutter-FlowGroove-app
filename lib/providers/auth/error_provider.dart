@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/api_error.dart';
+import '../../models/api_error.dart';
 
 /// Represents the current state of error handling.
 class ErrorState {

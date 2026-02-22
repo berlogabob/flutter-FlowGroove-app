@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/services/musicbrainz_service.dart';
+import 'package:flutter_repsync_app/services/api/musicbrainz_service.dart';
 import 'package:flutter_repsync_app/models/api_error.dart';
 
 void main() {
