@@ -10,23 +10,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(appUserProvider);
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('RepSync'),
-        actions: [
-          // Profile button - always visible
-          IconButton(
-            icon: const Icon(Icons.person),
-            tooltip: 'Profile',
-            onPressed: () {
-              Navigator.pushNamed(context, '/profile');
-            },
-          ),
-          const OfflineStatusIcon(),
-        ],
-      ),
+      appBar: AppBar(title: const Text('RepSync')),
       body: const Column(
         children: [
           OfflineIndicator(),
@@ -133,7 +118,7 @@ class HomeScreenBody extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Statistics',
+          'My Library',
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -243,7 +228,7 @@ class HomeScreenBody extends ConsumerWidget {
               child: _buildActionButton(
                 context,
                 icon: Icons.add,
-                label: '+ Song',
+                label: 'Song',
                 onTap: () => Navigator.pushNamed(context, '/songs/add'),
               ),
             ),
@@ -252,7 +237,7 @@ class HomeScreenBody extends ConsumerWidget {
               child: _buildActionButton(
                 context,
                 icon: Icons.group_add,
-                label: '+ Group',
+                label: 'Band',
                 onTap: () => Navigator.pushNamed(context, '/bands/create'),
               ),
             ),
@@ -265,7 +250,7 @@ class HomeScreenBody extends ConsumerWidget {
               child: _buildActionButton(
                 context,
                 icon: Icons.playlist_add,
-                label: '+ Setlist',
+                label: 'Setlist',
                 onTap: () => Navigator.pushNamed(context, '/setlists/create'),
               ),
             ),
