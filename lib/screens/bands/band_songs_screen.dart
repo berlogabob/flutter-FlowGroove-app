@@ -111,6 +111,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       ),
       floatingActionButton: _canEdit
           ? FloatingActionButton(
+              heroTag: 'band_songs_fab',
               onPressed: () => _addSongToBand(context, ref),
               child: const Icon(Icons.add),
             )

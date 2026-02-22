@@ -77,6 +77,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'songs_fab',
         onPressed: () => Navigator.pushNamed(context, '/songs/add'),
         child: const Icon(Icons.add),
       ),
