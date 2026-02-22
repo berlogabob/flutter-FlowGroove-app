@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/api_error.dart';
 import '../../providers/data/data_providers.dart';
@@ -78,7 +77,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/songs/add'),
+        onPressed: () => Navigator.pushNamed(context, '/songs/add'),
         child: const Icon(Icons.add),
       ),
     );
@@ -178,7 +177,9 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
-      return EmptyState.songs(onAdd: () => context.go('/songs/add'));
+      return EmptyState.songs(
+        onAdd: () => Navigator.pushNamed(context, '/songs/add'),
+      );
     }
     return EmptyState.search(query: _searchQuery);
   }
@@ -232,7 +233,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         }
       },
       child: InkWell(
-        onTap: () => context.go('/songs/${song.id}/edit', extra: song),
+        onTap: () => Navigator.pushNamed(
+          context,
+          '/songs/${song.id}/edit',
+          arguments: song,
+        ),
         onLongPress: bands.isNotEmpty
             ? () => _showAddToBandMenu(context, ref, song, bands)
             : null,
@@ -313,8 +318,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                   ),
                 IconButton(
                   icon: const Icon(Icons.edit, size: 20),
-                  onPressed: () =>
-                      context.go('/songs/${song.id}/edit', extra: song),
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    '/songs/${song.id}/edit',
+                    arguments: song,
+                  ),
                   tooltip: 'Edit',
                 ),
                 if (bands.isNotEmpty)

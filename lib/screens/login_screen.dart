@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
@@ -60,7 +59,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        // Navigate to main shell after successful login
+        Navigator.pushReplacementNamed(context, '/main');
       }
     } on ApiError catch (e) {
       _handleError(e);
@@ -79,7 +79,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Welcome Back')),
+      appBar: AppBar(
+        title: const Text('Welcome Back'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -186,7 +192,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: () => context.go('/register'),
+                    onPressed: () => Navigator.pushNamed(context, '/register'),
                     child: const Text('Sign Up'),
                   ),
                 ],
