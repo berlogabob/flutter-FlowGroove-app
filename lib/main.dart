@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
-import 'theme/app_theme.dart';
+import 'theme/mono_pulse_theme.dart';
 import 'providers/auth/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/auth/register_screen.dart';
@@ -56,9 +56,9 @@ class RepSyncApp extends ConsumerWidget {
     return MaterialApp(
       title: 'RepSync',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
+      theme: MonoPulseTheme.theme,
+      darkTheme: MonoPulseTheme.theme,
+      themeMode: ThemeMode.dark, // Dark-only as per brandbook
       // Show splash screen while checking auth
       home: userAsync.when(
         data: (user) => user != null ? const MainShell() : const LoginScreen(),
