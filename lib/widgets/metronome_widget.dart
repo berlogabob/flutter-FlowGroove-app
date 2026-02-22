@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/time_signature.dart';
 import '../services/metronome_service.dart';
 import 'time_signature_dropdown.dart';
+import 'tap_bpm_widget.dart';
+import 'song_bpm_badge.dart';
 
 /// Simple metronome widget - with sound controls
 class MetronomeWidget extends StatefulWidget {
