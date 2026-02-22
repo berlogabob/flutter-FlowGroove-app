@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
@@ -60,7 +59,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/setlists/create'),
+        onPressed: () => Navigator.pushNamed(context, '/setlists/create'),
         child: const Icon(Icons.add),
       ),
     );
@@ -108,7 +107,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
       return EmptyState.setlists(
-        onCreate: () => context.go('/setlists/create'),
+        onCreate: () => Navigator.pushNamed(context, '/setlists/create'),
       );
     }
     return EmptyState.search(query: _searchQuery);
@@ -125,7 +124,11 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       songCount: setlist.songIds.length,
       bandName: setlist.bandId,
       date: setlist.eventDate,
-      onEdit: () => context.go('/setlists/${setlist.id}/edit', extra: setlist),
+      onEdit: () => Navigator.pushNamed(
+        context,
+        '/setlists/${setlist.id}/edit',
+        arguments: setlist,
+      ),
       onDelete: () => _confirmDelete(context, ref, setlist),
       onTap: () => _showExportOptions(context, ref, setlist),
       onExportPdf: () => _exportPdf(context, ref, setlist),

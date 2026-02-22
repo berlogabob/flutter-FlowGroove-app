@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../models/song.dart';
 import '../../../models/band.dart';
 import '../../../providers/auth/auth_provider.dart';
@@ -318,7 +317,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
     if (!_canEdit) return;
 
-    context.go('/songs/${song.id}/edit', extra: song);
+    Navigator.pushNamed(context, '/songs/${song.id}/edit', arguments: song);
   }
 }
 

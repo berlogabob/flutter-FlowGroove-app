@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/api_error.dart';
 import '../../providers/data/data_providers.dart';
@@ -76,13 +75,13 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         children: [
           FloatingActionButton.small(
             heroTag: 'create',
-            onPressed: () => context.go('/bands/create'),
+            onPressed: () => Navigator.pushNamed(context, '/bands/create'),
             child: const Icon(Icons.add),
           ),
           const SizedBox(height: 8),
           FloatingActionButton.small(
             heroTag: 'join',
-            onPressed: () => context.go('/bands/join'),
+            onPressed: () => Navigator.pushNamed(context, '/bands/join'),
             child: const Icon(Icons.group_add),
           ),
         ],
@@ -173,7 +172,9 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
-      return EmptyState.bands(onCreate: () => context.go('/bands/create'));
+      return EmptyState.bands(
+        onCreate: () => Navigator.pushNamed(context, '/bands/create'),
+      );
     }
     return EmptyState.search(query: _searchQuery);
   }
@@ -185,7 +186,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       memberCount: band.members.length,
       description: band.description,
       onTap: () => _showInviteDialog(context, ref, band),
-      onEdit: () => context.go('/bands/${band.id}/edit', extra: band),
+      onEdit: () => Navigator.pushNamed(
+        context,
+        '/bands/${band.id}/edit',
+        arguments: band,
+      ),
       onDelete: () => _confirmDelete(context, ref, band),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../providers/data/data_providers.dart';
 import '../providers/auth/auth_provider.dart';
 import '../theme/app_theme.dart';
@@ -11,10 +10,22 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(appUserProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('RepSync'),
-        actions: const [OfflineStatusIcon()],
+        actions: [
+          // Profile button - always visible
+          IconButton(
+            icon: const Icon(Icons.person),
+            tooltip: 'Profile',
+            onPressed: () {
+              Navigator.pushNamed(context, '/profile');
+            },
+          ),
+          const OfflineStatusIcon(),
+        ],
       ),
       body: const Column(
         children: [
@@ -137,7 +148,7 @@ class HomeScreenBody extends ConsumerWidget {
                 label: 'Songs',
                 value: songs.toString(),
                 color: AppColors.color1,
-                onTap: () => context.go('/songs'),
+                onTap: () => Navigator.pushNamed(context, '/songs'),
               ),
             ),
             const SizedBox(width: 12),
@@ -148,7 +159,7 @@ class HomeScreenBody extends ConsumerWidget {
                 label: 'Bands',
                 value: bands.toString(),
                 color: AppColors.color5,
-                onTap: () => context.go('/bands'),
+                onTap: () => Navigator.pushNamed(context, '/bands'),
               ),
             ),
             const SizedBox(width: 12),
@@ -159,7 +170,7 @@ class HomeScreenBody extends ConsumerWidget {
                 label: 'Setlists',
                 value: setlists.toString(),
                 color: AppColors.color3,
-                onTap: () => context.go('/setlists'),
+                onTap: () => Navigator.pushNamed(context, '/setlists'),
               ),
             ),
           ],
@@ -233,7 +244,7 @@ class HomeScreenBody extends ConsumerWidget {
                 context,
                 icon: Icons.add,
                 label: '+ Song',
-                onTap: () => context.go('/songs/add'),
+                onTap: () => Navigator.pushNamed(context, '/songs/add'),
               ),
             ),
             const SizedBox(width: 12),
@@ -242,7 +253,7 @@ class HomeScreenBody extends ConsumerWidget {
                 context,
                 icon: Icons.group_add,
                 label: '+ Group',
-                onTap: () => context.go('/bands/create'),
+                onTap: () => Navigator.pushNamed(context, '/bands/create'),
               ),
             ),
           ],
@@ -255,7 +266,7 @@ class HomeScreenBody extends ConsumerWidget {
                 context,
                 icon: Icons.playlist_add,
                 label: '+ Setlist',
-                onTap: () => context.go('/setlists/create'),
+                onTap: () => Navigator.pushNamed(context, '/setlists/create'),
               ),
             ),
             const SizedBox(width: 12),
@@ -264,7 +275,7 @@ class HomeScreenBody extends ConsumerWidget {
                 context,
                 icon: Icons.library_music,
                 label: 'Bank',
-                onTap: () => context.go('/songs'),
+                onTap: () => Navigator.pushNamed(context, '/songs'),
               ),
             ),
           ],
@@ -336,7 +347,7 @@ class HomeScreenBody extends ConsumerWidget {
                 context,
                 icon: Icons.speed,
                 label: 'Metronome',
-                onTap: () => context.go('/metronome'),
+                onTap: () => Navigator.pushNamed(context, '/metronome'),
               ),
             ),
           ],
