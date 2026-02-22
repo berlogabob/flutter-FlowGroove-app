@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/song.dart';
+import '../services/api/firestore_service.dart';
 import 'data_providers.dart';
 
 /// Example usage of FirestoreService methods for song sharing.

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/data_providers.dart';
-import '../../providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
+import '../../providers/data/data_providers.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
-import '../../services/pdf_service.dart';
+import '../../services/export/pdf_service.dart';
 import '../../widgets/setlist_card.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/confirmation_dialog.dart';
+import '../../widgets/offline_indicator.dart';
 
 /// Screen for displaying the list of setlists with search functionality.
 ///
@@ -47,16 +49,28 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     final setlistsAsync = ref.watch(setlistsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Setlists')),
-      body: setlistsAsync.when(
-        data: (setlists) => _buildContent(context, ref, setlists),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+      appBar: AppBar(
+        title: const Text('Setlists'),
+        actions: const [OfflineStatusIcon()],
+      ),
+      body: Column(
+        children: [
+          const OfflineIndicator(),
+          Expanded(child: _buildBody(setlistsAsync)),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, '/create-setlist'),
+        onPressed: () => context.go('/setlists/create'),
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildBody(AsyncValue<List<Setlist>> setlistsAsync) {
+    return setlistsAsync.when(
+      data: (setlists) => _buildContent(context, ref, setlists),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
     );
   }
 
@@ -94,7 +108,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
       return EmptyState.setlists(
-        onCreate: () => Navigator.pushNamed(context, '/create-setlist'),
+        onCreate: () => context.go('/setlists/create'),
       );
     }
     return EmptyState.search(query: _searchQuery);
@@ -111,11 +125,29 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       songCount: setlist.songIds.length,
       bandName: setlist.bandId,
       date: setlist.eventDate,
-      onEdit: () =>
-          Navigator.pushNamed(context, '/edit-setlist', arguments: setlist),
+      onEdit: () => context.go('/setlists/${setlist.id}/edit', extra: setlist),
       onDelete: () => _confirmDelete(context, ref, setlist),
       onTap: () => _showExportOptions(context, ref, setlist),
+      onExportPdf: () => _exportPdf(context, ref, setlist),
     );
+  }
+
+  void _exportPdf(BuildContext context, WidgetRef ref, Setlist setlist) async {
+    final songsAsync = ref.read(songsProvider);
+    final allSongs = songsAsync.value ?? [];
+    final setlistSongs = allSongs
+        .where((s) => setlist.songIds.contains(s.id))
+        .toList();
+
+    try {
+      await PdfService.exportSetlist(setlist, setlistSongs);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
   }
 
   void _confirmDelete(

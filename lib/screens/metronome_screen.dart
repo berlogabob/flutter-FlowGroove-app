@@ -1,38 +1,13 @@
 import 'package:flutter/material.dart';
-import '../services/metronome_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/metronome_widget.dart';
 
 /// Full screen metronome - MVP version
-class MetronomeScreen extends StatefulWidget {
+class MetronomeScreen extends ConsumerWidget {
   const MetronomeScreen({super.key});
 
   @override
-  State<MetronomeScreen> createState() => _MetronomeScreenState();
-}
-
-class _MetronomeScreenState extends State<MetronomeScreen> {
-  final _metronome = MetronomeService();
-
-  @override
-  void initState() {
-    super.initState();
-    _metronome.addListener(_onMetronomeUpdate);
-  }
-
-  @override
-  void dispose() {
-    _metronome.removeListener(_onMetronomeUpdate);
-    super.dispose();
-  }
-
-  void _onMetronomeUpdate() {
-    setState(() {
-      // Trigger rebuild
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Metronome'),

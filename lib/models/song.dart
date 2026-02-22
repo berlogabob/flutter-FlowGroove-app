@@ -1,4 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'link.dart';
+
+part 'song.g.dart';
 
 // Sentinel value to detect if a parameter was passed to copyWith
 const Object _sentinel = _Sentinel();
@@ -9,26 +12,36 @@ class _Sentinel {
   String toString() => '_sentinel';
 }
 
+@JsonSerializable()
 class Song {
+  @JsonKey(defaultValue: '')
   final String id;
+  @JsonKey(defaultValue: '')
   final String title;
+  @JsonKey(defaultValue: '')
   final String artist;
   final String? originalKey;
   final int? originalBPM;
   final String? ourKey;
   final int? ourBPM;
+  @JsonKey(defaultValue: [], fromJson: _linksFromJson, toJson: _linksToJson)
   final List<Link> links;
   final String? notes;
+  @JsonKey(defaultValue: [])
   final List<String> tags;
   final String? bandId;
   final String? spotifyUrl;
+  @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
+  @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime updatedAt;
 
   // NEW: Sharing fields for copying songs from personal banks to band banks
   final String? originalOwnerId; // User who created original song
   final String? contributedBy; // User who added to band
+  @JsonKey(defaultValue: false)
   final bool isCopy; // True if this is a band's copy
+  @JsonKey(fromJson: _parseNullableDateTime, toJson: _dateTimeToJson)
   final DateTime? contributedAt; // When added to band
 
   Song({
@@ -106,57 +119,33 @@ class Song {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'artist': artist,
-    'originalKey': originalKey,
-    'originalBPM': originalBPM,
-    'ourKey': ourKey,
-    'ourBPM': ourBPM,
-    'links': links.map((l) => l.toJson()).toList(),
-    'notes': notes,
-    'tags': tags,
-    'bandId': bandId,
-    'spotifyUrl': spotifyUrl,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
-    // Sharing fields
-    'originalOwnerId': originalOwnerId,
-    'contributedBy': contributedBy,
-    'isCopy': isCopy,
-    'contributedAt': contributedAt?.toIso8601String(),
-  };
+  Map<String, dynamic> toJson() => _$SongToJson(this);
 
-  factory Song.fromJson(Map<String, dynamic> json) => Song(
-    id: json['id'] ?? '',
-    title: json['title'] ?? '',
-    artist: json['artist'] ?? '',
-    originalKey: json['originalKey'],
-    originalBPM: json['originalBPM'],
-    ourKey: json['ourKey'],
-    ourBPM: json['ourBPM'],
-    links:
-        (json['links'] as List<dynamic>?)
-            ?.map((l) => Link.fromJson(l as Map<String, dynamic>))
-            .toList() ??
-        [],
-    notes: json['notes'],
-    tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
-    bandId: json['bandId'],
-    spotifyUrl: json['spotifyUrl'],
-    createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
-    updatedAt: json['updatedAt'] != null
-        ? DateTime.parse(json['updatedAt'])
-        : DateTime.now(),
-    // Sharing fields (nullable for backward compatibility)
-    originalOwnerId: json['originalOwnerId'],
-    contributedBy: json['contributedBy'],
-    isCopy: json['isCopy'] ?? false,
-    contributedAt: json['contributedAt'] != null
-        ? DateTime.parse(json['contributedAt'])
-        : null,
-  );
+  factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
+}
+
+DateTime _parseDateTime(dynamic value) {
+  if (value == null) return DateTime.now();
+  if (value is DateTime) return value;
+  return DateTime.parse(value as String);
+}
+
+DateTime? _parseNullableDateTime(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  return DateTime.parse(value as String);
+}
+
+String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
+
+List<Link> _linksFromJson(dynamic value) {
+  if (value == null) return [];
+  if (value is List<Link>) return value;
+  return (value as List<dynamic>)
+      .map((e) => Link.fromJson(e as Map<String, dynamic>))
+      .toList();
+}
+
+List<Map<String, dynamic>> _linksToJson(List<Link> links) {
+  return links.map((l) => l.toJson()).toList();
 }

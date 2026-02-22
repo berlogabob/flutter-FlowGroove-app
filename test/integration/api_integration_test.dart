@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
 import 'dart:convert';
+import '../helpers/mocks.mocks.dart';
 
 void main() {
   group('Spotify API Integration', () {
@@ -259,7 +260,7 @@ void main() {
 
   group('HTTP Client Mocking', () {
     test('mocks GET request', () async {
-      final mockClient = MockHttpClient();
+      final mockClient = MockClient();
       final mockResponse = http.Response(
         jsonEncode({'status': 'success', 'data': 'test'}),
         200,
@@ -278,7 +279,7 @@ void main() {
     });
 
     test('mocks POST request', () async {
-      final mockClient = MockHttpClient();
+      final mockClient = MockClient();
       final mockResponse = http.Response(
         jsonEncode({'status': 'created', 'id': '123'}),
         201,
@@ -300,7 +301,7 @@ void main() {
     });
 
     test('handles 404 error', () async {
-      final mockClient = MockHttpClient();
+      final mockClient = MockClient();
       final mockResponse = http.Response(
         jsonEncode({'error': 'Not found'}),
         404,
@@ -318,7 +319,7 @@ void main() {
     });
 
     test('handles 500 error', () async {
-      final mockClient = MockHttpClient();
+      final mockClient = MockClient();
       final mockResponse = http.Response(
         jsonEncode({'error': 'Internal server error'}),
         500,
@@ -336,7 +337,7 @@ void main() {
     });
 
     test('handles timeout', () async {
-      final mockClient = MockHttpClient();
+      final mockClient = MockClient();
 
       when(
         mockClient.get(Uri.parse('https://api.example.com/timeout')),
@@ -407,6 +408,3 @@ void main() {
     });
   });
 }
-
-/// Mock HTTP client for testing
-class MockHttpClient extends Mock implements http.Client {}

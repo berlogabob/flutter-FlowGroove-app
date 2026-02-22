@@ -30,10 +30,9 @@ class TimeSignatureDropdown extends StatelessWidget {
           items: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
           onChanged: (num) {
             if (num != null) {
-              onChanged(TimeSignature(
-                numerator: num,
-                denominator: value.denominator,
-              ));
+              onChanged(
+                TimeSignature(numerator: num, denominator: value.denominator),
+              );
             }
           },
         ),
@@ -57,10 +56,9 @@ class TimeSignatureDropdown extends StatelessWidget {
           items: [4, 8],
           onChanged: (den) {
             if (den != null) {
-              onChanged(TimeSignature(
-                numerator: value.numerator,
-                denominator: den,
-              ));
+              onChanged(
+                TimeSignature(numerator: value.numerator, denominator: den),
+              );
             }
           },
         ),
@@ -86,20 +84,14 @@ class TimeSignatureDropdown extends StatelessWidget {
       child: DropdownButton<int>(
         value: value,
         underline: const SizedBox(),
-        icon: const Icon(
-          Icons.arrow_drop_down,
-          color: AppColors.color1,
-        ),
+        icon: const Icon(Icons.arrow_drop_down, color: AppColors.color1),
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: AppColors.color4,
         ),
         items: items
-            .map((item) => DropdownMenuItem(
-                  value: item,
-                  child: Text('$item'),
-                ))
+            .map((item) => DropdownMenuItem(value: item, child: Text('$item')))
             .toList(),
         onChanged: onChanged,
       ),

@@ -67,6 +67,9 @@ class SongForm extends StatelessWidget {
   /// Callback when a tag selection changes.
   final Function(String tag, bool selected) onTagChanged;
 
+  /// Callback when copy from original is triggered.
+  final VoidCallback? onCopyFromOriginal;
+
   /// Whether we are in edit mode (vs. add mode).
   final bool isEditing;
 
@@ -90,6 +93,7 @@ class SongForm extends StatelessWidget {
     required this.onAddLink,
     required this.onRemoveLink,
     required this.onTagChanged,
+    this.onCopyFromOriginal,
     required this.isEditing,
   });
 
@@ -133,9 +137,7 @@ class SongForm extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               TextButton.icon(
-                onPressed: () {
-                  // Copy from original is handled by parent
-                },
+                onPressed: onCopyFromOriginal,
                 icon: const Icon(Icons.copy, size: 16),
                 label: const Text('Copy'),
               ),

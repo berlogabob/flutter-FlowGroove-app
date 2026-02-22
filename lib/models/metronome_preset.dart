@@ -1,14 +1,22 @@
-import 'package:flutter/material.dart';
+import 'package:json_annotation/json_annotation.dart';
 import '../models/time_signature.dart';
 
+part 'metronome_preset.g.dart';
+
 /// Preset for metronome settings
+@JsonSerializable()
 class MetronomePreset {
+  @JsonKey(defaultValue: '')
   final String id;
+  @JsonKey(defaultValue: '')
   final String name;
   final int bpm;
   final TimeSignature timeSignature;
+  @JsonKey(defaultValue: 'sine')
   final String waveType;
+  @JsonKey(defaultValue: true)
   final bool accentEnabled;
+  @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
 
   const MetronomePreset({
@@ -22,34 +30,11 @@ class MetronomePreset {
   });
 
   /// Create preset from JSON
-  factory MetronomePreset.fromJson(Map<String, dynamic> json) {
-    return MetronomePreset(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      bpm: json['bpm'] as int,
-      timeSignature: TimeSignature(
-        numerator: json['numerator'] as int,
-        denominator: json['denominator'] as int,
-      ),
-      waveType: json['waveType'] as String,
-      accentEnabled: json['accentEnabled'] as bool,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-    );
-  }
+  factory MetronomePreset.fromJson(Map<String, dynamic> json) =>
+      _$MetronomePresetFromJson(json);
 
   /// Convert preset to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'bpm': bpm,
-      'numerator': timeSignature.numerator,
-      'denominator': timeSignature.denominator,
-      'waveType': waveType,
-      'accentEnabled': accentEnabled,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toJson() => _$MetronomePresetToJson(this);
 
   /// Create a copy with updated values
   MetronomePreset copyWith({
@@ -76,7 +61,7 @@ class MetronomePreset {
   String get displayName => '$name ($bpm BPM ${timeSignature.displayName})';
 
   /// Common presets
-  static const List<MetronomePreset> defaults = [
+  static final List<MetronomePreset> defaults = [
     MetronomePreset(
       id: 'default_1',
       name: 'Slow Practice',
@@ -106,3 +91,11 @@ class MetronomePreset {
     ),
   ];
 }
+
+DateTime _parseDateTime(dynamic value) {
+  if (value == null) return DateTime.now();
+  if (value is DateTime) return value;
+  return DateTime.parse(value as String);
+}
+
+String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();

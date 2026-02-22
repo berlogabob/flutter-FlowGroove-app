@@ -82,7 +82,15 @@ void main() {
         const ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
       );
 
-      expect(findText('Confirm'), findsOneWidget);
+      // Find the ElevatedButton (confirm button)
+      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ElevatedButton),
+          matching: findText('Confirm'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders confirm button with custom label', (

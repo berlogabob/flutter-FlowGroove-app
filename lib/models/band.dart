@@ -1,4 +1,7 @@
 import 'dart:math';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'band.g.dart';
 
 // Sentinel value to detect if a parameter was passed to copyWith
 const Object _sentinel = _Sentinel();
@@ -9,8 +12,11 @@ class _Sentinel {
   String toString() => '_sentinel';
 }
 
+@JsonSerializable()
 class BandMember {
+  @JsonKey(defaultValue: '')
   final String uid;
+  @JsonKey(defaultValue: 'viewer')
   final String role;
   final String? displayName;
   final String? email;
@@ -22,38 +28,35 @@ class BandMember {
     this.email,
   });
 
-  Map<String, dynamic> toJson() => {
-    'uid': uid,
-    'role': role,
-    'displayName': displayName,
-    'email': email,
-  };
+  Map<String, dynamic> toJson() => _$BandMemberToJson(this);
 
-  factory BandMember.fromJson(Map<String, dynamic> json) => BandMember(
-    uid: json['uid'] ?? '',
-    role: json['role'] ?? 'viewer',
-    displayName: json['displayName'],
-    email: json['email'],
-  );
+  factory BandMember.fromJson(Map<String, dynamic> json) =>
+      _$BandMemberFromJson(json);
 
   static const String roleAdmin = 'admin';
   static const String roleEditor = 'editor';
   static const String roleViewer = 'viewer';
 }
 
+@JsonSerializable()
 class Band {
+  @JsonKey(defaultValue: '')
   final String id;
+  @JsonKey(defaultValue: '')
   final String name;
   final String? description;
+  @JsonKey(defaultValue: '')
   final String createdBy;
+  @JsonKey(defaultValue: [], fromJson: _membersFromJson, toJson: _membersToJson)
   final List<BandMember> members;
-  final List<String>
-  memberUids; // Derived from members for efficient rules checking
-  final List<String>
-  adminUids; // Derived from members for efficient rules checking
-  final List<String>
-  editorUids; // Derived from members for efficient rules checking
+  @JsonKey(defaultValue: [])
+  final List<String> memberUids; // Derived from members for efficient rules checking
+  @JsonKey(defaultValue: [])
+  final List<String> adminUids; // Derived from members for efficient rules checking
+  @JsonKey(defaultValue: [])
+  final List<String> editorUids; // Derived from members for efficient rules checking
   final String? inviteCode;
+  @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
 
   Band({
@@ -130,37 +133,9 @@ class Band {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'description': description,
-    'createdBy': createdBy,
-    'members': members.map((m) => m.toJson()).toList(),
-    'memberUids': memberUids,
-    'adminUids': adminUids,
-    'editorUids': editorUids,
-    'inviteCode': inviteCode,
-    'createdAt': createdAt.toIso8601String(),
-  };
+  Map<String, dynamic> toJson() => _$BandToJson(this);
 
-  factory Band.fromJson(Map<String, dynamic> json) => Band(
-    id: json['id'] ?? '',
-    name: json['name'] ?? '',
-    description: json['description'],
-    createdBy: json['createdBy'] ?? '',
-    members:
-        (json['members'] as List<dynamic>?)
-            ?.map((m) => BandMember.fromJson(m as Map<String, dynamic>))
-            .toList() ??
-        [],
-    memberUids: (json['memberUids'] as List<dynamic>?)?.cast<String>() ?? [],
-    adminUids: (json['adminUids'] as List<dynamic>?)?.cast<String>() ?? [],
-    editorUids: (json['editorUids'] as List<dynamic>?)?.cast<String>() ?? [],
-    inviteCode: json['inviteCode'],
-    createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
-  );
+  factory Band.fromJson(Map<String, dynamic> json) => _$BandFromJson(json);
 
   /// Generates a unique 6-character invite code using cryptographically secure random.
   ///
@@ -175,4 +150,24 @@ class Band {
     }
     return code;
   }
+}
+
+DateTime _parseDateTime(dynamic value) {
+  if (value == null) return DateTime.now();
+  if (value is DateTime) return value;
+  return DateTime.parse(value as String);
+}
+
+String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
+
+List<BandMember> _membersFromJson(dynamic value) {
+  if (value == null) return [];
+  if (value is List<BandMember>) return value;
+  return (value as List<dynamic>)
+      .map((e) => BandMember.fromJson(e as Map<String, dynamic>))
+      .toList();
+}
+
+List<Map<String, dynamic>> _membersToJson(List<BandMember> members) {
+  return members.map((m) => m.toJson()).toList();
 }

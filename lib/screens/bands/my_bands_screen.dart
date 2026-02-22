@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../providers/data_providers.dart';
-import '../../providers/auth_provider.dart';
+import '../../models/api_error.dart';
+import '../../providers/data/data_providers.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../providers/ui/error_provider.dart';
 import '../../models/band.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/band_card.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/confirmation_dialog.dart';
+import '../../widgets/error_banner.dart';
+import '../../widgets/offline_indicator.dart';
 
-/// Screen for displaying the user's bands with search functionality.
-///
-/// This screen shows all bands the user is a member of with the ability
-/// to search by band name.
+/// Screen for displaying the user's bands with search functionality and error handling.
 class MyBandsScreen extends ConsumerStatefulWidget {
   const MyBandsScreen({super.key});
 
@@ -24,10 +26,9 @@ class MyBandsScreen extends ConsumerStatefulWidget {
 
 class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   String _searchQuery = '';
+  ApiError? _currentError;
 
   /// Filter bands based on the search query.
-  ///
-  /// Searches in band name (case-insensitive).
   List<Band> _filterBands(List<Band> bands) {
     if (_searchQuery.trim().isEmpty) {
       return bands;
@@ -39,29 +40,49 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     }).toList();
   }
 
+  /// Clears the current error.
+  void _clearError() {
+    setState(() {
+      _currentError = null;
+    });
+  }
+
+  /// Handles an error from a stream.
+  void _handleStreamError(Object error, StackTrace stackTrace) {
+    final apiError = ApiError.fromException(error, stackTrace: stackTrace);
+    setState(() {
+      _currentError = apiError;
+    });
+    ref.read(errorNotifierProvider.notifier).handleError(apiError);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Bands')),
-      body: bandsAsync.when(
-        data: (bands) => _buildContent(context, ref, bands),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+      appBar: AppBar(
+        title: const Text('My Bands'),
+        actions: const [OfflineStatusIcon()],
+      ),
+      body: Column(
+        children: [
+          const OfflineIndicator(),
+          Expanded(child: _buildBody(bandsAsync)),
+        ],
       ),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton.small(
             heroTag: 'create',
-            onPressed: () => Navigator.pushNamed(context, '/create-band'),
+            onPressed: () => context.go('/bands/create'),
             child: const Icon(Icons.add),
           ),
           const SizedBox(height: 8),
           FloatingActionButton.small(
             heroTag: 'join',
-            onPressed: () => Navigator.pushNamed(context, '/join-band'),
+            onPressed: () => context.go('/bands/join'),
             child: const Icon(Icons.group_add),
           ),
         ],
@@ -69,11 +90,65 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     );
   }
 
+  Widget _buildBody(AsyncValue<List<Band>> bandsAsync) {
+    return bandsAsync.when(
+      data: (bands) {
+        // Clear error when data loads successfully
+        if (_currentError != null) {
+          _clearError();
+        }
+        return _buildContent(context, ref, bands);
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, stack) {
+        _handleStreamError(e, stack);
+        return _buildErrorState();
+      },
+    );
+  }
+
+  Widget _buildErrorState() {
+    if (_currentError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: ErrorBanner(
+            message: _currentError!.message,
+            title: _currentError!.title,
+            onRetry: () {
+              _clearError();
+              ref.invalidate(bandsProvider);
+            },
+            showRetry: _currentError!.isNetwork,
+            style: ErrorBannerStyle.card,
+          ),
+        ),
+      );
+    }
+    return const Center(child: Text('An error occurred'));
+  }
+
   Widget _buildContent(BuildContext context, WidgetRef ref, List<Band> bands) {
     final filteredBands = _filterBands(bands);
 
     return Column(
       children: [
+        // Inline error banner if there's an error but we have cached data
+        if (_currentError != null && filteredBands.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: ErrorBanner(
+              message: _currentError!.message,
+              title: _currentError!.title,
+              onRetry: () {
+                _clearError();
+                ref.invalidate(bandsProvider);
+              },
+              showRetry: _currentError!.isNetwork,
+              style: ErrorBannerStyle.inline,
+            ),
+          ),
+        ],
         Padding(
           padding: const EdgeInsets.all(16),
           child: CustomTextField(
@@ -98,9 +173,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
-      return EmptyState.bands(
-        onCreate: () => Navigator.pushNamed(context, '/create-band'),
-      );
+      return EmptyState.bands(onCreate: () => context.go('/bands/create'));
     }
     return EmptyState.search(query: _searchQuery);
   }
@@ -112,7 +185,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       memberCount: band.members.length,
       description: band.description,
       onTap: () => _showInviteDialog(context, ref, band),
-      onEdit: () => Navigator.pushNamed(context, '/edit-band', arguments: band),
+      onEdit: () => context.go('/bands/${band.id}/edit', extra: band),
       onDelete: () => _confirmDelete(context, ref, band),
     );
   }
@@ -128,17 +201,34 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (confirmed) {
       final user = ref.read(currentUserProvider);
       if (user != null) {
-        final service = ref.read(firestoreProvider);
+        try {
+          final service = ref.read(firestoreProvider);
 
-        // Remove user from global band members
-        final updatedMembers = band.members
-            .where((m) => m.uid != user.uid)
-            .toList();
-        final updatedBand = band.copyWith(members: updatedMembers);
-        await service.saveBandToGlobal(updatedBand);
+          // Remove user from global band members
+          final updatedMembers = band.members
+              .where((m) => m.uid != user.uid)
+              .toList();
+          final updatedBand = band.copyWith(members: updatedMembers);
+          await service.saveBandToGlobal(updatedBand);
 
-        // Remove from user's bands collection
-        await service.removeUserFromBand(band.id, user.uid);
+          // Remove from user's bands collection
+          await service.removeUserFromBand(band.id, user.uid);
+        } on ApiError catch (e) {
+          _handleStreamError(e, StackTrace.current);
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.message)));
+          }
+        } catch (e, stackTrace) {
+          final error = ApiError.fromException(e, stackTrace: stackTrace);
+          _handleStreamError(error, stackTrace);
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(error.message)));
+          }
+        }
       }
     }
   }
@@ -169,6 +259,7 @@ class _InviteMemberDialog extends ConsumerStatefulWidget {
 class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
   late String _inviteCode;
   bool _isRegenerating = false;
+  ApiError? _currentError;
 
   @override
   void initState() {
@@ -179,24 +270,48 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
     }
   }
 
-  void _generateNewCode() async {
-    setState(() => _isRegenerating = true);
-    final newCode = Band.generateUniqueInviteCode();
-
-    final updatedBand = widget.band.copyWith(inviteCode: newCode);
-
-    // Save to global collection
-    await ref.read(firestoreProvider).saveBandToGlobal(updatedBand);
-
-    // Save to user's collection
-    await ref
-        .read(firestoreProvider)
-        .saveBand(updatedBand, widget.currentUserId);
-
+  void _handleError(ApiError error) {
     setState(() {
-      _inviteCode = newCode;
-      _isRegenerating = false;
+      _currentError = error;
     });
+    ref.read(errorNotifierProvider.notifier).handleError(error);
+  }
+
+  void _generateNewCode() async {
+    setState(() {
+      _isRegenerating = true;
+      _currentError = null;
+    });
+
+    try {
+      final newCode = Band.generateUniqueInviteCode();
+
+      final updatedBand = widget.band.copyWith(inviteCode: newCode);
+
+      // Save to global collection
+      await ref.read(firestoreProvider).saveBandToGlobal(updatedBand);
+
+      // Save to user's collection
+      await ref
+          .read(firestoreProvider)
+          .saveBand(updatedBand, widget.currentUserId);
+
+      setState(() {
+        _inviteCode = newCode;
+        _isRegenerating = false;
+      });
+    } on ApiError catch (e) {
+      _handleError(e);
+      setState(() {
+        _isRegenerating = false;
+      });
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleError(error);
+      setState(() {
+        _isRegenerating = false;
+      });
+    }
   }
 
   Future<void> _shareInvite() async {
@@ -294,21 +409,47 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
           ),
         );
       }
-    } catch (e) {
+    } on ApiError catch (e) {
+      _handleError(e);
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Could not share: $e')));
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleError(error);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
       }
     }
   }
 
   Future<void> _copyToClipboard() async {
-    await Clipboard.setData(ClipboardData(text: _inviteCode));
-    if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Code copied!')));
+    try {
+      await Clipboard.setData(ClipboardData(text: _inviteCode));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Code copied!')));
+      }
+    } on ApiError catch (e) {
+      _handleError(e);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleError(error);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
     }
   }
 
@@ -319,6 +460,37 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Error banner
+          if (_currentError != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.red.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _currentError!.message,
+                      style: TextStyle(
+                        color: Colors.red.shade900,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           const Text('Share this code with band members:'),
           const SizedBox(height: 16),
           Container(
@@ -341,17 +513,17 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               TextButton.icon(
-                onPressed: _generateNewCode,
+                onPressed: _isRegenerating ? null : _generateNewCode,
                 icon: const Icon(Icons.refresh),
                 label: const Text('New Code'),
               ),
               TextButton.icon(
-                onPressed: _copyToClipboard,
+                onPressed: _isRegenerating ? null : _copyToClipboard,
                 icon: const Icon(Icons.copy),
                 label: const Text('Copy'),
               ),
               TextButton.icon(
-                onPressed: _shareInvite,
+                onPressed: _isRegenerating ? null : _shareInvite,
                 icon: const Icon(Icons.share),
                 label: const Text('Share'),
               ),

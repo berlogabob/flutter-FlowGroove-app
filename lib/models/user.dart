@@ -1,3 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'user.g.dart';
+
 // Sentinel value to detect if a parameter was passed to copyWith
 const Object _sentinel = _Sentinel();
 
@@ -7,12 +11,16 @@ class _Sentinel {
   String toString() => '_sentinel';
 }
 
+@JsonSerializable()
 class AppUser {
+  @JsonKey(defaultValue: '')
   final String uid;
   final String? displayName;
   final String? email;
   final String? photoURL;
+  @JsonKey(defaultValue: [])
   final List<String> bandIds;
+  @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
 
   AppUser({
@@ -44,23 +52,16 @@ class AppUser {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'uid': uid,
-    'displayName': displayName,
-    'email': email,
-    'photoURL': photoURL,
-    'bandIds': bandIds,
-    'createdAt': createdAt.toIso8601String(),
-  };
+  Map<String, dynamic> toJson() => _$AppUserToJson(this);
 
-  factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
-    uid: json['uid'] ?? '',
-    displayName: json['displayName'],
-    email: json['email'],
-    photoURL: json['photoURL'],
-    bandIds: (json['bandIds'] as List<dynamic>?)?.cast<String>() ?? [],
-    createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
-  );
+  factory AppUser.fromJson(Map<String, dynamic> json) =>
+      _$AppUserFromJson(json);
 }
+
+DateTime _parseDateTime(dynamic value) {
+  if (value == null) return DateTime.now();
+  if (value is DateTime) return value;
+  return DateTime.parse(value as String);
+}
+
+String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();

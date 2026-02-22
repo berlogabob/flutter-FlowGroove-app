@@ -1,3 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'setlist.g.dart';
+
 // Sentinel value to detect if a parameter was passed to copyWith
 const Object _sentinel = _Sentinel();
 
@@ -7,16 +11,23 @@ class _Sentinel {
   String toString() => '_sentinel';
 }
 
+@JsonSerializable()
 class Setlist {
+  @JsonKey(defaultValue: '')
   final String id;
+  @JsonKey(defaultValue: '')
   final String bandId;
+  @JsonKey(defaultValue: '')
   final String name;
   final String? description;
   final String? eventDate;
   final String? eventLocation;
+  @JsonKey(defaultValue: [])
   final List<String> songIds;
   final int? totalDuration;
+  @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
+  @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime updatedAt;
 
   Setlist({
@@ -64,33 +75,16 @@ class Setlist {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'bandId': bandId,
-    'name': name,
-    'description': description,
-    'eventDate': eventDate,
-    'eventLocation': eventLocation,
-    'songIds': songIds,
-    'totalDuration': totalDuration,
-    'createdAt': createdAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
-  };
+  Map<String, dynamic> toJson() => _$SetlistToJson(this);
 
-  factory Setlist.fromJson(Map<String, dynamic> json) => Setlist(
-    id: json['id'] ?? '',
-    bandId: json['bandId'] ?? '',
-    name: json['name'] ?? '',
-    description: json['description'],
-    eventDate: json['eventDate'],
-    eventLocation: json['eventLocation'],
-    songIds: (json['songIds'] as List<dynamic>?)?.cast<String>() ?? [],
-    totalDuration: json['totalDuration'],
-    createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
-    updatedAt: json['updatedAt'] != null
-        ? DateTime.parse(json['updatedAt'])
-        : DateTime.now(),
-  );
+  factory Setlist.fromJson(Map<String, dynamic> json) =>
+      _$SetlistFromJson(json);
 }
+
+DateTime _parseDateTime(dynamic value) {
+  if (value == null) return DateTime.now();
+  if (value is DateTime) return value;
+  return DateTime.parse(value as String);
+}
+
+String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
