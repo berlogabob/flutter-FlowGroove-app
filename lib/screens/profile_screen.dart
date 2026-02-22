@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../providers/auth_provider.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../theme/app_theme.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -26,13 +26,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       // Try to load version from web/version.json
       final response = await http.get(Uri.parse('version.json'));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final version = data['version'] as String;
         final buildNumber = data['buildNumber'] as String;
         final buildDateStr = data['buildDate'] as String?;
-        
+
         // Parse build date and convert to Lisbon timezone
         String buildDate = '';
         if (buildDateStr != null && buildDateStr.isNotEmpty) {
@@ -40,7 +40,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             final utcDate = DateTime.parse(buildDateStr);
             // Convert to Lisbon timezone (UTC+0 in winter, UTC+1 in summer)
             // For simplicity, use UTC offset for Portugal
-            final lisbonDate = utcDate.toLocal(); // Flutter web runs in browser timezone
+            final lisbonDate = utcDate
+                .toLocal(); // Flutter web runs in browser timezone
             buildDate =
                 '${lisbonDate.year}-${lisbonDate.month.toString().padLeft(2, '0')}-${lisbonDate.day.toString().padLeft(2, '0')} '
                 '${lisbonDate.hour.toString().padLeft(2, '0')}:${lisbonDate.minute.toString().padLeft(2, '0')}';
@@ -48,7 +49,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             buildDate = '';
           }
         }
-        
+
         if (mounted) {
           setState(() {
             _version = '$version+$buildNumber';
@@ -290,9 +291,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Navigator.pop(context);
               await ref.read(appUserProvider.notifier).signOut();
               if (context.mounted) {
-                Navigator.of(
+                Navigator.pushNamedAndRemoveUntil(
                   context,
-                ).pushNamedAndRemoveUntil('/login', (route) => false);
+                  '/login',
+                  (route) => false,
+                );
               }
             },
             style: ElevatedButton.styleFrom(

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/song.dart';
 import '../../../models/band.dart';
-import '../../../providers/auth_provider.dart';
-import '../../../providers/data_providers.dart';
+import '../../../providers/auth/auth_provider.dart';
+import '../../../providers/data/data_providers.dart';
 import '../../../theme/app_theme.dart';
 import '../../../widgets/song_attribution_badge.dart';
 import '../../../widgets/empty_state.dart';
@@ -111,6 +111,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       ),
       floatingActionButton: _canEdit
           ? FloatingActionButton(
+              heroTag: 'band_songs_fab',
               onPressed: () => _addSongToBand(context, ref),
               child: const Icon(Icons.add),
             )
@@ -317,7 +318,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
     if (!_canEdit) return;
 
-    Navigator.pushNamed(context, '/edit-song', arguments: song);
+    Navigator.pushNamed(context, '/songs/${song.id}/edit', arguments: song);
   }
 }
 

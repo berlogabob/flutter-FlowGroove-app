@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/mockito.dart';
-import 'mocks.dart';
+import 'mocks.mocks.dart';
 
 /// Creates a [ProviderContainer] for testing
 ProviderContainer createProviderContainer() {
@@ -93,7 +93,7 @@ Future<void> pumpAppWidget(
     UncontrolledProviderScope(
       container: providerContainer,
       child: MaterialApp(
-        home: widget,
+        home: Material(child: widget),
         navigatorObservers: navigatorObservers ?? [],
       ),
     ),
@@ -177,16 +177,20 @@ UserCredential createMockUserCredential({
 class MockNavigatorObserver extends NavigatorObserver {
   final Function(Route<dynamic>)? onPush;
   final Function(Route<dynamic>)? onPop;
+  final List<Route<dynamic>> pushedRoutes = [];
+  final List<Route<dynamic>> poppedRoutes = [];
 
   MockNavigatorObserver({this.onPush, this.onPop});
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    pushedRoutes.add(route);
     onPush?.call(route);
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    poppedRoutes.add(route);
     onPop?.call(route);
   }
 }

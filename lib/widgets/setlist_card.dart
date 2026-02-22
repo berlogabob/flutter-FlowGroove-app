@@ -30,6 +30,9 @@ class SetlistCard extends StatelessWidget {
   /// Callback when the delete button is pressed.
   final VoidCallback? onDelete;
 
+  /// Callback when the export PDF button is pressed.
+  final VoidCallback? onExportPdf;
+
   const SetlistCard({
     super.key,
     required this.id,
@@ -40,6 +43,7 @@ class SetlistCard extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
+    this.onExportPdf,
   });
 
   @override
@@ -74,6 +78,16 @@ class SetlistCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (onExportPdf != null)
+              IconButton(
+                icon: const Icon(
+                  Icons.picture_as_pdf,
+                  size: 20,
+                  color: Colors.red,
+                ),
+                onPressed: onExportPdf,
+                tooltip: 'Export PDF',
+              ),
             if (onEdit != null)
               IconButton(
                 icon: const Icon(Icons.edit, size: 20),

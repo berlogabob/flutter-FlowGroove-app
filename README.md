@@ -17,6 +17,10 @@
 - Web-first (works in browser on iPhone/Android)
 - Spotify integration for BPM & key detection
 - Real-time collaboration with band members
+- **Offline-first architecture** - Full offline support with local data synchronization
+- **Mobile audio playback** - Audio support for practice and performance
+- **Enhanced navigation** - Improved routing with go_router
+- **Robust error handling** - Comprehensive error management throughout the app
 
 ## Tech Stack
 - Flutter (web-first)

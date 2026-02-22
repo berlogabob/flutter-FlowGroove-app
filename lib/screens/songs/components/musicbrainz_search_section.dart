@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../services/musicbrainz_service.dart';
+import '../../../services/api/musicbrainz_service.dart';
 import '../../../theme/app_theme.dart';
 
 /// A bottom sheet widget for searching and selecting recordings from MusicBrainz.
