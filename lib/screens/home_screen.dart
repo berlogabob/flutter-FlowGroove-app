@@ -1,11 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/data_providers.dart';
-import '../providers/auth_provider.dart';
+import '../providers/data/data_providers.dart';
+import '../providers/auth/auth_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/offline_indicator.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('RepSync')),
+      body: const Column(
+        children: [
+          OfflineIndicator(),
+          Expanded(child: HomeScreenBody()),
+        ],
+      ),
+    );
+  }
+}
+
+class HomeScreenBody extends ConsumerWidget {
+  const HomeScreenBody({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -14,33 +32,30 @@ class HomeScreen extends ConsumerWidget {
     final bandCount = ref.watch(bandCountProvider);
     final setlistCount = ref.watch(setlistCountProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('RepSync')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              userAsync.when(
-                data: (user) =>
-                    _buildGreeting(context, user?.displayName ?? 'User'),
-                loading: () => _buildGreeting(context, 'Loading...'),
-                error: (error, stack) => _buildGreeting(context, 'User'),
-              ),
-              const SizedBox(height: 24),
-              _buildStatisticsSection(
-                context,
-                songCount,
-                bandCount,
-                setlistCount,
-              ),
-              const SizedBox(height: 24),
-              _buildQuickActions(context),
-              const SizedBox(height: 24),
-              _buildFutureTools(context),
-            ],
-          ),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            userAsync.when(
+              data: (user) =>
+                  _buildGreeting(context, user?.displayName ?? 'User'),
+              loading: () => _buildGreeting(context, 'Loading...'),
+              error: (error, stack) => _buildGreeting(context, 'User'),
+            ),
+            const SizedBox(height: 24),
+            _buildStatisticsSection(
+              context,
+              songCount,
+              bandCount,
+              setlistCount,
+            ),
+            const SizedBox(height: 24),
+            _buildQuickActions(context),
+            const SizedBox(height: 24),
+            _buildFutureTools(context),
+          ],
         ),
       ),
     );
@@ -103,7 +118,7 @@ class HomeScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Statistics',
+          'My Library',
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -213,8 +228,8 @@ class HomeScreen extends ConsumerWidget {
               child: _buildActionButton(
                 context,
                 icon: Icons.add,
-                label: '+ Song',
-                onTap: () => Navigator.pushNamed(context, '/add-song'),
+                label: 'Song',
+                onTap: () => Navigator.pushNamed(context, '/songs/add'),
               ),
             ),
             const SizedBox(width: 12),
@@ -222,8 +237,8 @@ class HomeScreen extends ConsumerWidget {
               child: _buildActionButton(
                 context,
                 icon: Icons.group_add,
-                label: '+ Group',
-                onTap: () => Navigator.pushNamed(context, '/create-band'),
+                label: 'Band',
+                onTap: () => Navigator.pushNamed(context, '/bands/create'),
               ),
             ),
           ],
@@ -235,8 +250,8 @@ class HomeScreen extends ConsumerWidget {
               child: _buildActionButton(
                 context,
                 icon: Icons.playlist_add,
-                label: '+ Setlist',
-                onTap: () => Navigator.pushNamed(context, '/create-setlist'),
+                label: 'Setlist',
+                onTap: () => Navigator.pushNamed(context, '/setlists/create'),
               ),
             ),
             const SizedBox(width: 12),
@@ -317,6 +332,7 @@ class HomeScreen extends ConsumerWidget {
                 context,
                 icon: Icons.speed,
                 label: 'Metronome',
+                onTap: () => Navigator.pushNamed(context, '/metronome'),
               ),
             ),
           ],
@@ -329,40 +345,51 @@ class HomeScreen extends ConsumerWidget {
     BuildContext context, {
     required IconData icon,
     required String label,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.grey[600]),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(color: Colors.grey[600]),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.grey[500],
-              borderRadius: BorderRadius.circular(4),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: onTap != null
+              ? AppColors.color1.withValues(alpha: 0.1)
+              : Colors.grey[300],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: onTap != null ? AppColors.color1 : Colors.grey[600],
             ),
-            child: Text(
-              'Soon',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white,
-                fontSize: 10,
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: onTap != null ? AppColors.color1 : Colors.grey[600],
               ),
             ),
-          ),
-        ],
+            if (onTap == null) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.grey[500],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Soon',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

@@ -42,7 +42,7 @@ void main() {
     ) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner(message: 'Error', showRetry: true),
+        ErrorBanner(message: 'Error', showRetry: true, onRetry: () {}),
       );
 
       expect(findText('Retry'), findsOneWidget);
@@ -121,9 +121,10 @@ void main() {
     ) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner(
+        ErrorBanner(
           message: 'Card Error',
           showRetry: true,
+          onRetry: () {},
           style: ErrorBannerStyle.card,
         ),
       );
@@ -136,9 +137,10 @@ void main() {
     ) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner(
+        ErrorBanner(
           message: 'Inline Error',
           showRetry: true,
+          onRetry: () {},
           style: ErrorBannerStyle.inline,
         ),
       );

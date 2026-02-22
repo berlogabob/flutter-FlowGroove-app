@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../providers/auth_provider.dart';
+import '../models/api_error.dart';
+import '../providers/auth/auth_provider.dart';
+import '../providers/auth/error_provider.dart';
+import '../widgets/error_banner.dart';
 
+/// Login screen with comprehensive error handling.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,6 +18,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  ApiError? _currentError;
 
   @override
   void dispose() {
@@ -23,49 +27,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  /// Clears the current error.
+  void _clearError() {
+    setState(() {
+      _currentError = null;
+    });
+    ref.read(errorNotifierProvider.notifier).clearError();
+  }
+
+  /// Handles an error by updating state and showing a message.
+  void _handleError(ApiError error) {
+    setState(() {
+      _currentError = error;
+    });
+    ref.read(errorNotifierProvider.notifier).handleError(error);
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
+      _currentError = null;
     });
 
     try {
-      await ref
-          .read(firebaseAuthProvider)
-          .signInWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
+      final authNotifier = ref.read(appUserProvider.notifier);
+      await authNotifier.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        // Navigate to main shell after successful login
+        Navigator.pushReplacementNamed(context, '/main');
       }
-    } on FirebaseAuthException catch (e) {
-      String message;
-      switch (e.code) {
-        case 'user-not-found':
-          message = 'No user found with this email';
-          break;
-        case 'wrong-password':
-          message = 'Wrong password';
-          break;
-        case 'invalid-email':
-          message = 'Invalid email address';
-          break;
-        default:
-          message = 'Login failed: ${e.message}';
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+    } on ApiError catch (e) {
+      _handleError(e);
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleError(error);
     } finally {
       if (mounted) {
         setState(() {
@@ -78,7 +79,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Welcome Back')),
+      appBar: AppBar(
+        title: const Text('Welcome Back'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -102,17 +109,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
+              // Error banner
+              if (_currentError != null) ...[
+                ErrorBanner(
+                  message: _currentError!.message,
+                  title: _currentError!.title,
+                  onRetry: _clearError,
+                  showRetry: true,
+                  style: ErrorBannerStyle.banner,
+                ),
+                const SizedBox(height: 24),
+              ],
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Email',
-                  prefixIcon: Icon(Icons.email_outlined),
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  errorText:
+                      _currentError?.isValidation == true &&
+                          _currentError!.message.toLowerCase().contains('email')
+                      ? _currentError!.message
+                      : null,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter your email';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Please enter a valid email';
                   }
                   return null;
                 },
@@ -134,7 +160,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    // Forgot password not implemented yet
+                  },
+                  child: const Text('Forgot Password?'),
+                ),
+              ),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
@@ -157,9 +192,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/register');
-                    },
+                    onPressed: () => Navigator.pushNamed(context, '/register'),
                     child: const Text('Sign Up'),
                   ),
                 ],

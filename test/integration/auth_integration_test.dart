@@ -10,17 +10,17 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/mockito.dart';
-import '../helpers/mocks.dart';
+import '../helpers/mocks.mocks.dart';
 
 void main() {
   late MockFirebaseAuth mockAuth;
   late MockUser mockUser;
-  late MockCredential mockCredential;
+  late MockUserCredential mockCredential;
 
   setUp(() {
     mockAuth = MockFirebaseAuth();
     mockUser = MockUser();
-    mockCredential = MockCredential();
+    mockCredential = MockUserCredential();
 
     // Setup default mock behaviors
     when(mockCredential.user).thenReturn(mockUser);
@@ -29,13 +29,6 @@ void main() {
     when(mockUser.displayName).thenReturn('Test User');
     when(mockUser.isAnonymous).thenReturn(false);
     when(mockUser.emailVerified).thenReturn(false);
-  });
-
-  tearDown(() async {
-    // Reset mocks
-    reset(mockAuth);
-    reset(mockUser);
-    reset(mockCredential);
   });
 
   group('Authentication - User Creation', () {
@@ -256,7 +249,7 @@ void main() {
   group('Authentication - Auth State Changes', () {
     test('listens to auth state changes', () async {
       final userStream = Stream<User?>.value(mockUser);
-      when(mockAuth.authStateChanges()).thenReturn(userStream);
+      when(mockAuth.authStateChanges()).thenAnswer((_) => userStream);
 
       final stream = mockAuth.authStateChanges();
 
@@ -265,7 +258,7 @@ void main() {
 
     test('emits null when user signs out', () async {
       final userStream = Stream<User?>.value(null);
-      when(mockAuth.authStateChanges()).thenReturn(userStream);
+      when(mockAuth.authStateChanges()).thenAnswer((_) => userStream);
 
       final stream = mockAuth.authStateChanges();
       await expectLater(stream, emits(null));
@@ -273,28 +266,34 @@ void main() {
   });
 
   group('User Model', () {
-    test('user has correct uid', () async {
-      when(mockUser.uid).thenReturn('unique-user-id');
+    late MockUser localMockUser;
 
-      expect(mockUser.uid, equals('unique-user-id'));
+    setUp(() {
+      localMockUser = MockUser();
+    });
+
+    test('user has correct uid', () async {
+      when(localMockUser.uid).thenReturn('unique-user-id');
+
+      expect(localMockUser.uid, equals('unique-user-id'));
     });
 
     test('user has correct email', () async {
-      when(mockUser.email).thenReturn('user@example.com');
+      when(localMockUser.email).thenReturn('user@example.com');
 
-      expect(mockUser.email, equals('user@example.com'));
+      expect(localMockUser.email, equals('user@example.com'));
     });
 
     test('user has correct display name', () async {
-      when(mockUser.displayName).thenReturn('John Doe');
+      when(localMockUser.displayName).thenReturn('John Doe');
 
-      expect(mockUser.displayName, equals('John Doe'));
+      expect(localMockUser.displayName, equals('John Doe'));
     });
 
     test('user is not anonymous', () async {
-      when(mockUser.isAnonymous).thenReturn(false);
+      when(localMockUser.isAnonymous).thenReturn(false);
 
-      expect(mockUser.isAnonymous, isFalse);
+      expect(localMockUser.isAnonymous, isFalse);
     });
   });
 }

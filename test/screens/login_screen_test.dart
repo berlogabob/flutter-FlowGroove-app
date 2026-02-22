@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mockito/mockito.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mockito/mockito.dart';
 import 'package:flutter_repsync_app/screens/login_screen.dart';
-import 'package:flutter_repsync_app/providers/auth_provider.dart';
+import 'package:flutter_repsync_app/providers/auth/auth_provider.dart';
 import '../helpers/test_helpers.dart';
 import '../helpers/mocks.dart';
+import '../helpers/mocks.mocks.dart';
 
 void main() {
   group('LoginScreen', () {
     late MockFirebaseAuth mockAuth;
-    late MockFirebaseFirestore mockFirestore;
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
-      mockFirestore = MockFirebaseFirestore();
     });
 
     testWidgets('renders login screen with all elements', (
