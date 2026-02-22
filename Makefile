@@ -11,17 +11,21 @@ help:
 	@echo "  make increment-version    - Increment build number (e.g., 0.10.1+1 → 0.10.1+2)"
 	@echo "  make build-web            - Build for web (GitHub Pages)"
 	@echo "  make build-android        - Build for Android (APK)"
+	@echo "  make build-appbundle      - Build for Android App Bundle (Play Store)"
 	@echo "  make build-all            - Build for web and Android"
 	@echo "  make deploy-web           - Build web + copy to docs/"
-	@echo "  make deploy               - Build web + copy to docs/ + commit + push"
-	@echo "  make release              - Full release: increment + build + deploy"
+	@echo "  make deploy               - Build web + copy + commit + push"
+	@echo "  make release              - Full release: increment + build + deploy + GitHub Release"
+	@echo "  make github-release       - Create GitHub Release only (with APK + AAB)"
+	@echo "  make release-notes        - Generate release notes from git log"
 	@echo "  make clean                - Clean build artifacts"
 	@echo "  make test                 - Run all tests"
 	@echo "  make analyze              - Run flutter analyze"
 	@echo ""
 	@echo "Examples:"
-	@echo "  make release              # Full release cycle"
+	@echo "  make release              # Full release cycle with GitHub Release"
 	@echo "  make deploy               # Quick deploy to GitHub Pages"
+	@echo "  make github-release       # Create GitHub Release with artifacts"
 	@echo ""
 
 # Get current version from pubspec.yaml
@@ -96,7 +100,7 @@ deploy: build-web
 	@echo "🌐 GitHub Pages: https://berlogabob.github.io/flutter-repsync-app/"
 	@echo "⏱️  Deployment takes 1-2 minutes"
 
-# Full release cycle: increment + build + deploy
+# Full release cycle: increment + build + deploy + GitHub Release
 release: increment-version build-web build-android
 	@echo ""
 	@echo "📦 Copying web build to docs/..."
@@ -114,12 +118,21 @@ release: increment-version build-web build-android
 	@git push origin main
 	@git push origin "v$(NEW_VERSION)"
 	@echo ""
+	@echo "📱 Creating GitHub Release..."
+	@gh release create "v$(NEW_VERSION)" \
+		--title "Release $(NEW_VERSION)" \
+		--notes "Release $(NEW_VERSION) - $$(date +%Y-%m-%d)" \
+		--target main \
+		build/app/outputs/flutter-apk/app-release.apk#android-apk \
+		build/app/outputs/bundle/release/app-release.aab#android-aab || echo "⚠️  GitHub CLI not installed or not authenticated. Skipping release creation."
+	@echo ""
 	@echo "🎉 Release $(NEW_VERSION) complete!"
 	@echo ""
 	@echo "📱 Artifacts:"
 	@echo "   Web: https://berlogabob.github.io/flutter-repsync-app/"
 	@echo "   Android APK: build/app/outputs/flutter-apk/app-release.apk"
 	@echo "   Android AAB: build/app/outputs/bundle/release/app-release.aab"
+	@echo "   GitHub Release: https://github.com/berlogabob/flutter-repsync-app/releases/tag/v$(NEW_VERSION)"
 	@echo ""
 	@echo "📝 Next steps:"
 	@echo "   1. Test web deployment"
@@ -211,16 +224,31 @@ watch:
 	@echo "👀 Watching for changes..."
 	@flutter pub run build_runner watch
 
-# Create release notes
+# Create GitHub Release only (without building)
+github-release:
+	@echo "📱 Creating GitHub Release..."
+	@gh release create "v$(shell grep '^version:' pubspec.yaml | sed 's/version: //')" \
+		--title "Release $(shell grep '^version:' pubspec.yaml | sed 's/version: //')" \
+		--notes-file RELEASE_NOTES.md \
+		--target main \
+		build/app/outputs/flutter-apk/app-release.apk#android-apk \
+		build/app/outputs/bundle/release/app-release.aab#android-aab
+	@echo "✅ GitHub Release created!"
+	@echo "🔗 https://github.com/berlogabob/flutter-repsync-app/releases/tag/v$(shell grep '^version:' pubspec.yaml | sed 's/version: //')"
+
+# Create release notes from git log
 release-notes:
 	@echo "📝 Creating release notes..."
 	@echo "# Release $(NEW_VERSION)" > RELEASE_NOTES.md
 	@echo "" >> RELEASE_NOTES.md
 	@echo "**Date:** $$(date +%Y-%m-%d)" >> RELEASE_NOTES.md
 	@echo "" >> RELEASE_NOTES.md
-	@echo "## Changes" >> RELEASE_NOTES.md
+	@echo "## What's Changed" >> RELEASE_NOTES.md
 	@echo "" >> RELEASE_NOTES.md
-	@git log --oneline --no-merges -10 >> RELEASE_NOTES.md
+	@git log --oneline --no-merges -20 | sed 's/^/- /' >> RELEASE_NOTES.md
 	@echo "" >> RELEASE_NOTES.md
+	@echo "## Full Changelog" >> RELEASE_NOTES.md
+	@echo "" >> RELEASE_NOTES.md
+	@echo "https://github.com/berlogabob/flutter-repsync-app/compare/v$(CURRENT_VERSION)+$(shell echo $$(($(CURRENT_BUILD)-1)))...v$(NEW_VERSION)" >> RELEASE_NOTES.md
 	@echo "✅ Release notes created: RELEASE_NOTES.md"
 	@cat RELEASE_NOTES.md

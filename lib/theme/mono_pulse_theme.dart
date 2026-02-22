@@ -377,7 +377,7 @@ class MonoPulseTheme {
       ),
 
       // Floating Action Button
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: MonoPulseColors.accentOrange,
         foregroundColor: MonoPulseColors.black,
         elevation: 0,
