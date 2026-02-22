@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/screens/songs/add_song_screen.dart';
-import 'package:flutter_repsync_app/providers/auth_provider.dart';
+import 'package:flutter_repsync_app/providers/auth/auth_provider.dart';
+import 'package:flutter_repsync_app/providers/data/data_providers.dart';
 import 'package:flutter_repsync_app/models/user.dart';
+import 'package:flutter_repsync_app/models/song.dart';
+import 'package:flutter_repsync_app/models/api_error.dart';
 
 import '../../helpers/test_helpers.dart';
 import '../../helpers/mocks.dart';
@@ -22,9 +25,11 @@ class TestAppUserNotifier extends AppUserNotifier {
 void main() {
   group('AddSongScreen', () {
     late MockFirebaseAuth mockAuth;
+    late MockFirestoreService mockFirestore;
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
+      mockFirestore = MockFirestoreService();
     });
 
     testWidgets('renders add song screen with title', (
@@ -398,6 +403,277 @@ void main() {
 
       // Verify links section
       expect(find.text('Links'), findsOneWidget);
+    });
+
+    testWidgets('renders scaffold', (WidgetTester tester) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      expect(find.byType(Scaffold), findsOneWidget);
+    });
+
+    testWidgets('renders app bar', (WidgetTester tester) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      expect(find.byType(AppBar), findsOneWidget);
+    });
+
+    testWidgets('renders ListView body', (WidgetTester tester) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      expect(find.byType(ListView), findsOneWidget);
+    });
+
+    testWidgets('displays TextButton in app bar actions', (
+      WidgetTester tester,
+    ) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      expect(find.byType(TextButton), findsOneWidget);
+    });
+
+    testWidgets('displays Wrap for search buttons', (
+      WidgetTester tester,
+    ) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      await tester.dragUntilVisible(
+        find.byType(Wrap),
+        find.byType(ListView),
+        const Offset(0, -500),
+      );
+      await tester.pump();
+
+      expect(find.byType(Wrap), findsOneWidget);
+    });
+
+    testWidgets('displays TextButton icons for search', (
+      WidgetTester tester,
+    ) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      await tester.dragUntilVisible(
+        find.byType(TextButton),
+        find.byType(ListView),
+        const Offset(0, -500),
+      );
+      await tester.pump();
+
+      expect(find.byType(TextButton), findsWidgets);
+    });
+
+    testWidgets('displays search icons', (WidgetTester tester) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      await tester.dragUntilVisible(
+        find.byIcon(Icons.search),
+        find.byType(ListView),
+        const Offset(0, -500),
+      );
+      await tester.pump();
+
+      expect(find.byIcon(Icons.search), findsWidgets);
+    });
+
+    testWidgets('displays music note icon for Spotify', (
+      WidgetTester tester,
+    ) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      await tester.dragUntilVisible(
+        find.byIcon(Icons.music_note),
+        find.byType(ListView),
+        const Offset(0, -500),
+      );
+      await tester.pump();
+
+      expect(find.byIcon(Icons.music_note), findsOneWidget);
+    });
+
+    testWidgets('displays analytics icon for BPM/Key', (
+      WidgetTester tester,
+    ) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      await tester.dragUntilVisible(
+        find.byIcon(Icons.analytics),
+        find.byType(ListView),
+        const Offset(0, -500),
+      );
+      await tester.pump();
+
+      expect(find.byIcon(Icons.analytics), findsOneWidget);
+    });
+
+    testWidgets('displays SizedBox for spacing', (WidgetTester tester) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      expect(find.byType(SizedBox), findsWidgets);
+    });
+
+    testWidgets('displays Align widget for search buttons', (
+      WidgetTester tester,
+    ) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      await tester.dragUntilVisible(
+        find.byType(Align),
+        find.byType(ListView),
+        const Offset(0, -500),
+      );
+      await tester.pump();
+
+      expect(find.byType(Align), findsOneWidget);
+    });
+
+    testWidgets('handles null song for add mode', (WidgetTester tester) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(song: null),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      expect(find.text('Add Song'), findsOneWidget);
+    });
+
+    testWidgets('initializes with empty form data for new song', (
+      WidgetTester tester,
+    ) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      // Form should be ready for input
+      expect(find.byType(TextFormField), findsWidgets);
+    });
+
+    testWidgets('displays all 5 available tags', (WidgetTester tester) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+        ],
+      );
+
+      expect(find.text('ready'), findsOneWidget);
+      expect(find.text('learning'), findsOneWidget);
+      expect(find.text('hard'), findsOneWidget);
+      expect(find.text('slow'), findsOneWidget);
+      expect(find.text('fast'), findsOneWidget);
     });
   });
 }

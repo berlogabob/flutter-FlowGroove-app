@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
-import '../providers/ui/error_provider.dart';
+import '../providers/auth/error_provider.dart';
 import '../widgets/error_banner.dart';
 
 /// Login screen with comprehensive error handling.

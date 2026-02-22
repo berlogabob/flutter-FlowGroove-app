@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/api_error.dart';
+import '../../models/api_error.dart';
 
 /// MusicBrainz Service for searching recordings and getting metadata.
 ///

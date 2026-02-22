@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/services/audio_engine_mobile.dart';
+import 'package:flutter_repsync_app/services/audio/audio_engine_mobile.dart';
 
 void main() {
   group('AudioEngine (Mobile)', () {

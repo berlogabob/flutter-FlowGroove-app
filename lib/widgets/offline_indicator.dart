@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/api/connectivity_service.dart';
+import '../services/connectivity_service.dart';
 
 /// OfflineIndicator displays a banner when the device is offline.
 ///

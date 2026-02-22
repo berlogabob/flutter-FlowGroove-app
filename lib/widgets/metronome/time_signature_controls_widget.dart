@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/ui/metronome_provider.dart';
+import '../../providers/data/metronome_provider.dart';
 import '../../models/time_signature.dart';
 
 /// Time Signature Controls widget - Preset buttons for common time signatures

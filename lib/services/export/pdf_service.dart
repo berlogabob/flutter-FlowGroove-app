@@ -1,8 +1,8 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import '../models/setlist.dart';
-import '../models/song.dart';
+import '../../models/setlist.dart';
+import '../../models/song.dart';
 
 class PdfService {
   static Future<void> exportSetlist(Setlist setlist, List<Song> songs) async {

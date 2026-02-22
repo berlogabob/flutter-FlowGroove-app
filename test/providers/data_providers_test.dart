@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_repsync_app/providers/data_providers.dart';
+import 'package:flutter_repsync_app/providers/data/data_providers.dart';
 
 import '../helpers/mocks.dart';
 import '../helpers/mocks.mocks.dart';

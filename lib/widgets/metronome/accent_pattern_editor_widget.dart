@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/ui/metronome_provider.dart';
+import '../../providers/data/metronome_provider.dart';
 
 /// Accent Pattern Editor widget - Visual toggle buttons for each beat
 /// Replaces text input with intuitive toggle buttons (Accent/Regular)

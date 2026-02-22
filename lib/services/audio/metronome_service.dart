@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/time_signature.dart';
-import '../models/metronome_state.dart';
-import '../providers/ui/metronome_provider.dart';
+import '../../models/time_signature.dart';
+import '../../models/metronome_state.dart';
+import '../../providers/data/metronome_provider.dart';
 
 /// MetronomeService - Riverpod-based implementation
 ///
