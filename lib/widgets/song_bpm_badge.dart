@@ -6,12 +6,7 @@ class SongBPMBadge extends StatelessWidget {
   final VoidCallback? onTap;
   final bool showLabel;
 
-  const SongBPMBadge({
-    super.key,
-    this.bpm,
-    this.onTap,
-    this.showLabel = true,
-  });
+  const SongBPMBadge({super.key, this.bpm, this.onTap, this.showLabel = true});
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +26,7 @@ class SongBPMBadge extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.speed,
-              size: 16,
-              color: Colors.blue.shade700,
-            ),
+            Icon(Icons.speed, size: 16, color: Colors.blue.shade700),
             const SizedBox(width: 4),
             Text(
               '$bpm BPM',

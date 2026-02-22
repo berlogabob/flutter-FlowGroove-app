@@ -8,6 +8,7 @@ import 'package:flutter_repsync_app/models/setlist.dart';
 import 'package:flutter_repsync_app/models/user.dart';
 import '../../helpers/test_helpers.dart';
 import '../../helpers/mocks.dart';
+import '../../helpers/mocks.mocks.dart';
 
 // Test notifier that returns a specific value
 class TestAppUserNotifier extends AppUserNotifier {
@@ -426,10 +427,7 @@ void main() {
       );
 
       // Verify error message
-      expect(
-        find.text('Error: Exception: Failed to load setlists'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Failed to load setlists'), findsOneWidget);
     });
 
     testWidgets('displays setlist cards with correct icons', (

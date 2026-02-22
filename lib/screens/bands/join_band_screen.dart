@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/data_providers.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/data/data_providers.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../models/band.dart';
 
 class JoinBandScreen extends ConsumerStatefulWidget {

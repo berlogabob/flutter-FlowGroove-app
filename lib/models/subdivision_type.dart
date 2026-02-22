@@ -1,14 +1,17 @@
+import 'package:json_annotation/json_annotation.dart';
+
 /// Subdivision types for metronome
+@JsonEnum()
 enum SubdivisionType {
   /// Quarter notes (1 beat)
   quarter,
-  
+
   /// Eighth notes (1/2 beat)
   eighth,
-  
+
   /// Triplets (1/3 beat)
   triplet,
-  
+
   /// Sixteenth notes (1/4 beat)
   sixteenth,
 }
@@ -28,7 +31,7 @@ extension SubdivisionMultiplier on SubdivisionType {
         return 4;
     }
   }
-  
+
   /// Display label
   String get label {
     switch (this) {

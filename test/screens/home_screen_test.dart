@@ -7,6 +7,7 @@ import 'package:flutter_repsync_app/providers/auth_provider.dart';
 import 'package:flutter_repsync_app/models/user.dart';
 import '../helpers/test_helpers.dart';
 import '../helpers/mocks.dart';
+import '../helpers/mocks.mocks.dart';
 
 // Test notifier that returns a specific value
 class TestAppUserNotifier extends AppUserNotifier {

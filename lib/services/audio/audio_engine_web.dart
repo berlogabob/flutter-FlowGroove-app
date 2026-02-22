@@ -50,8 +50,8 @@ class AudioEngine {
 
       // Frequency: accented beat = higher pitch (Reaper style)
       // Default values if not provided
-      final frequency = isAccent 
-          ? (accentFrequency ?? 1600) 
+      final frequency = isAccent
+          ? (accentFrequency ?? 1600)
           : (beatFrequency ?? 800);
       oscillator.frequency.value = frequency;
 

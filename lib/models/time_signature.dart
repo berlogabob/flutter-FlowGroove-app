@@ -1,7 +1,12 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'time_signature.g.dart';
+
 /// Represents a musical time signature for metronome functionality.
-/// 
+///
 /// Time signatures define the rhythmic structure of music by specifying
 /// how many beats are in each measure and what note value gets one beat.
+@JsonSerializable()
 class TimeSignature {
   /// The number of beats per measure (numerator).
   /// Valid range: 2-12
@@ -12,13 +17,10 @@ class TimeSignature {
   final int denominator;
 
   /// Creates a new [TimeSignature] with the specified numerator and denominator.
-  const TimeSignature({
-    required this.numerator,
-    required this.denominator,
-  });
+  const TimeSignature({required this.numerator, required this.denominator});
 
   /// Checks if this time signature has valid values.
-  /// 
+  ///
   /// Returns true if:
   /// - numerator is between 2 and 12 (inclusive)
   /// - denominator is either 4 or 8
@@ -44,7 +46,7 @@ class TimeSignature {
   static const waltz = TimeSignature(numerator: 3, denominator: 4);
 
   /// A collection of commonly used time signature presets.
-  /// 
+  ///
   /// Includes:
   /// - Simple duple: 2/4
   /// - Simple triple: 3/4
@@ -66,14 +68,14 @@ class TimeSignature {
   ];
 
   /// Parses a time signature from a string in the format "X/Y".
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// TimeSignature.fromString('4/4') // Returns TimeSignature(4, 4)
   /// TimeSignature.fromString('6 / 8') // Returns TimeSignature(6, 8)
   /// TimeSignature.fromString('invalid') // Returns null
   /// ```
-  /// 
+  ///
   /// Returns null if the string cannot be parsed or contains invalid values.
   static TimeSignature? fromString(String str) {
     try {
@@ -101,4 +103,9 @@ class TimeSignature {
 
   @override
   int get hashCode => numerator.hashCode ^ denominator.hashCode;
+
+  Map<String, dynamic> toJson() => _$TimeSignatureToJson(this);
+
+  factory TimeSignature.fromJson(Map<String, dynamic> json) =>
+      _$TimeSignatureFromJson(json);
 }

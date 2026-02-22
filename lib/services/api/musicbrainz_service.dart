@@ -1,14 +1,27 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../models/api_error.dart';
 
+/// MusicBrainz Service for searching recordings and getting metadata.
+///
+/// MusicBrainz is a free and open music encyclopedia that collects
+/// music metadata and makes it available to the public.
+///
+/// All methods throw [ApiError] exceptions for proper error handling.
 class MusicBrainzService {
   static const String _baseUrl = 'https://musicbrainz.org/ws/2';
   static const String _userAgent = 'RepSync/1.0.0 (berloga@example.com)';
 
+  /// Searches for recordings on MusicBrainz.
+  ///
+  /// Returns a list of [MusicBrainzRecording] matching the query.
+  /// Throws [ApiError] if the search fails.
   static Future<List<MusicBrainzRecording>> searchRecording(
     String query,
   ) async {
-    if (query.trim().isEmpty) return [];
+    if (query.trim().isEmpty) {
+      throw ApiError.validation(message: 'Search query cannot be empty.');
+    }
 
     try {
       // Clean query - remove special characters
@@ -46,17 +59,31 @@ class MusicBrainzService {
                 )
                 .toList();
           }
-        } else if (response.statusCode == 503) {
-          // Rate limited
-          break;
+        } else if (response.statusCode == 429) {
+          // Rate limited - wait and retry
+          await Future.delayed(const Duration(seconds: 2));
+          continue;
+        } else if (response.statusCode >= 500) {
+          throw ApiError.network(
+            message: 'MusicBrainz server is temporarily unavailable.',
+            exception: 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+          );
+        } else if (response.statusCode >= 400) {
+          throw ApiError.network(
+            message: 'Failed to search MusicBrainz.',
+            exception: 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+          );
         }
 
         // Small delay between queries to avoid rate limiting
         await Future.delayed(const Duration(milliseconds: 500));
       }
-    } catch (e) {
-      // Return empty list on error
+    } on ApiError {
+      rethrow;
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
     }
+
     return [];
   }
 }

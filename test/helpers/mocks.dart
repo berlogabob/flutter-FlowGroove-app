@@ -1,26 +1,33 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import 'package:mockito/mockito.dart';
+import 'package:mockito/annotations.dart';
+import 'package:hive/hive.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:printing/printing.dart';
 import 'package:flutter_repsync_app/models/user.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 import 'package:flutter_repsync_app/models/band.dart';
 import 'package:flutter_repsync_app/models/setlist.dart';
 
-// Mock classes for Firebase services
-class MockFirebaseAuth extends Mock implements FirebaseAuth {}
-
-class MockUser extends Mock implements User {}
-
-class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
-
-class MockCredential extends Mock implements UserCredential {}
-
-// Alias for consistency
-class MockUserCredential extends Mock implements UserCredential {}
-
-// Mock HTTP client for API testing
-class MockHttpClient extends Mock implements http.Client {}
+@GenerateMocks([
+  FirebaseAuth,
+  User,
+  FirebaseFirestore,
+  UserCredential,
+  http.Client,
+  Box,
+  Connectivity,
+  AudioPlayer,
+  Printing,
+  DocumentReference,
+  CollectionReference,
+  QuerySnapshot,
+  DocumentSnapshot,
+  WriteBatch,
+])
+void main() {}
 
 // Mock data helpers
 class MockDataHelper {

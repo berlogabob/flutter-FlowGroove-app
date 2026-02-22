@@ -6,15 +6,14 @@ import 'package:flutter_repsync_app/screens/auth/register_screen.dart';
 import 'package:flutter_repsync_app/providers/auth_provider.dart';
 import '../helpers/test_helpers.dart';
 import '../helpers/mocks.dart';
+import '../helpers/mocks.mocks.dart';
 
 void main() {
   group('RegisterScreen', () {
     late MockFirebaseAuth mockAuth;
-    late MockFirebaseFirestore mockFirestore;
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
-      mockFirestore = MockFirebaseFirestore();
     });
 
     testWidgets('renders register screen with all elements', (
@@ -237,8 +236,8 @@ void main() {
       // Setup mock to simulate async registration
       when(
         mockAuth.createUserWithEmailAndPassword(
-          email: any as String,
-          password: any as String,
+          email: 'test@example.com',
+          password: 'password123',
         ),
       ).thenAnswer((_) async => createMockUserCredential());
 
@@ -291,8 +290,8 @@ void main() {
       // Setup mock to throw auth error
       when(
         mockAuth.createUserWithEmailAndPassword(
-          email: any as String,
-          password: any as String,
+          email: 'test@example.com',
+          password: 'password123',
         ),
       ).thenThrow(FirebaseAuthException(code: 'email-already-in-use'));
 
@@ -323,8 +322,8 @@ void main() {
       // Setup mock to throw auth error
       when(
         mockAuth.createUserWithEmailAndPassword(
-          email: any as String,
-          password: any as String,
+          email: 'test@example.com',
+          password: 'password123',
         ),
       ).thenThrow(FirebaseAuthException(code: 'invalid-email'));
 
@@ -355,8 +354,8 @@ void main() {
       // Setup mock to throw auth error
       when(
         mockAuth.createUserWithEmailAndPassword(
-          email: any as String,
-          password: any as String,
+          email: 'test@example.com',
+          password: 'password123',
         ),
       ).thenThrow(FirebaseAuthException(code: 'weak-password'));
 
