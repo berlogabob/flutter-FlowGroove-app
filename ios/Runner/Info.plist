@@ -46,5 +46,11 @@
 	<true />
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true />
+	<key>NSMicrophoneUsageDescription</key>
+	<string
+        >RepSync needs microphone access for tuner functionality to detect pitch and help you tune your instrument</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string
+        >RepSync needs speech recognition access for audio processing in the tuner</string>
 </dict>
 </plist>
