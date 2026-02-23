@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/metronome_state.dart';
 import '../../models/time_signature.dart';
+import '../../models/song.dart';
+import '../../models/setlist.dart';
 import '../../services/audio/audio_engine.dart';
 
 /// Notifier for metronome state management using Riverpod
@@ -155,6 +157,127 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       stop();
     } else {
       start(state.bpm, state.timeSignature.numerator);
+    }
+  }
+
+  // ============================================================
+  // NEW METHODS FOR MONO PULSE UI
+  // ============================================================
+
+  /// Set number of accent beats (top row in time signature block)
+  void setAccentBeats(int count) {
+    final clampedCount = count.clamp(
+      1,
+      state.regularBeats,
+    ); // Accents <= regular beats
+    state = state.copyWith(accentBeats: clampedCount);
+
+    // Update accent pattern based on new accent count
+    final newPattern = List.generate(
+      state.regularBeats,
+      (index) => index < clampedCount,
+    );
+    state = state.copyWith(accentPattern: newPattern);
+  }
+
+  /// Set number of regular beats (bottom row in time signature block)
+  void setRegularBeats(int count) {
+    final clampedCount = count.clamp(1, 12); // Max 12 beats
+    final newAccentBeats = state.accentBeats.clamp(1, clampedCount);
+
+    state = state.copyWith(
+      regularBeats: clampedCount,
+      accentBeats: newAccentBeats,
+    );
+
+    // Update accent pattern based on new beat count
+    final newPattern = List.generate(
+      clampedCount,
+      (index) => index < newAccentBeats,
+    );
+    state = state.copyWith(accentPattern: newPattern);
+  }
+
+  /// Rotate tempo using rotary dial gesture
+  /// [degrees] - rotation angle (positive = clockwise = increase BPM)
+  void rotateTempo(double degrees) {
+    // Convert degrees to BPM change (e.g., 360 degrees = 60 BPM change)
+    final bpmChange = (degrees / 6).round(); // 6 degrees = 1 BPM
+    final newBpm = (state.bpm + bpmChange).clamp(1, 600);
+    state = state.copyWith(bpm: newBpm);
+
+    if (state.isPlaying) {
+      _timer?.cancel();
+      _startTimer();
+    }
+  }
+
+  /// Fine adjustment for tempo (+1, +5, +10 buttons)
+  void adjustTempoFine(int delta) {
+    final newBpm = (state.bpm + delta).clamp(1, 600);
+    state = state.copyWith(bpm: newBpm);
+
+    if (state.isPlaying) {
+      _timer?.cancel();
+      _startTimer();
+    }
+  }
+
+  /// Load tempo from a song
+  void loadSongTempo(Song song) {
+    final bpm = song.ourBPM ?? song.originalBPM ?? 120;
+    state = state.copyWith(
+      bpm: bpm.clamp(1, 600),
+      loadedSong: song,
+      loadedSetlist: null,
+      currentSetlistIndex: 0,
+    );
+  }
+
+  /// Load setlist queue for navigation
+  void loadSetlistQueue(Setlist setlist) {
+    state = state.copyWith(
+      loadedSetlist: setlist,
+      loadedSong: null,
+      currentSetlistIndex: 0,
+    );
+  }
+
+  /// Navigate to next song in setlist
+  void nextSetlistSong() {
+    if (state.loadedSetlist == null) return;
+    final newIndex = state.currentSetlistIndex + 1;
+    if (newIndex < state.loadedSetlist!.songIds.length) {
+      state = state.copyWith(currentSetlistIndex: newIndex);
+    }
+  }
+
+  /// Navigate to previous song in setlist
+  void previousSetlistSong() {
+    if (state.loadedSetlist == null) return;
+    final newIndex = state.currentSetlistIndex - 1;
+    if (newIndex >= 0) {
+      state = state.copyWith(currentSetlistIndex: newIndex);
+    }
+  }
+
+  /// Clear loaded song/setlist
+  void clearLoadedContent() {
+    state = state.copyWith(
+      loadedSong: null,
+      loadedSetlist: null,
+      currentSetlistIndex: 0,
+    );
+  }
+
+  /// Set tempo directly (for keyboard input)
+  void setTempoDirectly(int bpm) {
+    final newBpm = bpm.clamp(1, 600);
+    state = state.copyWith(bpm: newBpm);
+
+    if (state.isPlaying) {
+      _timer?.cancel();
+      _startTimer();
     }
   }
 
