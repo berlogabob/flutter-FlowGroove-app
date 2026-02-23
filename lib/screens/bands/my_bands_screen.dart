@@ -8,8 +8,8 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/unified_item/unified_item_card.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/adapters/band_item_adapter.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
@@ -58,7 +58,8 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         break;
       case SortOption.dateModified:
-        adapters.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        // Band model doesn't have updatedAt, fallback to createdAt
+        adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         break;
     }
 
@@ -102,6 +103,89 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         service.saveBand(bands[i], user.uid);
       }
     }
+  }
+
+  /// Handle band deletion with confirmation.
+  Future<bool> _handleDelete(int index) async {
+    final bands = ref.read(bandsProvider).value;
+    if (bands == null || index >= bands.length) return false;
+
+    final band = bands[index];
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Leave Band',
+      message: 'Are you sure you want to leave this band?',
+      confirmLabel: 'Leave',
+    );
+
+    if (confirmed) {
+      final user = ref.read(currentUserProvider);
+      if (user != null) {
+        try {
+          final service = ref.read(firestoreProvider);
+
+          // Remove user from global band members
+          final updatedMembers = band.members
+              .where((m) => m.uid != user.uid)
+              .toList();
+          final updatedBand = band.copyWith(members: updatedMembers);
+          await service.saveBandToGlobal(updatedBand);
+
+          // Remove from user's bands collection
+          await service.removeUserFromBand(band.id, user.uid);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Successfully left the band')),
+            );
+          }
+          return true;
+        } on ApiError catch (e) {
+          _handleStreamError(e, StackTrace.current);
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.message)));
+          }
+          return false; // Don't dismiss on error
+        } catch (e, stackTrace) {
+          final error = ApiError.fromException(e, stackTrace: stackTrace);
+          _handleStreamError(error, stackTrace);
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(error.message)));
+          }
+          return false; // Don't dismiss on error
+        }
+      }
+    }
+    return confirmed;
+  }
+
+  /// Handle band edit - navigate to edit screen.
+  void _handleEdit(int index) {
+    final bands = ref.read(bandsProvider).value;
+    if (bands == null || index >= bands.length) return;
+
+    final band = bands[index];
+    Navigator.pushNamed(context, '/bands/${band.id}/edit', arguments: band);
+  }
+
+  /// Handle band tap - show invite dialog.
+  void _handleTap(int index) {
+    final bands = ref.read(bandsProvider).value;
+    if (bands == null || index >= bands.length) return;
+
+    final band = bands[index];
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) =>
+          _InviteMemberDialog(band: band, currentUserId: user.uid),
+    );
   }
 
   @override
@@ -202,7 +286,9 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           padding: const EdgeInsets.all(16),
           child: UnifiedFilterSortWidget(
             currentSort: _sortOption,
-            onSortChanged: (option) => setState(() => _sortOption = option),
+            onSortChanged: (option) {
+              if (option != null) setState(() => _sortOption = option);
+            },
             filterText: _searchQuery.isEmpty ? null : _searchQuery,
             onFilterChanged: (value) =>
                 setState(() => _searchQuery = value ?? ''),
@@ -227,132 +313,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   }
 
   Widget _buildBandList(List<BandItemAdapter> adapters) {
-    return ReorderableListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: adapters.length,
-      onReorder: _sortOption == SortOption.manual
-          ? _handleReorder
-          : (oldIndex, newIndex) {}, // No-op when not in manual mode
-      proxyDecorator: (child, index, animation) {
-        return Material(
-          elevation: 8,
-          borderRadius: BorderRadius.circular(12),
-          child: child,
-        );
-      },
-      itemBuilder: (context, index) {
-        final adapter = adapters[index];
-        final band = adapter.band;
-
-        return Dismissible(
-          key: ValueKey(band.id),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 16),
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.red.shade100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.delete_outline,
-              color: Colors.red.shade700,
-              size: 28,
-            ),
-          ),
-          confirmDismiss: (direction) async {
-            if (direction == DismissDirection.endToStart) {
-              return await _confirmDelete(context, ref, band);
-            }
-            return false;
-          },
-          onDismissed: (direction) {
-            if (direction == DismissDirection.endToStart) {
-              // Deletion is handled in confirmDismiss
-            }
-          },
-          child: UnifiedItemCard<BandItemAdapter>(
-            item: adapter,
-            onTap: () => _showInviteDialog(context, ref, band),
-            onEdit: () => Navigator.pushNamed(
-              context,
-              '/bands/${band.id}/edit',
-              arguments: band,
-            ),
-            // onDelete is handled by swipe-to-delete
-            onDelete: () => _confirmDelete(context, ref, band),
-            showCompact: false,
-          ),
-        );
-      },
-    );
-  }
-
-  Future<bool> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    Band band,
-  ) async {
-    final confirmed = await ConfirmationDialog.showDeleteDialog(
-      context,
-      title: 'Leave Band',
-      message: 'Are you sure you want to leave this band?',
-      confirmLabel: 'Leave',
-    );
-
-    if (confirmed) {
-      final user = ref.read(currentUserProvider);
-      if (user != null) {
-        try {
-          final service = ref.read(firestoreProvider);
-
-          // Remove user from global band members
-          final updatedMembers = band.members
-              .where((m) => m.uid != user.uid)
-              .toList();
-          final updatedBand = band.copyWith(members: updatedMembers);
-          await service.saveBandToGlobal(updatedBand);
-
-          // Remove from user's bands collection
-          await service.removeUserFromBand(band.id, user.uid);
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Successfully left the band')),
-            );
-          }
-        } on ApiError catch (e) {
-          _handleStreamError(e, StackTrace.current);
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(e.message)));
-          }
-          return false; // Don't dismiss on error
-        } catch (e, stackTrace) {
-          final error = ApiError.fromException(e, stackTrace: stackTrace);
-          _handleStreamError(error, stackTrace);
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(error.message)));
-          }
-          return false; // Don't dismiss on error
-        }
-      }
-    }
-    return confirmed;
-  }
-
-  void _showInviteDialog(BuildContext context, WidgetRef ref, Band band) {
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
-
-    showDialog(
-      context: context,
-      builder: (context) =>
-          _InviteMemberDialog(band: band, currentUserId: user.uid),
+    return UnifiedItemList<BandItemAdapter>(
+      items: adapters,
+      enableReorder: _sortOption == SortOption.manual,
+      onReorder: _sortOption == SortOption.manual ? _handleReorder : null,
+      onDelete: _handleDelete,
+      onEdit: _handleEdit,
+      onTap: _handleTap,
+      showCompact: false,
     );
   }
 }

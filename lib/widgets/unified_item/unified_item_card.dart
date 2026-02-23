@@ -56,8 +56,11 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
 
   Widget _buildLeadingIcon(BuildContext context) {
     IconData icon;
+    bool isShared = false;
+
     if (item is SongItemAdapter) {
       icon = Icons.music_note;
+      isShared = (item as SongItemAdapter).isShared;
     } else if (item is BandItemAdapter) {
       icon = Icons.groups;
     } else if (item is SetlistItemAdapter) {
@@ -67,8 +70,13 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
     }
 
     return CircleAvatar(
-      backgroundColor: const Color(0xFF1A1A1A),
-      child: Icon(icon, color: Colors.orange),
+      backgroundColor: isShared
+          ? const Color(0xFFFFE0B2)
+          : const Color(0xFF1A1A1A),
+      child: Icon(
+        isShared ? Icons.content_copy : icon,
+        color: isShared ? const Color(0xFFFF9800) : Colors.orange,
+      ),
     );
   }
 

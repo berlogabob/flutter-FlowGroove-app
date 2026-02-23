@@ -7,6 +7,7 @@ import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../services/export/pdf_service.dart';
 import '../../widgets/unified_item/unified_item_card.dart';
+import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
@@ -14,11 +15,14 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/offline_indicator.dart';
 
-/// Screen for displaying the list of setlists with search, filter, sort,
-/// swipe-to-delete, and drag-and-drop reordering.
+/// Screen for displaying the list of setlists with unified item system.
 ///
-/// This screen shows all setlists with the ability to search by name
-/// and description.
+/// Features:
+/// - UnifiedItemCard for consistent card display
+/// - UnifiedFilterSortWidget for search and sorting
+/// - UnifiedItemList for swipe-to-delete and drag-and-drop
+/// - PDF export as custom action
+/// - Event date and song count display
 class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});
 
@@ -57,10 +61,18 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
         );
         break;
       case SortOption.dateAdded:
-        adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        adapters.sort(
+          (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
+            a.createdAt ?? DateTime(0),
+          ),
+        );
         break;
       case SortOption.dateModified:
-        adapters.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        adapters.sort(
+          (a, b) => (b.updatedAt ?? DateTime(0)).compareTo(
+            a.updatedAt ?? DateTime(0),
+          ),
+        );
         break;
     }
 
@@ -68,7 +80,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 
   /// Handle setlist reordering (manual sort mode).
-  void _handleReorder(int oldIndex, int newIndex) {
+  void _handleReorder(int oldIndex, int newIndex) async {
     if (newIndex > oldIndex) {
       newIndex -= 1;
     }
@@ -80,14 +92,60 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     final setlist = setlists.removeAt(oldIndex);
     setlists.insert(newIndex, setlist);
 
-    // Save the reordered setlists to Firestore (fire-and-forget)
+    // Save the reordered setlists to Firestore
     final service = ref.read(firestoreProvider);
     final user = ref.read(currentUserProvider);
     if (user != null) {
+      // Update order for all setlists
       for (int i = 0; i < setlists.length; i++) {
-        service.saveSetlist(setlists[i], user.uid);
+        await service.saveSetlist(setlists[i], user.uid);
       }
     }
+  }
+
+  /// Handle setlist deletion.
+  void _handleDelete(int index) async {
+    final adapters = _filterAndSortSetlists(
+      ref.read(setlistsProvider).value ?? [],
+    );
+
+    if (index >= adapters.length) return;
+
+    final adapter = adapters[index];
+    final setlist = adapter.setlist;
+    final user = ref.read(currentUserProvider);
+
+    if (user != null) {
+      await ref.read(firestoreProvider).deleteSetlist(setlist.id, user.uid);
+    }
+  }
+
+  /// Handle setlist tap.
+  void _handleTap(int index) {
+    final adapters = _filterAndSortSetlists(
+      ref.read(setlistsProvider).value ?? [],
+    );
+
+    if (index >= adapters.length) return;
+
+    final setlist = adapters[index].setlist;
+    _showExportOptions(context, ref, setlist);
+  }
+
+  /// Handle setlist edit.
+  void _handleEdit(int index) {
+    final adapters = _filterAndSortSetlists(
+      ref.read(setlistsProvider).value ?? [],
+    );
+
+    if (index >= adapters.length) return;
+
+    final setlist = adapters[index].setlist;
+    Navigator.pushNamed(
+      context,
+      '/setlists/${setlist.id}/edit',
+      arguments: setlist,
+    );
   }
 
   @override
@@ -135,7 +193,11 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
           padding: const EdgeInsets.all(16),
           child: UnifiedFilterSortWidget(
             currentSort: _sortOption,
-            onSortChanged: (option) => setState(() => _sortOption = option),
+            onSortChanged: (option) {
+              if (option != null) {
+                setState(() => _sortOption = option);
+              }
+            },
             filterText: _searchQuery.isEmpty ? null : _searchQuery,
             onFilterChanged: (value) =>
                 setState(() => _searchQuery = value ?? ''),
@@ -160,69 +222,19 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 
   Widget _buildSetlistList(List<SetlistItemAdapter> adapters) {
-    return ReorderableListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: adapters.length,
-      onReorder: _sortOption == SortOption.manual
-          ? _handleReorder
-          : (oldIndex, newIndex) {}, // No-op when not in manual mode
-      proxyDecorator: (child, index, animation) {
-        return Material(
-          elevation: 8,
-          borderRadius: BorderRadius.circular(12),
-          child: child,
-        );
-      },
-      itemBuilder: (context, index) {
-        final adapter = adapters[index];
-        final setlist = adapter.setlist;
-
-        return Dismissible(
-          key: ValueKey(setlist.id),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 16),
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.red.shade100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.delete_outline,
-              color: Colors.red.shade700,
-              size: 28,
-            ),
-          ),
-          confirmDismiss: (direction) async {
-            if (direction == DismissDirection.endToStart) {
-              return await _confirmDelete(context, ref, setlist);
-            }
-            return false;
-          },
-          onDismissed: (direction) {
-            if (direction == DismissDirection.endToStart) {
-              // Deletion is handled in confirmDismiss
-            }
-          },
-          child: UnifiedItemCard<SetlistItemAdapter>(
-            item: adapter,
-            onTap: () => _showExportOptions(context, ref, setlist),
-            onEdit: () => Navigator.pushNamed(
-              context,
-              '/setlists/${setlist.id}/edit',
-              arguments: setlist,
-            ),
-            // onDelete is handled by swipe-to-delete
-            onDelete: () => _confirmDelete(context, ref, setlist),
-            showCompact: false,
-            customActions: [
-              _PdfExportAction(
-                onPressed: () => _exportPdf(context, ref, setlist),
-              ),
-            ],
-          ),
-        );
+    return UnifiedItemList<SetlistItemAdapter>(
+      items: adapters,
+      enableReorder: _sortOption == SortOption.manual,
+      onReorder: _sortOption == SortOption.manual ? _handleReorder : null,
+      onDelete: _handleDelete,
+      onTap: _handleTap,
+      onEdit: _handleEdit,
+      showCompact: false,
+      additionalActionsBuilder: (index) {
+        final setlist = adapters[index].setlist;
+        return [
+          _PdfExportAction(onPressed: () => _exportPdf(context, ref, setlist)),
+        ];
       },
     );
   }
@@ -243,27 +255,6 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
-  }
-
-  Future<bool> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    Setlist setlist,
-  ) async {
-    final confirmed = await ConfirmationDialog.showDeleteDialog(
-      context,
-      title: 'Delete Setlist',
-      message: 'Are you sure you want to delete this setlist?',
-    );
-
-    if (confirmed) {
-      final user = ref.read(currentUserProvider);
-      if (user != null) {
-        await ref.read(firestoreProvider).deleteSetlist(setlist.id, user.uid);
-      }
-    }
-
-    return confirmed;
   }
 
   void _showExportOptions(
@@ -350,7 +341,7 @@ class _PdfExportAction implements UnifiedItemAction {
   _PdfExportAction({this.onPressed});
 
   @override
-  Widget build() {
+  Widget build(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.picture_as_pdf, size: 20, color: Colors.red),
       onPressed: onPressed,

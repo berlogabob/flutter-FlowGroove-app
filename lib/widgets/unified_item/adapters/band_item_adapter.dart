@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/band.dart';
-import 'unified_item_model.dart';
+import '../../../models/band.dart';
+import '../unified_item_model.dart';
 
 /// Adapter for Band model to work with unified item system
 class BandItemAdapter extends UnifiedItemModel {
@@ -29,6 +29,7 @@ class BandItemAdapter extends UnifiedItemModel {
   @override
   DateTime? get updatedAt => null;
 
+  // Callbacks are provided by the parent widget (UnifiedItemList)
   @override
   VoidCallback? get onEdit => null;
 
@@ -49,4 +50,8 @@ class BandItemAdapter extends UnifiedItemModel {
   // Type-specific properties
   int get membersCount => band.members.length;
   String? get bandName => band.name;
+
+  @override
+  String get deleteConfirmationMessage =>
+      'Are you sure you want to leave this band?';
 }

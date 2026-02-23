@@ -12,6 +12,7 @@ class UnifiedItemTrailingActions<T extends UnifiedItemModel>
   final VoidCallback? onDelete;
   final List<UnifiedItemAction> customActions;
   final bool showCompact;
+  final List<UnifiedItemAction> additionalActions;
 
   const UnifiedItemTrailingActions({
     super.key,
@@ -20,6 +21,7 @@ class UnifiedItemTrailingActions<T extends UnifiedItemModel>
     this.onDelete,
     this.customActions = const [],
     this.showCompact = false,
+    this.additionalActions = const [],
   });
 
   @override
@@ -51,7 +53,10 @@ class UnifiedItemTrailingActions<T extends UnifiedItemModel>
     }
 
     // Add custom actions
-    actions.addAll(customActions.map((action) => action.build()));
+    actions.addAll(customActions.map((action) => action.build(context)));
+
+    // Add additional actions (e.g., Add to Band)
+    actions.addAll(additionalActions.map((action) => action.build(context)));
 
     // Add edit action
     if (onEdit != null) {
