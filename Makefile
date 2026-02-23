@@ -95,8 +95,8 @@ deploy: build-web
 	@git add docs/
 	@git commit -m "Deploy web build $(NEW_VERSION)" || echo "No changes to commit"
 	@echo ""
-	@echo "🚀 Pushing to GitHub..."
-	@git push origin main
+	@echo "🚀 Pushing to GitHub (current branch)..."
+	@git push origin HEAD
 	@echo ""
 	@echo "✅ Deploy complete!"
 	@echo "🌐 GitHub Pages: https://berlogabob.github.io/flutter-repsync-app/"
@@ -116,8 +116,8 @@ release: increment-version build-web build-android build-appbundle
 	@echo "🏷️  Creating git tag..."
 	@git tag -a "v$(NEW_VERSION)" -m "Release $(NEW_VERSION)" || echo "Tag already exists"
 	@echo ""
-	@echo "🚀 Pushing to GitHub..."
-	@git push origin main
+	@echo "🚀 Pushing to GitHub (current branch)..."
+	@git push origin HEAD
 	@git push origin "v$(NEW_VERSION)" || echo "Tag already pushed"
 	@echo ""
 	@echo "📱 Creating GitHub Release..."
