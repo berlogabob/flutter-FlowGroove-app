@@ -30,10 +30,16 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     );
 
     // Auto-generate accent pattern for new time signature
-    final accentPattern = List.generate(
-      beatsPerMeasure,
-      (index) => index == 0, // First beat is accent, rest are regular
-    );
+    // Special case 6/8: accents on 1st and 4th subdivisions
+    List<bool> accentPattern;
+    if (beatsPerMeasure == 6 && timeSignature.denominator == 8) {
+      accentPattern = [true, true]; // 2 main beats, both accented
+    } else {
+      accentPattern = List.generate(
+        beatsPerMeasure,
+        (index) => index == 0, // First beat is accent, rest are regular
+      );
+    }
 
     // Initialize audio on first start (requires user interaction)
     _audioEngine.initialize();
@@ -71,6 +77,10 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   /// Update beats per measure (backward compatibility)
+  /// Handles special cases per Help:
+  /// - 4/4 → 4 beats
+  /// - 2/2 → 2 beats
+  /// - 6/8 → 2 beats (+ subdivisions on 1st and 4th)
   void setBeatsPerMeasure(int beats) {
     final timeSignature = TimeSignature(
       numerator: beats,
@@ -78,7 +88,13 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     );
 
     // Auto-generate new accent pattern for the new time signature
-    final accentPattern = List.generate(beats, (index) => index == 0);
+    // Special case 6/8: accents on 1st and 4th subdivisions
+    List<bool> accentPattern;
+    if (beats == 6 && timeSignature.denominator == 8) {
+      accentPattern = [true, true]; // 2 main beats, both accented
+    } else {
+      accentPattern = List.generate(beats, (index) => index == 0);
+    }
 
     state = state.copyWith(
       timeSignature: timeSignature,
@@ -92,11 +108,33 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   /// Set time signature with numerator and denominator
+  /// Handles special cases per Help:
+  /// - 4/4 → 4 beats
+  /// - 2/2 → 2 beats
+  /// - 6/8 → 2 beats (+ subdivisions on 1st and 4th)
+  /// INDEPENDENT: Does NOT override manual accent pattern changes
   void setTimeSignature(TimeSignature ts) {
-    // Auto-generate new accent pattern for the new time signature
-    final accentPattern = List.generate(ts.numerator, (index) => index == 0);
+    int beatCount;
+    List<bool> accentPattern;
 
-    state = state.copyWith(timeSignature: ts, accentPattern: accentPattern);
+    // Special handling for 6/8: 2 beats with subdivisions
+    if (ts.numerator == 6 && ts.denominator == 8) {
+      beatCount = 2;
+      // Subdivisions: strong on 1st and 4th (A A for the two main beats)
+      accentPattern = [true, true];
+    } else {
+      // Default: beat count = numerator
+      beatCount = ts.numerator;
+      // Auto-generate: accent on beat 1, regular on all others
+      accentPattern = List.generate(beatCount, (index) => index == 0);
+    }
+
+    state = state.copyWith(
+      timeSignature: ts,
+      regularBeats: beatCount,
+      accentBeats: accentPattern.where((a) => a).length,
+      accentPattern: accentPattern,
+    );
 
     if (state.isPlaying) {
       _timer?.cancel();
@@ -138,11 +176,18 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Auto-generate accent pattern from time signature
   /// Default: accent on beat 1, regular on all others (e.g., ABBB for 4/4)
+  /// Special case 6/8: accents on 1st and 4th subdivisions (A A)
   void updateAccentPatternFromTimeSignature() {
-    final accentPattern = List.generate(
-      state.timeSignature.numerator,
-      (index) => index == 0,
-    );
+    final ts = state.timeSignature;
+    List<bool> accentPattern;
+
+    // Special handling for 6/8
+    if (ts.numerator == 6 && ts.denominator == 8) {
+      accentPattern = [true, true]; // Accents on both main beats
+    } else {
+      accentPattern = List.generate(ts.numerator, (index) => index == 0);
+    }
+
     state = state.copyWith(accentPattern: accentPattern);
   }
 
@@ -165,37 +210,21 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   // ============================================================
 
   /// Set number of accent beats (top row in time signature block)
+  /// INDEPENDENT: Does NOT affect regular beats count
   void setAccentBeats(int count) {
-    final clampedCount = count.clamp(
-      1,
-      state.regularBeats,
-    ); // Accents <= regular beats
+    final clampedCount = count.clamp(1, 12);
     state = state.copyWith(accentBeats: clampedCount);
-
-    // Update accent pattern based on new accent count
-    final newPattern = List.generate(
-      state.regularBeats,
-      (index) => index < clampedCount,
-    );
-    state = state.copyWith(accentPattern: newPattern);
+    // NOTE: accentPattern is managed separately via setAccentPattern()
+    // This method only updates the accentBeats counter for UI
   }
 
   /// Set number of regular beats (bottom row in time signature block)
+  /// INDEPENDENT: Does NOT affect accent pattern or accentBeats
   void setRegularBeats(int count) {
     final clampedCount = count.clamp(1, 12); // Max 12 beats
-    final newAccentBeats = state.accentBeats.clamp(1, clampedCount);
-
-    state = state.copyWith(
-      regularBeats: clampedCount,
-      accentBeats: newAccentBeats,
-    );
-
-    // Update accent pattern based on new beat count
-    final newPattern = List.generate(
-      clampedCount,
-      (index) => index < newAccentBeats,
-    );
-    state = state.copyWith(accentPattern: newPattern);
+    state = state.copyWith(regularBeats: clampedCount);
+    // NOTE: accentPattern is managed separately via setAccentPattern()
+    // This method only updates the regularBeats counter for UI
   }
 
   /// Rotate tempo using rotary dial gesture
@@ -291,7 +320,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void _onTick(Timer timer) {
     if (!state.isPlaying) return;
 
-    final nextBeat = (state.currentBeat + 1) % state.timeSignature.numerator;
+    // FIX: Use regularBeats instead of timeSignature.numerator
+    // This ensures user adjustments to beat count affect playback
+    final nextBeat = (state.currentBeat + 1) % state.regularBeats;
 
     // Play sound on each beat
     // Use accent pattern to determine if this beat should be accented
