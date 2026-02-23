@@ -24,6 +24,15 @@ MetronomeState _$MetronomeStateFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as bool)
               .toList() ??
           [],
+      accentBeats: (json['accentBeats'] as num?)?.toInt() ?? 4,
+      regularBeats: (json['regularBeats'] as num?)?.toInt() ?? 4,
+      loadedSong: json['loadedSong'] == null
+          ? null
+          : Song.fromJson(json['loadedSong'] as Map<String, dynamic>),
+      loadedSetlist: json['loadedSetlist'] == null
+          ? null
+          : Setlist.fromJson(json['loadedSetlist'] as Map<String, dynamic>),
+      currentSetlistIndex: (json['currentSetlistIndex'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$MetronomeStateToJson(MetronomeState instance) =>
@@ -38,4 +47,9 @@ Map<String, dynamic> _$MetronomeStateToJson(MetronomeState instance) =>
       'accentFrequency': instance.accentFrequency,
       'beatFrequency': instance.beatFrequency,
       'accentPattern': instance.accentPattern,
+      'accentBeats': instance.accentBeats,
+      'regularBeats': instance.regularBeats,
+      'loadedSong': instance.loadedSong,
+      'loadedSetlist': instance.loadedSetlist,
+      'currentSetlistIndex': instance.currentSetlistIndex,
     };

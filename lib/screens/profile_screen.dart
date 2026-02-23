@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 
@@ -24,52 +23,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _loadVersionInfo() async {
     try {
-      // Try to load version from web/version.json
-      final response = await http.get(Uri.parse('version.json'));
+      // Load version from pubspec.yaml using package_info_plus
+      final packageInfo = await PackageInfo.fromPlatform();
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final version = data['version'] as String;
-        final buildNumber = data['buildNumber'] as String;
-        final buildDateStr = data['buildDate'] as String?;
-
-        // Parse build date and convert to Lisbon timezone
-        String buildDate = '';
-        if (buildDateStr != null && buildDateStr.isNotEmpty) {
-          try {
-            final utcDate = DateTime.parse(buildDateStr);
-            // Convert to Lisbon timezone (UTC+0 in winter, UTC+1 in summer)
-            // For simplicity, use UTC offset for Portugal
-            final lisbonDate = utcDate
-                .toLocal(); // Flutter web runs in browser timezone
-            buildDate =
-                '${lisbonDate.year}-${lisbonDate.month.toString().padLeft(2, '0')}-${lisbonDate.day.toString().padLeft(2, '0')} '
-                '${lisbonDate.hour.toString().padLeft(2, '0')}:${lisbonDate.minute.toString().padLeft(2, '0')}';
-          } catch (e) {
-            buildDate = '';
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            _version = '$version+$buildNumber';
-            _buildDate = buildDate;
-          });
-        }
-      } else {
-        // Fallback to hardcoded version
-        if (mounted) {
-          setState(() {
-            _version = '0.9.0+1';
-            _buildDate = '';
-          });
-        }
+      if (mounted) {
+        setState(() {
+          _version = '${packageInfo.version}+${packageInfo.buildNumber}';
+          _buildDate = '';
+        });
       }
     } catch (e) {
       // Fallback to hardcoded version
       if (mounted) {
         setState(() {
-          _version = '0.9.0+1';
+          _version = '0.11.0+1';
           _buildDate = '';
         });
       }
@@ -355,6 +322,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               padding: const EdgeInsets.symmetric(
                 vertical: MonoPulseSpacing.lg,
               ),
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.xxl),
+          // Credit block
+          Center(
+            child: RichText(
+              text: const TextSpan(
+                style: TextStyle(
+                  fontSize: 12,
+                  color: MonoPulseColors.textTertiary,
+                  height: 1.5,
+                ),
+                children: [
+                  TextSpan(text: 'Built with '),
+                  TextSpan(text: '❤️', style: TextStyle(fontSize: 14)),
+                  TextSpan(text: ' for musicians\nby '),
+                  TextSpan(
+                    text: 'BerlogaBob',
+                    style: TextStyle(
+                      color: MonoPulseColors.accentOrange,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TextSpan(text: ' in Portugal'),
+                ],
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.xxxl),
