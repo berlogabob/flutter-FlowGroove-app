@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../theme/app_theme.dart';
 import 'unified_item_model.dart';
+import 'unified_item_badge.dart';
+import 'unified_item_trailing_actions.dart';
+import 'adapters/song_item_adapter.dart';
+import 'adapters/band_item_adapter.dart';
+import 'adapters/setlist_item_adapter.dart';
 
+/// Unified card widget for displaying items (Song, Band, Setlist)
 class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
   final T item;
   final VoidCallback? onEdit;
@@ -40,37 +44,31 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         subtitle: _buildSubtitle(context),
         trailing: UnifiedItemTrailingActions(
           item: item,
-          onEdit: onEdit ?? item.onEdit,
-          onDelete: onDelete ?? item.onDelete,
-          customActions: [...customActions, ...item.customActions],
+          onEdit: onEdit,
+          onDelete: onDelete,
+          customActions: customActions,
           showCompact: showCompact,
         ),
-        onTap: onTap ?? item.onTap,
+        onTap: onTap,
       ),
     );
   }
 
   Widget _buildLeadingIcon(BuildContext context) {
-    // Type-specific icon based on item type
+    IconData icon;
     if (item is SongItemAdapter) {
-      return const CircleAvatar(
-        backgroundColor: Color(0xFF1A1A1A),
-        child: Icon(Icons.music_note, color: Colors.orange),
-      );
+      icon = Icons.music_note;
     } else if (item is BandItemAdapter) {
-      return const CircleAvatar(
-        backgroundColor: Color(0xFF1A1A1A),
-        child: Icon(Icons.groups, color: Colors.orange),
-      );
+      icon = Icons.groups;
     } else if (item is SetlistItemAdapter) {
-      return const CircleAvatar(
-        backgroundColor: Color(0xFF1A1A1A),
-        child: Icon(Icons.playlist_play, color: Colors.orange),
-      );
+      icon = Icons.playlist_play;
+    } else {
+      icon = Icons.info;
     }
-    return const CircleAvatar(
-      backgroundColor: Color(0xFF1A1A1A),
-      child: Icon(Icons.info, color: Colors.orange),
+
+    return CircleAvatar(
+      backgroundColor: const Color(0xFF1A1A1A),
+      child: Icon(icon, color: Colors.orange),
     );
   }
 
@@ -81,7 +79,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
 
     final List<Widget> subtitleWidgets = [];
 
-    // Add type-specific subtitle content
+    // Song subtitle
     if (item is SongItemAdapter) {
       final song = item as SongItemAdapter;
       if (song.subtitle?.isNotEmpty == true) {
@@ -108,7 +106,9 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         }
         subtitleWidgets.add(Row(children: badges));
       }
-    } else if (item is BandItemAdapter) {
+    }
+    // Band subtitle
+    else if (item is BandItemAdapter) {
       final band = item as BandItemAdapter;
       if (band.subtitle?.isNotEmpty == true) {
         subtitleWidgets.add(
@@ -118,17 +118,21 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
           ),
         );
       }
+      final membersCount = band.membersCount;
       subtitleWidgets.add(
         Text(
-          '${band.membersCount} ${band.membersCount == 1 ? 'member' : 'members'}',
+          '$membersCount ${membersCount == 1 ? 'member' : 'members'}',
           style: const TextStyle(color: Colors.grey, fontSize: 12),
         ),
       );
-    } else if (item is SetlistItemAdapter) {
+    }
+    // Setlist subtitle
+    else if (item is SetlistItemAdapter) {
       final setlist = item as SetlistItemAdapter;
+      final songCount = setlist.songIdsLength;
       subtitleWidgets.add(
         Text(
-          '${setlist.songIdsLength} ${setlist.songIdsLength == 1 ? 'song' : 'songs'}',
+          '$songCount ${songCount == 1 ? 'song' : 'songs'}',
           style: const TextStyle(color: Colors.grey, fontSize: 12),
         ),
       );
@@ -184,8 +188,6 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
           ),
         );
       }
-    } else if (item is BandItemAdapter) {
-      // Compact band shows nothing in subtitle
     } else if (item is SetlistItemAdapter) {
       final setlist = item as SetlistItemAdapter;
       compactSubtitles.add(
@@ -199,19 +201,25 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
     return Row(children: compactSubtitles);
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return '';
-    final now = DateTime.now();
-    final diff = now.difference(date);
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return '';
 
-    if (diff.inDays == 0) {
-      return 'Today';
-    } else if (diff.inDays == 1) {
-      return 'Yesterday';
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays}d ago';
-    } else {
-      return '${date.day}/${date.month}';
+    try {
+      final date = DateTime.parse(dateString);
+      final now = DateTime.now();
+      final diff = now.difference(date);
+
+      if (diff.inDays == 0) {
+        return 'Today';
+      } else if (diff.inDays == 1) {
+        return 'Yesterday';
+      } else if (diff.inDays < 7) {
+        return '${diff.inDays}d ago';
+      } else {
+        return '${date.day}/${date.month}';
+      }
+    } catch (e) {
+      return dateString;
     }
   }
 }

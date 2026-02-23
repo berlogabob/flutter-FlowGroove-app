@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'unified_item_model.dart';
+import 'unified_item_badge.dart';
+import 'adapters/song_item_adapter.dart';
+import 'adapters/band_item_adapter.dart';
+import 'adapters/setlist_item_adapter.dart';
 
+/// Trailing actions widget for unified items
 class UnifiedItemTrailingActions<T extends UnifiedItemModel>
     extends StatelessWidget {
   final T item;
@@ -20,65 +26,60 @@ class UnifiedItemTrailingActions<T extends UnifiedItemModel>
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final List<Widget> actions = [];
 
-    // Add type-specific actions
-    if (item is SongItemAdapter &&
-        (item as SongItemAdapter).spotifyUrl != null) {
-      actions.add(
-        IconButton(
-          icon: const Icon(
-            Icons.play_circle_fill,
-            color: Colors.green,
-            size: 28,
-          ),
-          onPressed: () async {
-            final song = item as SongItemAdapter;
-            if (song.spotifyUrl != null) {
+    // Add Spotify play button for songs
+    if (item is SongItemAdapter) {
+      final song = item as SongItemAdapter;
+      if (song.spotifyUrl != null) {
+        actions.add(
+          IconButton(
+            icon: const Icon(
+              Icons.play_circle_fill,
+              color: Colors.green,
+              size: 28,
+            ),
+            onPressed: () async {
               final uri = Uri.parse(song.spotifyUrl!);
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
               }
-            }
-          },
-          tooltip: 'Play on Spotify',
-        ),
-      );
+            },
+            tooltip: 'Play on Spotify',
+          ),
+        );
+      }
     }
 
     // Add custom actions
     actions.addAll(customActions.map((action) => action.build()));
 
-    // Add standard edit/delete actions
-    if (onEdit != null || item.onEdit != null) {
+    // Add edit action
+    if (onEdit != null) {
       actions.add(
         IconButton(
-          icon: const Icon(Icons.edit, size: 20, color: Colors.grey),
-          onPressed: onEdit ?? item.onEdit,
+          icon: Icon(Icons.edit, size: 20, color: colors.onSurfaceVariant),
+          onPressed: onEdit,
           tooltip: 'Edit',
         ),
       );
     }
 
-    if (onDelete != null || item.onDelete != null) {
+    // Add delete action
+    if (onDelete != null) {
       actions.add(
         IconButton(
-          icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-          onPressed: onDelete ?? item.onDelete,
+          icon: Icon(Icons.delete, size: 20, color: colors.error),
+          onPressed: onDelete,
           tooltip: 'Delete',
         ),
       );
     }
 
-    // Add export PDF for setlists
+    // Add PDF export for setlists
     if (item is SetlistItemAdapter) {
-      actions.add(
-        IconButton(
-          icon: const Icon(Icons.picture_as_pdf, size: 20, color: Colors.blue),
-          onPressed: (item as SetlistItemAdapter).onExportPdf,
-          tooltip: 'Export PDF',
-        ),
-      );
+      // PDF export will be added as custom action by the screen
     }
 
     return Row(mainAxisSize: MainAxisSize.min, children: actions);

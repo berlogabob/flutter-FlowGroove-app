@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/band.dart';
 import 'unified_item_model.dart';
 
+/// Adapter for Band model to work with unified item system
 class BandItemAdapter extends UnifiedItemModel {
   final Band band;
 
@@ -26,16 +27,16 @@ class BandItemAdapter extends UnifiedItemModel {
   DateTime get createdAt => band.createdAt;
 
   @override
-  DateTime get updatedAt => band.updatedAt;
+  DateTime? get updatedAt => null;
 
   @override
-  VoidCallback? get onEdit => () {};
+  VoidCallback? get onEdit => null;
 
   @override
-  VoidCallback? get onDelete => () {};
+  VoidCallback? get onDelete => null;
 
   @override
-  VoidCallback? get onTap => () {};
+  VoidCallback? get onTap => null;
 
   @override
   Map<String, dynamic> get typeSpecificData => {
@@ -46,12 +47,6 @@ class BandItemAdapter extends UnifiedItemModel {
   };
 
   // Type-specific properties
-  int get membersCount {
-    if (band.members != null) return band.members!.length;
-    return 0;
-  }
-
-  String? get bandName {
-    return band.name;
-  }
+  int get membersCount => band.members.length;
+  String? get bandName => band.name;
 }
