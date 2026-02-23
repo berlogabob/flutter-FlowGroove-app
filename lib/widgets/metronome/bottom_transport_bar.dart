@@ -14,6 +14,7 @@ import '../../theme/mono_pulse_theme.dart';
 ///   - Left: Previous button (circle #111111, icon ◀◀ #A0A0A5 → orange on tap)
 ///   - Right: Next button (circle #111111, icon ▶▶ #A0A0A5 → orange on tap)
 /// - Icons large (48px touch zone) for stage use
+/// - Fixed height: 64px minimum, always visible at bottom
 class BottomTransportBar extends ConsumerWidget {
   const BottomTransportBar({super.key});
 
@@ -24,12 +25,25 @@ class BottomTransportBar extends ConsumerWidget {
     final isPlaying = state.isPlaying;
     final hasSetlist = state.loadedSetlist != null;
 
+    // Adaptive sizing for small screens
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 375;
+    final barHeight = isSmallScreen ? 64.0 : 80.0;
+    final playButtonWidth = isSmallScreen ? 64.0 : 80.0;
+    final playButtonHeight = isSmallScreen ? 56.0 : 64.0;
+    final navButtonSize = isSmallScreen ? 48.0 : 56.0;
+    final navIconSize = isSmallScreen ? 24.0 : 32.0;
+    final horizontalMargin = isSmallScreen
+        ? MonoPulseSpacing.xxl
+        : MonoPulseSpacing.xxxl;
+    final buttonSpacing = isSmallScreen
+        ? MonoPulseSpacing.lg
+        : MonoPulseSpacing.xl;
+
     return Container(
-      height: 80,
-      margin: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.xxxl,
-        vertical: MonoPulseSpacing.lg,
-      ),
+      height: barHeight,
+      margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
+      // NO vertical margin - prevents button from being clipped
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -42,8 +56,10 @@ class BottomTransportBar extends ConsumerWidget {
                 metronome.previousSetlistSong();
               },
               isEnabled: state.currentSetlistIndex > 0,
+              buttonSize: navButtonSize,
+              iconSize: navIconSize,
             ),
-            const SizedBox(width: MonoPulseSpacing.xl),
+            SizedBox(width: buttonSpacing),
           ],
 
           // Play/Pause button (center)
@@ -53,11 +69,13 @@ class BottomTransportBar extends ConsumerWidget {
               HapticFeedback.mediumImpact();
               metronome.toggle();
             },
+            buttonWidth: playButtonWidth,
+            buttonHeight: playButtonHeight,
           ),
 
           // Next button (only if setlist loaded)
           if (hasSetlist) ...[
-            const SizedBox(width: MonoPulseSpacing.xl),
+            SizedBox(width: buttonSpacing),
             _NavigationButton(
               icon: Icons.fast_forward,
               onTap: () {
@@ -67,6 +85,8 @@ class BottomTransportBar extends ConsumerWidget {
               isEnabled:
                   state.currentSetlistIndex <
                   state.loadedSetlist!.songIds.length - 1,
+              buttonSize: navButtonSize,
+              iconSize: navIconSize,
             ),
           ],
         ],
@@ -78,8 +98,15 @@ class BottomTransportBar extends ConsumerWidget {
 class _PlayButton extends StatefulWidget {
   final bool isPlaying;
   final VoidCallback onTap;
+  final double buttonWidth;
+  final double buttonHeight;
 
-  const _PlayButton({required this.isPlaying, required this.onTap});
+  const _PlayButton({
+    required this.isPlaying,
+    required this.onTap,
+    this.buttonWidth = 80.0,
+    this.buttonHeight = 64.0,
+  });
 
   @override
   State<_PlayButton> createState() => _PlayButtonState();
@@ -130,6 +157,9 @@ class _PlayButtonState extends State<_PlayButton>
 
   @override
   Widget build(BuildContext context) {
+    // Adaptive icon size based on button size
+    final iconSize = widget.buttonWidth * 0.6;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) {
@@ -144,9 +174,9 @@ class _PlayButtonState extends State<_PlayButton>
         duration: MonoPulseAnimation.durationShort,
         curve: MonoPulseAnimation.curveCustom,
         child: Container(
-          // Minimum 48px touch zone (actual size 80x64)
-          width: 80,
-          height: 64,
+          // Minimum 48px touch zone (adaptive size)
+          width: widget.buttonWidth,
+          height: widget.buttonHeight,
           decoration: BoxDecoration(
             color: MonoPulseColors.accentOrange,
             borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
@@ -154,7 +184,7 @@ class _PlayButtonState extends State<_PlayButton>
           child: Icon(
             widget.isPlaying ? Icons.pause : Icons.play_arrow,
             color: MonoPulseColors.black,
-            size: 48,
+            size: iconSize,
           ),
         ),
       ),
@@ -166,11 +196,15 @@ class _NavigationButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback onTap;
   final bool isEnabled;
+  final double buttonSize;
+  final double iconSize;
 
   const _NavigationButton({
     required this.icon,
     required this.onTap,
     this.isEnabled = true,
+    this.buttonSize = 56.0,
+    this.iconSize = 32.0,
   });
 
   @override
@@ -205,9 +239,9 @@ class _NavigationButtonState extends State<_NavigationButton> {
         duration: MonoPulseAnimation.durationShort,
         curve: MonoPulseAnimation.curveCustom,
         child: Container(
-          // Minimum 48px touch zone (actual size 56x56)
-          width: 56,
-          height: 56,
+          // Minimum 48px touch zone (adaptive size)
+          width: widget.buttonSize,
+          height: widget.buttonSize,
           decoration: BoxDecoration(
             color: isPressed
                 ? MonoPulseColors.accentOrange.withValues(alpha: 0.2)
@@ -229,7 +263,7 @@ class _NavigationButtonState extends State<_NavigationButton> {
                 : (isEnabled
                       ? MonoPulseColors.textSecondary
                       : MonoPulseColors.textDisabled),
-            size: 32,
+            size: widget.iconSize,
           ),
         ),
       ),

@@ -24,14 +24,27 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
     final subdivisions = state.regularBeats;
     final beatModes = state.beatModes;
 
+    // Adaptive sizing based on screen width
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 375;
+
+    // Dynamic sizing for compact layout
+    final horizontalMargin = isSmallScreen
+        ? MonoPulseSpacing.xxl
+        : MonoPulseSpacing.xxxl;
+    final blockPadding = isSmallScreen
+        ? MonoPulseSpacing.md
+        : MonoPulseSpacing.lg;
+    final rowSpacing = isSmallScreen ? 8.0 : MonoPulseSpacing.md;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl),
+      margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
       decoration: BoxDecoration(
         color: MonoPulseColors.blackSurface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
         border: Border.all(color: MonoPulseColors.borderSubtle),
       ),
-      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+      padding: EdgeInsets.all(blockPadding),
       child: Column(
         children: [
           // Top row - Beats
@@ -40,12 +53,13 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
             currentBeat: isPlaying ? currentBeat : -1,
             subdivisions: subdivisions,
             beatModes: beatModes,
+            isSmallScreen: isSmallScreen,
             onToggleMode: (beatIndex, subdivisionIndex, mode) {
               HapticFeedback.lightImpact();
               // Cycle to next mode: normal → accent → silent → normal
               final nextMode = _cycleMode(mode);
               debugPrint(
-                'Beat $beatIndex, Subdivision $subdivisionIndex: ${mode} → $nextMode',
+                'Beat $beatIndex, Subdivision $subdivisionIndex: $mode → $nextMode',
               );
               metronome.setBeatMode(beatIndex, subdivisionIndex, nextMode);
             },
@@ -62,7 +76,7 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
               }
             },
           ),
-          const SizedBox(height: MonoPulseSpacing.md),
+          SizedBox(height: rowSpacing),
           // Bottom row - Subdivisions
           _SubdivisionsRow(
             count: subdivisions,
@@ -70,11 +84,12 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
             currentBeat: isPlaying ? currentBeat : -1,
             beats: beats,
             beatModes: beatModes,
+            isSmallScreen: isSmallScreen,
             onToggleMode: (beatIndex, subdivisionIndex, mode) {
               HapticFeedback.lightImpact();
               final nextMode = _cycleMode(mode);
               debugPrint(
-                'Beat $beatIndex, Subdivision $subdivisionIndex: ${mode} → $nextMode',
+                'Beat $beatIndex, Subdivision $subdivisionIndex: $mode → $nextMode',
               );
               metronome.setBeatMode(beatIndex, subdivisionIndex, nextMode);
             },
@@ -120,6 +135,7 @@ class _BeatsRow extends StatelessWidget {
   final Function(int, int, BeatMode) onToggleMode;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
+  final bool isSmallScreen;
 
   const _BeatsRow({
     required this.count,
@@ -129,6 +145,7 @@ class _BeatsRow extends StatelessWidget {
     required this.onToggleMode,
     required this.onIncrement,
     required this.onDecrement,
+    this.isSmallScreen = false,
   });
 
   @override
@@ -136,10 +153,22 @@ class _BeatsRow extends StatelessWidget {
     final visibleCount = _calculateVisibleCount(context);
     final needsScroll = count > visibleCount;
 
+    // Adaptive spacing for small screens
+    final buttonSpacing = isSmallScreen
+        ? MonoPulseSpacing.sm
+        : MonoPulseSpacing.md;
+    final addBtnSpacing = isSmallScreen
+        ? MonoPulseSpacing.xs
+        : MonoPulseSpacing.sm;
+
     return Row(
       children: [
-        _BeatButton(icon: Icons.remove, onTap: count > 1 ? onDecrement : null),
-        const SizedBox(width: MonoPulseSpacing.md),
+        _BeatButton(
+          icon: Icons.remove,
+          onTap: count > 1 ? onDecrement : null,
+          isSmallScreen: isSmallScreen,
+        ),
+        SizedBox(width: buttonSpacing),
         Expanded(
           child: _buildScrollableCircles(
             context: context,
@@ -148,12 +177,13 @@ class _BeatsRow extends StatelessWidget {
             needsScroll: needsScroll,
           ),
         ),
-        const SizedBox(width: MonoPulseSpacing.sm),
+        SizedBox(width: addBtnSpacing),
         _BeatButton(
           icon: Icons.add,
           onTap: count < 12 ? onIncrement : null,
           showBadge: count > visibleCount,
           badgeCount: count,
+          isSmallScreen: isSmallScreen,
         ),
       ],
     );
@@ -168,7 +198,8 @@ class _BeatsRow extends StatelessWidget {
         (48 * 2) -
         MonoPulseSpacing.md -
         MonoPulseSpacing.sm;
-    final circleWidth = 20.0 + MonoPulseSpacing.sm;
+    // Smaller circles on small screens: 16px instead of 20px
+    final circleWidth = (isSmallScreen ? 16.0 : 20.0) + MonoPulseSpacing.sm;
     final maxVisible = (availableWidth / circleWidth).floor();
     return maxVisible.clamp(4, 6);
   }
@@ -215,6 +246,7 @@ class _BeatsRow extends StatelessWidget {
                   isActive: isBeatActive,
                   mode: mode,
                   onTap: () => onToggleMode(beatIndex, 0, mode),
+                  isSmallScreen: isSmallScreen,
                 ),
               );
             }),
@@ -237,6 +269,7 @@ class _SubdivisionsRow extends StatelessWidget {
   final Function(int, int, BeatMode) onToggleMode;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
+  final bool isSmallScreen;
 
   const _SubdivisionsRow({
     required this.count,
@@ -247,6 +280,7 @@ class _SubdivisionsRow extends StatelessWidget {
     required this.onToggleMode,
     required this.onIncrement,
     required this.onDecrement,
+    this.isSmallScreen = false,
   });
 
   @override
@@ -254,10 +288,22 @@ class _SubdivisionsRow extends StatelessWidget {
     final visibleCount = _calculateVisibleCount(context);
     final needsScroll = count > visibleCount;
 
+    // Adaptive spacing for small screens
+    final buttonSpacing = isSmallScreen
+        ? MonoPulseSpacing.sm
+        : MonoPulseSpacing.md;
+    final addBtnSpacing = isSmallScreen
+        ? MonoPulseSpacing.xs
+        : MonoPulseSpacing.sm;
+
     return Row(
       children: [
-        _BeatButton(icon: Icons.remove, onTap: count > 1 ? onDecrement : null),
-        const SizedBox(width: MonoPulseSpacing.md),
+        _BeatButton(
+          icon: Icons.remove,
+          onTap: count > 1 ? onDecrement : null,
+          isSmallScreen: isSmallScreen,
+        ),
+        SizedBox(width: buttonSpacing),
         Expanded(
           child: _buildScrollableCircles(
             context: context,
@@ -266,12 +312,13 @@ class _SubdivisionsRow extends StatelessWidget {
             needsScroll: needsScroll,
           ),
         ),
-        const SizedBox(width: MonoPulseSpacing.sm),
+        SizedBox(width: addBtnSpacing),
         _BeatButton(
           icon: Icons.add,
           onTap: count < 12 ? onIncrement : null,
           showBadge: count > visibleCount,
           badgeCount: count,
+          isSmallScreen: isSmallScreen,
         ),
       ],
     );
@@ -286,7 +333,8 @@ class _SubdivisionsRow extends StatelessWidget {
         (48 * 2) -
         MonoPulseSpacing.md -
         MonoPulseSpacing.sm;
-    final circleWidth = 20.0 + MonoPulseSpacing.sm;
+    // Smaller circles on small screens: 16px instead of 20px
+    final circleWidth = (isSmallScreen ? 16.0 : 20.0) + MonoPulseSpacing.sm;
     final maxVisible = (availableWidth / circleWidth).floor();
     return maxVisible.clamp(4, 6);
   }
@@ -344,6 +392,7 @@ class _SubdivisionsRow extends StatelessWidget {
                           mode,
                         )
                       : null,
+                  isSmallScreen: isSmallScreen,
                 ),
               );
             }),
@@ -362,27 +411,33 @@ class _BeatCircleWithMode extends StatelessWidget {
   final bool isActive;
   final BeatMode mode;
   final VoidCallback onTap;
+  final bool isSmallScreen;
 
   const _BeatCircleWithMode({
     required this.isMainBeat,
     required this.isActive,
     required this.mode,
     required this.onTap,
+    this.isSmallScreen = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Smaller circles on small screens: 16px instead of 20px
+    final circleSize = isSmallScreen ? 16.0 : 20.0;
+    final containerSize = isSmallScreen ? 40.0 : 48.0;
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 48,
-        height: 48,
+        width: containerSize,
+        height: containerSize,
         child: Center(
           child: AnimatedContainer(
             duration: MonoPulseAnimation.durationShort,
             curve: MonoPulseAnimation.curveCustom,
-            width: 20,
-            height: 20,
+            width: circleSize,
+            height: circleSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: _getColorForMode(),
@@ -467,27 +522,33 @@ class _SubdivisionCircleWithMode extends StatelessWidget {
   final bool isActive;
   final BeatMode mode;
   final VoidCallback? onTap;
+  final bool isSmallScreen;
 
   const _SubdivisionCircleWithMode({
     required this.subdivisionIndex,
     required this.isActive,
     required this.mode,
     this.onTap,
+    this.isSmallScreen = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Smaller circles on small screens: 16px instead of 20px
+    final circleSize = isSmallScreen ? 16.0 : 20.0;
+    final containerSize = isSmallScreen ? 40.0 : 48.0;
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 48,
-        height: 48,
+        width: containerSize,
+        height: containerSize,
         child: Center(
           child: AnimatedContainer(
             duration: MonoPulseAnimation.durationShort,
             curve: MonoPulseAnimation.curveCustom,
-            width: 20,
-            height: 20,
+            width: circleSize,
+            height: circleSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: _getColorForMode(),
@@ -572,27 +633,35 @@ class _BeatButton extends StatelessWidget {
   final VoidCallback? onTap;
   final bool showBadge;
   final int badgeCount;
+  final bool isSmallScreen;
 
   const _BeatButton({
     required this.icon,
     this.onTap,
     this.showBadge = false,
     this.badgeCount = 0,
+    this.isSmallScreen = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Smaller buttons on small screens
+    final buttonSize = isSmallScreen ? 40.0 : 48.0;
+    final iconSize = isSmallScreen ? 16.0 : 20.0;
+    final badgeSize = isSmallScreen ? 14.0 : 18.0;
+    final badgeFontSize = isSmallScreen ? 8.0 : 10.0;
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 48,
-        height: 48,
+        width: buttonSize,
+        height: buttonSize,
         child: Center(
           child: AnimatedContainer(
             duration: MonoPulseAnimation.durationShort,
             curve: MonoPulseAnimation.curveCustom,
-            width: 40,
-            height: 40,
+            width: buttonSize - 8,
+            height: buttonSize - 8,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: onTap != null
@@ -610,7 +679,7 @@ class _BeatButton extends StatelessWidget {
                 Center(
                   child: Icon(
                     icon,
-                    size: 20,
+                    size: iconSize,
                     color: onTap != null
                         ? MonoPulseColors.textSecondary
                         : MonoPulseColors.textTertiary,
@@ -621,8 +690,8 @@ class _BeatButton extends StatelessWidget {
                     top: 0,
                     right: 0,
                     child: Container(
-                      width: 18,
-                      height: 18,
+                      width: badgeSize,
+                      height: badgeSize,
                       decoration: BoxDecoration(
                         color: MonoPulseColors.accentOrange,
                         shape: BoxShape.circle,
@@ -635,7 +704,7 @@ class _BeatButton extends StatelessWidget {
                         child: Text(
                           '$badgeCount',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: badgeFontSize,
                             fontWeight: FontWeight.bold,
                             color: MonoPulseColors.black,
                           ),
