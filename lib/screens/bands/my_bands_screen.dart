@@ -11,6 +11,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/adapters/band_item_adapter.dart';
+import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/error_banner.dart';
@@ -195,11 +196,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Bands'),
-        actions: const [OfflineStatusIcon()],
+        actions: [OfflineIndicator.minimal()],
       ),
       body: Column(
         children: [
-          const OfflineIndicator(),
+          OfflineIndicator.banner(),
           Expanded(child: _buildBody(bandsAsync)),
         ],
       ),
@@ -244,15 +245,12 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: ErrorBanner(
+          child: ErrorBanner.card(
             message: _currentError!.message,
-            title: _currentError!.title,
             onRetry: () {
               _clearError();
               ref.invalidate(bandsProvider);
             },
-            showRetry: _currentError!.isNetwork,
-            style: ErrorBannerStyle.card,
           ),
         ),
       );
@@ -269,15 +267,12 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         if (_currentError != null && filteredBands.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.all(16),
-            child: ErrorBanner(
+            child: ErrorBanner.inline(
               message: _currentError!.message,
-              title: _currentError!.title,
               onRetry: () {
                 _clearError();
                 ref.invalidate(bandsProvider);
               },
-              showRetry: _currentError!.isNetwork,
-              style: ErrorBannerStyle.inline,
             ),
           ),
         ],
@@ -325,12 +320,8 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         if (index >= adapters.length) return [];
         final adapter = adapters[index];
         return [
-          // View Band Songs button
-          IconButton(
-            icon: const Icon(Icons.music_note, size: 20),
-            onPressed: () => _handleViewSongs(adapter.band),
-            tooltip: 'View Songs',
-          ),
+          // View Band Songs button - using inline action
+          _ViewSongsAction(band: adapter.band, onNavigate: _handleViewSongs),
         ];
       },
     );
@@ -635,6 +626,23 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
           child: const Text('Close'),
         ),
       ],
+    );
+  }
+}
+
+/// Action class for View Songs button
+class _ViewSongsAction implements UnifiedItemAction {
+  final Band band;
+  final void Function(Band) onNavigate;
+
+  _ViewSongsAction({required this.band, required this.onNavigate});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.music_note, size: 20),
+      onPressed: () => onNavigate(band),
+      tooltip: 'View Songs',
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../theme/mono_pulse_theme.dart';
 
 /// A widget for entering BPM (Beats Per Minute) value.
 ///

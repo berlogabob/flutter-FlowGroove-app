@@ -155,11 +155,11 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Setlists'),
-        actions: const [OfflineStatusIcon()],
+        actions: [OfflineIndicator.minimal()],
       ),
       body: Column(
         children: [
-          const OfflineIndicator(),
+          OfflineIndicator.banner(),
           Expanded(child: _buildBody(setlistsAsync)),
         ],
       ),

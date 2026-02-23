@@ -331,11 +331,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Songs'),
-        actions: const [OfflineStatusIcon()],
+        actions: [OfflineIndicator.minimal()],
       ),
       body: Column(
         children: [
-          const OfflineIndicator(),
+          OfflineIndicator.banner(),
           Expanded(child: _buildBody(songsAsync, bandsAsync)),
         ],
       ),
@@ -372,16 +372,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: ErrorBanner(
+          child: ErrorBanner.card(
             message: _currentError!.message,
-            title: _currentError!.title,
             onRetry: () {
               _clearError();
               // Trigger a refresh by re-watching the provider
               ref.invalidate(songsProvider);
             },
-            showRetry: _currentError!.isNetwork,
-            style: ErrorBannerStyle.card,
           ),
         ),
       );
@@ -415,15 +412,12 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         if (_currentError != null && filteredSongs.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.all(16),
-            child: ErrorBanner(
+            child: ErrorBanner.inline(
               message: _currentError!.message,
-              title: _currentError!.title,
               onRetry: () {
                 _clearError();
                 ref.invalidate(songsProvider);
               },
-              showRetry: _currentError!.isNetwork,
-              style: ErrorBannerStyle.inline,
             ),
           ),
         ],

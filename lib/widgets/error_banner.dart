@@ -18,7 +18,7 @@ class ErrorBanner extends StatelessWidget {
   const ErrorBanner.card({super.key, required this.message, this.onRetry})
     : variant = ErrorBannerVariant.card;
 
-  const ErrorBanner.inline({super.key, required this.message})
+  const ErrorBanner.inline({super.key, required this.message, this.onRetry})
     : variant = ErrorBannerVariant.inline;
 
   @override

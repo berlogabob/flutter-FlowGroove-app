@@ -50,7 +50,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         });
       }
     } on FirebaseAuthException catch (e) {
-      final error = ApiError.fromFirebaseAuthException(e);
+      final error = ApiError.auth(
+        message: 'Failed to send reset email: ${e.message}',
+      );
       if (mounted) {
         setState(() {
           _errorMessage = error.message;

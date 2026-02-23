@@ -4,6 +4,7 @@ import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
 import '../widgets/error_banner.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// Login screen with comprehensive error handling.
 class LoginScreen extends ConsumerStatefulWidget {
@@ -112,12 +113,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 32),
               // Error banner
               if (_currentError != null) ...[
-                ErrorBanner(
+                ErrorBanner.banner(
                   message: _currentError!.message,
-                  title: _currentError!.title,
                   onRetry: _clearError,
-                  showRetry: true,
-                  style: ErrorBannerStyle.banner,
                 ),
                 const SizedBox(height: 24),
               ],
