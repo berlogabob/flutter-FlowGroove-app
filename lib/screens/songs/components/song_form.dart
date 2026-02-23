@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/link.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/mono_pulse_theme.dart';
 import 'bpm_selector.dart';
 import 'links_editor.dart';
 
@@ -168,19 +168,31 @@ class SongForm extends StatelessWidget {
             decoration: const InputDecoration(hintText: 'Notes...'),
             maxLines: 3,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: MonoPulseSpacing.xxxl),
           // Tags selection
-          const Text('Tags', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
+          const Text(
+            'Tags',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: MonoPulseColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.md),
           Wrap(
-            spacing: 8,
+            spacing: MonoPulseSpacing.md,
             children: availableTags
                 .map(
                   (tag) => FilterChip(
-                    label: Text(tag),
+                    label: Text(
+                      tag,
+                      style: const TextStyle(
+                        color: MonoPulseColors.textPrimary,
+                      ),
+                    ),
                     selected: selectedTags.contains(tag),
                     onSelected: (selected) => onTagChanged(tag, selected),
-                    selectedColor: AppColors.color1.withValues(alpha: 0.3),
+                    selectedColor: MonoPulseColors.accentOrangeSubtle,
+                    checkmarkColor: MonoPulseColors.accentOrange,
                   ),
                 )
                 .toList(),

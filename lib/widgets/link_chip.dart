@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/link.dart';
-import '../../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A chip widget for displaying a link.
 ///
@@ -71,28 +71,28 @@ class LinkChip extends StatelessWidget {
     switch (link.type) {
       case Link.typeSpotify:
         icon = Icons.play_circle;
-        color = Colors.green;
+        color = MonoPulseColors.success;
         break;
       case Link.typeYoutubeOriginal:
       case Link.typeYoutubeCover:
         icon = Icons.video_library;
-        color = Colors.red;
+        color = MonoPulseColors.error;
         break;
       case Link.typeTabs:
         icon = Icons.description;
-        color = AppColors.color1;
+        color = MonoPulseColors.accentOrange;
         break;
       case Link.typeDrums:
         icon = Icons.music_note;
-        color = AppColors.color5;
+        color = MonoPulseColors.textSecondary;
         break;
       case Link.typeChords:
         icon = Icons.music_note;
-        color = AppColors.color1;
+        color = MonoPulseColors.accentOrange;
         break;
       default:
         icon = Icons.link;
-        color = Colors.grey;
+        color = MonoPulseColors.textTertiary;
     }
 
     return Icon(icon, size: 16, color: color);
@@ -100,9 +100,9 @@ class LinkChip extends StatelessWidget {
 
   Color? _getBackgroundColor() {
     if (isSelected) {
-      return AppColors.color1.withValues(alpha: 0.3);
+      return MonoPulseColors.accentOrangeSubtle;
     }
-    return AppColors.color3;
+    return MonoPulseColors.surfaceOverlay;
   }
 
   /// Open the link URL in a browser.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../theme/mono_pulse_theme.dart';
 import 'home_screen.dart';
 import 'songs/songs_list_screen.dart';
 import 'bands/my_bands_screen.dart';
@@ -56,38 +57,68 @@ class _MainShellState extends ConsumerState<MainShell> {
       },
       child: Scaffold(
         body: IndexedStack(index: _currentIndex, children: _screens),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: _onDestinationSelected,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Home',
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            color: MonoPulseColors.black,
+            border: Border(
+              top: BorderSide(color: MonoPulseColors.borderSubtle, width: 1),
             ),
-            NavigationDestination(
-              icon: Icon(Icons.music_note_outlined),
-              selectedIcon: Icon(Icons.music_note),
-              label: 'Songs',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.groups_outlined),
-              selectedIcon: Icon(Icons.groups),
-              label: 'Bands',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.queue_music_outlined),
-              selectedIcon: Icon(Icons.queue_music),
-              label: 'Setlists',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outlined),
-              selectedIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+          ),
+          child: NavigationBar(
+            backgroundColor: MonoPulseColors.black,
+            indicatorColor: MonoPulseColors.accentOrangeSubtle,
+            selectedIndex: _currentIndex,
+            onDestinationSelected: _onDestinationSelected,
+            labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+            destinations: [
+              _buildDestination(Icons.home_outlined, Icons.home, 'Home', 0),
+              _buildDestination(
+                Icons.music_note_outlined,
+                Icons.music_note,
+                'Songs',
+                1,
+              ),
+              _buildDestination(
+                Icons.groups_outlined,
+                Icons.groups,
+                'Bands',
+                2,
+              ),
+              _buildDestination(
+                Icons.queue_music_outlined,
+                Icons.queue_music,
+                'Setlists',
+                3,
+              ),
+              _buildDestination(
+                Icons.person_outlined,
+                Icons.person,
+                'Profile',
+                4,
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  NavigationDestination _buildDestination(
+    IconData icon,
+    IconData selectedIcon,
+    String label,
+    int index,
+  ) {
+    final isSelected = _currentIndex == index;
+    return NavigationDestination(
+      icon: Icon(
+        icon,
+        color: isSelected
+            ? MonoPulseColors.accentOrange
+            : MonoPulseColors.textTertiary,
+      ),
+      selectedIcon: Icon(selectedIcon, color: MonoPulseColors.accentOrange),
+      label: label,
     );
   }
 

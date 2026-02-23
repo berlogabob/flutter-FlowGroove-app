@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/data/data_providers.dart';
 import '../providers/auth/auth_provider.dart';
-import '../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 import '../widgets/offline_indicator.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -51,9 +51,9 @@ class HomeScreenBody extends ConsumerWidget {
               bandCount,
               setlistCount,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: MonoPulseSpacing.xxxl),
             _buildQuickActions(context),
-            const SizedBox(height: 24),
+            const SizedBox(height: MonoPulseSpacing.xxxl),
             _buildFutureTools(context),
           ],
         ),
@@ -63,26 +63,27 @@ class HomeScreenBody extends ConsumerWidget {
 
   Widget _buildGreeting(BuildContext context, String name) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.color1.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: MonoPulseColors.accentOrangeSubtle,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+        border: Border.all(color: MonoPulseColors.borderSubtle),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: AppColors.color1,
+            backgroundColor: MonoPulseColors.surfaceRaised,
             child: Text(
               name.isNotEmpty ? name[0].toUpperCase() : 'U',
               style: const TextStyle(
                 fontSize: 24,
-                color: Colors.white,
+                color: MonoPulseColors.accentOrange,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: MonoPulseSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,14 +92,15 @@ class HomeScreenBody extends ConsumerWidget {
                   'Hello, $name!',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: MonoPulseColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Ready to rock?',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: MonoPulseColors.textTertiary,
+                  ),
                 ),
               ],
             ),
@@ -119,11 +121,12 @@ class HomeScreenBody extends ConsumerWidget {
       children: [
         Text(
           'My Library',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: MonoPulseColors.textPrimary,
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: MonoPulseSpacing.md),
         Row(
           children: [
             Expanded(
@@ -132,29 +135,29 @@ class HomeScreenBody extends ConsumerWidget {
                 icon: Icons.music_note,
                 label: 'Songs',
                 value: songs.toString(),
-                color: AppColors.color1,
+                color: MonoPulseColors.accentOrange,
                 onTap: () => Navigator.pushNamed(context, '/songs'),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: MonoPulseSpacing.md),
             Expanded(
               child: _buildStatCard(
                 context,
                 icon: Icons.groups,
                 label: 'Bands',
                 value: bands.toString(),
-                color: AppColors.color5,
+                color: MonoPulseColors.textSecondary,
                 onTap: () => Navigator.pushNamed(context, '/bands'),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: MonoPulseSpacing.md),
             Expanded(
               child: _buildStatCard(
                 context,
                 icon: Icons.queue_music,
                 label: 'Setlists',
                 value: setlists.toString(),
-                color: AppColors.color3,
+                color: MonoPulseColors.textSecondary,
                 onTap: () => Navigator.pushNamed(context, '/setlists'),
               ),
             ),
@@ -175,22 +178,16 @@ class HomeScreenBody extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: MonoPulseColors.surface,
+          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          border: Border.all(color: MonoPulseColors.borderSubtle),
         ),
         child: Column(
           children: [
             Icon(icon, color: color, size: 28),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.md),
             Text(
               value,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -201,9 +198,9 @@ class HomeScreenBody extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: MonoPulseColors.textTertiary,
+              ),
             ),
           ],
         ),
@@ -217,11 +214,12 @@ class HomeScreenBody extends ConsumerWidget {
       children: [
         Text(
           'Quick Actions',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: MonoPulseColors.textPrimary,
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: MonoPulseSpacing.md),
         Row(
           children: [
             Expanded(
@@ -232,7 +230,7 @@ class HomeScreenBody extends ConsumerWidget {
                 onTap: () => Navigator.pushNamed(context, '/songs/add'),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: MonoPulseSpacing.md),
             Expanded(
               child: _buildActionButton(
                 context,
@@ -243,7 +241,7 @@ class HomeScreenBody extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: MonoPulseSpacing.md),
         Row(
           children: [
             Expanded(
@@ -254,7 +252,7 @@ class HomeScreenBody extends ConsumerWidget {
                 onTap: () => Navigator.pushNamed(context, '/setlists/create'),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: MonoPulseSpacing.md),
             Expanded(
               child: _buildActionButton(
                 context,
@@ -276,26 +274,27 @@ class HomeScreenBody extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
+      color: MonoPulseColors.surface,
+      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xxl),
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.color1.withValues(alpha: 0.3)),
-            borderRadius: BorderRadius.circular(12),
+            color: MonoPulseColors.surface,
+            border: Border.all(color: MonoPulseColors.borderDefault),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.color1),
-              const SizedBox(width: 8),
+              Icon(icon, color: MonoPulseColors.accentOrange),
+              const SizedBox(width: MonoPulseSpacing.md),
               Text(
                 label,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppColors.color1,
+                  color: MonoPulseColors.accentOrange,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -312,11 +311,12 @@ class HomeScreenBody extends ConsumerWidget {
       children: [
         Text(
           'Tools',
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: MonoPulseColors.textPrimary,
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: MonoPulseSpacing.md),
         Row(
           children: [
             Expanded(
@@ -326,7 +326,7 @@ class HomeScreenBody extends ConsumerWidget {
                 label: 'Tuner',
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: MonoPulseSpacing.md),
             Expanded(
               child: _buildFutureTool(
                 context,
@@ -350,39 +350,47 @@ class HomeScreenBody extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xxl),
         decoration: BoxDecoration(
           color: onTap != null
-              ? AppColors.color1.withValues(alpha: 0.1)
-              : Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
+              ? MonoPulseColors.surface
+              : MonoPulseColors.surfaceOverlay,
+          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          border: Border.all(color: MonoPulseColors.borderSubtle),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              color: onTap != null ? AppColors.color1 : Colors.grey[600],
+              color: onTap != null
+                  ? MonoPulseColors.accentOrange
+                  : MonoPulseColors.textTertiary,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: MonoPulseSpacing.md),
             Text(
               label,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: onTap != null ? AppColors.color1 : Colors.grey[600],
+                color: onTap != null
+                    ? MonoPulseColors.accentOrange
+                    : MonoPulseColors.textTertiary,
               ),
             ),
             if (onTap == null) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: MonoPulseSpacing.sm),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: MonoPulseSpacing.sm,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.grey[500],
-                  borderRadius: BorderRadius.circular(4),
+                  color: MonoPulseColors.borderStrong,
+                  borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                 ),
                 child: Text(
                   'Soon',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white,
+                    color: MonoPulseColors.textPrimary,
                     fontSize: 10,
                   ),
                 ),

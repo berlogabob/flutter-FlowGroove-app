@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/song.dart';
 import '../../../models/band.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/custom_button.dart';
 
 /// A dialog for adding a song to a band's song bank.
@@ -78,25 +78,30 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
 
   Widget _buildSongPreview() {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(MonoPulseSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.color2.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.color1.withValues(alpha: 0.3)),
+        color: MonoPulseColors.surface,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+        border: Border.all(color: MonoPulseColors.borderDefault),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.music_note, color: AppColors.color1, size: 20),
-              const SizedBox(width: 8),
+              const Icon(
+                Icons.music_note,
+                color: MonoPulseColors.accentOrange,
+                size: 20,
+              ),
+              const SizedBox(width: MonoPulseSpacing.md),
               Expanded(
                 child: Text(
                   widget.song.title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
+                    color: MonoPulseColors.textPrimary,
                   ),
                 ),
               ),
@@ -105,7 +110,10 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
           const SizedBox(height: 4),
           Text(
             widget.song.artist,
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            style: const TextStyle(
+              color: MonoPulseColors.textTertiary,
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -138,19 +146,25 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
 
   Widget _buildInfoChip({required IconData icon, required String label}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.md,
+        vertical: MonoPulseSpacing.xs,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.color3.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
+        color: MonoPulseColors.surfaceOverlay,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppColors.color4),
-          const SizedBox(width: 4),
+          Icon(icon, size: 12, color: MonoPulseColors.textSecondary),
+          const SizedBox(width: MonoPulseSpacing.xs),
           Text(
             label,
-            style: const TextStyle(fontSize: 11, color: AppColors.color4),
+            style: const TextStyle(
+              fontSize: 11,
+              color: MonoPulseColors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -197,28 +211,37 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
   Widget _buildBandTile(Band band, bool isSelected) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: isSelected ? AppColors.color1 : AppColors.color3,
+        backgroundColor: isSelected
+            ? MonoPulseColors.accentOrange
+            : MonoPulseColors.surfaceRaised,
         child: Icon(
           Icons.groups,
-          color: isSelected ? Colors.white : AppColors.color4,
+          color: isSelected
+              ? MonoPulseColors.black
+              : MonoPulseColors.textSecondary,
         ),
       ),
       title: Text(
         band.name,
         style: TextStyle(
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? AppColors.color1 : null,
+          color: isSelected
+              ? MonoPulseColors.accentOrange
+              : MonoPulseColors.textPrimary,
         ),
       ),
       subtitle: Text(
         '${band.members.length} member${band.members.length != 1 ? 's' : ''}',
-        style: const TextStyle(fontSize: 12),
+        style: const TextStyle(
+          fontSize: 12,
+          color: MonoPulseColors.textTertiary,
+        ),
       ),
       trailing: isSelected
-          ? const Icon(Icons.check_circle, color: AppColors.color1)
+          ? const Icon(Icons.check_circle, color: MonoPulseColors.accentOrange)
           : null,
       selected: isSelected,
-      selectedTileColor: AppColors.color3.withValues(alpha: 0.2),
+      selectedTileColor: MonoPulseColors.accentOrangeSubtle,
       onTap: () {
         setState(() {
           _selectedBand = band;

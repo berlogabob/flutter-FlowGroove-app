@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/song.dart';
-import '../../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A card widget for displaying song information.
 ///
@@ -35,14 +35,23 @@ class SongCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.sm,
+      ),
       child: ListTile(
         leading: const CircleAvatar(
-          backgroundColor: AppColors.color1,
-          child: Icon(Icons.music_note, color: Colors.white),
+          backgroundColor: MonoPulseColors.surfaceRaised,
+          child: Icon(Icons.music_note, color: MonoPulseColors.accentOrange),
         ),
-        title: Text(song.title),
-        subtitle: Text(song.artist),
+        title: Text(
+          song.title,
+          style: const TextStyle(color: MonoPulseColors.textPrimary),
+        ),
+        subtitle: Text(
+          song.artist,
+          style: const TextStyle(color: MonoPulseColors.textSecondary),
+        ),
         trailing: _buildTrailingActions(context),
         onTap: onEdit,
       ),
@@ -92,14 +101,20 @@ class SongCard extends StatelessWidget {
 
   Widget _buildBpmBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.md,
+        vertical: MonoPulseSpacing.xs,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.color5.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(4),
+        color: MonoPulseColors.accentOrangeSubtle,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
       ),
       child: Text(
         '${song.ourBPM}',
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: MonoPulseColors.accentOrange,
+        ),
       ),
     );
   }
@@ -118,17 +133,30 @@ class CompactSongCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      margin: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.sm,
+      ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.color1.withValues(alpha: 0.3),
-          child: const Icon(Icons.music_note, size: 20),
+          backgroundColor: MonoPulseColors.surfaceRaised,
+          child: const Icon(
+            Icons.music_note,
+            size: 20,
+            color: MonoPulseColors.accentOrange,
+          ),
         ),
         title: Text(
           song.title,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+            color: MonoPulseColors.textPrimary,
+          ),
         ),
-        subtitle: Text(song.artist),
+        subtitle: Text(
+          song.artist,
+          style: const TextStyle(color: MonoPulseColors.textSecondary),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -136,16 +164,19 @@ class CompactSongCard extends StatelessWidget {
               Text(
                 song.ourKey!,
                 style: const TextStyle(
-                  color: AppColors.color5,
+                  color: MonoPulseColors.accentOrange,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
               ),
             if (song.ourBPM != null) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: MonoPulseSpacing.sm),
               Text(
                 '${song.ourBPM} BPM',
-                style: const TextStyle(color: AppColors.color5, fontSize: 12),
+                style: const TextStyle(
+                  color: MonoPulseColors.accentOrange,
+                  fontSize: 12,
+                ),
               ),
             ],
           ],
