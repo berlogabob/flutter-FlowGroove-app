@@ -198,7 +198,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
     // Update BPM in real-time with constant sensitivity
     final normalizedRotation = ((_currentRotation % 360) + 360) % 360;
     final newBpm = (normalizedRotation / 360 * 599 + 1).round();
-    final clampedBpm = newBpm.clamp(1, 600);
+    final clampedBpm = newBpm.clamp(1, 300);
 
     // Only update if BPM changed
     if (clampedBpm != _startBpm) {

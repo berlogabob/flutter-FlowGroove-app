@@ -124,10 +124,10 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void rotateTempo(double degrees) {
     final bpmChange = (degrees / 288)
         .round(); // 288 degrees = 1 BPM (4x slower than 72)
-    final newBpm = (state.bpm + bpmChange).clamp(1, 600);
+    final newBpm = (state.bpm + bpmChange).clamp(1, 300);
 
     // Stop at limits - don't wrap around
-    if (newBpm == state.bpm && (state.bpm == 1 || state.bpm == 600)) {
+    if (newBpm == state.bpm && (state.bpm == 1 || state.bpm == 300)) {
       return; // At limit, don't update
     }
 
@@ -141,7 +141,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Fine adjustment for tempo (+1, +5, +10 buttons)
   void adjustTempoFine(int delta) {
-    final newBpm = (state.bpm + delta).clamp(1, 600);
+    final newBpm = (state.bpm + delta).clamp(1, 300);
     state = state.copyWith(bpm: newBpm);
 
     if (state.isPlaying) {
@@ -193,7 +193,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Set tempo directly
   void setTempoDirectly(int bpm) {
-    final clampedBpm = bpm.clamp(1, 600);
+    final clampedBpm = bpm.clamp(1, 300);
     state = state.copyWith(bpm: clampedBpm);
 
     if (state.isPlaying) {
