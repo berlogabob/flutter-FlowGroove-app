@@ -27,7 +27,7 @@ abstract class UnifiedItemModel {
 
 /// Base action interface
 abstract class UnifiedItemAction {
-  Widget build();
+  Widget build(BuildContext context);
 }
 
 /// Delete action with theme colors

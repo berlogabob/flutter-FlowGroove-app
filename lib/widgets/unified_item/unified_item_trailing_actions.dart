@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'unified_item_model.dart';
-import 'unified_item_badge.dart';
 import 'adapters/song_item_adapter.dart';
-import 'adapters/band_item_adapter.dart';
 import 'adapters/setlist_item_adapter.dart';
 
 /// Trailing actions widget for unified items
