@@ -10,12 +10,12 @@ import '../../helpers/test_helpers.dart';
 
 // Test notifier that returns a specific state
 class TestMetronomeNotifier extends MetronomeNotifier {
-  final MetronomeState initialState;
+  final MetronomeState? initialState;
 
-  TestMetronomeNotifier({this.initialState = const MetronomeState._()});
+  TestMetronomeNotifier({this.initialState});
 
   @override
-  MetronomeState build() => initialState;
+  MetronomeState build() => initialState ?? MetronomeState.initial();
 }
 
 void main() {

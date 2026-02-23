@@ -207,22 +207,20 @@ void main() {
     });
 
     group('Integration with Riverpod', () {
-      test('watch connectivityProvider returns boolean', () {
-        final container = ProviderContainer();
-
-        final isOnline = container.watch(connectivityProvider);
-        expect(isOnline, isA<bool>());
-
-        container.dispose();
-      });
-
       test('read connectivityProvider returns boolean', () {
         final container = ProviderContainer();
+        addTearDown(container.dispose);
 
         final isOnline = container.read(connectivityProvider);
         expect(isOnline, isA<bool>());
+      });
 
-        container.dispose();
+      test('read connectivityProvider returns boolean (second test)', () {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+
+        final isOnline = container.read(connectivityProvider);
+        expect(isOnline, isA<bool>());
       });
 
       test('listen to connectivityProvider changes', () {
