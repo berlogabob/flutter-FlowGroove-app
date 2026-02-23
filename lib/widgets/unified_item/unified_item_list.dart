@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../theme/app_theme.dart';
 import 'unified_item_model.dart';
 import 'unified_item_card.dart';
 
+/// List widget with swipe-to-delete and drag-and-drop reordering
 class UnifiedItemList<T extends UnifiedItemModel> extends StatefulWidget {
   final List<T> items;
-  final VoidCallback? onReorder;
-  final VoidCallback? onDelete;
+  final Function(int, int)? onReorder;
+  final Function(int)? onDelete;
   final bool showCompact;
 
   const UnifiedItemList({
@@ -44,39 +43,62 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
         return Dismissible(
           key: ValueKey(item.id),
           background: Container(
-            color: Colors.red,
+            color: Theme.of(context).colorScheme.error,
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 16),
             child: const Icon(Icons.delete, color: Colors.white),
           ),
           confirmDismiss: (direction) async {
             if (direction == DismissDirection.endToStart) {
-              // Delete action
-              if (widget.onDelete != null) {
-                widget.onDelete!();
-              }
-              return true;
+              // Show confirmation dialog
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Delete Item'),
+                  content: Text(item.deleteConfirmationMessage),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text(
+                        'Delete',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              return confirmed ?? false;
             }
             return false;
           },
           onDismissed: (direction) {
             if (direction == DismissDirection.endToStart) {
-              final removedItem = _items.removeAt(index);
+              _items.removeAt(index);
               setState(() {});
 
               // Notify parent of deletion
               if (widget.onDelete != null) {
-                widget.onDelete!();
+                widget.onDelete!(index);
               }
             }
           },
           child: UnifiedItemCard<T>(
             item: item,
             showCompact: widget.showCompact,
-            onTap: () {
-              // Handle tap to edit
-              // This will be handled by the screen-level implementation
+            onEdit: widget.items[index].onEdit,
+            onDelete: () {
+              // Handle delete from card
+              if (widget.onDelete != null) {
+                widget.onDelete!(index);
+              }
             },
+            onTap: widget.items[index].onTap,
           ),
         );
       },
@@ -90,7 +112,7 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
 
         // Notify parent of reordering
         if (widget.onReorder != null) {
-          widget.onReorder!();
+          widget.onReorder!(oldIndex, newIndex);
         }
       },
     );

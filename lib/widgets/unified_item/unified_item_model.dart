@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Base interface for all unified items (Song, Band, Setlist)
 abstract class UnifiedItemModel {
   String get id;
   String get title;
@@ -7,51 +8,62 @@ abstract class UnifiedItemModel {
   String? get description;
   List<String> get tags;
   DateTime get createdAt;
-  DateTime get updatedAt;
+  DateTime? get updatedAt;
 
   // Common action callbacks
   VoidCallback? get onEdit;
   VoidCallback? get onDelete;
   VoidCallback? get onTap;
 
-  // Type-specific properties (to be implemented by concrete classes)
+  // Type-specific properties
   Map<String, dynamic> get typeSpecificData;
 
-  // Optional: for swipe-to-delete confirmation
+  // For swipe-to-delete confirmation
   String get deleteConfirmationMessage => 'Delete this item?';
 
-  // Optional: for custom trailing actions
+  // Custom trailing actions
   List<UnifiedItemAction> get customActions => [];
 }
 
+/// Base action interface
 abstract class UnifiedItemAction {
   Widget build();
 }
 
+/// Delete action with theme colors
 class DeleteAction implements UnifiedItemAction {
   final VoidCallback? onPressed;
 
   DeleteAction({this.onPressed});
 
   @override
-  Widget build() {
+  Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+      icon: Icon(
+        Icons.delete,
+        size: 20,
+        color: Theme.of(context).colorScheme.error,
+      ),
       onPressed: onPressed,
       tooltip: 'Delete',
     );
   }
 }
 
+/// Edit action with theme colors
 class EditAction implements UnifiedItemAction {
   final VoidCallback? onPressed;
 
   EditAction({this.onPressed});
 
   @override
-  Widget build() {
+  Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.edit, size: 20, color: Colors.grey),
+      icon: Icon(
+        Icons.edit,
+        size: 20,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
       onPressed: onPressed,
       tooltip: 'Edit',
     );

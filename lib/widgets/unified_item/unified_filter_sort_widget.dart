@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Sort options for unified lists
 enum SortOption {
   manual('Manual'),
   alphabetical('Alphabetical'),
@@ -11,9 +11,10 @@ enum SortOption {
   final String label;
 }
 
-class UnifiedFilterSortWidget extends StatelessWidget {
+/// Filter and sort widget for unified item lists
+class UnifiedFilterSortWidget extends StatefulWidget {
   final SortOption currentSort;
-  final ValueChanged<SortOption> onSortChanged;
+  final ValueChanged<SortOption?> onSortChanged;
   final String? filterText;
   final ValueChanged<String?> onFilterChanged;
 
@@ -24,6 +25,26 @@ class UnifiedFilterSortWidget extends StatelessWidget {
     this.filterText,
     required this.onFilterChanged,
   });
+
+  @override
+  State<UnifiedFilterSortWidget> createState() =>
+      _UnifiedFilterSortWidgetState();
+}
+
+class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.filterText);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,8 +70,8 @@ class UnifiedFilterSortWidget extends StatelessWidget {
                   vertical: 8,
                 ),
               ),
-              controller: TextEditingController(text: filterText),
-              onChanged: onFilterChanged,
+              controller: _controller,
+              onChanged: widget.onFilterChanged,
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
@@ -59,8 +80,8 @@ class UnifiedFilterSortWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: DropdownButton<SortOption>(
-              value: currentSort,
-              onChanged: onSortChanged,
+              value: widget.currentSort,
+              onChanged: widget.onSortChanged,
               items: SortOption.values.map((option) {
                 return DropdownMenuItem<SortOption>(
                   value: option,

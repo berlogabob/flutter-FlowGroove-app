@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/setlist.dart';
 import 'unified_item_model.dart';
 
+/// Adapter for Setlist model to work with unified item system
 class SetlistItemAdapter extends UnifiedItemModel {
   final Setlist setlist;
 
@@ -26,35 +27,28 @@ class SetlistItemAdapter extends UnifiedItemModel {
   DateTime get createdAt => setlist.createdAt;
 
   @override
-  DateTime get updatedAt => setlist.updatedAt;
+  DateTime? get updatedAt => setlist.updatedAt;
 
   @override
-  VoidCallback? get onEdit => () {};
+  VoidCallback? get onEdit => null;
 
   @override
-  VoidCallback? get onDelete => () {};
+  VoidCallback? get onDelete => null;
 
   @override
-  VoidCallback? get onTap => () {};
+  VoidCallback? get onTap => null;
 
   @override
   Map<String, dynamic> get typeSpecificData => {
     'bandId': setlist.bandId,
     'songIds': setlist.songIds,
     'eventDate': setlist.eventDate,
-    'location': setlist.location,
+    'eventLocation': setlist.eventLocation,
   };
 
   // Type-specific properties
-  int get songIdsLength => setlist.songIds?.length ?? 0;
-
+  int get songIdsLength => setlist.songIds.length;
   String? get bandName => setlist.bandId;
-
-  DateTime? get eventDate => setlist.eventDate;
-
-  VoidCallback? get onExportPdf {
-    return () {
-      // This will be implemented in the screen level
-    };
-  }
+  String? get eventDate => setlist.eventDate;
+  String? get eventLocation => setlist.eventLocation;
 }
