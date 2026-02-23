@@ -118,6 +118,7 @@ class PitchDetector {
   /// Calculate frequency from audio buffer using autocorrelation
   ///
   /// Stage 3: Will implement this properly
+  // ignore: unused_element - Placeholder for Stage 3 implementation
   double _autocorrelate(List<int> pcmData) {
     // Placeholder for Stage 3 implementation
     // This will use the YIN algorithm or similar for accurate pitch detection
@@ -125,6 +126,7 @@ class PitchDetector {
   }
 
   /// Convert PCM bytes to double samples
+  // ignore: unused_element - Placeholder for Stage 3 implementation
   List<double> _pcm16ToDouble(List<int> pcmData) {
     final samples = <double>[];
     for (int i = 0; i < pcmData.length; i += 2) {
