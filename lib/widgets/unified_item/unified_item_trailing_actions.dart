@@ -58,32 +58,8 @@ class UnifiedItemTrailingActions<T extends UnifiedItemModel>
     // Add additional actions (e.g., Add to Band)
     actions.addAll(additionalActions.map((action) => action.build(context)));
 
-    // Add edit action
-    if (onEdit != null) {
-      actions.add(
-        IconButton(
-          icon: Icon(Icons.edit, size: 20, color: colors.onSurfaceVariant),
-          onPressed: onEdit,
-          tooltip: 'Edit',
-        ),
-      );
-    }
-
-    // Add delete action
-    if (onDelete != null) {
-      actions.add(
-        IconButton(
-          icon: Icon(Icons.delete, size: 20, color: colors.error),
-          onPressed: onDelete,
-          tooltip: 'Delete',
-        ),
-      );
-    }
-
-    // Add PDF export for setlists
-    if (item is SetlistItemAdapter) {
-      // PDF export will be added as custom action by the screen
-    }
+    // NOTE: Edit and Delete buttons removed - use tap-to-edit and swipe-to-delete instead
+    // This follows the unified interaction pattern
 
     return Row(mainAxisSize: MainAxisSize.min, children: actions);
   }

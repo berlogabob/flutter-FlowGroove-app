@@ -147,10 +147,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     final setlistsAsync = ref.watch(setlistsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Setlists'),
-        actions: [OfflineIndicator.minimal()],
-      ),
+      appBar: AppBar(title: const Text('Setlists')),
       body: Column(
         children: [
           OfflineIndicator.banner(),

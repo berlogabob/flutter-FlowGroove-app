@@ -35,7 +35,7 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
     extends State<UnifiedItemList<T>> {
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return ReorderableListView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: widget.items.length,
@@ -72,20 +72,52 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
                 widget.onEdit!(index);
               }
             },
-            child: UnifiedItemCard<T>(
-              item: item,
-              showCompact: widget.showCompact,
-              customActions: widget.additionalActionsBuilder?.call(index) ?? [],
-              onEdit: widget.onEdit != null
-                  ? () => widget.onEdit!(index)
-                  : null,
-              onDelete: widget.onDelete != null
-                  ? () => widget.onDelete!(index)
-                  : null,
-              onTap: widget.onTap != null ? () => widget.onTap!(index) : null,
+            child: ReorderableDragStartListener(
+              index: index,
+              enabled: widget.enableReorder,
+              child: Row(
+                children: [
+                  // Drag handle (only visible when reorder enabled)
+                  if (widget.enableReorder)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(
+                        Icons.drag_handle,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        size: 24,
+                      ),
+                    ),
+                  // Card takes remaining space
+                  Expanded(
+                    child: UnifiedItemCard<T>(
+                      item: item,
+                      showCompact: widget.showCompact,
+                      customActions:
+                          widget.additionalActionsBuilder?.call(index) ?? [],
+                      onEdit: widget.onEdit != null
+                          ? () => widget.onEdit!(index)
+                          : null,
+                      onDelete: widget.onDelete != null
+                          ? () => widget.onDelete!(index)
+                          : null,
+                      onTap: widget.onTap != null
+                          ? () => widget.onTap!(index)
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
+      },
+      onReorder: (oldIndex, newIndex) {
+        if (widget.enableReorder && widget.onReorder != null) {
+          if (newIndex > oldIndex) {
+            newIndex -= 1;
+          }
+          widget.onReorder!(oldIndex, newIndex);
+        }
       },
     );
   }

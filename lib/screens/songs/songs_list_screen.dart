@@ -329,10 +329,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Songs'),
-        actions: [OfflineIndicator.minimal()],
-      ),
+      appBar: AppBar(title: const Text('Songs')),
       body: Column(
         children: [
           OfflineIndicator.banner(),
