@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A customizable loading indicator widget.
 ///
@@ -38,17 +38,20 @@ class LoadingIndicator extends StatelessWidget {
             child: CircularProgressIndicator(
               strokeWidth: 3,
               valueColor: AlwaysStoppedAnimation<Color>(
-                color ?? AppColors.color1,
+                color ?? MonoPulseColors.accentOrange,
               ),
             ),
           ),
           if (message != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             Text(
               message!,
               style:
                   messageStyle ??
-                  const TextStyle(color: AppColors.color4, fontSize: 14),
+                  const TextStyle(
+                    color: MonoPulseColors.textPrimary,
+                    fontSize: 14,
+                  ),
               textAlign: TextAlign.center,
             ),
           ],

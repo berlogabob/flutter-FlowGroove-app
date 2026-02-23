@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A card widget for displaying setlist information.
 ///
@@ -49,29 +49,44 @@ class SetlistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.sm,
+      ),
       child: ListTile(
         leading: const CircleAvatar(
-          backgroundColor: AppColors.color1,
-          child: Icon(Icons.playlist_play, color: Colors.white),
+          backgroundColor: MonoPulseColors.surfaceRaised,
+          child: Icon(Icons.playlist_play, color: MonoPulseColors.accentOrange),
         ),
-        title: Text(name),
+        title: Text(
+          name,
+          style: const TextStyle(color: MonoPulseColors.textPrimary),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               '$songCount ${songCount == 1 ? 'song' : 'songs'}',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              style: const TextStyle(
+                color: MonoPulseColors.textTertiary,
+                fontSize: 12,
+              ),
             ),
             if (bandName != null && bandName!.isNotEmpty)
               Text(
                 bandName!,
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                style: const TextStyle(
+                  color: MonoPulseColors.textTertiary,
+                  fontSize: 12,
+                ),
               ),
             if (date != null)
               Text(
                 _formatDate(date) ?? '',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                style: const TextStyle(
+                  color: MonoPulseColors.textTertiary,
+                  fontSize: 12,
+                ),
               ),
           ],
         ),
@@ -83,20 +98,28 @@ class SetlistCard extends StatelessWidget {
                 icon: const Icon(
                   Icons.picture_as_pdf,
                   size: 20,
-                  color: Colors.red,
+                  color: MonoPulseColors.error,
                 ),
                 onPressed: onExportPdf,
                 tooltip: 'Export PDF',
               ),
             if (onEdit != null)
               IconButton(
-                icon: const Icon(Icons.edit, size: 20),
+                icon: const Icon(
+                  Icons.edit,
+                  size: 20,
+                  color: MonoPulseColors.textSecondary,
+                ),
                 onPressed: onEdit,
                 tooltip: 'Edit',
               ),
             if (onDelete != null)
               IconButton(
-                icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                icon: const Icon(
+                  Icons.delete,
+                  size: 20,
+                  color: MonoPulseColors.error,
+                ),
                 onPressed: onDelete,
                 tooltip: 'Delete',
               ),
@@ -157,14 +180,30 @@ class CompactSetlistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      margin: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.sm,
+      ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.color1.withValues(alpha: 0.3),
-          child: const Icon(Icons.playlist_play, size: 20),
+          backgroundColor: MonoPulseColors.surfaceRaised,
+          child: const Icon(
+            Icons.playlist_play,
+            size: 20,
+            color: MonoPulseColors.accentOrange,
+          ),
         ),
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w500)),
-        subtitle: Text('$songCount songs'),
+        title: Text(
+          name,
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+            color: MonoPulseColors.textPrimary,
+          ),
+        ),
+        subtitle: Text(
+          '$songCount songs',
+          style: const TextStyle(color: MonoPulseColors.textTertiary),
+        ),
         onTap: onTap,
       ),
     );

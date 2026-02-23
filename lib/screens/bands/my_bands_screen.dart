@@ -7,7 +7,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
-import '../../theme/app_theme.dart';
+import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/band_card.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/custom_text_field.dart';
@@ -499,10 +499,10 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
           const Text('Share this code with band members:'),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             decoration: BoxDecoration(
-              color: AppColors.color2,
-              borderRadius: BorderRadius.circular(8),
+              color: MonoPulseColors.surface,
+              borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
             ),
             child: Text(
               _isRegenerating ? 'Generating...' : _inviteCode,
@@ -510,6 +510,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 2,
+                color: MonoPulseColors.textPrimary,
               ),
             ),
           ),

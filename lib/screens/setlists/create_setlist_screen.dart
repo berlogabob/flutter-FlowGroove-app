@@ -6,7 +6,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
-import '../../theme/app_theme.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 class CreateSetlistScreen extends ConsumerStatefulWidget {
   final Setlist? setlist;
@@ -198,16 +198,23 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
             const SizedBox(height: 8),
             if (_selectedSongs.isEmpty)
               Container(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(MonoPulseSpacing.xxxl),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: MonoPulseColors.borderDefault),
+                  borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
                 ),
                 child: const Column(
                   children: [
-                    Icon(Icons.music_note, size: 48, color: Colors.grey),
-                    SizedBox(height: 8),
-                    Text('No songs added'),
+                    Icon(
+                      Icons.music_note,
+                      size: 48,
+                      color: MonoPulseColors.textTertiary,
+                    ),
+                    SizedBox(height: MonoPulseSpacing.md),
+                    Text(
+                      'No songs added',
+                      style: TextStyle(color: MonoPulseColors.textSecondary),
+                    ),
                   ],
                 ),
               )
@@ -227,30 +234,46 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   final song = _selectedSongs[index];
                   return Card(
                     key: ValueKey(song.id),
-                    margin: const EdgeInsets.only(bottom: 8),
+                    margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
                     child: ListTile(
                       leading: ReorderableDragStartListener(
                         index: index,
-                        child: const Icon(Icons.drag_handle),
+                        child: const Icon(
+                          Icons.drag_handle,
+                          color: MonoPulseColors.textTertiary,
+                        ),
                       ),
-                      title: Text(song.title),
-                      subtitle: Text(song.artist),
+                      title: Text(
+                        song.title,
+                        style: const TextStyle(
+                          color: MonoPulseColors.textPrimary,
+                        ),
+                      ),
+                      subtitle: Text(
+                        song.artist,
+                        style: const TextStyle(
+                          color: MonoPulseColors.textSecondary,
+                        ),
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: MonoPulseSpacing.md,
+                              vertical: MonoPulseSpacing.xs,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.color5.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
+                              color: MonoPulseColors.accentOrangeSubtle,
+                              borderRadius: BorderRadius.circular(
+                                MonoPulseRadius.small,
+                              ),
                             ),
                             child: Text(
                               song.ourKey ?? '-',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: MonoPulseColors.accentOrange,
                               ),
                             ),
                           ),

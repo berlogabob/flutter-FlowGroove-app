@@ -7,7 +7,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../models/song.dart';
 import '../../models/band.dart';
-import '../../theme/app_theme.dart';
+import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/song_attribution_badge.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/custom_text_field.dart';
@@ -243,15 +243,20 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
             ? () => _showAddToBandMenu(context, ref, song, bands)
             : null,
         child: Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          margin: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.lg,
+            vertical: MonoPulseSpacing.sm,
+          ),
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: isShared
-                  ? AppColors.color5.withValues(alpha: 0.3)
-                  : AppColors.color1.withValues(alpha: 0.3),
+                  ? MonoPulseColors.accentOrangeSubtle
+                  : MonoPulseColors.accentOrangeSubtle,
               child: Icon(
                 isShared ? Icons.content_copy : Icons.music_note,
-                color: isShared ? AppColors.color5 : AppColors.color1,
+                color: isShared
+                    ? MonoPulseColors.accentOrange
+                    : MonoPulseColors.accentOrange,
                 size: 20,
               ),
             ),
@@ -262,10 +267,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                     song.title,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
+                      color: MonoPulseColors.textPrimary,
                       decoration: isShared
                           ? TextDecoration.underline
                           : TextDecoration.none,
-                      decorationColor: AppColors.color5,
+                      decorationColor: MonoPulseColors.accentOrange,
                     ),
                   ),
                 ),
@@ -283,17 +289,17 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                   Text(
                     song.ourKey!,
                     style: const TextStyle(
-                      color: AppColors.color5,
+                      color: MonoPulseColors.accentOrange,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
                   ),
                 if (song.ourBPM != null) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: MonoPulseSpacing.sm),
                   Text(
                     '${song.ourBPM}',
                     style: const TextStyle(
-                      color: AppColors.color5,
+                      color: MonoPulseColors.accentOrange,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -382,7 +388,10 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
             const SizedBox(height: 8),
             Text(
               '${song.title} - ${song.artist}',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
+              style: const TextStyle(
+                fontSize: 14,
+                color: MonoPulseColors.textTertiary,
+              ),
             ),
             const SizedBox(height: 16),
             ...bands.map(

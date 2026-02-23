@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/link.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/mono_pulse_theme.dart';
 
 /// A widget for managing a collection of links.
 ///
@@ -140,11 +140,18 @@ class _LinkChip extends StatelessWidget {
     return Chip(
       label: Text(
         link.type.replaceAll('_', ' '),
-        style: const TextStyle(fontSize: 12),
+        style: const TextStyle(
+          fontSize: 12,
+          color: MonoPulseColors.textPrimary,
+        ),
       ),
-      deleteIcon: const Icon(Icons.close, size: 16),
+      deleteIcon: const Icon(
+        Icons.close,
+        size: 16,
+        color: MonoPulseColors.textSecondary,
+      ),
       onDeleted: onDeleted,
-      backgroundColor: AppColors.color3,
+      backgroundColor: MonoPulseColors.surfaceOverlay,
     );
   }
 }

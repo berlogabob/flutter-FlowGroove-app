@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A customizable text field widget with consistent styling.
 ///
@@ -85,7 +85,7 @@ class CustomTextField extends StatelessWidget {
             text: TextSpan(
               text: label,
               style: const TextStyle(
-                color: AppColors.color4,
+                color: MonoPulseColors.textPrimary,
                 fontWeight: FontWeight.w500,
                 fontSize: 14,
               ),
@@ -93,13 +93,13 @@ class CustomTextField extends StatelessWidget {
                   ? [
                       const TextSpan(
                         text: ' *',
-                        style: TextStyle(color: Colors.red),
+                        style: TextStyle(color: MonoPulseColors.error),
                       ),
                     ]
                   : [],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.md),
         ],
         TextFormField(
           controller: controller,

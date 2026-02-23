@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A confirmation dialog widget.
 ///
@@ -37,23 +37,39 @@ class ConfirmationDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: MonoPulseColors.surface,
       icon: Icon(
         icon ?? (isDestructive ? Icons.warning_amber : Icons.info_outline),
-        color: isDestructive ? Colors.red : AppColors.color1,
+        color: isDestructive
+            ? MonoPulseColors.error
+            : MonoPulseColors.accentOrange,
         size: 48,
       ),
-      title: Text(title, textAlign: TextAlign.center),
-      content: Text(message, textAlign: TextAlign.center),
+      title: Text(
+        title,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: MonoPulseColors.textPrimary),
+      ),
+      content: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: MonoPulseColors.textSecondary),
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: Text(cancelLabel),
+          child: Text(
+            cancelLabel,
+            style: const TextStyle(color: MonoPulseColors.textSecondary),
+          ),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
           style: ElevatedButton.styleFrom(
-            backgroundColor: isDestructive ? Colors.red : AppColors.color1,
-            foregroundColor: Colors.white,
+            backgroundColor: isDestructive
+                ? MonoPulseColors.error
+                : MonoPulseColors.accentOrange,
+            foregroundColor: MonoPulseColors.black,
           ),
           child: Text(confirmLabel),
         ),

@@ -1,50 +1,229 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/metronome_widget.dart';
+import '../../theme/mono_pulse_theme.dart';
+import '../widgets/metronome/time_signature_block.dart';
+import '../widgets/metronome/central_tempo_circle.dart';
+import '../widgets/metronome/fine_adjustment_buttons.dart';
+import '../widgets/metronome/song_library_block.dart';
+import '../widgets/metronome/bottom_transport_bar.dart';
+import '../widgets/metronome/menu_popup.dart';
 
-/// Full screen metronome - MVP version
-class MetronomeScreen extends ConsumerWidget {
+/// Metronome Screen - Mono Pulse Design (Sprint Fix)
+///
+/// Complete redesign per Mono Pulse brandbook:
+/// - Clean, premium prototype of musical instrument
+/// - Minimum elements, maximum air (60-70% empty space)
+/// - Central tempo circle as heart of device
+/// - Only: Black background, grey surfaces, orange accent
+/// - WCAG AA+ contrast, 48px minimum touch zones
+/// - Animations: 120-200ms, smooth, functional only
+///
+/// Sprint Fixes:
+/// - Disable screen scroll (NeverScrollableScrollPhysics on Scaffold)
+/// - Three dots menu with Save New Song / Update Song items
+///
+/// Screen Structure (Top to Bottom):
+/// 1. AppBar (~56px) - Back arrow, title, three dots
+/// 2. Time Signature Block (~80-100px) - Accents + beats with +/- buttons
+/// 3. Central Tempo Circle (50-60% screen width) - Rotary dial
+/// 4. Fine Adjustment Buttons - +1/-1, +5/-5, +10/-10
+/// 5. Song Library Block - Compact pill + expanded panel
+/// 6. Bottom Transport Bar (64-80px) - Play/Pause, Previous/Next
+class MetronomeScreen extends ConsumerStatefulWidget {
   const MetronomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Metronome'),
-        backgroundColor: Colors.teal.shade700,
-        foregroundColor: Colors.white,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Metronome controls
-          const MetronomeWidget(),
+  ConsumerState<MetronomeScreen> createState() => _MetronomeScreenState();
+}
 
-          const SizedBox(height: 24),
+class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
+  bool _isMenuOpen = false;
+  Offset _menuPosition = Offset.zero;
 
-          // Info card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'How to use',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text('• Adjust BPM using slider or +/- buttons'),
-                  const Text('• Select time signature (2/4, 3/4, 4/4, etc.)'),
-                  const Text('• Press Start to begin'),
-                  const Text('• Visual indicator shows current beat'),
-                  const Text('• First beat of measure is accented (red)'),
-                ],
-              ),
-            ),
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: MonoPulseColors.black,
+        // Use standard AppBar for consistent back arrow across all screens
+        appBar: _buildAppBar(context),
+        // Disable screen scroll per sprint brief
+        extendBodyBehindAppBar: false,
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Main content with disabled scroll
+              _buildBody(context),
+              // Menu popup overlay
+              if (_isMenuOpen)
+                MenuPopup(
+                  position: _menuPosition,
+                  onClose: () {
+                    setState(() => _isMenuOpen = false);
+                  },
+                ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    // Get screen width for adaptive spacing
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 375;
+
+    // Adaptive spacing based on screen size
+    final topPadding = isSmallScreen
+        ? MonoPulseSpacing.lg
+        : MonoPulseSpacing.massive;
+    final sectionSpacing = isSmallScreen
+        ? MonoPulseSpacing.lg
+        : MonoPulseSpacing.massive;
+    final fineAdjustSpacing = isSmallScreen
+        ? MonoPulseSpacing.lg
+        : MonoPulseSpacing.huge;
+
+    // Simple layout with minimal gaps - works on ALL screen sizes
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        children: [
+          // 1. Air gap after AppBar (adaptive: 16-48px)
+          SizedBox(height: topPadding),
+
+          // 2. Time Signature Block (moved to top, compact 64-72px height)
+          const TimeSignatureBlock(),
+
+          // Air gap (adaptive: 16-48px)
+          SizedBox(height: sectionSpacing),
+
+          // 3. Central Tempo Circle (adaptive: 45-55% screen width)
+          const CentralTempoCircle(),
+
+          // Air gap - REDUCED for ALL screens (was 16-40px, now 12-24px)
+          SizedBox(
+            height: isSmallScreen ? MonoPulseSpacing.sm : MonoPulseSpacing.lg,
+          ),
+
+          // 4. Fine Adjustment Buttons (compact: 48px height)
+          const FineAdjustmentButtons(),
+
+          // Air gap - REDUCED for ALL screens (was 16-32px, now 12-24px)
+          SizedBox(height: fineAdjustSpacing),
+
+          // 5. Bottom Transport Bar - Play Button (PRIMARY ACTION, moved up)
+          // MINIMAL gap above transport bar - 8px for ALL screens
+          const SizedBox(height: 8),
+          const BottomTransportBar(),
+
+          // Air gap - REDUCED for ALL screens (was 16-32px, now 12-24px)
+          SizedBox(height: fineAdjustSpacing),
+
+          // 6. Song Library Block (compact, moved to bottom)
+          const SongLibraryBlock(),
         ],
       ),
     );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: MonoPulseColors.black,
+      foregroundColor: MonoPulseColors.textPrimary,
+      elevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+      // Standard back arrow - consistent with tuner and all other screens
+      leading: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.of(context).pop();
+        },
+        // 48px minimum touch zone
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: MonoPulseColors.textSecondary,
+                  width: 1.5,
+                ),
+              ),
+              child: Icon(
+                Icons.arrow_back_ios_new,
+                color: MonoPulseColors.textSecondary,
+                size: 20,
+              ),
+            ),
+          ),
+        ),
+      ),
+      title: Text(
+        'Metronome',
+        style: MonoPulseTypography.headlineLarge.copyWith(
+          color: MonoPulseColors.textHighEmphasis,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      centerTitle: true,
+      actions: [
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            _toggleMenu();
+          },
+          // 48px minimum touch zone
+          child: SizedBox(
+            width: 48,
+            height: 48,
+            child: Center(
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _isMenuOpen
+                        ? MonoPulseColors.accentOrange
+                        : MonoPulseColors.borderSubtle,
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.more_vert,
+                  color: _isMenuOpen
+                      ? MonoPulseColors.accentOrange
+                      : MonoPulseColors.textSecondary,
+                  size: 22,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: MonoPulseSpacing.md),
+      ],
+    );
+  }
+
+  void _toggleMenu() {
+    setState(() {
+      _isMenuOpen = !_isMenuOpen;
+      if (_isMenuOpen) {
+        // Calculate menu position (top-right, below app bar)
+        final appBarHeight = 56.0;
+        _menuPosition = Offset(
+          MonoPulseSpacing.xxl,
+          appBarHeight + MonoPulseSpacing.md,
+        );
+      }
+    });
   }
 }

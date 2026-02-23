@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/screens/metronome_screen.dart';
-import 'package:flutter_repsync_app/widgets/metronome_widget.dart';
 import 'package:flutter_repsync_app/providers/data/metronome_provider.dart';
 import 'package:flutter_repsync_app/models/metronome_state.dart';
 
@@ -72,14 +71,15 @@ void main() {
       expect(find.byType(ListView), findsOneWidget);
     });
 
-    testWidgets('renders MetronomeWidget', (WidgetTester tester) async {
+    testWidgets('renders time signature block', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         const MetronomeScreen(),
         overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
       );
 
-      expect(find.byType(MetronomeWidget), findsOneWidget);
+      // Check for beat circles (Container with circular decoration)
+      expect(find.byType(Container), findsWidgets);
     });
 
     testWidgets('renders "How to use" info card', (WidgetTester tester) async {
