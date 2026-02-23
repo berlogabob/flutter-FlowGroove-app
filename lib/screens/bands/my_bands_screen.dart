@@ -8,14 +8,16 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/band_card.dart';
+import '../../widgets/unified_item/unified_item_card.dart';
+import '../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../widgets/unified_item/adapters/band_item_adapter.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/custom_text_field.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/offline_indicator.dart';
 
-/// Screen for displaying the user's bands with search functionality and error handling.
+/// Screen for displaying the user's bands with search, filter, sort,
+/// swipe-to-delete, and drag-and-drop reordering.
 class MyBandsScreen extends ConsumerStatefulWidget {
   const MyBandsScreen({super.key});
 
@@ -25,18 +27,42 @@ class MyBandsScreen extends ConsumerStatefulWidget {
 
 class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   String _searchQuery = '';
+  SortOption _sortOption = SortOption.manual;
   ApiError? _currentError;
 
-  /// Filter bands based on the search query.
-  List<Band> _filterBands(List<Band> bands) {
-    if (_searchQuery.trim().isEmpty) {
-      return bands;
+  /// Filter and sort bands based on search query and sort option.
+  List<BandItemAdapter> _filterAndSortBands(List<Band> bands) {
+    // Convert bands to adapters
+    var adapters = bands.map((band) => BandItemAdapter(band)).toList();
+
+    // Apply search filter
+    if (_searchQuery.trim().isNotEmpty) {
+      final query = _searchQuery.toLowerCase().trim();
+      adapters = adapters.where((adapter) {
+        return adapter.title.toLowerCase().contains(query) ||
+            (adapter.subtitle?.toLowerCase().contains(query) ?? false);
+      }).toList();
     }
 
-    final query = _searchQuery.toLowerCase().trim();
-    return bands.where((band) {
-      return band.name.toLowerCase().contains(query);
-    }).toList();
+    // Apply sorting
+    switch (_sortOption) {
+      case SortOption.manual:
+        // Keep original order (user can reorder via drag-and-drop)
+        break;
+      case SortOption.alphabetical:
+        adapters.sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
+        break;
+      case SortOption.dateAdded:
+        adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+      case SortOption.dateModified:
+        adapters.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        break;
+    }
+
+    return adapters;
   }
 
   /// Clears the current error.
@@ -53,6 +79,29 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       _currentError = apiError;
     });
     ref.read(errorNotifierProvider.notifier).handleError(apiError);
+  }
+
+  /// Handle band reordering (manual sort mode).
+  void _handleReorder(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+
+    final bands = ref.read(bandsProvider).value;
+    if (bands == null) return;
+
+    // Perform the reordering locally first
+    final band = bands.removeAt(oldIndex);
+    bands.insert(newIndex, band);
+
+    // Save the reordered bands to Firestore (fire-and-forget)
+    final service = ref.read(firestoreProvider);
+    final user = ref.read(currentUserProvider);
+    if (user != null) {
+      for (int i = 0; i < bands.length; i++) {
+        service.saveBand(bands[i], user.uid);
+      }
+    }
   }
 
   @override
@@ -128,7 +177,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, List<Band> bands) {
-    final filteredBands = _filterBands(bands);
+    final filteredBands = _filterAndSortBands(bands);
 
     return Column(
       children: [
@@ -148,23 +197,21 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
             ),
           ),
         ],
+        // Unified filter/sort widget
         Padding(
           padding: const EdgeInsets.all(16),
-          child: CustomTextField(
-            hint: 'Search bands...',
-            prefixIcon: Icons.search,
-            onChanged: (value) => setState(() => _searchQuery = value),
+          child: UnifiedFilterSortWidget(
+            currentSort: _sortOption,
+            onSortChanged: (option) => setState(() => _sortOption = option),
+            filterText: _searchQuery.isEmpty ? null : _searchQuery,
+            onFilterChanged: (value) =>
+                setState(() => _searchQuery = value ?? ''),
           ),
         ),
         Expanded(
           child: filteredBands.isEmpty
               ? _buildEmptyState(bands.isEmpty)
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: filteredBands.length,
-                  itemBuilder: (context, index) =>
-                      _buildBandCard(context, ref, filteredBands[index]),
-                ),
+              : _buildBandList(filteredBands),
         ),
       ],
     );
@@ -179,23 +226,74 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     return EmptyState.search(query: _searchQuery);
   }
 
-  Widget _buildBandCard(BuildContext context, WidgetRef ref, Band band) {
-    return BandCard(
-      id: band.id,
-      name: band.name,
-      memberCount: band.members.length,
-      description: band.description,
-      onTap: () => _showInviteDialog(context, ref, band),
-      onEdit: () => Navigator.pushNamed(
-        context,
-        '/bands/${band.id}/edit',
-        arguments: band,
-      ),
-      onDelete: () => _confirmDelete(context, ref, band),
+  Widget _buildBandList(List<BandItemAdapter> adapters) {
+    return ReorderableListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: adapters.length,
+      onReorder: _sortOption == SortOption.manual
+          ? _handleReorder
+          : (oldIndex, newIndex) {}, // No-op when not in manual mode
+      proxyDecorator: (child, index, animation) {
+        return Material(
+          elevation: 8,
+          borderRadius: BorderRadius.circular(12),
+          child: child,
+        );
+      },
+      itemBuilder: (context, index) {
+        final adapter = adapters[index];
+        final band = adapter.band;
+
+        return Dismissible(
+          key: ValueKey(band.id),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 16),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.red.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.delete_outline,
+              color: Colors.red.shade700,
+              size: 28,
+            ),
+          ),
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.endToStart) {
+              return await _confirmDelete(context, ref, band);
+            }
+            return false;
+          },
+          onDismissed: (direction) {
+            if (direction == DismissDirection.endToStart) {
+              // Deletion is handled in confirmDismiss
+            }
+          },
+          child: UnifiedItemCard<BandItemAdapter>(
+            item: adapter,
+            onTap: () => _showInviteDialog(context, ref, band),
+            onEdit: () => Navigator.pushNamed(
+              context,
+              '/bands/${band.id}/edit',
+              arguments: band,
+            ),
+            // onDelete is handled by swipe-to-delete
+            onDelete: () => _confirmDelete(context, ref, band),
+            showCompact: false,
+          ),
+        );
+      },
     );
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref, Band band) async {
+  Future<bool> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    Band band,
+  ) async {
     final confirmed = await ConfirmationDialog.showDeleteDialog(
       context,
       title: 'Leave Band',
@@ -218,6 +316,12 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
           // Remove from user's bands collection
           await service.removeUserFromBand(band.id, user.uid);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Successfully left the band')),
+            );
+          }
         } on ApiError catch (e) {
           _handleStreamError(e, StackTrace.current);
           if (mounted) {
@@ -225,6 +329,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
               context,
             ).showSnackBar(SnackBar(content: Text(e.message)));
           }
+          return false; // Don't dismiss on error
         } catch (e, stackTrace) {
           final error = ApiError.fromException(e, stackTrace: stackTrace);
           _handleStreamError(error, stackTrace);
@@ -233,9 +338,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
               context,
             ).showSnackBar(SnackBar(content: Text(error.message)));
           }
+          return false; // Don't dismiss on error
         }
       }
     }
+    return confirmed;
   }
 
   void _showInviteDialog(BuildContext context, WidgetRef ref, Band band) {
@@ -358,7 +465,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
               title: const Text('Share via...'),
               onTap: () {
                 Navigator.pop(context);
-                shareText(message);
+                _shareText(message);
               },
             ),
             ListTile(
@@ -404,7 +511,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
     );
   }
 
-  Future<void> shareText(String text) async {
+  Future<void> _shareText(String text) async {
     try {
       await Clipboard.setData(ClipboardData(text: text));
       if (mounted) {
