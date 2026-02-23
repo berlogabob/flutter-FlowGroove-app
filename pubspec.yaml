@@ -44,7 +44,7 @@ dependencies:
   package_info_plus: ^8.3.1
   url_launcher: ^6.3.2
   uuid: ^4.5.3
-  launch_review: ^4.0.0
+  launch_review: ^3.0.1
 
   # Audio Recording (optional)
   flutter_sound: ^9.30.0
