@@ -149,7 +149,7 @@ class _SlideUpPanel extends StatelessWidget {
           alignment: Alignment.bottomCenter,
           child: AnimatedContainer(
             duration: MonoPulseAnimation.durationMedium,
-            curve: MonoPulseAnimation.curveDecelerate,
+            curve: MonoPulseAnimation.curveCustom,
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.7,
             ),
