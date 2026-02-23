@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../providers/auth/auth_provider.dart';
-import '../../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -84,29 +84,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
-        backgroundColor: AppColors.color2,
+        backgroundColor: MonoPulseColors.black,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
               child: Column(
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: AppColors.color1,
+                    backgroundColor: MonoPulseColors.surfaceRaised,
                     child: Text(
                       user?.email?.substring(0, 1).toUpperCase() ?? '?',
                       style: const TextStyle(
                         fontSize: 40,
-                        color: Colors.white,
+                        color: MonoPulseColors.accentOrange,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: MonoPulseSpacing.lg),
                   Text(
                     appUserAsync.whenOrNull(
                           data: (u) => u?.displayName ?? 'User',
@@ -115,56 +115,87 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: MonoPulseColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     user?.email ?? '',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: MonoPulseColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: MonoPulseSpacing.xxl),
           const Text(
             'Account',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: MonoPulseColors.textTertiary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text('Edit Profile'),
-                  trailing: const Icon(Icons.chevron_right),
+                  leading: const Icon(
+                    Icons.person,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  title: const Text(
+                    'Edit Profile',
+                    style: TextStyle(color: MonoPulseColors.textPrimary),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: MonoPulseColors.textTertiary,
+                  ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Coming soon!')),
                     );
                   },
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
                 ListTile(
-                  leading: const Icon(Icons.notifications),
-                  title: const Text('Notifications'),
-                  trailing: const Icon(Icons.chevron_right),
+                  leading: const Icon(
+                    Icons.notifications,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  title: const Text(
+                    'Notifications',
+                    style: TextStyle(color: MonoPulseColors.textPrimary),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: MonoPulseColors.textTertiary,
+                  ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Coming soon!')),
                     );
                   },
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
                 ListTile(
-                  leading: const Icon(Icons.palette),
-                  title: const Text('Appearance'),
-                  trailing: const Icon(Icons.chevron_right),
+                  leading: const Icon(
+                    Icons.palette,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  title: const Text(
+                    'Appearance',
+                    style: TextStyle(color: MonoPulseColors.textPrimary),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: MonoPulseColors.textTertiary,
+                  ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Coming soon!')),
@@ -174,44 +205,78 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: MonoPulseSpacing.xxl),
           const Text(
             'About',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: MonoPulseColors.textTertiary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.info),
-                  title: const Text('App Version'),
-                  subtitle: _buildDate.isNotEmpty ? Text(_buildDate) : null,
+                  leading: const Icon(
+                    Icons.info,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  title: const Text(
+                    'App Version',
+                    style: TextStyle(color: MonoPulseColors.textPrimary),
+                  ),
+                  subtitle: _buildDate.isNotEmpty
+                      ? Text(
+                          _buildDate,
+                          style: const TextStyle(
+                            color: MonoPulseColors.textTertiary,
+                          ),
+                        )
+                      : null,
                   trailing: Text(
                     _version,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: MonoPulseColors.textPrimary,
+                    ),
                   ),
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
                 ListTile(
-                  leading: const Icon(Icons.privacy_tip),
-                  title: const Text('Privacy Policy'),
-                  trailing: const Icon(Icons.chevron_right),
+                  leading: const Icon(
+                    Icons.privacy_tip,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  title: const Text(
+                    'Privacy Policy',
+                    style: TextStyle(color: MonoPulseColors.textPrimary),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: MonoPulseColors.textTertiary,
+                  ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Coming soon!')),
                     );
                   },
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
                 ListTile(
-                  leading: const Icon(Icons.description),
-                  title: const Text('Terms of Service'),
-                  trailing: const Icon(Icons.chevron_right),
+                  leading: const Icon(
+                    Icons.description,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  title: const Text(
+                    'Terms of Service',
+                    style: TextStyle(color: MonoPulseColors.textPrimary),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: MonoPulseColors.textTertiary,
+                  ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Coming soon!')),
@@ -221,34 +286,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: MonoPulseSpacing.xxl),
           const Text(
             'Support',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: MonoPulseColors.textTertiary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.help),
-                  title: const Text('Help & FAQ'),
-                  trailing: const Icon(Icons.chevron_right),
+                  leading: const Icon(
+                    Icons.help,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  title: const Text(
+                    'Help & FAQ',
+                    style: TextStyle(color: MonoPulseColors.textPrimary),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: MonoPulseColors.textTertiary,
+                  ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Coming soon!')),
                     );
                   },
                 ),
-                const Divider(height: 1),
+                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
                 ListTile(
-                  leading: const Icon(Icons.feedback),
-                  title: const Text('Send Feedback'),
-                  trailing: const Icon(Icons.chevron_right),
+                  leading: const Icon(
+                    Icons.feedback,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  title: const Text(
+                    'Send Feedback',
+                    style: TextStyle(color: MonoPulseColors.textPrimary),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                    color: MonoPulseColors.textTertiary,
+                  ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Coming soon!')),
@@ -258,18 +341,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: MonoPulseSpacing.xxxl),
           ElevatedButton.icon(
             onPressed: () => _showLogoutDialog(context, ref),
-            icon: const Icon(Icons.logout),
-            label: const Text('Log Out'),
+            icon: const Icon(Icons.logout, color: MonoPulseColors.black),
+            label: const Text(
+              'Log Out',
+              style: TextStyle(color: MonoPulseColors.black),
+            ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              backgroundColor: MonoPulseColors.error,
+              foregroundColor: MonoPulseColors.black,
+              padding: const EdgeInsets.symmetric(
+                vertical: MonoPulseSpacing.lg,
+              ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: MonoPulseSpacing.xxxl),
         ],
       ),
     );
@@ -279,12 +367,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Log Out'),
-        content: const Text('Are you sure you want to log out?'),
+        backgroundColor: MonoPulseColors.surface,
+        title: const Text(
+          'Log Out',
+          style: TextStyle(color: MonoPulseColors.textPrimary),
+        ),
+        content: const Text(
+          'Are you sure you want to log out?',
+          style: TextStyle(color: MonoPulseColors.textSecondary),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: MonoPulseColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -299,8 +397,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              backgroundColor: MonoPulseColors.error,
+              foregroundColor: MonoPulseColors.black,
             ),
             child: const Text('Log Out'),
           ),

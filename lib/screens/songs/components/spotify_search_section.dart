@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../services/api/spotify_service.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/mono_pulse_theme.dart';
 
 /// A bottom sheet widget for searching and selecting tracks from Spotify.
 ///
@@ -174,7 +174,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                           Text(
                             '${features.musicalKey} • ${features.bpm} BPM',
                             style: const TextStyle(
-                              color: AppColors.color5,
+                              color: MonoPulseColors.accentOrange,
                               fontSize: 12,
                             ),
                           ),
@@ -184,9 +184,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                     trailing: features != null
                         ? Chip(
                             label: Text('${features.bpm}'),
-                            backgroundColor: AppColors.color5.withValues(
-                              alpha: 0.2,
-                            ),
+                            backgroundColor: MonoPulseColors.accentOrangeSubtle,
                           )
                         : null,
                     onTap: () => widget.onSelect(track, features),
