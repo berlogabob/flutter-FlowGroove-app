@@ -6,7 +6,7 @@ import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import 'tempo_change_dialog.dart';
 
-/// Central Tempo Circle widget - Mono Pulse design
+/// Central Tempo Circle widget - Mono Pulse design (Sprint Fix)
 ///
 /// Large rotary dial for tempo adjustment:
 /// - Circle diameter ~50-60% screen width
@@ -15,9 +15,11 @@ import 'tempo_change_dialog.dart';
 /// - Tick marks with labels (60, 120, 180 bpm)
 /// - Center: BPM number (72-88px Bold) + "bpm" label
 ///
-/// Behavior:
-/// - Drag finger to rotate and set tempo (rotary phone style)
-/// - Tap center: modal dialog with Tap/Keyboard options
+/// Sprint Fixes:
+/// - Increase touch zone (entire circle + 30px around)
+/// - Edge dot always matches current BPM (position on scale)
+/// - Sensitivity: constant speed, no acceleration (long drag = smooth change)
+/// - Scale: thin lines #333333, labels 60/120/180 #8A8A8F
 class CentralTempoCircle extends ConsumerStatefulWidget {
   const CentralTempoCircle({super.key});
 
@@ -31,6 +33,8 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
   double _currentRotation = 0;
   int _startBpm = 120;
   bool _isDragging = false;
+  double _cumulativeRotation =
+      0; // Track total rotation for constant sensitivity
 
   // Pulse animation controller for beat feedback
   late AnimationController _pulseController;
@@ -49,6 +53,12 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
         curve: MonoPulseAnimation.curveCustom,
       ),
     );
+
+    // Initialize cumulative rotation from current BPM
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bpm = ref.read(metronomeProvider).bpm;
+      _cumulativeRotation = (bpm - 1) / 599 * 360;
+    });
 
     // Listen to metronome state changes for beat pulse
     ref.listen(metronomeProvider, (previous, next) {
@@ -75,54 +85,69 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
     final state = ref.watch(metronomeProvider);
     final bpm = state.bpm;
 
-    // Calculate rotation angle based on BPM (1-600 range = 0-360 degrees)
-    final normalizedBpm = (bpm - 1) / 599; // 0-1 range
-    final targetRotation = normalizedBpm * 360;
-
     // Use LayoutBuilder to make circle 55% of screen width
     return LayoutBuilder(
       builder: (context, constraints) {
         final circleSize = constraints.maxWidth * 0.55;
         final clampedSize = circleSize.clamp(220.0, 280.0);
 
+        // Touch zone: entire circle + 30px around
+        final touchZoneSize = clampedSize + 60; // 30px on each side
+
         return GestureDetector(
           onPanStart: _onPanStart,
           onPanUpdate: _onPanUpdate,
           onPanEnd: _onPanEnd,
+          // Disable horizontal drag to prevent interference with scroll
+          behavior: HitTestBehavior.opaque,
           child: Center(
             child: SizedBox(
-              width: clampedSize,
-              height: clampedSize,
+              width: touchZoneSize,
+              height: touchZoneSize,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Outer tick marks and labels
+                  // Outer tick marks and labels (larger area for visual scale)
                   _TickMarks(size: clampedSize),
 
-                  // Main rotary dial
-                  AnimatedRotation(
-                    turns: _isDragging
-                        ? _currentRotation / 360
-                        : targetRotation / 360,
-                    duration: _isDragging
-                        ? Duration.zero
-                        : MonoPulseAnimation.durationMedium,
-                    curve: MonoPulseAnimation.curveCustom,
-                    child: _RotaryDial(
-                      size: clampedSize * 0.85,
-                      bpm: bpm,
-                      onTap: () => _showTempoDialog(context, metronome),
+                  // Main rotary dial with increased touch zone
+                  GestureDetector(
+                    onPanStart: _onPanStart,
+                    onPanUpdate: _onPanUpdate,
+                    onPanEnd: _onPanEnd,
+                    behavior: HitTestBehavior.opaque,
+                    child: SizedBox(
+                      width: touchZoneSize,
+                      height: touchZoneSize,
+                      child: Center(
+                        child: AnimatedRotation(
+                          turns: _isDragging
+                              ? _currentRotation / 360
+                              : _cumulativeRotation / 360,
+                          duration: _isDragging
+                              ? Duration.zero
+                              : MonoPulseAnimation.durationMedium,
+                          curve: MonoPulseAnimation.curveCustom,
+                          child: _RotaryDial(
+                            size: clampedSize * 0.85,
+                            bpm: bpm,
+                            onTap: () => _showTempoDialog(context, metronome),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
 
                   // Center BPM display with pulse animation (not rotating)
-                  AnimatedScale(
-                    scale: _pulseController.isAnimating
-                        ? _pulseAnimation.value
-                        : 1.0,
-                    duration: MonoPulseAnimation.durationShort,
-                    curve: MonoPulseAnimation.curveCustom,
-                    child: _BpmDisplay(bpm: bpm, size: clampedSize),
+                  IgnorePointer(
+                    child: AnimatedScale(
+                      scale: _pulseController.isAnimating
+                          ? _pulseAnimation.value
+                          : 1.0,
+                      duration: MonoPulseAnimation.durationShort,
+                      curve: MonoPulseAnimation.curveCustom,
+                      child: _BpmDisplay(bpm: bpm, size: clampedSize),
+                    ),
                   ),
                 ],
               ),
@@ -138,7 +163,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
       _isDragging = true;
       _startBpm = ref.read(metronomeProvider).bpm;
       _startAngle = _getAngle(details.localPosition);
-      _currentRotation = (_startBpm - 1) / 599 * 360;
+      _currentRotation = _cumulativeRotation;
     });
     HapticFeedback.vibrate();
   }
@@ -146,29 +171,39 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
   void _onPanUpdate(DragUpdateDetails details) {
     if (!_isDragging) return;
 
+    // Calculate angle change from start position
     final angle = _getAngle(details.localPosition);
     final angleDiff = angle - _startAngle;
 
     setState(() {
-      _currentRotation = ((_startBpm - 1) / 599 * 360) + angleDiff;
+      // Constant sensitivity: 3 degrees = 1 BPM (no acceleration)
+      _currentRotation = _cumulativeRotation + angleDiff;
     });
 
-    // Update BPM in real-time
+    // Update BPM in real-time with constant sensitivity
     final normalizedRotation = ((_currentRotation % 360) + 360) % 360;
     final newBpm = (normalizedRotation / 360 * 599 + 1).round();
-    ref.read(metronomeProvider.notifier).setTempoDirectly(newBpm.clamp(1, 600));
+    final clampedBpm = newBpm.clamp(1, 600);
+
+    // Only update if BPM changed
+    if (clampedBpm != _startBpm) {
+      ref.read(metronomeProvider.notifier).setTempoDirectly(clampedBpm);
+    }
   }
 
   void _onPanEnd(DragEndDetails details) {
+    // Update cumulative rotation for smooth continuation
+    final normalizedRotation = ((_currentRotation % 360) + 360) % 360;
     setState(() {
+      _cumulativeRotation = normalizedRotation;
       _isDragging = false;
     });
     HapticFeedback.vibrate();
   }
 
   double _getAngle(Offset position, {double? size}) {
-    // Use provided size or default to 140 (half of 280)
-    final halfSize = (size ?? 280) / 2;
+    // Use provided size or default to half of touch zone
+    final halfSize = (size ?? 170); // Default for ~340px touch zone
     final dx = position.dx - halfSize;
     final dy = position.dy - halfSize;
     return (math.atan2(dy, dx) * 180 / math.pi) +
@@ -214,7 +249,7 @@ class _RotaryDial extends StatelessWidget {
             // Progress ring (visual indicator of BPM position)
             _ProgressRing(size: size, bpm: bpm),
 
-            // Handle/dot on the edge
+            // Handle/dot on the edge - always matches current BPM
             _RotateHandle(size: size, bpm: bpm),
           ],
         ),
@@ -385,12 +420,13 @@ class _TickMarksPainter extends CustomPainter {
     final center = Offset(canvasSize.width / 2, canvasSize.height / 2);
     final radius = canvasSize.width / 2 - 20;
 
-    // Tick mark paint
+    // Tick mark paint - thin lines #333333
     final tickPaint = Paint()
-      ..color = MonoPulseColors.borderDefault
+      ..color = MonoPulseColors
+          .borderDefault // #333333
       ..strokeWidth = 1;
 
-    // Label paint
+    // Label paint - labels #8A8A8F
     final labelPaint = TextPainter(
       textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
@@ -412,11 +448,13 @@ class _TickMarksPainter extends CustomPainter {
         Offset(x2, y2),
         tickPaint
           ..color = isMajor
-              ? MonoPulseColors.borderDefault
-              : MonoPulseColors.borderSubtle,
+              ? MonoPulseColors
+                    .borderDefault // #333333
+              : MonoPulseColors.borderSubtle, // #222222
       );
 
       // Draw labels for major ticks (60, 120, 180, 240, 300, 360)
+      // Labels in #8A8A8F (textTertiary)
       if (isMajor) {
         final bpm = (i / 12 * 599 + 1).round();
         final labelRadius = radius - size * 0.08;
@@ -427,7 +465,7 @@ class _TickMarksPainter extends CustomPainter {
           text: '$bpm',
           style: TextStyle(
             fontSize: size * 0.045,
-            color: MonoPulseColors.textTertiary,
+            color: MonoPulseColors.textTertiary, // #8A8A8F
           ),
         );
         labelPaint.layout();

@@ -95,12 +95,15 @@ class _PlayButtonState extends State<_PlayButton>
   void initState() {
     super.initState();
     _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: MonoPulseAnimation.durationShort,
       vsync: this,
     );
 
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: MonoPulseAnimation.curveCustom,
+      ),
     );
 
     if (widget.isPlaying) {

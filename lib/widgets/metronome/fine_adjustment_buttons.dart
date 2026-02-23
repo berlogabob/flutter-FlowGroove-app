@@ -4,13 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 
-/// Fine Adjustment Buttons widget - Mono Pulse design
+/// Fine Adjustment Buttons widget - Mono Pulse design (Sprint Fix)
 ///
 /// Horizontal row of buttons for precise tempo adjustment:
-/// - +1/-1, +5/-5, +10/-10 groups
-/// - Each button: radius 20px, background #111111, stroke #222222
-/// - Text/icon: #A0A0A5 (tap #FF5E00 fill)
+/// - Order left to right: -10, -5, -1, +1, +5, +10
+/// - No numbers/signs — arrow icons only
+///   - 1 arrow for ±1
+///   - 2 arrows for ±5
+///   - 3 arrows for ±10
+/// - Circle radius 20px, background #111111, stroke #222222
+/// - Icon: #A0A0A5 (tap #FF5E00 fill)
 /// - Minimum 48px touch zones for stage use
+/// - Fits in one row (horizontal scroll for narrow screens)
 class FineAdjustmentButtons extends ConsumerWidget {
   const FineAdjustmentButtons({super.key});
 
@@ -20,80 +25,158 @@ class FineAdjustmentButtons extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // +1 / -1 group
-          _AdjustmentGroup(
-            delta: 1,
-            onAdjust: (delta) {
-              HapticFeedback.lightImpact();
-              metronome.adjustTempoFine(delta);
-            },
-          ),
-          const SizedBox(width: MonoPulseSpacing.lg),
-          // +5 / -5 group
-          _AdjustmentGroup(
-            delta: 5,
-            onAdjust: (delta) {
-              HapticFeedback.lightImpact();
-              metronome.adjustTempoFine(delta);
-            },
-          ),
-          const SizedBox(width: MonoPulseSpacing.lg),
-          // +10 / -10 group
-          _AdjustmentGroup(
-            delta: 10,
-            onAdjust: (delta) {
-              HapticFeedback.lightImpact();
-              metronome.adjustTempoFine(delta);
-            },
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Check if we need horizontal scroll for narrow screens
+          // Each button needs ~56px + spacing, total ~400px for 6 buttons
+          final needsScroll = constraints.maxWidth < 400;
+
+          if (needsScroll) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const ClampingScrollPhysics(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _TempoButton(
+                    arrowCount: 3,
+                    direction: -1,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      metronome.adjustTempoFine(-10);
+                    },
+                  ),
+                  const SizedBox(width: MonoPulseSpacing.sm),
+                  _TempoButton(
+                    arrowCount: 2,
+                    direction: -1,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      metronome.adjustTempoFine(-5);
+                    },
+                  ),
+                  const SizedBox(width: MonoPulseSpacing.sm),
+                  _TempoButton(
+                    arrowCount: 1,
+                    direction: -1,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      metronome.adjustTempoFine(-1);
+                    },
+                  ),
+                  const SizedBox(width: MonoPulseSpacing.sm),
+                  _TempoButton(
+                    arrowCount: 1,
+                    direction: 1,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      metronome.adjustTempoFine(1);
+                    },
+                  ),
+                  const SizedBox(width: MonoPulseSpacing.sm),
+                  _TempoButton(
+                    arrowCount: 2,
+                    direction: 1,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      metronome.adjustTempoFine(5);
+                    },
+                  ),
+                  const SizedBox(width: MonoPulseSpacing.sm),
+                  _TempoButton(
+                    arrowCount: 3,
+                    direction: 1,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      metronome.adjustTempoFine(10);
+                    },
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Normal layout without scroll
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _TempoButton(
+                arrowCount: 3,
+                direction: -1,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  metronome.adjustTempoFine(-10);
+                },
+              ),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              _TempoButton(
+                arrowCount: 2,
+                direction: -1,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  metronome.adjustTempoFine(-5);
+                },
+              ),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              _TempoButton(
+                arrowCount: 1,
+                direction: -1,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  metronome.adjustTempoFine(-1);
+                },
+              ),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              _TempoButton(
+                arrowCount: 1,
+                direction: 1,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  metronome.adjustTempoFine(1);
+                },
+              ),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              _TempoButton(
+                arrowCount: 2,
+                direction: 1,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  metronome.adjustTempoFine(5);
+                },
+              ),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              _TempoButton(
+                arrowCount: 3,
+                direction: 1,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  metronome.adjustTempoFine(10);
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class _AdjustmentGroup extends StatelessWidget {
-  final int delta;
-  final Function(int) onAdjust;
-
-  const _AdjustmentGroup({required this.delta, required this.onAdjust});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(color: MonoPulseColors.borderSubtle, width: 1),
-          right: BorderSide(color: MonoPulseColors.borderSubtle, width: 1),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xs),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _FineButton(label: '-$delta', onTap: () => onAdjust(-delta)),
-          const SizedBox(width: MonoPulseSpacing.sm),
-          _FineButton(label: '+$delta', onTap: () => onAdjust(delta)),
-        ],
-      ),
-    );
-  }
-}
-
-class _FineButton extends StatefulWidget {
-  final String label;
+class _TempoButton extends StatefulWidget {
+  final int arrowCount;
+  final int direction; // -1 for down, 1 for up
   final VoidCallback onTap;
 
-  const _FineButton({required this.label, required this.onTap});
+  const _TempoButton({
+    required this.arrowCount,
+    required this.direction,
+    required this.onTap,
+  });
 
   @override
-  State<_FineButton> createState() => _FineButtonState();
+  State<_TempoButton> createState() => _TempoButtonState();
 }
 
-class _FineButtonState extends State<_FineButton> {
+class _TempoButtonState extends State<_TempoButton> {
   bool _isPressed = false;
 
   @override
@@ -116,30 +199,71 @@ class _FineButtonState extends State<_FineButton> {
         duration: MonoPulseAnimation.durationShort,
         curve: MonoPulseAnimation.curveCustom,
         child: Container(
-          // Minimum 48px touch zone
-          width: 56,
+          // Circle radius 20px = diameter 40px, but 48px for touch zone
+          width: 48,
           height: 48,
           decoration: BoxDecoration(
             color: _isPressed
                 ? MonoPulseColors.accentOrange.withValues(alpha: 0.2)
-                : MonoPulseColors.blackElevated,
-            borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
+                : MonoPulseColors.blackElevated, // #111111
+            borderRadius: BorderRadius.circular(MonoPulseRadius.huge), // 20px
             border: Border.all(
               color: _isPressed
                   ? MonoPulseColors.accentOrange
-                  : MonoPulseColors.borderSubtle,
+                  : MonoPulseColors.borderSubtle, // #222222
               width: 1,
             ),
           ),
           child: Center(
-            child: Text(
-              widget.label,
-              style: MonoPulseTypography.labelLarge.copyWith(
-                color: _isPressed
-                    ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
+            child: _ArrowIcon(
+              count: widget.arrowCount,
+              direction: widget.direction,
+              color: _isPressed
+                  ? MonoPulseColors
+                        .accentOrange // #FF5E00 on tap
+                  : MonoPulseColors.textSecondary, // #A0A0A5 default
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ArrowIcon extends StatelessWidget {
+  final int count;
+  final int direction;
+  final Color color;
+
+  const _ArrowIcon({
+    required this.count,
+    required this.direction,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Stack arrows vertically based on count
+    final arrowSize = 8.0;
+    final spacing = 2.0;
+    final totalHeight = count * arrowSize + (count - 1) * spacing;
+
+    return SizedBox(
+      width: 16,
+      height: totalHeight,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+          count,
+          (index) => Padding(
+            padding: EdgeInsets.only(bottom: index < count - 1 ? spacing : 0),
+            child: Icon(
+              direction == 1
+                  ? Icons.keyboard_arrow_up
+                  : Icons.keyboard_arrow_down,
+              size: arrowSize,
+              color: color,
             ),
           ),
         ),
