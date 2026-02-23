@@ -29,21 +29,18 @@
 - Hive (local offline storage)
 - pdf & printing packages (PDF generation)
 
-## Project Roadmap (MVP - February 2026)
+## Documentation
 
-Web version with manual song input & PDF export
-Post-MVP: MusicBrainz autofill, mobile builds, premium features
+**All documentation has been consolidated into a single file:**
 
-## Quick Links
-
-| Documentation | Description |
-|---------------|-------------|
-| [📖 Build Guide](BUILD_GUIDE.md) | Complete build instructions for all platforms |
-| [✅ Deployment Checklist](DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment checklists |
-| [🚀 Release Process](RELEASE_PROCESS.md) | Version management and release workflow |
-| [📱 Platform Guide](docs/PLATFORMS.md) | Platform support and features |
-| [⚡ Quick Start](QUICK_START.md) | Get started in 5 minutes |
-| [🔧 Troubleshooting](TROUBLESHOOTING.md) | Common issues and solutions |
+- **[📄 PROJECT.md](PROJECT.md)** — Complete project documentation including:
+  - Architecture & tech stack
+  - Brand & design guidelines
+  - Setup & configuration
+  - Build & deployment instructions
+  - Development workflow
+  - Testing strategy
+  - Changelog
 
 ## Security
 
