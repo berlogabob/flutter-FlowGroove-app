@@ -324,6 +324,7 @@ class HomeScreenBody extends ConsumerWidget {
                 context,
                 icon: Icons.tune,
                 label: 'Tuner',
+                onTap: () => Navigator.pushNamed(context, '/tuner'),
               ),
             ),
             const SizedBox(width: MonoPulseSpacing.md),

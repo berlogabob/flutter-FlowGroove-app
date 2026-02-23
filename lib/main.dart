@@ -19,6 +19,7 @@ import 'screens/setlists/setlists_list_screen.dart';
 import 'screens/setlists/create_setlist_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/metronome_screen.dart';
+import 'screens/tuner_screen.dart';
 import 'models/song.dart';
 import 'models/setlist.dart';
 import 'models/band.dart';
@@ -79,6 +80,7 @@ class RepSyncApp extends ConsumerWidget {
         '/setlists/create': (context) => const CreateSetlistScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/metronome': (context) => const MetronomeScreen(),
+        '/tuner': (context) => const TunerScreen(),
       },
       onGenerateRoute: (settings) {
         // Handle dynamic routes with arguments
