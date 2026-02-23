@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 /// Frequency Controls widget - Sound settings (ADVANCED)
 /// Contains: Wave type selector, volume slider, accent toggle, frequency inputs
 /// Now collapsible to hide advanced settings from casual users
+///
+/// Mono Pulse Design (Sprint Fix):
+/// - All colors from MonoPulseColors
+/// - All typography from MonoPulseTypography
+/// - All spacing from MonoPulseSpacing
+/// - All radius from MonoPulseRadius
+/// - Animations: 120-300ms, curveCustom
+/// - Touch zones: 48x48px minimum
 class FrequencyControlsWidget extends ConsumerStatefulWidget {
   const FrequencyControlsWidget({super.key});
 
@@ -55,22 +65,30 @@ class _FrequencyControlsWidgetState
     final metronome = ref.watch(metronomeProvider.notifier);
     final state = ref.watch(metronomeProvider);
 
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl),
+      child: Container(
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        decoration: BoxDecoration(
+          color: MonoPulseColors.surface,
+          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          border: Border.all(color: MonoPulseColors.borderSubtle),
+        ),
         child: Column(
           children: [
             // Collapsible Advanced Settings Header
             InkWell(
               onTap: () {
+                HapticFeedback.lightImpact();
                 setState(() {
                   _isExpanded = !_isExpanded;
                 });
               },
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  vertical: MonoPulseSpacing.sm,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -79,18 +97,23 @@ class _FrequencyControlsWidgetState
                         Icon(
                           _isExpanded ? Icons.expand_less : Icons.expand_more,
                           size: 20,
+                          color: MonoPulseColors.textSecondary,
                         ),
-                        const SizedBox(width: 8),
-                        const Text(
+                        const SizedBox(width: MonoPulseSpacing.sm),
+                        Text(
                           'Advanced Settings',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                          style: MonoPulseTypography.labelLarge.copyWith(
+                            color: MonoPulseColors.textHighEmphasis,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
-                    const Icon(Icons.tune, size: 20),
+                    Icon(
+                      Icons.tune,
+                      size: 20,
+                      color: MonoPulseColors.textTertiary,
+                    ),
                   ],
                 ),
               ),
@@ -101,39 +124,29 @@ class _FrequencyControlsWidgetState
               firstChild: const SizedBox.shrink(),
               secondChild: Column(
                 children: [
-                  const Divider(),
-                  const SizedBox(height: 8),
+                  const Divider(
+                    color: MonoPulseColors.borderSubtle,
+                    height: 1,
+                    thickness: 1,
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.lg),
 
                   // Tone Type Selector with User-Friendly Labels
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         'Tone: ',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: MonoPulseTypography.labelMedium.copyWith(
+                          color: MonoPulseColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      DropdownButton<String>(
+                      const SizedBox(width: MonoPulseSpacing.sm),
+                      _WaveTypeDropdown(
                         value: state.waveType,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'sine',
-                            child: Text('Smooth (Sine)'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'square',
-                            child: Text('Sharp (Square)'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'triangle',
-                            child: Text('Soft (Triangle)'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'sawtooth',
-                            child: Text('Bright (Sawtooth)'),
-                          ),
-                        ],
                         onChanged: (value) {
+                          HapticFeedback.lightImpact();
                           if (value != null) {
                             metronome.setWaveType(value);
                           }
@@ -142,68 +155,162 @@ class _FrequencyControlsWidgetState
                     ],
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: MonoPulseSpacing.lg),
 
                   // Volume Slider
                   Row(
                     children: [
-                      const Icon(Icons.volume_up, size: 20),
+                      Icon(
+                        Icons.volume_up,
+                        size: 20,
+                        color: MonoPulseColors.textSecondary,
+                      ),
+                      const SizedBox(width: MonoPulseSpacing.md),
                       Expanded(
-                        child: Slider(
-                          value: state.volume,
-                          min: 0.0,
-                          max: 1.0,
-                          divisions: 10,
-                          label: '${(state.volume * 100).round()}%',
-                          onChanged: (value) {
-                            metronome.setVolume(value);
-                          },
+                        child: SliderTheme(
+                          data: SliderThemeData(
+                            trackHeight: 2,
+                            activeTrackColor: MonoPulseColors.accentOrange,
+                            inactiveTrackColor: MonoPulseColors.borderDefault,
+                            thumbColor: MonoPulseColors.accentOrange,
+                            overlayColor: MonoPulseColors.accentOrange
+                                .withValues(alpha: 0.2),
+                            thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 8,
+                            ),
+                            overlayShape: const RoundSliderOverlayShape(
+                              overlayRadius: 16,
+                            ),
+                          ),
+                          child: Slider(
+                            value: state.volume,
+                            min: 0.0,
+                            max: 1.0,
+                            divisions: 10,
+                            label: '${(state.volume * 100).round()}%',
+                            onChanged: (value) {
+                              HapticFeedback.lightImpact();
+                              metronome.setVolume(value);
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: MonoPulseSpacing.md),
+                      Text(
+                        '${(state.volume * 100).round()}%',
+                        style: MonoPulseTypography.labelMedium.copyWith(
+                          color: MonoPulseColors.textTertiary,
                         ),
                       ),
                     ],
                   ),
 
                   // Accent Toggle
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text(
-                      'Accent on beat 1',
-                      style: TextStyle(fontSize: 14),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: MonoPulseSpacing.sm,
                     ),
-                    subtitle: const Text(
-                      'Higher pitch on first beat',
-                      style: TextStyle(fontSize: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Accent on beat 1',
+                              style: MonoPulseTypography.bodyMedium.copyWith(
+                                color: MonoPulseColors.textHighEmphasis,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Higher pitch on first beat',
+                              style: MonoPulseTypography.bodySmall.copyWith(
+                                color: MonoPulseColors.textTertiary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        _OrangeSwitch(
+                          value: state.accentEnabled,
+                          onChanged: (value) {
+                            HapticFeedback.lightImpact();
+                            metronome.setAccentEnabled(value);
+                          },
+                        ),
+                      ],
                     ),
-                    value: state.accentEnabled,
-                    onChanged: (value) {
-                      metronome.setAccentEnabled(value);
-                    },
                   ),
 
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Frequencies (Hz)',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  const Divider(
+                    color: MonoPulseColors.borderSubtle,
+                    height: 1,
+                    thickness: 1,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: MonoPulseSpacing.lg),
+
+                  Text(
+                    'Frequencies (Hz)',
+                    style: MonoPulseTypography.labelLarge.copyWith(
+                      color: MonoPulseColors.textHighEmphasis,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.md),
                   Row(
                     children: [
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Accent:',
-                              style: TextStyle(fontSize: 12),
+                              style: MonoPulseTypography.labelMedium.copyWith(
+                                color: MonoPulseColors.textSecondary,
+                              ),
                             ),
+                            const SizedBox(height: MonoPulseSpacing.xs),
                             TextField(
                               controller: _accentFreqController,
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.all(4),
+                              style: MonoPulseTypography.bodyMedium.copyWith(
+                                color: MonoPulseColors.textHighEmphasis,
+                              ),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: MonoPulseColors.surfaceRaised,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    MonoPulseRadius.medium,
+                                  ),
+                                  borderSide: const BorderSide(
+                                    color: MonoPulseColors.borderDefault,
+                                    width: 1,
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    MonoPulseRadius.medium,
+                                  ),
+                                  borderSide: const BorderSide(
+                                    color: MonoPulseColors.borderDefault,
+                                    width: 1,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    MonoPulseRadius.medium,
+                                  ),
+                                  borderSide: const BorderSide(
+                                    color: MonoPulseColors.accentOrange,
+                                    width: 2,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: MonoPulseSpacing.md,
+                                  vertical: MonoPulseSpacing.sm,
+                                ),
                               ),
                               onChanged: (value) {
                                 final freq = double.tryParse(value);
@@ -215,19 +322,59 @@ class _FrequencyControlsWidgetState
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: MonoPulseSpacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Beat:', style: TextStyle(fontSize: 12)),
+                            Text(
+                              'Beat:',
+                              style: MonoPulseTypography.labelMedium.copyWith(
+                                color: MonoPulseColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: MonoPulseSpacing.xs),
                             TextField(
                               controller: _beatFreqController,
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.all(4),
+                              style: MonoPulseTypography.bodyMedium.copyWith(
+                                color: MonoPulseColors.textHighEmphasis,
+                              ),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: MonoPulseColors.surfaceRaised,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    MonoPulseRadius.medium,
+                                  ),
+                                  borderSide: const BorderSide(
+                                    color: MonoPulseColors.borderDefault,
+                                    width: 1,
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    MonoPulseRadius.medium,
+                                  ),
+                                  borderSide: const BorderSide(
+                                    color: MonoPulseColors.borderDefault,
+                                    width: 1,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    MonoPulseRadius.medium,
+                                  ),
+                                  borderSide: const BorderSide(
+                                    color: MonoPulseColors.accentOrange,
+                                    width: 2,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: MonoPulseSpacing.md,
+                                  vertical: MonoPulseSpacing.sm,
+                                ),
                               ),
                               onChanged: (value) {
                                 final freq = double.tryParse(value);
@@ -246,11 +393,71 @@ class _FrequencyControlsWidgetState
               crossFadeState: _isExpanded
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 300),
+              duration: MonoPulseAnimation.durationMedium,
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _WaveTypeDropdown extends StatelessWidget {
+  final String value;
+  final Function(String?) onChanged;
+
+  const _WaveTypeDropdown({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.md,
+        vertical: MonoPulseSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: MonoPulseColors.surfaceRaised,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
+      ),
+      child: DropdownButton<String>(
+        value: value,
+        underline: const SizedBox.shrink(),
+        icon: Icon(
+          Icons.arrow_drop_down,
+          color: MonoPulseColors.textSecondary,
+          size: 20,
+        ),
+        items: const [
+          DropdownMenuItem(value: 'sine', child: Text('Smooth')),
+          DropdownMenuItem(value: 'square', child: Text('Sharp')),
+          DropdownMenuItem(value: 'triangle', child: Text('Soft')),
+          DropdownMenuItem(value: 'sawtooth', child: Text('Bright')),
+        ],
+        onChanged: onChanged,
+        style: MonoPulseTypography.bodyMedium.copyWith(
+          color: MonoPulseColors.textHighEmphasis,
+        ),
+      ),
+    );
+  }
+}
+
+class _OrangeSwitch extends StatelessWidget {
+  final bool value;
+  final Function(bool) onChanged;
+
+  const _OrangeSwitch({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Switch(
+      value: value,
+      onChanged: onChanged,
+      activeThumbColor: MonoPulseColors.accentOrange,
+      activeTrackColor: MonoPulseColors.accentOrange.withValues(alpha: 0.5),
+      inactiveThumbColor: MonoPulseColors.textTertiary,
+      inactiveTrackColor: MonoPulseColors.borderDefault,
     );
   }
 }
