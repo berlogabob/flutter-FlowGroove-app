@@ -52,7 +52,7 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
   }
 
   void _setBpm(int value) {
-    final bpm = value.clamp(1, 600);
+    final bpm = value.clamp(1, 300);
     setState(() {
       _localBpm = bpm;
       _bpmController.text = bpm.toString();
@@ -166,8 +166,8 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                   child: Slider(
                     value: state.bpm.toDouble(),
                     min: 1,
-                    max: 600,
-                    divisions: 599,
+                    max: 300,
+                    divisions: 299,
                     onChanged: (value) => _setBpm(value.round()),
                   ),
                 ),
@@ -237,7 +237,7 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                         ),
                         onChanged: (value) {
                           final bpm = int.tryParse(value);
-                          if (bpm != null && bpm >= 1 && bpm <= 600) {
+                          if (bpm != null && bpm >= 1 && bpm <= 300) {
                             _setBpm(bpm);
                           }
                         },

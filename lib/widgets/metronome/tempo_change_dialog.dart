@@ -129,7 +129,7 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
                 onChanged: (value) {
                   final bpm = int.tryParse(value);
                   setState(() {
-                    _isValid = bpm != null && bpm >= 1 && bpm <= 600;
+                    _isValid = bpm != null && bpm >= 1 && bpm <= 300;
                   });
                 },
               ),
