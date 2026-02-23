@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A badge widget showing song attribution information.
 ///
@@ -63,20 +63,24 @@ class SongAttributionBadge extends StatelessWidget {
     return Container(
       padding: _padding,
       decoration: BoxDecoration(
-        color: AppColors.color5.withValues(alpha: 0.2),
+        color: MonoPulseColors.accentOrangeSubtle,
         borderRadius: BorderRadius.circular(_borderRadius),
-        border: Border.all(color: AppColors.color5, width: 1),
+        border: Border.all(color: MonoPulseColors.accentOrange, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.content_copy, size: _iconSize, color: AppColors.color5),
+          Icon(
+            Icons.content_copy,
+            size: _iconSize,
+            color: MonoPulseColors.accentOrange,
+          ),
           if (_showLabels) ...[
             const SizedBox(width: 4),
             Text(
               'Shared',
               style: TextStyle(
-                color: AppColors.color5,
+                color: MonoPulseColors.accentOrange,
                 fontSize: _textSize,
                 fontWeight: FontWeight.w500,
               ),
@@ -91,21 +95,25 @@ class SongAttributionBadge extends StatelessWidget {
     return Container(
       padding: _padding,
       decoration: BoxDecoration(
-        color: AppColors.color1.withValues(alpha: 0.2),
+        color: MonoPulseColors.accentOrangeSubtle,
         borderRadius: BorderRadius.circular(_borderRadius),
-        border: Border.all(color: AppColors.color1, width: 1),
+        border: Border.all(color: MonoPulseColors.accentOrange, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.person, size: _iconSize, color: AppColors.color1),
+          Icon(
+            Icons.person,
+            size: _iconSize,
+            color: MonoPulseColors.accentOrange,
+          ),
           if (_showLabels) ...[
             const SizedBox(width: 4),
             Flexible(
               child: Text(
                 'by $originalOwnerName',
                 style: TextStyle(
-                  color: AppColors.color1,
+                  color: MonoPulseColors.accentOrange,
                   fontSize: _textSize,
                   fontWeight: FontWeight.w500,
                 ),
@@ -122,9 +130,9 @@ class SongAttributionBadge extends StatelessWidget {
     return Container(
       padding: _padding,
       decoration: BoxDecoration(
-        color: AppColors.color3.withValues(alpha: 0.3),
+        color: MonoPulseColors.surfaceOverlay,
         borderRadius: BorderRadius.circular(_borderRadius),
-        border: Border.all(color: AppColors.color3, width: 1),
+        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -132,7 +140,7 @@ class SongAttributionBadge extends StatelessWidget {
           Icon(
             Icons.add_circle_outline,
             size: _iconSize,
-            color: AppColors.color4,
+            color: MonoPulseColors.textSecondary,
           ),
           if (_showLabels) ...[
             const SizedBox(width: 4),
@@ -140,7 +148,7 @@ class SongAttributionBadge extends StatelessWidget {
               child: Text(
                 'added by $contributorName',
                 style: TextStyle(
-                  color: AppColors.color4,
+                  color: MonoPulseColors.textSecondary,
                   fontSize: _textSize,
                   fontWeight: FontWeight.w500,
                 ),
@@ -232,21 +240,28 @@ class CompactAttributionBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.xs,
+        vertical: 2,
+      ),
       decoration: BoxDecoration(
-        color: AppColors.color5.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(4),
+        color: MonoPulseColors.accentOrangeSubtle,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.content_copy, size: 12, color: AppColors.color5),
+          const Icon(
+            Icons.content_copy,
+            size: 12,
+            color: MonoPulseColors.accentOrange,
+          ),
           if (contributorName != null) ...[
             const SizedBox(width: 4),
             Text(
               'by $contributorName',
               style: const TextStyle(
-                color: AppColors.color5,
+                color: MonoPulseColors.accentOrange,
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
               ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../services/api/musicbrainz_service.dart';
-import '../../../theme/app_theme.dart';
+import '../../../theme/mono_pulse_theme.dart';
 
 /// A bottom sheet widget for searching and selecting recordings from MusicBrainz.
 ///
@@ -129,9 +129,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                     trailing: recording.bpm != null
                         ? Chip(
                             label: Text('${recording.bpm} BPM'),
-                            backgroundColor: AppColors.color5.withValues(
-                              alpha: 0.2,
-                            ),
+                            backgroundColor: MonoPulseColors.accentOrangeSubtle,
                           )
                         : null,
                     onTap: () => widget.onSelect(recording),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/time_signature.dart';
-import '../theme/app_theme.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A dropdown widget for selecting musical time signatures.
 ///
@@ -39,13 +39,13 @@ class TimeSignatureDropdown extends StatelessWidget {
 
         // Divider "/"
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md),
           child: Text(
             '/',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors.color4,
+              color: MonoPulseColors.textPrimary,
             ),
           ),
         ),
@@ -73,25 +73,33 @@ class TimeSignatureDropdown extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: AppColors.color1.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        color: MonoPulseColors.surface,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md),
       child: DropdownButton<int>(
         value: value,
         underline: const SizedBox(),
-        icon: const Icon(Icons.arrow_drop_down, color: AppColors.color1),
+        icon: const Icon(
+          Icons.arrow_drop_down,
+          color: MonoPulseColors.accentOrange,
+        ),
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: AppColors.color4,
+          color: MonoPulseColors.textPrimary,
         ),
         items: items
-            .map((item) => DropdownMenuItem(value: item, child: Text('$item')))
+            .map(
+              (item) => DropdownMenuItem(
+                value: item,
+                child: Text(
+                  '$item',
+                  style: const TextStyle(color: MonoPulseColors.textPrimary),
+                ),
+              ),
+            )
             .toList(),
         onChanged: onChanged,
       ),
