@@ -24,8 +24,10 @@ class ToneGenerator {
       _player = AudioPlayer();
 
       // Set up player for low-latency playback
-      await _player!.setReleaseMode(ReleaseMode.stop);
-      await _player!.setVolume(_currentVolume);
+      if (_player != null) {
+        await _player!.setReleaseMode(ReleaseMode.stop);
+        await _player!.setVolume(_currentVolume);
+      }
 
       _isInitialized = true;
     } catch (e) {
@@ -48,7 +50,9 @@ class ToneGenerator {
 
     try {
       // Set volume
-      await _player!.setVolume(volume);
+      if (_player != null && volume != null) {
+        await _player!.setVolume(volume);
+      }
 
       // For Stage 2, we'll use a generated tone URL
       // In production, you would generate PCM data or use pre-generated tone files
@@ -72,7 +76,9 @@ class ToneGenerator {
       // Generate WAV bytes with a generated sine wave
       final wavBytes = _generateWavBytes(frequency, duration: 10.0);
 
-      await _player!.play(BytesSource(wavBytes), volume: _currentVolume);
+      if (_player != null && wavBytes != null) {
+        await _player!.play(BytesSource(wavBytes), volume: _currentVolume);
+      }
     } catch (e) {
       debugPrint('Error playing generated tone: $e');
       // Fallback: try to play from assets if available
@@ -167,7 +173,9 @@ class ToneGenerator {
     if (!_isInitialized || _player == null || !_isPlaying) return;
 
     try {
-      await _player!.stop();
+      if (_player != null) {
+        await _player!.stop();
+      }
       _isPlaying = false;
     } catch (e) {
       debugPrint('Error stopping tone: $e');
@@ -199,7 +207,10 @@ class ToneGenerator {
     try {
       await stopTone();
       if (_player != null) {
-        await _player!.dispose();
+        if (_player != null) {
+          await _player!.dispose();
+          _player = null;
+        }
         _player = null;
       }
       _isInitialized = false;

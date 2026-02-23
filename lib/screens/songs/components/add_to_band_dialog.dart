@@ -252,7 +252,9 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
 
   void _confirm() {
     if (_selectedBand != null) {
-      Navigator.pop(context, _selectedBand!.id);
+      if (_selectedBand != null) {
+        Navigator.pop(context, _selectedBand!.id);
+      }
     }
   }
 }
