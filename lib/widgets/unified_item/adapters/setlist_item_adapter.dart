@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/setlist.dart';
-import 'unified_item_model.dart';
+import '../../../models/setlist.dart';
+import '../unified_item_model.dart';
 
 /// Adapter for Setlist model to work with unified item system
 class SetlistItemAdapter extends UnifiedItemModel {

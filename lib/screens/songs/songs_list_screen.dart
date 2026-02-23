@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../models/api_error.dart';
 import '../../models/song.dart';
 import '../../models/band.dart';
@@ -13,6 +12,9 @@ import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/offline_indicator.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../widgets/unified_item/unified_item_list.dart';
+import '../../widgets/unified_item/unified_item_model.dart';
+import '../../widgets/unified_item/adapters/song_item_adapter.dart';
 
 /// Notifier for songs filter/sort state.
 class SongsFilterSortNotifier extends Notifier<SongsFilterSortState> {
@@ -397,6 +399,16 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     final bands = bandsAsync.value ?? [];
     final state = ref.watch(songsFilterSortProvider);
 
+    // Convert songs to adapters with callbacks
+    final songAdapters = filteredSongs.map((song) {
+      return SongItemAdapter(
+        song,
+        onEdit: () => _navigateToEdit(song),
+        onDelete: () => _deleteSong(song),
+        onTap: () => _navigateToEdit(song),
+      );
+    }).toList();
+
     return Column(
       children: [
         // Inline error banner if there's an error but we have cached data
@@ -422,7 +434,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           child: UnifiedFilterSortWidget(
             currentSort: state.sortOption,
             onSortChanged: (option) {
-              ref.read(songsFilterSortProvider.notifier).setSortOption(option);
+              if (option != null) {
+                ref
+                    .read(songsFilterSortProvider.notifier)
+                    .setSortOption(option);
+              }
             },
             filterText: state.filterText,
             onFilterChanged: (value) {
@@ -510,7 +526,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           child: filteredSongs.isEmpty
               ? _buildEmptyState(songs.isEmpty)
               : _buildSongList(
-                  filteredSongs,
+                  songAdapters,
                   bands,
                   state.sortOption == SortOption.manual,
                 ),
@@ -531,222 +547,96 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   }
 
   Widget _buildSongList(
-    List<Song> songs,
+    List<SongItemAdapter> songAdapters,
     List<Band> bands,
     bool enableReorder,
   ) {
-    return ReorderableListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 80),
-      itemCount: songs.length,
-      onReorder: (oldIndex, newIndex) {
-        if (enableReorder) {
-          _handleReorder(oldIndex, newIndex);
-        }
-      },
-      itemBuilder: (context, index) {
-        final song = songs[index];
-        final isShared = song.isCopy || song.bandId != null;
-
-        return Dismissible(
-          key: Key('dismiss-${song.id}'),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            color: Colors.red,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 16),
-            child: const Icon(Icons.delete, color: Colors.white),
-          ),
-          confirmDismiss: (direction) async {
-            return await ConfirmationDialog.showDeleteDialog(
-              context,
-              title: 'Delete Song',
-              message: 'Are you sure you want to delete this song?',
-              confirmLabel: 'Delete',
-            );
-          },
-          onDismissed: (direction) async {
-            final user = ref.read(currentUserProvider);
-            if (user != null) {
-              try {
-                await ref.read(firestoreProvider).deleteSong(song.id, user.uid);
-              } on ApiError catch (e) {
-                _handleStreamError(e, StackTrace.current);
-                if (!mounted) return;
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(e.message)));
-              } catch (e, stackTrace) {
-                final error = ApiError.fromException(e, stackTrace: stackTrace);
-                _handleStreamError(error, stackTrace);
-                if (!mounted) return;
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(error.message)));
-              }
-            }
-          },
-          child: Card(
-            key: Key('card-${song.id}'),
-            margin: const EdgeInsets.symmetric(
-              horizontal: MonoPulseSpacing.lg,
-              vertical: MonoPulseSpacing.sm,
-            ),
-            child: InkWell(
-              onTap: () => Navigator.pushNamed(
-                context,
-                '/songs/${song.id}/edit',
-                arguments: song,
-              ),
-              onLongPress: bands.isNotEmpty
-                  ? () => _showAddToBandMenu(context, ref, song, bands)
-                  : null,
-              child: ListTile(
-                leading: ReorderableDragStartListener(
-                  enabled: enableReorder,
-                  index: index,
-                  child: CircleAvatar(
-                    backgroundColor: isShared
-                        ? MonoPulseColors.accentOrangeSubtle
-                        : MonoPulseColors.accentOrangeSubtle,
-                    child: Icon(
-                      isShared ? Icons.content_copy : Icons.music_note,
-                      color: isShared
-                          ? MonoPulseColors.accentOrange
-                          : MonoPulseColors.accentOrange,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                title: Text(
-                  song.title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: MonoPulseColors.textPrimary,
-                    decoration: isShared
-                        ? TextDecoration.underline
-                        : TextDecoration.none,
-                    decorationColor: MonoPulseColors.accentOrange,
-                  ),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      song.artist,
-                      style: const TextStyle(
-                        color: MonoPulseColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        if (song.ourKey != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: MonoPulseColors.accentOrangeSubtle,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              song.ourKey!,
-                              style: const TextStyle(
-                                color: MonoPulseColors.accentOrange,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ),
-                        if (song.ourBPM != null) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: MonoPulseColors.accentOrangeSubtle,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '${song.ourBPM} BPM',
-                              style: const TextStyle(
-                                color: MonoPulseColors.accentOrange,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (song.spotifyUrl != null)
-                      IconButton(
-                        icon: const Icon(
-                          Icons.play_circle_fill,
-                          color: Colors.green,
-                          size: 28,
-                        ),
-                        onPressed: () async {
-                          final uri = Uri.parse(song.spotifyUrl!);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(
-                              uri,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          }
-                        },
-                        tooltip: 'Play on Spotify',
-                      ),
-                    if (bands.isNotEmpty)
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.add_to_queue, size: 20),
-                        tooltip: 'Add to Band',
-                        onSelected: (bandId) =>
-                            _addToBand(context, ref, song, bandId),
-                        itemBuilder: (context) => [
-                          ...bands.map(
-                            (band) => PopupMenuItem<String>(
-                              value: band.id,
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.groups, size: 18),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      band.name,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    if (enableReorder)
-                      const Icon(
-                        Icons.drag_handle,
-                        color: MonoPulseColors.textTertiary,
-                        size: 20,
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+    return UnifiedItemList<SongItemAdapter>(
+      items: songAdapters,
+      enableReorder: enableReorder,
+      onReorder: _handleReorder,
+      onDelete: (index) => _deleteSongByIndex(index),
+      onEdit: (index) => _navigateToEditByIndex(index),
+      additionalActionsBuilder: bands.isNotEmpty
+          ? (index) => [_buildAddToBandAction(songAdapters[index], bands)]
+          : null,
     );
+  }
+
+  /// Build "Add to Band" action for the trailing actions.
+  UnifiedItemAction _buildAddToBandAction(
+    SongItemAdapter adapter,
+    List<Band> bands,
+  ) {
+    return _AddToBandAction(
+      adapter: adapter,
+      bands: bands,
+      context: context,
+      ref: ref,
+      onAddToBand: _addToBand,
+    );
+  }
+
+  /// Navigate to edit song screen.
+  void _navigateToEdit(Song song) {
+    Navigator.pushNamed(context, '/songs/${song.id}/edit', arguments: song);
+  }
+
+  /// Navigate to edit song screen by index.
+  void _navigateToEditByIndex(int index) {
+    final songs = ref.read(songsProvider).value ?? [];
+    final filteredSongs = _filterAndSortSongs(songs);
+    if (index >= 0 && index < filteredSongs.length) {
+      _navigateToEdit(filteredSongs[index]);
+    }
+  }
+
+  /// Delete song with confirmation.
+  Future<void> _deleteSong(Song song) async {
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Delete Song',
+      message: 'Are you sure you want to delete "${song.title}"?',
+      confirmLabel: 'Delete',
+    );
+
+    if (!confirmed) return;
+
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    try {
+      await ref.read(firestoreProvider).deleteSong(song.id, user.uid);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Song deleted'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } on ApiError catch (e) {
+      _handleStreamError(e, StackTrace.current);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleStreamError(error, stackTrace);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
+  }
+
+  /// Delete song by index.
+  void _deleteSongByIndex(int index) {
+    final songs = ref.read(songsProvider).value ?? [];
+    final filteredSongs = _filterAndSortSongs(songs);
+    if (index >= 0 && index < filteredSongs.length) {
+      _deleteSong(filteredSongs[index]);
+    }
   }
 
   /// Handle reordering of songs in manual sort mode.
@@ -755,63 +645,12 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     // To persist the order, you would need to update the backend.
     // For now, this provides visual reordering capability.
     setState(() {
-      // The ReorderableListView handles the visual reordering
+      // The UnifiedItemList handles the visual reordering
     });
   }
 
-  /// Show a menu to select a band for adding the song.
-  void _showAddToBandMenu(
-    BuildContext context,
-    WidgetRef ref,
-    Song song,
-    List<Band> bands,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Add to Band',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${song.title} - ${song.artist}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: MonoPulseColors.textTertiary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ...bands.map(
-              (band) => ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.groups)),
-                title: Text(band.name),
-                subtitle: Text('${band.members.length} members'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _addToBand(context, ref, song, band.id);
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Add a song to a band.
-  Future<void> _addToBand(
-    BuildContext context,
-    WidgetRef ref,
-    Song song,
-    String bandId,
-  ) async {
+  Future<void> _addToBand(Song song, String bandId) async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
@@ -846,5 +685,49 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(error.message)));
     }
+  }
+}
+
+/// Custom action for "Add to Band" functionality.
+class _AddToBandAction implements UnifiedItemAction {
+  final SongItemAdapter adapter;
+  final List<Band> bands;
+  final BuildContext context;
+  final WidgetRef ref;
+  final Future<void> Function(Song, String) onAddToBand;
+
+  _AddToBandAction({
+    required this.adapter,
+    required this.bands,
+    required this.context,
+    required this.ref,
+    required this.onAddToBand,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.add_to_queue, size: 20),
+      tooltip: 'Add to Band',
+      onSelected: (bandId) async {
+        await onAddToBand(adapter.song, bandId);
+      },
+      itemBuilder: (context) => [
+        ...bands.map(
+          (band) => PopupMenuItem<String>(
+            value: band.id,
+            child: Row(
+              children: [
+                const Icon(Icons.groups, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(band.name, overflow: TextOverflow.ellipsis),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

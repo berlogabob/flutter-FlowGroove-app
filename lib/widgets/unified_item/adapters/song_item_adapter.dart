@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
-import '../../models/song.dart';
-import 'unified_item_model.dart';
+import '../../../models/song.dart';
+import '../unified_item_model.dart';
 
 /// Adapter for Song model to work with unified item system
 class SongItemAdapter extends UnifiedItemModel {
   final Song song;
+  final VoidCallback? _onEdit;
+  final VoidCallback? _onDelete;
+  final VoidCallback? _onTap;
 
-  SongItemAdapter(this.song);
+  SongItemAdapter(
+    this.song, {
+    VoidCallback? onEdit,
+    VoidCallback? onDelete,
+    VoidCallback? onTap,
+  }) : _onEdit = onEdit,
+       _onDelete = onDelete,
+       _onTap = onTap;
 
   @override
   String get id => song.id;
@@ -30,13 +40,13 @@ class SongItemAdapter extends UnifiedItemModel {
   DateTime? get updatedAt => song.updatedAt;
 
   @override
-  VoidCallback? get onEdit => null;
+  VoidCallback? get onEdit => _onEdit;
 
   @override
-  VoidCallback? get onDelete => null;
+  VoidCallback? get onDelete => _onDelete;
 
   @override
-  VoidCallback? get onTap => null;
+  VoidCallback? get onTap => _onTap;
 
   @override
   Map<String, dynamic> get typeSpecificData => {
@@ -52,4 +62,9 @@ class SongItemAdapter extends UnifiedItemModel {
   int? get ourBPM => song.ourBPM;
   String? get ourKey => song.ourKey;
   String? get spotifyUrl => song.spotifyUrl;
+  bool get isShared => song.isCopy || song.bandId != null;
+
+  @override
+  String get deleteConfirmationMessage =>
+      'Are you sure you want to delete "${song.title}"?';
 }
