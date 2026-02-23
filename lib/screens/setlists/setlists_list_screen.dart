@@ -6,13 +6,11 @@ import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../services/export/pdf_service.dart';
-import '../../widgets/unified_item/unified_item_card.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/offline_indicator.dart';
 
 /// Screen for displaying the list of setlists with unified item system.
@@ -61,11 +59,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
         );
         break;
       case SortOption.dateAdded:
-        adapters.sort(
-          (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
-            a.createdAt ?? DateTime(0),
-          ),
-        );
+        adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         break;
       case SortOption.dateModified:
         adapters.sort(

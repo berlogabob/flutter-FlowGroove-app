@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'unified_item_model.dart';
 import 'unified_item_card.dart';
-import 'unified_item_trailing_actions.dart';
 
 /// Optimized list widget with swipe-to-delete and drag-and-drop reordering
 class UnifiedItemList<T extends UnifiedItemModel> extends StatefulWidget {

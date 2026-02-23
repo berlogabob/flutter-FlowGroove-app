@@ -1,10 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
-import '../../theme/mono_pulse_theme.dart';
-import 'tempo_change_dialog.dart';
 
 /// Central Tempo Circle widget - Mono Pulse design (Sprint Fix)
 ///
@@ -30,7 +27,6 @@ class CentralTempoCircle extends ConsumerStatefulWidget {
 class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
     with SingleTickerProviderStateMixin {
   late final AnimationController _rotationController;
-  late final Animation<double> _rotationAnimation;
 
   @override
   void initState() {
@@ -38,9 +34,6 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
     _rotationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 100),
-    );
-    _rotationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _rotationController, curve: Curves.linear),
     );
   }
 
