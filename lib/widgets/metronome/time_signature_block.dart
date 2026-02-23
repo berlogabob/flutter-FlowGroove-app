@@ -6,22 +6,25 @@ import '../../theme/mono_pulse_theme.dart';
 
 /// Time Signature Block widget - Mono Pulse design (Sprint Fix)
 ///
-/// Horizontal panel with two rows:
+/// Horizontal panel with two INDEPENDENT rows:
 /// - Top row: Accent beats (tap to toggle strong/weak, #FF5E00 for strong)
 /// - Bottom row: Regular beats (#222222)
 ///
 /// NO text labels "Accent" or "Beats"
+///
+/// SPRINT FIXES:
+/// - Minimum 4 visible circles on ALL devices (standard 4/4)
+/// - Adaptive by MediaQuery.width (4-6 circles based on screen width)
+/// - Badge at + button: appears after fitting circles (if 4 visible → badge shows 5)
+/// - INDEPENDENT rows: adjusting top row doesn't affect bottom row, and vice versa
+/// - Horizontal scroll: ScrollView for rows if > visible (thin scrollbar #333333)
+/// - Circles stay inside widget (Clip.hardEdge, fixed width = screen width - padding - buttons)
 ///
 /// Circles represent beats:
 /// - Inactive: #222222 fill + #333333 stroke
 /// - Accent (strong): #FF5E00 fill + pulse
 /// - Regular beat: #222222 fill
 /// - Current beat: #FF5E00 + pulse animation (scale 1.08)
-///
-/// Adaptive: 4-6 visible circles based on screen width
-/// >5 circles → orange badge at + button (circle #FF5E00, white text 12px)
-/// Horizontal scroll if doesn't fit
-/// Circles stay inside widget (Clip.hardEdge, fixed width)
 class TimeSignatureBlock extends ConsumerStatefulWidget {
   const TimeSignatureBlock({super.key});
 
@@ -31,6 +34,7 @@ class TimeSignatureBlock extends ConsumerStatefulWidget {
 
 class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
   // Track which accent beats are strong (true) or weak (false)
+  // This is INDEPENDENT from regular beats count
   final Map<int, bool> _accentStates = {};
 
   @override
@@ -40,13 +44,19 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
     final isPlaying = state.isPlaying;
     final currentBeat = state.currentBeat;
     final regularBeats = state.regularBeats;
-    final accentBeats = state.accentBeats;
+    final accentPattern = state.accentPattern;
 
-    // Initialize accent states when regular beats change
-    for (int i = 0; i < regularBeats; i++) {
+    // Initialize accent states from pattern when it changes
+    for (int i = 0; i < accentPattern.length; i++) {
       if (!_accentStates.containsKey(i)) {
-        _accentStates[i] =
-            i < accentBeats; // First N beats are strong by default
+        _accentStates[i] = accentPattern[i];
+      }
+    }
+
+    // Sync accent states with pattern (in case pattern changed externally)
+    for (int i = 0; i < accentPattern.length; i++) {
+      if (_accentStates[i] != accentPattern[i]) {
+        _accentStates[i] = accentPattern[i];
       }
     }
 
@@ -60,62 +70,59 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Column(
         children: [
-          // Top row - Accent beats (NO label)
-          _BeatRow(
-            count: regularBeats,
-            isAccentRow: true,
-            accentStates: _accentStates,
+          // Top row - Accent beats (INDEPENDENT, NO label)
+          _AccentRow(
+            accentPattern: accentPattern,
             currentBeat: isPlaying ? currentBeat : -1,
             onToggleAccent: (index, isStrong) {
               HapticFeedback.lightImpact();
-              setState(() {
-                _accentStates[index] = isStrong;
-              });
-              // Update the accent pattern in provider
-              _updateAccentPattern(metronome, regularBeats);
-            },
-            onIncrement: () {
-              HapticFeedback.lightImpact();
-              if (regularBeats < 12) {
-                metronome.setRegularBeats(regularBeats + 1);
+              final newPattern = List<bool>.from(accentPattern);
+              if (index < newPattern.length) {
+                newPattern[index] = isStrong;
+                metronome.setAccentPattern(newPattern);
                 setState(() {
-                  _accentStates[regularBeats] =
-                      true; // New beat is strong by default
+                  _accentStates[index] = isStrong;
                 });
               }
             },
-            onDecrement: () {
+            onAddAccent: () {
               HapticFeedback.lightImpact();
-              if (regularBeats > 1) {
-                metronome.setRegularBeats(regularBeats - 1);
+              // Add a new accent to the pattern (extends pattern)
+              final newPattern = List<bool>.from(accentPattern);
+              newPattern.add(false); // New accent is weak by default
+              metronome.setAccentPattern(newPattern);
+              setState(() {
+                _accentStates[newPattern.length - 1] = false;
+              });
+            },
+            onRemoveAccent: () {
+              HapticFeedback.lightImpact();
+              // Remove last accent from pattern (but keep at least 1)
+              if (accentPattern.length > 1) {
+                final newPattern = List<bool>.from(accentPattern);
+                newPattern.removeLast();
+                metronome.setAccentPattern(newPattern);
                 setState(() {
-                  _accentStates.remove(regularBeats - 1);
+                  _accentStates.remove(newPattern.length);
                 });
               }
             },
           ),
           const SizedBox(height: MonoPulseSpacing.md),
-          // Bottom row - Regular beats (NO label)
+          // Bottom row - Regular beats (INDEPENDENT, NO label)
           _BeatRow(
             count: regularBeats,
-            isAccentRow: false,
             currentBeat: isPlaying ? currentBeat : -1,
             onIncrement: () {
               HapticFeedback.lightImpact();
               if (regularBeats < 12) {
                 metronome.setRegularBeats(regularBeats + 1);
-                setState(() {
-                  _accentStates[regularBeats] = true;
-                });
               }
             },
             onDecrement: () {
               HapticFeedback.lightImpact();
               if (regularBeats > 1) {
                 metronome.setRegularBeats(regularBeats - 1);
-                setState(() {
-                  _accentStates.remove(regularBeats - 1);
-                });
               }
             },
           ),
@@ -123,42 +130,160 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
       ),
     );
   }
+}
 
-  void _updateAccentPattern(MetronomeNotifier metronome, int beatCount) {
-    final pattern = List.generate(
-      beatCount,
-      (index) => _accentStates[index] ?? (index == 0),
+// ============================================================================
+// ACCENT ROW (Top Row) - INDEPENDENT from Beat Row
+// ============================================================================
+class _AccentRow extends StatelessWidget {
+  final List<bool> accentPattern;
+  final int currentBeat;
+  final Function(int, bool) onToggleAccent;
+  final VoidCallback onAddAccent;
+  final VoidCallback onRemoveAccent;
+
+  const _AccentRow({
+    required this.accentPattern,
+    this.currentBeat = -1,
+    required this.onToggleAccent,
+    required this.onAddAccent,
+    required this.onRemoveAccent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Calculate adaptive visible count based on screen width
+    final visibleCount = _calculateVisibleCount(context);
+    final needsScroll = accentPattern.length > visibleCount;
+
+    return Row(
+      children: [
+        // Minus button
+        _BeatButton(
+          icon: Icons.remove,
+          onTap: accentPattern.length > 1 ? onRemoveAccent : null,
+        ),
+
+        const SizedBox(width: MonoPulseSpacing.md),
+
+        // Accent circles with horizontal scroll if needed
+        Expanded(
+          child: _buildScrollableCircles(
+            context: context,
+            count: accentPattern.length,
+            visibleCount: visibleCount,
+            needsScroll: needsScroll,
+            isAccentRow: true,
+          ),
+        ),
+
+        const SizedBox(width: MonoPulseSpacing.sm),
+
+        // Plus button with badge if > visible circles
+        _BeatButton(
+          icon: Icons.add,
+          onTap: accentPattern.length < 12 ? onAddAccent : null,
+          showBadge: accentPattern.length > visibleCount,
+          badgeCount: accentPattern.length,
+        ),
+      ],
     );
-    metronome.setAccentPattern(pattern);
+  }
+
+  Widget _buildScrollableCircles({
+    required BuildContext context,
+    required int count,
+    required int visibleCount,
+    required bool needsScroll,
+    required bool isAccentRow,
+  }) {
+    return ClipRect(
+      clipBehavior: Clip.hardEdge,
+      child: needsScroll
+          ? Theme(
+              data: Theme.of(context).copyWith(
+                scrollbarTheme: ScrollbarThemeData(
+                  thumbColor: WidgetStateProperty.all(
+                    MonoPulseColors.borderDefault,
+                  ),
+                  trackColor: WidgetStateProperty.all(
+                    MonoPulseColors.transparent,
+                  ),
+                  thickness: WidgetStateProperty.all(2),
+                  radius: const Radius.circular(2),
+                ),
+              ),
+              child: Scrollbar(
+                thumbVisibility: true,
+                trackVisibility: false,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const ClampingScrollPhysics(),
+                  child: Row(
+                    children: List.generate(
+                      count,
+                      (index) => Padding(
+                        padding: EdgeInsets.only(
+                          right: index < count - 1 ? MonoPulseSpacing.sm : 0,
+                        ),
+                        child: _BeatCircle(
+                          index: index,
+                          isAccentRow: true,
+                          isStrong: accentPattern[index],
+                          isActive: currentBeat == index,
+                          onToggle: () {
+                            onToggleAccent(index, !accentPattern[index]);
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : Row(
+              children: List.generate(
+                count,
+                (index) => Padding(
+                  padding: EdgeInsets.only(
+                    right: index < count - 1 ? MonoPulseSpacing.sm : 0,
+                  ),
+                  child: _BeatCircle(
+                    index: index,
+                    isAccentRow: true,
+                    isStrong: accentPattern[index],
+                    isActive: currentBeat == index,
+                    onToggle: () {
+                      onToggleAccent(index, !accentPattern[index]);
+                    },
+                  ),
+                ),
+              ),
+            ),
+    );
   }
 }
 
+// ============================================================================
+// BEAT ROW (Bottom Row) - INDEPENDENT from Accent Row
+// ============================================================================
 class _BeatRow extends StatelessWidget {
   final int count;
-  final bool isAccentRow;
-  final Map<int, bool>? accentStates;
   final int currentBeat;
-  final Function(int, bool)? onToggleAccent;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
   const _BeatRow({
     required this.count,
-    required this.isAccentRow,
-    this.accentStates,
     this.currentBeat = -1,
-    this.onToggleAccent,
     required this.onIncrement,
     required this.onDecrement,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Calculate how many circles can fit on screen (4-6 based on width)
-    final screenWidth = MediaQuery.of(context).size.width;
-    final circleWidth = 32.0; // circle + spacing
-    final maxVisible = (screenWidth - 80) ~/ circleWidth; // Account for margins
-    final visibleCount = maxVisible.clamp(4, 6);
+    // Calculate adaptive visible count based on screen width
+    final visibleCount = _calculateVisibleCount(context);
     final needsScroll = count > visibleCount;
 
     return Row(
@@ -170,39 +295,56 @@ class _BeatRow extends StatelessWidget {
 
         // Beat circles with horizontal scroll if needed
         Expanded(
-          child: ClipRect(
-            clipBehavior: Clip.hardEdge,
-            child: needsScroll
-                ? SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const ClampingScrollPhysics(),
-                    child: Row(
-                      children: List.generate(
-                        count,
-                        (index) => Padding(
-                          padding: EdgeInsets.only(
-                            right: index < count - 1 ? MonoPulseSpacing.sm : 0,
-                          ),
-                          child: _BeatCircle(
-                            index: index,
-                            isAccentRow: isAccentRow,
-                            isStrong: accentStates?[index] ?? false,
-                            isActive: currentBeat == index,
-                            onToggle: isAccentRow
-                                ? () {
-                                    if (onToggleAccent != null) {
-                                      final newState =
-                                          !(accentStates?[index] ?? false);
-                                      onToggleAccent!(index, newState);
-                                    }
-                                  }
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                : Row(
+          child: _buildScrollableCircles(
+            context: context,
+            count: count,
+            visibleCount: visibleCount,
+            needsScroll: needsScroll,
+          ),
+        ),
+
+        const SizedBox(width: MonoPulseSpacing.sm),
+
+        // Plus button with badge if > visible circles
+        _BeatButton(
+          icon: Icons.add,
+          onTap: count < 12 ? onIncrement : null,
+          showBadge: count > visibleCount,
+          badgeCount: count,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScrollableCircles({
+    required BuildContext context,
+    required int count,
+    required int visibleCount,
+    required bool needsScroll,
+  }) {
+    return ClipRect(
+      clipBehavior: Clip.hardEdge,
+      child: needsScroll
+          ? Theme(
+              data: Theme.of(context).copyWith(
+                scrollbarTheme: ScrollbarThemeData(
+                  thumbColor: WidgetStateProperty.all(
+                    MonoPulseColors.borderDefault,
+                  ),
+                  trackColor: WidgetStateProperty.all(
+                    MonoPulseColors.transparent,
+                  ),
+                  thickness: WidgetStateProperty.all(2),
+                  radius: const Radius.circular(2),
+                ),
+              ),
+              child: Scrollbar(
+                thumbVisibility: true,
+                trackVisibility: false,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const ClampingScrollPhysics(),
+                  child: Row(
                     children: List.generate(
                       count,
                       (index) => Padding(
@@ -211,39 +353,61 @@ class _BeatRow extends StatelessWidget {
                         ),
                         child: _BeatCircle(
                           index: index,
-                          isAccentRow: isAccentRow,
-                          isStrong: accentStates?[index] ?? false,
+                          isAccentRow: false,
                           isActive: currentBeat == index,
-                          onToggle: isAccentRow
-                              ? () {
-                                  if (onToggleAccent != null) {
-                                    final newState =
-                                        !(accentStates?[index] ?? false);
-                                    onToggleAccent!(index, newState);
-                                  }
-                                }
-                              : null,
                         ),
                       ),
                     ),
                   ),
-          ),
-        ),
-
-        const SizedBox(width: MonoPulseSpacing.sm),
-
-        // Plus button with badge if >5 circles
-        _BeatButton(
-          icon: Icons.add,
-          onTap: count < 12 ? onIncrement : null,
-          showBadge: count > 5,
-          badgeCount: count,
-        ),
-      ],
+                ),
+              ),
+            )
+          : Row(
+              children: List.generate(
+                count,
+                (index) => Padding(
+                  padding: EdgeInsets.only(
+                    right: index < count - 1 ? MonoPulseSpacing.sm : 0,
+                  ),
+                  child: _BeatCircle(
+                    index: index,
+                    isAccentRow: false,
+                    isActive: currentBeat == index,
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }
 
+// ============================================================================
+// ADAPTIVE VISIBLE COUNT CALCULATION
+// ============================================================================
+int _calculateVisibleCount(BuildContext context) {
+  // Calculate visible circles based on screen width
+  final screenWidth = MediaQuery.of(context).size.width;
+  // Available width = screen width - margins (xxxl * 2) - padding (lg * 2) - buttons (48 * 2) - spacing (md + sm)
+  final availableWidth =
+      screenWidth -
+      (MonoPulseSpacing.xxxl * 2) -
+      (MonoPulseSpacing.lg * 2) -
+      (48 * 2) -
+      MonoPulseSpacing.md -
+      MonoPulseSpacing.sm;
+
+  // Circle width = 20px circle + spacing (sm = 8px) = 28px minimum
+  // Touch zone = 48px (but circles are visually smaller)
+  final circleWidth = 20.0 + MonoPulseSpacing.sm;
+  final maxVisible = (availableWidth / circleWidth).floor();
+
+  // Always show at least 4 circles (standard 4/4), max 6
+  return maxVisible.clamp(4, 6);
+}
+
+// ============================================================================
+// BEAT CIRCLE
+// ============================================================================
 class _BeatCircle extends StatefulWidget {
   final int index;
   final bool isAccentRow;
@@ -371,6 +535,9 @@ class _BeatCircleState extends State<_BeatCircle>
   }
 }
 
+// ============================================================================
+// BEAT BUTTON (+/-)
+// ============================================================================
 class _BeatButton extends StatefulWidget {
   final IconData icon;
   final VoidCallback? onTap;
@@ -445,7 +612,7 @@ class _BeatButtonState extends State<_BeatButton> {
                     : MonoPulseColors.textDisabled,
               ),
             ),
-            // Badge for >5 circles
+            // Badge for > visible circles
             if (widget.showBadge && widget.badgeCount != null)
               Positioned(
                 right: -4,

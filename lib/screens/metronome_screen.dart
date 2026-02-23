@@ -47,6 +47,8 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: MonoPulseColors.black,
+        // Use standard AppBar for consistent back arrow across all screens
+        appBar: _buildAppBar(context),
         // Disable screen scroll per sprint brief
         extendBodyBehindAppBar: false,
         body: SafeArea(
@@ -75,10 +77,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
       physics: const NeverScrollableScrollPhysics(),
       child: Column(
         children: [
-          // 1. AppBar
-          _buildAppBar(context),
-
-          // 2. Air gap after AppBar (64-80px)
+          // 1. Air gap after AppBar (64-80px)
           const SizedBox(height: MonoPulseSpacing.massive),
 
           // 3. Time Signature Block
@@ -118,20 +117,26 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
-      height: 56,
-      child: Row(
-        children: [
-          // Back arrow
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.of(context).pop();
-            },
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: MonoPulseColors.black,
+      foregroundColor: MonoPulseColors.textPrimary,
+      elevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+      // Standard back arrow - consistent with tuner and all other screens
+      leading: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.of(context).pop();
+        },
+        // 48px minimum touch zone
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(
             child: Container(
-              margin: const EdgeInsets.all(MonoPulseSpacing.sm),
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -142,54 +147,56 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
               child: Icon(
                 Icons.arrow_back_ios_new,
                 color: MonoPulseColors.textSecondary,
-                size: 18,
+                size: 20,
               ),
             ),
           ),
-
-          // Title
-          Expanded(
+        ),
+      ),
+      title: Text(
+        'Metronome',
+        style: MonoPulseTypography.headlineLarge.copyWith(
+          color: MonoPulseColors.textHighEmphasis,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      centerTitle: true,
+      actions: [
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            _toggleMenu();
+          },
+          // 48px minimum touch zone
+          child: SizedBox(
+            width: 48,
+            height: 48,
             child: Center(
-              child: Text(
-                'Metronome',
-                style: MonoPulseTypography.headlineLarge.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
-                  fontWeight: FontWeight.bold,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _isMenuOpen
+                        ? MonoPulseColors.accentOrange
+                        : MonoPulseColors.borderSubtle,
+                    width: 1,
+                  ),
                 ),
-              ),
-            ),
-          ),
-
-          // Three dots menu
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              _toggleMenu();
-            },
-            child: Container(
-              margin: const EdgeInsets.all(MonoPulseSpacing.sm),
-              padding: const EdgeInsets.all(MonoPulseSpacing.sm),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
+                child: Icon(
+                  Icons.more_vert,
                   color: _isMenuOpen
                       ? MonoPulseColors.accentOrange
-                      : MonoPulseColors.borderSubtle,
-                  width: 1,
+                      : MonoPulseColors.textSecondary,
+                  size: 22,
                 ),
-              ),
-              child: Icon(
-                Icons.more_vert, // Three vertical dots ⋮
-                color: _isMenuOpen
-                    ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textSecondary,
-                size: 24,
               ),
             ),
           ),
-          const SizedBox(width: MonoPulseSpacing.sm),
-        ],
-      ),
+        ),
+        const SizedBox(width: MonoPulseSpacing.md),
+      ],
     );
   }
 

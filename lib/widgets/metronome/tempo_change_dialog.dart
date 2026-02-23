@@ -321,7 +321,7 @@ class _OrangeSwitch extends StatelessWidget {
     return Switch(
       value: value,
       onChanged: onChanged,
-      activeColor: MonoPulseColors.accentOrange,
+      activeThumbColor: MonoPulseColors.accentOrange,
       activeTrackColor: MonoPulseColors.accentOrange.withValues(alpha: 0.5),
       inactiveThumbColor: MonoPulseColors.textTertiary,
       inactiveTrackColor: MonoPulseColors.borderDefault,

@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../models/time_signature.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 /// Time Signature Controls widget - Preset buttons for common time signatures
 /// Replaces dropdowns with intuitive preset chips
+///
+/// Mono Pulse Design (Sprint Fix):
+/// - All colors from MonoPulseColors
+/// - All typography from MonoPulseTypography
+/// - All spacing from MonoPulseSpacing
+/// - All radius from MonoPulseRadius
+/// - Animations: 120ms, curveCustom
+/// - Touch zones: 48x48px minimum
 class TimeSignatureControlsWidget extends ConsumerWidget {
   const TimeSignatureControlsWidget({super.key});
 
@@ -23,90 +33,187 @@ class TimeSignatureControlsWidget extends ConsumerWidget {
     final metronome = ref.watch(metronomeProvider.notifier);
     final state = ref.watch(metronomeProvider);
 
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl),
+      child: Container(
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        decoration: BoxDecoration(
+          color: MonoPulseColors.surface,
+          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          border: Border.all(color: MonoPulseColors.borderSubtle),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Time Signature',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Text(
+                  'Time Signature',
+                  style: MonoPulseTypography.labelLarge.copyWith(
+                    color: MonoPulseColors.textHighEmphasis,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: MonoPulseSpacing.xs),
+                Tooltip(
+                  message:
+                      'Defines how many beats are in each measure. Top number = beats per measure, Bottom number = note value that gets one beat.',
+                  preferBelow: false,
+                  decoration: BoxDecoration(
+                    color: MonoPulseColors.surfaceRaised,
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                  ),
+                  textStyle: MonoPulseTypography.bodySmall.copyWith(
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  child: Icon(
+                    Icons.help_outline,
+                    size: 16,
+                    color: MonoPulseColors.textTertiary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 4),
-            Tooltip(
-              message:
-                  'Defines how many beats are in each measure. Top number = beats per measure, Bottom number = note value that gets one beat.',
-              child: Icon(
-                Icons.help_outline,
-                size: 14,
-                color: Colors.grey.shade600,
+            const SizedBox(height: MonoPulseSpacing.xs),
+            Text(
+              'Select a common time signature',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: MonoPulseColors.textTertiary,
               ),
             ),
-            const SizedBox(height: 4),
-            const Text(
-              'Select a common time signature',
-              style: TextStyle(fontSize: 11, color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: MonoPulseSpacing.lg),
 
             // Preset chips
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: MonoPulseSpacing.sm,
+              runSpacing: MonoPulseSpacing.sm,
               children: presets.map((ts) {
                 final isSelected = state.timeSignature == ts;
-                return ChoiceChip(
-                  label: Text('${ts.numerator}/${ts.denominator}'),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      metronome.setTimeSignature(ts);
-                    }
+                return _TimeSignatureChip(
+                  label: '${ts.numerator}/${ts.denominator}',
+                  isSelected: isSelected,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    metronome.setTimeSignature(ts);
                   },
-                  selectedColor: Colors.blue.shade100,
-                  labelStyle: TextStyle(
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: isSelected ? Colors.blue.shade900 : Colors.black87,
-                  ),
                 );
               }).toList(),
             ),
 
-            const SizedBox(height: 12),
-            const Divider(),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            const Divider(
+              color: MonoPulseColors.borderSubtle,
+              height: 1,
+              thickness: 1,
+            ),
+            const SizedBox(height: MonoPulseSpacing.lg),
 
             // Current selection display
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Current: ', style: TextStyle(fontSize: 14)),
+                Text(
+                  'Current: ',
+                  style: MonoPulseTypography.bodyMedium.copyWith(
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
+                    horizontal: MonoPulseSpacing.lg,
+                    vertical: MonoPulseSpacing.xs,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.blue.shade200),
+                    color: MonoPulseColors.accentOrange.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
+                    border: Border.all(
+                      color: MonoPulseColors.accentOrange.withValues(
+                        alpha: 0.3,
+                      ),
+                      width: 1,
+                    ),
                   ),
                   child: Text(
                     '${state.timeSignature.numerator}/${state.timeSignature.denominator}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade900,
+                    style: MonoPulseTypography.labelLarge.copyWith(
+                      color: MonoPulseColors.accentOrange,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TimeSignatureChip extends StatefulWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _TimeSignatureChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  State<_TimeSignatureChip> createState() => _TimeSignatureChipState();
+}
+
+class _TimeSignatureChipState extends State<_TimeSignatureChip> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPressed = _isPressed;
+    final isSelected = widget.isSelected;
+
+    return GestureDetector(
+      onTapDown: (_) {
+        setState(() => _isPressed = true);
+        HapticFeedback.vibrate();
+      },
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        HapticFeedback.vibrate();
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: isPressed ? 0.95 : 1.0,
+        duration: MonoPulseAnimation.durationShort,
+        curve: MonoPulseAnimation.curveCustom,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.lg,
+            vertical: MonoPulseSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? MonoPulseColors.accentOrange.withValues(alpha: 0.15)
+                : MonoPulseColors.blackElevated,
+            borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
+            border: Border.all(
+              color: isSelected
+                  ? MonoPulseColors.accentOrange
+                  : MonoPulseColors.borderDefault,
+              width: 1,
+            ),
+          ),
+          child: Text(
+            widget.label,
+            style: MonoPulseTypography.labelMedium.copyWith(
+              color: isSelected
+                  ? MonoPulseColors.accentOrange
+                  : MonoPulseColors.textSecondary,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
         ),
       ),
     );
