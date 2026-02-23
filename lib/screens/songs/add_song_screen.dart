@@ -178,12 +178,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         children: [
           // Error banner
           if (_currentError != null) ...[
-            ErrorBanner(
+            ErrorBanner.banner(
               message: _currentError!.message,
-              title: _currentError!.title,
               onRetry: clearError,
-              showRetry: _currentError!.isNetwork,
-              style: ErrorBannerStyle.banner,
             ),
             const SizedBox(height: 16),
           ],

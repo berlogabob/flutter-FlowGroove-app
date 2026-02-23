@@ -14,7 +14,7 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('RepSync')),
       body: const Column(
         children: [
-          OfflineIndicator(),
+          OfflineIndicator.banner(),
           Expanded(child: HomeScreenBody()),
         ],
       ),

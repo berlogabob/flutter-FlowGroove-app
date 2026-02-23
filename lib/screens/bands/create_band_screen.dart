@@ -258,12 +258,9 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
               const SizedBox(height: 32),
               // Error banner
               if (_currentError != null) ...[
-                ErrorBanner(
+                ErrorBanner.banner(
                   message: _currentError!.message,
-                  title: _currentError!.title,
                   onRetry: _saveBand,
-                  showRetry: _currentError!.isNetwork,
-                  style: ErrorBannerStyle.banner,
                 ),
                 const SizedBox(height: 24),
               ],

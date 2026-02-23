@@ -407,6 +407,29 @@ class FirestoreService {
     }
   }
 
+  /// Saves a song to a band's collection.
+  Future<void> saveBandSong(Song song, String bandId) async {
+    try {
+      await _firestore
+          .collection('bands')
+          .doc(bandId)
+          .collection('songs')
+          .doc(song.id)
+          .set(song.toJson());
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to save this song to the band.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
   /// Watches songs for a specific band.
   Stream<List<Song>> watchBandSongs(String bandId) {
     try {
