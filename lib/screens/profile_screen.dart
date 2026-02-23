@@ -124,49 +124,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     color: MonoPulseColors.textTertiary,
                   ),
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon!')),
-                    );
-                  },
-                ),
-                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
-                ListTile(
-                  leading: const Icon(
-                    Icons.notifications,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  title: const Text(
-                    'Notifications',
-                    style: TextStyle(color: MonoPulseColors.textPrimary),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: MonoPulseColors.textTertiary,
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon!')),
-                    );
-                  },
-                ),
-                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
-                ListTile(
-                  leading: const Icon(
-                    Icons.palette,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  title: const Text(
-                    'Appearance',
-                    style: TextStyle(color: MonoPulseColors.textPrimary),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: MonoPulseColors.textTertiary,
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon!')),
-                    );
+                    // Edit profile - to be implemented
                   },
                 ),
               ],
@@ -209,46 +167,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       color: MonoPulseColors.textPrimary,
                     ),
                   ),
-                ),
-                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
-                ListTile(
-                  leading: const Icon(
-                    Icons.privacy_tip,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  title: const Text(
-                    'Privacy Policy',
-                    style: TextStyle(color: MonoPulseColors.textPrimary),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: MonoPulseColors.textTertiary,
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon!')),
-                    );
-                  },
-                ),
-                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
-                ListTile(
-                  leading: const Icon(
-                    Icons.description,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  title: const Text(
-                    'Terms of Service',
-                    style: TextStyle(color: MonoPulseColors.textPrimary),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: MonoPulseColors.textTertiary,
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon!')),
-                    );
-                  },
                 ),
               ],
             ),

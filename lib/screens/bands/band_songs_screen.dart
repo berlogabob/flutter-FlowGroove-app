@@ -317,14 +317,8 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   }
 
   void _addSongToBand(BuildContext context, WidgetRef ref) {
-    // Navigate to song picker or add new song
-    // For now, we'll just show a snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Song picker coming soon'),
-        action: SnackBarAction(label: 'OK', onPressed: () {}),
-      ),
-    );
+    // Navigate to add song screen with band context
+    Navigator.pushNamed(context, '/songs/add?bandId=${widget.band.id}');
   }
 
   void _editSong(BuildContext context, WidgetRef ref, Song song) {

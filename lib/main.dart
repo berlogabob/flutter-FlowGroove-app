@@ -8,6 +8,7 @@ import 'theme/mono_pulse_theme.dart';
 import 'providers/auth/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/auth/forgot_password_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/songs/songs_list_screen.dart';
 import 'screens/songs/add_song_screen.dart';
@@ -70,6 +71,7 @@ class RepSyncApp extends ConsumerWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/main': (context) => const MainShell(),
         '/songs': (context) => const SongsListScreen(),
         '/songs/add': (context) => const AddSongScreen(),
