@@ -79,7 +79,7 @@ class KeySelector extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: MonoPulseColors.borderDefault),
       ),
       child: DropdownButton<String>(
         value: value,

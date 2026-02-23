@@ -1,85 +1,77 @@
 import 'package:flutter/material.dart';
+import '../../theme/mono_pulse_theme.dart';
 
-/// A widget for displaying error messages to the user.
+/// Error Banner Widget - Displays error messages to users
 ///
-/// This widget provides a consistent error banner that can be used
-/// throughout the app to display error messages with an optional retry action.
+/// Three variants:
+/// - banner: Full-width banner at top of screen
+/// - card: Card-style error display
+/// - inline: Small inline error with icon
 class ErrorBanner extends StatelessWidget {
-  /// The error message to display.
   final String message;
-
-  /// An optional title for the error.
-  final String? title;
-
-  /// Callback when the retry button is pressed.
   final VoidCallback? onRetry;
+  final ErrorBannerVariant variant;
 
-  /// Whether to show the retry button.
-  final bool showRetry;
+  const ErrorBanner.banner({super.key, required this.message, this.onRetry})
+    : variant = ErrorBannerVariant.banner;
 
-  /// The style of the error banner.
-  final ErrorBannerStyle style;
+  const ErrorBanner.card({super.key, required this.message, this.onRetry})
+    : variant = ErrorBannerVariant.card;
 
-  const ErrorBanner({
-    super.key,
-    required this.message,
-    this.title,
-    this.onRetry,
-    this.showRetry = false,
-    this.style = ErrorBannerStyle.banner,
-  });
+  const ErrorBanner.inline({super.key, required this.message})
+    : variant = ErrorBannerVariant.inline;
 
   @override
   Widget build(BuildContext context) {
-    switch (style) {
-      case ErrorBannerStyle.banner:
-        return _buildBanner();
-      case ErrorBannerStyle.card:
-        return _buildCard();
-      case ErrorBannerStyle.inline:
-        return _buildInline();
+    switch (variant) {
+      case ErrorBannerVariant.banner:
+        return _buildBanner(context);
+      case ErrorBannerVariant.card:
+        return _buildCard(context);
+      case ErrorBannerVariant.inline:
+        return _buildInline(context);
     }
   }
 
-  Widget _buildBanner() {
+  Widget _buildBanner(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.shade200),
+        color: MonoPulseColors.errorSubtle,
+        border: Border.all(color: MonoPulseColors.error),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.error_outline, color: Colors.red.shade700, size: 24),
+              Icon(Icons.error_outline, color: MonoPulseColors.error, size: 24),
               const SizedBox(width: 12),
-              if (title != null) ...[
-                Text(
-                  title!,
+              Expanded(
+                child: Text(
+                  message,
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red.shade700,
+                    color: MonoPulseColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 8),
-              ],
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(message, style: TextStyle(color: Colors.red.shade900)),
-          if (showRetry && onRetry != null) ...[
+          if (onRetry != null) ...[
             const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh, size: 16),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
-                foregroundColor: Colors.white,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: onRetry,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MonoPulseColors.error,
+                  foregroundColor: MonoPulseColors.textPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: const Text('Retry'),
               ),
             ),
           ],
@@ -88,36 +80,33 @@ class ErrorBanner extends StatelessWidget {
     );
   }
 
-  Widget _buildCard() {
+  Widget _buildCard(BuildContext context) {
     return Card(
-      color: Colors.red.shade50,
+      color: MonoPulseColors.errorSubtle,
+      margin: const EdgeInsets.all(16),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Icon(Icons.error_outline, color: Colors.red.shade700, size: 48),
+            Icon(Icons.error_outline, color: MonoPulseColors.error, size: 48),
             const SizedBox(height: 16),
-            if (title != null)
-              Text(
-                title!,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade700,
-                  fontSize: 16,
-                ),
-              ),
-            const SizedBox(height: 8),
             Text(
               message,
-              style: TextStyle(color: Colors.red.shade900),
+              style: TextStyle(
+                color: MonoPulseColors.textPrimary,
+                fontSize: 14,
+              ),
               textAlign: TextAlign.center,
             ),
-            if (showRetry && onRetry != null) ...[
+            if (onRetry != null) ...[
               const SizedBox(height: 16),
-              ElevatedButton.icon(
+              ElevatedButton(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MonoPulseColors.error,
+                  foregroundColor: MonoPulseColors.textPrimary,
+                ),
+                child: const Text('Retry'),
               ),
             ],
           ],
@@ -126,32 +115,20 @@ class ErrorBanner extends StatelessWidget {
     );
   }
 
-  Widget _buildInline() {
+  Widget _buildInline(BuildContext context) {
     return Row(
       children: [
-        Icon(Icons.error, color: Colors.red.shade700, size: 20),
+        Icon(Icons.error, color: MonoPulseColors.error, size: 20),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             message,
-            style: TextStyle(color: Colors.red.shade700, fontSize: 13),
+            style: TextStyle(color: MonoPulseColors.textPrimary, fontSize: 13),
           ),
         ),
-        if (showRetry && onRetry != null)
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
       ],
     );
   }
 }
 
-/// Error banner display styles.
-enum ErrorBannerStyle {
-  /// Full-width banner style.
-  banner,
-
-  /// Card style with centered content.
-  card,
-
-  /// Compact inline style.
-  inline,
-}
+enum ErrorBannerVariant { banner, card, inline }

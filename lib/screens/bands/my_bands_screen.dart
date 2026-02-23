@@ -553,7 +553,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                 children: [
                   Icon(
                     Icons.error_outline,
-                    color: Colors.red.shade700,
+                    color: MonoPulseColors.error,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -561,7 +561,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                     child: Text(
                       _currentError!.message,
                       style: TextStyle(
-                        color: Colors.red.shade900,
+                        color: MonoPulseColors.textPrimary,
                         fontSize: 12,
                       ),
                     ),
