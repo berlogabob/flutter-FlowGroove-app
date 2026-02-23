@@ -194,10 +194,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Bands'),
-        actions: [OfflineIndicator.minimal()],
-      ),
+      appBar: AppBar(title: const Text('My Bands')),
       body: Column(
         children: [
           OfflineIndicator.banner(),

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/mono_pulse_theme.dart';
+import 'connectivity_service.dart';
 
 /// Offline Indicator Widget - Shows connectivity status
 ///
 /// Three variants:
-/// - banner: Full-width banner at top
-/// - chip: Small chip indicator
-/// - minimal: Icon-only indicator
-class OfflineIndicator extends StatelessWidget {
+/// - banner: Full-width banner at top (only shows when offline)
+/// - chip: Small chip indicator (only shows when offline)
+/// - minimal: Icon-only indicator (only shows when offline)
+class OfflineIndicator extends ConsumerWidget {
   final OfflineIndicatorVariant variant;
 
   const OfflineIndicator.banner({super.key})
@@ -20,7 +22,14 @@ class OfflineIndicator extends StatelessWidget {
     : variant = OfflineIndicatorVariant.minimal;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isOffline = ref.watch(offlineProvider);
+
+    // Don't show anything when online
+    if (!isOffline) {
+      return const SizedBox.shrink();
+    }
+
     switch (variant) {
       case OfflineIndicatorVariant.banner:
         return _buildBanner(context);
