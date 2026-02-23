@@ -3,28 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../models/metronome_state.dart';
 
-/// Time Signature Block widget - Mono Pulse design (Sprint Fix)
-///
-/// Horizontal panel with two INDEPENDENT rows:
-/// - Top row: Accent beats (tap to toggle strong/weak, #FF5E00 for strong)
-/// - Bottom row: Regular beats (#222222)
-///
-/// NO text labels "Accent" or "Beats"
-///
-/// SPRINT FIXES:
-/// - Minimum 4 visible circles on ALL devices (standard 4/4)
-/// - Adaptive by MediaQuery.width (4-6 circles based on screen width)
-/// - Badge at + button: appears after fitting circles (if 4 visible → badge shows 5)
-/// - INDEPENDENT rows: adjusting top row doesn't affect bottom row, and vice versa
-/// - Horizontal scroll: ScrollView for rows if > visible (thin scrollbar #333333)
-/// - Circles stay inside widget (Clip.hardEdge, fixed width = screen width - padding - buttons)
-///
-/// Circles represent beats:
-/// - Inactive: #222222 fill + #333333 stroke
-/// - Accent (strong): #FF5E00 fill + pulse
-/// - Regular beat: #222222 fill
-/// - Current beat: #FF5E00 + pulse animation (scale 1.08)
+/// Time Signature Block widget - Beat Modes with proper tap handling
 class TimeSignatureBlock extends ConsumerStatefulWidget {
   const TimeSignatureBlock({super.key});
 
@@ -33,32 +14,15 @@ class TimeSignatureBlock extends ConsumerStatefulWidget {
 }
 
 class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
-  // Track which accent beats are strong (true) or weak (false)
-  // This is INDEPENDENT from regular beats count
-  final Map<int, bool> _accentStates = {};
-
   @override
   Widget build(BuildContext context) {
     final metronome = ref.watch(metronomeProvider.notifier);
     final state = ref.watch(metronomeProvider);
     final isPlaying = state.isPlaying;
     final currentBeat = state.currentBeat;
-    final regularBeats = state.regularBeats;
-    final accentPattern = state.accentPattern;
-
-    // Initialize accent states from pattern when it changes
-    for (int i = 0; i < accentPattern.length; i++) {
-      if (!_accentStates.containsKey(i)) {
-        _accentStates[i] = accentPattern[i];
-      }
-    }
-
-    // Sync accent states with pattern (in case pattern changed externally)
-    for (int i = 0; i < accentPattern.length; i++) {
-      if (_accentStates[i] != accentPattern[i]) {
-        _accentStates[i] = accentPattern[i];
-      }
-    }
+    final beats = state.accentBeats;
+    final subdivisions = state.regularBeats;
+    final beatModes = state.beatModes;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl),
@@ -70,59 +34,60 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Column(
         children: [
-          // Top row - Accent beats (INDEPENDENT, NO label)
-          _AccentRow(
-            accentPattern: accentPattern,
+          // Top row - Beats
+          _BeatsRow(
+            count: beats,
             currentBeat: isPlaying ? currentBeat : -1,
-            onToggleAccent: (index, isStrong) {
+            subdivisions: subdivisions,
+            beatModes: beatModes,
+            onToggleMode: (beatIndex, subdivisionIndex, mode) {
               HapticFeedback.lightImpact();
-              final newPattern = List<bool>.from(accentPattern);
-              if (index < newPattern.length) {
-                newPattern[index] = isStrong;
-                metronome.setAccentPattern(newPattern);
-                setState(() {
-                  _accentStates[index] = isStrong;
-                });
-              }
+              // Cycle to next mode: normal → accent → silent → normal
+              final nextMode = _cycleMode(mode);
+              debugPrint(
+                'Beat $beatIndex, Subdivision $subdivisionIndex: ${mode} → $nextMode',
+              );
+              metronome.setBeatMode(beatIndex, subdivisionIndex, nextMode);
             },
-            onAddAccent: () {
-              HapticFeedback.lightImpact();
-              // Add a new accent to the pattern (extends pattern)
-              final newPattern = List<bool>.from(accentPattern);
-              newPattern.add(false); // New accent is weak by default
-              metronome.setAccentPattern(newPattern);
-              setState(() {
-                _accentStates[newPattern.length - 1] = false;
-              });
-            },
-            onRemoveAccent: () {
-              HapticFeedback.lightImpact();
-              // Remove last accent from pattern (but keep at least 1)
-              if (accentPattern.length > 1) {
-                final newPattern = List<bool>.from(accentPattern);
-                newPattern.removeLast();
-                metronome.setAccentPattern(newPattern);
-                setState(() {
-                  _accentStates.remove(newPattern.length);
-                });
-              }
-            },
-          ),
-          const SizedBox(height: MonoPulseSpacing.md),
-          // Bottom row - Regular beats (INDEPENDENT, NO label)
-          _BeatRow(
-            count: regularBeats,
-            currentBeat: isPlaying ? currentBeat : -1,
             onIncrement: () {
               HapticFeedback.lightImpact();
-              if (regularBeats < 12) {
-                metronome.setRegularBeats(regularBeats + 1);
+              if (beats < 12) {
+                metronome.setAccentBeats(beats + 1);
               }
             },
             onDecrement: () {
               HapticFeedback.lightImpact();
-              if (regularBeats > 1) {
-                metronome.setRegularBeats(regularBeats - 1);
+              if (beats > 1) {
+                metronome.setAccentBeats(beats - 1);
+              }
+            },
+          ),
+          const SizedBox(height: MonoPulseSpacing.md),
+          // Bottom row - Subdivisions
+          _SubdivisionsRow(
+            count: subdivisions,
+            isPlaying: isPlaying,
+            currentBeat: isPlaying ? currentBeat : -1,
+            beats: beats,
+            beatModes: beatModes,
+            onToggleMode: (beatIndex, subdivisionIndex, mode) {
+              HapticFeedback.lightImpact();
+              final nextMode = _cycleMode(mode);
+              debugPrint(
+                'Beat $beatIndex, Subdivision $subdivisionIndex: ${mode} → $nextMode',
+              );
+              metronome.setBeatMode(beatIndex, subdivisionIndex, nextMode);
+            },
+            onIncrement: () {
+              HapticFeedback.lightImpact();
+              if (subdivisions < 12) {
+                metronome.setRegularBeats(subdivisions + 1);
+              }
+            },
+            onDecrement: () {
+              HapticFeedback.lightImpact();
+              if (subdivisions > 1) {
+                metronome.setRegularBeats(subdivisions - 1);
               }
             },
           ),
@@ -130,170 +95,51 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
       ),
     );
   }
-}
 
-// ============================================================================
-// ACCENT ROW (Top Row) - INDEPENDENT from Beat Row
-// ============================================================================
-class _AccentRow extends StatelessWidget {
-  final List<bool> accentPattern;
-  final int currentBeat;
-  final Function(int, bool) onToggleAccent;
-  final VoidCallback onAddAccent;
-  final VoidCallback onRemoveAccent;
-
-  const _AccentRow({
-    required this.accentPattern,
-    this.currentBeat = -1,
-    required this.onToggleAccent,
-    required this.onAddAccent,
-    required this.onRemoveAccent,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Calculate adaptive visible count based on screen width
-    final visibleCount = _calculateVisibleCount(context);
-    final needsScroll = accentPattern.length > visibleCount;
-
-    return Row(
-      children: [
-        // Minus button
-        _BeatButton(
-          icon: Icons.remove,
-          onTap: accentPattern.length > 1 ? onRemoveAccent : null,
-        ),
-
-        const SizedBox(width: MonoPulseSpacing.md),
-
-        // Accent circles with horizontal scroll if needed
-        Expanded(
-          child: _buildScrollableCircles(
-            context: context,
-            count: accentPattern.length,
-            visibleCount: visibleCount,
-            needsScroll: needsScroll,
-            isAccentRow: true,
-          ),
-        ),
-
-        const SizedBox(width: MonoPulseSpacing.sm),
-
-        // Plus button with badge if > visible circles
-        _BeatButton(
-          icon: Icons.add,
-          onTap: accentPattern.length < 12 ? onAddAccent : null,
-          showBadge: accentPattern.length > visibleCount,
-          badgeCount: accentPattern.length,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildScrollableCircles({
-    required BuildContext context,
-    required int count,
-    required int visibleCount,
-    required bool needsScroll,
-    required bool isAccentRow,
-  }) {
-    return ClipRect(
-      clipBehavior: Clip.hardEdge,
-      child: needsScroll
-          ? Theme(
-              data: Theme.of(context).copyWith(
-                scrollbarTheme: ScrollbarThemeData(
-                  thumbColor: WidgetStateProperty.all(
-                    MonoPulseColors.borderDefault,
-                  ),
-                  trackColor: WidgetStateProperty.all(
-                    MonoPulseColors.transparent,
-                  ),
-                  thickness: WidgetStateProperty.all(2),
-                  radius: const Radius.circular(2),
-                ),
-              ),
-              child: Scrollbar(
-                thumbVisibility: true,
-                trackVisibility: false,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const ClampingScrollPhysics(),
-                  child: Row(
-                    children: List.generate(
-                      count,
-                      (index) => Padding(
-                        padding: EdgeInsets.only(
-                          right: index < count - 1 ? MonoPulseSpacing.sm : 0,
-                        ),
-                        child: _BeatCircle(
-                          index: index,
-                          isAccentRow: true,
-                          isStrong: accentPattern[index],
-                          isActive: currentBeat == index,
-                          onToggle: () {
-                            onToggleAccent(index, !accentPattern[index]);
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            )
-          : Row(
-              children: List.generate(
-                count,
-                (index) => Padding(
-                  padding: EdgeInsets.only(
-                    right: index < count - 1 ? MonoPulseSpacing.sm : 0,
-                  ),
-                  child: _BeatCircle(
-                    index: index,
-                    isAccentRow: true,
-                    isStrong: accentPattern[index],
-                    isActive: currentBeat == index,
-                    onToggle: () {
-                      onToggleAccent(index, !accentPattern[index]);
-                    },
-                  ),
-                ),
-              ),
-            ),
-    );
+  /// Cycle through modes: normal → accent → silent → normal
+  BeatMode _cycleMode(BeatMode currentMode) {
+    switch (currentMode) {
+      case BeatMode.normal:
+        return BeatMode.accent;
+      case BeatMode.accent:
+        return BeatMode.silent;
+      case BeatMode.silent:
+        return BeatMode.normal;
+    }
   }
 }
 
 // ============================================================================
-// BEAT ROW (Bottom Row) - INDEPENDENT from Accent Row
+// BEATS ROW (Top Row)
 // ============================================================================
-class _BeatRow extends StatelessWidget {
+class _BeatsRow extends StatelessWidget {
   final int count;
   final int currentBeat;
+  final int subdivisions;
+  final List<List<BeatMode>> beatModes;
+  final Function(int, int, BeatMode) onToggleMode;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
-  const _BeatRow({
+  const _BeatsRow({
     required this.count,
     this.currentBeat = -1,
+    required this.subdivisions,
+    required this.beatModes,
+    required this.onToggleMode,
     required this.onIncrement,
     required this.onDecrement,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Calculate adaptive visible count based on screen width
     final visibleCount = _calculateVisibleCount(context);
     final needsScroll = count > visibleCount;
 
     return Row(
       children: [
-        // Minus button
         _BeatButton(icon: Icons.remove, onTap: count > 1 ? onDecrement : null),
-
         const SizedBox(width: MonoPulseSpacing.md),
-
-        // Beat circles with horizontal scroll if needed
         Expanded(
           child: _buildScrollableCircles(
             context: context,
@@ -302,10 +148,7 @@ class _BeatRow extends StatelessWidget {
             needsScroll: needsScroll,
           ),
         ),
-
         const SizedBox(width: MonoPulseSpacing.sm),
-
-        // Plus button with badge if > visible circles
         _BeatButton(
           icon: Icons.add,
           onTap: count < 12 ? onIncrement : null,
@@ -316,6 +159,20 @@ class _BeatRow extends StatelessWidget {
     );
   }
 
+  int _calculateVisibleCount(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final availableWidth =
+        screenWidth -
+        (MonoPulseSpacing.xxxl * 2) -
+        (MonoPulseSpacing.lg * 2) -
+        (48 * 2) -
+        MonoPulseSpacing.md -
+        MonoPulseSpacing.sm;
+    final circleWidth = 20.0 + MonoPulseSpacing.sm;
+    final maxVisible = (availableWidth / circleWidth).floor();
+    return maxVisible.clamp(4, 6);
+  }
+
   Widget _buildScrollableCircles({
     required BuildContext context,
     required int count,
@@ -324,210 +181,43 @@ class _BeatRow extends StatelessWidget {
   }) {
     return ClipRect(
       clipBehavior: Clip.hardEdge,
-      child: needsScroll
-          ? Theme(
-              data: Theme.of(context).copyWith(
-                scrollbarTheme: ScrollbarThemeData(
-                  thumbColor: WidgetStateProperty.all(
-                    MonoPulseColors.borderDefault,
-                  ),
-                  trackColor: WidgetStateProperty.all(
-                    MonoPulseColors.transparent,
-                  ),
-                  thickness: WidgetStateProperty.all(2),
-                  radius: const Radius.circular(2),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          scrollbarTheme: ScrollbarThemeData(
+            thumbColor: WidgetStateProperty.all(MonoPulseColors.borderDefault),
+            thickness: WidgetStateProperty.all(2),
+            radius: const Radius.circular(2),
+          ),
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: needsScroll ? null : const NeverScrollableScrollPhysics(),
+          child: Row(
+            children: List.generate(count, (beatIndex) {
+              // Get mode for first subdivision of this beat (for display)
+              final mode =
+                  beatIndex < beatModes.length &&
+                      beatModes[beatIndex].isNotEmpty
+                  ? beatModes[beatIndex][0]
+                  : BeatMode.normal;
+
+              // Check if this beat is active
+              final isBeatActive =
+                  currentBeat >= 0 &&
+                  (currentBeat ~/ subdivisions) == beatIndex;
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: beatIndex < count - 1 ? MonoPulseSpacing.sm : 0,
                 ),
-              ),
-              child: Scrollbar(
-                thumbVisibility: true,
-                trackVisibility: false,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const ClampingScrollPhysics(),
-                  child: Row(
-                    children: List.generate(
-                      count,
-                      (index) => Padding(
-                        padding: EdgeInsets.only(
-                          right: index < count - 1 ? MonoPulseSpacing.sm : 0,
-                        ),
-                        child: _BeatCircle(
-                          index: index,
-                          isAccentRow: false,
-                          isActive: currentBeat == index,
-                        ),
-                      ),
-                    ),
-                  ),
+                child: _BeatCircleWithMode(
+                  isMainBeat: true,
+                  isActive: isBeatActive,
+                  mode: mode,
+                  onTap: () => onToggleMode(beatIndex, 0, mode),
                 ),
-              ),
-            )
-          : Row(
-              children: List.generate(
-                count,
-                (index) => Padding(
-                  padding: EdgeInsets.only(
-                    right: index < count - 1 ? MonoPulseSpacing.sm : 0,
-                  ),
-                  child: _BeatCircle(
-                    index: index,
-                    isAccentRow: false,
-                    isActive: currentBeat == index,
-                  ),
-                ),
-              ),
-            ),
-    );
-  }
-}
-
-// ============================================================================
-// ADAPTIVE VISIBLE COUNT CALCULATION
-// ============================================================================
-int _calculateVisibleCount(BuildContext context) {
-  // Calculate visible circles based on screen width
-  final screenWidth = MediaQuery.of(context).size.width;
-  // Available width = screen width - margins (xxxl * 2) - padding (lg * 2) - buttons (48 * 2) - spacing (md + sm)
-  final availableWidth =
-      screenWidth -
-      (MonoPulseSpacing.xxxl * 2) -
-      (MonoPulseSpacing.lg * 2) -
-      (48 * 2) -
-      MonoPulseSpacing.md -
-      MonoPulseSpacing.sm;
-
-  // Circle width = 20px circle + spacing (sm = 8px) = 28px minimum
-  // Touch zone = 48px (but circles are visually smaller)
-  final circleWidth = 20.0 + MonoPulseSpacing.sm;
-  final maxVisible = (availableWidth / circleWidth).floor();
-
-  // Always show at least 4 circles (standard 4/4), max 6
-  return maxVisible.clamp(4, 6);
-}
-
-// ============================================================================
-// BEAT CIRCLE
-// ============================================================================
-class _BeatCircle extends StatefulWidget {
-  final int index;
-  final bool isAccentRow;
-  final bool isStrong;
-  final bool isActive;
-  final VoidCallback? onToggle;
-
-  const _BeatCircle({
-    required this.index,
-    required this.isAccentRow,
-    this.isStrong = false,
-    this.isActive = false,
-    this.onToggle,
-  });
-
-  @override
-  State<_BeatCircle> createState() => _BeatCircleState();
-}
-
-class _BeatCircleState extends State<_BeatCircle>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      duration: MonoPulseAnimation.durationShort,
-      vsync: this,
-    );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(
-        parent: _pulseController,
-        curve: MonoPulseAnimation.curveCustom,
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(_BeatCircle oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isActive && !oldWidget.isActive) {
-      _triggerPulse();
-    }
-  }
-
-  void _triggerPulse() {
-    _pulseController.forward(from: 0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Minimum 48px touch zone per Mono Pulse brandbook
-    const touchZoneSize = 48.0;
-    const circleSize = 20.0;
-
-    // Determine colors based on row type and state
-    Color fillColor;
-    Color strokeColor;
-
-    if (widget.isAccentRow) {
-      // Top row: accents
-      if (widget.isStrong) {
-        // Strong accent: #FF5E00 fill
-        fillColor = MonoPulseColors.accentOrange;
-        strokeColor = MonoPulseColors.accentOrange;
-      } else {
-        // Weak accent: #222222 fill, #333333 stroke
-        fillColor = MonoPulseColors.borderSubtle;
-        strokeColor = MonoPulseColors.borderDefault;
-      }
-    } else {
-      // Bottom row: regular beats
-      fillColor = MonoPulseColors.borderSubtle;
-      strokeColor = MonoPulseColors.borderDefault;
-    }
-
-    // Active beat overrides colors
-    if (widget.isActive) {
-      fillColor = MonoPulseColors.accentOrange;
-      strokeColor = MonoPulseColors.accentOrange;
-    }
-
-    return GestureDetector(
-      onTap: widget.onToggle,
-      child: AnimatedScale(
-        scale: _pulseController.isAnimating ? _pulseAnimation.value : 1.0,
-        duration: MonoPulseAnimation.durationShort,
-        curve: MonoPulseAnimation.curveCustom,
-        child: SizedBox(
-          width: touchZoneSize,
-          height: touchZoneSize,
-          child: Center(
-            child: Container(
-              width: circleSize,
-              height: circleSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: fillColor,
-                border: Border.all(color: strokeColor, width: 1.5),
-                boxShadow: widget.isActive
-                    ? [
-                        BoxShadow(
-                          color: MonoPulseColors.accentOrange.withValues(
-                            alpha: 0.4,
-                          ),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                        ),
-                      ]
-                    : [],
-              ),
-            ),
+              );
+            }),
           ),
         ),
       ),
@@ -536,109 +226,426 @@ class _BeatCircleState extends State<_BeatCircle>
 }
 
 // ============================================================================
-// BEAT BUTTON (+/-)
+// SUBDIVISIONS ROW (Bottom Row)
 // ============================================================================
-class _BeatButton extends StatefulWidget {
+class _SubdivisionsRow extends StatelessWidget {
+  final int count;
+  final bool isPlaying;
+  final int currentBeat;
+  final int beats;
+  final List<List<BeatMode>> beatModes;
+  final Function(int, int, BeatMode) onToggleMode;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
+
+  const _SubdivisionsRow({
+    required this.count,
+    required this.isPlaying,
+    required this.currentBeat,
+    required this.beats,
+    required this.beatModes,
+    required this.onToggleMode,
+    required this.onIncrement,
+    required this.onDecrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleCount = _calculateVisibleCount(context);
+    final needsScroll = count > visibleCount;
+
+    return Row(
+      children: [
+        _BeatButton(icon: Icons.remove, onTap: count > 1 ? onDecrement : null),
+        const SizedBox(width: MonoPulseSpacing.md),
+        Expanded(
+          child: _buildScrollableCircles(
+            context: context,
+            count: count,
+            visibleCount: visibleCount,
+            needsScroll: needsScroll,
+          ),
+        ),
+        const SizedBox(width: MonoPulseSpacing.sm),
+        _BeatButton(
+          icon: Icons.add,
+          onTap: count < 12 ? onIncrement : null,
+          showBadge: count > visibleCount,
+          badgeCount: count,
+        ),
+      ],
+    );
+  }
+
+  int _calculateVisibleCount(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final availableWidth =
+        screenWidth -
+        (MonoPulseSpacing.xxxl * 2) -
+        (MonoPulseSpacing.lg * 2) -
+        (48 * 2) -
+        MonoPulseSpacing.md -
+        MonoPulseSpacing.sm;
+    final circleWidth = 20.0 + MonoPulseSpacing.sm;
+    final maxVisible = (availableWidth / circleWidth).floor();
+    return maxVisible.clamp(4, 6);
+  }
+
+  Widget _buildScrollableCircles({
+    required BuildContext context,
+    required int count,
+    required int visibleCount,
+    required bool needsScroll,
+  }) {
+    return ClipRect(
+      clipBehavior: Clip.hardEdge,
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          scrollbarTheme: ScrollbarThemeData(
+            thumbColor: WidgetStateProperty.all(MonoPulseColors.borderDefault),
+            thickness: WidgetStateProperty.all(2),
+            radius: const Radius.circular(2),
+          ),
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: needsScroll ? null : const NeverScrollableScrollPhysics(),
+          child: Row(
+            children: List.generate(count, (subdivisionIndex) {
+              // Get current beat index
+              final currentBeatIndex = isPlaying ? currentBeat ~/ count : -1;
+
+              // Get mode for this subdivision of current beat
+              final mode =
+                  currentBeatIndex >= 0 &&
+                      currentBeatIndex < beatModes.length &&
+                      subdivisionIndex < beatModes[currentBeatIndex].length
+                  ? beatModes[currentBeatIndex][subdivisionIndex]
+                  : BeatMode.normal;
+
+              // Check if this subdivision is active
+              final isSubdivisionActive =
+                  isPlaying &&
+                  currentBeat >= 0 &&
+                  (currentBeat % count) == subdivisionIndex;
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  right: subdivisionIndex < count - 1 ? MonoPulseSpacing.sm : 0,
+                ),
+                child: _SubdivisionCircleWithMode(
+                  subdivisionIndex: subdivisionIndex,
+                  isActive: isSubdivisionActive,
+                  mode: mode,
+                  onTap: currentBeatIndex >= 0
+                      ? () => onToggleMode(
+                          currentBeatIndex,
+                          subdivisionIndex,
+                          mode,
+                        )
+                      : null,
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// BEAT CIRCLE WITH MODE (TAPPABLE)
+// ============================================================================
+class _BeatCircleWithMode extends StatelessWidget {
+  final bool isMainBeat;
+  final bool isActive;
+  final BeatMode mode;
+  final VoidCallback onTap;
+
+  const _BeatCircleWithMode({
+    required this.isMainBeat,
+    required this.isActive,
+    required this.mode,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Center(
+          child: AnimatedContainer(
+            duration: MonoPulseAnimation.durationShort,
+            curve: MonoPulseAnimation.curveCustom,
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _getColorForMode(),
+              border: Border.all(color: _getBorderColorForMode(), width: 1.5),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: _getColorForMode().withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Transform.scale(
+              scale: isActive ? 1.08 : 1.0,
+              child: _buildModeIndicator(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getColorForMode() {
+    switch (mode) {
+      case BeatMode.normal:
+        return isActive
+            ? MonoPulseColors.beatModeNormalBright
+            : MonoPulseColors.beatModeNormal;
+      case BeatMode.accent:
+        return isActive
+            ? MonoPulseColors.beatModeAccentBright
+            : MonoPulseColors.beatModeAccent;
+      case BeatMode.silent:
+        return isActive
+            ? MonoPulseColors.beatModeSilentBright
+            : MonoPulseColors.beatModeSilent;
+    }
+  }
+
+  Color _getBorderColorForMode() {
+    switch (mode) {
+      case BeatMode.normal:
+        return isActive
+            ? MonoPulseColors.beatModeNormalBright
+            : MonoPulseColors.beatModeNormal.withValues(alpha: 0.7);
+      case BeatMode.accent:
+        return isActive
+            ? MonoPulseColors.beatModeAccentBright
+            : MonoPulseColors.beatModeAccent.withValues(alpha: 0.7);
+      case BeatMode.silent:
+        return isActive
+            ? MonoPulseColors.beatModeSilentBright
+            : MonoPulseColors.beatModeSilent.withValues(alpha: 0.7);
+    }
+  }
+
+  Widget _buildModeIndicator() {
+    if (mode == BeatMode.normal) {
+      return const SizedBox.shrink();
+    }
+
+    return Center(
+      child: Container(
+        width: mode == BeatMode.accent ? 8 : 6,
+        height: mode == BeatMode.accent ? 8 : 6,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// SUBDIVISION CIRCLE WITH MODE (TAPPABLE)
+// ============================================================================
+class _SubdivisionCircleWithMode extends StatelessWidget {
+  final int subdivisionIndex;
+  final bool isActive;
+  final BeatMode mode;
+  final VoidCallback? onTap;
+
+  const _SubdivisionCircleWithMode({
+    required this.subdivisionIndex,
+    required this.isActive,
+    required this.mode,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Center(
+          child: AnimatedContainer(
+            duration: MonoPulseAnimation.durationShort,
+            curve: MonoPulseAnimation.curveCustom,
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _getColorForMode(),
+              border: Border.all(color: _getBorderColorForMode(), width: 1.5),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: _getColorForMode().withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Transform.scale(
+              scale: isActive ? 1.08 : 1.0,
+              child: _buildModeIndicator(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getColorForMode() {
+    switch (mode) {
+      case BeatMode.normal:
+        return isActive
+            ? MonoPulseColors.beatModeNormalBright
+            : MonoPulseColors.beatModeNormal;
+      case BeatMode.accent:
+        return isActive
+            ? MonoPulseColors.beatModeAccentBright
+            : MonoPulseColors.beatModeAccent;
+      case BeatMode.silent:
+        return isActive
+            ? MonoPulseColors.beatModeSilentBright
+            : MonoPulseColors.beatModeSilent;
+    }
+  }
+
+  Color _getBorderColorForMode() {
+    switch (mode) {
+      case BeatMode.normal:
+        return isActive
+            ? MonoPulseColors.beatModeNormalBright
+            : MonoPulseColors.beatModeNormal.withValues(alpha: 0.7);
+      case BeatMode.accent:
+        return isActive
+            ? MonoPulseColors.beatModeAccentBright
+            : MonoPulseColors.beatModeAccent.withValues(alpha: 0.7);
+      case BeatMode.silent:
+        return isActive
+            ? MonoPulseColors.beatModeSilentBright
+            : MonoPulseColors.beatModeSilent.withValues(alpha: 0.7);
+    }
+  }
+
+  Widget _buildModeIndicator() {
+    if (mode == BeatMode.normal) {
+      return const SizedBox.shrink();
+    }
+
+    return Center(
+      child: Container(
+        width: mode == BeatMode.accent ? 8 : 6,
+        height: mode == BeatMode.accent ? 8 : 6,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// BEAT BUTTON (Plus/Minus)
+// ============================================================================
+class _BeatButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
   final bool showBadge;
-  final int? badgeCount;
+  final int badgeCount;
 
   const _BeatButton({
     required this.icon,
     this.onTap,
     this.showBadge = false,
-    this.badgeCount,
+    this.badgeCount = 0,
   });
 
   @override
-  State<_BeatButton> createState() => _BeatButtonState();
-}
-
-class _BeatButtonState extends State<_BeatButton> {
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final isEnabled = widget.onTap != null;
-
     return GestureDetector(
-      onTapDown: (_) {
-        if (isEnabled) {
-          setState(() => _isPressed = true);
-          HapticFeedback.vibrate();
-        }
-      },
-      onTapUp: (_) {
-        if (isEnabled) {
-          setState(() => _isPressed = false);
-          HapticFeedback.vibrate();
-          widget.onTap!();
-        }
-      },
-      onTapCancel: () {
-        setState(() => _isPressed = false);
-      },
-      child: AnimatedScale(
-        scale: _isPressed ? 0.95 : 1.0,
-        duration: MonoPulseAnimation.durationShort,
-        curve: MonoPulseAnimation.curveCustom,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              // Minimum 48px touch zone
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isEnabled
-                    ? MonoPulseColors.blackElevated
-                    : MonoPulseColors.blackElevated.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-                border: Border.all(
-                  color: isEnabled
-                      ? MonoPulseColors.borderSubtle
-                      : MonoPulseColors.borderSubtle.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                widget.icon,
-                size: 20,
-                color: isEnabled
-                    ? (_isPressed
-                          ? MonoPulseColors.accentOrange
-                          : MonoPulseColors.textSecondary)
-                    : MonoPulseColors.textDisabled,
+      onTap: onTap,
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Center(
+          child: AnimatedContainer(
+            duration: MonoPulseAnimation.durationShort,
+            curve: MonoPulseAnimation.curveCustom,
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: onTap != null
+                  ? MonoPulseColors.blackElevated
+                  : MonoPulseColors.borderSubtle,
+              border: Border.all(
+                color: onTap != null
+                    ? MonoPulseColors.borderDefault
+                    : MonoPulseColors.borderSubtle,
+                width: 1.5,
               ),
             ),
-            // Badge for > visible circles
-            if (widget.showBadge && widget.badgeCount != null)
-              Positioned(
-                right: -4,
-                top: -4,
-                child: Container(
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: MonoPulseColors.accentOrange,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: MonoPulseColors.black, width: 2),
+            child: Stack(
+              children: [
+                Center(
+                  child: Icon(
+                    icon,
+                    size: 20,
+                    color: onTap != null
+                        ? MonoPulseColors.textSecondary
+                        : MonoPulseColors.textTertiary,
                   ),
-                  child: Center(
-                    child: Text(
-                      '${widget.badgeCount}',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: MonoPulseColors.white,
-                        height: 1.0,
+                ),
+                if (showBadge)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: MonoPulseColors.accentOrange,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: MonoPulseColors.black,
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$badgeCount',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: MonoPulseColors.black,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );

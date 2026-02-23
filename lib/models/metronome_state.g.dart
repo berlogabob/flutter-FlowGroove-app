@@ -25,7 +25,16 @@ MetronomeState _$MetronomeStateFromJson(Map<String, dynamic> json) =>
               .toList() ??
           [],
       accentBeats: (json['accentBeats'] as num?)?.toInt() ?? 4,
-      regularBeats: (json['regularBeats'] as num?)?.toInt() ?? 4,
+      regularBeats: (json['regularBeats'] as num?)?.toInt() ?? 1,
+      beatModes:
+          (json['beatModes'] as List<dynamic>?)
+              ?.map(
+                (e) => (e as List<dynamic>)
+                    .map((e) => $enumDecode(_$BeatModeEnumMap, e))
+                    .toList(),
+              )
+              .toList() ??
+          [],
       loadedSong: json['loadedSong'] == null
           ? null
           : Song.fromJson(json['loadedSong'] as Map<String, dynamic>),
@@ -49,7 +58,16 @@ Map<String, dynamic> _$MetronomeStateToJson(MetronomeState instance) =>
       'accentPattern': instance.accentPattern,
       'accentBeats': instance.accentBeats,
       'regularBeats': instance.regularBeats,
+      'beatModes': instance.beatModes
+          .map((e) => e.map((e) => _$BeatModeEnumMap[e]!).toList())
+          .toList(),
       'loadedSong': instance.loadedSong,
       'loadedSetlist': instance.loadedSetlist,
       'currentSetlistIndex': instance.currentSetlistIndex,
     };
+
+const _$BeatModeEnumMap = {
+  BeatMode.normal: 'normal',
+  BeatMode.accent: 'accent',
+  BeatMode.silent: 'silent',
+};
