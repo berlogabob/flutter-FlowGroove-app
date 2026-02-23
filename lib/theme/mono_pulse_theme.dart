@@ -39,6 +39,16 @@ class MonoPulseColors {
   static const Color accentOrangeDark = Color(0xFFE64E00);
   static const Color accentOrangeSubtle = Color(0x1AFF5E00); // 10% opacity
 
+  // Beat Mode Colors
+  static const Color beatModeNormal = Color(0xFFFF5E00); // Orange
+  static const Color beatModeAccent = Color(0xFF00BCD4); // Cyan
+  static const Color beatModeSilent = Color(0xFFE91E63); // Magenta
+
+  // Bright versions for active state
+  static const Color beatModeNormalBright = Color(0xFFFF7B33); // Bright Orange
+  static const Color beatModeAccentBright = Color(0xFF26C6DA); // Bright Cyan
+  static const Color beatModeSilentBright = Color(0xFFEC407A); // Bright Magenta
+
   // Error - Muted Red (very rare)
   static const Color error = Color(0xFFFF2D55);
   static const Color errorSubtle = Color(0x1AFF2D55);

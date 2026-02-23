@@ -5,10 +5,14 @@ import '../models/setlist.dart';
 
 part 'metronome_state.g.dart';
 
+/// Beat mode for individual beat customization
+enum BeatMode {
+  normal, // Default (normal sound)
+  accent, // +300 Hz
+  silent, // No sound, visual only
+}
+
 /// Immutable state class for MetronomeNotifier
-///
-/// Contains all metronome state fields in an immutable structure.
-/// When any field changes, a new MetronomeState instance is created.
 @JsonSerializable()
 class MetronomeState {
   @JsonKey(defaultValue: false)
@@ -31,17 +35,19 @@ class MetronomeState {
   @JsonKey(defaultValue: [])
   final List<bool> accentPattern;
 
-  // NEW: UI state for Mono Pulse design
+  // NEW: UI state for Mono Pulse design (NEW LOGIC)
   @JsonKey(defaultValue: 4)
-  final int accentBeats; // Number of accent beats (top row)
-  @JsonKey(defaultValue: 4)
-  final int regularBeats; // Number of regular beats (bottom row)
+  final int accentBeats; // BEATS count (top row, first number of time signature)
+  @JsonKey(defaultValue: 1)
+  final int regularBeats; // SUBDIVISIONS per beat (bottom row)
+  @JsonKey(defaultValue: [])
+  final List<List<BeatMode>> beatModes; // 2D: beats × subdivisions (independent modes)
   @JsonKey(defaultValue: null)
-  final Song? loadedSong; // Currently loaded song from library
+  final Song? loadedSong;
   @JsonKey(defaultValue: null)
-  final Setlist? loadedSetlist; // Currently loaded setlist queue
+  final Setlist? loadedSetlist;
   @JsonKey(defaultValue: 0)
-  final int currentSetlistIndex; // Current position in setlist queue
+  final int currentSetlistIndex;
 
   const MetronomeState({
     required this.isPlaying,
@@ -55,7 +61,8 @@ class MetronomeState {
     required this.beatFrequency,
     required this.accentPattern,
     this.accentBeats = 4,
-    this.regularBeats = 4,
+    this.regularBeats = 1,
+    this.beatModes = const [], // Empty = all normal (2D: beats × subdivisions)
     this.loadedSong,
     this.loadedSetlist,
     this.currentSetlistIndex = 0,
@@ -71,11 +78,12 @@ class MetronomeState {
       waveType: 'sine',
       volume: 0.5,
       accentEnabled: true,
-      accentFrequency: 1600, // Hz (Reaper-style)
-      beatFrequency: 800, // Hz (Reaper-style)
-      accentPattern: [true, false, false, false], // ABBB for 4/4
-      accentBeats: 1, // First beat is accent
-      regularBeats: 4, // 4 total beats
+      accentFrequency: 1600,
+      beatFrequency: 800,
+      accentPattern: const [true, false, false, false],
+      accentBeats: 4,
+      regularBeats: 1,
+      beatModes: const [], // Empty = all normal
     );
   }
 
@@ -93,6 +101,7 @@ class MetronomeState {
     List<bool>? accentPattern,
     int? accentBeats,
     int? regularBeats,
+    List<List<BeatMode>>? beatModes,
     Song? loadedSong,
     Setlist? loadedSetlist,
     int? currentSetlistIndex,
@@ -107,85 +116,30 @@ class MetronomeState {
       accentEnabled: accentEnabled ?? this.accentEnabled,
       accentFrequency: accentFrequency ?? this.accentFrequency,
       beatFrequency: beatFrequency ?? this.beatFrequency,
-      accentPattern: accentPattern ?? List.unmodifiable(this.accentPattern),
+      accentPattern: accentPattern ?? this.accentPattern,
       accentBeats: accentBeats ?? this.accentBeats,
       regularBeats: regularBeats ?? this.regularBeats,
+      beatModes: beatModes ?? this.beatModes,
       loadedSong: loadedSong ?? this.loadedSong,
       loadedSetlist: loadedSetlist ?? this.loadedSetlist,
       currentSetlistIndex: currentSetlistIndex ?? this.currentSetlistIndex,
     );
   }
 
-  /// Get beats per measure from time signature
-  int get beatsPerMeasure => timeSignature.numerator;
+  /// Convert from JSON
+  factory MetronomeState.fromJson(Map<String, dynamic> json) =>
+      _$MetronomeStateFromJson(json);
 
-  /// Check if a beat index should be accented based on current pattern
+  /// Convert to JSON
+  Map<String, dynamic> toJson() => _$MetronomeStateToJson(this);
+
+  // Backward compatibility getters
+  /// Returns beats per measure (alias for accentBeats)
+  int get beatsPerMeasure => accentBeats;
+
+  /// Check if a beat index should be accented based on accentPattern
   bool isAccentBeat(int beatIndex) {
     if (beatIndex < 0 || beatIndex >= accentPattern.length) return false;
     return accentPattern[beatIndex];
   }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is MetronomeState &&
-          runtimeType == other.runtimeType &&
-          isPlaying == other.isPlaying &&
-          bpm == other.bpm &&
-          currentBeat == other.currentBeat &&
-          timeSignature == other.timeSignature &&
-          waveType == other.waveType &&
-          volume == other.volume &&
-          accentEnabled == other.accentEnabled &&
-          accentFrequency == other.accentFrequency &&
-          beatFrequency == other.beatFrequency &&
-          _listEquals(accentPattern, other.accentPattern) &&
-          accentBeats == other.accentBeats &&
-          regularBeats == other.regularBeats &&
-          loadedSong == other.loadedSong &&
-          loadedSetlist == other.loadedSetlist &&
-          currentSetlistIndex == other.currentSetlistIndex;
-
-  @override
-  int get hashCode => Object.hash(
-    isPlaying,
-    bpm,
-    currentBeat,
-    timeSignature,
-    waveType,
-    volume,
-    accentEnabled,
-    accentFrequency,
-    beatFrequency,
-    accentPattern,
-    accentBeats,
-    regularBeats,
-    loadedSong,
-    loadedSetlist,
-    currentSetlistIndex,
-  );
-
-  bool _listEquals(List<bool> a, List<bool> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
-
-  @override
-  String toString() {
-    return 'MetronomeState(isPlaying: $isPlaying, bpm: $bpm, currentBeat: $currentBeat, '
-        'timeSignature: $timeSignature, waveType: $waveType, volume: $volume, '
-        'accentEnabled: $accentEnabled, accentFrequency: $accentFrequency, '
-        'beatFrequency: $beatFrequency, accentPattern: $accentPattern, '
-        'accentBeats: $accentBeats, regularBeats: $regularBeats, '
-        'loadedSong: ${loadedSong?.title}, loadedSetlist: ${loadedSetlist?.name}, '
-        'currentSetlistIndex: $currentSetlistIndex)';
-  }
-
-  Map<String, dynamic> toJson() => _$MetronomeStateToJson(this);
-
-  factory MetronomeState.fromJson(Map<String, dynamic> json) =>
-      _$MetronomeStateFromJson(json);
 }
