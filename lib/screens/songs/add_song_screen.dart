@@ -15,7 +15,10 @@ class AddSongScreen extends ConsumerStatefulWidget {
   /// The song to edit. If null, a new song will be created.
   final Song? song;
 
-  const AddSongScreen({super.key, this.song});
+  /// Optional band ID to associate the song with a band
+  final String? bandId;
+
+  const AddSongScreen({super.key, this.song, this.bandId});
 
   @override
   ConsumerState<AddSongScreen> createState() => _AddSongScreenState();
@@ -132,10 +135,17 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       final song = _formData.toSong(
         id: _isEditing ? widget.song!.id : const Uuid().v4(),
         createdAt: _isEditing ? widget.song!.createdAt : DateTime.now(),
+        bandId: widget.bandId,
       );
 
       final firestore = ref.read(firestoreProvider);
-      await firestore.saveSong(song, user.uid);
+
+      // If bandId is provided, save to band's collection
+      if (widget.bandId != null) {
+        await firestore.saveBandSong(song, widget.bandId!);
+      } else {
+        await firestore.saveSong(song, user.uid);
+      }
 
       if (mounted) {
         Navigator.pop(context);

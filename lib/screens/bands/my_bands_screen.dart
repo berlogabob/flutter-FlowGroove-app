@@ -321,7 +321,24 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       onEdit: _handleEdit,
       onTap: _handleTap,
       showCompact: false,
+      additionalActionsBuilder: (index) {
+        if (index >= adapters.length) return [];
+        final adapter = adapters[index];
+        return [
+          // View Band Songs button
+          IconButton(
+            icon: const Icon(Icons.music_note, size: 20),
+            onPressed: () => _handleViewSongs(adapter.band),
+            tooltip: 'View Songs',
+          ),
+        ];
+      },
     );
+  }
+
+  /// Handle view band songs
+  void _handleViewSongs(Band band) {
+    Navigator.pushNamed(context, '/bands/${band.id}/songs', arguments: band);
   }
 }
 
