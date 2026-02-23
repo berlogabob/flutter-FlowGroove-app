@@ -122,7 +122,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Rotate tempo using rotary dial gesture
   void rotateTempo(double degrees) {
-    final bpmChange = (degrees / 72).round(); // 72 degrees = 1 BPM (3x slower)
+    final bpmChange = (degrees / 288)
+        .round(); // 288 degrees = 1 BPM (4x slower than 72)
     final newBpm = (state.bpm + bpmChange).clamp(1, 600);
 
     // Stop at limits - don't wrap around

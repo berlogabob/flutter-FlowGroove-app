@@ -72,46 +72,59 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
   }
 
   Widget _buildBody(BuildContext context) {
-    // Use NeverScrollableScrollPhysics to disable scroll per sprint brief
+    // Get screen width for adaptive spacing
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 375;
+
+    // Adaptive spacing based on screen size
+    final topPadding = isSmallScreen
+        ? MonoPulseSpacing.lg
+        : MonoPulseSpacing.massive;
+    final sectionSpacing = isSmallScreen
+        ? MonoPulseSpacing.lg
+        : MonoPulseSpacing.massive;
+    final fineAdjustSpacing = isSmallScreen
+        ? MonoPulseSpacing.lg
+        : MonoPulseSpacing.huge;
+
+    // Simple layout with minimal gaps - works on ALL screen sizes
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
       child: Column(
         children: [
-          // 1. Air gap after AppBar (64-80px)
-          const SizedBox(height: MonoPulseSpacing.massive),
+          // 1. Air gap after AppBar (adaptive: 16-48px)
+          SizedBox(height: topPadding),
 
-          // 3. Time Signature Block
+          // 2. Time Signature Block (moved to top, compact 64-72px height)
           const TimeSignatureBlock(),
 
-          // Air gap (48px)
-          const SizedBox(height: MonoPulseSpacing.massive),
+          // Air gap (adaptive: 16-48px)
+          SizedBox(height: sectionSpacing),
 
-          // 4. Central Tempo Circle
+          // 3. Central Tempo Circle (adaptive: 45-55% screen width)
           const CentralTempoCircle(),
 
-          // Air gap (48-64px)
-          const SizedBox(height: MonoPulseSpacing.massive),
+          // Air gap - REDUCED for ALL screens (was 16-40px, now 12-24px)
+          SizedBox(
+            height: isSmallScreen ? MonoPulseSpacing.sm : MonoPulseSpacing.lg,
+          ),
 
-          // 5. Fine Adjustment Buttons
+          // 4. Fine Adjustment Buttons (compact: 48px height)
           const FineAdjustmentButtons(),
 
-          // Air gap (40px)
-          const SizedBox(height: MonoPulseSpacing.huge),
+          // Air gap - REDUCED for ALL screens (was 16-32px, now 12-24px)
+          SizedBox(height: fineAdjustSpacing),
 
-          // 6. Song Library Block
-          const SongLibraryBlock(),
-
-          // Air gap (32-48px)
-          const SizedBox(height: MonoPulseSpacing.xxxl),
-
-          // Spacer to push transport bar to bottom
-          const Spacer(),
-
-          // 7. Bottom Transport Bar
+          // 5. Bottom Transport Bar - Play Button (PRIMARY ACTION, moved up)
+          // MINIMAL gap above transport bar - 8px for ALL screens
+          const SizedBox(height: 8),
           const BottomTransportBar(),
 
-          // Bottom padding
-          const SizedBox(height: MonoPulseSpacing.lg),
+          // Air gap - REDUCED for ALL screens (was 16-32px, now 12-24px)
+          SizedBox(height: fineAdjustSpacing),
+
+          // 6. Song Library Block (compact, moved to bottom)
+          const SongLibraryBlock(),
         ],
       ),
     );

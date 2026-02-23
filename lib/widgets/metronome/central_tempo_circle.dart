@@ -85,14 +85,25 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
     final state = ref.watch(metronomeProvider);
     final bpm = state.bpm;
 
-    // Use LayoutBuilder to make circle 55% of screen width
+    // Use LayoutBuilder to make circle responsive to screen width
     return LayoutBuilder(
       builder: (context, constraints) {
-        final circleSize = constraints.maxWidth * 0.55;
-        final clampedSize = circleSize.clamp(220.0, 280.0);
+        final screenWidth = MediaQuery.of(context).size.width;
 
-        // Touch zone: entire circle + 30px around
-        final touchZoneSize = clampedSize + 60; // 30px on each side
+        // Adaptive sizing based on screen width
+        final isSmallScreen = screenWidth < 375;
+        final isMediumScreen = screenWidth >= 375 && screenWidth < 390;
+
+        // Circle diameter: 45-55% of screen width (not fixed 280px)
+        final circleSizePercent = isSmallScreen
+            ? 0.50
+            : (isMediumScreen ? 0.55 : 0.60);
+        final circleSize = constraints.maxWidth * circleSizePercent;
+        final clampedSize = circleSize.clamp(180.0, 280.0);
+
+        // Reduced padding around circle from 56px to 24px on small screens
+        final paddingAroundCircle = isSmallScreen ? 24.0 : 40.0;
+        final touchZoneSize = clampedSize + (paddingAroundCircle * 2);
 
         return GestureDetector(
           onPanStart: _onPanStart,
@@ -108,7 +119,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
                 alignment: Alignment.center,
                 children: [
                   // Outer tick marks and labels (larger area for visual scale)
-                  _TickMarks(size: clampedSize),
+                  _TickMarks(size: clampedSize, isSmallScreen: isSmallScreen),
 
                   // Main rotary dial with increased touch zone
                   GestureDetector(
@@ -146,7 +157,11 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
                           : 1.0,
                       duration: MonoPulseAnimation.durationShort,
                       curve: MonoPulseAnimation.curveCustom,
-                      child: _BpmDisplay(bpm: bpm, size: clampedSize),
+                      child: _BpmDisplay(
+                        bpm: bpm,
+                        size: clampedSize,
+                        isSmallScreen: isSmallScreen,
+                      ),
                     ),
                   ),
                 ],
@@ -359,14 +374,21 @@ class _RotateHandle extends StatelessWidget {
 class _BpmDisplay extends StatelessWidget {
   final int bpm;
   final double size;
+  final bool isSmallScreen;
 
-  const _BpmDisplay({required this.bpm, required this.size});
+  const _BpmDisplay({
+    required this.bpm,
+    required this.size,
+    this.isSmallScreen = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     // Scale font sizes based on circle size
-    final bpmFontSize = size * 0.28; // 28% of circle size
-    final labelFontSize = size * 0.055; // 5.5% of circle size
+    // BPM text: 60px on small screens, 72px on large
+    final bpmFontSize = size * (isSmallScreen ? 0.28 : 0.32);
+    // "bpm" label: 14px instead of 18px on small screens
+    final labelFontSize = size * (isSmallScreen ? 0.045 : 0.055);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -397,23 +419,27 @@ class _BpmDisplay extends StatelessWidget {
 
 class _TickMarks extends StatelessWidget {
   final double size;
+  final bool isSmallScreen;
 
-  const _TickMarks({required this.size});
+  const _TickMarks({required this.size, this.isSmallScreen = false});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(painter: _TickMarksPainter(size: size)),
+      child: CustomPaint(
+        painter: _TickMarksPainter(size: size, isSmallScreen: isSmallScreen),
+      ),
     );
   }
 }
 
 class _TickMarksPainter extends CustomPainter {
   final double size;
+  final bool isSmallScreen;
 
-  _TickMarksPainter({required this.size});
+  _TickMarksPainter({required this.size, this.isSmallScreen = false});
 
   @override
   void paint(Canvas canvas, Size canvasSize) {
@@ -464,7 +490,7 @@ class _TickMarksPainter extends CustomPainter {
         labelPaint.text = TextSpan(
           text: '$bpm',
           style: TextStyle(
-            fontSize: size * 0.045,
+            fontSize: size * (isSmallScreen ? 0.035 : 0.045),
             color: MonoPulseColors.textTertiary, // #8A8A8F
           ),
         );
