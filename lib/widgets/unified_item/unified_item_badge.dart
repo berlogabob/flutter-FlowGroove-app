@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Reusable badge widget for displaying metadata
 class UnifiedItemBadge extends StatelessWidget {
   final String text;
   final Color color;
