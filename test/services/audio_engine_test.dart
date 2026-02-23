@@ -244,7 +244,7 @@ void main() {
     group('constants', () {
       test('sample rate is 44100', () {
         // This is a constant in the class
-        expect(AudioEngine.toString(), contains('AudioEngine'));
+        expect(AudioEngine.sampleRate, equals(44100));
       });
 
       test('click duration is 40ms', () {
