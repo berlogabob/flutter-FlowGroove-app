@@ -276,7 +276,7 @@ class _ArrowIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Stack arrows vertically based on count - replaced with +/- icons
+    // Stack arrows vertically based on count - LEFT/RIGHT arrows
     final totalHeight = count * arrowSize + (count - 1) * spacing;
 
     return SizedBox(
@@ -292,8 +292,8 @@ class _ArrowIcon extends StatelessWidget {
             child: Icon(
               direction == 1
                   ? Icons
-                        .add // + icon for increase
-                  : Icons.remove, // - icon for decrease
+                        .arrow_forward // ▶ right arrow for increase
+                  : Icons.arrow_back, // ◀ left arrow for decrease
               size: arrowSize,
               color: color,
             ),

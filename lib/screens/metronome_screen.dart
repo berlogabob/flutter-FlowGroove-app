@@ -76,56 +76,46 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 375;
 
-    // Adaptive spacing based on screen size
-    final topPadding = isSmallScreen
-        ? MonoPulseSpacing.lg
-        : MonoPulseSpacing.massive;
-    final sectionSpacing = isSmallScreen
-        ? MonoPulseSpacing.lg
-        : MonoPulseSpacing.massive;
-    final fineAdjustSpacing = isSmallScreen
-        ? MonoPulseSpacing.lg
-        : MonoPulseSpacing.huge;
+    // FIXED spacing values - hardcoded for simplicity
+    // No unused variables
 
-    // Simple layout with minimal gaps - works on ALL screen sizes
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      child: Column(
-        children: [
-          // 1. Air gap after AppBar (adaptive: 16-48px)
-          SizedBox(height: topPadding),
+    // FIXED layout: Song Library ALWAYS visible at bottom
+    return SafeArea(
+      bottom: true,
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            // 1. Air gap after AppBar (FIXED: 16px for ALL screens)
+            SizedBox(height: isSmallScreen ? 16 : 24),
 
-          // 2. Time Signature Block (moved to top, compact 64-72px height)
-          const TimeSignatureBlock(),
+            // 2. Time Signature Block (compact 64-72px height)
+            const TimeSignatureBlock(),
 
-          // Air gap (adaptive: 16-48px)
-          SizedBox(height: sectionSpacing),
+            // Air gap (FIXED: 16px for ALL screens)
+            SizedBox(height: isSmallScreen ? 16 : 24),
 
-          // 3. Central Tempo Circle (adaptive: 45-55% screen width)
-          const CentralTempoCircle(),
+            // 3. Central Tempo Circle (adaptive: 45-55% screen width)
+            const CentralTempoCircle(),
 
-          // Air gap - REDUCED for ALL screens (was 16-40px, now 12-24px)
-          SizedBox(
-            height: isSmallScreen ? MonoPulseSpacing.sm : MonoPulseSpacing.lg,
-          ),
+            // Air gap (FIXED: 16px for ALL screens)
+            SizedBox(height: isSmallScreen ? 12 : 16),
 
-          // 4. Fine Adjustment Buttons (compact: 48px height)
-          const FineAdjustmentButtons(),
+            // 4. Fine Adjustment Buttons (compact: 48px height)
+            const FineAdjustmentButtons(),
 
-          // Air gap - REDUCED for ALL screens (was 16-32px, now 12-24px)
-          SizedBox(height: fineAdjustSpacing),
+            // 5. Play Button (PRIMARY ACTION)
+            const SizedBox(height: 8),
+            const BottomTransportBar(),
 
-          // 5. Bottom Transport Bar - Play Button (PRIMARY ACTION, moved up)
-          // MINIMAL gap above transport bar - 8px for ALL screens
-          const SizedBox(height: 8),
-          const BottomTransportBar(),
+            // 6. Song Library Block (ALWAYS visible at bottom)
+            const SizedBox(height: 16),
+            const SongLibraryBlock(),
 
-          // Air gap - REDUCED for ALL screens (was 16-32px, now 12-24px)
-          SizedBox(height: fineAdjustSpacing),
-
-          // 6. Song Library Block (compact, moved to bottom)
-          const SongLibraryBlock(),
-        ],
+            // Bottom padding for SafeArea
+            SizedBox(height: isSmallScreen ? 16 : 24),
+          ],
+        ),
       ),
     );
   }
