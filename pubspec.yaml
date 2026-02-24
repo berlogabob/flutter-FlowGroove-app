@@ -1,7 +1,7 @@
 name: flutter_repsync_app
 description: "RepSync - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.11.2+41
+version: 0.11.2+42
 
 environment:
   sdk: ^3.10.7
@@ -23,7 +23,7 @@ dependencies:
   hive_flutter: ^1.1.0
 
   # Connectivity
-  connectivity_plus: ^6.1.5
+  connectivity_plus: ^7.0.0
 
   # Navigation
   go_router: ^17.1.0
@@ -41,7 +41,7 @@ dependencies:
   http: ^1.2.0
   intl: ^0.20.2
   json_annotation: ^4.11.0
-  package_info_plus: ^8.3.1
+  package_info_plus: ^9.0.0
   url_launcher: ^6.3.2
   uuid: ^4.5.3
 
