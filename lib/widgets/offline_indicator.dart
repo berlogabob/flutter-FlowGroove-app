@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/mono_pulse_theme.dart';
-import 'connectivity_service.dart';
+import '../services/connectivity_service.dart';
 
 /// Offline Indicator Widget - Shows connectivity status
 ///
