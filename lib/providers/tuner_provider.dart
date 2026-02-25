@@ -108,6 +108,7 @@ class TunerNotifier extends Notifier<TunerState> {
     return TunerState.initial();
   }
 
+  @override
   void dispose() {
     stopPlaying();
     stopListening();

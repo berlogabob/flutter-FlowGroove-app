@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/providers/data/metronome_provider.dart';
 import 'package:flutter_repsync_app/models/time_signature.dart';
-import 'package:flutter_repsync_app/models/metronome_state.dart';
 
 void main() {
   group('MetronomeService', () {

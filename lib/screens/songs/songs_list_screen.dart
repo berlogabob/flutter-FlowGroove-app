@@ -6,6 +6,7 @@ import '../../models/band.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
+import '../../services/firestore_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
@@ -15,6 +16,7 @@ import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/unified_item/adapters/song_item_adapter.dart';
+import 'components/csv_import_export/csv_import_export.dart';
 
 /// Notifier for songs filter/sort state.
 class SongsFilterSortNotifier extends Notifier<SongsFilterSortState> {
@@ -90,6 +92,7 @@ class SongsListScreen extends ConsumerStatefulWidget {
 class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   ApiError? _currentError;
   final TextEditingController _filterController = TextEditingController();
+  List<Song>? _manualOrder; // Store manual order for manual sort mode
 
   @override
   void initState() {
@@ -107,6 +110,121 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   void dispose() {
     _filterController.dispose();
     super.dispose();
+  }
+
+  /// Handle CSV import
+  Future<void> _handleImport() async {
+    final result = await showDialog<List<Song>>(
+      context: context,
+      builder: (_) => const SongImportDialog(),
+    );
+
+    if (result == null || result.isEmpty || !mounted) {
+      return;
+    }
+
+    // Show loading indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 16),
+            Text('Importing songs...'),
+          ],
+        ),
+        duration: Duration(seconds: 30),
+      ),
+    );
+
+    try {
+      // Get current user
+      final user = ref.read(firebaseAuthProvider).currentUser;
+      if (user == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error: User not logged in'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Save each song to Firestore
+      final firestore = FirestoreService();
+      int savedCount = 0;
+      int failedCount = 0;
+
+      for (final song in result) {
+        try {
+          await firestore.saveSong(song, uid: user.uid);
+          savedCount++;
+        } catch (e) {
+          debugPrint('Failed to save song "${song.title}": $e');
+          failedCount++;
+        }
+      }
+
+      if (!mounted) return;
+
+      // Show success/error message
+      if (savedCount > 0 && failedCount == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Successfully imported $savedCount song(s)'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else if (savedCount > 0 && failedCount > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Imported $savedCount song(s), $failedCount failed'),
+            backgroundColor: Colors.amber,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to import songs'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
+      // Refresh songs list
+      ref.invalidate(songsProvider);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Import error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  /// Handle CSV export
+  Future<void> _handleExport(List<Song> songs) async {
+    if (songs.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No songs to export'),
+          backgroundColor: Colors.amber,
+        ),
+      );
+      return;
+    }
+
+    await showDialog(
+      context: context,
+      builder: (_) => SongExportDialog(songs: songs),
+    );
   }
 
   /// Filter and sort songs based on search query, key, BPM, and sort option.
@@ -162,7 +280,17 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         filtered.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
         break;
       case SortOption.manual:
-        // Manual sort - maintain current order (user can drag to reorder)
+        // Manual sort - use stored manual order if available, otherwise maintain current order
+        if (_manualOrder != null) {
+          // Create a map for quick lookup
+          final songMap = Map.fromEntries(_manualOrder!.map((song) => MapEntry(song.id, song)));
+          
+          // Filter and reorder based on manual order
+          filtered = filtered.where((song) => songMap.containsKey(song.id)).toList();
+          filtered.sort((a, b) => 
+            _manualOrder!.indexOf(a).compareTo(_manualOrder!.indexOf(b))
+          );
+        }
         break;
     }
 
@@ -329,7 +457,31 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Songs')),
+      appBar: AppBar(
+        title: const Text('Songs'),
+        actions: [
+          // Import button
+          IconButton(
+            icon: const Icon(Icons.file_upload),
+            tooltip: 'Import from CSV',
+            onPressed: _handleImport,
+          ),
+          // Export button
+          Builder(
+            builder: (context) {
+              final songsAsync = ref.watch(songsProvider);
+              final songs = songsAsync.value ?? [];
+              return IconButton(
+                icon: const Icon(Icons.file_download),
+                tooltip: 'Export to CSV',
+                onPressed: songs.isNotEmpty
+                    ? () => _handleExport(songs)
+                    : null,
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           OfflineIndicator.banner(),
@@ -393,6 +545,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     final bands = bandsAsync.value ?? [];
     final state = ref.watch(songsFilterSortProvider);
 
+    // Initialize manual order when entering manual sort mode for the first time
+    if (state.sortOption == SortOption.manual && _manualOrder == null) {
+      setState(() {
+        _manualOrder = List<Song>.from(filteredSongs);
+      });
+    }
+
     // Convert songs to adapters with callbacks
     final songAdapters = filteredSongs.map((song) {
       return SongItemAdapter(
@@ -429,6 +588,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                 ref
                     .read(songsFilterSortProvider.notifier)
                     .setSortOption(option);
+                
+                // Reset manual order when switching away from manual sort
+                if (option != SortOption.manual && _manualOrder != null) {
+                  setState(() {
+                    _manualOrder = null;
+                  });
+                }
               }
             },
             filterText: state.filterText,
@@ -597,7 +763,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     if (user == null) return;
 
     try {
-      await ref.read(firestoreProvider).deleteSong(song.id, user.uid);
+      await ref.read(songRepositoryProvider).deleteSong(song.id, uid: user.uid);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -632,12 +798,21 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
   /// Handle reordering of songs in manual sort mode.
   void _handleReorder(int oldIndex, int newIndex) {
-    // Note: This only updates the local UI order.
-    // To persist the order, you would need to update the backend.
-    // For now, this provides visual reordering capability.
-    setState(() {
-      // The UnifiedItemList handles the visual reordering
-    });
+    // Update manual order when reordering
+    if (_manualOrder != null && oldIndex >= 0 && newIndex >= 0 && 
+        oldIndex < _manualOrder!.length && newIndex < _manualOrder!.length) {
+      
+      // Create a copy to avoid modifying the original list directly
+      final newOrder = List<Song>.from(_manualOrder!);
+      
+      // Move item from oldIndex to newIndex
+      final item = newOrder.removeAt(oldIndex);
+      newOrder.insert(newIndex, item);
+      
+      setState(() {
+        _manualOrder = newOrder;
+      });
+    }
   }
 
   /// Add a song to a band.
@@ -647,7 +822,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
     try {
       await ref
-          .read(firestoreProvider)
+          .read(songRepositoryProvider)
           .addSongToBand(
             song: song,
             bandId: bandId,

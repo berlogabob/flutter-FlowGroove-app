@@ -1,6 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
 import '../../../models/link.dart';
 import '../../../models/song.dart';
+import '../../../models/beat_mode.dart';
+import '../../../models/section.dart';
 
 part 'song_form_data.g.dart';
 
@@ -47,6 +49,18 @@ class SongFormData {
   /// The Spotify URL if linked.
   String? spotifyUrl;
 
+  /// Metronome: Number of beats per measure (1-16, default 4).
+  int accentBeats;
+
+  /// Metronome: Number of subdivisions per beat (1-8, default 1).
+  int regularBeats;
+
+  /// Metronome: 2D list of beat modes (beats × subdivisions).
+  final List<List<BeatMode>> beatModes;
+
+  /// The song structure sections.
+  final List<Section> sections;
+
   /// Creates a new SongFormData instance.
   SongFormData({
     this.title = '',
@@ -61,8 +75,14 @@ class SongFormData {
     this.ourKeyBase = 'C',
     this.ourKeyModifier = '',
     this.spotifyUrl,
+    this.accentBeats = 4,
+    this.regularBeats = 1,
+    List<List<BeatMode>>? beatModes,
+    List<Section>? sections,
   }) : links = links ?? [],
-       selectedTags = selectedTags ?? [];
+       selectedTags = selectedTags ?? [],
+       beatModes = beatModes ?? [],
+       sections = sections ?? [];
 
   /// Creates SongFormData from an existing Song.
   factory SongFormData.fromSong(Song song) {
@@ -75,9 +95,23 @@ class SongFormData {
       links: List.from(song.links),
       selectedTags: List.from(song.tags),
       spotifyUrl: song.spotifyUrl,
+      accentBeats: song.accentBeats,
+      regularBeats: song.regularBeats,
+      beatModes: song.beatModes.isNotEmpty
+          ? song.beatModes
+                .map((row) => row.map((mode) => mode).toList())
+                .toList()
+          : [],
+      sections: List.from(song.sections),
     );
     data._parseKey(song.originalKey, isOriginal: true);
     data._parseKey(song.ourKey, isOriginal: false);
+
+    // Initialize beat modes if empty (for backward compatibility)
+    if (data.beatModes.isEmpty) {
+      data.initializeBeatModes();
+    }
+
     return data;
   }
 
@@ -137,6 +171,10 @@ class SongFormData {
     ourKeyBase = 'C';
     ourKeyModifier = '';
     spotifyUrl = null;
+    accentBeats = 4;
+    regularBeats = 1;
+    beatModes.clear();
+    sections.clear();
   }
 
   /// Create a Song object from this form data.
@@ -149,6 +187,9 @@ class SongFormData {
     bool isCopy = false,
     DateTime? contributedAt,
   }) {
+    // Ensure beatModes is properly structured before creating Song
+    final normalizedBeatModes = _normalizeBeatModes();
+
     return Song(
       id: id,
       title: title.trim(),
@@ -168,7 +209,42 @@ class SongFormData {
       contributedBy: contributedBy,
       isCopy: isCopy,
       contributedAt: contributedAt,
+      accentBeats: accentBeats,
+      regularBeats: regularBeats,
+      beatModes: normalizedBeatModes,
+      sections: sections,
     );
+  }
+
+  /// Normalize beat modes to ensure proper structure.
+  List<List<BeatMode>> _normalizeBeatModes() {
+    // If beatModes is empty, return empty list
+    if (beatModes.isEmpty) {
+      return [];
+    }
+
+    // Create a clean copy with proper dimensions
+    final result = <List<BeatMode>>[];
+    for (int i = 0; i < accentBeats && i < beatModes.length; i++) {
+      final row = <BeatMode>[];
+      for (int j = 0; j < regularBeats && j < beatModes[i].length; j++) {
+        row.add(beatModes[i][j]);
+      }
+      // Fill remaining with normal if needed
+      while (row.length < regularBeats) {
+        row.add(BeatMode.normal);
+      }
+      result.add(row);
+    }
+    // Fill remaining rows if needed
+    while (result.length < accentBeats) {
+      final row = <BeatMode>[];
+      for (int j = 0; j < regularBeats; j++) {
+        row.add(BeatMode.normal);
+      }
+      result.add(row);
+    }
+    return result;
   }
 
   /// Parse BPM string to int, returns null if empty or invalid.
@@ -211,6 +287,87 @@ class SongFormData {
 
   /// Update the Spotify URL.
   void updateSpotifyUrl(String? url) => spotifyUrl = url;
+
+  /// Update the accent beats (beats per measure).
+  void updateAccentBeats(int value) => accentBeats = value;
+
+  /// Update the regular beats (subdivisions per beat).
+  void updateRegularBeats(int value) => regularBeats = value;
+
+  /// Update a beat mode at the specified position.
+  void updateBeatMode(int beatIndex, int subdivisionIndex, BeatMode mode) {
+    // Ensure the 2D list is large enough
+    while (beatModes.length <= beatIndex) {
+      beatModes.add([]);
+    }
+    while (beatModes[beatIndex].length <= subdivisionIndex) {
+      beatModes[beatIndex].add(BeatMode.normal);
+    }
+    beatModes[beatIndex][subdivisionIndex] = mode;
+
+    // Trim excess rows and columns to match current accentBeats and regularBeats
+    _trimBeatModes();
+  }
+
+  /// Trim beat modes to match current accentBeats and regularBeats.
+  void _trimBeatModes() {
+    // Remove excess rows
+    while (beatModes.length > accentBeats) {
+      beatModes.removeLast();
+    }
+
+    // Remove excess columns in each row
+    for (int i = 0; i < beatModes.length; i++) {
+      while (beatModes[i].length > regularBeats) {
+        beatModes[i].removeLast();
+      }
+      // Ensure each row has at least regularBeats elements
+      while (beatModes[i].length < regularBeats) {
+        beatModes[i].add(BeatMode.normal);
+      }
+    }
+  }
+
+  /// Initialize beat modes grid with default values.
+  void initializeBeatModes() {
+    beatModes.clear();
+    for (int i = 0; i < accentBeats; i++) {
+      final row = <BeatMode>[];
+      for (int j = 0; j < regularBeats; j++) {
+        // First beat of each measure is accent by default
+        row.add(i == 0 ? BeatMode.accent : BeatMode.normal);
+      }
+      beatModes.add(row);
+    }
+  }
+
+  /// Add a section.
+  void addSection(Section section) => sections.add(section);
+
+  /// Remove a section at the specified index.
+  void removeSection(int index) => sections.removeAt(index);
+
+  /// Update a section at the specified index.
+  void updateSection(int index, Section section) {
+    if (index >= 0 && index < sections.length) {
+      sections[index] = section;
+    }
+  }
+
+  /// Reorder sections (for drag and drop).
+  void reorderSection(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    final section = sections.removeAt(oldIndex);
+    sections.insert(newIndex, section);
+  }
+
+  /// Set all sections.
+  void setSections(List<Section> newSections) {
+    sections.clear();
+    sections.addAll(newSections);
+  }
 
   Map<String, dynamic> toJson() => _$SongFormDataToJson(this);
 

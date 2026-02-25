@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// ConnectivityService monitors network connectivity status.
 ///
 /// Provides real-time updates on whether the device is online or offline.
+///
+/// IMPORTANT: This service properly disposes of stream subscriptions
+/// when the provider is disposed to prevent memory leaks.
 class ConnectivityService extends Notifier<bool> {
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _subscription;
@@ -39,8 +42,11 @@ class ConnectivityService extends Notifier<bool> {
   /// Returns true if the device is currently offline.
   bool get isOffline => !state;
 
+  @override
   void dispose() {
+    // Cancel subscription to prevent memory leaks
     _subscription?.cancel();
+    _subscription = null;
   }
 }
 

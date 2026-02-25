@@ -39,6 +39,8 @@ final appUserProvider = NotifierProvider<AppUserNotifier, AsyncValue<AppUser?>>(
 );
 
 /// Notifier for managing AppUser state.
+///
+/// IMPORTANT: Properly disposes resources to prevent memory leaks.
 class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   @override
   AsyncValue<AppUser?> build() {
@@ -70,6 +72,12 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         return AsyncValue.error(apiError, stack);
       },
     );
+  }
+
+  @override
+  void dispose() {
+    // No stream subscriptions to cancel
+    // Riverpod automatically manages ref.watch subscriptions
   }
 
   /// Signs out the current user.

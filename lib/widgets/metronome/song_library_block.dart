@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
+import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../models/song.dart';
 import '../../models/setlist.dart';
+import '../error_banner.dart';
 
 /// Song Library Block widget - Mono Pulse design
 ///
@@ -258,82 +260,65 @@ class _SlideUpPanel extends StatelessWidget {
   }
 }
 
-class _SongList extends StatelessWidget {
+class _SongList extends ConsumerWidget {
   final Function(Song) onLoadSong;
 
   const _SongList({required this.onLoadSong});
 
   @override
-  Widget build(BuildContext context) {
-    // Placeholder - in real app, fetch from provider
-    final songs = _getSampleSongs();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final songsAsync = ref.watch(songsProvider);
 
-    if (songs.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.music_note_outlined,
-              color: MonoPulseColors.textDisabled,
-              size: 48,
-            ),
-            const SizedBox(height: MonoPulseSpacing.md),
-            Text(
-              'No songs yet',
-              style: MonoPulseTypography.bodyLarge.copyWith(
-                color: MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
+    return songsAsync.when(
+      loading: () => Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(
+            MonoPulseColors.accentOrange,
+          ),
         ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.xxl,
-        vertical: MonoPulseSpacing.sm,
       ),
-      itemCount: songs.length,
-      itemBuilder: (context, index) {
-        final song = songs[index];
-        return _SongCard(song: song, onTap: () => onLoadSong(song));
+      error: (error, stack) => Center(
+        child: ErrorBanner.card(
+          message: 'Failed to load songs: $error',
+          onRetry: () => ref.invalidate(songsProvider),
+        ),
+      ),
+      data: (songs) {
+        if (songs.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.music_note_outlined,
+                  color: MonoPulseColors.textDisabled,
+                  size: 48,
+                ),
+                const SizedBox(height: MonoPulseSpacing.md),
+                Text(
+                  'No songs yet',
+                  style: MonoPulseTypography.bodyLarge.copyWith(
+                    color: MonoPulseColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.xxl,
+            vertical: MonoPulseSpacing.sm,
+          ),
+          itemCount: songs.length,
+          itemBuilder: (context, index) {
+            final song = songs[index];
+            return _SongCard(song: song, onTap: () => onLoadSong(song));
+          },
+        );
       },
     );
-  }
-
-  List<Song> _getSampleSongs() {
-    // Sample data - replace with actual data from provider
-    return [
-      Song(
-        id: '1',
-        title: 'Wonderwall',
-        artist: 'Oasis',
-        originalBPM: 87,
-        ourBPM: 87,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Song(
-        id: '2',
-        title: 'Sweet Child O\' Mine',
-        artist: 'Guns N\' Roses',
-        originalBPM: 125,
-        ourBPM: 125,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Song(
-        id: '3',
-        title: 'Hotel California',
-        artist: 'Eagles',
-        originalBPM: 75,
-        ourBPM: 75,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
   }
 }
 
@@ -431,76 +416,66 @@ class _SongCard extends StatelessWidget {
   }
 }
 
-class _SetlistList extends StatelessWidget {
+class _SetlistList extends ConsumerWidget {
   final Function(Setlist) onLoadSetlist;
 
   const _SetlistList({required this.onLoadSetlist});
 
   @override
-  Widget build(BuildContext context) {
-    // Placeholder - in real app, fetch from provider
-    final setlists = _getSampleSetlists();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final setlistsAsync = ref.watch(setlistsProvider);
 
-    if (setlists.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.playlist_play_outlined,
-              color: MonoPulseColors.textDisabled,
-              size: 48,
-            ),
-            const SizedBox(height: MonoPulseSpacing.md),
-            Text(
-              'No setlists yet',
-              style: MonoPulseTypography.bodyLarge.copyWith(
-                color: MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
+    return setlistsAsync.when(
+      loading: () => Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(MonoPulseColors.accentOrange),
         ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.xxl,
-        vertical: MonoPulseSpacing.sm,
       ),
-      itemCount: setlists.length,
-      itemBuilder: (context, index) {
-        final setlist = setlists[index];
-        return _SetlistCard(
-          setlist: setlist,
-          onTap: () => onLoadSetlist(setlist),
+      error: (error, stack) => Center(
+        child: ErrorBanner.card(
+          message: 'Failed to load setlists: $error',
+          onRetry: () => ref.invalidate(setlistsProvider),
+        ),
+      ),
+      data: (setlists) {
+        if (setlists.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.playlist_play_outlined,
+                  color: MonoPulseColors.textDisabled,
+                  size: 48,
+                ),
+                const SizedBox(height: MonoPulseSpacing.md),
+                Text(
+                  'No setlists yet',
+                  style: MonoPulseTypography.bodyLarge.copyWith(
+                    color: MonoPulseColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.xxl,
+            vertical: MonoPulseSpacing.sm,
+          ),
+          itemCount: setlists.length,
+          itemBuilder: (context, index) {
+            final setlist = setlists[index];
+            return _SetlistCard(
+              setlist: setlist,
+              onTap: () => onLoadSetlist(setlist),
+            );
+          },
         );
       },
     );
-  }
-
-  List<Setlist> _getSampleSetlists() {
-    // Sample data - replace with actual data from provider
-    return [
-      Setlist(
-        id: '1',
-        bandId: 'band1',
-        name: 'Summer Tour 2026',
-        description: 'Main setlist for summer shows',
-        songIds: ['1', '2', '3', '4', '5'],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Setlist(
-        id: '2',
-        bandId: 'band1',
-        name: 'Acoustic Set',
-        description: 'Unplugged performance',
-        songIds: ['6', '7', '8'],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
   }
 }
 

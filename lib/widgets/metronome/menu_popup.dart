@@ -153,7 +153,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
 
       // Save to Firestore
       final firestore = FirestoreService();
-      await firestore.updateSong(updatedSong, user.uid);
+      await firestore.updateSong(updatedSong, uid: user.uid);
 
       if (!context.mounted) return;
       _showSuccessSnackBar(

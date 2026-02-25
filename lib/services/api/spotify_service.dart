@@ -240,9 +240,12 @@ class SpotifyTrack {
 
   factory SpotifyTrack.fromJson(Map<String, dynamic> json) {
     String? albumArt;
-    final images = json['album']['images'] as List<dynamic>?;
-    if (images != null && images.isNotEmpty) {
-      albumArt = images[0]['url'] as String?;
+    final album = json['album'] as Map<String, dynamic>?;
+    if (album != null) {
+      final images = album['images'] as List<dynamic>?;
+      if (images != null && images.isNotEmpty) {
+        albumArt = images[0]['url'] as String?;
+      }
     }
 
     String artistName = 'Unknown';
@@ -262,7 +265,7 @@ class SpotifyTrack {
       id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? 'Unknown',
       artist: artistName,
-      album: json['album']['name'] as String?,
+      album: album?['name'] as String?,
       albumArt: albumArt,
       durationMs: json['duration_ms'] as int?,
       spotifyUrl: spotifyUrl,

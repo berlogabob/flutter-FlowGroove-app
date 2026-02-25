@@ -117,6 +117,11 @@ class ErrorNotifier extends Notifier<ErrorState> {
     }
   }
 
+  @override
+  void dispose() {
+    // No resources to dispose
+  }
+
   /// Exports error history for debugging.
   List<Map<String, dynamic>> exportErrorHistory() {
     return state.errorHistory.map((e) => e.toJson()).toList();

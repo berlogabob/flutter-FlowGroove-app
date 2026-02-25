@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/screens/metronome_screen.dart';
 import 'package:flutter_repsync_app/providers/data/metronome_provider.dart';
-import 'package:flutter_repsync_app/models/metronome_state.dart';
 
 import '../helpers/test_helpers.dart';
 

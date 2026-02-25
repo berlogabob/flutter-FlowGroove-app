@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/widgets/metronome/accent_pattern_editor_widget.dart';
 import 'package:flutter_repsync_app/providers/data/metronome_provider.dart';
-import 'package:flutter_repsync_app/models/metronome_state.dart';
-import 'package:flutter_repsync_app/models/time_signature.dart';
 
 import '../../helpers/test_helpers.dart';
 
@@ -64,8 +61,8 @@ void main() {
         overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
       );
 
-      // Should have 4 beat buttons for 4/4 time
-      expect(find.byType(InkWell), findsNWidgets(4));
+      // Should have 4 beat buttons for 4/4 time (using GestureDetector)
+      expect(find.byType(GestureDetector), findsNWidgets(5)); // 4 beats + 1 reset button
     });
 
     testWidgets('renders beat numbers', (WidgetTester tester) async {
@@ -130,8 +127,8 @@ void main() {
       );
 
       // Tap on beat 2 (which is Regular by default)
-      final inkWells = find.byType(InkWell);
-      await tester.tap(inkWells.at(1));
+      final gestureDetectors = find.byType(GestureDetector);
+      await tester.tap(gestureDetectors.at(1));
       await tester.pump();
 
       // Now beat 2 should be accented
@@ -148,8 +145,8 @@ void main() {
         overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
       );
 
-      // Should have 4 beat buttons for default 4/4 time
-      expect(find.byType(InkWell), findsNWidgets(4));
+      // Should have 4 beat buttons for default 4/4 time (using GestureDetector)
+      expect(find.byType(GestureDetector), findsNWidgets(5)); // 4 beats + 1 reset button
     });
 
     testWidgets('renders beat labels below buttons', (

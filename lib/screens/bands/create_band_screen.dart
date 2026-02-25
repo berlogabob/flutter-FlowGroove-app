@@ -123,7 +123,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
       await service.saveBandToGlobal(band);
 
       // Save to user's collection (for quick access and listing)
-      await service.saveBand(band, user.uid);
+      await service.saveBand(band, uid: user.uid);
 
       if (mounted) {
         // Show invite code dialog for new bands

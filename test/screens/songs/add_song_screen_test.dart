@@ -3,10 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/screens/songs/add_song_screen.dart';
 import 'package:flutter_repsync_app/providers/auth/auth_provider.dart';
-import 'package:flutter_repsync_app/providers/data/data_providers.dart';
 import 'package:flutter_repsync_app/models/user.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/api_error.dart';
 
 import '../../helpers/test_helpers.dart';
 import '../../helpers/mocks.dart';
@@ -25,11 +22,9 @@ class TestAppUserNotifier extends AppUserNotifier {
 void main() {
   group('AddSongScreen', () {
     late MockFirebaseAuth mockAuth;
-    late MockFirestoreService mockFirestore;
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
-      mockFirestore = MockFirestoreService();
     });
 
     testWidgets('renders add song screen with title', (

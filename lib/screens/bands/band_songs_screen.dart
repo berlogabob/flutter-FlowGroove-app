@@ -5,10 +5,13 @@ import '../../../models/band.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
-import '../../../widgets/song_attribution_badge.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/confirmation_dialog.dart';
+import '../../../widgets/unified_item/unified_item_list.dart';
+import '../../../widgets/unified_item/unified_item_model.dart';
+import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
+import 'song_picker_screen.dart';
 
 /// Screen for displaying a band's shared songs.
 ///
@@ -131,12 +134,39 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         Expanded(
           child: filteredSongs.isEmpty
               ? _buildEmptyState(songs.isEmpty)
-              : ListView.builder(
-                  itemCount: filteredSongs.length,
-                  itemBuilder: (context, index) {
-                    final song = filteredSongs[index];
-                    return _buildSongCard(context, ref, song);
-                  },
+              : UnifiedItemList<SongItemAdapter>(
+                  items: filteredSongs.map((song) {
+                    return SongItemAdapter(
+                      song,
+                      onEdit: () => _editSong(context, ref, song),
+                      onDelete: () => _deleteSongFromBand(context, ref, song),
+                      onTap: () => _editSong(context, ref, song),
+                    );
+                  }).toList(),
+                  enableReorder: false,
+                  onReorder: null,
+                  onDelete: _canEdit
+                      ? (index) => _deleteSongFromBand(
+                            context,
+                            ref,
+                            filteredSongs[index],
+                          )
+                      : null,
+                  onEdit: _canEdit
+                      ? (index) => _editSong(context, ref, filteredSongs[index])
+                      : null,
+                  onTap: (index) => _editSong(context, ref, filteredSongs[index]),
+                  additionalActionsBuilder: _canEdit
+                      ? (index) => [
+                          _BuildEditAction(
+                            context: context,
+                            ref: ref,
+                            song: filteredSongs[index],
+                            onEdit: () =>
+                                _editSong(context, ref, filteredSongs[index]),
+                          ),
+                        ]
+                      : null,
                 ),
         ),
       ],
@@ -213,118 +243,75 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     return EmptyState.search(query: _searchQuery);
   }
 
-  Widget _buildSongCard(BuildContext context, WidgetRef ref, Song song) {
-    return Dismissible(
-      key: Key(song.id),
-      direction: _canEdit ? DismissDirection.endToStart : DismissDirection.none,
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      confirmDismiss: (direction) async {
-        if (!_canEdit) return false;
-        return await ConfirmationDialog.showDeleteDialog(
-          context,
-          title: 'Remove from Band',
-          message: 'Are you sure you want to remove this song from the band?',
-          confirmLabel: 'Remove',
-        );
-      },
-      onDismissed: (direction) async {
-        if (!_canEdit) return;
-        final user = ref.read(currentUserProvider);
-        if (user != null) {
-          await ref
-              .read(firestoreProvider)
-              .deleteBandSong(widget.band.id, song.id);
-        }
-      },
-      child: _buildSongTile(context, ref, song),
-    );
-  }
-
-  Widget _buildSongTile(BuildContext context, WidgetRef ref, Song song) {
-    final isCopy = song.isCopy;
-    final contributorName = song.contributedBy;
-
-    return Card(
-      margin: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.lg,
-        vertical: MonoPulseSpacing.sm,
-      ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isCopy
-              ? MonoPulseColors.accentOrangeSubtle
-              : MonoPulseColors.accentOrangeSubtle,
-          child: Icon(
-            isCopy ? Icons.content_copy : Icons.music_note,
-            color: isCopy
-                ? MonoPulseColors.accentOrange
-                : MonoPulseColors.accentOrange,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          song.title,
-          style: const TextStyle(color: MonoPulseColors.textPrimary),
-        ),
-        subtitle: AttributionSubtitle(
-          subtitle: song.artist,
-          contributorName: contributorName,
-          isCopy: isCopy,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (song.ourKey != null)
-              Text(
-                song.ourKey!,
-                style: const TextStyle(
-                  color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            if (song.ourBPM != null) ...[
-              const SizedBox(width: MonoPulseSpacing.sm),
-              Text(
-                '${song.ourBPM}',
-                style: const TextStyle(
-                  color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-            if (_canEdit)
-              IconButton(
-                icon: const Icon(
-                  Icons.edit,
-                  size: 20,
-                  color: MonoPulseColors.textSecondary,
-                ),
-                onPressed: () => _editSong(context, ref, song),
-                tooltip: 'Edit',
-              ),
-          ],
-        ),
-        onTap: () => _editSong(context, ref, song),
+  void _addSongToBand(BuildContext context, WidgetRef ref) async {
+    // Navigate to song picker to select from personal library
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SongPickerScreen(band: widget.band),
       ),
     );
-  }
-
-  void _addSongToBand(BuildContext context, WidgetRef ref) {
-    // Navigate to add song screen with band context
-    Navigator.pushNamed(context, '/songs/add?bandId=${widget.band.id}');
+    
+    // Refresh songs if songs were added
+    if (result == true && mounted) {
+      ref.invalidate(bandSongsProvider(widget.band.id));
+    }
   }
 
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
     if (!_canEdit) return;
 
     Navigator.pushNamed(context, '/songs/${song.id}/edit', arguments: song);
+  }
+
+  Future<void> _deleteSongFromBand(
+    BuildContext context,
+    WidgetRef ref,
+    Song song,
+  ) async {
+    if (!_canEdit) return;
+
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Remove from Band',
+      message: 'Are you sure you want to remove this song from the band?',
+      confirmLabel: 'Remove',
+    );
+
+    if (!confirmed) return;
+
+    final user = ref.read(currentUserProvider);
+    if (user != null) {
+      await ref.read(firestoreProvider).deleteBandSong(widget.band.id, song.id);
+    }
+  }
+}
+
+/// Custom action for edit functionality in band songs screen
+class _BuildEditAction implements UnifiedItemAction {
+  final BuildContext context;
+  final WidgetRef ref;
+  final Song song;
+  final VoidCallback onEdit;
+
+  _BuildEditAction({
+    required this.context,
+    required this.ref,
+    required this.song,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(
+        Icons.edit,
+        size: 20,
+        color: MonoPulseColors.textSecondary,
+      ),
+      onPressed: onEdit,
+      tooltip: 'Edit',
+    );
   }
 }
 

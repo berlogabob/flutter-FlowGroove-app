@@ -1,16 +1,10 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'time_signature.dart';
-import '../models/song.dart';
+import 'beat_mode.dart';
+import 'song.dart';
 import '../models/setlist.dart';
 
 part 'metronome_state.g.dart';
-
-/// Beat mode for individual beat customization
-enum BeatMode {
-  normal, // Default (normal sound)
-  accent, // +300 Hz
-  silent, // No sound, visual only
-}
 
 /// Immutable state class for MetronomeNotifier
 @JsonSerializable()
