@@ -92,7 +92,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     if (user != null) {
       // Update order for all setlists
       for (int i = 0; i < setlists.length; i++) {
-        await service.saveSetlist(setlists[i], user.uid);
+        await service.saveSetlist(setlists[i], uid: user.uid);
       }
     }
   }
@@ -110,7 +110,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     final user = ref.read(currentUserProvider);
 
     if (user != null) {
-      await ref.read(firestoreProvider).deleteSetlist(setlist.id, user.uid);
+      await ref.read(firestoreProvider).deleteSetlist(setlist.id, uid: user.uid);
     }
   }
 

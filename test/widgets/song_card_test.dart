@@ -4,7 +4,6 @@ import 'package:flutter_repsync_app/widgets/song_card.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 import '../helpers/test_helpers.dart';
 import '../helpers/mocks.dart';
-import '../helpers/mocks.mocks.dart';
 
 void main() {
   group('SongCard', () {

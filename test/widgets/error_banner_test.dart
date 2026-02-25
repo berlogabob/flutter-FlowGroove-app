@@ -77,13 +77,11 @@ void main() {
     });
 
     testWidgets('renders inline with retry', (WidgetTester tester) async {
-      bool retryCalled = false;
-
       await pumpAppWidget(
         tester,
         ErrorBanner.inline(
           message: 'Inline Error',
-          onRetry: () => retryCalled = true,
+          onRetry: () {},
         ),
       );
 

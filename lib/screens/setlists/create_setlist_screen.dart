@@ -115,7 +115,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       updatedAt: DateTime.now(),
     );
 
-    await ref.read(firestoreProvider).saveSetlist(setlist, user.uid);
+    await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(

@@ -11,23 +11,25 @@ import 'package:flutter_repsync_app/models/song.dart';
 import 'package:flutter_repsync_app/models/band.dart';
 import 'package:flutter_repsync_app/models/setlist.dart';
 import 'package:flutter_repsync_app/services/firestore_service.dart';
+import 'package:flutter_repsync_app/services/cache_service.dart';
 
 @GenerateMocks([
   FirebaseAuth,
   User,
-  FirebaseFirestore,
   UserCredential,
+  FirebaseFirestore,
+  CollectionReference,
+  DocumentReference,
+  QuerySnapshot,
+  DocumentSnapshot,
+  WriteBatch,
   http.Client,
   Box,
   Connectivity,
   AudioPlayer,
   Printing,
-  DocumentReference,
-  CollectionReference,
-  QuerySnapshot,
-  DocumentSnapshot,
-  WriteBatch,
   FirestoreService,
+  CacheService,
 ])
 void main() {}
 

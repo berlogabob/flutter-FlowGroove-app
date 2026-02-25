@@ -1,6 +1,7 @@
 // Web-only audio engine using Web Audio API
 // ignore_for_file: web_unsafe_total
 
+import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 
 /// Audio engine for metronome sound synthesis
@@ -17,9 +18,9 @@ class AudioEngine {
     try {
       _audioContext = web.AudioContext();
       _initialized = true;
-      print('AudioContext initialized');
+      debugPrint('AudioContext initialized');
     } catch (e) {
-      print('Failed to initialize AudioContext: $e');
+      debugPrint('Failed to initialize AudioContext: $e');
     }
   }
 
@@ -69,7 +70,7 @@ class AudioEngine {
       oscillator.start(now);
       oscillator.stop(now + 0.04);
     } catch (e) {
-      print('Error playing click: $e');
+      debugPrint('Error playing click: $e');
     }
   }
 

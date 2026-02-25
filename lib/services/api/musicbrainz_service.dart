@@ -119,8 +119,8 @@ class MusicBrainzRecording {
     String? releaseName;
     final releases = json['releases'] as List<dynamic>?;
     if (releases != null && releases.isNotEmpty) {
-      final firstRelease = releases[0] as Map<String, dynamic>?;
-      if (firstRelease != null) {
+      final firstRelease = releases[0];
+      if (firstRelease is Map<String, dynamic>) {
         releaseName = firstRelease['title'] as String?;
       }
     }

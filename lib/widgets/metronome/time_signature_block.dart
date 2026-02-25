@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../models/metronome_state.dart';
+import '../../models/beat_mode.dart';
 
 /// Time Signature Block widget - Beat Modes with proper tap handling
 class TimeSignatureBlock extends ConsumerStatefulWidget {

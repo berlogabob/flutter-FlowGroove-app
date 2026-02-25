@@ -74,7 +74,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       await service.saveBandToGlobal(updatedBand);
 
       // Add to user's bands collection (for quick access)
-      await service.addUserToBand(band.id, user.uid);
+      await service.addUserToBand(band.id, userId: user.uid);
 
       if (mounted) {
         ScaffoldMessenger.of(

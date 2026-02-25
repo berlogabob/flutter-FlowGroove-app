@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'unified_item_model.dart';
 import 'adapters/song_item_adapter.dart';
-import 'adapters/setlist_item_adapter.dart';
 
 /// Trailing actions widget for unified items
 class UnifiedItemTrailingActions<T extends UnifiedItemModel>
@@ -26,7 +25,6 @@ class UnifiedItemTrailingActions<T extends UnifiedItemModel>
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final List<Widget> actions = [];
 
     // Add Spotify play button for songs

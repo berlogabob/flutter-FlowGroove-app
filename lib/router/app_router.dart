@@ -17,24 +17,29 @@ import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/metronome_screen.dart';
+import '../screens/tuner_screen.dart';
 
-/// GoRouter configuration for type-safe navigation.
+/// Root navigator key for GoRouter.
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+/// GoRouter configuration for RepSync.
 ///
-/// All routes are defined here with support for:
-/// - Type-safe path parameters
-/// - Deep linking
-/// - Nested routes
+/// Features:
+/// - Type-safe navigation with path parameters
+/// - Deep linking support via repSync:// scheme and https://repsync.app
+/// - Nested routes for main app shell
+///
+/// Usage:
+/// ```dart
+/// // In widgets:
+/// context.goSongs();
+/// context.goEditSong(song);
+/// ```
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
+  navigatorKey: _rootNavigatorKey,
+  initialLocation: '/login',
   routes: [
-    // Root route - shows home or login based on auth state
-    GoRoute(
-      path: '/',
-      name: 'home',
-      builder: (context, state) => const HomeScreen(),
-    ),
-
-    // Auth routes
+    // Auth routes (public)
     GoRoute(
       path: '/login',
       name: 'login',
@@ -46,107 +51,131 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const RegisterScreen(),
     ),
 
-    // Main shell (authenticated navigation)
+    // Main app shell (authenticated routes)
     GoRoute(
       path: '/main',
       name: 'main',
       builder: (context, state) => const MainShell(),
-    ),
+      routes: [
+        // Home dashboard
+        GoRoute(
+          path: 'home',
+          name: 'home',
+          builder: (context, state) => const HomeScreen(),
+        ),
 
-    // Songs routes
-    GoRoute(
-      path: '/songs',
-      name: 'songs',
-      builder: (context, state) => const SongsListScreen(),
-    ),
-    GoRoute(
-      path: '/songs/add',
-      name: 'add-song',
-      builder: (context, state) => const AddSongScreen(),
-    ),
-    GoRoute(
-      path: '/songs/:id/edit',
-      name: 'edit-song',
-      builder: (context, state) {
-        final song = state.extra as Song?;
-        return AddSongScreen(song: song);
-      },
-    ),
+        // Songs routes
+        GoRoute(
+          path: 'songs',
+          name: 'songs',
+          builder: (context, state) => const SongsListScreen(),
+          routes: [
+            GoRoute(
+              path: 'add',
+              name: 'add-song',
+              builder: (context, state) {
+                final bandId = state.uri.queryParameters['bandId'];
+                return AddSongScreen(bandId: bandId);
+              },
+            ),
+            GoRoute(
+              path: ':id/edit',
+              name: 'edit-song',
+              builder: (context, state) {
+                final song = state.extra as Song?;
+                return AddSongScreen(song: song);
+              },
+            ),
+          ],
+        ),
 
-    // Bands routes
-    GoRoute(
-      path: '/bands',
-      name: 'bands',
-      builder: (context, state) => const MyBandsScreen(),
-    ),
-    GoRoute(
-      path: '/bands/create',
-      name: 'create-band',
-      builder: (context, state) => const CreateBandScreen(),
-    ),
-    GoRoute(
-      path: '/bands/:id/edit',
-      name: 'edit-band',
-      builder: (context, state) {
-        final band = state.extra as Band?;
-        return CreateBandScreen(band: band);
-      },
-    ),
-    GoRoute(
-      path: '/bands/join',
-      name: 'join-band',
-      builder: (context, state) => const JoinBandScreen(),
-    ),
-    GoRoute(
-      path: '/bands/:id/songs',
-      name: 'band-songs',
-      builder: (context, state) {
-        final band = state.extra as Band?;
-        if (band == null) {
-          // If no band provided, navigate back to bands list
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.go('/bands');
-          });
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        return BandSongsScreen(band: band);
-      },
-    ),
+        // Bands routes
+        GoRoute(
+          path: 'bands',
+          name: 'bands',
+          builder: (context, state) => const MyBandsScreen(),
+          routes: [
+            GoRoute(
+              path: 'create',
+              name: 'create-band',
+              builder: (context, state) => const CreateBandScreen(),
+            ),
+            GoRoute(
+              path: ':id/edit',
+              name: 'edit-band',
+              builder: (context, state) {
+                final band = state.extra as Band?;
+                return CreateBandScreen(band: band);
+              },
+            ),
+            GoRoute(
+              path: ':id/songs',
+              name: 'band-songs',
+              builder: (context, state) {
+                final band = state.extra as Band?;
+                if (band == null) {
+                  // Redirect back if no band provided
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    context.go('/main/bands');
+                  });
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                return BandSongsScreen(band: band);
+              },
+            ),
+          ],
+        ),
 
-    // Setlists routes
-    GoRoute(
-      path: '/setlists',
-      name: 'setlists',
-      builder: (context, state) => const SetlistsListScreen(),
-    ),
-    GoRoute(
-      path: '/setlists/create',
-      name: 'create-setlist',
-      builder: (context, state) => const CreateSetlistScreen(),
-    ),
-    GoRoute(
-      path: '/setlists/:id/edit',
-      name: 'edit-setlist',
-      builder: (context, state) {
-        final setlist = state.extra as Setlist?;
-        return CreateSetlistScreen(setlist: setlist);
-      },
-    ),
+        // Join band route
+        GoRoute(
+          path: 'join-band',
+          name: 'join-band',
+          builder: (context, state) => const JoinBandScreen(),
+        ),
 
-    // Profile route
-    GoRoute(
-      path: '/profile',
-      name: 'profile',
-      builder: (context, state) => const ProfileScreen(),
-    ),
+        // Setlists routes
+        GoRoute(
+          path: 'setlists',
+          name: 'setlists',
+          builder: (context, state) => const SetlistsListScreen(),
+          routes: [
+            GoRoute(
+              path: 'create',
+              name: 'create-setlist',
+              builder: (context, state) => const CreateSetlistScreen(),
+            ),
+            GoRoute(
+              path: ':id/edit',
+              name: 'edit-setlist',
+              builder: (context, state) {
+                final setlist = state.extra as Setlist?;
+                return CreateSetlistScreen(setlist: setlist);
+              },
+            ),
+          ],
+        ),
 
-    // Metronome route
-    GoRoute(
-      path: '/metronome',
-      name: 'metronome',
-      builder: (context, state) => const MetronomeScreen(),
+        // Profile route
+        GoRoute(
+          path: 'profile',
+          name: 'profile',
+          builder: (context, state) => const ProfileScreen(),
+        ),
+
+        // Tools routes
+        GoRoute(
+          path: 'metronome',
+          name: 'metronome',
+          builder: (context, state) => const MetronomeScreen(),
+        ),
+        GoRoute(
+          path: 'tuner',
+          name: 'tuner',
+          builder: (context, state) => const TunerScreen(),
+        ),
+      ],
     ),
   ],
 );
@@ -156,11 +185,17 @@ final GoRouter appRouter = GoRouter(
 /// Provides convenient methods for navigating to named routes
 /// with proper type handling for path parameters and extra data.
 extension GoRouterExtension on BuildContext {
+  /// Navigate to home/dashboard.
+  void goHome() => goNamed('home');
+
   /// Navigate to songs list.
   void goSongs() => goNamed('songs');
 
   /// Navigate to add song screen.
-  void goAddSong() => goNamed('add-song');
+  void goAddSong({String? bandId}) {
+    final Map<String, dynamic> params = bandId != null ? {'bandId': bandId} : {};
+    goNamed('add-song', queryParameters: params);
+  }
 
   /// Navigate to edit song screen.
   void goEditSong(Song song) =>
@@ -202,12 +237,12 @@ extension GoRouterExtension on BuildContext {
   /// Navigate to metronome screen.
   void goMetronome() => goNamed('metronome');
 
+  /// Navigate to tuner screen.
+  void goTuner() => goNamed('tuner');
+
   /// Navigate to login screen.
   void goLogin() => goNamed('login');
 
   /// Navigate to register screen.
   void goRegister() => goNamed('register');
-
-  /// Navigate to main shell.
-  void goMain() => goNamed('main');
 }

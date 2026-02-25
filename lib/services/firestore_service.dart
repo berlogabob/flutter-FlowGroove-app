@@ -1,8 +1,14 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../models/api_error.dart';
 import '../models/song.dart';
 import '../models/band.dart';
 import '../models/setlist.dart';
+
+/// Timeout duration for Firestore operations (10 seconds).
+const _firestoreTimeout = Duration(seconds: 10);
 
 /// Firestore service for handling all database operations.
 ///
@@ -12,20 +18,47 @@ import '../models/setlist.dart';
 /// All methods throw [ApiError] exceptions for proper error handling.
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  /// Helper method to check if user is authenticated.
+  /// Throws [ApiError] if not authenticated.
+  void _requireAuth() {
+    if (_auth.currentUser == null) {
+      throw ApiError.auth(
+        message: 'Authentication required. Please sign in to continue.',
+      );
+    }
+  }
+
+  /// Helper method to get current user UID.
+  /// Throws [ApiError] if not authenticated.
+  String get _currentUserId {
+    _requireAuth();
+    return _auth.currentUser!.uid;
+  }
 
   // ============================================================
   // Song Operations (Personal)
   // ============================================================
 
   /// Saves a song to the user's personal collection.
-  Future<void> saveSong(Song song, String uid) async {
+  Future<void> saveSong(Song song, {String? uid}) async {
     try {
+      final userId = uid ?? _currentUserId;
       await _firestore
           .collection('users')
-          .doc(uid)
+          .doc(userId)
           .collection('songs')
           .doc(song.id)
-          .set(song.toJson());
+          .set(song.toJson())
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: saveSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id}');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -41,18 +74,71 @@ class FirestoreService {
   }
 
   /// Deletes a song from the user's personal collection.
-  Future<void> deleteSong(String songId, String uid) async {
+  Future<void> deleteSong(String songId, {String? uid}) async {
     try {
+      final userId = uid ?? _currentUserId;
       await _firestore
           .collection('users')
-          .doc(uid)
+          .doc(userId)
           .collection('songs')
           .doc(songId)
-          .delete();
+          .delete()
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: deleteSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
           message: 'You do not have permission to delete this song.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Updates a song in the user's personal collection.
+  ///
+  /// Uses [update] to merge the new data with existing data,
+  /// preserving any fields not included in the song object.
+  /// This includes metronome settings: [Song.accentBeats], [Song.regularBeats],
+  /// and [Song.beatModes].
+  Future<void> updateSong(Song song, {String? uid}) async {
+    try {
+      final userId = uid ?? _currentUserId;
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('songs')
+          .doc(song.id)
+          .update(song.toJson())
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: updateSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id}');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to update this song.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      if (e.code == 'not-found') {
+        throw ApiError.notFound(
+          message: 'This song was not found in your collection.',
           exception: e,
           stackTrace: stackTrace,
         );
@@ -88,14 +174,23 @@ class FirestoreService {
   // ============================================================
 
   /// Saves a band reference to the user's collection.
-  Future<void> saveBand(Band band, String uid) async {
+  Future<void> saveBand(Band band, {String? uid}) async {
     try {
+      final userId = uid ?? _currentUserId;
       await _firestore
           .collection('users')
-          .doc(uid)
+          .doc(userId)
           .collection('bands')
           .doc(band.id)
-          .set(band.toJson());
+          .set(band.toJson())
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: saveBand timed out after ${_firestoreTimeout.inSeconds}s for band ${band.id}');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -111,14 +206,23 @@ class FirestoreService {
   }
 
   /// Deletes a band reference from the user's collection.
-  Future<void> deleteBand(String bandId, String uid) async {
+  Future<void> deleteBand(String bandId, {String? uid}) async {
     try {
+      final userId = uid ?? _currentUserId;
       await _firestore
           .collection('users')
-          .doc(uid)
+          .doc(userId)
           .collection('bands')
           .doc(bandId)
-          .delete();
+          .delete()
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: deleteBand timed out after ${_firestoreTimeout.inSeconds}s for band $bandId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -185,14 +289,23 @@ class FirestoreService {
   // ============================================================
 
   /// Saves a setlist to the user's collection.
-  Future<void> saveSetlist(Setlist setlist, String uid) async {
+  Future<void> saveSetlist(Setlist setlist, {String? uid}) async {
     try {
-      await FirebaseFirestore.instance
+      final userId = uid ?? _currentUserId;
+      await _firestore
           .collection('users')
-          .doc(uid)
+          .doc(userId)
           .collection('setlists')
           .doc(setlist.id)
-          .set(setlist.toJson());
+          .set(setlist.toJson())
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: saveSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist ${setlist.id}');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -208,14 +321,23 @@ class FirestoreService {
   }
 
   /// Deletes a setlist from the user's collection.
-  Future<void> deleteSetlist(String setlistId, String uid) async {
+  Future<void> deleteSetlist(String setlistId, {String? uid}) async {
     try {
-      await FirebaseFirestore.instance
+      final userId = uid ?? _currentUserId;
+      await _firestore
           .collection('users')
-          .doc(uid)
+          .doc(userId)
           .collection('setlists')
           .doc(setlistId)
-          .delete();
+          .delete()
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: deleteSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist $setlistId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -258,10 +380,19 @@ class FirestoreService {
   /// Saves a band to the global 'bands' collection.
   Future<void> saveBandToGlobal(Band band) async {
     try {
-      await FirebaseFirestore.instance
+      _requireAuth();
+      await _firestore
           .collection('bands')
           .doc(band.id)
-          .set(band.toJson());
+          .set(band.toJson())
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: saveBandToGlobal timed out after ${_firestoreTimeout.inSeconds}s for band ${band.id}');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -279,7 +410,8 @@ class FirestoreService {
   /// Gets a band by invite code from global collection.
   Future<Band?> getBandByInviteCode(String code) async {
     try {
-      final snapshot = await FirebaseFirestore.instance
+      _requireAuth();
+      final snapshot = await _firestore
           .collection('bands')
           .where('inviteCode', isEqualTo: code)
           .limit(1)
@@ -303,7 +435,8 @@ class FirestoreService {
   /// Checks if invite code is already taken.
   Future<bool> isInviteCodeTaken(String code) async {
     try {
-      final snapshot = await FirebaseFirestore.instance
+      _requireAuth();
+      final snapshot = await _firestore
           .collection('bands')
           .where('inviteCode', isEqualTo: code)
           .limit(1)
@@ -317,14 +450,23 @@ class FirestoreService {
   }
 
   /// Adds user reference to a band (for joining).
-  Future<void> addUserToBand(String bandId, String userId) async {
+  Future<void> addUserToBand(String bandId, {String? userId}) async {
     try {
-      await FirebaseFirestore.instance
+      final uid = userId ?? _currentUserId;
+      await _firestore
           .collection('users')
-          .doc(userId)
+          .doc(uid)
           .collection('bands')
           .doc(bandId)
-          .set({'bandId': bandId, 'joinedAt': FieldValue.serverTimestamp()});
+          .set({'bandId': bandId, 'joinedAt': FieldValue.serverTimestamp()})
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: addUserToBand timed out after ${_firestoreTimeout.inSeconds}s for band $bandId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -340,14 +482,23 @@ class FirestoreService {
   }
 
   /// Removes user reference from a band (for leaving).
-  Future<void> removeUserFromBand(String bandId, String userId) async {
+  Future<void> removeUserFromBand(String bandId, {String? userId}) async {
     try {
-      await FirebaseFirestore.instance
+      final uid = userId ?? _currentUserId;
+      await _firestore
           .collection('users')
-          .doc(userId)
+          .doc(uid)
           .collection('bands')
           .doc(bandId)
-          .delete();
+          .delete()
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: removeUserFromBand timed out after ${_firestoreTimeout.inSeconds}s for band $bandId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -372,27 +523,104 @@ class FirestoreService {
   Future<void> addSongToBand({
     required Song song,
     required String bandId,
-    required String contributorId,
-    required String contributorName,
+    String? contributorId,
+    String? contributorName,
   }) async {
     try {
+      _requireAuth();
+      final user = _auth.currentUser!;
+      final uid = contributorId ?? user.uid;
+      final name = contributorName ?? user.displayName ?? user.email ?? 'Unknown';
+
       final bandSong = song.copyWith(
-        id: FirebaseFirestore.instance.collection('bands').doc().id,
+        id: _firestore.collection('bands').doc().id,
         bandId: bandId,
-        originalOwnerId: song.originalOwnerId ?? contributorId,
-        contributedBy: contributorName,
+        originalOwnerId: song.originalOwnerId ?? uid,
+        contributedBy: name,
         isCopy: true,
         contributedAt: DateTime.now(),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      await FirebaseFirestore.instance
+      await _firestore
           .collection('bands')
           .doc(bandId)
           .collection('songs')
           .doc(bandSong.id)
-          .set(bandSong.toJson());
+          .set(bandSong.toJson())
+          .timeout(const Duration(seconds: 10));
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: addSongToBand timed out after ${_firestoreTimeout.inSeconds}s for band $bandId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to add songs to this band.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Add an existing song to a band by song ID.
+  ///
+  /// This method copies a song from the user's personal library to the band's collection.
+  Future<void> addSongToBandById(String songId, String bandId) async {
+    try {
+      _requireAuth();
+      final user = _auth.currentUser!;
+
+      // Get the song from user's personal library
+      final songDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('songs')
+          .doc(songId)
+          .get()
+          .timeout(_firestoreTimeout);
+
+      if (!songDoc.exists) {
+        throw ApiError(type: ErrorType.notFound, message: 'Song not found');
+      }
+
+      final songData = songDoc.data()!;
+      final song = Song.fromJson(songData);
+
+      // Create a copy for the band
+      final bandSong = song.copyWith(
+        id: _firestore.collection('bands').doc().id,
+        bandId: bandId,
+        originalOwnerId: song.originalOwnerId ?? user.uid,
+        contributedBy: user.displayName ?? user.email ?? 'Unknown',
+        isCopy: true,
+        contributedAt: DateTime.now(),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await _firestore
+          .collection('bands')
+          .doc(bandId)
+          .collection('songs')
+          .doc(bandSong.id)
+          .set(bandSong.toJson())
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: addSongToBandById timed out after ${_firestoreTimeout.inSeconds}s for song $songId to band $bandId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -410,12 +638,21 @@ class FirestoreService {
   /// Saves a song to a band's collection.
   Future<void> saveBandSong(Song song, String bandId) async {
     try {
+      _requireAuth();
       await _firestore
           .collection('bands')
           .doc(bandId)
           .collection('songs')
           .doc(song.id)
-          .set(song.toJson());
+          .set(song.toJson())
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: saveBandSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id} in band $bandId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -453,12 +690,21 @@ class FirestoreService {
   /// Deletes a song from a band's collection.
   Future<void> deleteBandSong(String bandId, String songId) async {
     try {
-      await FirebaseFirestore.instance
+      _requireAuth();
+      await _firestore
           .collection('bands')
           .doc(bandId)
           .collection('songs')
           .doc(songId)
-          .delete();
+          .delete()
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: deleteBandSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId in band $bandId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -477,12 +723,21 @@ class FirestoreService {
   /// Updates a song in a band's collection.
   Future<void> updateBandSong(Song song, String bandId) async {
     try {
-      await FirebaseFirestore.instance
+      _requireAuth();
+      await _firestore
           .collection('bands')
           .doc(bandId)
           .collection('songs')
           .doc(song.id)
-          .update(song.toJson());
+          .update(song.toJson())
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: updateBandSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id} in band $bandId');
+      throw ApiError.network(
+        message: 'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(

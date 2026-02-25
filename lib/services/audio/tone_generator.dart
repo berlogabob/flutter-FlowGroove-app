@@ -50,7 +50,7 @@ class ToneGenerator {
 
     try {
       // Set volume
-      if (_player != null && volume != null) {
+      if (_player != null) {
         await _player!.setVolume(volume);
       }
 
@@ -76,7 +76,7 @@ class ToneGenerator {
       // Generate WAV bytes with a generated sine wave
       final wavBytes = _generateWavBytes(frequency, duration: 10.0);
 
-      if (_player != null && wavBytes != null) {
+      if (_player != null) {
         await _player!.play(BytesSource(wavBytes), volume: _currentVolume);
       }
     } catch (e) {

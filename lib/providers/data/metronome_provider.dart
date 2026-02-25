@@ -4,6 +4,7 @@ import '../../models/metronome_state.dart';
 import '../../models/time_signature.dart';
 import '../../models/song.dart';
 import '../../models/setlist.dart';
+import '../../models/beat_mode.dart';
 import '../../services/audio/audio_engine_export.dart';
 
 /// Metronome Notifier class
@@ -150,10 +151,60 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     }
   }
 
-  /// Load tempo from a song
+  /// Load tempo and metronome settings from a song
   void loadSongTempo(Song song) {
-    // Song model doesn't have bpm field - skip for now
-    // TODO: Add bpm field to Song model if needed
+    // Load song into state
+    state = state.copyWith(loadedSong: song);
+
+    // Load BPM from song (prefer ourBPM, fallback to originalBPM)
+    final songBpm = song.ourBPM ?? song.originalBPM;
+    if (songBpm != null) {
+      final clampedBpm = songBpm.clamp(1, 300);
+      state = state.copyWith(bpm: clampedBpm);
+    }
+
+    // Load metronome settings from song
+    state = state.copyWith(
+      accentBeats: song.accentBeats,
+      regularBeats: song.regularBeats,
+      beatModes: song.beatModes.isNotEmpty ? song.beatModes : state.beatModes,
+    );
+
+    // Update time signature to match loaded accentBeats
+    final timeSignature = TimeSignature(
+      numerator: song.accentBeats,
+      denominator: state.timeSignature.denominator,
+    );
+    state = state.copyWith(timeSignature: timeSignature);
+
+    // Stop metronome if playing to apply new settings
+    if (state.isPlaying) {
+      _timer?.cancel();
+      _startTimer();
+    }
+  }
+
+  /// Save current metronome settings to the loaded song
+  ///
+  /// Returns the updated song with metronome settings applied.
+  /// The caller is responsible for persisting the song to Firestore.
+  Song? saveMetronomeToSong() {
+    final song = state.loadedSong;
+    if (song == null) return null;
+
+    // Create updated song with current metronome settings
+    final updatedSong = song.copyWith(
+      accentBeats: state.accentBeats,
+      regularBeats: state.regularBeats,
+      beatModes: state.beatModes,
+      ourBPM: state.bpm, // Save current BPM as ourBPM
+      updatedAt: DateTime.now(),
+    );
+
+    // Update loaded song in state
+    state = state.copyWith(loadedSong: updatedSong);
+
+    return updatedSong;
   }
 
   /// Load tempo from a setlist
@@ -385,6 +436,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   /// Dispose resources when the provider is destroyed
+  @override
   void dispose() {
     _timer?.cancel();
     _audioEngine.dispose();

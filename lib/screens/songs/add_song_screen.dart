@@ -9,6 +9,7 @@ import '../../widgets/error_banner.dart';
 import 'components/song_form.dart';
 import 'models/song_form_data.dart';
 import 'utils/add_song_screen_helper.dart';
+import '../../repositories/firestore_song_repository.dart';
 
 /// Screen for adding or editing a song with comprehensive error handling.
 class AddSongScreen extends ConsumerStatefulWidget {
@@ -86,6 +87,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     _notesController.addListener(
       () => _formData.updateNotes(_notesController.text),
     );
+
+    // Initialize beat modes for new songs or songs without metronome settings
+    if (_formData.beatModes.isEmpty) {
+      _formData.initializeBeatModes();
+    }
   }
 
   void _syncControllersToFormData() {
@@ -138,13 +144,26 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         bandId: widget.bandId,
       );
 
-      final firestore = ref.read(firestoreProvider);
+      // Debug: Print song data to console
+      debugPrint('=== Saving Song ===');
+      debugPrint('Title: ${song.title}');
+      debugPrint('accentBeats: ${song.accentBeats}');
+      debugPrint('regularBeats: ${song.regularBeats}');
+      debugPrint('beatModes: ${song.beatModes}');
+      debugPrint('beatModes type: ${song.beatModes.runtimeType}');
+
+      final songJson = song.toJson();
+      debugPrint('beatModes in JSON: ${songJson['beatModes']}');
+      debugPrint('beatModes JSON type: ${songJson['beatModes'].runtimeType}');
+      debugPrint('===================');
+
+      final songRepo = ref.read(songRepositoryProvider);
 
       // If bandId is provided, save to band's collection
       if (widget.bandId != null) {
-        await firestore.saveBandSong(song, widget.bandId!);
+        await songRepo.saveBandSong(song, widget.bandId!);
       } else {
-        await firestore.saveSong(song, user.uid);
+        await songRepo.saveSong(song, uid: user.uid);
       }
 
       if (mounted) {
@@ -152,9 +171,14 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         showMessage('${song.title} ${_isEditing ? 'updated' : 'added'}');
       }
     } on ApiError catch (e) {
+      debugPrint('ApiError while saving: ${e.message}');
+      debugPrint('Error details: ${e.details}');
+      debugPrint('Error type: ${e.type}');
       handleError(e);
       if (mounted) showMessage(e.message);
     } catch (e, stackTrace) {
+      debugPrint('Exception while saving: $e');
+      debugPrint('Stack trace: $stackTrace');
       final error = ApiError.fromException(e, stackTrace: stackTrace);
       handleError(error);
       if (mounted) showMessage(error.message);
@@ -216,7 +240,28 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
               _formData.copyFromOriginal();
               _ourBpmController.text = _originalBpmController.text;
             }),
+            onAccentBeatsChanged: (value) => setState(() {
+              _formData.updateAccentBeats(value);
+              // Re-initialize beat modes when accentBeats changes
+              _formData.initializeBeatModes();
+            }),
+            onRegularBeatsChanged: (value) => setState(() {
+              _formData.updateRegularBeats(value);
+              // Re-initialize beat modes when regularBeats changes
+              _formData.initializeBeatModes();
+            }),
+            onBeatModeChanged: (beatIndex, subdivisionIndex, mode) =>
+                setState(() {
+                  _formData.updateBeatMode(beatIndex, subdivisionIndex, mode);
+                }),
+            onSectionsChanged: (newSections) => setState(() {
+              _formData.setSections(newSections);
+            }),
             isEditing: _isEditing,
+            accentBeats: _formData.accentBeats,
+            regularBeats: _formData.regularBeats,
+            beatModes: _formData.beatModes,
+            sections: _formData.sections,
           ),
           const SizedBox(height: 24),
           // Search buttons row

@@ -18,12 +18,16 @@ class BpmSelector extends StatelessWidget {
   /// Callback when BPM value changes.
   final ValueChanged<String>? onChanged;
 
+  /// Whether to use dense layout (for compact forms).
+  final bool isDense;
+
   const BpmSelector({
     super.key,
     required this.controller,
     this.label,
     this.hintText,
     this.onChanged,
+    this.isDense = false,
   });
 
   @override
@@ -43,7 +47,10 @@ class BpmSelector extends StatelessWidget {
           decoration: InputDecoration(
             labelText: 'BPM',
             hintText: hintText,
-            isDense: true,
+            isDense: isDense,
+            contentPadding: isDense
+                ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
+                : const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
           keyboardType: TextInputType.number,
           onChanged: onChanged,
@@ -106,23 +113,18 @@ class KeyBpmSelector extends StatelessWidget {
                 base,
                 keyBases,
                 (v) => onKeyChanged(v ?? 'C', modifier),
+                width: 50,
               ),
               const SizedBox(width: 4),
               _buildMiniDropdown(
                 modifier,
                 keyModifiers,
                 (v) => onKeyChanged(base, v ?? ''),
+                width: 50,
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: TextFormField(
-                  controller: bpmController,
-                  decoration: const InputDecoration(
-                    labelText: 'BPM',
-                    isDense: true,
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
+                child: BpmSelector(controller: bpmController, isDense: true),
               ),
             ],
           ),
@@ -134,26 +136,33 @@ class KeyBpmSelector extends StatelessWidget {
   Widget _buildMiniDropdown(
     String value,
     List<String> items,
-    Function(String?) onChanged,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: MonoPulseColors.borderDefault),
-      ),
+    Function(String?) onChanged, {
+    required double width,
+  }) {
+    return SizedBox(
+      width: width,
       child: DropdownButton<String>(
         value: value,
         isDense: true,
+        isExpanded: true,
         underline: const SizedBox(),
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: MonoPulseColors.textPrimary,
+        ),
+        dropdownColor: MonoPulseColors.surfaceRaised,
         items: items
             .map(
-              (k) => DropdownMenuItem(
+              (k) => DropdownMenuItem<String>(
                 value: k,
                 child: Text(
                   k.isEmpty ? '-' : k,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             )

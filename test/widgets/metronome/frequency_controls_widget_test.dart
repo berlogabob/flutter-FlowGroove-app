@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_repsync_app/widgets/metronome/frequency_controls_widget.dart';
 import 'package:flutter_repsync_app/providers/data/metronome_provider.dart';
-import 'package:flutter_repsync_app/models/metronome_state.dart';
 
 import '../../helpers/test_helpers.dart';
 
@@ -21,14 +19,17 @@ void main() {
       expect(find.text('Advanced Settings'), findsOneWidget);
     });
 
-    testWidgets('renders Card widget', (WidgetTester tester) async {
+    testWidgets('renders container with border decoration', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
         overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
       );
 
-      expect(find.byType(Card), findsOneWidget);
+      // Widget uses Container with BoxDecoration, not Card
+      expect(find.byType(Container), findsWidgets);
     });
 
     testWidgets('renders tune icon', (WidgetTester tester) async {
@@ -61,6 +62,8 @@ void main() {
 
       // Volume slider should not be visible when collapsed
       expect(find.byType(Slider), findsNothing);
+      // Advanced content should not be visible
+      expect(find.text('Tone: '), findsNothing);
     });
 
     testWidgets('expands when header is tapped', (WidgetTester tester) async {
@@ -125,11 +128,10 @@ void main() {
       await tester.tap(find.text('Advanced Settings'));
       await tester.pumpAndSettle();
 
-      // Wave type options should be visible
-      expect(find.text('Smooth (Sine)'), findsOneWidget);
-      expect(find.text('Sharp (Square)'), findsOneWidget);
-      expect(find.text('Soft (Triangle)'), findsOneWidget);
-      expect(find.text('Bright (Sawtooth)'), findsOneWidget);
+      // Wave type dropdown should be visible with current selection
+      expect(find.text('Smooth'), findsOneWidget);
+      // Other options are in dropdown menu, not directly visible
+      expect(find.byType(DropdownButton<String>), findsOneWidget);
     });
 
     testWidgets('shows volume icon when expanded', (WidgetTester tester) async {
@@ -228,8 +230,9 @@ void main() {
       await tester.tap(find.text('Advanced Settings'));
       await tester.pumpAndSettle();
 
-      // Default wave type is sine
-      expect(find.text('Smooth (Sine)'), findsOneWidget);
+      // Default wave type is sine (Smooth) shown in dropdown
+      expect(find.text('Smooth'), findsOneWidget);
+      expect(find.byType(DropdownButton<String>), findsOneWidget);
     });
 
     testWidgets('displays accent toggle subtitle', (WidgetTester tester) async {

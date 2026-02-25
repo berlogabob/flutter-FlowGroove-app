@@ -99,19 +99,32 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         );
       }
 
-      // Add BPM and key badges
-      if (song.ourBPM != null || song.ourKey != null) {
-        final List<Widget> badges = [];
-        if (song.ourBPM != null) {
-          badges.add(
-            UnifiedItemBadge(text: '${song.ourBPM} BPM', color: Colors.orange),
-          );
-        }
-        if (song.ourKey != null) {
-          badges.add(
-            UnifiedItemBadge(text: song.ourKey!, color: Colors.orange),
-          );
-        }
+      // Add BPM and key badges - enhanced BPM display
+      final List<Widget> badges = [];
+      if (song.ourBPM != null) {
+        badges.add(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.speed, size: 14, color: Colors.orange),
+              const SizedBox(width: 4),
+              Text(
+                '${song.ourBPM} BPM',
+                style: const TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+      if (song.ourKey != null) {
+        badges.add(UnifiedItemBadge(text: song.ourKey!, color: Colors.orange));
+      }
+
+      if (badges.isNotEmpty) {
         subtitleWidgets.add(Row(children: badges));
       }
     }
@@ -190,9 +203,16 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       if (song.ourBPM != null) {
         compactSubtitles.add(const SizedBox(width: 8));
         compactSubtitles.add(
-          Text(
-            '${song.ourBPM} BPM',
-            style: const TextStyle(color: Colors.orange, fontSize: 12),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.speed, size: 14, color: Colors.orange),
+              const SizedBox(width: 2),
+              Text(
+                '${song.ourBPM} BPM',
+                style: const TextStyle(color: Colors.orange, fontSize: 12),
+              ),
+            ],
           ),
         );
       }

@@ -30,11 +30,20 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   String _searchQuery = '';
   SortOption _sortOption = SortOption.manual;
   ApiError? _currentError;
+  
+  // Store manual order as list (same as songs_list_screen.dart)
+  List<Band>? _manualOrder;
 
   /// Filter and sort bands based on search query and sort option.
   List<BandItemAdapter> _filterAndSortBands(List<Band> bands) {
+    // Apply manual order if in manual sort mode
+    List<Band> bandsToUse = bands;
+    if (_sortOption == SortOption.manual && _manualOrder != null) {
+      bandsToUse = _manualOrder!;
+    }
+    
     // Convert bands to adapters
-    var adapters = bands.map((band) => BandItemAdapter(band)).toList();
+    var adapters = bandsToUse.map((band) => BandItemAdapter(band)).toList();
 
     // Apply search filter
     if (_searchQuery.trim().isNotEmpty) {
@@ -45,23 +54,24 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       }).toList();
     }
 
-    // Apply sorting
-    switch (_sortOption) {
-      case SortOption.manual:
-        // Keep original order (user can reorder via drag-and-drop)
-        break;
-      case SortOption.alphabetical:
-        adapters.sort(
-          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-        );
-        break;
-      case SortOption.dateAdded:
-        adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
-      case SortOption.dateModified:
-        // Band model doesn't have updatedAt, fallback to createdAt
-        adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
+    // Apply sorting (only for non-manual modes)
+    if (_sortOption != SortOption.manual) {
+      switch (_sortOption) {
+        case SortOption.alphabetical:
+          adapters.sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+          );
+          break;
+        case SortOption.dateAdded:
+          adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          break;
+        case SortOption.dateModified:
+          // Band model doesn't have updatedAt, fallback to createdAt
+          adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          break;
+        case SortOption.manual:
+          break; // Already handled above
+      }
     }
 
     return adapters;
@@ -85,24 +95,20 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   /// Handle band reordering (manual sort mode).
   void _handleReorder(int oldIndex, int newIndex) {
-    if (newIndex > oldIndex) {
-      newIndex -= 1;
-    }
+    // Update manual order when reordering (same as songs_list_screen.dart)
+    if (_manualOrder != null && oldIndex >= 0 && newIndex >= 0 &&
+        oldIndex < _manualOrder!.length && newIndex < _manualOrder!.length) {
 
-    final bands = ref.read(bandsProvider).value;
-    if (bands == null) return;
+      // Create a copy to avoid modifying the original list directly
+      final newOrder = List<Band>.from(_manualOrder!);
 
-    // Perform the reordering locally first
-    final band = bands.removeAt(oldIndex);
-    bands.insert(newIndex, band);
+      // Move item from oldIndex to newIndex
+      final item = newOrder.removeAt(oldIndex);
+      newOrder.insert(newIndex, item);
 
-    // Save the reordered bands to Firestore (fire-and-forget)
-    final service = ref.read(firestoreProvider);
-    final user = ref.read(currentUserProvider);
-    if (user != null) {
-      for (int i = 0; i < bands.length; i++) {
-        service.saveBand(bands[i], user.uid);
-      }
+      setState(() {
+        _manualOrder = newOrder;
+      });
     }
   }
 
@@ -133,7 +139,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           await service.saveBandToGlobal(updatedBand);
 
           // Remove from user's bands collection
-          await service.removeUserFromBand(band.id, user.uid);
+          await service.removeUserFromBand(band.id, userId: user.uid);
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -173,20 +179,13 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     Navigator.pushNamed(context, '/bands/${band.id}/edit', arguments: band);
   }
 
-  /// Handle band tap - show invite dialog.
+  /// Handle band tap - navigate to band songs screen.
   void _handleTap(int index) {
     final bands = ref.read(bandsProvider).value;
     if (bands == null || index >= bands.length) return;
 
     final band = bands[index];
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
-
-    showDialog(
-      context: context,
-      builder: (context) =>
-          _InviteMemberDialog(band: band, currentUserId: user.uid),
-    );
+    _handleViewSongs(band);
   }
 
   @override
@@ -258,6 +257,13 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   Widget _buildContent(BuildContext context, WidgetRef ref, List<Band> bands) {
     final filteredBands = _filterAndSortBands(bands);
 
+    // Initialize manual order when entering manual sort mode for the first time
+    if (_sortOption == SortOption.manual && _manualOrder == null) {
+      setState(() {
+        _manualOrder = List<Band>.from(bands);
+      });
+    }
+
     return Column(
       children: [
         // Inline error banner if there's an error but we have cached data
@@ -279,7 +285,16 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           child: UnifiedFilterSortWidget(
             currentSort: _sortOption,
             onSortChanged: (option) {
-              if (option != null) setState(() => _sortOption = option);
+              if (option != null) {
+                setState(() => _sortOption = option);
+                
+                // Reset manual order when switching away from manual sort
+                if (option != SortOption.manual && _manualOrder != null) {
+                  setState(() {
+                    _manualOrder = null;
+                  });
+                }
+              }
             },
             filterText: _searchQuery.isEmpty ? null : _searchQuery,
             onFilterChanged: (value) =>
@@ -379,7 +394,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
       // Save to user's collection
       await ref
           .read(firestoreProvider)
-          .saveBand(updatedBand, widget.currentUserId);
+          .saveBand(updatedBand, uid: widget.currentUserId);
 
       setState(() {
         _inviteCode = newCode;

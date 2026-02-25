@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'link.dart';
+import 'beat_mode.dart';
+import 'section.dart';
 
 part 'song.g.dart';
 
@@ -44,6 +46,26 @@ class Song {
   @JsonKey(fromJson: _parseNullableDateTime, toJson: _dateTimeToJson)
   final DateTime? contributedAt; // When added to band
 
+  // Metronome settings
+  @JsonKey(defaultValue: 4)
+  final int accentBeats; // Beats per measure (top row, first number)
+  @JsonKey(defaultValue: 1)
+  final int regularBeats; // Subdivisions per beat (bottom row)
+  @JsonKey(
+    defaultValue: [],
+    fromJson: _beatModesFromJson,
+    toJson: _beatModesToJson,
+  )
+  final List<List<BeatMode>> beatModes; // 2D: beats × subdivisions (independent modes)
+
+  /// Song structure sections.
+  @JsonKey(
+    defaultValue: [],
+    fromJson: _sectionsFromJson,
+    toJson: _sectionsToJson,
+  )
+  final List<Section> sections;
+
   Song({
     required this.id,
     required this.title,
@@ -63,6 +85,10 @@ class Song {
     this.contributedBy,
     this.isCopy = false,
     this.contributedAt,
+    this.accentBeats = 4,
+    this.regularBeats = 1,
+    this.beatModes = const [],
+    this.sections = const [],
   });
 
   Song copyWith({
@@ -84,6 +110,10 @@ class Song {
     Object? contributedBy = _sentinel,
     Object? isCopy = _sentinel,
     Object? contributedAt = _sentinel,
+    int? accentBeats,
+    int? regularBeats,
+    List<List<BeatMode>>? beatModes,
+    List<Section>? sections,
   }) {
     return Song(
       id: id ?? this.id,
@@ -116,12 +146,95 @@ class Song {
       contributedAt: contributedAt == _sentinel
           ? this.contributedAt
           : contributedAt as DateTime?,
+      accentBeats: accentBeats ?? this.accentBeats,
+      regularBeats: regularBeats ?? this.regularBeats,
+      beatModes: beatModes ?? this.beatModes,
+      sections: sections ?? this.sections,
     );
   }
 
   Map<String, dynamic> toJson() => _$SongToJson(this);
 
   factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
+}
+
+// Helper methods for BeatMode serialization
+List<List<BeatMode>> _beatModesFromJson(dynamic value) {
+  if (value == null) return [];
+
+  // Support both nested arrays (legacy) and map format (new)
+  if (value is List) {
+    return value.map((beatRow) {
+      if (beatRow is List) {
+        return beatRow.map((modeValue) {
+          if (modeValue is String) {
+            return BeatMode.values.firstWhere(
+              (mode) => mode.name == modeValue,
+              orElse: () => BeatMode.normal,
+            );
+          }
+          return BeatMode.normal;
+        }).toList();
+      }
+      return <BeatMode>[];
+    }).toList();
+  }
+
+  // Support map format: {"0-0": "accent", "0-1": "normal", ...}
+  if (value is Map) {
+    final result = <List<BeatMode>>[];
+
+    // Find max dimensions
+    int maxBeat = 0;
+    int maxSubdivision = 0;
+    value.forEach((key, modeValue) {
+      final parts = key.toString().split('-');
+      if (parts.length == 2) {
+        final beat = int.tryParse(parts[0]) ?? 0;
+        final subdivision = int.tryParse(parts[1]) ?? 0;
+        if (beat > maxBeat) maxBeat = beat;
+        if (subdivision > maxSubdivision) maxSubdivision = subdivision;
+      }
+    });
+
+    // Initialize grid
+    for (int i = 0; i <= maxBeat; i++) {
+      final row = <BeatMode>[];
+      for (int j = 0; j <= maxSubdivision; j++) {
+        row.add(BeatMode.normal);
+      }
+      result.add(row);
+    }
+
+    // Fill values
+    value.forEach((key, modeValue) {
+      final parts = key.toString().split('-');
+      if (parts.length == 2) {
+        final beat = int.tryParse(parts[0]) ?? 0;
+        final subdivision = int.tryParse(parts[1]) ?? 0;
+        if (beat < result.length && subdivision < result[beat].length) {
+          result[beat][subdivision] = BeatMode.values.firstWhere(
+            (mode) => mode.name == modeValue,
+            orElse: () => BeatMode.normal,
+          );
+        }
+      }
+    });
+
+    return result;
+  }
+
+  return [];
+}
+
+Map<String, String> _beatModesToJson(List<List<BeatMode>> value) {
+  final result = <String, String>{};
+  for (int i = 0; i < value.length; i++) {
+    for (int j = 0; j < value[i].length; j++) {
+      result['$i-$j'] = value[i][j].name;
+    }
+  }
+  return result;
 }
 
 DateTime _parseDateTime(dynamic value) {
@@ -148,4 +261,16 @@ List<Link> _linksFromJson(dynamic value) {
 
 List<Map<String, dynamic>> _linksToJson(List<Link> links) {
   return links.map((l) => l.toJson()).toList();
+}
+
+List<Section> _sectionsFromJson(dynamic value) {
+  if (value == null) return [];
+  if (value is List<Section>) return value;
+  return (value as List<dynamic>)
+      .map((e) => Section.fromJson(e as Map<String, dynamic>))
+      .toList();
+}
+
+List<Map<String, dynamic>> _sectionsToJson(List<Section> sections) {
+  return sections.map((s) => s.toJson()).toList();
 }

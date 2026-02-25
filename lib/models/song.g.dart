@@ -26,6 +26,12 @@ Song _$SongFromJson(Map<String, dynamic> json) => Song(
   contributedBy: json['contributedBy'] as String?,
   isCopy: json['isCopy'] as bool? ?? false,
   contributedAt: _parseNullableDateTime(json['contributedAt']),
+  accentBeats: (json['accentBeats'] as num?)?.toInt() ?? 4,
+  regularBeats: (json['regularBeats'] as num?)?.toInt() ?? 1,
+  beatModes: json['beatModes'] == null
+      ? []
+      : _beatModesFromJson(json['beatModes']),
+  sections: json['sections'] == null ? [] : _sectionsFromJson(json['sections']),
 );
 
 Map<String, dynamic> _$SongToJson(Song instance) => <String, dynamic>{
@@ -47,4 +53,8 @@ Map<String, dynamic> _$SongToJson(Song instance) => <String, dynamic>{
   'contributedBy': instance.contributedBy,
   'isCopy': instance.isCopy,
   'contributedAt': _dateTimeToJson(instance.contributedAt),
+  'accentBeats': instance.accentBeats,
+  'regularBeats': instance.regularBeats,
+  'beatModes': _beatModesToJson(instance.beatModes),
+  'sections': _sectionsToJson(instance.sections),
 };
