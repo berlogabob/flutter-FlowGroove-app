@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 import '../models/song.dart';
 import '../models/setlist.dart';
 import '../models/band.dart';
@@ -19,6 +21,25 @@ import '../screens/profile_screen.dart';
 import '../screens/metronome_screen.dart';
 import '../screens/tuner_screen.dart';
 
+/// Stream that notifies listeners when auth state changes.
+/// Used to refresh GoRouter redirect logic.
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen((_) {
+      notifyListeners();
+    });
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
 /// Root navigator key for GoRouter.
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -28,6 +49,7 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 /// - Type-safe navigation with path parameters
 /// - Deep linking support via repSync:// scheme and https://repsync.app
 /// - Nested routes for main app shell
+/// - Auth state redirect on startup
 ///
 /// Usage:
 /// ```dart
@@ -38,6 +60,23 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/login',
+  refreshListenable: GoRouterRefreshStream(
+    FirebaseAuth.instance.authStateChanges(),
+  ),
+  redirect: (context, state) {
+    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+    final isLoggingIn = state.matchedLocation == '/login';
+
+    if (!isLoggedIn && !isLoggingIn) {
+      return '/login';
+    }
+
+    if (isLoggedIn && isLoggingIn) {
+      return '/main/home';
+    }
+
+    return null;
+  },
   routes: [
     // Auth routes (public)
     GoRoute(
@@ -193,7 +232,9 @@ extension GoRouterExtension on BuildContext {
 
   /// Navigate to add song screen.
   void goAddSong({String? bandId}) {
-    final Map<String, dynamic> params = bandId != null ? {'bandId': bandId} : {};
+    final Map<String, dynamic> params = bandId != null
+        ? {'bandId': bandId}
+        : {};
     goNamed('add-song', queryParameters: params);
   }
 

@@ -436,7 +436,6 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   /// Dispose resources when the provider is destroyed
-  @override
   void dispose() {
     _timer?.cancel();
     _audioEngine.dispose();
