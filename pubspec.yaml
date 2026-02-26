@@ -1,7 +1,7 @@
 name: flutter_repsync_app
 description: "RepSync - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.11.2+83
+version: 0.11.2+84
 
 environment:
   sdk: ^3.10.7
