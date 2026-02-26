@@ -1,9 +1,17 @@
 # RepSync - Master Project Documentation
 
-**Version:** 0.11.2+69 | **Last Updated:** February 26, 2026 | **Status:** Production Ready  
-**GitHub:** https://github.com/berlogabob/flutter-repsync-app  
-**Web App:** https://berlogabob.github.io/flutter-repsync-app/  
+**Version:** 0.11.2+69 | **Last Updated:** February 26, 2026 | **Status:** Production Ready
+**GitHub:** https://github.com/berlogabob/flutter-repsync-app
+**Web App:** https://berlogabob.github.io/flutter-repsync-app/
 **Release:** https://github.com/berlogabob/flutter-repsync-app/releases/tag/v0.11.2+69
+
+[![Flutter Version](https://img.shields.io/badge/Flutter-3.19+-blue.svg)](https://flutter.dev)
+[![Dart Version](https://img.shields.io/badge/Dart-3.3+-blue.svg)](https://dart.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/network/members)
+
+**Flutter app for managing band repertoires, setlists, and shared song databases for cover bands**
 
 ---
 
@@ -18,6 +26,13 @@
 7. [Future Planning & Roadmap](#future-planning--roadmap)
 8. [Build & Deployment](#build--deployment)
 9. [Team & Contributors](#team--contributors)
+10. [Quick Start](#quick-start)
+11. [Security](#security)
+12. [Testing](#testing)
+13. [Project Structure](#project-structure)
+14. [Contributing](#contributing)
+15. [License](#license)
+16. [Acknowledgments](#acknowledgments)
 
 ---
 
@@ -163,9 +178,9 @@ await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
 
 ## CURRENT STATE - MILESTONE 01
 
-**Milestone Date:** February 26, 2026  
-**Branch:** `milestone01`  
-**Tag:** `milestone-2026-02-26`  
+**Milestone Date:** February 26, 2026
+**Branch:** `milestone01`
+**Tag:** `milestone-2026-02-26`
 **Version:** 0.11.2+68
 
 ### ✅ Completed Features
@@ -426,21 +441,21 @@ final metronomeStateProvider = NotifierProvider<MetronomeNotifier, MetronomeStat
 ### Bug Fixes
 
 #### Critical Navigation Bug (v0.11.2+68)
-**Issue:** All buttons showed "No route for location" after login  
-**Root Cause:** Mixed navigation patterns (Navigator + GoRouter)  
-**Fix:** Unified all navigation to `context.goNamed()`  
+**Issue:** All buttons showed "No route for location" after login
+**Root Cause:** Mixed navigation patterns (Navigator + GoRouter)
+**Fix:** Unified all navigation to `context.goNamed()`
 **Files Changed:** 11
 
 #### Auth Persistence Bug (v0.11.2+69)
-**Issue:** Users logged out after minimizing app  
-**Root Cause:** Firebase Auth persistence not explicitly set  
-**Fix:** Added `setPersistence(Persistence.LOCAL)`  
+**Issue:** Users logged out after minimizing app
+**Root Cause:** Firebase Auth persistence not explicitly set
+**Fix:** Added `setPersistence(Persistence.LOCAL)`
 **Result:** ✅ Users stay logged in
 
 #### White Screen Bug (v0.11.2+69)
-**Issue:** White screen on startup after deploy  
-**Root Cause:** Unhandled exception in setPersistence  
-**Fix:** Wrapped in try-catch with debug logging  
+**Issue:** White screen on startup after deploy
+**Root Cause:** Unhandled exception in setPersistence
+**Fix:** Wrapped in try-catch with debug logging
 **Result:** ✅ Graceful error handling
 
 ### Test Coverage Evolution
@@ -665,17 +680,181 @@ This project uses autonomous AI agents for development:
 
 ---
 
-## LICENSE
+## QUICK START
 
-MIT License - see LICENSE file
+### Prerequisites
+- Flutter SDK 3.19+
+- Dart 3.3+
+- Firebase project (for backend services)
+- Spotify API credentials (optional, for BPM/key detection)
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/berlogabob/flutter-repsync-app.git
+   cd flutter-repsync-app
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Setup environment variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your Spotify API credentials
+   ```
+
+4. **Run the app:**
+   ```bash
+   flutter run
+   ```
+
+### Build for Production
+
+**Web:**
+```bash
+flutter build web --release
+```
+
+**Android:**
+```bash
+flutter build apk --release
+# or
+flutter build appbundle --release
+```
+
+**iOS:**
+```bash
+flutter build ios --release
+```
 
 ---
 
-## CONTACT & SUPPORT
+## SECURITY
 
-- **Issues:** https://github.com/berlogabob/flutter-repsync-app/issues
-- **Discussions:** https://github.com/berlogabob/flutter-repsync-app/discussions
-- **Releases:** https://github.com/berlogabob/flutter-repsync-app/releases
+### Environment Variables
+Sensitive credentials (Spotify API keys) are stored in environment variables using `flutter_dotenv`.
+
+**Required variables:**
+- `SPOTIFY_CLIENT_ID` - Your Spotify API Client ID
+- `SPOTIFY_CLIENT_SECRET` - Your Spotify API Client Secret
+
+**Setup:**
+1. Copy `.env.example` to `.env`
+2. Replace placeholder values with your actual credentials
+3. The `.env` file is gitignored to prevent accidental commits
+
+### Firestore Security Rules
+Firestore security rules ensure that users can only access their own data and authorized band data.
+
+**Rules Overview:**
+- `users/{userId}/songs/{songId}` - Only the owner can read/write
+- `users/{userId}/setlists/{setlistId}` - Only the owner can read/write
+- `users/{userId}/bands/{bandId}` - Band members can read, owner can write
+
+**Deploy Rules:**
+```bash
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Login to Firebase
+firebase login
+
+# Deploy rules to Firebase
+firebase deploy --only firestore:rules
+```
+
+**Test Rules:**
+```bash
+# Start Firebase Emulator
+firebase emulators:start --only firestore
+
+# Or use Rules Playground in Firebase Console
+# Go to Firebase Console > Firestore > Rules > Rules Playground
+```
+
+See `firestore.rules` for the complete rules implementation and `firestore.test.rules` for test cases.
+
+---
+
+## TESTING
+
+### Run All Tests
+```bash
+flutter test
+```
+
+### Run Specific Test Suite
+```bash
+# CSV import/export tests
+flutter test test/services/csv/
+
+# Model tests
+flutter test test/models/
+
+# Widget tests
+flutter test test/widgets/
+
+# Screen tests
+flutter test test/screens/
+```
+
+### Test Coverage
+```bash
+flutter test --coverage
+```
+
+---
+
+## PROJECT STRUCTURE
+
+```
+lib/
+├── models/           # Data models (Song, Setlist, Band, etc.)
+├── providers/        # Riverpod providers
+│   ├── auth/        # Authentication providers
+│   └── data/        # Data providers
+├── screens/          # UI screens
+│   ├── songs/       # Song management screens
+│   └── setlists/    # Setlist management screens
+├── services/         # Business logic services
+│   ├── api/         # External API clients
+│   ├── audio/       # Audio playback services
+│   ├── csv/         # CSV import/export services
+│   └── export/      # PDF export services
+├── theme/            # App theme and design system
+├── widgets/          # Reusable UI components
+└── main.dart         # App entry point
+```
+
+---
+
+## CONTRIBUTING
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## LICENSE
+
+MIT License — see [LICENSE](LICENSE) file for details
+
+---
+
+## ACKNOWLEDGMENTS
+
+- Built with ❤️ for musicians and cover bands
+- Thanks to all contributors and supporters
+- Special thanks to the Flutter and Firebase communities
 
 ---
 
