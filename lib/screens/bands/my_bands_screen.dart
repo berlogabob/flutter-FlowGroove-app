@@ -178,7 +178,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (bands == null || index >= bands.length) return;
 
     final band = bands[index];
-    GoRouter.of(context).push('/bands/${band.id}/edit', extra: band);
+    context.pushNamed('edit-band', pathParameters: {'id': band.id}, extra: band);
   }
 
   /// Handle band tap - navigate to band songs screen.
@@ -207,13 +207,13 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         children: [
           FloatingActionButton.small(
             heroTag: 'create',
-            onPressed: () => GoRouter.of(context).go('/main/bands/create'),
+            onPressed: () => context.goNamed('create-band'),
             child: const Icon(Icons.add),
           ),
           const SizedBox(height: 8),
           FloatingActionButton.small(
             heroTag: 'join',
-            onPressed: () => GoRouter.of(context).go('/main/join-band'),
+            onPressed: () => context.goNamed('join-band'),
             child: const Icon(Icons.group_add),
           ),
         ],
@@ -315,7 +315,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
       return EmptyState.bands(
-        onCreate: () => GoRouter.of(context).go('/main/bands/create'),
+        onCreate: () => context.goNamed('create-band'),
       );
     }
     return EmptyState.search(query: _searchQuery);
@@ -343,7 +343,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   /// Handle view band songs
   void _handleViewSongs(Band band) {
-    GoRouter.of(context).push('/bands/${band.id}/songs', extra: band);
+    context.pushNamed('band-songs', pathParameters: {'id': band.id}, extra: band);
   }
 }
 

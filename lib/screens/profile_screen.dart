@@ -303,7 +303,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Navigator.pop(context);
               await ref.read(appUserProvider.notifier).signOut();
               if (context.mounted) {
-                GoRouter.of(context).go('/login');
+                context.goNamed('login');
               }
             },
             style: ElevatedButton.styleFrom(

@@ -263,7 +263,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
     if (!_canEdit) return;
 
-    GoRouter.of(context).push('/songs/${song.id}/edit', extra: song);
+    context.pushNamed('edit-song', pathParameters: {'id': song.id}, extra: song);
   }
 
   Future<void> _deleteSongFromBand(

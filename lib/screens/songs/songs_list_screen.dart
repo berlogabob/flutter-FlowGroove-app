@@ -491,7 +491,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'songs_fab',
-        onPressed: () => GoRouter.of(context).go('/main/songs/add'),
+        onPressed: () => context.goNamed('add-song'),
         child: const Icon(Icons.add),
       ),
     );
@@ -696,7 +696,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
       return EmptyState.songs(
-        onAdd: () => GoRouter.of(context).go('/main/songs/add'),
+        onAdd: () => context.goNamed('add-song'),
       );
     }
     return EmptyState.search(
@@ -737,7 +737,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
   /// Navigate to edit song screen.
   void _navigateToEdit(Song song) {
-    GoRouter.of(context).push('/songs/${song.id}/edit', extra: song);
+    context.pushNamed('edit-song', pathParameters: {'id': song.id}, extra: song);
   }
 
   /// Navigate to edit song screen by index.
