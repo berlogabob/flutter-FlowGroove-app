@@ -114253,8 +114253,9 @@ l=q.a.d!=null?"Update band information":"Invite your bandmates"
 s=t.p
 l=A.b([m,B.aU,A.a_(l,p,p,p,p,A.dS(p,p,B.da,p,p,p,p,p,p,p,p,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p),B.bd,p),B.d5],s)
 m=q.Q
-if(m!=null)B.l.L(l,A.b([A.baq(m.b,q.ga3F()),B.ca],s))
-l.push(A.iP(q.x,B.a0B,p,p,1,!1,p,p,p,p,!1,B.bv,B.kv,new A.aQn()))
+if(m!=null){m=m.b
+if(m==null)m="An unexpected error occurred"
+B.l.L(l,A.b([A.baq(m,q.ga3F()),B.ca],s))}l.push(A.iP(q.x,B.a0B,p,p,1,!1,p,p,p,p,!1,B.bv,B.kv,new A.aQn()))
 l.push(B.ap)
 l.push(A.iP(q.y,B.yR,p,p,3,!1,p,p,new A.aQo(q),p,!1,B.bv,B.h_,p))
 l.push(B.d5)
@@ -114483,20 +114484,23 @@ A.b3(r,!1).ee("/bands/"+s.a+"/songs",s,t.X)},
 E(a){var s=null,r=this.gbj().bZ($.vp(),t.hv),q=t.p
 return A.iI(A.j2(s,s,s,s,s,s,s,B.b_R),s,A.aY(A.b([A.bbj(),A.bS(this.az1(r),1)],q),B.F,B.G,B.J),s,!1,A.aY(A.b([A.bh2(B.f1,"create",new A.aWz(a)),B.aU,A.bh2(B.a_F,"join",new A.aWA(a))],q),B.F,B.G,B.aA))},
 az1(a){return A.np(a,new A.aWe(this),new A.aWf(this),new A.aWg(),!1,!0,!1)},
-anN(){var s=this.y
-if(s!=null)return A.c8(new A.aR(B.dH,A.apI(s.b,new A.aWp(this)),null),null,null)
-return B.wi},
-az2(a,b,c){var s,r,q,p=this,o=null,n=p.as3(c)
-if(p.x===B.dP&&p.z==null)p.K(new A.aWk(p,c))
+anN(){var s=null,r=this.y
+if(r!=null){r=r.b
+if(r==null)r="An unexpected error occurred"
+return A.c8(new A.aR(B.dH,A.apI(r,new A.aWp(this)),s),s,s)}return B.wi},
+az2(a,b,c){var s,r,q,p,o=this,n=null,m=o.as3(c)
+if(o.x===B.dP&&o.z==null)o.K(new A.aWk(o,c))
 s=t.p
 r=A.b([],s)
-q=p.y
-if(q!=null&&n.length!==0)B.l.L(r,A.b([new A.aR(B.aT,A.bgO(q.b,new A.aWl(p,b)),o)],s))
-s=p.x
-q=p.w
-if(q.length===0)q=o
-r.push(new A.aR(B.aT,new A.us(s,new A.aWm(p),q,new A.aWn(p),o),o))
-r.push(A.bS(n.length===0?p.az3(J.dW(c)):p.anA(n),1))
+q=o.y
+p=q==null
+if(!p&&m.length!==0){q=p?n:q.b
+if(q==null)q="An unexpected error occurred"
+B.l.L(r,A.b([new A.aR(B.aT,A.bgO(q,new A.aWl(o,b)),n)],s))}s=o.x
+q=o.w
+if(q.length===0)q=n
+r.push(new A.aR(B.aT,new A.us(s,new A.aWm(o),q,new A.aWn(o),n),n))
+r.push(A.bS(m.length===0?o.az3(J.dW(c)):o.anA(m),1))
 return A.aY(r,B.F,B.G,B.J)},
 az3(a){if(a)return A.IU("Create Band","Create a band to get started",B.hP,"No bands yet",new A.aWo(this))
 return A.Yx(this.w)},
@@ -114871,25 +114875,31 @@ break
 case 6:case 1:return A.r(q,r)
 case 2:return A.q(o.at(-1),r)}})
 return A.t($async$zp,r)},
-E(a){var s,r,q,p=this,o=null,n=A.j2(o,o,o,o,o,A.ia(o,o,o,B.yK,o,o,new A.aV1(a),o,o,o,o),o,B.b_Q),m=A.J(a).ok.e
-m=A.a_("RepSync",o,o,o,o,m==null?o:m.wo(B.aE),B.bd,o)
+E(a){var s,r,q,p,o=this,n=null,m=A.j2(n,n,n,n,n,A.ia(n,n,n,B.yK,n,n,new A.aV1(a),n,n,n,n),n,B.b_Q),l=A.J(a).ok.e
+l=A.a_("RepSync",n,n,n,n,l==null?n:l.wo(B.aE),B.bd,n)
 s=A.J(a).ok.z
 r=t.p
-s=A.b([B.oe,m,B.aU,A.a_("Sign in to manage your band",o,o,o,o,s==null?o:s.aT(B.av),B.bd,o),B.d5],r)
-m=p.Q
-if(m!=null)B.l.L(s,A.b([A.baq(m.b,p.gays()),B.ca],r))
-m=p.Q
-s.push(A.iP(p.x,A.JU(o,o,o,o,o,o,o,o,!0,o,o,o,o,o,(m==null?o:m.a===B.qR)===!0&&B.n.n(m.b.toLowerCase(),"email")?m.b:o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,o,"Email",!0,!0,!1,o,B.yN,o,o,o,o,o,o,o,o,o,o,o,o),o,B.uC,1,!1,o,o,o,o,!1,B.bv,o,new A.aV2()))
+s=A.b([B.oe,l,B.aU,A.a_("Sign in to manage your band",n,n,n,n,s==null?n:s.aT(B.av),B.bd,n),B.d5],r)
+l=o.Q
+if(l!=null){l=l.b
+if(l==null)l="An unexpected error occurred"
+B.l.L(s,A.b([A.baq(l,o.gays()),B.ca],r))}l=o.Q
+q=l==null
+if((q?n:l.a===B.qR)===!0)p=(q?n:B.n.n(l.b.toLowerCase(),"email"))===!0
+else p=!1
+if(p)l=q?n:l.b
+else l=n
+s.push(A.iP(o.x,A.JU(n,n,n,n,n,n,n,n,!0,n,n,n,n,n,l,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,"Email",!0,!0,!1,n,B.yN,n,n,n,n,n,n,n,n,n,n,n,n),n,B.uC,1,!1,n,n,n,n,!1,B.bv,n,new A.aV2()))
 s.push(B.ap)
-s.push(A.iP(p.y,B.yS,o,o,1,!0,o,o,new A.aV3(p),o,!1,B.bv,B.h_,new A.aV4()))
-s.push(new A.eB(B.kI,o,o,A.fl(B.b0e,new A.aV5(a),o),o))
+s.push(A.iP(o.y,B.yS,n,n,1,!0,n,n,new A.aV3(o),n,!1,B.bv,B.h_,new A.aV4()))
+s.push(new A.eB(B.kI,n,n,A.fl(B.b0e,new A.aV5(a),n),n))
 s.push(B.ap)
-m=p.z?o:p.gayr()
-q=A.jU(o,o,o,o,o,o,o,o,o,o,o,o,B.ew,o,o,o,o,o,o,o)
-s.push(A.hF(p.z?B.Pq:B.Ql,m,q))
+l=o.z?n:o.gayr()
+q=A.jU(n,n,n,n,n,n,n,n,n,n,n,n,B.ew,n,n,n,n,n,n,n)
+s.push(A.hF(o.z?B.Pq:B.Ql,l,q))
 s.push(B.ap)
-s.push(A.b6(A.b([B.b_F,A.fl(B.b0b,new A.aV6(a),o)],r),B.F,B.bo,B.J,0,o))
-return A.iI(n,o,A.jt(A.Jy(A.aY(s,B.er,B.G,B.J),p.w),o,B.W,B.dH,o,B.ax),o,!1,o)}}
+s.push(A.b6(A.b([B.b_F,A.fl(B.b0b,new A.aV6(a),n)],r),B.F,B.bo,B.J,0,n))
+return A.iI(m,n,A.jt(A.Jy(A.aY(s,B.er,B.G,B.J),o.w),n,B.W,B.dH,n,B.ax),n,!1,n)}}
 A.aUY.prototype={
 $0(){this.a.Q=null},
 $S:0}
@@ -115666,8 +115676,9 @@ E(a){var s,r,q,p,o,n,m,l,k,j,i,h=this,g=null,f=A.a_(h.a.d!=null?"Edit Song":"Add
 f=A.j2(A.b([A.fl(B.Qg,h.gaCU(),g)],e),g,g,g,g,g,g,f)
 s=A.b([],e)
 r=h.ax
-if(r!=null)B.l.L(s,A.b([A.baq(r.b,h.gaIV()),B.ap],e))
-r=h.y
+if(r!=null){r=r.b
+if(r==null)r="An unexpected error occurred"
+B.l.L(s,A.b([A.baq(r,h.gaIV()),B.ap],e))}r=h.y
 r===$&&A.a()
 q=h.z
 q===$&&A.a()
@@ -117089,9 +117100,10 @@ E(a){var s=this,r=null,q=s.gbj(),p=q.bZ($.kA(),t.nR),o=q.bZ($.vp(),t.hv)
 q=t.p
 return A.iI(A.j2(A.b([A.ia(r,r,r,B.yM,r,r,s.gav0(),r,r,r,"Import from CSV"),new A.ej(new A.b2f(s),r)],q),r,r,r,r,r,r,B.b_P),r,A.aY(A.b([A.bbj(),A.bS(s.aEx(p,o),1)],q),B.F,B.G,B.J),r,!1,A.baz(B.f1,"songs_fab",new A.b2g(a)))},
 aEx(a,b){return A.np(a,new A.b1x(this,b),new A.b1y(this),new A.b1z(),!1,!0,!1)},
-aEA(){var s=this.w
-if(s!=null)return A.c8(new A.aR(B.dH,A.apI(s.b,new A.b1L(this)),null),null,null)
-return B.wi},
+aEA(){var s=null,r=this.w
+if(r!=null){r=r.b
+if(r==null)r="An unexpected error occurred"
+return A.c8(new A.aR(B.dH,A.apI(r,new A.b1L(this)),s),s,s)}return B.wi},
 aEy(a,b,c,d){var s,r,q,p,o,n,m,l,k=this,j=null,i=k.NO(c),h=d.gp(d)
 if(h==null)h=A.b([],t.v1)
 s=b.bZ($.jK(),t.uJ)
@@ -117103,8 +117115,10 @@ o=A.O(new A.V(i,new A.b1D(k),p),p.i("a7.E"))
 p=t.p
 n=A.b([],p)
 m=k.w
-if(m!=null&&i.length!==0)B.l.L(n,A.b([new A.aR(B.aT,A.bgO(m.b,new A.b1E(k,b)),j)],p))
-n.push(new A.aR(B.aT,new A.us(r,new A.b1F(k,b),s.b,new A.b1G(k,b),j),j))
+l=m==null
+if(!l&&i.length!==0){m=l?j:m.b
+if(m==null)m="An unexpected error occurred"
+B.l.L(n,A.b([new A.aR(B.aT,A.bgO(m,new A.b1E(k,b)),j)],p))}n.push(new A.aR(B.aT,new A.us(r,new A.b1F(k,b),s.b,new A.b1G(k,b),j),j))
 r=s.c
 m=r==null
 if(!m||s.d!=null){l=A.b([],p)

@@ -242,7 +242,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: ErrorBanner.card(
-            message: _currentError!.message,
+            message: _currentError?.message ?? 'An unexpected error occurred',
             onRetry: () {
               _clearError();
               ref.invalidate(bandsProvider);
@@ -271,7 +271,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: ErrorBanner.inline(
-              message: _currentError!.message,
+              message: _currentError?.message ?? 'An unexpected error occurred',
               onRetry: () {
                 _clearError();
                 ref.invalidate(bandsProvider);
@@ -579,7 +579,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _currentError!.message,
+                      _currentError?.message ?? 'An unexpected error occurred',
                       style: TextStyle(
                         color: MonoPulseColors.textPrimary,
                         fontSize: 12,

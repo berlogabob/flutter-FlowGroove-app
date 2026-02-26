@@ -522,7 +522,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: ErrorBanner.card(
-            message: _currentError!.message,
+            message: _currentError?.message ?? 'An unexpected error occurred',
             onRetry: () {
               _clearError();
               // Trigger a refresh by re-watching the provider
@@ -569,7 +569,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: ErrorBanner.inline(
-              message: _currentError!.message,
+              message: _currentError?.message ?? 'An unexpected error occurred',
               onRetry: () {
                 _clearError();
                 ref.invalidate(songsProvider);

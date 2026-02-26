@@ -259,7 +259,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
               // Error banner
               if (_currentError != null) ...[
                 ErrorBanner.banner(
-                  message: _currentError!.message,
+                  message: _currentError?.message ?? 'An unexpected error occurred',
                   onRetry: _saveBand,
                 ),
                 const SizedBox(height: 24),

@@ -203,7 +203,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
           // Error banner
           if (_currentError != null) ...[
             ErrorBanner.banner(
-              message: _currentError!.message,
+              message: _currentError?.message ?? 'An unexpected error occurred',
               onRetry: clearError,
             ),
             const SizedBox(height: 16),
