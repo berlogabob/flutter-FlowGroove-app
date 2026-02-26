@@ -26,17 +26,18 @@ void main() async {
     );
   }
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
-  // Set Firebase Auth persistence to LOCAL (persist across app restarts)
-  // This is the default for web, but we set it explicitly to ensure it works
-  // Only set on web platform
+  // Set Firebase Auth persistence to LOCAL BEFORE initialization
+  // This ensures auth state persists across app restarts and backgrounding
   try {
     await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
     debugPrint('✅ Firebase Auth persistence set to LOCAL');
   } catch (e) {
     debugPrint('⚠️ Firebase Auth persistence already set or not supported: $e');
   }
+
+  // Initialize Firebase AFTER setting persistence
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('✅ Firebase initialized with auth persistence');
 
   runApp(const ProviderScope(child: RepSyncApp()));
 }
@@ -49,16 +50,21 @@ class RepSyncApp extends ConsumerWidget {
     // Watch auth state
     final userAsync = ref.watch(appUserProvider);
 
-    // Set up auth state listener for navigation
+    // Set up auth state listener for navigation with logging
     ref.listen<AsyncValue<AppUser?>>(appUserProvider, (previous, next) {
       next.whenOrNull(
         data: (user) {
           if (user != null && previous?.value == null) {
             // User just logged in - navigate to home
+            debugPrint('🔑 Auth Event: USER_LOGIN - email=${user.email}');
             GoRouter.of(context).goNamed('home');
           } else if (user == null && previous?.value != null) {
             // User just logged out - navigate to login
+            debugPrint('🔑 Auth Event: USER_LOGOUT - previous user logged out');
             GoRouter.of(context).goNamed('login');
+          } else if (user != null) {
+            // Auth state restored (app resume/refresh)
+            debugPrint('🔑 Auth Event: AUTH_RESTORED - email=${user.email}');
           }
         },
       );
