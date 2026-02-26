@@ -9,6 +9,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/adapters/band_item_adapter.dart';
@@ -195,7 +196,20 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Bands')),
+      appBar: CustomAppBar.build(
+        context,
+        title: 'My Bands',
+        menuItems: [
+          PopupMenuItem<void>(
+            child: const Text('Create Band'),
+            onTap: () => context.goNamed('create-band'),
+          ),
+          PopupMenuItem<void>(
+            child: const Text('Join Band'),
+            onTap: () => context.goNamed('join-band'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           OfflineIndicator.banner(),
