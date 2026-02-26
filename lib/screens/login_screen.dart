@@ -63,7 +63,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       if (mounted) {
         // Navigate to main shell after successful login using GoRouter
-        context.go('/main/home');
+        GoRouter.of(context).go('/main/home');
       }
     } on ApiError catch (e) {
       _handleError(e);
