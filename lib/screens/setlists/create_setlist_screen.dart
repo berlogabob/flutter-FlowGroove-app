@@ -89,7 +89,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   Future<void> _saveSetlist() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user == null) {
       ScaffoldMessenger.of(
         context,

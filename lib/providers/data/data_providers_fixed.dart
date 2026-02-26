@@ -10,68 +10,33 @@ import '../../repositories/repositories.dart';
 import '../auth/auth_provider.dart';
 
 /// Provider for FirestoreService.
-///
-/// Usage:
-/// ```dart
-/// final firestore = ref.read(firestoreProvider);
-/// await firestore.saveSong(song, uid: uid);
-/// ```
 final firestoreProvider = Provider<FirestoreService>((ref) {
   return FirestoreService();
 });
 
 /// Provider for the SongRepository.
-///
-/// Usage:
-/// ```dart
-/// final songRepo = ref.read(songRepositoryProvider);
-/// await songRepo.saveSong(song, uid);
-/// ```
 final songRepositoryProvider = Provider<SongRepository>((ref) {
   return FirestoreSongRepository();
 });
 
 /// Provider for the BandRepository.
-///
-/// Usage:
-/// ```dart
-/// final bandRepo = ref.read(bandRepositoryProvider);
-/// await bandRepo.saveBand(band, uid);
-/// ```
 final bandRepositoryProvider = Provider<BandRepository>((ref) {
   return FirestoreBandRepository();
 });
 
 /// Provider for the SetlistRepository.
-///
-/// Usage:
-/// ```dart
-/// final setlistRepo = ref.read(setlistRepositoryProvider);
-/// await setlistRepo.saveSetlist(setlist, uid);
-/// ```
 final setlistRepositoryProvider = Provider<SetlistRepository>((ref) {
   return FirestoreSetlistRepository();
 });
 
 /// Provider for the CacheService.
-///
-/// Usage:
-/// ```dart
-/// final cache = ref.read(cacheProvider);
-/// await cache.cacheSongs(uid, songs);
-/// ```
 final cacheProvider = Provider<CacheService>((ref) {
   return CacheService();
 });
 
 /// Notifier that implements cache-first strategy for songs.
 ///
-/// Strategy:
-/// 1. Return cached data immediately
-/// 2. Fetch from network in background
-/// 3. Update cache and notify listeners
-///
-/// IMPORTANT: Properly disposes stream subscriptions to prevent memory leaks.
+/// IMPORTANT: Properly disposes resources to prevent memory leaks.
 class CachedSongsNotifier extends Notifier<AsyncValue<List<Song>>> {
   StreamSubscription<List<Song>>? _subscription;
 
@@ -88,7 +53,6 @@ class CachedSongsNotifier extends Notifier<AsyncValue<List<Song>>> {
 
   /// Loads songs using cache-first strategy.
   Future<void> loadSongs(String uid) async {
-    // Step 1: Return cached data immediately
     final cache = ref.read(cacheProvider);
     final cachedSongs = await cache.getCachedSongs(uid);
 
@@ -100,18 +64,15 @@ class CachedSongsNotifier extends Notifier<AsyncValue<List<Song>>> {
       state = const AsyncValue.loading();
     }
 
-    // Step 2: Fetch from network in background
     try {
       final songRepo = ref.read(songRepositoryProvider);
       final songs = await songRepo.watchSongs(uid).first;
 
-      // Step 3: Update cache and notify listeners
       await cache.cacheSongs(uid, songs);
       debugPrint('🌐 ONLINE: Successfully loaded ${songs.length} songs from network for user $uid');
       state = AsyncValue.data(songs);
     } catch (e, st) {
       debugPrint('❌ OFFLINE/ERROR: Failed to load songs from network: $e');
-      // If network fails, keep cached data if available
       if (cachedSongs.isNotEmpty) {
         debugPrint('📦 FALLBACK: Using ${cachedSongs.length} cached songs due to network error');
         state = AsyncValue.data(cachedSongs);
@@ -120,43 +81,6 @@ class CachedSongsNotifier extends Notifier<AsyncValue<List<Song>>> {
         state = AsyncValue.error(e, st);
       }
     }
-  }
-
-  /// Watches songs with cache-first strategy and real-time updates.
-  void watchSongsWithCache(String uid) {
-    // Cancel existing subscription if any
-    _subscription?.cancel();
-
-    // Load initial cached data
-    loadSongs(uid);
-
-    // Set up real-time listener
-    final songRepo = ref.read(songRepositoryProvider);
-    final cache = ref.read(cacheProvider);
-
-    _subscription = songRepo
-        .watchSongs(uid)
-        .listen(
-          (songs) async {
-            // Update cache on every real-time update
-            await cache.cacheSongs(uid, songs);
-            debugPrint('🔄 REAL-TIME: Updated ${songs.length} songs from Firestore stream');
-            state = AsyncValue.data(songs);
-          },
-          onError: (error, stackTrace) {
-            debugPrint('❌ STREAM ERROR: Real-time song stream error: $error');
-            // On error, try to show cached data
-            cache.getCachedSongs(uid).then((cachedSongs) {
-              if (cachedSongs.isNotEmpty) {
-                debugPrint('📦 STREAM FALLBACK: Using ${cachedSongs.length} cached songs');
-                state = AsyncValue.data(cachedSongs);
-              } else {
-                debugPrint('⚠️ STREAM NO CACHE: No cache available for stream error');
-                state = AsyncValue.error(error, stackTrace);
-              }
-            });
-          },
-        );
   }
 }
 
@@ -168,26 +92,27 @@ final cachedSongsProvider =
 
 /// Stream provider that watches songs for the current user with caching.
 ///
-/// This provider:
-/// 1. Immediately returns cached data if available
-/// 2. Updates cache from network stream in background
-/// 3. Continues to work offline with cached data
+/// FIX: Now properly handles AsyncValue<User?> from currentUserProvider
+/// to avoid null check errors during auth state transitions.
 final songsProvider = StreamProvider<List<Song>>((ref) {
+  // Watch currentUserProvider as AsyncValue
   final userAsync = ref.watch(currentUserProvider);
   
-  // Handle loading and error states properly
+  // Handle all states properly
   return userAsync.when(
     data: (user) {
-      if (user == null) return Stream.value([]);
+      // User is null (not logged in)
+      if (user == null) {
+        return Stream.value([]);
+      }
       
+      // User is logged in, proceed with normal logic
       final cache = ref.watch(cacheProvider);
       final songRepo = ref.watch(songRepositoryProvider);
 
-      // Return a stream that first emits cached data, then network updates
       return Stream.multi((listener) {
         bool hasEmittedCache = false;
 
-        // Emit cached data immediately
         cache.getCachedSongs(user.uid).then((cachedSongs) {
           if (cachedSongs.isNotEmpty && !listener.isClosed) {
             listener.add(cachedSongs);
@@ -195,19 +120,16 @@ final songsProvider = StreamProvider<List<Song>>((ref) {
           }
         });
 
-        // Listen to network updates
         final subscription = songRepo
             .watchSongs(user.uid)
             .listen(
               (songs) async {
-                // Update cache
                 await cache.cacheSongs(user.uid, songs);
                 if (!listener.isClosed) {
                   listener.add(songs);
                 }
               },
               onError: (error) {
-                // On error, emit cached data if not already emitted
                 if (!hasEmittedCache && !listener.isClosed) {
                   cache.getCachedSongs(user.uid).then((cachedSongs) {
                     if (!listener.isClosed) {
@@ -223,8 +145,14 @@ final songsProvider = StreamProvider<List<Song>>((ref) {
         };
       });
     },
-    loading: () => Stream.value([]),
-    error: (error, stack) => Stream.value([]),
+    loading: () {
+      // Return empty stream while loading
+      return Stream.value([]);
+    },
+    error: (_, __) {
+      // Return empty stream on error
+      return Stream.value([]);
+    },
   );
 });
 
@@ -291,12 +219,16 @@ final cachedBandsProvider =
     });
 
 /// Stream provider that watches bands for the current user with caching.
+///
+/// FIX: Now properly handles AsyncValue<User?> from currentUserProvider
 final bandsProvider = StreamProvider<List<Band>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
   
   return userAsync.when(
     data: (user) {
-      if (user == null) return Stream.value([]);
+      if (user == null) {
+        return Stream.value([]);
+      }
       
       final cache = ref.watch(cacheProvider);
       final bandRepo = ref.watch(bandRepositoryProvider);
@@ -337,7 +269,7 @@ final bandsProvider = StreamProvider<List<Band>>((ref) {
       });
     },
     loading: () => Stream.value([]),
-    error: (error, stack) => Stream.value([]),
+    error: (_, __) => Stream.value([]),
   );
 });
 
@@ -389,12 +321,16 @@ final cachedSetlistsProvider =
     });
 
 /// Stream provider that watches setlists for the current user with caching.
+///
+/// FIX: Now properly handles AsyncValue<User?> from currentUserProvider
 final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
   
   return userAsync.when(
     data: (user) {
-      if (user == null) return Stream.value([]);
+      if (user == null) {
+        return Stream.value([]);
+      }
       
       final cache = ref.watch(cacheProvider);
       final setlistRepo = ref.watch(setlistRepositoryProvider);
@@ -435,7 +371,7 @@ final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
       });
     },
     loading: () => Stream.value([]),
-    error: (error, stack) => Stream.value([]),
+    error: (_, __) => Stream.value([]),
   );
 });
 
@@ -485,20 +421,18 @@ final bandSongsProvider = StreamProvider.family<List<Song>, String>((
 
 /// Provider that returns the count of songs.
 final songCountProvider = Provider<int>((ref) {
-  return ref.watch(songsProvider).whenOrNull(data: (songs) => songs.length) ??
-      0;
+  final songsAsync = ref.watch(songsProvider);
+  return songsAsync.whenOrNull(data: (songs) => songs.length) ?? 0;
 });
 
 /// Provider that returns the count of bands.
 final bandCountProvider = Provider<int>((ref) {
-  return ref.watch(bandsProvider).whenOrNull(data: (bands) => bands.length) ??
-      0;
+  final bandsAsync = ref.watch(bandsProvider);
+  return bandsAsync.whenOrNull(data: (bands) => bands.length) ?? 0;
 });
 
 /// Provider that returns the count of setlists.
 final setlistCountProvider = Provider<int>((ref) {
-  return ref
-          .watch(setlistsProvider)
-          .whenOrNull(data: (setlists) => setlists.length) ??
-      0;
+  final setlistsAsync = ref.watch(setlistsProvider);
+  return setlistsAsync.whenOrNull(data: (setlists) => setlists.length) ?? 0;
 });

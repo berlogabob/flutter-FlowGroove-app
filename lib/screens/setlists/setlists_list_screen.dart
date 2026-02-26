@@ -88,7 +88,8 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
 
     // Save the reordered setlists to Firestore
     final service = ref.read(firestoreProvider);
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user != null) {
       // Update order for all setlists
       for (int i = 0; i < setlists.length; i++) {
@@ -107,7 +108,8 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
 
     final adapter = adapters[index];
     final setlist = adapter.setlist;
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
 
     if (user != null) {
       await ref.read(firestoreProvider).deleteSetlist(setlist.id, uid: user.uid);

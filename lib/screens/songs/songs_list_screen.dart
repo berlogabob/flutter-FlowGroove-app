@@ -759,7 +759,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
     if (!confirmed) return;
 
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user == null) return;
 
     try {
@@ -817,7 +818,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
   /// Add a song to a band.
   Future<void> _addToBand(Song song, String bandId) async {
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user == null) return;
 
     try {

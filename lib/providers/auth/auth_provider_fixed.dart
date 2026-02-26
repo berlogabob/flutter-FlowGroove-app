@@ -10,7 +10,6 @@ final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
 });
 
 /// Provider for the CacheService.
-/// Exported from data_providers but also available here for auth operations.
 final cacheServiceProvider = Provider<CacheService>((ref) {
   return CacheService();
 });
@@ -23,11 +22,21 @@ final authStateProvider = StreamProvider<User?>((ref) {
   return ref.watch(firebaseAuthProvider).authStateChanges();
 });
 
-/// Provider that returns the current Firebase user as an AsyncValue.
+/// Provider that returns the current Firebase user as AsyncValue.
 ///
-/// This returns the same AsyncValue<User?> as authStateProvider,
-/// providing a convenient way to access the current user with proper
-/// loading/error state handling.
+/// FIX: Changed from returning User? to AsyncValue<User?> to properly
+/// handle loading and error states without returning null.
+///
+/// Usage:
+/// ```dart
+/// // In widgets:
+/// final userAsync = ref.watch(currentUserProvider);
+/// userAsync.when(
+///   data: (user) => Text(user?.email ?? 'Not logged in'),
+///   loading: () => CircularProgressIndicator(),
+///   error: (e, _) => Text('Error: $e'),
+/// );
+/// ```
 final currentUserProvider = Provider<AsyncValue<User?>>((ref) {
   return ref.watch(authStateProvider);
 });

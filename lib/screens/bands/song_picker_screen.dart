@@ -273,7 +273,8 @@ class CachedUserSongsNotifier extends Notifier<AsyncValue<List<Song>>> {
   }
 
   void loadSongs() async {
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user == null) {
       debugPrint('⚠️ NO USER: Cannot load songs, user not authenticated');
       state = const AsyncValue.data([]);

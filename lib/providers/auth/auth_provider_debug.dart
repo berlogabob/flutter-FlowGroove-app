@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/api_error.dart';
@@ -10,32 +11,31 @@ final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
 });
 
 /// Provider for the CacheService.
-/// Exported from data_providers but also available here for auth operations.
 final cacheServiceProvider = Provider<CacheService>((ref) {
   return CacheService();
 });
 
 /// Provider that watches the Firebase auth state.
-///
-/// Returns a stream of User? that emits the current user
-/// whenever the auth state changes.
 final authStateProvider = StreamProvider<User?>((ref) {
-  return ref.watch(firebaseAuthProvider).authStateChanges();
+  final auth = ref.watch(firebaseAuthProvider);
+  debugPrint('🔍 [AUTH_STATE] Setting up auth state listener');
+  return auth.authStateChanges();
 });
 
-/// Provider that returns the current Firebase user as an AsyncValue.
-///
-/// This returns the same AsyncValue<User?> as authStateProvider,
-/// providing a convenient way to access the current user with proper
-/// loading/error state handling.
-final currentUserProvider = Provider<AsyncValue<User?>>((ref) {
-  return ref.watch(authStateProvider);
+/// Provider that returns the current Firebase user.
+/// 
+/// ⚠️ BUG LOCATION: This can return null when authState is loading/error!
+final currentUserProvider = Provider<User?>((ref) {
+  final authState = ref.watch(authStateProvider);
+  debugPrint('🔍 [CURRENT_USER] authState state: ${authState.isLoading ? 'LOADING' : authState.hasError ? 'ERROR' : 'DATA'}');
+  
+  final user = authState.value;
+  debugPrint('🔍 [CURRENT_USER] user value: ${user == null ? 'NULL' : user.uid}');
+  
+  return user;
 });
 
 /// Provider for the AppUser state with error handling.
-///
-/// This provider watches the auth state and converts Firebase User
-/// to AppUser, handling errors appropriately.
 final appUserProvider = NotifierProvider<AppUserNotifier, AsyncValue<AppUser?>>(
   () {
     return AppUserNotifier();
@@ -43,37 +43,41 @@ final appUserProvider = NotifierProvider<AppUserNotifier, AsyncValue<AppUser?>>(
 );
 
 /// Notifier for managing AppUser state.
-///
-/// IMPORTANT: Properly disposes resources to prevent memory leaks.
 class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   @override
   AsyncValue<AppUser?> build() {
+    debugPrint('🔍 [APP_USER_NOTIFIER] build() called');
     final authState = ref.watch(authStateProvider);
+    debugPrint('🔍 [APP_USER_NOTIFIER] authState: ${authState.isLoading ? 'LOADING' : authState.hasError ? 'ERROR' : 'DATA'}');
 
     return authState.when(
       data: (user) {
+        debugPrint('🔍 [APP_USER_NOTIFIER] data callback: user=${user == null ? 'NULL' : user.uid}');
         if (user != null) {
           String displayName = user.displayName ?? '';
           if (displayName.isEmpty) {
-            // Use email or fallback to 'User'
             final emailPrefix = user.email?.split('@').first ?? 'User';
             displayName = emailPrefix.isNotEmpty ? emailPrefix : 'User';
           }
-          return AsyncValue.data(
-            AppUser(
-              uid: user.uid,
-              email: user.email,
-              displayName: displayName.isNotEmpty ? displayName : 'User',
-              photoURL: user.photoURL,
-              createdAt: DateTime.now(),
-            ),
+          final appUser = AppUser(
+            uid: user.uid,
+            email: user.email,
+            displayName: displayName.isNotEmpty ? displayName : 'User',
+            photoURL: user.photoURL,
+            createdAt: DateTime.now(),
           );
+          debugPrint('🔍 [APP_USER_NOTIFIER] Created AppUser: ${appUser.uid}');
+          return AsyncValue.data(appUser);
         }
+        debugPrint('🔍 [APP_USER_NOTIFIER] Returning null AppUser');
         return const AsyncValue.data(null);
       },
-      loading: () => const AsyncValue.loading(),
+      loading: () {
+        debugPrint('🔍 [APP_USER_NOTIFIER] Loading state');
+        return const AsyncValue.loading();
+      },
       error: (error, stack) {
-        // Convert Firebase auth errors to ApiError
+        debugPrint('🔍 [APP_USER_NOTIFIER] Error state: $error');
         final apiError = ApiError.fromException(error, stackTrace: stack);
         return AsyncValue.error(apiError, stack);
       },
@@ -82,31 +86,31 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
 
   @override
   void dispose() {
-    // No stream subscriptions to cancel
-    // Riverpod automatically manages ref.watch subscriptions
+    debugPrint('🔍 [APP_USER_NOTIFIER] dispose() called');
   }
 
   /// Signs out the current user.
-  ///
-  /// Clears the user's cache before signing out.
-  /// Throws [ApiError] if sign out fails.
   Future<void> signOut() async {
+    debugPrint('🔍 [APP_USER_NOTIFIER] signOut() called');
     try {
-      // Get current user UID before signing out
       final user = ref.read(firebaseAuthProvider).currentUser;
+      debugPrint('🔍 [APP_USER_NOTIFIER] signOut: currentUser=${user?.uid ?? 'NULL'}');
+      
       if (user != null) {
-        // Clear cache for this user
         final cache = ref.read(cacheServiceProvider);
         await cache.clearAllUserCache(user.uid);
       }
 
       await ref.read(firebaseAuthProvider).signOut();
+      debugPrint('🔍 [APP_USER_NOTIFIER] signOut: Success');
       state = const AsyncValue.data(null);
     } on FirebaseAuthException catch (e, stackTrace) {
+      debugPrint('🔍 [APP_USER_NOTIFIER] signOut: FirebaseAuthException: $e');
       final apiError = _mapFirebaseAuthException(e);
       state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
     } catch (e, stackTrace) {
+      debugPrint('🔍 [APP_USER_NOTIFIER] signOut: Exception: $e');
       final apiError = ApiError.fromException(e, stackTrace: stackTrace);
       state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
@@ -114,22 +118,28 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   }
 
   /// Signs in with email and password.
-  ///
-  /// Throws [ApiError] if sign in fails.
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
+    debugPrint('🔍 [APP_USER_NOTIFIER] signInWithEmailAndPassword() called');
+    debugPrint('🔍 [APP_USER_NOTIFIER] Email: $email');
+    
     try {
+      debugPrint('🔍 [APP_USER_NOTIFIER] Calling Firebase signInWithEmailAndPassword');
       final credential = await ref
           .read(firebaseAuthProvider)
           .signInWithEmailAndPassword(email: email, password: password);
+      debugPrint('🔍 [APP_USER_NOTIFIER] Firebase signIn success: ${credential.user?.uid}');
       return credential;
     } on FirebaseAuthException catch (e, stackTrace) {
+      debugPrint('🔍 [APP_USER_NOTIFIER] FirebaseAuthException: ${e.code} - ${e.message}');
       final apiError = _mapFirebaseAuthException(e);
       state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
     } catch (e, stackTrace) {
+      debugPrint('🔍 [APP_USER_NOTIFIER] Exception: $e');
+      debugPrint('🔍 [APP_USER_NOTIFIER] Stack: $stackTrace');
       final apiError = ApiError.fromException(e, stackTrace: stackTrace);
       state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
@@ -137,12 +147,11 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   }
 
   /// Creates a new user with email and password.
-  ///
-  /// Throws [ApiError] if registration fails.
   Future<UserCredential> createUserWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
+    debugPrint('🔍 [APP_USER_NOTIFIER] createUserWithEmailAndPassword() called');
     try {
       final credential = await ref
           .read(firebaseAuthProvider)
@@ -160,9 +169,8 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   }
 
   /// Sends a password reset email.
-  ///
-  /// Throws [ApiError] if the request fails.
   Future<void> sendPasswordResetEmail(String email) async {
+    debugPrint('🔍 [APP_USER_NOTIFIER] sendPasswordResetEmail() called');
     try {
       await ref.read(firebaseAuthProvider).sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
@@ -174,8 +182,9 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
-  /// Maps Firebase Auth exceptions to ApiError with user-friendly messages.
+  /// Maps Firebase Auth exceptions to ApiError.
   ApiError _mapFirebaseAuthException(FirebaseAuthException e) {
+    debugPrint('🔍 [APP_USER_NOTIFIER] _mapFirebaseAuthException: ${e.code}');
     switch (e.code) {
       case 'user-not-found':
         return ApiError.auth(
