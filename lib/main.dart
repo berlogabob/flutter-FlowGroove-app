@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
@@ -26,6 +27,11 @@ void main() async {
   }
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Set Firebase Auth persistence to LOCAL (persist across app restarts)
+  // This is the default for web, but we set it explicitly to ensure it works
+  await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+  
   runApp(const ProviderScope(child: RepSyncApp()));
 }
 
