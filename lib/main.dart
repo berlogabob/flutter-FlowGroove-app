@@ -30,8 +30,14 @@ void main() async {
   
   // Set Firebase Auth persistence to LOCAL (persist across app restarts)
   // This is the default for web, but we set it explicitly to ensure it works
-  await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
-  
+  // Only set on web platform
+  try {
+    await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    debugPrint('✅ Firebase Auth persistence set to LOCAL');
+  } catch (e) {
+    debugPrint('⚠️ Firebase Auth persistence already set or not supported: $e');
+  }
+
   runApp(const ProviderScope(child: RepSyncApp()));
 }
 
@@ -69,12 +75,19 @@ class RepSyncApp extends ConsumerWidget {
         // Handle loading state
         // Note: child can be null during initial route resolution
         return userAsync.when(
-          data: (user) => child ?? const SizedBox.shrink(),
-          loading: () => const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
+          data: (user) {
+            debugPrint('🟢 Auth state: DATA - user=${user?.email ?? "NULL"}');
+            return child ?? const SizedBox.shrink();
+          },
+          loading: () {
+            debugPrint('🟡 Auth state: LOADING');
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          },
           error: (error, stack) {
-            debugPrint('Auth error: $error');
+            debugPrint('🔴 Auth state: ERROR - $error');
+            debugPrint('Stack: $stack');
             return child ?? const SizedBox.shrink();
           },
         );
