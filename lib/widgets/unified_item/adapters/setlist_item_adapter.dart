@@ -49,6 +49,11 @@ class SetlistItemAdapter extends UnifiedItemModel {
   // Type-specific properties
   int get songIdsLength => setlist.songIds.length;
   String? get bandName => setlist.bandId;
-  String? get eventDate => setlist.eventDate;
+  String? get eventDate {
+    if (setlist.eventDate == null) return null;
+    final date = setlist.eventDate!;
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+
   String? get eventLocation => setlist.eventLocation;
 }

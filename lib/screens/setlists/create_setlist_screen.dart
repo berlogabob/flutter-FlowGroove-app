@@ -23,7 +23,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _eventDateController = TextEditingController();
+  DateTime? _eventDate;
   final _eventLocationController = TextEditingController();
   List<Song> _selectedSongs = [];
 
@@ -36,7 +36,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       final setlist = widget.setlist!;
       _nameController.text = setlist.name;
       _descriptionController.text = setlist.description ?? '';
-      _eventDateController.text = setlist.eventDate ?? '';
+      _eventDate = setlist.eventDate;
       _eventLocationController.text = setlist.eventLocation ?? '';
       _loadSongsForEditing(setlist.songIds);
     }
@@ -56,9 +56,37 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _eventDateController.dispose();
     _eventLocationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _eventDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: MonoPulseColors.accentOrange,
+              onPrimary: Colors.white,
+              surface: MonoPulseColors.surface,
+              onSurface: MonoPulseColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() => _eventDate = picked);
+    }
+  }
+
+  void _clearDate() {
+    setState(() => _eventDate = null);
   }
 
   void _showSongPicker() async {
@@ -107,9 +135,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
           : null,
-      eventDate: _eventDateController.text.trim().isNotEmpty
-          ? _eventDateController.text.trim()
-          : null,
+      eventDate: _eventDate,
       eventLocation: _eventLocationController.text.trim().isNotEmpty
           ? _eventLocationController.text.trim()
           : null,
@@ -157,13 +183,56 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _eventDateController,
-              decoration: const InputDecoration(
-                labelText: 'Event Date',
-                prefixIcon: Icon(Icons.calendar_today),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: MonoPulseColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.calendar_today,
+                  color: MonoPulseColors.textSecondary,
+                ),
               ),
-              textInputAction: TextInputAction.next,
+              title: Text(
+                'Event Date',
+                style: TextStyle(
+                  color: MonoPulseColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+              subtitle: Text(
+                _eventDate != null
+                    ? '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}'
+                    : 'Tap to select date',
+                style: TextStyle(
+                  color: _eventDate != null
+                      ? MonoPulseColors.textPrimary
+                      : MonoPulseColors.textTertiary,
+                  fontSize: 16,
+                ),
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_eventDate != null)
+                    IconButton(
+                      icon: const Icon(
+                        Icons.clear,
+                        color: MonoPulseColors.textSecondary,
+                      ),
+                      onPressed: _clearDate,
+                    ),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                ],
+              ),
+              onTap: _pickDate,
             ),
             const SizedBox(height: 16),
             TextFormField(

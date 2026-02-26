@@ -15,6 +15,7 @@ import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/unified_item/unified_item_list.dart';
 import '../../../widgets/unified_item/unified_item_model.dart';
 import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../../widgets/unified_item/unified_filter_sort_widget.dart';
 import 'song_picker_screen.dart';
 
 /// Screen for displaying a band's shared songs.
@@ -34,6 +35,7 @@ class BandSongsScreen extends ConsumerStatefulWidget {
 class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   String _searchQuery = '';
   String? _filterContributor;
+  SortOption _sortOption = SortOption.alphabetical;
 
   /// Get the current user's role in the band.
   String? get _userRole {
@@ -76,6 +78,24 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       filtered = filtered.where((song) {
         return song.contributedBy == _filterContributor;
       }).toList();
+    }
+
+    // Apply sorting
+    switch (_sortOption) {
+      case SortOption.alphabetical:
+        filtered.sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
+        break;
+      case SortOption.dateAdded:
+        filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
+      case SortOption.dateModified:
+        filtered.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        break;
+      case SortOption.manual:
+        // Keep current order for manual
+        break;
     }
 
     return filtered;
@@ -221,13 +241,48 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   ) {
     return Column(
       children: [
-        // Search field
+        // Search and sort row
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: CustomTextField(
-            hint: 'Search songs...',
-            prefixIcon: Icons.search,
-            onChanged: (value) => setState(() => _searchQuery = value),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: CustomTextField(
+                  hint: 'Search songs...',
+                  prefixIcon: Icons.search,
+                  onChanged: (value) => setState(() => _searchQuery = value),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: MonoPulseColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.sort,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: MonoPulseColors.surface,
+                      builder: (context) => UnifiedFilterSortWidget(
+                        currentSort: _sortOption,
+                        onSortChanged: (option) {
+                          if (option != null) {
+                            setState(() => _sortOption = option);
+                          }
+                          Navigator.pop(context);
+                        },
+                        onFilterChanged: (_) {},
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
         // Contributor filter chips
@@ -306,7 +361,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     context.pushNamed(
       'edit-song',
       pathParameters: {'id': song.id},
-      extra: song,
+      extra: {'song': song, 'bandId': widget.band.id},
     );
   }
 
