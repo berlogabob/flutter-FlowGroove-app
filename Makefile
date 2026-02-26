@@ -1,14 +1,14 @@
 # Makefile for Flutter RepSync App
 # Build, Deploy, and Release Automation
 
-.PHONY: help build-web build-android build-all deploy-web deploy-android release increment-version clean test analyze
+.PHONY: help build-web build-android build-all deploy-web deploy-android release increment-version clean test analyze agents-check agents-format
 
 # Default target
 help:
 	@echo "Flutter RepSync App - Build Commands"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make increment-version    - Increment build number (e.g., 0.10.1+1 → 0.10.1+2)"
+	@echo "  make increment-version    - Increment build number (e.g., 0.11.2+70 → 0.11.2+71)"
 	@echo "  make build-web            - Build for web (GitHub Pages)"
 	@echo "  make build-android        - Build for Android (APK)"
 	@echo "  make build-appbundle      - Build for Android App Bundle (Play Store)"
@@ -18,17 +18,17 @@ help:
 	@echo "  make release              - Full release: increment + build + deploy + GitHub Release"
 	@echo "  make github-release       - Create GitHub Release only (with APK + AAB)"
 	@echo "  make release-notes        - Generate release notes from git log"
-	@echo "  make icons                - Generate app icons from logo (SOURCE=path/to/logo.png)"
+	@echo "  make icons                - Generate app icons from logo"
 	@echo "  make clean                - Clean build artifacts"
 	@echo "  make test                 - Run all tests"
 	@echo "  make analyze              - Run flutter analyze"
+	@echo "  make agents-check         - Validate agent files in /agents"
+	@echo "  make agents-format        - Format all agent markdown files"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make release              # Full release cycle with GitHub Release"
 	@echo "  make deploy               # Quick deploy to GitHub Pages"
-	@echo "  make github-release       # Create GitHub Release with artifacts"
-	@echo "  make icons SOURCE=logo.png # Generate all app icons from logo"
-	@echo ""
+	@echo "  make agents-check"       # Verify agent system integrity
 
 # Get current version from pubspec.yaml
 CURRENT_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
@@ -44,6 +44,46 @@ increment-version:
 	@echo "✅ Version updated in pubspec.yaml"
 	@grep '^version:' pubspec.yaml
 
+# Agent system validation
+agents-check:
+	@echo "🔍 Checking agent system..."
+	@echo "  Directory: /agents"
+	@if [ ! -d "agents" ]; then \
+		echo "❌ /agents directory not found"; \
+		exit 1; \
+	fi
+	@echo "  Found $(shell find agents -name "*.md" | wc -l) agent files"
+	@echo "  Required agents:"
+	@for agent in mr-architect mr-senior-developer mr-tester mr-cleaner mr-logger mr-planner mr-release mr-repetitive mr-stupid-user mr-sync creative-director ux-agent mr-android; do \
+		if [ ! -f "agents/$$agent.md" ]; then \
+			echo "❌ Missing: agents/$$agent.md"; \
+			exit 1; \
+		else \
+			echo "✅ OK: $$agent"; \
+		fi \
+	done
+	@echo "✅ All 13 core agents present"
+	@echo "  Validating GOST format..."
+	@count=$$(grep -c "## GOST" agents/*.md 2>/dev/null || echo 0); \
+	if [ "$$count" -lt 5 ]; then \
+		echo "⚠️  Only $$count agents have GOST format (target: ≥8)"; \
+	else \
+		echo "✅ GOST format detected in $$count agents"; \
+	fi
+	@echo "✅ Agent system validation complete"
+
+# Format agent markdown files
+agents-format:
+	@echo "🎨 Formatting agent files..."
+	@for file in agents/*.md; do \
+		echo "  Formatting: $$file"; \
+		# Ensure consistent headers
+		sed -i '' '1,/---/ s/^name: .*/name: $$(basename $$file .md)/' "$$file" 2>/dev/null || true; \
+		# Normalize line endings
+		dos2unix "$$file" 2>/dev/null || true; \
+	done
+	@echo "✅ Agent formatting complete"
+
 # Build for Web (GitHub Pages)
 build-web:
 	@echo "🔨 Building web app..."
@@ -56,7 +96,7 @@ build-android:
 	@echo "🤖 Building Android APK..."
 	@flutter build apk --release
 	@echo "✅ Android build complete: build/app/outputs/flutter-apk/app-release.apk"
-	@ls -lh build/app/outputs/flutter-apk/app-release.apk
+	@ls -lh build/app/outputs/flutter-apk/app-release.apak
 
 # Build for Android App Bundle (Play Store)
 build-appbundle:
@@ -103,7 +143,7 @@ deploy: build-web
 	@echo "⏱️  Deployment takes 1-2 minutes"
 
 # Full release cycle: increment + build + deploy + GitHub Release
-release: increment-version build-web build-android build-appbundle
+release: increment-version build-web build-android build-appbundle agents-check
 	@echo ""
 	@echo "📦 Copying web build to docs/..."
 	@cp -r build/web/* docs/
