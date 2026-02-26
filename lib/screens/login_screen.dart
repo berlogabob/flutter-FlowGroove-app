@@ -62,8 +62,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
 
       if (mounted) {
-        // Navigate to main shell after successful login using GoRouter
-        GoRouter.of(context).go('/main/home');
+        // Navigate to home after successful login using GoRouter named route
+        context.goNamed('home');
       }
     } on ApiError catch (e) {
       _handleError(e);
@@ -163,7 +163,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => GoRouter.of(context).go('/forgot-password'),
+                  onPressed: () => context.goNamed('forgot-password'),
                   child: const Text('Forgot Password?'),
                 ),
               ),
@@ -190,7 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: () => GoRouter.of(context).go('/register'),
+                    onPressed: () => context.goNamed('register'),
                     child: const Text('Sign Up'),
                   ),
                 ],

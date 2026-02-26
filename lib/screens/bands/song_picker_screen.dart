@@ -254,7 +254,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
         message: 'No songs available',
         hint: 'Create some songs in your personal library first.',
         actionLabel: 'Create Song',
-        onAction: () => GoRouter.of(context).go('/main/songs/add'),
+        onAction: () => context.goNamed('add-song'),
       );
     }
     return EmptyState.search(query: _searchQuery);

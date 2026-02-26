@@ -138,7 +138,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     if (index >= adapters.length) return;
 
     final setlist = adapters[index].setlist;
-    GoRouter.of(context).push('/setlists/${setlist.id}/edit', extra: setlist);
+    context.pushNamed('edit-setlist', pathParameters: {'id': setlist.id}, extra: setlist);
   }
 
   @override
@@ -155,7 +155,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'setlists_fab',
-        onPressed: () => GoRouter.of(context).go('/main/setlists/create'),
+        onPressed: () => context.goNamed('create-setlist'),
         child: const Icon(Icons.add),
       ),
     );
@@ -205,7 +205,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
       return EmptyState.setlists(
-        onCreate: () => GoRouter.of(context).go('/main/setlists/create'),
+        onCreate: () => context.goNamed('create-setlist'),
       );
     }
     return EmptyState.search(query: _searchQuery);

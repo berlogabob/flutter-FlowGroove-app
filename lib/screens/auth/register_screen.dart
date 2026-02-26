@@ -42,7 +42,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             password: _passwordController.text,
           );
       if (mounted) {
-        GoRouter.of(context).go('/main/home');
+        context.goNamed('home');
       }
     } on FirebaseAuthException catch (e) {
       String message;
@@ -236,7 +236,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   const Text('Already have an account?'),
                   TextButton(
-                    onPressed: () => GoRouter.of(context).go('/login'),
+                    onPressed: () => context.goNamed('login'),
                     child: const Text('Sign In'),
                   ),
                 ],
