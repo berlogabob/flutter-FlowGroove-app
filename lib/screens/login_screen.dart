@@ -163,9 +163,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/forgot-password');
-                  },
+                  onPressed: () => GoRouter.of(context).go('/forgot-password'),
                   child: const Text('Forgot Password?'),
                 ),
               ),
@@ -192,7 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/register'),
+                    onPressed: () => GoRouter.of(context).go('/register'),
                     child: const Text('Sign Up'),
                   ),
                 ],
