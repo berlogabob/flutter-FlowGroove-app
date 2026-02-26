@@ -68,87 +68,22 @@ service cloud.firestore {
         newMemberUids.size() == existingBand.memberUids.size() + 1;
     }
 
-    // Helper function to validate band data on creation
-    // Ensures required fields exist and have valid types
-    function isValidBandData(data) {
-      return data != null &&
-        data.name != null && data.name is string && data.name.size() > 0 &&
-        data.memberUids != null && data.memberUids is list && data.memberUids.size() > 0 &&
-        data.adminUids != null && data.adminUids is list && data.adminUids.size() > 0 &&
-        // Prevent injection: limit field sizes
-        data.name.size() <= 100 &&
-        (data.description == null || data.description is string && data.description.size() <= 500);
-    }
-
-    // Helper function to validate band updates
-    // Prevents privilege escalation and ensures data integrity
-    function isValidBandUpdate(oldData, newData) {
-      // Admin cannot remove themselves (prevent lockout)
-      let adminUidsRemoved = oldData.adminUids.diff(newData.adminUids);
-      let isAdminRemovingSelf = adminUidsRemoved.hasAny([request.auth.uid]);
-      
-      // Member cannot remove themselves if they're the last admin
-      let isLastAdmin = oldData.adminUids.size() == 1 && 
-                        oldData.adminUids.hasAll([request.auth.uid]);
-      
-      return !isAdminRemovingSelf && 
-        !isLastAdmin &&
-        // Validate field sizes on update
-        (newData.name == null || newData.name.size() <= 100) &&
-        (newData.description == null || newData.description.size() <= 500);
-    }
-
-    // Helper function to validate song data on creation
-    // Ensures required fields exist and have valid types
-    function isValidSongData(data) {
-      return data != null &&
-        // Title is required and has reasonable length
-        data.title != null && data.title is string && 
-        data.title.size() > 0 && data.title.size() <= 200 &&
-        // Artist is required and has reasonable length
-        data.artist != null && data.artist is string &&
-        data.artist.size() > 0 && data.artist.size() <= 200 &&
-        // Optional fields with size limits
-        (data.notes == null || data.notes is string && data.notes.size() <= 5000) &&
-        (data.lyrics == null || data.lyrics is string && data.lyrics.size() <= 10000);
-    }
-
-    // Helper function to validate song updates
-    // Prevents field size overflow
-    function isValidSongUpdate(oldData, newData) {
-      return (newData.title == null || newData.title.size() <= 200) &&
-        (newData.artist == null || newData.artist.size() <= 200) &&
-        (newData.notes == null || newData.notes.size() <= 5000) &&
-        (newData.lyrics == null || newData.lyrics.size() <= 10000);
-    }
-
     // ============================================================
     // Global Bands Collection
     // ============================================================
     // Stores all bands in a single collection for cross-user access
     match /bands/{bandId} {
-      // Read: Only band members can read band data
-      // This prevents unauthorized users from browsing all bands
-      // Exception: Allow query by inviteCode for joining bands
-      allow read: if isAuthenticated() && (
-        isGlobalBandMember(bandId) ||
-        // Allow reading band when querying by inviteCode (for join flow)
-        // This is safe because inviteCode is a secret shared only with intended users
-        (request.query.keys.hasAll(['inviteCode']) && 
-         request.query.values.hasAny([resource.data.inviteCode]))
-      );
+      // Any authenticated user can read bands (needed for join by code)
+      allow read: if isAuthenticated();
 
       // Create: Any authenticated user can create a band (must be in members list)
-      // Validation: Ensure required fields exist and memberUids is not empty
       allow create: if isAuthenticated() &&
-        isCreatorInMembers(request.resource.data.memberUids) &&
-        isValidBandData(request.resource.data);
+        isCreatorInMembers(request.resource.data.memberUids);
 
       // Update: Only band admins can update band details
       // OR user can add themselves to members (join band flow)
-      // Validation: Prevent privilege escalation
       allow update: if isAuthenticated() && (
-        isGlobalBandAdmin(bandId) && isValidBandUpdate(resource.data, request.resource.data) ||
+        isGlobalBandAdmin(bandId) || 
         isSelfJoinOnly(bandId)
       );
 
@@ -165,16 +100,10 @@ service cloud.firestore {
       allow read: if isAuthenticated() && isGlobalBandMember(bandId);
 
       // Band editors/admins can create
-      // Validation: Ensure song data is valid
-      allow create: if isAuthenticated() && 
-        isGlobalBandEditorOrAdmin(bandId) &&
-        isValidSongData(request.resource.data);
+      allow create: if isAuthenticated() && isGlobalBandEditorOrAdmin(bandId);
 
       // Band editors/admins can update
-      // Validation: Prevent field size overflow
-      allow update: if isAuthenticated() && 
-        isGlobalBandEditorOrAdmin(bandId) &&
-        isValidSongUpdate(resource.data, request.resource.data);
+      allow update: if isAuthenticated() && isGlobalBandEditorOrAdmin(bandId);
 
       // Band admins can delete
       allow delete: if isAuthenticated() && isGlobalBandAdmin(bandId);
