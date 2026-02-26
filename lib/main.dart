@@ -60,14 +60,15 @@ class RepSyncApp extends ConsumerWidget {
       themeMode: ThemeMode.dark,
       routerConfig: appRouter,
       builder: (context, child) {
+        // Handle loading state
         return userAsync.when(
-          data: (user) => child ?? const SizedBox.shrink(),
+          data: (user) => child!,  // child is never null in router
           loading: () => const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           ),
           error: (error, stack) {
             debugPrint('Auth error: $error');
-            return child ?? const SizedBox.shrink();
+            return child!;  // Show the route even on error
           },
         );
       },
