@@ -33,8 +33,13 @@ class FirestoreService {
   /// Helper method to get current user UID.
   /// Throws [ApiError] if not authenticated.
   String get _currentUserId {
-    _requireAuth();
-    return _auth.currentUser!.uid;
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw ApiError.auth(
+        message: 'Authentication required. Please sign in to continue.',
+      );
+    }
+    return user.uid;
   }
 
   // ============================================================
@@ -528,7 +533,12 @@ class FirestoreService {
   }) async {
     try {
       _requireAuth();
-      final user = _auth.currentUser!;
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw ApiError.auth(
+          message: 'Authentication required. Please sign in to continue.',
+        );
+      }
       final uid = contributorId ?? user.uid;
       final name = contributorName ?? user.displayName ?? user.email ?? 'Unknown';
 
@@ -577,7 +587,12 @@ class FirestoreService {
   Future<void> addSongToBandById(String songId, String bandId) async {
     try {
       _requireAuth();
-      final user = _auth.currentUser!;
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw ApiError.auth(
+          message: 'Authentication required. Please sign in to continue.',
+        );
+      }
 
       // Get the song from user's personal library
       final songDoc = await _firestore

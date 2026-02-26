@@ -23,8 +23,13 @@ class FirestoreBandRepository implements BandRepository {
 
   /// Helper method to get current user UID.
   String get _currentUserId {
-    _requireAuth();
-    return _auth.currentUser!.uid;
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw ApiError.auth(
+        message: 'Authentication required. Please sign in to continue.',
+      );
+    }
+    return user.uid;
   }
 
   @override
