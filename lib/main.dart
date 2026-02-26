@@ -43,10 +43,10 @@ class RepSyncApp extends ConsumerWidget {
         data: (user) {
           if (user != null && previous?.value == null) {
             // User just logged in - navigate to home
-            context.go('/main/home');
+            GoRouter.of(context).goNamed('home');
           } else if (user == null && previous?.value != null) {
             // User just logged out - navigate to login
-            context.go('/login');
+            GoRouter.of(context).goNamed('login');
           }
         },
       );
