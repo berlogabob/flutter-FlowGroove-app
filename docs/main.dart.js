@@ -113108,12 +113108,14 @@ case"too-many-requests":return A.fq(a,"Too many failed attempts. Please try agai
 case"operation-not-allowed":return A.fq(a,"This sign-in method is not enabled.",s)
 default:return A.c3(a,s)}}}
 A.ajg.prototype={
-$1(a){var s,r,q
+$1(a){var s,r,q,p,o="User"
 if(a!=null){s=a.a.c.a
 r=s.c
 if(r==null)r=""
-if(r.length===0&&s.b!=null)r=B.l.ga5(s.b.split("@"))
-q=r.length!==0?r:"User"
+if(r.length===0){q=s.b
+p=q==null?null:B.l.ga5(q.split("@"))
+if(p==null)p=o
+r=p.length!==0?p:o}q=r.length!==0?r:o
 return A.Hi(new A.eZ(s.a,q,s.b,s.d,new A.by(Date.now(),0,!1)),t.ih)}return B.vr},
 $S:689}
 A.aji.prototype={
