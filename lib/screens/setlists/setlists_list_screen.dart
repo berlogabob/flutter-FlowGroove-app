@@ -153,7 +153,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     final setlistsAsync = ref.watch(setlistsProvider);
 
     return Scaffold(
-      appBar: CustomAppBar.buildNoBack(
+      appBar: CustomAppBar.build(
         context,
         title: 'Setlists',
         menuItems: [

@@ -202,7 +202,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
-      appBar: CustomAppBar.buildNoBack(
+      appBar: CustomAppBar.build(
         context,
         title: 'My Bands',
         menuItems: [
