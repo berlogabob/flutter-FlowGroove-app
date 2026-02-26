@@ -126,7 +126,8 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     );
 
     if (confirmed) {
-      final user = ref.read(currentUserProvider);
+      final userAsync = ref.read(currentUserProvider);
+      final user = userAsync.value;
       if (user != null) {
         try {
           final service = ref.read(firestoreProvider);

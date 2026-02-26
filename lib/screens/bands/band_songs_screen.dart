@@ -33,7 +33,8 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
 
   /// Get the current user's role in the band.
   String? get _userRole {
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user == null) return null;
 
     final member = widget.band.members.firstWhere(

@@ -131,7 +131,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   Future<void> _saveSong() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user == null) {
       handleError(ApiError.auth(message: 'Please login to save songs.'));
       return;
