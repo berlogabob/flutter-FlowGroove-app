@@ -50,8 +50,10 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       data: (user) {
         if (user != null) {
           String displayName = user.displayName ?? '';
-          if (displayName.isEmpty && user.email != null) {
-            displayName = user.email!.split('@').first;
+          if (displayName.isEmpty) {
+            // Use email or fallback to 'User'
+            final emailPrefix = user.email?.split('@').first ?? 'User';
+            displayName = emailPrefix.isNotEmpty ? emailPrefix : 'User';
           }
           return AsyncValue.data(
             AppUser(
