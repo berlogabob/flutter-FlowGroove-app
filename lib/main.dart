@@ -26,24 +26,18 @@ void main() async {
     );
   }
 
-  // Set Firebase Auth persistence to LOCAL BEFORE initialization
+  // Initialize Firebase first
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('✅ Firebase initialized');
+
+  // Set Firebase Auth persistence AFTER initialization
   // This ensures auth state persists across app restarts and backgrounding
-  // CRITICAL: Must be set BEFORE Firebase.initializeApp()
   try {
     await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
     debugPrint('✅ Firebase Auth persistence set to LOCAL');
-
-    // Verify persistence was actually set
-    debugPrint(
-      '🔍 Persistence verification: Setting LOCAL persistence confirmed',
-    );
   } catch (e) {
     debugPrint('⚠️ Firebase Auth persistence already set or not supported: $e');
   }
-
-  // Initialize Firebase AFTER setting persistence
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  debugPrint('✅ Firebase initialized with auth persistence');
 
   // Check if user is already logged in (from previous session)
   final currentUser = FirebaseAuth.instance.currentUser;
