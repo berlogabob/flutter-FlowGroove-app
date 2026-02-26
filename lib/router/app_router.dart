@@ -180,7 +180,10 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'join-band',
           name: 'join-band',
-          builder: (context, state) => const JoinBandScreen(),
+          builder: (context, state) {
+            final code = state.uri.queryParameters['code'];
+            return JoinBandScreen(inviteCode: code);
+          },
         ),
 
         // Setlists routes

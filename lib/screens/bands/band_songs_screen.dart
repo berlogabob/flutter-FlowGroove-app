@@ -390,10 +390,13 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       return;
     }
 
+    // Use Firebase hosting URL (you can configure custom domain in Firebase Console)
+    const String domain = 'repsync-app-8685c.web.app';
+
     final shareText =
         'Join my band "${widget.band.name}" on RepSync!\n\n'
         'Use invite code: $inviteCode\n\n'
-        'Or use this link: repsync.app/join-band?code=$inviteCode';
+        'Or click the link: https://$domain/join-band?code=$inviteCode';
 
     await Share.share(
       shareText,
