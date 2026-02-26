@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../models/song.dart';
 import '../../../models/band.dart';
 import '../../../providers/auth/auth_provider.dart';
@@ -252,7 +253,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         builder: (context) => SongPickerScreen(band: widget.band),
       ),
     );
-    
+
     // Refresh songs if songs were added
     if (result == true && mounted) {
       ref.invalidate(bandSongsProvider(widget.band.id));
@@ -262,7 +263,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
     if (!_canEdit) return;
 
-    Navigator.pushNamed(context, '/songs/${song.id}/edit', arguments: song);
+    GoRouter.of(context).push('/songs/${song.id}/edit', extra: song);
   }
 
   Future<void> _deleteSongFromBand(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/api_error.dart';
 import '../../models/song.dart';
 import '../../models/band.dart';
@@ -490,7 +491,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'songs_fab',
-        onPressed: () => Navigator.pushNamed(context, '/songs/add'),
+        onPressed: () => GoRouter.of(context).go('/main/songs/add'),
         child: const Icon(Icons.add),
       ),
     );
@@ -695,7 +696,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
       return EmptyState.songs(
-        onAdd: () => Navigator.pushNamed(context, '/songs/add'),
+        onAdd: () => GoRouter.of(context).go('/main/songs/add'),
       );
     }
     return EmptyState.search(
@@ -736,7 +737,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
   /// Navigate to edit song screen.
   void _navigateToEdit(Song song) {
-    Navigator.pushNamed(context, '/songs/${song.id}/edit', arguments: song);
+    GoRouter.of(context).push('/songs/${song.id}/edit', extra: song);
   }
 
   /// Navigate to edit song screen by index.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
@@ -137,11 +138,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     if (index >= adapters.length) return;
 
     final setlist = adapters[index].setlist;
-    Navigator.pushNamed(
-      context,
-      '/setlists/${setlist.id}/edit',
-      arguments: setlist,
-    );
+    GoRouter.of(context).push('/setlists/${setlist.id}/edit', extra: setlist);
   }
 
   @override
@@ -158,7 +155,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'setlists_fab',
-        onPressed: () => Navigator.pushNamed(context, '/setlists/create'),
+        onPressed: () => GoRouter.of(context).go('/main/setlists/create'),
         child: const Icon(Icons.add),
       ),
     );
@@ -208,7 +205,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
       return EmptyState.setlists(
-        onCreate: () => Navigator.pushNamed(context, '/setlists/create'),
+        onCreate: () => GoRouter.of(context).go('/main/setlists/create'),
       );
     }
     return EmptyState.search(query: _searchQuery);

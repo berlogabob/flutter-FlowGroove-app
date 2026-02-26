@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/auth/auth_provider.dart';
 
@@ -41,7 +42,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             password: _passwordController.text,
           );
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/main');
+        GoRouter.of(context).go('/main/home');
       }
     } on FirebaseAuthException catch (e) {
       String message;
@@ -235,7 +236,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   const Text('Already have an account?'),
                   TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/login'),
+                    onPressed: () => GoRouter.of(context).go('/login'),
                     child: const Text('Sign In'),
                   ),
                 ],

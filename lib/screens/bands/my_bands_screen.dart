@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/api_error.dart';
 import '../../providers/data/data_providers.dart';
@@ -177,7 +178,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (bands == null || index >= bands.length) return;
 
     final band = bands[index];
-    Navigator.pushNamed(context, '/bands/${band.id}/edit', arguments: band);
+    GoRouter.of(context).push('/bands/${band.id}/edit', extra: band);
   }
 
   /// Handle band tap - navigate to band songs screen.
@@ -206,13 +207,13 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         children: [
           FloatingActionButton.small(
             heroTag: 'create',
-            onPressed: () => Navigator.pushNamed(context, '/bands/create'),
+            onPressed: () => GoRouter.of(context).go('/main/bands/create'),
             child: const Icon(Icons.add),
           ),
           const SizedBox(height: 8),
           FloatingActionButton.small(
             heroTag: 'join',
-            onPressed: () => Navigator.pushNamed(context, '/bands/join'),
+            onPressed: () => GoRouter.of(context).go('/main/join-band'),
             child: const Icon(Icons.group_add),
           ),
         ],
@@ -314,7 +315,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
       return EmptyState.bands(
-        onCreate: () => Navigator.pushNamed(context, '/bands/create'),
+        onCreate: () => GoRouter.of(context).go('/main/bands/create'),
       );
     }
     return EmptyState.search(query: _searchQuery);
@@ -342,7 +343,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   /// Handle view band songs
   void _handleViewSongs(Band band) {
-    Navigator.pushNamed(context, '/bands/${band.id}/songs', arguments: band);
+    GoRouter.of(context).push('/bands/${band.id}/songs', extra: band);
   }
 }
 

@@ -2,6 +2,7 @@
 /// Supports multi-select for adding multiple songs at once.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../models/song.dart';
 import '../../../models/band.dart';
 import '../../../providers/data/data_providers.dart';
@@ -253,7 +254,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
         message: 'No songs available',
         hint: 'Create some songs in your personal library first.',
         actionLabel: 'Create Song',
-        onAction: () => Navigator.pushNamed(context, '/songs/add'),
+        onAction: () => GoRouter.of(context).go('/main/songs/add'),
       );
     }
     return EmptyState.search(query: _searchQuery);

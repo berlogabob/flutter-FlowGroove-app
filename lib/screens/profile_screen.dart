@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../theme/mono_pulse_theme.dart';
@@ -302,11 +303,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Navigator.pop(context);
               await ref.read(appUserProvider.notifier).signOut();
               if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
+                GoRouter.of(context).go('/login');
               }
             },
             style: ElevatedButton.styleFrom(

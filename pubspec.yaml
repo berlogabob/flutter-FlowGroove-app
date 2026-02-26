@@ -49,9 +49,9 @@ dependencies:
   csv: ^7.1.0
 
   # File picker for import/export
-  file_picker: ^8.3.2
+  file_picker: ^10.3.10
   path_provider: ^2.1.5
-  share_plus: ^10.1.4
+  share_plus: ^12.0.1
 
   # Audio Recording (optional)
   flutter_sound: ^9.30.0
