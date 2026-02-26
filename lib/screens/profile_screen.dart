@@ -52,10 +52,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final appUserAsync = ref.watch(appUserProvider);
 
     return Scaffold(
-      appBar: CustomAppBar.buildSimple(
-        context,
-        title: 'Profile',
-      ),
+      appBar: CustomAppBar.buildNoBack(context, title: 'Profile'),
       body: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [

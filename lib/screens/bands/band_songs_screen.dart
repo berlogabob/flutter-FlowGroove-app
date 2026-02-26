@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../models/song.dart';
 import '../../../models/band.dart';
 import '../../../providers/auth/auth_provider.dart';
@@ -9,6 +11,7 @@ import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/confirmation_dialog.dart';
+import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/unified_item/unified_item_list.dart';
 import '../../../widgets/unified_item/unified_item_model.dart';
 import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
@@ -94,18 +97,54 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     final songsAsync = ref.watch(bandSongsProvider(widget.band.id));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${widget.band.name} Songs'),
-        actions: [
+      appBar: CustomAppBar.build(
+        context,
+        title: widget.band.name,
+        menuItems: [
+          PopupMenuItem<void>(
+            onTap: () => _showMembers(context),
+            child: const Row(
+              children: [
+                Icon(Icons.people_outline, size: 20),
+                SizedBox(width: 12),
+                Text('Members'),
+              ],
+            ),
+          ),
+          PopupMenuItem<void>(
+            onTap: () => _shareBand(context),
+            child: const Row(
+              children: [
+                Icon(Icons.share_outlined, size: 20),
+                SizedBox(width: 12),
+                Text('Share Band'),
+              ],
+            ),
+          ),
+          PopupMenuItem<void>(
+            onTap: () => _editDescription(context),
+            child: const Row(
+              children: [
+                Icon(Icons.edit_outlined, size: 20),
+                SizedBox(width: 12),
+                Text('Edit Description'),
+              ],
+            ),
+          ),
           if (_filterContributor != null)
-            IconButton(
-              icon: const Icon(Icons.filter_alt_off),
-              onPressed: () {
+            PopupMenuItem<void>(
+              onTap: () {
                 setState(() {
                   _filterContributor = null;
                 });
               },
-              tooltip: 'Clear filter',
+              child: const Row(
+                children: [
+                  Icon(Icons.filter_alt_off, size: 20),
+                  SizedBox(width: 12),
+                  Text('Clear Filter'),
+                ],
+              ),
             ),
         ],
       ),
@@ -149,15 +188,16 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                   onReorder: null,
                   onDelete: _canEdit
                       ? (index) => _deleteSongFromBand(
-                            context,
-                            ref,
-                            filteredSongs[index],
-                          )
+                          context,
+                          ref,
+                          filteredSongs[index],
+                        )
                       : null,
                   onEdit: _canEdit
                       ? (index) => _editSong(context, ref, filteredSongs[index])
                       : null,
-                  onTap: (index) => _editSong(context, ref, filteredSongs[index]),
+                  onTap: (index) =>
+                      _editSong(context, ref, filteredSongs[index]),
                   additionalActionsBuilder: _canEdit
                       ? (index) => [
                           _BuildEditAction(
@@ -263,7 +303,11 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
     if (!_canEdit) return;
 
-    context.pushNamed('edit-song', pathParameters: {'id': song.id}, extra: song);
+    context.pushNamed(
+      'edit-song',
+      pathParameters: {'id': song.id},
+      extra: song,
+    );
   }
 
   Future<void> _deleteSongFromBand(
@@ -285,6 +329,133 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     final user = ref.read(currentUserProvider);
     if (user != null) {
       await ref.read(firestoreProvider).deleteBandSong(widget.band.id, song.id);
+    }
+  }
+
+  void _showMembers(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: MonoPulseColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _buildMembersSheet(context),
+    );
+  }
+
+  Widget _buildMembersSheet(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Band Members',
+            style: MonoPulseTypography.headlineLarge.copyWith(
+              color: MonoPulseColors.textHighEmphasis,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (widget.band.members.isEmpty)
+            const Text('No members found')
+          else
+            ...widget.band.members.map(
+              (member) => ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: MonoPulseColors.accentOrange,
+                  child: Text(
+                    (member.displayName ?? member.email ?? '?')[0]
+                        .toUpperCase(),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+                title: Text(member.displayName ?? member.email ?? 'Unknown'),
+                subtitle: Text(_formatRole(member.role)),
+              ),
+            ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  void _shareBand(BuildContext context) async {
+    final inviteCode = widget.band.inviteCode;
+    if (inviteCode == null || inviteCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No invite code available for this band')),
+      );
+      return;
+    }
+
+    final shareText =
+        'Join my band "${widget.band.name}" on RepSync!\n\n'
+        'Use invite code: $inviteCode\n\n'
+        'Or use this link: repsync.app/join-band?code=$inviteCode';
+
+    await Share.share(
+      shareText,
+      subject: 'Join my band "${widget.band.name}" on RepSync',
+    );
+  }
+
+  void _editDescription(BuildContext context) {
+    final controller = TextEditingController(text: widget.band.description);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: MonoPulseColors.surface,
+        title: const Text('Edit Description'),
+        content: TextField(
+          controller: controller,
+          maxLines: 4,
+          decoration: const InputDecoration(
+            hintText: 'Enter band description...',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final userAsync = ref.read(currentUserProvider);
+              final user = userAsync.value;
+              if (user != null) {
+                await ref
+                    .read(firestoreProvider)
+                    .saveBand(
+                      widget.band.copyWith(description: controller.text),
+                      uid: user.uid,
+                    );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Description updated')),
+                  );
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatRole(String role) {
+    switch (role) {
+      case 'admin':
+        return 'Admin';
+      case 'editor':
+        return 'Editor';
+      case 'viewer':
+      default:
+        return 'Viewer';
     }
   }
 }
