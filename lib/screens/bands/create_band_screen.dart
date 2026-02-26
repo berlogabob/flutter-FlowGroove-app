@@ -77,7 +77,8 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
   }
 
   Future<void> _saveBand() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     setState(() {
       _isLoading = true;

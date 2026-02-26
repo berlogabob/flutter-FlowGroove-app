@@ -23,7 +23,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
   }
 
   Future<void> _joinBand() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     setState(() => _isLoading = true);
 

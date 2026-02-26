@@ -129,7 +129,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
 
   /// Save the song to Firestore.
   Future<void> _saveSong() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     final userAsync = ref.read(currentUserProvider);
     final user = userAsync.value;
