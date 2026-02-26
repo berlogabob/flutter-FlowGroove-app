@@ -7,6 +7,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class CreateSetlistScreen extends ConsumerStatefulWidget {
   final Setlist? setlist;
@@ -133,13 +134,11 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Setlist' : 'Create Setlist'),
-        actions: [
-          TextButton(
-            onPressed: _saveSetlist,
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
+      appBar: CustomAppBar.build(
+        context,
+        title: _isEditing ? 'Edit Setlist' : 'Create Setlist',
+        menuItems: [
+          PopupMenuItem<void>(onTap: _saveSetlist, child: const Text('Save')),
         ],
       ),
       body: Form(

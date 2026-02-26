@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../widgets/metronome/time_signature_block.dart';
 import '../widgets/metronome/central_tempo_circle.dart';
@@ -130,7 +131,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
       leading: GestureDetector(
         onTap: () {
           HapticFeedback.lightImpact();
-          Navigator.of(context).pop();
+          context.pop();
         },
         // 48px minimum touch zone
         child: SizedBox(

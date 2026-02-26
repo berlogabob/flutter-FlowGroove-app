@@ -8,6 +8,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
 import '../../widgets/error_banner.dart';
+import '../../widgets/custom_app_bar.dart';
 
 /// Screen for creating or editing a band with comprehensive error handling.
 class CreateBandScreen extends ConsumerStatefulWidget {
@@ -234,7 +235,10 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Band' : 'Create Band')),
+      appBar: CustomAppBar.build(
+        context,
+        title: _isEditing ? 'Edit Band' : 'Create Band',
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -261,7 +265,8 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
               // Error banner
               if (_currentError != null) ...[
                 ErrorBanner.banner(
-                  message: _currentError?.message ?? 'An unexpected error occurred',
+                  message:
+                      _currentError?.message ?? 'An unexpected error occurred',
                   onRetry: _saveBand,
                 ),
                 const SizedBox(height: 24),

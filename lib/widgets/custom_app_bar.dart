@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/mono_pulse_theme.dart';
 
 /// Custom AppBar with consistent back button and menu across all screens.
@@ -47,7 +48,7 @@ class CustomAppBar {
           if (onBack != null) {
             onBack();
           } else {
-            Navigator.of(context).pop();
+            context.pop();
           }
         },
         // 48px minimum touch zone
@@ -120,9 +121,7 @@ class CustomAppBar {
               ),
               const SizedBox(width: MonoPulseSpacing.md),
             ]
-          : [
-              const SizedBox(width: MonoPulseSpacing.md),
-            ],
+          : [const SizedBox(width: MonoPulseSpacing.md)],
     );
   }
 
@@ -145,7 +144,7 @@ class CustomAppBar {
           if (onBack != null) {
             onBack();
           } else {
-            Navigator.of(context).pop();
+            context.pop();
           }
         },
         // 48px minimum touch zone
