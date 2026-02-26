@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../theme/mono_pulse_theme.dart';
+import '../widgets/custom_app_bar.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -51,9 +52,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final appUserAsync = ref.watch(appUserProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: MonoPulseColors.black,
+      appBar: CustomAppBar.buildSimple(
+        context,
+        title: 'Profile',
       ),
       body: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),

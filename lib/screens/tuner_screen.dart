@@ -6,6 +6,7 @@ import '../../providers/tuner_provider.dart';
 import '../widgets/tuner/mode_switcher.dart';
 import '../widgets/tuner/central_dial.dart';
 import '../widgets/tuner/transport_bar.dart';
+import '../widgets/custom_app_bar.dart';
 
 /// Tuner Screen - Mono Pulse Design (Stage 2 - Fully Interactive)
 ///
@@ -48,12 +49,9 @@ class _TunerScreenState extends ConsumerState<TunerScreen> {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: MonoPulseColors.black,
-        appBar: AppBar(
-          title: const Text('Tuner'),
-          backgroundColor: MonoPulseColors.black,
-          foregroundColor: MonoPulseColors.textPrimary,
-          elevation: 0,
-          systemOverlayStyle: SystemUiOverlayStyle.light,
+        appBar: CustomAppBar.buildSimple(
+          context,
+          title: 'Tuner',
         ),
         body: SafeArea(child: _buildBody(context)),
       ),

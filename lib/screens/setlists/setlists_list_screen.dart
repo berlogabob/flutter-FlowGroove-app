@@ -7,6 +7,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../services/export/pdf_service.dart';
+import '../../widgets/custom_app_bar.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
@@ -146,7 +147,16 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     final setlistsAsync = ref.watch(setlistsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Setlists')),
+      appBar: CustomAppBar.build(
+        context,
+        title: 'Setlists',
+        menuItems: [
+          PopupMenuItem<void>(
+            child: const Text('Create Setlist'),
+            onTap: () => context.goNamed('create-setlist'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           OfflineIndicator.banner(),
