@@ -10,18 +10,18 @@ Firebase Auth persistence was set AFTER `Firebase.initializeApp()`, which meant:
 - User forced to re-login on every app switch
 
 ## Solution
-**One-line fix:** Move `setPersistence(Persistence.LOCAL)` BEFORE `Firebase.initializeApp()`
+**Correct approach:** Set persistence AFTER `Firebase.initializeApp()`
 
-### Before (❌ Broken)
+### Before (❌ Incorrect)
 ```dart
-await Firebase.initializeApp(options: ...);  // Loads auth with SESSION persistence
-await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);  // Too late!
+await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);  // Too early!
+await Firebase.initializeApp(options: ...);  // Persistence might not apply
 ```
 
-### After (✅ Fixed)
+### After (✅ Correct)
 ```dart
-await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);  // Set persistence FIRST
-await Firebase.initializeApp(options: ...);  // Now uses LOCAL persistence
+await Firebase.initializeApp(options: ...);  // Initialize Firebase first
+await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);  // Now persistence is set correctly
 ```
 
 ## Files Changed
