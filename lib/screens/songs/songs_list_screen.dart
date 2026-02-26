@@ -285,12 +285,17 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         // Manual sort - use stored manual order if available, otherwise maintain current order
         if (_manualOrder != null) {
           // Create a map for quick lookup
-          final songMap = Map.fromEntries(_manualOrder!.map((song) => MapEntry(song.id, song)));
-          
+          final songMap = Map.fromEntries(
+            _manualOrder!.map((song) => MapEntry(song.id, song)),
+          );
+
           // Filter and reorder based on manual order
-          filtered = filtered.where((song) => songMap.containsKey(song.id)).toList();
-          filtered.sort((a, b) => 
-            _manualOrder!.indexOf(a).compareTo(_manualOrder!.indexOf(b))
+          filtered = filtered
+              .where((song) => songMap.containsKey(song.id))
+              .toList();
+          filtered.sort(
+            (a, b) =>
+                _manualOrder!.indexOf(a).compareTo(_manualOrder!.indexOf(b)),
           );
         }
         break;
@@ -459,7 +464,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
-      appBar: CustomAppBar.build(
+      appBar: CustomAppBar.buildNoBack(
         context,
         title: 'Songs',
         menuItems: [
@@ -581,7 +586,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                 ref
                     .read(songsFilterSortProvider.notifier)
                     .setSortOption(option);
-                
+
                 // Reset manual order when switching away from manual sort
                 if (option != SortOption.manual && _manualOrder != null) {
                   setState(() {
@@ -687,9 +692,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
-      return EmptyState.songs(
-        onAdd: () => context.goNamed('add-song'),
-      );
+      return EmptyState.songs(onAdd: () => context.goNamed('add-song'));
     }
     return EmptyState.search(
       query: ref.read(songsFilterSortProvider).filterText,
@@ -729,7 +732,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
   /// Navigate to edit song screen.
   void _navigateToEdit(Song song) {
-    context.pushNamed('edit-song', pathParameters: {'id': song.id}, extra: song);
+    context.pushNamed(
+      'edit-song',
+      pathParameters: {'id': song.id},
+      extra: song,
+    );
   }
 
   /// Navigate to edit song screen by index.
@@ -793,16 +800,18 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   /// Handle reordering of songs in manual sort mode.
   void _handleReorder(int oldIndex, int newIndex) {
     // Update manual order when reordering
-    if (_manualOrder != null && oldIndex >= 0 && newIndex >= 0 && 
-        oldIndex < _manualOrder!.length && newIndex < _manualOrder!.length) {
-      
+    if (_manualOrder != null &&
+        oldIndex >= 0 &&
+        newIndex >= 0 &&
+        oldIndex < _manualOrder!.length &&
+        newIndex < _manualOrder!.length) {
       // Create a copy to avoid modifying the original list directly
       final newOrder = List<Song>.from(_manualOrder!);
-      
+
       // Move item from oldIndex to newIndex
       final item = newOrder.removeAt(oldIndex);
       newOrder.insert(newIndex, item);
-      
+
       setState(() {
         _manualOrder = newOrder;
       });

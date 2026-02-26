@@ -181,4 +181,61 @@ class CustomAppBar {
       centerTitle: true,
     );
   }
+
+  /// Builds a custom AppBar without back button (for main shell tabs).
+  ///
+  /// Use this for screens that are part of the bottom navigation
+  /// and should not have a back button.
+  static PreferredSizeWidget buildNoBack(
+    BuildContext context, {
+    required String title,
+    List<PopupMenuItem<void>>? menuItems,
+  }) {
+    return AppBar(
+      backgroundColor: MonoPulseColors.black,
+      foregroundColor: MonoPulseColors.textPrimary,
+      elevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+      leading: const SizedBox(width: 48), // Empty space for alignment
+      title: Text(
+        title,
+        style: MonoPulseTypography.headlineLarge.copyWith(
+          color: MonoPulseColors.textHighEmphasis,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      centerTitle: true,
+      actions: menuItems != null
+          ? [
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                },
+                child: SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Center(
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: MonoPulseColors.textSecondary,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.more_horiz,
+                        color: MonoPulseColors.textSecondary,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ]
+          : null,
+    );
+  }
 }

@@ -82,13 +82,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Welcome Back'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -116,7 +109,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               // Error banner
               if (_currentError != null) ...[
                 ErrorBanner.banner(
-                  message: _currentError?.message ?? 'An unexpected error occurred',
+                  message:
+                      _currentError?.message ?? 'An unexpected error occurred',
                   onRetry: _clearError,
                 ),
                 const SizedBox(height: 24),
@@ -129,7 +123,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   prefixIcon: const Icon(Icons.email_outlined),
                   errorText:
                       _currentError?.isValidation == true &&
-                          _currentError?.message.toLowerCase().contains('email') == true
+                          _currentError?.message.toLowerCase().contains(
+                                'email',
+                              ) ==
+                              true
                       ? _currentError?.message
                       : null,
                 ),

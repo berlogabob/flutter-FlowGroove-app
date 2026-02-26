@@ -66,12 +66,21 @@ final GoRouter appRouter = GoRouter(
   redirect: (context, state) {
     final isLoggedIn = FirebaseAuth.instance.currentUser != null;
     final isLoggingIn = state.matchedLocation == '/login';
+    final isRegistering = state.matchedLocation == '/register';
+    final isOnMain = state.matchedLocation.startsWith('/main');
 
-    if (!isLoggedIn && !isLoggingIn) {
+    // Not logged in and not on auth pages -> go to login
+    if (!isLoggedIn && !isLoggingIn && !isRegistering) {
       return '/login';
     }
 
-    if (isLoggedIn && isLoggingIn) {
+    // Logged in and on auth pages -> go to main
+    if (isLoggedIn && (isLoggingIn || isRegistering)) {
+      return '/main/home';
+    }
+
+    // Logged in but on /main without child route -> go to home
+    if (isLoggedIn && isOnMain && state.matchedLocation == '/main') {
       return '/main/home';
     }
 

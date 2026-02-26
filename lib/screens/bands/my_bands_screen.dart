@@ -32,7 +32,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   String _searchQuery = '';
   SortOption _sortOption = SortOption.manual;
   ApiError? _currentError;
-  
+
   // Store manual order as list (same as songs_list_screen.dart)
   List<Band>? _manualOrder;
 
@@ -43,7 +43,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (_sortOption == SortOption.manual && _manualOrder != null) {
       bandsToUse = _manualOrder!;
     }
-    
+
     // Convert bands to adapters
     var adapters = bandsToUse.map((band) => BandItemAdapter(band)).toList();
 
@@ -98,9 +98,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   /// Handle band reordering (manual sort mode).
   void _handleReorder(int oldIndex, int newIndex) {
     // Update manual order when reordering (same as songs_list_screen.dart)
-    if (_manualOrder != null && oldIndex >= 0 && newIndex >= 0 &&
-        oldIndex < _manualOrder!.length && newIndex < _manualOrder!.length) {
-
+    if (_manualOrder != null &&
+        oldIndex >= 0 &&
+        newIndex >= 0 &&
+        oldIndex < _manualOrder!.length &&
+        newIndex < _manualOrder!.length) {
       // Create a copy to avoid modifying the original list directly
       final newOrder = List<Band>.from(_manualOrder!);
 
@@ -179,7 +181,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (bands == null || index >= bands.length) return;
 
     final band = bands[index];
-    context.pushNamed('edit-band', pathParameters: {'id': band.id}, extra: band);
+    context.pushNamed(
+      'edit-band',
+      pathParameters: {'id': band.id},
+      extra: band,
+    );
   }
 
   /// Handle band tap - navigate to band songs screen.
@@ -196,7 +202,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     final bandsAsync = ref.watch(bandsProvider);
 
     return Scaffold(
-      appBar: CustomAppBar.build(
+      appBar: CustomAppBar.buildNoBack(
         context,
         title: 'My Bands',
         menuItems: [
@@ -303,7 +309,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
             onSortChanged: (option) {
               if (option != null) {
                 setState(() => _sortOption = option);
-                
+
                 // Reset manual order when switching away from manual sort
                 if (option != SortOption.manual && _manualOrder != null) {
                   setState(() {
@@ -328,9 +334,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
-      return EmptyState.bands(
-        onCreate: () => context.goNamed('create-band'),
-      );
+      return EmptyState.bands(onCreate: () => context.goNamed('create-band'));
     }
     return EmptyState.search(query: _searchQuery);
   }
@@ -357,7 +361,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   /// Handle view band songs
   void _handleViewSongs(Band band) {
-    context.pushNamed('band-songs', pathParameters: {'id': band.id}, extra: band);
+    context.pushNamed(
+      'band-songs',
+      pathParameters: {'id': band.id},
+      extra: band,
+    );
   }
 }
 

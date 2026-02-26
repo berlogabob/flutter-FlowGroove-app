@@ -114,7 +114,9 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     final user = userAsync.value;
 
     if (user != null) {
-      await ref.read(firestoreProvider).deleteSetlist(setlist.id, uid: user.uid);
+      await ref
+          .read(firestoreProvider)
+          .deleteSetlist(setlist.id, uid: user.uid);
     }
   }
 
@@ -139,7 +141,11 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     if (index >= adapters.length) return;
 
     final setlist = adapters[index].setlist;
-    context.pushNamed('edit-setlist', pathParameters: {'id': setlist.id}, extra: setlist);
+    context.pushNamed(
+      'edit-setlist',
+      pathParameters: {'id': setlist.id},
+      extra: setlist,
+    );
   }
 
   @override
@@ -147,7 +153,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     final setlistsAsync = ref.watch(setlistsProvider);
 
     return Scaffold(
-      appBar: CustomAppBar.build(
+      appBar: CustomAppBar.buildNoBack(
         context,
         title: 'Setlists',
         menuItems: [
