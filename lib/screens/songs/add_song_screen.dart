@@ -6,6 +6,7 @@ import '../../models/song.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../widgets/error_banner.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'components/song_form.dart';
 import 'models/song_form_data.dart';
 import 'utils/add_song_screen_helper.dart';
@@ -190,13 +191,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Song' : 'Add Song'),
-        actions: [
-          TextButton(
-            onPressed: _saveSong,
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
+      appBar: CustomAppBar.build(
+        context,
+        title: _isEditing ? 'Edit Song' : 'Add Song',
+        menuItems: [
+          PopupMenuItem<void>(onTap: _saveSong, child: const Text('Save')),
         ],
       ),
       body: ListView(
