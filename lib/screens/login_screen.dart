@@ -114,7 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               // Error banner
               if (_currentError != null) ...[
                 ErrorBanner.banner(
-                  message: _currentError!.message,
+                  message: _currentError?.message ?? 'An unexpected error occurred',
                   onRetry: _clearError,
                 ),
                 const SizedBox(height: 24),
@@ -127,8 +127,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   prefixIcon: const Icon(Icons.email_outlined),
                   errorText:
                       _currentError?.isValidation == true &&
-                          _currentError!.message.toLowerCase().contains('email')
-                      ? _currentError!.message
+                          _currentError?.message.toLowerCase().contains('email') == true
+                      ? _currentError?.message
                       : null,
                 ),
                 validator: (value) {
