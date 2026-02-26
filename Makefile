@@ -96,7 +96,7 @@ build-android:
 	@echo "🤖 Building Android APK..."
 	@flutter build apk --release
 	@echo "✅ Android build complete: build/app/outputs/flutter-apk/app-release.apk"
-	@ls -lh build/app/outputs/flutter-apk/app-release.apak
+	@ls -lh build/app/outputs/flutter-apk/app-release.apk
 
 # Build for Android App Bundle (Play Store)
 build-appbundle:
