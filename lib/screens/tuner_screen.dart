@@ -48,88 +48,15 @@ class _TunerScreenState extends ConsumerState<TunerScreen> {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: MonoPulseColors.black,
-        appBar: _buildAppBar(context),
+        appBar: AppBar(
+          title: const Text('Tuner'),
+          backgroundColor: MonoPulseColors.black,
+          foregroundColor: MonoPulseColors.textPrimary,
+          elevation: 0,
+          systemOverlayStyle: SystemUiOverlayStyle.light,
+        ),
         body: SafeArea(child: _buildBody(context)),
       ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: MonoPulseColors.black,
-      foregroundColor: MonoPulseColors.textPrimary,
-      elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.light,
-      leading: GestureDetector(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          Navigator.of(context).pop();
-        },
-        // 48px minimum touch zone
-        child: SizedBox(
-          width: 48,
-          height: 48,
-          child: Center(
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: MonoPulseColors.textSecondary,
-                  width: 1.5,
-                ),
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new,
-                color: MonoPulseColors.textSecondary,
-                size: 20,
-              ),
-            ),
-          ),
-        ),
-      ),
-      title: Text(
-        'Tuner',
-        style: MonoPulseTypography.headlineLarge.copyWith(
-          color: MonoPulseColors.textHighEmphasis,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      centerTitle: true,
-      actions: [
-        GestureDetector(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            // Placeholder for settings menu
-            _showSettingsSheet(context);
-          },
-          // 48px minimum touch zone
-          child: SizedBox(
-            width: 48,
-            height: 48,
-            child: Center(
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: MonoPulseColors.borderSubtle,
-                    width: 1,
-                  ),
-                ),
-                child: Icon(
-                  Icons.more_horiz,
-                  color: MonoPulseColors.textSecondary,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: MonoPulseSpacing.md),
-      ],
     );
   }
 
