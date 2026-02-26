@@ -42,7 +42,6 @@ class ConnectivityService extends Notifier<bool> {
   /// Returns true if the device is currently offline.
   bool get isOffline => !state;
 
-  @override
   void dispose() {
     // Cancel subscription to prevent memory leaks
     _subscription?.cancel();

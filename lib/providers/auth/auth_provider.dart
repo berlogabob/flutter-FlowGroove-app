@@ -80,7 +80,6 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     );
   }
 
-  @override
   void dispose() {
     // No stream subscriptions to cancel
     // Riverpod automatically manages ref.watch subscriptions

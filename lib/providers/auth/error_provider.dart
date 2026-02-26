@@ -117,7 +117,6 @@ class ErrorNotifier extends Notifier<ErrorState> {
     }
   }
 
-  @override
   void dispose() {
     // No resources to dispose
   }
