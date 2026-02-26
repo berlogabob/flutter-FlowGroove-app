@@ -116,7 +116,7 @@ final GoRouter appRouter = GoRouter(
                 if (band == null) {
                   // Redirect back if no band provided
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.go('/main/bands');
+                    context.goNamed('bands');
                   });
                   return const Scaffold(
                     body: Center(child: CircularProgressIndicator()),
