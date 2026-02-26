@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
@@ -61,8 +62,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
 
       if (mounted) {
-        // Navigate to main shell after successful login
-        Navigator.pushReplacementNamed(context, '/main');
+        // Navigate to main shell after successful login using GoRouter
+        context.go('/main/home');
       }
     } on ApiError catch (e) {
       _handleError(e);
