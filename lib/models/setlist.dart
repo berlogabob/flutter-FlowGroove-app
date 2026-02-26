@@ -20,7 +20,7 @@ class Setlist {
   @JsonKey(defaultValue: '')
   final String name;
   final String? description;
-  final String? eventDate;
+  final DateTime? eventDate;
   final String? eventLocation;
   @JsonKey(defaultValue: [])
   final List<String> songIds;
@@ -62,7 +62,9 @@ class Setlist {
       description: description == _sentinel
           ? this.description
           : description as String?,
-      eventDate: eventDate == _sentinel ? this.eventDate : eventDate as String?,
+      eventDate: eventDate == _sentinel
+          ? this.eventDate
+          : eventDate as DateTime?,
       eventLocation: eventLocation == _sentinel
           ? this.eventLocation
           : eventLocation as String?,
@@ -79,6 +81,11 @@ class Setlist {
 
   factory Setlist.fromJson(Map<String, dynamic> json) =>
       _$SetlistFromJson(json);
+
+  String get formattedEventDate {
+    if (eventDate == null) return '';
+    return '${eventDate!.day.toString().padLeft(2, '0')}.${eventDate!.month.toString().padLeft(2, '0')}.${eventDate!.year}';
+  }
 }
 
 DateTime _parseDateTime(dynamic value) {

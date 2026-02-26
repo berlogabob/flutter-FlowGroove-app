@@ -130,8 +130,16 @@ final GoRouter appRouter = GoRouter(
               path: ':id/edit',
               name: 'edit-song',
               builder: (context, state) {
-                final song = state.extra as Song?;
-                return AddSongScreen(song: song);
+                final extra = state.extra;
+                Song? song;
+                String? bandId;
+                if (extra is Song) {
+                  song = extra;
+                } else if (extra is Map) {
+                  song = extra['song'] as Song?;
+                  bandId = extra['bandId'] as String?;
+                }
+                return AddSongScreen(song: song, bandId: bandId);
               },
             ),
           ],
