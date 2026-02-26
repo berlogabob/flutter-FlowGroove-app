@@ -7,3 +7,4 @@ you are 10+ experienced flutter developer, solve uncheked tasks useing agents in
  второй раз ввожу данные - получаю ошибкуauthentification faild
 2 [x] problem with metronome screen, when user pus arrow go back -> black screen.
 3 [x] fix arrow in add song, add band, add setlist screen. it should be like in other screens with widget (arrow, name , 3 dot menu)
+- [x] when user trying to add new song to the band -> screen stuck on loading animation

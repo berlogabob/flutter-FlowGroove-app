@@ -120,9 +120,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
                   ? 'Added $successCount song(s). $failCount failed.'
                   : 'Successfully added $successCount song(s) to ${widget.band.name}!',
             ),
-            backgroundColor: failCount > 0
-                ? Colors.orange
-                : Colors.green,
+            backgroundColor: failCount > 0 ? Colors.orange : Colors.green,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -133,17 +131,20 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      
+
       String errorMessage = 'Failed to add songs. ';
-      
+
       // Check for timeout or network error
       final errorStr = e.toString().toLowerCase();
       if (errorStr.contains('timeout')) {
-        errorMessage = 'Request timed out. Please check your internet connection and try again.';
+        errorMessage =
+            'Request timed out. Please check your internet connection and try again.';
       } else if (errorStr.contains('permission')) {
         errorMessage = 'You do not have permission to add songs to this band.';
-      } else if (errorStr.contains('network') || errorStr.contains('connection')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (errorStr.contains('network') ||
+          errorStr.contains('connection')) {
+        errorMessage =
+            'Network error. Please check your connection and try again.';
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -165,7 +166,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final songsAsync = ref.watch(cachedUserSongsProvider);
+    final songsAsync = ref.watch(songsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -223,7 +224,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
                     final song = filteredSongs[index];
                     final isSelected = _selectedSongIds.contains(song.id);
                     final adapter = SongItemAdapter(song);
-                    
+
                     return CheckboxListTile(
                       value: isSelected,
                       onChanged: (selected) {
@@ -254,45 +255,12 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
         message: 'No songs available',
         hint: 'Create some songs in your personal library first.',
         actionLabel: 'Create Song',
-        onAction: () => context.goNamed('add-song'),
+        onAction: () => context.goNamed(
+          'add-song',
+          queryParameters: {'bandId': widget.band.id},
+        ),
       );
     }
     return EmptyState.search(query: _searchQuery);
-  }
-}
-
-/// Provider for current user's personal songs (cached).
-final cachedUserSongsProvider =
-    NotifierProvider<CachedUserSongsNotifier, AsyncValue<List<Song>>>(() {
-      return CachedUserSongsNotifier();
-    });
-
-class CachedUserSongsNotifier extends Notifier<AsyncValue<List<Song>>> {
-  @override
-  AsyncValue<List<Song>> build() {
-    return const AsyncValue.loading();
-  }
-
-  void loadSongs() async {
-    final userAsync = ref.read(currentUserProvider);
-    final user = userAsync.value;
-    if (user == null) {
-      debugPrint('⚠️ NO USER: Cannot load songs, user not authenticated');
-      state = const AsyncValue.data([]);
-      return;
-    }
-
-    try {
-      debugPrint('🌐 LOADING: Fetching songs for user ${user.uid}');
-      final songs = await ref
-          .read(firestoreProvider)
-          .watchSongs(user.uid)
-          .first;
-      debugPrint('✅ LOADED: ${songs.length} songs for user ${user.uid}');
-      state = AsyncValue.data(songs);
-    } catch (e, stack) {
-      debugPrint('❌ ERROR: Failed to load songs for user ${user.uid}: $e');
-      state = AsyncValue.error(e, stack);
-    }
   }
 }
