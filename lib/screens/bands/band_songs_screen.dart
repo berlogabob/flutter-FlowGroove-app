@@ -363,7 +363,8 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
 
     if (!confirmed) return;
 
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user != null) {
       await ref.read(firestoreProvider).deleteBandSong(widget.band.id, song.id);
     }
@@ -435,9 +436,11 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         'Use invite code: $inviteCode\n\n'
         'Or click the link: https://$domain/join-band?code=$inviteCode';
 
-    await Share.share(
-      shareText,
-      subject: 'Join my band "${widget.band.name}" on RepSync',
+    await SharePlus.instance.share(
+      ShareParams(
+        text: shareText,
+        subject: 'Join my band "${widget.band.name}" on RepSync',
+      ),
     );
   }
 
