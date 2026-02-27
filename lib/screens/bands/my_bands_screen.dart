@@ -218,7 +218,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       ),
       body: Column(
         children: [
-          OfflineIndicator.banner(),
+          const OfflineIndicator.banner(),
           Expanded(child: _buildBody(bandsAsync)),
         ],
       ),
@@ -597,7 +597,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.error_outline,
                     color: MonoPulseColors.error,
                     size: 20,
@@ -606,7 +606,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                   Expanded(
                     child: Text(
                       _currentError?.message ?? 'An unexpected error occurred',
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: MonoPulseColors.textPrimary,
                         fontSize: 12,
                       ),

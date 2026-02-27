@@ -96,7 +96,7 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                     width: 1,
                   ),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.remove,
                   color: MonoPulseColors.textSecondary,
                   size: 20,
@@ -135,7 +135,7 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                       textStyle: MonoPulseTypography.bodySmall.copyWith(
                         color: MonoPulseColors.textSecondary,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.help_outline,
                         size: 16,
                         color: MonoPulseColors.textTertiary,
@@ -278,7 +278,7 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                     width: 1,
                   ),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.add,
                   color: MonoPulseColors.textSecondary,
                   size: 20,

@@ -155,7 +155,7 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.info_outline,
                       color: MonoPulseColors.textSecondary,
                       size: 20,

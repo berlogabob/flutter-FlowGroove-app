@@ -1,4 +1,5 @@
 /// Dialog for exporting songs to CSV.
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 import 'package:flutter_repsync_app/services/csv/song_csv_service.dart';
@@ -31,13 +32,13 @@ class _SongExportDialogState extends State<SongExportDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  const Icon(Icons.file_download),
-                  const SizedBox(width: 12),
-                  const Text(
+                  Icon(Icons.file_download),
+                  SizedBox(width: 12),
+                  Text(
                     'Export Songs to CSV',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),

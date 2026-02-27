@@ -48,12 +48,16 @@ class OfflineIndicator extends ConsumerWidget {
         color: MonoPulseColors.accentOrangeSubtle,
         border: Border.all(color: MonoPulseColors.accentOrange),
       ),
-      child: Row(
+      child: const Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 20),
-          const SizedBox(width: 8),
+          Icon(
+            Icons.wifi_off,
+            color: MonoPulseColors.accentOrange,
+            size: 20,
+          ),
+          SizedBox(width: 8),
           Text(
             'Offline - Some features may be limited',
             style: TextStyle(
@@ -75,11 +79,15 @@ class OfflineIndicator extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: MonoPulseColors.accentOrange),
       ),
-      child: Row(
+      child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 16),
-          const SizedBox(width: 6),
+          Icon(
+            Icons.wifi_off,
+            color: MonoPulseColors.accentOrange,
+            size: 16,
+          ),
+          SizedBox(width: 6),
           Text(
             'Offline',
             style: TextStyle(
@@ -94,7 +102,11 @@ class OfflineIndicator extends ConsumerWidget {
   }
 
   Widget _buildMinimal(BuildContext context) {
-    return Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 20);
+    return const Icon(
+      Icons.wifi_off,
+      color: MonoPulseColors.accentOrange,
+      size: 20,
+    );
   }
 }
 

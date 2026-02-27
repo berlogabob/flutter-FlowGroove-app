@@ -10,6 +10,7 @@
 /// - Links: link_{n}_{field} (up to 5 links)
 /// - Beat modes: single compact field (metronomePattern)
 /// - Tags: comma-separated string
+library;
 
 class SongCsvSchema {
   // Core fields (required)

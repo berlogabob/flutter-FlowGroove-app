@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
@@ -56,41 +55,6 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     'bar',
     'live',
     'studio',
-  ];
-
-  static const List<String> musicRoles = [
-    'Vocal',
-    'Guitar',
-    'Bass',
-    'Drums',
-    'Keyboard',
-    'Piano',
-    'Saxophone',
-    'Trumpet',
-    'Violin',
-    'Cello',
-    'DJ',
-    'Harmonica',
-    'Banjo',
-    'Ukulele',
-    'Percussion',
-    'Backing Vocal',
-    'Loop Station',
-  ];
-
-  static const List<String> workingRoles = [
-    'Band Manager',
-    'Sound Engineer',
-    'Lighting',
-    'Booking Agent',
-    'Producer',
-    'Songwriter',
-    'Arranger',
-    'Booking',
-    'Merch',
-    'Social Media',
-    'Photographer',
-    'Videographer',
   ];
 
   /// Get the current user's role in the band.

@@ -200,7 +200,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   color: MonoPulseColors.textSecondary,
                 ),
               ),
-              title: Text(
+              title: const Text(
                 'Event Date',
                 style: TextStyle(
                   color: MonoPulseColors.textSecondary,

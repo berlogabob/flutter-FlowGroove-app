@@ -66,7 +66,7 @@ class CustomAppBar {
                   width: 1.5,
                 ),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.arrow_back_ios_new,
                 color: MonoPulseColors.textSecondary,
                 size: 20,
@@ -107,7 +107,7 @@ class CustomAppBar {
                       ),
                       child: PopupMenuButton<void>(
                         padding: EdgeInsets.zero,
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.more_horiz,
                           color: MonoPulseColors.textSecondary,
                           size: 22,
@@ -162,7 +162,7 @@ class CustomAppBar {
                   width: 1.5,
                 ),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.arrow_back_ios_new,
                 color: MonoPulseColors.textSecondary,
                 size: 20,

@@ -1,4 +1,5 @@
 /// Dialog for importing songs from CSV.
+library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_repsync_app/services/csv/song_csv_parser.dart';
@@ -27,13 +28,13 @@ class _SongImportDialogState extends State<SongImportDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  const Icon(Icons.file_upload),
-                  const SizedBox(width: 12),
-                  const Text(
+                  Icon(Icons.file_upload),
+                  SizedBox(width: 12),
+                  Text(
                     'Import Songs from CSV',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),

@@ -303,7 +303,7 @@ class _EdgeHandle extends StatelessWidget {
       child: Container(
         width: handleSize,
         height: handleSize,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: MonoPulseColors.accentOrange,
           shape: BoxShape.circle,
         ),

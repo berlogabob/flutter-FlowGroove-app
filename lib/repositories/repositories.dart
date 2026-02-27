@@ -2,7 +2,7 @@
 ///
 /// Repositories abstract data operations behind clean interfaces,
 /// enabling testability and swappable data sources.
-library repositories;
+library;
 
 export 'song_repository.dart';
 export 'band_repository.dart';

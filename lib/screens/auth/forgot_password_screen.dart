@@ -87,7 +87,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 32),
-              Icon(
+              const Icon(
                 Icons.lock_reset,
                 size: 64,
                 color: MonoPulseColors.accentOrange,
@@ -120,7 +120,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.check_circle_outline,
                         color: MonoPulseColors.successAlt,
                         size: 24,
@@ -129,7 +129,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       Expanded(
                         child: Text(
                           _successMessage!,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: MonoPulseColors.textPrimary,
                             fontSize: 14,
                           ),
@@ -150,7 +150,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.error_outline,
                         color: MonoPulseColors.error,
                         size: 24,
@@ -159,7 +159,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: MonoPulseColors.textPrimary,
                             fontSize: 14,
                           ),
@@ -174,23 +174,25 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 enabled: !_isLoading && !_emailSent,
-                style: TextStyle(color: MonoPulseColors.textPrimary),
+                style: const TextStyle(color: MonoPulseColors.textPrimary),
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  labelStyle: TextStyle(color: MonoPulseColors.textSecondary),
-                  prefixIcon: Icon(
+                  labelStyle: const TextStyle(
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  prefixIcon: const Icon(
                     Icons.email_outlined,
                     color: MonoPulseColors.textSecondary,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
+                    borderSide: const BorderSide(
                       color: MonoPulseColors.borderDefault,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
+                    borderSide: const BorderSide(
                       color: MonoPulseColors.borderDefault,
                     ),
                   ),

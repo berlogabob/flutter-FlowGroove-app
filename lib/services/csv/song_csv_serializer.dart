@@ -2,6 +2,7 @@
 ///
 /// This service handles converting Song objects into CSV format,
 /// with support for all nested structures (sections, links, beat modes).
+library;
 import 'package:csv/csv.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 import 'package:flutter_repsync_app/models/section.dart';

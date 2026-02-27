@@ -45,7 +45,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: widget.onClose,
-          child: Container(
+          child: SizedBox(
             // Transparent overlay to catch taps outside menu
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,

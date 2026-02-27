@@ -56,7 +56,7 @@ class _SongLibraryBlockState extends ConsumerState<SongLibraryBlock> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.music_note_outlined,
                     color: MonoPulseColors.textSecondary,
                     size: 20,
@@ -155,9 +155,9 @@ class _SlideUpPanel extends StatelessWidget {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.7,
             ),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: MonoPulseColors.surfaceRaised,
-              borderRadius: const BorderRadius.vertical(
+              borderRadius: BorderRadius.vertical(
                 top: Radius.circular(MonoPulseRadius.massive),
               ),
             ),
@@ -228,11 +228,11 @@ class _SlideUpPanel extends StatelessWidget {
                         onTap: onClose,
                         child: Container(
                           padding: const EdgeInsets.all(MonoPulseSpacing.sm),
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: MonoPulseColors.blackElevated,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.close,
                             color: MonoPulseColors.textSecondary,
                             size: 20,
@@ -270,7 +270,7 @@ class _SongList extends ConsumerWidget {
     final songsAsync = ref.watch(songsProvider);
 
     return songsAsync.when(
-      loading: () => Center(
+      loading: () => const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(
             MonoPulseColors.accentOrange,
@@ -289,7 +289,7 @@ class _SongList extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.music_note_outlined,
                   color: MonoPulseColors.textDisabled,
                   size: 48,
@@ -352,7 +352,7 @@ class _SongCard extends StatelessWidget {
                 color: MonoPulseColors.accentOrange.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.music_note,
                 color: MonoPulseColors.accentOrange,
                 size: 20,
@@ -404,7 +404,7 @@ class _SongCard extends StatelessWidget {
               ),
 
             const SizedBox(width: MonoPulseSpacing.sm),
-            Icon(
+            const Icon(
               Icons.chevron_right,
               color: MonoPulseColors.textTertiary,
               size: 20,
@@ -426,7 +426,7 @@ class _SetlistList extends ConsumerWidget {
     final setlistsAsync = ref.watch(setlistsProvider);
 
     return setlistsAsync.when(
-      loading: () => Center(
+      loading: () => const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(MonoPulseColors.accentOrange),
         ),
@@ -443,7 +443,7 @@ class _SetlistList extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.playlist_play_outlined,
                   color: MonoPulseColors.textDisabled,
                   size: 48,
@@ -507,7 +507,7 @@ class _SetlistCard extends StatelessWidget {
                 color: MonoPulseColors.accentOrange.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.playlist_play,
                 color: MonoPulseColors.accentOrange,
                 size: 20,
@@ -549,7 +549,7 @@ class _SetlistCard extends StatelessWidget {
             ),
 
             const SizedBox(width: MonoPulseSpacing.sm),
-            Icon(
+            const Icon(
               Icons.chevron_right,
               color: MonoPulseColors.textTertiary,
               size: 20,

@@ -94,21 +94,21 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
               final results = snapshot.data ?? [];
 
               if (results.isEmpty) {
-                return Center(
+                return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.search_off,
                         size: 48,
                         color: Colors.grey,
                       ),
-                      const SizedBox(height: 16),
-                      const Text('No results found'),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 16),
+                      Text('No results found'),
+                      SizedBox(height: 8),
                       Text(
                         'Try different keywords',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.grey,
                           fontSize: 12,
                         ),

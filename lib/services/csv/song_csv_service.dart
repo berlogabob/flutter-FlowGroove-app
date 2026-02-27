@@ -4,6 +4,7 @@
 /// - Importing songs from CSV files
 /// - Exporting songs to CSV files
 /// - Sharing CSV files with other apps
+library;
 import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';

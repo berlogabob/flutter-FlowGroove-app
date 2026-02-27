@@ -66,7 +66,7 @@ class TimeSignatureControlsWidget extends ConsumerWidget {
                   textStyle: MonoPulseTypography.bodySmall.copyWith(
                     color: MonoPulseColors.textSecondary,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.help_outline,
                     size: 16,
                     color: MonoPulseColors.textTertiary,
