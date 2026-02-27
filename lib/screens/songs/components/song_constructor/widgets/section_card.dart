@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import '../../../../../models/section.dart';
 import '../core/theme/app_colors.dart';
+import '../../../../../theme/mono_pulse_theme.dart';
 
 /// Card widget for displaying a section in expanded state.
 class SectionCard extends StatelessWidget {
   final Section section;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
+  final int? dragIndex;
+  final bool enableDrag;
 
   const SectionCard({
     super.key,
     required this.section,
     this.onTap,
     this.onDelete,
+    this.dragIndex,
+    this.enableDrag = false,
   });
 
   @override
@@ -47,9 +52,10 @@ class SectionCard extends StatelessWidget {
   Widget _buildTitle(BuildContext context) {
     return Text(
       section.name,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ) ??
+      style:
+          Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold) ??
           const TextStyle(fontWeight: FontWeight.bold),
     );
   }
@@ -61,7 +67,8 @@ class SectionCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           'Duration: ${section.duration} ${section.duration == 1 ? 'phrase' : 'phrases'}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          style:
+              Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ) ??
               TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -70,9 +77,10 @@ class SectionCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             section.notes,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontStyle: FontStyle.italic,
-                ) ??
+            style:
+                Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic) ??
                 const TextStyle(fontStyle: FontStyle.italic),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -86,19 +94,30 @@ class SectionCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          icon: const Icon(Icons.delete_outline, size: 20),
-          onPressed: onDelete,
-          color: Theme.of(context).colorScheme.error,
-          padding: const EdgeInsets.all(8),
-          constraints: const BoxConstraints(),
-        ),
-        const SizedBox(width: 4),
-        Icon(
-          Icons.drag_handle,
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
-          size: 20,
-        ),
+        if (enableDrag && dragIndex != null)
+          ReorderableDragStartListener(
+            index: dragIndex!,
+            child: const Icon(
+              Icons.drag_handle,
+              color: MonoPulseColors.textSecondary,
+              size: 20,
+            ),
+          ),
+        if (!enableDrag) ...[
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 20),
+            onPressed: onDelete,
+            color: Theme.of(context).colorScheme.error,
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.drag_handle,
+            color: MonoPulseColors.textSecondary,
+            size: 20,
+          ),
+        ],
       ],
     );
   }

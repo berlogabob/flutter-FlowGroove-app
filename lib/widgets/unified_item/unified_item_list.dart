@@ -59,10 +59,7 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
             return false;
           },
           onDismissed: (direction) {
-            if (direction == DismissDirection.endToStart &&
-                widget.onDelete != null) {
-              widget.onDelete!(index);
-            }
+            // Already handled in confirmDismiss - do nothing here
           },
           child: GestureDetector(
             onTap: () {

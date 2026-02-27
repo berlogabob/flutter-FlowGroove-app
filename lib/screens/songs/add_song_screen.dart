@@ -36,6 +36,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   late TextEditingController _ourBpmController;
   late TextEditingController _notesController;
   ApiError? _currentError;
+  bool _hasUnsavedChanges = false;
+  bool _isAutoSaving = false;
 
   final List<String> _availableTags = [
     'ready',
@@ -62,6 +64,56 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     // Sync form data with controllers when app resumes
     if (state == AppLifecycleState.resumed) {
       _syncControllersToFormData();
+      // Auto-save if there are unsaved changes
+      if (_hasUnsavedChanges && !_isAutoSaving) {
+        _autoSave();
+      }
+    }
+  }
+
+  void _markAsChanged() {
+    if (!_hasUnsavedChanges) {
+      setState(() => _hasUnsavedChanges = true);
+    }
+  }
+
+  Future<void> _autoSave() async {
+    if (_isAutoSaving || !_hasUnsavedChanges) return;
+    if (_titleController.text.trim().isEmpty) return;
+
+    setState(() => _isAutoSaving = true);
+
+    try {
+      final userAsync = ref.read(currentUserProvider);
+      final user = userAsync.value;
+      if (user == null) return;
+
+      final song = _formData.toSong(
+        id: _isEditing ? widget.song!.id : const Uuid().v4(),
+        createdAt: _isEditing ? widget.song!.createdAt : DateTime.now(),
+        bandId: widget.bandId,
+      );
+
+      final songRepo = ref.read(songRepositoryProvider);
+
+      if (widget.bandId != null) {
+        await songRepo.saveBandSong(song, widget.bandId!);
+      } else {
+        await songRepo.saveSong(song, uid: user.uid);
+      }
+
+      if (mounted) {
+        setState(() {
+          _hasUnsavedChanges = false;
+          _isAutoSaving = false;
+        });
+        debugPrint('✅ Auto-saved song: ${song.title}');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isAutoSaving = false);
+        debugPrint('❌ Auto-save failed: $e');
+      }
     }
   }
 
@@ -73,21 +125,26 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     _notesController = TextEditingController(text: _formData.notes);
 
     // Add listeners to sync controller changes to form data
-    _titleController.addListener(
-      () => _formData.updateTitle(_titleController.text),
-    );
-    _artistController.addListener(
-      () => _formData.updateArtist(_artistController.text),
-    );
-    _originalBpmController.addListener(
-      () => _formData.updateOriginalBpm(_originalBpmController.text),
-    );
-    _ourBpmController.addListener(
-      () => _formData.updateOurBpm(_ourBpmController.text),
-    );
-    _notesController.addListener(
-      () => _formData.updateNotes(_notesController.text),
-    );
+    _titleController.addListener(() {
+      _formData.updateTitle(_titleController.text);
+      _markAsChanged();
+    });
+    _artistController.addListener(() {
+      _formData.updateArtist(_artistController.text);
+      _markAsChanged();
+    });
+    _originalBpmController.addListener(() {
+      _formData.updateOriginalBpm(_originalBpmController.text);
+      _markAsChanged();
+    });
+    _ourBpmController.addListener(() {
+      _formData.updateOurBpm(_ourBpmController.text);
+      _markAsChanged();
+    });
+    _notesController.addListener(() {
+      _formData.updateNotes(_notesController.text);
+      _markAsChanged();
+    });
 
     // Initialize beat modes for new songs or songs without metronome settings
     if (_formData.beatModes.isEmpty) {
@@ -258,6 +315,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
             onSectionsChanged: (newSections) => setState(() {
               _formData.setSections(newSections);
             }),
+            onSubmit: _saveSong,
             isEditing: _isEditing,
             accentBeats: _formData.accentBeats,
             regularBeats: _formData.regularBeats,

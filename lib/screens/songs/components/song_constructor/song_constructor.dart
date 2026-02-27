@@ -55,7 +55,10 @@ class _SongConstructorState extends State<SongConstructor> {
             onSectionSelected: (name) {
               setState(() {
                 // Create new list instead of mutating
-                _sections = [..._sections, Section(id: _uuid.v4(), name: name, duration: 2)];
+                _sections = [
+                  ..._sections,
+                  Section(id: _uuid.v4(), name: name, duration: 2),
+                ];
               });
               _notifyChange();
               Navigator.pop(dialogContext);
@@ -106,7 +109,9 @@ class _SongConstructorState extends State<SongConstructor> {
                 // Remove by index using ID comparison
                 final index = _sections.indexWhere((s) => s.id == section.id);
                 if (index != -1) {
-                  _sections = _sections.where((s) => s.id != section.id).toList();
+                  _sections = _sections
+                      .where((s) => s.id != section.id)
+                      .toList();
                 }
               });
               _notifyChange();
@@ -163,10 +168,7 @@ class _SongConstructorState extends State<SongConstructor> {
       decoration: BoxDecoration(
         color: MonoPulseColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: MonoPulseColors.borderDefault,
-          width: 1,
-        ),
+        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
       ),
       child: Column(
         children: [
@@ -243,7 +245,10 @@ class _SongConstructorState extends State<SongConstructor> {
               visible: _expanded,
               maintainState: true,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: _buildExpandedState(),
               ),
             ),
@@ -252,10 +257,7 @@ class _SongConstructorState extends State<SongConstructor> {
           if (!_expanded)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SizedBox(
-                height: 36,
-                child: PillView(sections: _sections),
-              ),
+              child: SizedBox(height: 36, child: PillView(sections: _sections)),
             ),
         ],
       ),
@@ -273,18 +275,77 @@ class _SongConstructorState extends State<SongConstructor> {
           ),
           child: _sections.isEmpty
               ? const SizedBox.shrink()
-              : ReorderableListView.builder(
+              : ListView.builder(
                   shrinkWrap: true,
                   physics: const ClampingScrollPhysics(),
                   itemCount: _sections.length,
-                  onReorder: _onReorder,
                   itemBuilder: (context, index) {
                     final section = _sections[index];
-                    return SectionCard(
+                    return Dismissible(
                       key: ValueKey(section.id),
-                      section: section,
-                      onTap: () => _editSection(section),
-                      onDelete: () => _deleteSection(section),
+                      background: Container(
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.only(left: 20),
+                        color: MonoPulseColors.accentOrange,
+                        child: const Row(
+                          children: [
+                            Icon(Icons.edit, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              'Edit',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      secondaryBackground: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        color: Colors.red,
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Delete',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.delete, color: Colors.white),
+                          ],
+                        ),
+                      ),
+                      confirmDismiss: (direction) async {
+                        if (direction == DismissDirection.endToStart) {
+                          // Swipe left - delete directly (no dialog for swipe)
+                          setState(() {
+                            _sections = _sections
+                                .where((s) => s.id != section.id)
+                                .toList();
+                          });
+                          _notifyChange();
+                          return true; // Dismiss the item
+                        } else if (direction == DismissDirection.startToEnd) {
+                          // Swipe right - edit
+                          _editSection(section);
+                          return false; // Don't dismiss
+                        }
+                        return false;
+                      },
+                      onDismissed: (direction) {
+                        // Item was dismissed - already handled in confirmDismiss
+                      },
+                      child: SectionCard(
+                        key: ValueKey(section.id),
+                        section: section,
+                        onTap: () => _editSection(section),
+                        onDelete: () => _deleteSection(section),
+                      ),
                     );
                   },
                 ),
