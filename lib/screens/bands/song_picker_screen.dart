@@ -68,7 +68,8 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
       return;
     }
 
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user == null) return;
 
     if (!mounted) return;
