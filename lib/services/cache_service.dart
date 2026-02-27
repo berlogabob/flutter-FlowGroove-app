@@ -44,10 +44,7 @@ class CacheService {
       final box = await _openBox(boxName);
       final data = box.get(_cacheDataKey, defaultValue: []);
       if (data is! List) return [];
-      return data
-          .whereType<Map<String, dynamic>>()
-          .map(fromJson)
-          .toList();
+      return data.whereType<Map<String, dynamic>>().map(fromJson).toList();
     } catch (e) {
       return [];
     }
@@ -82,24 +79,24 @@ class CacheService {
 
   /// Caches songs for a specific user.
   Future<void> cacheSongs(String uid, List<Song> songs) => _cacheItems(
-    boxName: '${_songsBoxPrefix}$uid',
+    boxName: '$_songsBoxPrefix$uid',
     items: songs,
     toJson: (song) => song.toJson(),
   );
 
   /// Retrieves cached songs for a specific user.
   Future<List<Song>> getCachedSongs(String uid) => _getCachedItems(
-    boxName: '${_songsBoxPrefix}$uid',
+    boxName: '$_songsBoxPrefix$uid',
     fromJson: (json) => Song.fromJson(json),
   );
 
   /// Gets the cache timestamp for songs.
   Future<DateTime?> getSongsCacheTimestamp(String uid) =>
-      _getCacheTimestamp('${_songsBoxPrefix}$uid');
+      _getCacheTimestamp('$_songsBoxPrefix$uid');
 
   /// Clears cached songs for a user.
   Future<void> clearSongsCache(String uid) =>
-      _clearCache('${_songsBoxPrefix}$uid');
+      _clearCache('$_songsBoxPrefix$uid');
 
   // ============================================================
   // Band Cache Operations (Personal References)
@@ -107,24 +104,24 @@ class CacheService {
 
   /// Caches bands for a specific user.
   Future<void> cacheBands(String uid, List<Band> bands) => _cacheItems(
-    boxName: '${_bandsBoxPrefix}$uid',
+    boxName: '$_bandsBoxPrefix$uid',
     items: bands,
     toJson: (band) => band.toJson(),
   );
 
   /// Retrieves cached bands for a specific user.
   Future<List<Band>> getCachedBands(String uid) => _getCachedItems(
-    boxName: '${_bandsBoxPrefix}$uid',
+    boxName: '$_bandsBoxPrefix$uid',
     fromJson: (json) => Band.fromJson(json),
   );
 
   /// Gets the cache timestamp for bands.
   Future<DateTime?> getBandsCacheTimestamp(String uid) =>
-      _getCacheTimestamp('${_bandsBoxPrefix}$uid');
+      _getCacheTimestamp('$_bandsBoxPrefix$uid');
 
   /// Clears cached bands for a user.
   Future<void> clearBandsCache(String uid) =>
-      _clearCache('${_bandsBoxPrefix}$uid');
+      _clearCache('$_bandsBoxPrefix$uid');
 
   // ============================================================
   // Setlist Cache Operations
@@ -132,24 +129,24 @@ class CacheService {
 
   /// Caches setlists for a specific user.
   Future<void> cacheSetlists(String uid, List<Setlist> setlists) => _cacheItems(
-    boxName: '${_setlistsBoxPrefix}$uid',
+    boxName: '$_setlistsBoxPrefix$uid',
     items: setlists,
     toJson: (setlist) => setlist.toJson(),
   );
 
   /// Retrieves cached setlists for a specific user.
   Future<List<Setlist>> getCachedSetlists(String uid) => _getCachedItems(
-    boxName: '${_setlistsBoxPrefix}$uid',
+    boxName: '$_setlistsBoxPrefix$uid',
     fromJson: (json) => Setlist.fromJson(json),
   );
 
   /// Gets the cache timestamp for setlists.
   Future<DateTime?> getSetlistsCacheTimestamp(String uid) =>
-      _getCacheTimestamp('${_setlistsBoxPrefix}$uid');
+      _getCacheTimestamp('$_setlistsBoxPrefix$uid');
 
   /// Clears cached setlists for a user.
   Future<void> clearSetlistsCache(String uid) =>
-      _clearCache('${_setlistsBoxPrefix}$uid');
+      _clearCache('$_setlistsBoxPrefix$uid');
 
   // ============================================================
   // Band Songs Cache Operations
@@ -157,20 +154,20 @@ class CacheService {
 
   /// Caches songs for a specific band.
   Future<void> cacheBandSongs(String bandId, List<Song> songs) => _cacheItems(
-    boxName: '${_bandSongsBoxPrefix}$bandId',
+    boxName: '$_bandSongsBoxPrefix$bandId',
     items: songs,
     toJson: (song) => song.toJson(),
   );
 
   /// Retrieves cached songs for a specific band.
   Future<List<Song>> getCachedBandSongs(String bandId) => _getCachedItems(
-    boxName: '${_bandSongsBoxPrefix}$bandId',
+    boxName: '$_bandSongsBoxPrefix$bandId',
     fromJson: (json) => Song.fromJson(json),
   );
 
   /// Clears cached band songs.
   Future<void> clearBandSongsCache(String bandId) =>
-      _clearCache('${_bandSongsBoxPrefix}$bandId');
+      _clearCache('$_bandSongsBoxPrefix$bandId');
 
   // ============================================================
   // Global Cache Operations
@@ -191,9 +188,9 @@ class CacheService {
   /// Checks if cache exists for a user.
   Future<bool> hasCache(String uid) async {
     try {
-      if (await Hive.boxExists('${_songsBoxPrefix}$uid')) return true;
-      if (await Hive.boxExists('${_bandsBoxPrefix}$uid')) return true;
-      if (await Hive.boxExists('${_setlistsBoxPrefix}$uid')) return true;
+      if (await Hive.boxExists('$_songsBoxPrefix$uid')) return true;
+      if (await Hive.boxExists('$_bandsBoxPrefix$uid')) return true;
+      if (await Hive.boxExists('$_setlistsBoxPrefix$uid')) return true;
       return false;
     } catch (e) {
       return false;

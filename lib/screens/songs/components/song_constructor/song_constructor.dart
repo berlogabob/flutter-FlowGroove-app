@@ -179,10 +179,10 @@ class _SongConstructorState extends State<SongConstructor> {
                   ),
                   const SizedBox(width: 8),
                   // Title
-                  Expanded(
+                  const Expanded(
                     child: Text(
                       'Song Structure',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         color: MonoPulseColors.textPrimary,

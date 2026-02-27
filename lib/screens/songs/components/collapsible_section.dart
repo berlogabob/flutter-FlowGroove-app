@@ -4,6 +4,7 @@
 /// - Header with title and optional actions
 /// - Expandable/collapsible content
 /// - Consistent styling across the app
+library;
 import 'package:flutter/material.dart';
 import '../../../theme/mono_pulse_theme.dart';
 

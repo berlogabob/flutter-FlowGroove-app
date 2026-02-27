@@ -185,9 +185,9 @@ class CompactSetlistCard extends StatelessWidget {
         vertical: MonoPulseSpacing.sm,
       ),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: MonoPulseColors.surfaceRaised,
-          child: const Icon(
+          child: Icon(
             Icons.playlist_play,
             size: 20,
             color: MonoPulseColors.accentOrange,

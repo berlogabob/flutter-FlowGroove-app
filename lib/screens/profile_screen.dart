@@ -165,7 +165,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    error: (_, __) => const Text(
+                    error: (_, _) => const Text(
                       'Error loading tags',
                       style: TextStyle(color: MonoPulseColors.error),
                     ),

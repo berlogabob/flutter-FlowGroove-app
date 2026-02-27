@@ -151,7 +151,7 @@ class _SectionPickerState extends State<SectionPicker>
   Widget _buildPartsTab(BuildContext context) {
     return GridView.builder(
       padding: const EdgeInsets.all(4),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: AppDimensions.gridSpacing,
         mainAxisSpacing: AppDimensions.gridSpacing,
@@ -167,7 +167,7 @@ class _SectionPickerState extends State<SectionPicker>
   Widget _buildColorsTab(BuildContext context) {
     return GridView.builder(
       padding: const EdgeInsets.all(4),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: AppDimensions.gridSpacing,
         mainAxisSpacing: AppDimensions.gridSpacing,

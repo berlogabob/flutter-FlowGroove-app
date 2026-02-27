@@ -41,8 +41,8 @@ class TimeSignatureDropdown extends StatelessWidget {
         ),
 
         // Divider "/"
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md),
           child: Text(
             '/',
             style: TextStyle(

@@ -138,9 +138,9 @@ class CompactSongCard extends StatelessWidget {
         vertical: MonoPulseSpacing.sm,
       ),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: MonoPulseColors.surfaceRaised,
-          child: const Icon(
+          child: Icon(
             Icons.music_note,
             size: 20,
             color: MonoPulseColors.accentOrange,

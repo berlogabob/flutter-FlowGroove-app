@@ -222,10 +222,10 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
 
   Widget _buildHueSlider(BuildContext context) {
     return SliderTheme(
-      data: SliderThemeData(
+      data: const SliderThemeData(
         trackHeight: 24,
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
-        overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 12),
+        overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
       ),
       child: Slider(
         value: HSVColor.fromColor(_selectedColor).hue / 360,
@@ -248,9 +248,9 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
 
   Widget _buildSaturationSlider(BuildContext context) {
     return SliderTheme(
-      data: SliderThemeData(
+      data: const SliderThemeData(
         trackHeight: 16,
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
       ),
       child: Slider(
         value: HSVColor.fromColor(_selectedColor).saturation,
@@ -274,9 +274,9 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
 
   Widget _buildBrightnessSlider(BuildContext context) {
     return SliderTheme(
-      data: SliderThemeData(
+      data: const SliderThemeData(
         trackHeight: 16,
-        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
       ),
       child: Slider(
         value: HSVColor.fromColor(_selectedColor).value,
@@ -345,11 +345,11 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
   Widget _buildHexInput(BuildContext context) {
     return TextField(
       controller: _hexController,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Hex Color Code',
         hintText: '#RRGGBB',
         prefixText: '#',
-        border: const OutlineInputBorder(),
+        border: OutlineInputBorder(),
         helperText: 'Enter 6-digit hex code (e.g., FF5733)',
       ),
       maxLength: 6,

@@ -2,8 +2,8 @@
 // For web, use audio_engine_web.dart
 
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 
 /// Audio engine for metronome sound synthesis
 /// Mobile version using audioplayers with synthesized PCM audio
@@ -28,9 +28,9 @@ class AudioEngine {
       await _player.setReleaseMode(ReleaseMode.stop);
       await _player.setVolume(1.0);
       _initialized = true;
-      print('[AudioEngine] Mobile audio engine initialized');
+      debugPrint('[AudioEngine] Mobile audio engine initialized');
     } catch (e) {
-      print('[AudioEngine] Failed to initialize: $e');
+      debugPrint('[AudioEngine] Failed to initialize: $e');
       rethrow;
     }
   }
@@ -67,11 +67,11 @@ class AudioEngine {
       // Play the synthesized sound using BytesSource
       await _player.play(BytesSource(pcmBytes), volume: 1.0);
 
-      print(
+      debugPrint(
         '[AudioEngine] Played click: accent=$isAccent, freq=${frequency}Hz, wave=$waveType, vol=$volume',
       );
     } catch (e) {
-      print('[AudioEngine] Error playing click: $e');
+      debugPrint('[AudioEngine] Error playing click: $e');
     }
   }
 
@@ -207,7 +207,7 @@ class AudioEngine {
 
   /// Play test sound to verify audio works
   Future<void> playTest() async {
-    print('[AudioEngine] Playing test sound...');
+    debugPrint('[AudioEngine] Playing test sound...');
 
     // Play accented click
     await playClick(
@@ -230,7 +230,7 @@ class AudioEngine {
       beatFrequency: 800,
     );
 
-    print('[AudioEngine] Test sound complete');
+    debugPrint('[AudioEngine] Test sound complete');
   }
 
   /// Dispose audio resources
@@ -238,9 +238,9 @@ class AudioEngine {
     try {
       _player.dispose();
       _initialized = false;
-      print('[AudioEngine] Disposed');
+      debugPrint('[AudioEngine] Disposed');
     } catch (e) {
-      print('[AudioEngine] Error during dispose: $e');
+      debugPrint('[AudioEngine] Error during dispose: $e');
     }
   }
 }

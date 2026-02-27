@@ -46,12 +46,12 @@ class ErrorBanner extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.error_outline, color: MonoPulseColors.error, size: 24),
+              const Icon(Icons.error_outline, color: MonoPulseColors.error, size: 24),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   message,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: MonoPulseColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -88,11 +88,11 @@ class ErrorBanner extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Icon(Icons.error_outline, color: MonoPulseColors.error, size: 48),
+            const Icon(Icons.error_outline, color: MonoPulseColors.error, size: 48),
             const SizedBox(height: 16),
             Text(
               message,
-              style: TextStyle(
+              style: const TextStyle(
                 color: MonoPulseColors.textPrimary,
                 fontSize: 14,
               ),
@@ -118,12 +118,12 @@ class ErrorBanner extends StatelessWidget {
   Widget _buildInline(BuildContext context) {
     return Row(
       children: [
-        Icon(Icons.error, color: MonoPulseColors.error, size: 20),
+        const Icon(Icons.error, color: MonoPulseColors.error, size: 20),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             message,
-            style: TextStyle(color: MonoPulseColors.textPrimary, fontSize: 13),
+            style: const TextStyle(color: MonoPulseColors.textPrimary, fontSize: 13),
           ),
         ),
       ],

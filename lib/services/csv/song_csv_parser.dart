@@ -2,6 +2,7 @@
 ///
 /// This service handles parsing CSV data into Song objects,
 /// with validation and error reporting.
+library;
 import 'package:csv/csv.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 import 'package:flutter_repsync_app/models/section.dart';

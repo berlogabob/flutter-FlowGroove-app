@@ -56,35 +56,35 @@ class _TunerScreenState extends ConsumerState<TunerScreen> {
   }
 
   Widget _buildBody(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl),
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl),
       child: Column(
         children: [
           // 1. Air gap after AppBar (64-80px)
-          const SizedBox(height: MonoPulseSpacing.huge),
+          SizedBox(height: MonoPulseSpacing.huge),
 
           // 2. Mode Switcher (Two pills) with AnimatedSwitcher
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
+            duration: Duration(milliseconds: 250),
             switchInCurve: MonoPulseAnimation.curveCustom,
             switchOutCurve: MonoPulseAnimation.curveCustom,
-            child: const ModeSwitcher(),
+            child: ModeSwitcher(),
           ),
 
           // Air gap to circle (48px)
-          const SizedBox(height: MonoPulseSpacing.massive),
+          SizedBox(height: MonoPulseSpacing.massive),
 
           // 3. Central Circle (Main Visual)
-          const Expanded(child: CentralDial()),
+          Expanded(child: CentralDial()),
 
           // Air gap to transport bar (48-64px)
-          const SizedBox(height: MonoPulseSpacing.massive),
+          SizedBox(height: MonoPulseSpacing.massive),
 
           // 4. Bottom Transport Bar
-          const TransportBar(),
+          TransportBar(),
 
           // Bottom padding for SafeArea
-          const SizedBox(height: MonoPulseSpacing.lg),
+          SizedBox(height: MonoPulseSpacing.lg),
         ],
       ),
     );

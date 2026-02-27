@@ -128,9 +128,9 @@ class CompactBandCard extends StatelessWidget {
         vertical: MonoPulseSpacing.sm,
       ),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: MonoPulseColors.surfaceRaised,
-          child: const Icon(
+          child: Icon(
             Icons.groups,
             size: 20,
             color: MonoPulseColors.accentOrange,

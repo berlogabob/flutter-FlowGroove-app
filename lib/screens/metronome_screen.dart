@@ -148,7 +148,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
                   width: 1.5,
                 ),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.arrow_back_ios_new,
                 color: MonoPulseColors.textSecondary,
                 size: 20,

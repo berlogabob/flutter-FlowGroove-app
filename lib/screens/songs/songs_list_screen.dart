@@ -110,7 +110,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   final TextEditingController _filterController = TextEditingController();
   List<Song>? _manualOrder; // Store manual order for manual sort mode
   Map<String, int> _tagCloud = {};
-  bool _loadingTagCloud = false;
+  final bool _loadingTagCloud = false;
 
   @override
   void initState() {
@@ -496,20 +496,20 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         title: 'Songs',
         menuItems: [
           PopupMenuItem<void>(
-            child: const Text('Import from CSV'),
             onTap: _handleImport,
+            child: const Text('Import from CSV'),
           ),
           PopupMenuItem<void>(
-            child: const Text('Export to CSV'),
             onTap: songsAsync.value != null && songsAsync.value!.isNotEmpty
                 ? () => _handleExport(songsAsync.value!)
                 : null,
+            child: const Text('Export to CSV'),
           ),
         ],
       ),
       body: Column(
         children: [
-          OfflineIndicator.banner(),
+          const OfflineIndicator.banner(),
           Expanded(child: _buildBody(songsAsync, bandsAsync)),
         ],
       ),

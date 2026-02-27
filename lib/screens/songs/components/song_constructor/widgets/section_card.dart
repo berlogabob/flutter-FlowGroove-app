@@ -112,7 +112,7 @@ class SectionCard extends StatelessWidget {
             constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 4),
-          Icon(
+          const Icon(
             Icons.drag_handle,
             color: MonoPulseColors.textSecondary,
             size: 20,

@@ -270,7 +270,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
           Container(
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: MonoPulseColors.accentOrange,
               shape: BoxShape.circle,
             ),

@@ -26,7 +26,7 @@ final authStateProvider = StreamProvider<User?>((ref) {
 
 /// Provider that returns the current Firebase user as an AsyncValue.
 ///
-/// This returns the same AsyncValue<User?> as authStateProvider,
+/// This returns the same AsyncValue as authStateProvider,
 /// providing a convenient way to access the current user with proper
 /// loading/error state handling.
 final currentUserProvider = Provider<AsyncValue<User?>>((ref) {

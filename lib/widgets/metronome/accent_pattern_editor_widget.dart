@@ -60,7 +60,7 @@ class AccentPatternEditorWidget extends ConsumerWidget {
                       textStyle: MonoPulseTypography.bodySmall.copyWith(
                         color: MonoPulseColors.textSecondary,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.help_outline,
                         size: 16,
                         color: MonoPulseColors.textTertiary,
@@ -82,7 +82,7 @@ class AccentPatternEditorWidget extends ConsumerWidget {
                         MonoPulseRadius.medium,
                       ),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.refresh,
                       size: 18,
                       color: MonoPulseColors.textSecondary,

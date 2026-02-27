@@ -109,7 +109,7 @@ class _FrequencyControlsWidgetState
                         ),
                       ],
                     ),
-                    Icon(
+                    const Icon(
                       Icons.tune,
                       size: 20,
                       color: MonoPulseColors.textTertiary,
@@ -160,7 +160,7 @@ class _FrequencyControlsWidgetState
                   // Volume Slider
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.volume_up,
                         size: 20,
                         color: MonoPulseColors.textSecondary,
@@ -423,7 +423,7 @@ class _WaveTypeDropdown extends StatelessWidget {
       child: DropdownButton<String>(
         value: value,
         underline: const SizedBox.shrink(),
-        icon: Icon(
+        icon: const Icon(
           Icons.arrow_drop_down,
           color: MonoPulseColors.textSecondary,
           size: 20,

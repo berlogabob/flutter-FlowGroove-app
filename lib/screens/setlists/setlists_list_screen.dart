@@ -165,7 +165,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       ),
       body: Column(
         children: [
-          OfflineIndicator.banner(),
+          const OfflineIndicator.banner(),
           Expanded(child: _buildBody(setlistsAsync)),
         ],
       ),

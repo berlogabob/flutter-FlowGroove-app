@@ -64,7 +64,7 @@ class MetronomeState {
 
   /// Creates initial metronome state
   factory MetronomeState.initial() {
-    return MetronomeState(
+    return const MetronomeState(
       isPlaying: false,
       bpm: 120,
       currentBeat: 0,
@@ -74,10 +74,10 @@ class MetronomeState {
       accentEnabled: true,
       accentFrequency: 1600,
       beatFrequency: 800,
-      accentPattern: const [true, false, false, false],
+      accentPattern: [true, false, false, false],
       accentBeats: 4,
       regularBeats: 1,
-      beatModes: const [], // Empty = all normal
+      beatModes: [], // Empty = all normal
     );
   }
 
