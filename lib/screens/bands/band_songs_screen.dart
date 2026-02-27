@@ -583,20 +583,30 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   void _showMembers(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: MonoPulseColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => _buildMembersSheet(context),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.25,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) =>
+            _buildMembersSheet(context, scrollController),
+      ),
     );
   }
 
-  Widget _buildMembersSheet(BuildContext context) {
+  Widget _buildMembersSheet(
+    BuildContext context,
+    ScrollController scrollController,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: ListView(
+        controller: scrollController,
         children: [
           Text(
             'Band Members',
