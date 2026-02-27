@@ -246,112 +246,135 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
-        title: _isEditing ? 'Edit Song' : 'Add Song',
-        menuItems: [
-          PopupMenuItem<void>(onTap: _saveSong, child: const Text('Save')),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Error banner
-          if (_currentError != null) ...[
-            ErrorBanner.banner(
-              message: _currentError?.message ?? 'An unexpected error occurred',
-              onRetry: clearError,
-            ),
-            const SizedBox(height: 16),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop &&
+            _hasUnsavedChanges &&
+            _titleController.text.trim().isNotEmpty) {
+          await _autoSave();
+        }
+      },
+      child: Scaffold(
+        appBar: CustomAppBar.build(
+          context,
+          title: _isEditing ? 'Edit Song' : 'Add Song',
+          menuItems: [
+            PopupMenuItem<void>(onTap: _saveSong, child: const Text('Save')),
           ],
-          // Song form
-          SongForm(
-            formKey: _formKey,
-            titleController: _titleController,
-            artistController: _artistController,
-            originalBpmController: _originalBpmController,
-            ourBpmController: _ourBpmController,
-            notesController: _notesController,
-            links: _formData.links,
-            selectedTags: _formData.selectedTags,
-            availableTags: _availableTags,
-            originalKeyBase: _formData.originalKeyBase,
-            originalKeyModifier: _formData.originalKeyModifier,
-            ourKeyBase: _formData.ourKeyBase,
-            ourKeyModifier: _formData.ourKeyModifier,
-            onOriginalKeyChanged: (b, m) => setState(() {
-              _formData.originalKeyBase = b;
-              _formData.originalKeyModifier = m;
-            }),
-            onOurKeyChanged: (b, m) => setState(() {
-              _formData.ourKeyBase = b;
-              _formData.ourKeyModifier = m;
-            }),
-            onAddLink: (link) => setState(() => _formData.addLink(link)),
-            onRemoveLink: (index) =>
-                setState(() => _formData.removeLink(index)),
-            onTagChanged: (tag, selected) =>
-                setState(() => _formData.toggleTag(tag, selected)),
-            onCopyFromOriginal: () => setState(() {
-              _formData.copyFromOriginal();
-              _ourBpmController.text = _originalBpmController.text;
-            }),
-            onAccentBeatsChanged: (value) => setState(() {
-              _formData.updateAccentBeats(value);
-              // Re-initialize beat modes when accentBeats changes
-              _formData.initializeBeatModes();
-            }),
-            onRegularBeatsChanged: (value) => setState(() {
-              _formData.updateRegularBeats(value);
-              // Re-initialize beat modes when regularBeats changes
-              _formData.initializeBeatModes();
-            }),
-            onBeatModeChanged: (beatIndex, subdivisionIndex, mode) =>
-                setState(() {
-                  _formData.updateBeatMode(beatIndex, subdivisionIndex, mode);
-                }),
-            onSectionsChanged: (newSections) => setState(() {
-              _formData.setSections(newSections);
-            }),
-            onSubmit: _saveSong,
-            isEditing: _isEditing,
-            accentBeats: _formData.accentBeats,
-            regularBeats: _formData.regularBeats,
-            beatModes: _formData.beatModes,
-            sections: _formData.sections,
-          ),
-          const SizedBox(height: 24),
-          // Search buttons row
-          Align(
-            alignment: Alignment.centerRight,
-            child: Wrap(
-              spacing: 4,
-              children: [
-                TextButton.icon(
-                  onPressed: showMusicBrainzSearch,
-                  icon: const Icon(Icons.search, size: 18),
-                  label: const Text('MusicBrainz'),
-                ),
-                TextButton.icon(
-                  onPressed: showSpotifySearch,
-                  icon: const Icon(Icons.music_note, size: 18),
-                  label: const Text('Spotify'),
-                ),
-                TextButton.icon(
-                  onPressed: fetchTrackAnalysis,
-                  icon: const Icon(Icons.analytics, size: 18),
-                  label: const Text('BPM/Key'),
-                ),
-                TextButton.icon(
-                  onPressed: searchOnWeb,
-                  icon: const Icon(Icons.search, size: 18),
-                  label: const Text('Web'),
-                ),
-              ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // Error banner
+            if (_currentError != null) ...[
+              ErrorBanner.banner(
+                message:
+                    _currentError?.message ?? 'An unexpected error occurred',
+                onRetry: clearError,
+              ),
+              const SizedBox(height: 16),
+            ],
+            // Song form
+            SongForm(
+              formKey: _formKey,
+              titleController: _titleController,
+              artistController: _artistController,
+              originalBpmController: _originalBpmController,
+              ourBpmController: _ourBpmController,
+              notesController: _notesController,
+              links: _formData.links,
+              selectedTags: _formData.selectedTags,
+              availableTags: _availableTags,
+              originalKeyBase: _formData.originalKeyBase,
+              originalKeyModifier: _formData.originalKeyModifier,
+              ourKeyBase: _formData.ourKeyBase,
+              ourKeyModifier: _formData.ourKeyModifier,
+              onOriginalKeyChanged: (b, m) => setState(() {
+                _formData.originalKeyBase = b;
+                _formData.originalKeyModifier = m;
+                _markAsChanged();
+              }),
+              onOurKeyChanged: (b, m) => setState(() {
+                _formData.ourKeyBase = b;
+                _formData.ourKeyModifier = m;
+                _markAsChanged();
+              }),
+              onAddLink: (link) => setState(() {
+                _formData.addLink(link);
+                _markAsChanged();
+              }),
+              onRemoveLink: (index) => setState(() {
+                _formData.removeLink(index);
+                _markAsChanged();
+              }),
+              onTagChanged: (tag, selected) => setState(() {
+                _formData.toggleTag(tag, selected);
+                _markAsChanged();
+              }),
+              onCopyFromOriginal: () => setState(() {
+                _formData.copyFromOriginal();
+                _ourBpmController.text = _originalBpmController.text;
+                _markAsChanged();
+              }),
+              onAccentBeatsChanged: (value) => setState(() {
+                _formData.updateAccentBeats(value);
+                _formData.initializeBeatModes();
+                _markAsChanged();
+              }),
+              onRegularBeatsChanged: (value) => setState(() {
+                _formData.updateRegularBeats(value);
+                _formData.initializeBeatModes();
+                _markAsChanged();
+              }),
+              onBeatModeChanged: (beatIndex, subdivisionIndex, mode) =>
+                  setState(() {
+                    _formData.updateBeatMode(beatIndex, subdivisionIndex, mode);
+                    _markAsChanged();
+                  }),
+              onSectionsChanged: (newSections) {
+                _formData.setSections(newSections);
+                _markAsChanged();
+              },
+              onSubmit: _saveSong,
+              isEditing: _isEditing,
+              accentBeats: _formData.accentBeats,
+              regularBeats: _formData.regularBeats,
+              beatModes: _formData.beatModes,
+              sections: _formData.sections,
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            // Search buttons row
+            Align(
+              alignment: Alignment.centerRight,
+              child: Wrap(
+                spacing: 4,
+                children: [
+                  TextButton.icon(
+                    onPressed: showMusicBrainzSearch,
+                    icon: const Icon(Icons.search, size: 18),
+                    label: const Text('MusicBrainz'),
+                  ),
+                  TextButton.icon(
+                    onPressed: showSpotifySearch,
+                    icon: const Icon(Icons.music_note, size: 18),
+                    label: const Text('Spotify'),
+                  ),
+                  TextButton.icon(
+                    onPressed: fetchTrackAnalysis,
+                    icon: const Icon(Icons.analytics, size: 18),
+                    label: const Text('BPM/Key'),
+                  ),
+                  TextButton.icon(
+                    onPressed: searchOnWeb,
+                    icon: const Icon(Icons.search, size: 18),
+                    label: const Text('Web'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

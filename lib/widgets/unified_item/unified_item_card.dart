@@ -101,7 +101,8 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
 
       // Add BPM and key badges - enhanced BPM display
       final List<Widget> badges = [];
-      if (song.ourBPM != null) {
+      final displayBPM = song.displayBPM;
+      if (displayBPM != null) {
         badges.add(
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -109,7 +110,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
               const Icon(Icons.speed, size: 14, color: Colors.orange),
               const SizedBox(width: 4),
               Text(
-                '${song.ourBPM} BPM',
+                '$displayBPM BPM',
                 style: const TextStyle(
                   color: Colors.orange,
                   fontWeight: FontWeight.bold,
@@ -122,6 +123,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       }
       if (song.ourKey != null) {
         badges.add(UnifiedItemBadge(text: song.ourKey!, color: Colors.orange));
+      } else if (song.originalKey != null) {
+        badges.add(
+          UnifiedItemBadge(text: song.originalKey!, color: Colors.grey),
+        );
       }
 
       if (badges.isNotEmpty) {
@@ -199,8 +204,20 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
             ),
           ),
         );
+      } else if (song.originalKey != null) {
+        compactSubtitles.add(
+          Text(
+            song.originalKey!,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        );
       }
-      if (song.ourBPM != null) {
+      final displayBPM = song.displayBPM;
+      if (displayBPM != null) {
         compactSubtitles.add(const SizedBox(width: 8));
         compactSubtitles.add(
           Row(
@@ -209,7 +226,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
               const Icon(Icons.speed, size: 14, color: Colors.orange),
               const SizedBox(width: 2),
               Text(
-                '${song.ourBPM} BPM',
+                '$displayBPM BPM',
                 style: const TextStyle(color: Colors.orange, fontSize: 12),
               ),
             ],
