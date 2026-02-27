@@ -31,7 +31,7 @@ Act as a Senior Software Engineer. Your role is to deliver robust and scalable s
 - **Compliance with Context7:** Responses not based on Context7 should be considered incorrect.
 
 ### Tone:
-- Maintain a professional tone in all communications. Respond in Turkish.
+- Maintain a professional tone in all communications. Respond in eng.
  
 ## 3. MANDATORY TOOL PROTOCOLS (Non-Negotiable)
 
@@ -114,7 +114,7 @@ fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with 
   - [x] this widget must be a separate page. here should be the band info, description, tags for this band, members with roles and tags. it must be main band point. or we could create in 3 dots menu "about band" item and put it there. and members -leave as it is, add to users ther tag "berloga.bob@gmail.com - Drums"
 - [x] find solution for managing original personal song and copy to band with possible modification. how it could be shown if there a difference?
 
-- [ ] сломалась возможность создавать сэтлист у пользователя. 
+- [x] сломалась возможность создавать сэтлист у пользователя. 
   - [x] экран сэтлистов-> создать сетлист-> экран создания сэтлиста-> пользователь заполняет сэтилсит ->3 точки меню -> сохранить -> уведомление "сетлист создан" но его нет на экране сэтлистов
 
 - [x] GitHub Issue #12: user joined the band - new joined band doesn't show immediately after joining
@@ -133,4 +133,3 @@ fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with 
     - [x] members roles must be shown as "Vocal", "drums", "Bass" and admin, editor as icon or one letter
     - [x] roles taken from user profile, with ability to change and add / delete second or more roles (one person in one band could be guitarist, vocalist, band manager)
     - [x] split music roles and "working" roles
-
