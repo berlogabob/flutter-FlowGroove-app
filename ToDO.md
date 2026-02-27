@@ -117,6 +117,20 @@ fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with 
 - [ ] сломалась возможность создавать сэтлист у пользователя. 
   - [x] экран сэтлистов-> создать сетлист-> экран создания сэтлиста-> пользователь заполняет сэтилсит ->3 точки меню -> сохранить -> уведомление "сетлист создан" но его нет на экране сэтлистов
 
-- [ ] GitHub Issue #12: user joined the band - new joined band doesn't show immediately after joining
+- [x] GitHub Issue #12: user joined the band - new joined band doesn't show immediately after joining
   - when user A invite user B to join his band, user B: main screen-> band screen-> join band btn -> enter code -> notification "joined!"
   - problem: user can't see new joined band right after. user needs to update web page or go back and return. now it shows.
+
+- [ ] GitHub Issue #13: The Band Screen - unify with personal page
+  - main screen -> bands screen -> the band :
+  - this screen must look same as personal page. except:
+    - [x] User name -> band mane ( "Hello, berloga.bob! -> "The Band")
+    - [x] "ready to rock" -> shows band description, if empty - show placeholder "ready to rock" or leave empty
+    - [x] quick action. delete this block. here must be:
+      - [x] the band tags
+      - [x] the band members
+    - [x] all widgets on this page must behave and be a copy for look and work (or maybe literal copy) of widgets from add/edit song. with collapse /expand and autosave of user input
+    - [x] members roles must be shown as "Vocal", "drums", "Bass" and admin, editor as icon or one letter
+    - [x] roles taken from user profile, with ability to change and add / delete second or more roles (one person in one band could be guitarist, vocalist, band manager)
+    - [x] split music roles and "working" roles
+

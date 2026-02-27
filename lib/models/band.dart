@@ -17,21 +17,40 @@ class BandMember {
   @JsonKey(defaultValue: '')
   final String uid;
   @JsonKey(defaultValue: 'viewer')
-  final String role;
+  final String role; // Permission role: admin, editor, viewer
   final String? displayName;
   final String? email;
+  @JsonKey(defaultValue: [])
+  final List<String> musicRoles; // Music roles: guitarist, vocalist, drummer, etc.
 
   BandMember({
     required this.uid,
     required this.role,
     this.displayName,
     this.email,
+    this.musicRoles = const [],
   });
 
   Map<String, dynamic> toJson() => _$BandMemberToJson(this);
 
   factory BandMember.fromJson(Map<String, dynamic> json) =>
       _$BandMemberFromJson(json);
+
+  BandMember copyWith({
+    String? uid,
+    String? role,
+    String? displayName,
+    String? email,
+    List<String>? musicRoles,
+  }) {
+    return BandMember(
+      uid: uid ?? this.uid,
+      role: role ?? this.role,
+      displayName: displayName ?? this.displayName,
+      email: email ?? this.email,
+      musicRoles: musicRoles ?? this.musicRoles,
+    );
+  }
 
   static const String roleAdmin = 'admin';
   static const String roleEditor = 'editor';

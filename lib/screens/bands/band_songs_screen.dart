@@ -35,6 +35,63 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   String _searchQuery = '';
   String? _filterContributor;
   SortOption _sortOption = SortOption.alphabetical;
+  bool _isTagsExpanded = false;
+  bool _isMembersExpanded = false;
+
+  final List<String> _availableTags = [
+    'rock',
+    'pop',
+    'jazz',
+    'blues',
+    'metal',
+    'folk',
+    'country',
+    'reggae',
+    'funk',
+    'r&b',
+    'cover band',
+    'original',
+    'tribute',
+    'wedding',
+    'bar',
+    'live',
+    'studio',
+  ];
+
+  static const List<String> musicRoles = [
+    'Vocal',
+    'Guitar',
+    'Bass',
+    'Drums',
+    'Keyboard',
+    'Piano',
+    'Saxophone',
+    'Trumpet',
+    'Violin',
+    'Cello',
+    'DJ',
+    'Harmonica',
+    'Banjo',
+    'Ukulele',
+    'Percussion',
+    'Backing Vocal',
+    'Loop Station',
+  ];
+
+  static const List<String> workingRoles = [
+    'Band Manager',
+    'Sound Engineer',
+    'Lighting',
+    'Booking Agent',
+    'Producer',
+    'Songwriter',
+    'Arranger',
+    'Booking',
+    'Merch',
+    'Social Media',
+    'Photographer',
+    'Videographer',
+  ];
 
   /// Get the current user's role in the band.
   String? get _userRole {
@@ -198,6 +255,8 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
 
     return Column(
       children: [
+        // Band Info Header
+        _buildBandHeader(),
         // Search and filter section
         _buildSearchAndFilter(context, contributors),
         // Songs list
@@ -245,6 +304,175 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildBandHeader() {
+    final band = widget.band;
+    final description = band.description;
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Description section (replaces "Ready to rock?")
+          if (description != null && description.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                description,
+                style: const TextStyle(
+                  color: MonoPulseColors.textSecondary,
+                  fontSize: 14,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            )
+          else
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Ready to rock',
+                style: TextStyle(
+                  color: MonoPulseColors.textTertiary,
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+
+          // Quick Actions - Tags and Members (collapsible)
+          Card(
+            child: Column(
+              children: [
+                // Tags section
+                InkWell(
+                  onTap: () =>
+                      setState(() => _isTagsExpanded = !_isTagsExpanded),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.label_outline, size: 20),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Tags',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${band.tags.length}',
+                          style: const TextStyle(
+                            color: MonoPulseColors.textSecondary,
+                          ),
+                        ),
+                        AnimatedRotation(
+                          turns: _isTagsExpanded ? 0.5 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: const Icon(Icons.keyboard_arrow_down),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (_isTagsExpanded)
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _availableTags.map((tag) {
+                        final isSelected = band.tags.contains(tag);
+                        return FilterChip(
+                          label: Text(tag),
+                          selected: isSelected,
+                          onSelected: _canEdit
+                              ? (selected) => _toggleTag(tag, selected)
+                              : null,
+                          selectedColor: MonoPulseColors.accentOrangeSubtle,
+                          checkmarkColor: MonoPulseColors.accentOrange,
+                        );
+                      }).toList(),
+                    ),
+                  ),
+
+                if (_isTagsExpanded && _isMembersExpanded)
+                  const Divider(height: 1),
+
+                // Members section
+                InkWell(
+                  onTap: () =>
+                      setState(() => _isMembersExpanded = !_isMembersExpanded),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.people_outline, size: 20),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Members',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${band.members.length}',
+                          style: const TextStyle(
+                            color: MonoPulseColors.textSecondary,
+                          ),
+                        ),
+                        AnimatedRotation(
+                          turns: _isMembersExpanded ? 0.5 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: const Icon(Icons.keyboard_arrow_down),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (_isMembersExpanded)
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: Column(
+                      children: band.members.map((member) {
+                        return _buildMemberTile(member);
+                      }).toList(),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _toggleTag(String tag, bool selected) async {
+    final currentTags = List<String>.from(widget.band.tags);
+    if (selected) {
+      currentTags.add(tag);
+    } else {
+      currentTags.remove(tag);
+    }
+
+    final updatedBand = widget.band.copyWith(tags: currentTags);
+
+    try {
+      final userAsync = ref.read(currentUserProvider);
+      final user = userAsync.value;
+      if (user == null) return;
+
+      await ref.read(firestoreProvider).saveBand(updatedBand, uid: user.uid);
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating tags: $e')));
+      }
+    }
   }
 
   Widget _buildSearchAndFilter(
@@ -508,6 +736,182 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     );
   }
 
+  Widget _buildMemberTile(BandMember member) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: MonoPulseColors.accentOrange,
+                  radius: 20,
+                  child: Text(
+                    (member.displayName ?? member.email ?? '?')[0]
+                        .toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        member.displayName ?? member.email ?? 'Unknown',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      // Permission role badge
+                      Row(
+                        children: [
+                          _buildPermissionBadge(member.role),
+                          const SizedBox(width: 8),
+                          if (_canEdit && member.uid != _currentUserId)
+                            GestureDetector(
+                              onTap: () => _showEditMemberDialog(member),
+                              child: const Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: MonoPulseColors.textSecondary,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // Music roles display
+            if (member.musicRoles.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: member.musicRoles.map((role) {
+                  return Chip(
+                    label: Text(role, style: const TextStyle(fontSize: 10)),
+                    padding: EdgeInsets.zero,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                    backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                    labelStyle: const TextStyle(
+                      color: MonoPulseColors.accentOrange,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPermissionBadge(String role) {
+    Color color;
+    String icon;
+    switch (role) {
+      case 'admin':
+        color = Colors.red;
+        icon = 'A';
+        break;
+      case 'editor':
+        color = Colors.blue;
+        icon = 'E';
+        break;
+      default:
+        color = Colors.grey;
+        icon = 'V';
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon == 'A'
+                ? Icons.star
+                : icon == 'E'
+                ? Icons.edit
+                : Icons.visibility,
+            size: 10,
+            color: color,
+          ),
+          const SizedBox(width: 2),
+          Text(
+            icon,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String? get _currentUserId {
+    final userAsync = ref.read(currentUserProvider);
+    return userAsync.value?.uid;
+  }
+
+  void _showEditMemberDialog(BandMember member) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: MonoPulseColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _EditMemberSheet(
+        member: member,
+        band: widget.band,
+        onSave: (updatedMember) => _updateMember(updatedMember),
+      ),
+    );
+  }
+
+  Future<void> _updateMember(BandMember updatedMember) async {
+    final currentMembers = List<BandMember>.from(widget.band.members);
+    final index = currentMembers.indexWhere((m) => m.uid == updatedMember.uid);
+    if (index != -1) {
+      currentMembers[index] = updatedMember;
+      final updatedBand = widget.band.copyWith(members: currentMembers);
+
+      try {
+        final userAsync = ref.read(currentUserProvider);
+        final user = userAsync.value;
+        if (user == null) return;
+
+        await ref.read(firestoreProvider).saveBand(updatedBand, uid: user.uid);
+        if (mounted) {
+          setState(() {});
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error updating member: $e')));
+        }
+      }
+    }
+  }
+
   String _formatRole(String role) {
     switch (role) {
       case 'admin':
@@ -545,6 +949,237 @@ class _BuildEditAction implements UnifiedItemAction {
       ),
       onPressed: onEdit,
       tooltip: 'Edit',
+    );
+  }
+}
+
+class _EditMemberSheet extends StatefulWidget {
+  final BandMember member;
+  final Band band;
+  final Function(BandMember) onSave;
+
+  const _EditMemberSheet({
+    required this.member,
+    required this.band,
+    required this.onSave,
+  });
+
+  @override
+  State<_EditMemberSheet> createState() => _EditMemberSheetState();
+}
+
+class _EditMemberSheetState extends State<_EditMemberSheet> {
+  late List<String> _selectedMusicRoles;
+  late String _selectedPermission;
+
+  static const List<String> musicRoles = [
+    'Vocal',
+    'Guitar',
+    'Bass',
+    'Drums',
+    'Keyboard',
+    'Piano',
+    'Saxophone',
+    'Trumpet',
+    'Violin',
+    'Cello',
+    'DJ',
+    'Harmonica',
+    'Banjo',
+    'Ukulele',
+    'Percussion',
+    'Backing Vocal',
+    'Loop Station',
+  ];
+
+  static const List<String> workingRoles = [
+    'Band Manager',
+    'Sound Engineer',
+    'Lighting',
+    'Booking Agent',
+    'Producer',
+    'Songwriter',
+    'Arranger',
+    'Booking',
+    'Merch',
+    'Social Media',
+    'Photographer',
+    'Videographer',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMusicRoles = List<String>.from(widget.member.musicRoles);
+    _selectedPermission = widget.member.role;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            controller: scrollController,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Edit Member',
+                    style: MonoPulseTypography.headlineLarge.copyWith(
+                      color: MonoPulseColors.textHighEmphasis,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Member name
+              Text(
+                widget.member.displayName ?? widget.member.email ?? 'Unknown',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Permission role section
+              const Text(
+                'Permission Role',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: MonoPulseColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  _buildPermissionChip('admin', 'Admin', Colors.red),
+                  _buildPermissionChip('editor', 'Editor', Colors.blue),
+                  _buildPermissionChip('viewer', 'Viewer', Colors.grey),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Music roles section
+              const Text(
+                'Music Roles',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: MonoPulseColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: musicRoles.map((role) {
+                  final isSelected = _selectedMusicRoles.contains(role);
+                  return FilterChip(
+                    label: Text(role),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedMusicRoles.add(role);
+                        } else {
+                          _selectedMusicRoles.remove(role);
+                        }
+                      });
+                    },
+                    selectedColor: MonoPulseColors.accentOrangeSubtle,
+                    checkmarkColor: MonoPulseColors.accentOrange,
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 24),
+
+              // Working roles section
+              const Text(
+                'Working Roles',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: MonoPulseColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: workingRoles.map((role) {
+                  final isSelected = _selectedMusicRoles.contains(role);
+                  return FilterChip(
+                    label: Text(role),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedMusicRoles.add(role);
+                        } else {
+                          _selectedMusicRoles.remove(role);
+                        }
+                      });
+                    },
+                    selectedColor: MonoPulseColors.accentOrangeSubtle,
+                    checkmarkColor: MonoPulseColors.accentOrange,
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 32),
+
+              // Save button
+              ElevatedButton(
+                onPressed: () {
+                  final updatedMember = widget.member.copyWith(
+                    role: _selectedPermission,
+                    musicRoles: _selectedMusicRoles,
+                  );
+                  widget.onSave(updatedMember);
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MonoPulseColors.accentOrange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text('Save Changes'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPermissionChip(String value, String label, Color color) {
+    final isSelected = _selectedPermission == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          setState(() => _selectedPermission = value);
+        }
+      },
+      selectedColor: color.withValues(alpha: 0.3),
+      labelStyle: TextStyle(
+        color: isSelected ? color : MonoPulseColors.textSecondary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
     );
   }
 }
