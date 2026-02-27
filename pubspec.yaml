@@ -1,7 +1,7 @@
 name: flutter_repsync_app
 description: "RepSync - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.11.2+95
+version: 0.11.2+96
 
 environment:
   sdk: ^3.10.7
@@ -52,8 +52,6 @@ dependencies:
   image_picker: ^1.1.2
   path_provider: ^2.1.5
 
-  # Social Login
-  twitter_login: ^4.4.2
 
   # File picker for import/export
   file_picker: ^10.3.10
