@@ -128,19 +128,6 @@ class _SongConstructorState extends State<SongConstructor> {
     );
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
-    setState(() {
-      // Create new list with reordered items
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
-      final section = _sections[oldIndex];
-      _sections = List<Section>.from(_sections)..removeAt(oldIndex);
-      _sections.insert(newIndex, section);
-    });
-    _notifyChange();
-  }
-
   void _autoGenerate() {
     final templates = Section.templates;
     final sectionCount = _random.nextInt(5) + 3; // 3-7 sections

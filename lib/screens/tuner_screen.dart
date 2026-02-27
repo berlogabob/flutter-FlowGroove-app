@@ -49,10 +49,7 @@ class _TunerScreenState extends ConsumerState<TunerScreen> {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: MonoPulseColors.black,
-        appBar: CustomAppBar.buildSimple(
-          context,
-          title: 'Tuner',
-        ),
+        appBar: CustomAppBar.buildSimple(context, title: 'Tuner'),
         body: SafeArea(child: _buildBody(context)),
       ),
     );
@@ -90,115 +87,6 @@ class _TunerScreenState extends ConsumerState<TunerScreen> {
           const SizedBox(height: MonoPulseSpacing.lg),
         ],
       ),
-    );
-  }
-
-  void _showSettingsSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: MonoPulseColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(MonoPulseRadius.xlarge),
-        ),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Handle bar
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: MonoPulseColors.borderStrong,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
-            Text(
-              'Tuner Settings',
-              style: MonoPulseTypography.headlineMedium.copyWith(
-                color: MonoPulseColors.textHighEmphasis,
-              ),
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
-            _SettingsTile(
-              icon: Icons.info_outline,
-              title: 'Stage 2 Implementation',
-              subtitle: 'Simulated pitch detection. Real detection in Stage 3.',
-            ),
-            const SizedBox(height: MonoPulseSpacing.sm),
-            _SettingsTile(
-              icon: Icons.music_note,
-              title: 'Frequency Range',
-              subtitle: '20 Hz - 2000 Hz',
-            ),
-            const SizedBox(height: MonoPulseSpacing.sm),
-            _SettingsTile(
-              icon: Icons.tune,
-              title: 'Cents Range',
-              subtitle: '±50 cents',
-            ),
-            const SizedBox(height: MonoPulseSpacing.xl),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: MonoPulseColors.surfaceRaised,
-            borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          ),
-          child: Icon(icon, color: MonoPulseColors.accentOrange, size: 20),
-        ),
-        const SizedBox(width: MonoPulseSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: MonoPulseTypography.bodyLarge.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
-                  fontWeight: MonoPulseTypography.medium,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: MonoPulseTypography.bodySmall.copyWith(
-                  color: MonoPulseColors.textTertiary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
