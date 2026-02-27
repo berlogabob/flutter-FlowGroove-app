@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/api_error.dart';
 import '../../models/user.dart';
 import '../../services/cache_service.dart';
+import '../../services/firestore_service.dart';
 
 /// Provider for the FirebaseAuth instance.
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
@@ -169,6 +170,27 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       throw apiError;
     } catch (e, stackTrace) {
       final apiError = ApiError.fromException(e, stackTrace: stackTrace);
+      throw apiError;
+    }
+  }
+
+  /// Updates the user's base tags (role tags like guitarist, vocalist, etc.)
+  ///
+  /// Throws [ApiError] if update fails.
+  Future<void> updateBaseTags(List<String> tags) async {
+    final currentUser = state.value;
+    if (currentUser == null) {
+      throw ApiError.auth(message: 'No user logged in');
+    }
+
+    try {
+      final updatedUser = currentUser.copyWith(baseTags: tags);
+      final firestore = FirestoreService();
+      await firestore.saveUser(updatedUser);
+      state = AsyncValue.data(updatedUser);
+    } catch (e, stackTrace) {
+      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
+      state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
     }
   }

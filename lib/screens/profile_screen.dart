@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/tag_input_dialog.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -91,6 +92,82 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     style: const TextStyle(
                       fontSize: 16,
                       color: MonoPulseColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.xxl),
+          const Text(
+            'My Roles',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: MonoPulseColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.sm),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(MonoPulseSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Your roles in bands',
+                        style: TextStyle(
+                          color: MonoPulseColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 20),
+                        onPressed: () => _editBaseTags(context, ref),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.sm),
+                  appUserAsync.when(
+                    data: (user) {
+                      if (user == null || user.baseTags.isEmpty) {
+                        return const Text(
+                          'No roles set. Tap edit to add.',
+                          style: TextStyle(
+                            color: MonoPulseColors.textTertiary,
+                            fontSize: 13,
+                          ),
+                        );
+                      }
+                      return Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: user.baseTags.map((tag) {
+                          return Chip(
+                            label: Text(
+                              tag,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          );
+                        }).toList(),
+                      );
+                    },
+                    loading: () => const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    error: (_, __) => const Text(
+                      'Error loading tags',
+                      style: TextStyle(color: MonoPulseColors.error),
                     ),
                   ),
                 ],
@@ -273,6 +350,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  void _editBaseTags(BuildContext context, WidgetRef ref) async {
+    final appUserAsync = ref.read(appUserProvider);
+    final currentTags = appUserAsync.value?.baseTags ?? [];
+
+    final result = await TagInputDialog.show(
+      context,
+      initialTags: currentTags,
+      title: 'Edit My Roles',
+      hintText: 'Enter role (e.g., guitarist)',
+      suggestions: const [
+        'vocals',
+        'guitar',
+        'bass',
+        'drums',
+        'keys',
+        'saxophone',
+        'trumpet',
+        'backing vocals',
+        'lead vocals',
+      ],
+    );
+
+    if (result != null && context.mounted) {
+      try {
+        await ref.read(appUserProvider.notifier).updateBaseTags(result);
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Roles updated')));
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
+      }
+    }
   }
 
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
