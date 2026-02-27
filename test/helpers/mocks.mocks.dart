@@ -21,7 +21,8 @@ import 'package:firebase_core/firebase_core.dart' as _i2;
 import 'package:flutter_repsync_app/models/band.dart' as _i19;
 import 'package:flutter_repsync_app/models/setlist.dart' as _i20;
 import 'package:flutter_repsync_app/models/song.dart' as _i18;
-import 'package:flutter_repsync_app/services/cache_service.dart' as _i21;
+import 'package:flutter_repsync_app/models/user.dart' as _i21;
+import 'package:flutter_repsync_app/services/cache_service.dart' as _i22;
 import 'package:flutter_repsync_app/services/firestore_service.dart' as _i17;
 import 'package:hive/hive.dart' as _i13;
 import 'package:http/http.dart' as _i8;
@@ -2943,12 +2944,37 @@ class MockFirestoreService extends _i1.Mock implements _i17.FirestoreService {
             returnValueForMissingStub: _i7.Future<void>.value(),
           )
           as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> saveUser(_i21.AppUser? user) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveUser, [user]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<_i21.AppUser?> loadUser(String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#loadUser, [uid]),
+            returnValue: _i7.Future<_i21.AppUser?>.value(),
+          )
+          as _i7.Future<_i21.AppUser?>);
+
+  @override
+  _i7.Future<Map<String, int>> getTagCloud({String? uid}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getTagCloud, [], {#uid: uid}),
+            returnValue: _i7.Future<Map<String, int>>.value(<String, int>{}),
+          )
+          as _i7.Future<Map<String, int>>);
 }
 
 /// A class which mocks [CacheService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCacheService extends _i1.Mock implements _i21.CacheService {
+class MockCacheService extends _i1.Mock implements _i22.CacheService {
   MockCacheService() {
     _i1.throwOnMissingStub(this);
   }

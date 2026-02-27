@@ -1,4 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'setlist_assignment.dart';
+import 'band.dart';
 
 part 'setlist.g.dart';
 
@@ -25,6 +27,12 @@ class Setlist {
   @JsonKey(defaultValue: [])
   final List<String> songIds;
   final int? totalDuration;
+  @JsonKey(
+    defaultValue: {},
+    fromJson: _assignmentsFromJson,
+    toJson: _assignmentsToJson,
+  )
+  final Map<String, SetlistAssignment> assignments;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
@@ -39,6 +47,7 @@ class Setlist {
     this.eventLocation,
     this.songIds = const [],
     this.totalDuration,
+    this.assignments = const {},
     required this.createdAt,
     required this.updatedAt,
   });
@@ -52,6 +61,7 @@ class Setlist {
     Object? eventLocation = _sentinel,
     List<String>? songIds,
     Object? totalDuration = _sentinel,
+    Map<String, SetlistAssignment>? assignments,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -72,6 +82,7 @@ class Setlist {
       totalDuration: totalDuration == _sentinel
           ? this.totalDuration
           : totalDuration as int?,
+      assignments: assignments ?? this.assignments,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -86,6 +97,24 @@ class Setlist {
     if (eventDate == null) return '';
     return '${eventDate!.day.toString().padLeft(2, '0')}.${eventDate!.month.toString().padLeft(2, '0')}.${eventDate!.year}';
   }
+
+  /// Get list of participants for this setlist based on band members and assignments.
+  ///
+  /// Returns a list of participant info including their role for this setlist.
+  List<Map<String, String>> getParticipants(List<BandMember> bandMembers) {
+    final participants = <Map<String, String>>[];
+
+    for (final member in bandMembers) {
+      final participant = <String, String>{
+        'uid': member.uid,
+        'name': member.displayName ?? member.email ?? 'Unknown',
+        'role': member.role,
+      };
+      participants.add(participant);
+    }
+
+    return participants;
+  }
 }
 
 DateTime _parseDateTime(dynamic value) {
@@ -95,3 +124,26 @@ DateTime _parseDateTime(dynamic value) {
 }
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
+
+Map<String, SetlistAssignment> _assignmentsFromJson(dynamic value) {
+  if (value == null) return {};
+  if (value is Map) {
+    final result = <String, SetlistAssignment>{};
+    for (final entry in value.entries) {
+      final key = entry.key.toString();
+      if (entry.value is Map) {
+        result[key] = SetlistAssignment.fromJson(
+          Map<String, dynamic>.from(entry.value),
+        );
+      } else {
+        result[key] = SetlistAssignment(oderId: key);
+      }
+    }
+    return result;
+  }
+  return {};
+}
+
+Map<String, dynamic> _assignmentsToJson(Map<String, SetlistAssignment> value) {
+  return value.map((key, val) => MapEntry(key, val.toJson()));
+}
