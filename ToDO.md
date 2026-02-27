@@ -25,23 +25,11 @@ you are 10+ experienced flutter developer, solve uncheked tasks useing agents in
   - [x] there are no sorting widget like in personal songs bank.
 
 
-- [ ] after sendind join the band link user get this:
-```
-Join my band "Offbeats." on RepSync!
-Use invite code: 920ZZR
-Or click the link: https://repsync-app-8685c.web.app/join-band?code=920ZZR
-```
-```
-Site Not Found
-Why am I seeing this?
-There are a few potential reasons:
-1. You haven't deployed an app yet.
-2. You may have deployed an empty directory.
-3. This is a custom domain, but we haven't finished setting it up yet.
-
-How can I deploy my first app?
-
-Refer to our hosting documentation to get started.
-
-Firebase
-```
+- [x] after sendind join the band link user get this:
+- [x] personal songs bank-> deleteng song-> user had to confirm deletion by tapping same btn twice, and then without any reason virtual keyboard apears. check handaling of deletion logic and stop popup keybord
+- [x] personal songs bank-> when editing song -> if user press enter button on virtual keyboard - lets submit the changes automatically ( without tapping save btn in 3 dots menu)
+- [x] in Band screen -> The Band -> list of song. sotring doesnt work like in personal songs bank, widget are in different place (at the bottom) and manual sorting doestn work. take same scheem as in personal songs bank.
+- [x] проверить на всех экранах редактирования песни виджет song structure. добавить:
+  - [x] автосохранение
+  - [x] свайп для удаления частей песни
+  - [x] свайп для редактирования части песни при свайпе с лево на право

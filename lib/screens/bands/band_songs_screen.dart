@@ -9,7 +9,6 @@ import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/empty_state.dart';
-import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/confirmation_dialog.dart';
 import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/unified_item/unified_item_list.dart';
@@ -204,8 +203,11 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                       onTap: () => _editSong(context, ref, song),
                     );
                   }).toList(),
-                  enableReorder: false,
-                  onReorder: null,
+                  enableReorder: _sortOption == SortOption.manual,
+                  onReorder: _sortOption == SortOption.manual
+                      ? (oldIndex, newIndex) =>
+                            _handleReorder(oldIndex, newIndex, filteredSongs)
+                      : null,
                   onDelete: _canEdit
                       ? (index) => _deleteSongFromBand(
                           context,
@@ -241,48 +243,20 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   ) {
     return Column(
       children: [
-        // Search and sort row
+        // Unified filter/sort widget at top (like personal songs bank)
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: CustomTextField(
-                  hint: 'Search songs...',
-                  prefixIcon: Icons.search,
-                  onChanged: (value) => setState(() => _searchQuery = value),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: MonoPulseColors.surfaceRaised,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.sort,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      backgroundColor: MonoPulseColors.surface,
-                      builder: (context) => UnifiedFilterSortWidget(
-                        currentSort: _sortOption,
-                        onSortChanged: (option) {
-                          if (option != null) {
-                            setState(() => _sortOption = option);
-                          }
-                          Navigator.pop(context);
-                        },
-                        onFilterChanged: (_) {},
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+          child: UnifiedFilterSortWidget(
+            currentSort: _sortOption,
+            onSortChanged: (option) {
+              if (option != null) {
+                setState(() => _sortOption = option);
+              }
+            },
+            filterText: _searchQuery,
+            onFilterChanged: (value) {
+              setState(() => _searchQuery = value ?? '');
+            },
           ),
         ),
         // Contributor filter chips
@@ -363,6 +337,14 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       pathParameters: {'id': song.id},
       extra: {'song': song, 'bandId': widget.band.id},
     );
+  }
+
+  void _handleReorder(int oldIndex, int newIndex, List<Song> songs) {
+    setState(() {
+      if (newIndex > oldIndex) newIndex--;
+      final item = songs.removeAt(oldIndex);
+      songs.insert(newIndex, item);
+    });
   }
 
   Future<void> _deleteSongFromBand(

@@ -100,6 +100,9 @@ class SongForm extends StatelessWidget {
   /// Callback when a beat mode changes.
   final Function(int, int, dynamic)? onBeatModeChanged;
 
+  /// Callback when form is submitted (Enter key pressed).
+  final VoidCallback? onSubmit;
+
   /// Whether we are in edit mode (vs. add mode).
   final bool isEditing;
 
@@ -127,6 +130,7 @@ class SongForm extends StatelessWidget {
     this.onAccentBeatsChanged,
     this.onRegularBeatsChanged,
     this.onBeatModeChanged,
+    this.onSubmit,
     required this.isEditing,
     this.accentBeats = 4,
     this.regularBeats = 1,
@@ -155,6 +159,7 @@ class SongForm extends StatelessWidget {
             controller: artistController,
             decoration: const InputDecoration(labelText: 'Artist'),
             textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => onSubmit?.call(),
           ),
           const SizedBox(height: 24),
           // Original key and BPM
