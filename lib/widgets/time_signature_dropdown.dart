@@ -28,10 +28,13 @@ class TimeSignatureDropdown extends StatelessWidget {
         _buildDropdown(
           value: value.numerator,
           items: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-          onChanged: (num) {
-            if (num != null) {
+          onChanged: (numerator) {
+            if (numerator != null) {
               onChanged(
-                TimeSignature(numerator: num, denominator: value.denominator),
+                TimeSignature(
+                  numerator: numerator,
+                  denominator: value.denominator,
+                ),
               );
             }
           },

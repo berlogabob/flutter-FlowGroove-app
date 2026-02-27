@@ -121,6 +121,16 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         title: widget.band.name,
         menuItems: [
           PopupMenuItem<void>(
+            onTap: () => _showAboutBand(context),
+            child: const Row(
+              children: [
+                Icon(Icons.info_outline, size: 20),
+                SizedBox(width: 12),
+                Text('About Band'),
+              ],
+            ),
+          ),
+          PopupMenuItem<void>(
             onTap: () => _showMembers(context),
             child: const Row(
               children: [
@@ -368,6 +378,14 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     if (user != null) {
       await ref.read(firestoreProvider).deleteBandSong(widget.band.id, song.id);
     }
+  }
+
+  void _showAboutBand(BuildContext context) {
+    context.pushNamed(
+      'band-about',
+      pathParameters: {'id': widget.band.id},
+      extra: widget.band,
+    );
   }
 
   void _showMembers(BuildContext context) {

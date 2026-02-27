@@ -164,7 +164,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -258,7 +258,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         color: MonoPulseColors.surfaceRaised,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: MonoPulseColors.accentOrange.withOpacity(0.3),
+          color: MonoPulseColors.accentOrange.withValues(alpha: 0.3),
           width: 2,
         ),
       ),

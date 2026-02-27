@@ -55,6 +55,8 @@ class Band {
   final List<String> adminUids; // Derived from members for efficient rules checking
   @JsonKey(defaultValue: [])
   final List<String> editorUids; // Derived from members for efficient rules checking
+  @JsonKey(defaultValue: [])
+  final List<String> tags;
   final String? inviteCode;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
@@ -68,6 +70,7 @@ class Band {
     List<String>? memberUids,
     List<String>? adminUids,
     List<String>? editorUids,
+    this.tags = const [],
     this.inviteCode,
     required this.createdAt,
   }) : memberUids = memberUids ?? members.map((m) => m.uid).toList(),
@@ -94,6 +97,7 @@ class Band {
     List<String>? memberUids,
     List<String>? adminUids,
     List<String>? editorUids,
+    List<String>? tags,
     Object? inviteCode = _sentinel,
     DateTime? createdAt,
   }) {
@@ -126,6 +130,7 @@ class Band {
       memberUids: newMemberUids,
       adminUids: newAdminUids,
       editorUids: newEditorUids,
+      tags: tags ?? this.tags,
       inviteCode: inviteCode == _sentinel
           ? this.inviteCode
           : inviteCode as String?,
