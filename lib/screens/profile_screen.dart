@@ -1,11 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../providers/auth/auth_provider.dart';
-import '../theme/mono_pulse_theme.dart';
-import '../widgets/custom_app_bar.dart';
-import '../widgets/tag_input_dialog.dart';
+import '../../providers/data/data_providers.dart';
+import '../../services/telegram_service.dart';
+import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -17,18 +21,27 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _version = 'Loading...';
   String _buildDate = '';
+  String? _profilePhotoPath;
+  bool _isEditingName = false;
+  late TextEditingController _nameController;
 
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController();
     _loadVersionInfo();
+    _loadProfilePhoto();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadVersionInfo() async {
     try {
-      // Load version from pubspec.yaml using package_info_plus
       final packageInfo = await PackageInfo.fromPlatform();
-
       if (mounted) {
         setState(() {
           _version = '${packageInfo.version}+${packageInfo.buildNumber}';
@@ -36,7 +49,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         });
       }
     } catch (e) {
-      // Fallback to hardcoded version
       if (mounted) {
         setState(() {
           _version = '0.11.0+1';
@@ -46,11 +58,433 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  Future<void> _loadProfilePhoto() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final photoFile = File('${directory.path}/profile_photo.jpg');
+      if (await photoFile.exists()) {
+        setState(() {
+          _profilePhotoPath = photoFile.path;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading profile photo: $e');
+    }
+  }
+
+  Future<void> _pickPhoto(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final directory = await getApplicationDocumentsDirectory();
+        final savedFile = await File(
+          pickedFile.path,
+        ).copy('${directory.path}/profile_photo.jpg');
+        setState(() {
+          _profilePhotoPath = savedFile.path;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking photo: $e')));
+      }
+    }
+  }
+
+  Future<void> _removePhoto() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final photoFile = File('${directory.path}/profile_photo.jpg');
+      if (await photoFile.exists()) {
+        await photoFile.delete();
+      }
+      setState(() {
+        _profilePhotoPath = null;
+      });
+    } catch (e) {
+      debugPrint('Error removing photo: $e');
+    }
+  }
+
+  void _showPhotoOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: MonoPulseColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickPhoto(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickPhoto(ImageSource.gallery);
+              },
+            ),
+            if (_profilePhotoPath != null)
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text(
+                  'Remove Photo',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _removePhoto();
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showTelegramLinkDialog() {
+    final telegramService = TelegramService();
+    final userAsync = ref.read(currentUserProvider);
+    final userId = userAsync.value?.uid;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Link Telegram'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Link your Telegram account to automatically import your profile name and photo to RepSync.',
+              style: TextStyle(
+                fontSize: 14,
+                color: MonoPulseColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: MonoPulseColors.surfaceRaised,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'How it works:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text('1. Click "Open Telegram" below'),
+                  Text('2. Send /link command to the bot'),
+                  Text('3. Tap "Yes, link my profile"'),
+                  Text('4. Your name and photo will be imported'),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              Navigator.pop(context);
+              // Open Telegram with start parameter
+              final opened = await telegramService.openBotChat(userId);
+              if (!opened && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Could not open Telegram. Please install Telegram app.',
+                    ),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.send),
+            label: const Text('Open Telegram'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showManualTelegramLinkDialog() {
+    final telegramController = TextEditingController();
+    final telegramService = TelegramService();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Link Telegram (Alternative)'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'If the previous method does not work, you can try this:',
+              style: TextStyle(
+                fontSize: 14,
+                color: MonoPulseColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: telegramController,
+              decoration: const InputDecoration(
+                labelText: 'Telegram User ID',
+                hintText: 'Enter your Telegram ID',
+                prefixIcon: Icon(Icons.tag),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'How to get your ID:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+            const Text(
+              '1. Open Telegram\n2. Search for @userinfobot\n3. Send /start\n4. Copy your ID',
+              style: TextStyle(
+                fontSize: 12,
+                color: MonoPulseColors.textTertiary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final idStr = telegramController.text.trim();
+              if (idStr.isEmpty) return;
+
+              final userId = int.tryParse(idStr);
+              if (userId == null) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Invalid Telegram ID')),
+                  );
+                }
+                return;
+              }
+
+              Navigator.pop(context);
+              await _linkTelegramById(userId, telegramService);
+            },
+            child: const Text('Link'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _linkTelegramById(
+    int telegramId,
+    TelegramService service,
+  ) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final telegramUser = TelegramUser(
+        id: telegramId,
+        firstName: 'Telegram User',
+      );
+
+      // Update display name
+      final userAsync = ref.read(currentUserProvider);
+      final user = userAsync.value;
+      if (user != null) {
+        await user.updateDisplayName(telegramUser.displayName);
+        await ref
+            .read(firestoreProvider)
+            .updateUserProfile(
+              uid: user.uid,
+              displayName: telegramUser.displayName,
+            );
+      }
+
+      // Try to get photo
+      final photoUrl = await service.getUserPhotoUrl(telegramId);
+      if (photoUrl != null && mounted) {
+        final directory = await getApplicationDocumentsDirectory();
+        final savedFile = await service.downloadPhoto(
+          photoUrl,
+          '${directory.path}/profile_photo.jpg',
+        );
+        if (savedFile != null && mounted) {
+          setState(() {
+            _profilePhotoPath = savedFile.path;
+          });
+        }
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Linked Telegram! Name: ${telegramUser.displayName}'),
+        ),
+      );
+      setState(() {});
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
+  Future<void> _linkTelegramAccount(
+    String username,
+    TelegramService service,
+  ) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Get user from Telegram
+      final telegramUser = await service.getUserByUsername(username);
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+
+      if (telegramUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Could not find Telegram user. Make sure you have started a conversation with the bot.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Update display name
+      final userAsync = ref.read(currentUserProvider);
+      final user = userAsync.value;
+      if (user != null) {
+        await user.updateDisplayName(telegramUser.displayName);
+        await ref
+            .read(firestoreProvider)
+            .updateUserProfile(
+              uid: user.uid,
+              displayName: telegramUser.displayName,
+            );
+      }
+
+      // Try to get photo
+      final photoUrl = await service.getUserPhotoUrl(telegramUser.id);
+      if (photoUrl != null && mounted) {
+        // Download and save photo
+        final directory = await getApplicationDocumentsDirectory();
+        final savedFile = await service.downloadPhoto(
+          photoUrl,
+          '${directory.path}/profile_photo.jpg',
+        );
+        if (savedFile != null && mounted) {
+          setState(() {
+            _profilePhotoPath = savedFile.path;
+          });
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Linked Telegram! Name: ${telegramUser.displayName}'),
+          ),
+        );
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error linking Telegram: $e')));
+      }
+    }
+  }
+
+  Future<void> _saveDisplayName() async {
+    final newName = _nameController.text.trim();
+    if (newName.isEmpty) {
+      setState(() => _isEditingName = false);
+      return;
+    }
+
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
+    if (user == null) return;
+
+    try {
+      await user.updateDisplayName(newName);
+      await ref
+          .read(firestoreProvider)
+          .updateUserProfile(uid: user.uid, displayName: newName);
+      if (mounted) {
+        setState(() => _isEditingName = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Name updated')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating name: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(currentUserProvider);
     final user = userAsync.value;
     final appUserAsync = ref.watch(appUserProvider);
+
+    final displayName =
+        appUserAsync.whenOrNull(data: (u) => u?.displayName) ??
+        user?.displayName ??
+        'User';
 
     return Scaffold(
       appBar: CustomAppBar.buildNoBack(context, title: 'Profile'),
@@ -62,30 +496,99 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: MonoPulseColors.surfaceRaised,
-                    child: Text(
-                      user?.email?.substring(0, 1).toUpperCase() ?? '?',
-                      style: const TextStyle(
-                        fontSize: 40,
-                        color: MonoPulseColors.accentOrange,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  GestureDetector(
+                    onTap: _showPhotoOptions,
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: MonoPulseColors.surfaceRaised,
+                          backgroundImage: _profilePhotoPath != null
+                              ? FileImage(File(_profilePhotoPath!))
+                              : null,
+                          child: _profilePhotoPath == null
+                              ? Text(
+                                  user?.email?.substring(0, 1).toUpperCase() ??
+                                      '?',
+                                  style: const TextStyle(
+                                    fontSize: 40,
+                                    color: MonoPulseColors.accentOrange,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: MonoPulseColors.accentOrange,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: MonoPulseSpacing.lg),
-                  Text(
-                    appUserAsync.whenOrNull(
-                          data: (u) => u?.displayName ?? 'User',
-                        ) ??
-                        'Loading...',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: MonoPulseColors.textPrimary,
+                  if (_isEditingName)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              hintText: 'Enter display name',
+                              isDense: true,
+                            ),
+                            autofocus: true,
+                            onSubmitted: (_) => _saveDisplayName(),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.check),
+                          onPressed: _saveDisplayName,
+                          color: MonoPulseColors.accentOrange,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () =>
+                              setState(() => _isEditingName = false),
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          displayName,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: MonoPulseColors.textPrimary,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 18),
+                          onPressed: () {
+                            _nameController.text = displayName == 'User'
+                                ? ''
+                                : displayName;
+                            setState(() => _isEditingName = true);
+                          },
+                          color: MonoPulseColors.textSecondary,
+                        ),
+                      ],
                     ),
-                  ),
                   const SizedBox(height: 4),
                   Text(
                     user?.email ?? '',
@@ -98,336 +601,130 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
           ),
-          const SizedBox(height: MonoPulseSpacing.xxl),
-          const Text(
-            'My Roles',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: MonoPulseColors.textTertiary,
-            ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          _buildSection(
+            title: 'Account',
+            children: [
+              _buildMenuItem(
+                icon: Icons.person_outline,
+                title: 'Edit Profile',
+                subtitle: 'Change name and photo',
+                onTap: _showPhotoOptions,
+              ),
+              _buildMenuItem(
+                icon: Icons.lock_outline,
+                title: 'Change Password',
+                subtitle: 'Update your password',
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Feature coming soon')),
+                  );
+                },
+              ),
+              _buildMenuItem(
+                icon: Icons.send,
+                title: 'Link Telegram',
+                subtitle: 'Get name and photo from Telegram',
+                onTap: _showTelegramLinkDialog,
+              ),
+            ],
           ),
-          const SizedBox(height: MonoPulseSpacing.sm),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(MonoPulseSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Your roles in bands',
-                        style: TextStyle(
-                          color: MonoPulseColors.textSecondary,
-                          fontSize: 13,
-                        ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          _buildSection(
+            title: 'App Info',
+            children: [
+              _buildInfoItem(title: 'Version', value: _version),
+              _buildInfoItem(
+                title: 'Build',
+                value: _buildDate.isNotEmpty ? _buildDate : 'Production',
+              ),
+            ],
+          ),
+          const SizedBox(height: MonoPulseSpacing.xxl),
+          Center(
+            child: TextButton.icon(
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Sign Out'),
+                    content: const Text('Are you sure you want to sign out?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.edit, size: 20),
-                        onPressed: () => _editBaseTags(context, ref),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Sign Out'),
                       ),
                     ],
                   ),
-                  const SizedBox(height: MonoPulseSpacing.sm),
-                  appUserAsync.when(
-                    data: (user) {
-                      if (user == null || user.baseTags.isEmpty) {
-                        return const Text(
-                          'No roles set. Tap edit to add.',
-                          style: TextStyle(
-                            color: MonoPulseColors.textTertiary,
-                            fontSize: 13,
-                          ),
-                        );
-                      }
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: user.baseTags.map((tag) {
-                          return Chip(
-                            label: Text(
-                              tag,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          );
-                        }).toList(),
-                      );
-                    },
-                    loading: () => const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    error: (_, _) => const Text(
-                      'Error loading tags',
-                      style: TextStyle(color: MonoPulseColors.error),
-                    ),
-                  ),
-                ],
+                );
+
+                if (confirm == true && mounted) {
+                  await ref.read(appUserProvider.notifier).signOut();
+                  if (mounted) {
+                    context.goNamed('login');
+                  }
+                }
+              },
+              icon: const Icon(Icons.logout, color: Colors.red),
+              label: const Text(
+                'Sign Out',
+                style: TextStyle(color: Colors.red),
               ),
             ),
           ),
-          const SizedBox(height: MonoPulseSpacing.xxl),
-          const Text(
-            'Account',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: MonoPulseColors.textTertiary,
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.sm),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(
-                    Icons.person,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  title: const Text(
-                    'Edit Profile',
-                    style: TextStyle(color: MonoPulseColors.textPrimary),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: MonoPulseColors.textTertiary,
-                  ),
-                  onTap: () {
-                    // Edit profile - to be implemented
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.xxl),
-          const Text(
-            'About',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: MonoPulseColors.textTertiary,
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.sm),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(
-                    Icons.info,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  title: const Text(
-                    'App Version',
-                    style: TextStyle(color: MonoPulseColors.textPrimary),
-                  ),
-                  subtitle: _buildDate.isNotEmpty
-                      ? Text(
-                          _buildDate,
-                          style: const TextStyle(
-                            color: MonoPulseColors.textTertiary,
-                          ),
-                        )
-                      : null,
-                  trailing: Text(
-                    _version,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: MonoPulseColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.xxl),
-          const Text(
-            'Support',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: MonoPulseColors.textTertiary,
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.sm),
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(
-                    Icons.help,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  title: const Text(
-                    'Help & FAQ',
-                    style: TextStyle(color: MonoPulseColors.textPrimary),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: MonoPulseColors.textTertiary,
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon!')),
-                    );
-                  },
-                ),
-                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
-                ListTile(
-                  leading: const Icon(
-                    Icons.feedback,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  title: const Text(
-                    'Send Feedback',
-                    style: TextStyle(color: MonoPulseColors.textPrimary),
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: MonoPulseColors.textTertiary,
-                  ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Coming soon!')),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.xxxl),
-          ElevatedButton.icon(
-            onPressed: () => _showLogoutDialog(context, ref),
-            icon: const Icon(Icons.logout, color: MonoPulseColors.black),
-            label: const Text(
-              'Log Out',
-              style: TextStyle(color: MonoPulseColors.black),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: MonoPulseColors.error,
-              foregroundColor: MonoPulseColors.black,
-              padding: const EdgeInsets.symmetric(
-                vertical: MonoPulseSpacing.lg,
-              ),
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.xxl),
-          // Credit block
-          Center(
-            child: RichText(
-              text: const TextSpan(
-                style: TextStyle(
-                  fontSize: 12,
-                  color: MonoPulseColors.textTertiary,
-                  height: 1.5,
-                ),
-                children: [
-                  TextSpan(text: 'Built with '),
-                  TextSpan(text: '❤️', style: TextStyle(fontSize: 14)),
-                  TextSpan(text: ' for musicians\nby '),
-                  TextSpan(
-                    text: 'BerlogaBob',
-                    style: TextStyle(
-                      color: MonoPulseColors.accentOrange,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  TextSpan(text: ' in Portugal'),
-                ],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.xxxl),
         ],
       ),
     );
   }
 
-  void _editBaseTags(BuildContext context, WidgetRef ref) async {
-    final appUserAsync = ref.read(appUserProvider);
-    final currentTags = appUserAsync.value?.baseTags ?? [];
-
-    final result = await TagInputDialog.show(
-      context,
-      initialTags: currentTags,
-      title: 'Edit My Roles',
-      hintText: 'Enter role (e.g., guitarist)',
-      suggestions: const [
-        'vocals',
-        'guitar',
-        'bass',
-        'drums',
-        'keys',
-        'saxophone',
-        'trumpet',
-        'backing vocals',
-        'lead vocals',
+  Widget _buildSection({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: MonoPulseColors.textSecondary,
+            ),
+          ),
+        ),
+        Card(child: Column(children: children)),
       ],
     );
-
-    if (result != null && context.mounted) {
-      try {
-        await ref.read(appUserProvider.notifier).updateBaseTags(result);
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Roles updated')));
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $e')));
-        }
-      }
-    }
   }
 
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: MonoPulseColors.surface,
-        title: const Text(
-          'Log Out',
-          style: TextStyle(color: MonoPulseColors.textPrimary),
-        ),
-        content: const Text(
-          'Are you sure you want to log out?',
-          style: TextStyle(color: MonoPulseColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: MonoPulseColors.textSecondary),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ref.read(appUserProvider.notifier).signOut();
-              if (context.mounted) {
-                context.goNamed('login');
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: MonoPulseColors.error,
-              foregroundColor: MonoPulseColors.black,
-            ),
-            child: const Text('Log Out'),
-          ),
-        ],
+  Widget _buildMenuItem({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: MonoPulseColors.accentOrange),
+      title: Text(title),
+      subtitle: subtitle != null ? Text(subtitle) : null,
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildInfoItem({required String title, required String value}) {
+    return ListTile(
+      title: Text(title),
+      trailing: Text(
+        value,
+        style: const TextStyle(color: MonoPulseColors.textSecondary),
       ),
     );
   }

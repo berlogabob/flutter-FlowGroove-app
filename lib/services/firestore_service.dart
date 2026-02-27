@@ -639,7 +639,10 @@ class FirestoreService {
           .timeout(_firestoreTimeout);
 
       if (!songDoc.exists) {
-        throw const ApiError(type: ErrorType.notFound, message: 'Song not found');
+        throw const ApiError(
+          type: ErrorType.notFound,
+          message: 'Song not found',
+        );
       }
 
       final songData = songDoc.data()!;
@@ -874,6 +877,46 @@ class FirestoreService {
         exception: e,
         stackTrace: stackTrace,
       );
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Updates user profile fields in Firestore.
+  Future<void> updateUserProfile({
+    required String uid,
+    String? displayName,
+    String? photoURL,
+  }) async {
+    try {
+      final updates = <String, dynamic>{};
+      if (displayName != null) updates['displayName'] = displayName;
+      if (photoURL != null) updates['photoURL'] = photoURL;
+
+      if (updates.isEmpty) return;
+
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .update(updates)
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: updateUserProfile timed out for user $uid');
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to update your profile.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
