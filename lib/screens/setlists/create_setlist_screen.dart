@@ -146,7 +146,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
 
     await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
     if (mounted) {
-      Navigator.pop(context);
+      // Show snackbar BEFORE popping to ensure it's visible
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -154,6 +154,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           ),
         ),
       );
+      // Invalidate the setlists provider to ensure UI refresh
+      ref.invalidate(setlistsProvider);
+      Navigator.pop(context);
     }
   }
 

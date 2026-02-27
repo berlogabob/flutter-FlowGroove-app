@@ -40,6 +40,8 @@ class Song {
 
   // NEW: Sharing fields for copying songs from personal banks to band banks
   final String? originalOwnerId; // User who created original song
+  final String?
+  originalSongId; // ID of the original personal song (for comparison)
   final String? contributedBy; // User who added to band
   @JsonKey(defaultValue: false)
   final bool isCopy; // True if this is a band's copy
@@ -82,6 +84,7 @@ class Song {
     required this.createdAt,
     required this.updatedAt,
     this.originalOwnerId,
+    this.originalSongId,
     this.contributedBy,
     this.isCopy = false,
     this.contributedAt,
@@ -107,6 +110,7 @@ class Song {
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? originalOwnerId = _sentinel,
+    Object? originalSongId = _sentinel,
     Object? contributedBy = _sentinel,
     Object? isCopy = _sentinel,
     Object? contributedAt = _sentinel,
@@ -139,6 +143,9 @@ class Song {
       originalOwnerId: originalOwnerId == _sentinel
           ? this.originalOwnerId
           : originalOwnerId as String?,
+      originalSongId: originalSongId == _sentinel
+          ? this.originalSongId
+          : originalSongId as String?,
       contributedBy: contributedBy == _sentinel
           ? this.contributedBy
           : contributedBy as String?,

@@ -123,6 +123,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       await service.addUserToBand(_band!.id, userId: user.uid);
 
       if (mounted) {
+        // Invalidate bands provider to ensure UI refresh
+        ref.invalidate(bandsProvider);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Joined "${_band!.name}"!')));

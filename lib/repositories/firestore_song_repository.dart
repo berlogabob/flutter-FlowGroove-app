@@ -49,9 +49,12 @@ class FirestoreSongRepository implements SongRepository {
           .set(song.toJson())
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
-      debugPrint('⏱️ TIMEOUT: saveSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id}');
+      debugPrint(
+        '⏱️ TIMEOUT: saveSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id}',
+      );
       throw ApiError.network(
-        message: 'Request timed out. Please check your connection and try again.',
+        message:
+            'Request timed out. Please check your connection and try again.',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -81,9 +84,12 @@ class FirestoreSongRepository implements SongRepository {
           .delete()
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
-      debugPrint('⏱️ TIMEOUT: deleteSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId');
+      debugPrint(
+        '⏱️ TIMEOUT: deleteSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId',
+      );
       throw ApiError.network(
-        message: 'Request timed out. Please check your connection and try again.',
+        message:
+            'Request timed out. Please check your connection and try again.',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -113,9 +119,12 @@ class FirestoreSongRepository implements SongRepository {
           .update(song.toJson())
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
-      debugPrint('⏱️ TIMEOUT: updateSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id}');
+      debugPrint(
+        '⏱️ TIMEOUT: updateSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id}',
+      );
       throw ApiError.network(
-        message: 'Request timed out. Please check your connection and try again.',
+        message:
+            'Request timed out. Please check your connection and try again.',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -176,12 +185,14 @@ class FirestoreSongRepository implements SongRepository {
         );
       }
       final uid = contributorId ?? user.uid;
-      final name = contributorName ?? user.displayName ?? user.email ?? 'Unknown';
+      final name =
+          contributorName ?? user.displayName ?? user.email ?? 'Unknown';
 
       final bandSong = song.copyWith(
         id: _firestore.collection('bands').doc().id,
         bandId: bandId,
         originalOwnerId: song.originalOwnerId ?? uid,
+        originalSongId: song.id, // Track the original song ID for comparison
         contributedBy: name,
         isCopy: true,
         contributedAt: DateTime.now(),
@@ -197,9 +208,12 @@ class FirestoreSongRepository implements SongRepository {
           .set(bandSong.toJson())
           .timeout(const Duration(seconds: 10));
     } on TimeoutException catch (e, stackTrace) {
-      debugPrint('⏱️ TIMEOUT: addSongToBand timed out after ${_firestoreTimeout.inSeconds}s for band $bandId');
+      debugPrint(
+        '⏱️ TIMEOUT: addSongToBand timed out after ${_firestoreTimeout.inSeconds}s for band $bandId',
+      );
       throw ApiError.network(
-        message: 'Request timed out. Please check your connection and try again.',
+        message:
+            'Request timed out. Please check your connection and try again.',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -262,9 +276,12 @@ class FirestoreSongRepository implements SongRepository {
           .set(bandSong.toJson())
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
-      debugPrint('⏱️ TIMEOUT: addSongToBandById timed out after ${_firestoreTimeout.inSeconds}s for song $songId to band $bandId');
+      debugPrint(
+        '⏱️ TIMEOUT: addSongToBandById timed out after ${_firestoreTimeout.inSeconds}s for song $songId to band $bandId',
+      );
       throw ApiError.network(
-        message: 'Request timed out. Please check your connection and try again.',
+        message:
+            'Request timed out. Please check your connection and try again.',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -294,9 +311,12 @@ class FirestoreSongRepository implements SongRepository {
           .set(song.toJson())
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
-      debugPrint('⏱️ TIMEOUT: saveBandSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id} in band $bandId');
+      debugPrint(
+        '⏱️ TIMEOUT: saveBandSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id} in band $bandId',
+      );
       throw ApiError.network(
-        message: 'Request timed out. Please check your connection and try again.',
+        message:
+            'Request timed out. Please check your connection and try again.',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -346,9 +366,12 @@ class FirestoreSongRepository implements SongRepository {
           .delete()
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
-      debugPrint('⏱️ TIMEOUT: deleteBandSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId in band $bandId');
+      debugPrint(
+        '⏱️ TIMEOUT: deleteBandSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId in band $bandId',
+      );
       throw ApiError.network(
-        message: 'Request timed out. Please check your connection and try again.',
+        message:
+            'Request timed out. Please check your connection and try again.',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -379,9 +402,12 @@ class FirestoreSongRepository implements SongRepository {
           .update(song.toJson())
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
-      debugPrint('⏱️ TIMEOUT: updateBandSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id} in band $bandId');
+      debugPrint(
+        '⏱️ TIMEOUT: updateBandSong timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id} in band $bandId',
+      );
       throw ApiError.network(
-        message: 'Request timed out. Please check your connection and try again.',
+        message:
+            'Request timed out. Please check your connection and try again.',
         exception: e,
         stackTrace: stackTrace,
       );
