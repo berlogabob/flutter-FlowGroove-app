@@ -878,4 +878,47 @@ class FirestoreService {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
   }
+
+  /// Gets all tags used by the user with their counts (tag cloud).
+  ///
+  /// Returns a map of tag to count, sorted by count descending.
+  Future<Map<String, int>> getTagCloud({String? uid}) async {
+    try {
+      final userId = uid ?? _currentUserId;
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('songs')
+          .get()
+          .timeout(_firestoreTimeout);
+
+      final tagCounts = <String, int>{};
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final tags = data['tags'] as List<dynamic>?;
+        if (tags != null) {
+          for (final tag in tags) {
+            final tagStr = (tag as String).toLowerCase();
+            tagCounts[tagStr] = (tagCounts[tagStr] ?? 0) + 1;
+          }
+        }
+      }
+
+      // Sort by count descending
+      final sortedTags = tagCounts.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+
+      return Map.fromEntries(sortedTags);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint('⏱️ TIMEOUT: getTagCloud timed out for user $uid');
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
 }
