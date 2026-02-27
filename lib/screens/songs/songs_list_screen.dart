@@ -18,6 +18,7 @@ import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../widgets/tag_cloud_widget.dart';
 import 'components/csv_import_export/csv_import_export.dart';
 
 /// Notifier for songs filter/sort state.
@@ -43,6 +44,14 @@ class SongsFilterSortNotifier extends Notifier<SongsFilterSortState> {
     state = state.copyWith(bpmFilter: bpm);
   }
 
+  void setTagFilter(String? tag) {
+    if (tag == null) {
+      state = state.copyWith(clearTagFilter: true);
+    } else {
+      state = state.copyWith(tagFilter: tag);
+    }
+  }
+
   void clearFilters() {
     state = const SongsFilterSortState();
   }
@@ -60,12 +69,14 @@ class SongsFilterSortState {
   final String filterText;
   final String? keyFilter;
   final int? bpmFilter;
+  final String? tagFilter;
 
   const SongsFilterSortState({
     this.sortOption = SortOption.alphabetical,
     this.filterText = '',
     this.keyFilter,
     this.bpmFilter,
+    this.tagFilter,
   });
 
   SongsFilterSortState copyWith({
@@ -73,12 +84,15 @@ class SongsFilterSortState {
     String? filterText,
     String? keyFilter,
     int? bpmFilter,
+    String? tagFilter,
+    bool clearTagFilter = false,
   }) {
     return SongsFilterSortState(
       sortOption: sortOption ?? this.sortOption,
       filterText: filterText ?? this.filterText,
       keyFilter: keyFilter ?? this.keyFilter,
       bpmFilter: bpmFilter ?? this.bpmFilter,
+      tagFilter: clearTagFilter ? null : (tagFilter ?? this.tagFilter),
     );
   }
 }
@@ -95,6 +109,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   ApiError? _currentError;
   final TextEditingController _filterController = TextEditingController();
   List<Song>? _manualOrder; // Store manual order for manual sort mode
+  Map<String, int> _tagCloud = {};
+  bool _loadingTagCloud = false;
 
   @override
   void initState() {
@@ -229,12 +245,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     );
   }
 
-  /// Filter and sort songs based on search query, key, BPM, and sort option.
+  /// Filter and sort songs based on search query, key, BPM, tag, and sort option.
   List<Song> _filterAndSortSongs(List<Song> songs) {
     final state = ref.read(songsFilterSortProvider);
     final searchQuery = state.filterText.trim().toLowerCase();
     final keyFilter = state.keyFilter;
     final bpmFilter = state.bpmFilter;
+    final tagFilter = state.tagFilter;
     final sortOption = state.sortOption;
 
     // Apply filters
@@ -261,6 +278,16 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       // BPM filter
       if (bpmFilter != null && song.ourBPM != null) {
         if (song.ourBPM! != bpmFilter) {
+          return false;
+        }
+      }
+
+      // Tag filter
+      if (tagFilter != null && tagFilter.isNotEmpty) {
+        final hasTag = song.tags.any(
+          (tag) => tag.toLowerCase() == tagFilter.toLowerCase(),
+        );
+        if (!hasTag) {
           return false;
         }
       }
@@ -644,6 +671,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
             ),
           ),
 
+        // Tag cloud filter
+        if (songs.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: _buildTagCloud(songs),
+          ),
+
         // Filter button
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -697,6 +731,43 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     return EmptyState.search(
       query: ref.read(songsFilterSortProvider).filterText,
     );
+  }
+
+  Widget _buildTagCloud(List<Song> songs) {
+    // Build tag cloud from songs if not loaded
+    if (_tagCloud.isEmpty && !_loadingTagCloud && songs.isNotEmpty) {
+      _buildTagCloudFromSongs(songs);
+    }
+
+    if (_tagCloud.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final state = ref.watch(songsFilterSortProvider);
+
+    return TagCloudWidget(
+      tagCounts: _tagCloud,
+      selectedTag: state.tagFilter,
+      onTagSelected: (tag) {
+        ref.read(songsFilterSortProvider.notifier).setTagFilter(tag);
+      },
+    );
+  }
+
+  void _buildTagCloudFromSongs(List<Song> songs) {
+    final tagCounts = <String, int>{};
+    for (final song in songs) {
+      for (final tag in song.tags) {
+        final tagLower = tag.toLowerCase();
+        tagCounts[tagLower] = (tagCounts[tagLower] ?? 0) + 1;
+      }
+    }
+    // Sort by count descending
+    final sortedTags = tagCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    setState(() {
+      _tagCloud = Map.fromEntries(sortedTags.take(20));
+    });
   }
 
   Widget _buildSongList(
