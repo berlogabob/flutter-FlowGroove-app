@@ -87,6 +87,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       if (_band == null || _error != null) return;
     }
 
+    if (!mounted) return;
+
     setState(() => _isLoading = true);
 
     try {

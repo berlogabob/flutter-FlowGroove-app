@@ -11,15 +11,6 @@ class FirestoreSetlistRepository implements SetlistRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  /// Helper method to check if user is authenticated.
-  void _requireAuth() {
-    if (_auth.currentUser == null) {
-      throw ApiError.auth(
-        message: 'Authentication required. Please sign in to continue.',
-      );
-    }
-  }
-
   /// Helper method to get current user UID.
   String get _currentUserId {
     final user = _auth.currentUser;
