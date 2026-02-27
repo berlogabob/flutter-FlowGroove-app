@@ -138,3 +138,23 @@ fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with 
   - пользователь путешествуя по приложению натыкается на серые экраны.
   - например: мои группы-> группа А-> мемберс-> показывает список участников
   - мои группы-> группа Б-> мемберс-> список участников полноэкранная серая страница
+
+- [x] GitHub Issue #15: Edit profile - add social login and profile editing
+  - profile screen: edit profile widget - add functionality to really edit info
+  - user must have ability to change displayed name (now it's first part of email)
+  - add possibility to log in with social networks:
+    - google
+    - apple
+    - x (twitter)
+    - telegram
+  - user can choose picture from any of these accounts and name from other or upload picture (from file or take a picture) or manually entered name
+
+**Implemented (v1):**
+  - [x] Profile photo picker from camera/gallery
+  - [x] Remove photo option
+  - [x] Editable display name
+  - [x] Sign out functionality
+  - [x] Added image_picker package
+
+**Not yet implemented:**
+  - Social login providers (need Firebase setup - see docs)

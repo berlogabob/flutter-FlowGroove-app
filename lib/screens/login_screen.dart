@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
@@ -192,10 +193,86 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 24),
+              const Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'or',
+                      style: TextStyle(color: MonoPulseColors.textSecondary),
+                    ),
+                  ),
+                  Expanded(child: Divider()),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildSocialLoginButtons(),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildSocialLoginButtons() {
+    return Column(children: [_buildTwitterButton()]);
+  }
+
+  Widget _buildTwitterButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: _isLoading ? null : _signInWithTwitter,
+        icon: const Icon(Icons.flutter_dash),
+        label: const Text('Continue with X (Twitter)'),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _signInWithTwitter() async {
+    setState(() {
+      _isLoading = true;
+      _currentError = null;
+    });
+
+    try {
+      // Twitter credentials from .env
+      final apiKey = dotenv.env['TWITTER_API_KEY'] ?? '';
+      final apiSecretKey = dotenv.env['TWITTER_API_SECRET'] ?? '';
+      const redirectUri = 'https://repsync-app-8685c.web.app/__/auth/handler';
+
+      if (apiKey.isEmpty || apiSecretKey.isEmpty) {
+        _handleError(
+          ApiError.auth(message: 'Twitter credentials not configured'),
+        );
+        return;
+      }
+
+      await ref
+          .read(appUserProvider.notifier)
+          .signInWithTwitter(
+            apiKey: apiKey,
+            apiSecretKey: apiSecretKey,
+            redirectUri: redirectUri,
+          );
+
+      if (mounted) {
+        context.goNamed('home');
+      }
+    } on ApiError catch (e) {
+      _handleError(e);
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleError(error);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }
