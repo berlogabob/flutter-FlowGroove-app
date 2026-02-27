@@ -74,7 +74,7 @@ Act as a Senior Software Engineer. Your role is to deliver robust and scalable s
 5.  **Review:** Check against edge cases and depreciation risks.
 6.  **Output:** Present the solution with high precision.
 you are 10+ experienced flutter developer, solve uncheked tasks useing agents in "/agents" folder. in need-rescan whole project to realise roots of problem.
-fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with "ToDO' label -> append them as task here at the end of file. after task assumes as comlpete - mark it as complete (-[ ] -> -[x]).
+fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with "ToDO" and "open" label -> append them as task here at the end of file. after task assumes as comlpete - mark it as complete (-[ ] -> -[x]).
 
 1 [x] приложение забывает пользователя при сворачивании или выходе:
  первый раз заходил - приняло логин и пароль. свернул приложение и открыл снова - просит заполниться данные ( забыл пользователя)
@@ -121,7 +121,7 @@ fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with 
   - when user A invite user B to join his band, user B: main screen-> band screen-> join band btn -> enter code -> notification "joined!"
   - problem: user can't see new joined band right after. user needs to update web page or go back and return. now it shows.
 
-- [ ] GitHub Issue #13: The Band Screen - unify with personal page
+- [x] GitHub Issue #13: The Band Screen - unify with personal page
   - main screen -> bands screen -> the band :
   - this screen must look same as personal page. except:
     - [x] User name -> band mane ( "Hello, berloga.bob! -> "The Band")
@@ -133,3 +133,8 @@ fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with 
     - [x] members roles must be shown as "Vocal", "drums", "Bass" and admin, editor as icon or one letter
     - [x] roles taken from user profile, with ability to change and add / delete second or more roles (one person in one band could be guitarist, vocalist, band manager)
     - [x] split music roles and "working" roles
+
+- [x] GitHub Issue #14: Grey screen when navigating
+  - пользователь путешествуя по приложению натыкается на серые экраны.
+  - например: мои группы-> группа А-> мемберс-> показывает список участников
+  - мои группы-> группа Б-> мемберс-> список участников полноэкранная серая страница
