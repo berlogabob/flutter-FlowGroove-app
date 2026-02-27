@@ -15,6 +15,7 @@ import '../screens/bands/my_bands_screen.dart';
 import '../screens/bands/create_band_screen.dart';
 import '../screens/bands/join_band_screen.dart';
 import '../screens/bands/band_songs_screen.dart';
+import '../screens/bands/band_about_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/profile_screen.dart';
@@ -181,6 +182,22 @@ final GoRouter appRouter = GoRouter(
                 return BandSongsScreen(band: band);
               },
             ),
+            GoRoute(
+              path: ':id/about',
+              name: 'band-about',
+              builder: (context, state) {
+                final band = state.extra as Band?;
+                if (band == null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    context.goNamed('bands');
+                  });
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                return BandAboutScreen(band: band);
+              },
+            ),
           ],
         ),
 
@@ -278,6 +295,10 @@ extension GoRouterExtension on BuildContext {
   /// Navigate to band songs screen.
   void goBandSongs(Band band) =>
       goNamed('band-songs', pathParameters: {'id': band.id}, extra: band);
+
+  /// Navigate to band about screen.
+  void goBandAbout(Band band) =>
+      goNamed('band-about', pathParameters: {'id': band.id}, extra: band);
 
   /// Navigate to setlists list.
   void goSetlists() => goNamed('setlists');

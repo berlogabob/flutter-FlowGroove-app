@@ -275,7 +275,7 @@ class _CentsDisplay extends StatelessWidget {
     }
 
     final sign = cents > 0 ? '+' : '';
-    final centsText = cents == 0 ? 'In Tune' : '$sign${cents} cents';
+    final centsText = cents == 0 ? 'In Tune' : '$sign$cents cents';
 
     return Text(
       centsText,

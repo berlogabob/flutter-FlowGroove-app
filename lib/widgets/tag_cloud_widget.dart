@@ -38,7 +38,9 @@ class TagCloudWidget extends StatelessWidget {
                 label: const Text('All'),
                 selected: selectedTag == null,
                 onSelected: (_) => onTagSelected(null),
-                selectedColor: MonoPulseColors.accentOrange.withOpacity(0.3),
+                selectedColor: MonoPulseColors.accentOrange.withValues(
+                  alpha: 0.3,
+                ),
                 checkmarkColor: MonoPulseColors.accentOrange,
               ),
             );
@@ -55,7 +57,9 @@ class TagCloudWidget extends StatelessWidget {
               label: Text('$tag ($count)'),
               selected: selectedTag == tag,
               onSelected: (_) => onTagSelected(selectedTag == tag ? null : tag),
-              selectedColor: MonoPulseColors.accentOrange.withOpacity(0.3),
+              selectedColor: MonoPulseColors.accentOrange.withValues(
+                alpha: 0.3,
+              ),
               checkmarkColor: MonoPulseColors.accentOrange,
               backgroundColor: _getTagColor(intensity),
             ),
@@ -68,6 +72,8 @@ class TagCloudWidget extends StatelessWidget {
   Color _getTagColor(double intensity) {
     // Light orange based on intensity
     final opacity = 0.1 + (intensity * 0.2);
-    return MonoPulseColors.accentOrange.withOpacity(opacity.clamp(0.1, 0.3));
+    return MonoPulseColors.accentOrange.withValues(
+      alpha: opacity.clamp(0.1, 0.3),
+    );
   }
 }

@@ -38,7 +38,10 @@ class SongCsvService {
 
       final filePath = result.files.single.path;
       if (filePath == null) {
-        return SongParseResult(successful: [], errors: ['Could not get file path']);
+        return SongParseResult(
+          successful: [],
+          errors: ['Could not get file path'],
+        );
       }
 
       // Read file content
@@ -106,10 +109,12 @@ class SongCsvService {
       }
 
       // Share file
-      await Share.shareXFiles(
-        [XFile(filePath)],
-        subject: 'RepSync Song Export',
-        text: 'Exported ${songs.length} songs from RepSync',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(filePath)],
+          subject: 'RepSync Song Export',
+          text: 'Exported ${songs.length} songs from RepSync',
+        ),
       );
 
       return true;

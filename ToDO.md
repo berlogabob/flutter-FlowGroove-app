@@ -38,3 +38,4 @@ you are 10+ experienced flutter developer, solve uncheked tasks useing agents in
 - [x] пользователь -> банк пересен -> карточка песни; если в песне указан только одни бпм ->отображать его в карточке, если указаны обы (оригинальный и в котором играем мы) отображать "наш" темп
 - [ ] main screen -> bands -> the band-> 3 dots -> members.
   - [ ] this widget must be a separate page. here should be the band info, description, tags for this band, members with roles and tags. it must be main band point. or we could create in 3 dots menu "about band" item and put it there. and members -leave as it is, add to users ther tag "berloga.bob@gmail.com - Drums"
+- [ ] find solution for managing original personal song and copy to band with possible modification. how it could be shown if there a difference?

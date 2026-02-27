@@ -40,6 +40,8 @@ Band _$BandFromJson(Map<String, dynamic> json) => Band(
           ?.map((e) => e as String)
           .toList() ??
       [],
+  tags:
+      (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
   inviteCode: json['inviteCode'] as String?,
   createdAt: _parseDateTime(json['createdAt']),
 );
@@ -53,6 +55,7 @@ Map<String, dynamic> _$BandToJson(Band instance) => <String, dynamic>{
   'memberUids': instance.memberUids,
   'adminUids': instance.adminUids,
   'editorUids': instance.editorUids,
+  'tags': instance.tags,
   'inviteCode': instance.inviteCode,
   'createdAt': _dateTimeToJson(instance.createdAt),
 };
