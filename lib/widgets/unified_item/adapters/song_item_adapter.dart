@@ -60,9 +60,17 @@ class SongItemAdapter extends UnifiedItemModel {
 
   // Type-specific properties
   int? get ourBPM => song.ourBPM;
+  int? get originalBPM => song.originalBPM;
   String? get ourKey => song.ourKey;
+  String? get originalKey => song.originalKey;
   String? get spotifyUrl => song.spotifyUrl;
   bool get isShared => song.isCopy || song.bandId != null;
+
+  /// Returns the BPM to display in the card:
+  /// - If ourBPM is set, show ourBPM
+  /// - Otherwise, show originalBPM (if set)
+  /// - Otherwise, return null
+  int? get displayBPM => ourBPM ?? originalBPM;
 
   @override
   String get deleteConfirmationMessage =>
