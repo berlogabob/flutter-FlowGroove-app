@@ -20,6 +20,8 @@ class AppUser {
   final String? photoURL;
   @JsonKey(defaultValue: [])
   final List<String> bandIds;
+  @JsonKey(defaultValue: [])
+  final List<String> baseTags; // Role tags: guitarist, vocalist, drummer, etc.
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
 
@@ -29,6 +31,7 @@ class AppUser {
     this.email,
     this.photoURL,
     this.bandIds = const [],
+    this.baseTags = const [],
     required this.createdAt,
   });
 
@@ -38,6 +41,7 @@ class AppUser {
     Object? email = _sentinel,
     Object? photoURL = _sentinel,
     List<String>? bandIds,
+    List<String>? baseTags,
     DateTime? createdAt,
   }) {
     return AppUser(
@@ -48,6 +52,7 @@ class AppUser {
       email: email == _sentinel ? this.email : email as String?,
       photoURL: photoURL == _sentinel ? this.photoURL : photoURL as String?,
       bandIds: bandIds ?? this.bandIds,
+      baseTags: baseTags ?? this.baseTags,
       createdAt: createdAt ?? this.createdAt,
     );
   }

@@ -14,6 +14,9 @@ AppUser _$AppUserFromJson(Map<String, dynamic> json) => AppUser(
   bandIds:
       (json['bandIds'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       [],
+  baseTags:
+      (json['baseTags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      [],
   createdAt: _parseDateTime(json['createdAt']),
 );
 
@@ -23,5 +26,6 @@ Map<String, dynamic> _$AppUserToJson(AppUser instance) => <String, dynamic>{
   'email': instance.email,
   'photoURL': instance.photoURL,
   'bandIds': instance.bandIds,
+  'baseTags': instance.baseTags,
   'createdAt': _dateTimeToJson(instance.createdAt),
 };
