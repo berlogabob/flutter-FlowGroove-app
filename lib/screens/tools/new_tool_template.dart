@@ -57,7 +57,7 @@ class _NewToolScreenState extends ConsumerState<NewToolScreen> {
   /// - Load Preset
   /// - Reset to Defaults
   /// - Settings
-  List<PopupMenuItem<dynamic>> _buildMenuItems() {
+  List<PopupMenuEntry<dynamic>> _buildMenuItems() {
     return [
       PopupMenuItem<dynamic>(
         child: const Text('Save Preset'),

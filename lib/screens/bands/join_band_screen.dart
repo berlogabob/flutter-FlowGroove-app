@@ -202,9 +202,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                   if (_band == null) ...[
                     Text(
                       'Join a band',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
@@ -275,10 +274,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
           if (_isLoading)
             Container(
               color: Colors.black.withValues(alpha: 0.3),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
-          ],
+              child: const Center(child: CircularProgressIndicator()),
+            ),
         ],
       ),
     );

@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
+import '../../../../../../theme/mono_pulse_theme.dart';
 
 /// Color palette for Song Structure Constructor.
 /// Adapted to work with MonoPulse dark theme.
 class SectionColorPalette {
   SectionColorPalette._();
 
-  /// Primary section colors (17 colors, vibrant for dark theme).
-  static const List<Color> sectionColors = [
-    Color(0xFF42A5F5), // Blue
-    Color(0xFF66BB6A), // Green
-    Color(0xFFEF5350), // Red
-    Color(0xFFFFA726), // Orange
-    Color(0xFFAB47BC), // Purple
-    Color(0xFF26A69A), // Teal
-    Color(0xFF5C6BC0), // Indigo
-    Color(0xFFEC407A), // Pink
-    Color(0xFF26C6DA), // Cyan
-    Color(0xFF9CCC65), // Lime
-    Color(0xFFFFCA28), // Amber
-    Color(0xFF8D6E63), // Brown
-    Color(0xFFBDBDBD), // Grey
-    Color(0xFF78909C), // Blue Grey
-    Color(0xFFD4E157), // Light Green
-    Color(0xFF7E57C2), // Deep Purple
-    Color(0xFFFF7043), // Deep Orange
+  /// Primary section colors (14 colors from MonoPulse design system).
+  static List<Color> get sectionColors => [
+    MonoPulseColors.section1, // Pink
+    MonoPulseColors.section2, // Purple
+    MonoPulseColors.section3, // Deep Purple
+    MonoPulseColors.section4, // Indigo
+    MonoPulseColors.section5, // Light Blue
+    MonoPulseColors.section6, // Cyan
+    MonoPulseColors.section7, // Teal
+    MonoPulseColors.section8, // Green
+    MonoPulseColors.section9, // Light Green
+    MonoPulseColors.section10, // Lime
+    MonoPulseColors.section11, // Yellow
+    MonoPulseColors.section12, // Amber
+    MonoPulseColors.section13, // Orange
+    MonoPulseColors.section14, // Deep Orange
   ];
 
   /// Material theme colors for color picker.
