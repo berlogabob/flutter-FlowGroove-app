@@ -204,6 +204,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
     return StandardScreenScaffold(
       title: 'My Bands',
+      showBackButton: false, // Hide back button for main tabs
       menuItems: [
         PopupMenuItem<void>(
           child: const Text('Create Band'),

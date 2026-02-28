@@ -35,7 +35,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   String? _filterContributor;
   SortOption _sortOption = SortOption.alphabetical;
   bool _isTagsExpanded = false;
-  bool _isMembersExpanded = false;
+  bool _isMembersExpanded = true; // Changed to true - show members by default
 
   final List<String> _availableTags = [
     'rock',

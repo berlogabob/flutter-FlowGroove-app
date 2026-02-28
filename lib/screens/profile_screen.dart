@@ -492,7 +492,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return StandardScreenScaffold(
       title: 'Profile',
-      showBackButton: false,
+      showBackButton: false, // Hide back button for main tabs
       showOfflineIndicator: true,
       body: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),

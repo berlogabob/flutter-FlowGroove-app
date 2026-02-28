@@ -16,7 +16,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return StandardScreenScaffold(
       title: 'Home',
-      showBackButton: false,
+      showBackButton: false, // Hide back button for main tabs
       showOfflineIndicator: true,
       body: _HomeDashboard(context, ref),
     );
