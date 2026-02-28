@@ -44,7 +44,7 @@ class SingleFab extends StatelessWidget {
       onPressed: onPressed,
       tooltip: tooltip,
       backgroundColor: MonoPulseColors.accentOrange,
-      foregroundColor: Colors.white,
+      foregroundColor: MonoPulseColors.white,
       child: Icon(icon),
     );
   }
@@ -129,7 +129,7 @@ class DualFab extends StatelessWidget {
       onPressed: onPressed,
       tooltip: label,
       backgroundColor: MonoPulseColors.accentOrange,
-      foregroundColor: Colors.white,
+      foregroundColor: MonoPulseColors.white,
       child: Icon(icon),
     );
   }

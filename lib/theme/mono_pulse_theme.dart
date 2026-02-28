@@ -57,6 +57,54 @@ class MonoPulseColors {
   static const Color success = accentOrange;
   static const Color successAlt = textPrimary;
 
+  // ============================================
+  // Status Colors
+  // ============================================
+
+  // Success (green - for non-orange success states)
+  static const Color successGreen = Color(0xFF4CAF50);
+  static const Color successGreenSubtle = Color(0x0D4CAF50); // 5% opacity
+
+  // Warning
+  static const Color warning = Color(0xFFFF9800);
+  static const Color warningSubtle = Color(0x0DFF9800); // 5% opacity
+
+  // Info
+  static const Color info = Color(0xFF2196F3);
+  static const Color infoSubtle = Color(0x0D2196F3); // 5% opacity
+
+  // ============================================
+  // Role Colors
+  // ============================================
+
+  static const Color roleAdmin = Color(0xFFFF5252);
+  static const Color roleEditor = Color(0xFF42A5F5);
+  static const Color roleViewer = Color(0xFF9E9E9E);
+
+  // ============================================
+  // Match Grade Colors
+  // ============================================
+
+  static const Color matchExact = Color(0xFF4CAF50);
+  static const Color matchHigh = Color(0xFF8BC34A);
+  static const Color matchMedium = Color(0xFFFF9800);
+  static const Color matchLow = Color(0xFFF57C00);
+  static const Color matchNone = Color(0xFFF44336);
+
+  // ============================================
+  // Opacity Variants
+  // ============================================
+
+  // Error opacity variants
+  static const Color errorSubtle5 = Color(0x0DFF2D55); // 5%
+  static const Color errorSubtle20 = Color(0x33FF2D55); // 20%
+  static const Color errorSubtle30 = Color(0x4DFF2D55); // 30%
+
+  // Orange opacity variants
+  static const Color orangeSubtle5 = Color(0x0DFF5E00); // 5%
+  static const Color orangeSubtle20 = Color(0x33FF5E00); // 20%
+  static const Color orangeSubtle30 = Color(0x4DFF5E00); // 30%
+
   // Special
   static const Color transparent = Colors.transparent;
   static const Color white = Color(0xFFFFFFFF);

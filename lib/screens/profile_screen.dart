@@ -406,16 +406,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 onTap: _showPhotoOptions,
               ),
               _buildMenuItem(
-                icon: Icons.lock_outline,
-                title: 'Change Password',
-                subtitle: 'Update your password',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Feature coming soon')),
-                  );
-                },
-              ),
-              _buildMenuItem(
                 icon: Icons.send,
                 title: 'Link Telegram',
                 subtitle: 'Get name and photo from Telegram',

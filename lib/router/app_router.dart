@@ -7,6 +7,7 @@ import '../models/setlist.dart';
 import '../models/band.dart';
 import '../screens/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/auth/forgot_password_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/main_shell.dart';
 import '../screens/songs/songs_list_screen.dart';
@@ -98,6 +99,11 @@ final GoRouter appRouter = GoRouter(
       path: '/register',
       name: 'register',
       builder: (context, state) => const RegisterScreen(),
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      name: 'forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
     ),
 
     // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav
@@ -365,4 +371,7 @@ extension GoRouterExtension on BuildContext {
 
   /// Navigate to register screen.
   void goRegister() => goNamed('register');
+
+  /// Navigate to forgot password screen.
+  void goForgotPassword() => goNamed('forgot-password');
 }

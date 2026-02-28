@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -100,7 +99,6 @@ class TunerState {
 class TunerNotifier extends Notifier<TunerState> {
   final _toneGenerator = ToneGenerator();
   final _pitchDetector = PitchDetector();
-  Timer? _pitchDetectionTimer;
   int _previousCents = 0;
 
   @override
@@ -113,7 +111,6 @@ class TunerNotifier extends Notifier<TunerState> {
     stopListening();
     _toneGenerator.dispose();
     _pitchDetector.dispose();
-    _pitchDetectionTimer?.cancel();
   }
 
   /// Switch between Generate and Listen modes
@@ -183,6 +180,8 @@ class TunerNotifier extends Notifier<TunerState> {
   }
 
   /// Start listening to microphone (Listen mode)
+  ///
+  /// Stage 3: Real pitch detection using YIN algorithm
   Future<void> startListening() async {
     if (state.mode != TunerMode.listen) return;
     if (state.isListening) return;
@@ -195,13 +194,39 @@ class TunerNotifier extends Notifier<TunerState> {
         return;
       }
 
+      // Set up pitch detection callback before starting
+      _pitchDetector.onPitchDetected = _handlePitchDetection;
+
       await _pitchDetector.startListening();
       state = state.copyWith(isListening: true);
-
-      // Start simulated pitch detection (Stage 2 - stub)
-      _startSimulatedPitchDetection();
     } catch (e) {
       debugPrint('Error starting listening: $e');
+    }
+  }
+
+  /// Handle pitch detection callback
+  ///
+  /// Stage 3: Called by pitch detector when a pitch is detected
+  void _handlePitchDetection(double frequency) {
+    if (!state.isListening) return;
+
+    try {
+      final noteData = _frequencyToNote(frequency);
+      final cents = calculateCents(frequency);
+
+      // Haptic feedback when reaching in-tune state (within ±5 cents)
+      if (cents.abs() <= 5 && _previousCents.abs() > 5) {
+        HapticFeedback.lightImpact();
+      }
+      _previousCents = cents;
+
+      state = state.copyWith(
+        frequency: frequency,
+        note: noteData.displayName,
+        cents: cents,
+      );
+    } catch (e) {
+      debugPrint('Error handling pitch detection: $e');
     }
   }
 
@@ -210,7 +235,6 @@ class TunerNotifier extends Notifier<TunerState> {
     if (!state.isListening) return;
 
     try {
-      _pitchDetectionTimer?.cancel();
       await _pitchDetector.stopListening();
       state = state.copyWith(isListening: false, cents: 0);
     } catch (e) {
@@ -233,40 +257,6 @@ class TunerNotifier extends Notifier<TunerState> {
     if (state.isPlaying) {
       _toneGenerator.setVolume(volume);
     }
-  }
-
-  /// Start simulated pitch detection (Stage 2 stub)
-  void _startSimulatedPitchDetection() {
-    _pitchDetectionTimer?.cancel();
-    _pitchDetectionTimer = Timer.periodic(const Duration(milliseconds: 200), (
-      _,
-    ) {
-      if (!state.isListening) return;
-
-      // Simulate pitch detection with random cents deviation
-      // Range: ±20 cents for realistic simulation
-      final random = math.Random();
-      final simulatedCents = (random.nextDouble() * 40 - 20).round();
-
-      // Calculate simulated note based on current frequency
-      final baseFrequency = state.frequency;
-      // Add small variation to simulate real input
-      final variation = (random.nextDouble() * 10 - 5);
-      final simulatedFrequency = baseFrequency + variation;
-      final noteData = _frequencyToNote(simulatedFrequency);
-
-      // Haptic feedback when reaching in-tune state (0 cents)
-      if (simulatedCents == 0 && _previousCents != 0) {
-        HapticFeedback.lightImpact();
-      }
-      _previousCents = simulatedCents;
-
-      state = state.copyWith(
-        cents: simulatedCents,
-        note: noteData.displayName,
-        frequency: simulatedFrequency,
-      );
-    });
   }
 
   /// Convert frequency to musical note

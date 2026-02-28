@@ -10,6 +10,7 @@ import 'theme/mono_pulse_theme.dart';
 import 'providers/auth/auth_provider.dart';
 import 'router/app_router.dart';
 import 'models/user.dart';
+import 'widgets/loading_indicator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -95,9 +96,7 @@ class RepSyncApp extends ConsumerWidget {
           },
           loading: () {
             debugPrint('🟡 Auth state: LOADING');
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+            return const Scaffold(body: Center(child: LoadingIndicator()));
           },
           error: (error, stack) {
             debugPrint('🔴 Auth state: ERROR - $error');

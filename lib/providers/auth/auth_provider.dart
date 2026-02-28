@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/api_error.dart';
 import '../../models/user.dart';
 import '../../services/cache_service.dart';
@@ -134,6 +135,19 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
     }
+  }
+
+  /// Checks for a pending join code stored before login redirect.
+  ///
+  /// Returns the join code if one was stored, null otherwise.
+  /// Clears the stored code after retrieving it.
+  static Future<String?> getAndClearPendingJoinCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final code = prefs.getString('pending_join_code');
+    if (code != null) {
+      await prefs.remove('pending_join_code');
+    }
+    return code;
   }
 
   /// Creates a new user with email and password.

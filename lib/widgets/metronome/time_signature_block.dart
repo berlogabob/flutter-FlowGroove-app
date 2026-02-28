@@ -507,7 +507,7 @@ class _BeatCircleWithMode extends StatelessWidget {
         height: mode == BeatMode.accent ? 8 : 6,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white,
+          color: MonoPulseColors.textPrimary,
         ),
       ),
     );
@@ -618,7 +618,7 @@ class _SubdivisionCircleWithMode extends StatelessWidget {
         height: mode == BeatMode.accent ? 8 : 6,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white,
+          color: MonoPulseColors.textPrimary,
         ),
       ),
     );

@@ -78,7 +78,9 @@ class LoadingSpinner extends StatelessWidget {
       height: size,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(color ?? Colors.white),
+        valueColor: AlwaysStoppedAnimation<Color>(
+          color ?? MonoPulseColors.accentOrange,
+        ),
       ),
     );
   }

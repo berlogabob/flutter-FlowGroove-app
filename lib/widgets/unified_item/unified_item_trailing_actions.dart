@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../theme/mono_pulse_theme.dart';
 import 'unified_item_model.dart';
 import 'adapters/song_item_adapter.dart';
 
@@ -35,7 +36,7 @@ class UnifiedItemTrailingActions<T extends UnifiedItemModel>
           IconButton(
             icon: const Icon(
               Icons.play_circle_fill,
-              color: Colors.green,
+              color: MonoPulseColors.beatModeAccent,
               size: 28,
             ),
             onPressed: () async {

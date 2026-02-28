@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A widget for displaying an empty state message.
 ///
@@ -43,7 +44,11 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: iconSize, color: iconColor ?? Colors.grey),
+          Icon(
+            icon,
+            size: iconSize,
+            color: iconColor ?? MonoPulseColors.textTertiary,
+          ),
           const SizedBox(height: 16),
           Text(
             message,
@@ -54,7 +59,10 @@ class EmptyState extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               hint!,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: const TextStyle(
+                color: MonoPulseColors.textSecondary,
+                fontSize: 14,
+              ),
               textAlign: TextAlign.center,
             ),
           ],

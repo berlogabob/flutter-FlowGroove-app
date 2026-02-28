@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_repsync_app/models/song.dart';
+import '../../../../theme/mono_pulse_theme.dart';
 
 /// Widget for displaying CSV import preview with validation errors.
 class SongCsvPreviewTable extends StatelessWidget {
@@ -44,10 +45,10 @@ class SongCsvPreviewTable extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       color: songs.isNotEmpty && errors.isEmpty
-          ? Colors.green.shade50
+          ? MonoPulseColors.successGreenSubtle
           : errors.isNotEmpty && songs.isNotEmpty
-          ? Colors.amber.shade50
-          : Colors.red.shade50,
+          ? MonoPulseColors.warningSubtle
+          : MonoPulseColors.errorSubtle,
       child: Row(
         children: [
           Icon(
@@ -57,10 +58,10 @@ class SongCsvPreviewTable extends StatelessWidget {
                 ? Icons.warning
                 : Icons.error,
             color: songs.isNotEmpty && errors.isEmpty
-                ? Colors.green
+                ? MonoPulseColors.successGreen
                 : errors.isNotEmpty && songs.isNotEmpty
-                ? Colors.amber
-                : Colors.red,
+                ? MonoPulseColors.warning
+                : MonoPulseColors.error,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -74,10 +75,10 @@ class SongCsvPreviewTable extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: songs.isNotEmpty && errors.isEmpty
-                        ? Colors.green.shade700
+                        ? MonoPulseColors.successGreen
                         : errors.isNotEmpty && songs.isNotEmpty
-                        ? Colors.amber.shade700
-                        : Colors.red.shade700,
+                        ? MonoPulseColors.warning
+                        : MonoPulseColors.error,
                   ),
                 ),
                 if (errors.isNotEmpty)
@@ -86,8 +87,8 @@ class SongCsvPreviewTable extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: songs.isNotEmpty && errors.isNotEmpty
-                          ? Colors.amber.shade700
-                          : Colors.red.shade700,
+                          ? MonoPulseColors.warning
+                          : MonoPulseColors.error,
                     ),
                   ),
               ],
@@ -114,12 +115,16 @@ class SongCsvPreviewTable extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Row(
                 children: [
-                  const Icon(Icons.error, color: Colors.red, size: 20),
+                  const Icon(
+                    Icons.error,
+                    color: MonoPulseColors.error,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       error,
-                      style: const TextStyle(color: Colors.red),
+                      style: const TextStyle(color: MonoPulseColors.error),
                     ),
                   ),
                 ],
@@ -133,7 +138,7 @@ class SongCsvPreviewTable extends StatelessWidget {
 
   Widget _buildErrorsSection() {
     return ExpansionTile(
-      leading: const Icon(Icons.warning, color: Colors.amber),
+      leading: const Icon(Icons.warning, color: MonoPulseColors.warning),
       title: const Text('Validation Errors'),
       subtitle: Text('${errors.length} error(s) found'),
       initiallyExpanded: true,
@@ -147,7 +152,7 @@ class SongCsvPreviewTable extends StatelessWidget {
               return ListTile(
                 leading: const Icon(
                   Icons.error_outline,
-                  color: Colors.red,
+                  color: MonoPulseColors.error,
                   size: 20,
                 ),
                 title: Text(

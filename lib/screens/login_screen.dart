@@ -59,7 +59,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
 
       if (mounted) {
-        context.go('/main/home');
+        // Check if there's a pending join code from before login
+        final pendingJoinCode =
+            await AppUserNotifier.getAndClearPendingJoinCode();
+        if (pendingJoinCode != null) {
+          // Redirect to join-band screen with the code as query parameter
+          context.goNamed(
+            'join-band',
+            queryParameters: {'code': pendingJoinCode},
+          );
+        } else {
+          context.go('/main/home');
+        }
       }
     } on ApiError catch (e) {
       _handleError(e);
@@ -171,7 +182,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: MonoPulseColors.textPrimary,
                         ),
                       )
                     : const Text('Sign In'),

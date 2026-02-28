@@ -66,7 +66,7 @@ class SongCard extends StatelessWidget {
           IconButton(
             icon: const Icon(
               Icons.play_circle_fill,
-              color: Colors.green,
+              color: MonoPulseColors.beatModeAccent,
               size: 28,
             ),
             onPressed: () async {
