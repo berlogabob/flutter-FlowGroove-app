@@ -10,7 +10,6 @@ import 'theme/mono_pulse_theme.dart';
 import 'providers/auth/auth_provider.dart';
 import 'router/app_router.dart';
 import 'models/user.dart';
-import 'services/cache_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,23 +30,10 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('✅ Firebase initialized');
 
-  // Clear setlists cache (migration from old eventDate format)
-  try {
-    final cache = CacheService();
-    await cache.clearAllSetlistsCache();
-    debugPrint('✅ Setlists cache cleared (migration)');
-  } catch (e) {
-    debugPrint('⚠️ Failed to clear cache: $e');
-  }
-
   // Enable Firebase Auth persistence for Android
-  // This ensures auth state persists across app restarts
   try {
     await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
-    debugPrint('✅ Firebase Auth persistence set to LOCAL');
-  } catch (e) {
-    debugPrint('⚠️ Firebase Auth persistence: $e');
-  }
+  } catch (_) {}
 
   // Check if user is already logged in (from previous session)
   final currentUser = FirebaseAuth.instance.currentUser;

@@ -341,7 +341,7 @@ void main() {
             bandId: 'band-1',
             name: 'Test Setlist',
             description: 'Test Description',
-            eventDate: DateTime(2024, 12, 25),
+            eventDateTime: DateTime(2024, 12, 25),
             eventLocation: 'Test Venue',
             songIds: ['song-1', 'song-2'],
             totalDuration: 600,
@@ -356,7 +356,7 @@ void main() {
         expect(cachedSetlists.length, equals(1));
         expect(cachedSetlists[0].name, equals('Test Setlist'));
         expect(cachedSetlists[0].description, equals('Test Description'));
-        expect(cachedSetlists[0].eventDate, equals(DateTime(2024, 12, 25)));
+        expect(cachedSetlists[0].eventDateTime, equals(DateTime(2024, 12, 25)));
         expect(cachedSetlists[0].eventLocation, equals('Test Venue'));
         expect(cachedSetlists[0].songIds.length, equals(2));
       });

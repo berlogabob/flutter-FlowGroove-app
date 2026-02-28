@@ -121,94 +121,53 @@ class Setlist {
 }
 
 DateTime _parseDateTime(dynamic value) {
-  debugPrint(
-    '🔍 _parseDateTime called with: $value (type: ${value.runtimeType})',
-  );
   if (value == null) return DateTime.now();
-  if (value is DateTime) {
-    debugPrint('   → Is DateTime');
-    return value;
-  }
-  if (value is Timestamp) {
-    debugPrint('   → Is Timestamp, converting');
-    return value.toDate();
-  }
+  if (value is DateTime) return value;
+  if (value is Timestamp) return value.toDate();
   try {
-    debugPrint('   → Parsing as String');
-    return DateTime.parse(value as String);
-  } catch (e) {
-    debugPrint('   → Failed to parse: $e');
-    return DateTime.now();
+    if (value.runtimeType.toString() == 'Timestamp') {
+      return (value as dynamic).toDate() as DateTime;
+    }
+  } catch (_) {}
+  if (value is String) {
+    try {
+      return DateTime.parse(value);
+    } catch (_) {}
   }
+  if (value is int) {
+    return DateTime.fromMillisecondsSinceEpoch(value);
+  }
+  return DateTime.now();
 }
 
 DateTime? _parseTimestamp(dynamic value) {
-  debugPrint(
-    '🔍 _parseTimestamp called with: $value (type: ${value.runtimeType})',
-  );
-  if (value == null) {
-    debugPrint('   → Is null');
-    return null;
-  }
-  if (value is DateTime) {
-    debugPrint('   → Is DateTime');
-    return value;
-  }
-  if (value is Timestamp) {
-    debugPrint('   → Is Timestamp, converting');
-    return value.toDate();
-  }
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  if (value is Timestamp) return value.toDate();
   try {
-    debugPrint('   → Parsing as String');
-    return DateTime.parse(value as String);
-  } catch (e) {
-    debugPrint('   → Failed to parse: $e');
-    return null;
+    if (value.runtimeType.toString() == 'Timestamp') {
+      return (value as dynamic).toDate() as DateTime;
+    }
+  } catch (_) {}
+  if (value is String) {
+    try {
+      return DateTime.parse(value);
+    } catch (_) {
+      return null;
+    }
   }
+  if (value is int) {
+    return DateTime.fromMillisecondsSinceEpoch(value);
+  }
+  return null;
 }
 
 DateTime? _parseNullableDateTime(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value;
   if (value is String) {
-    // Try ISO format first
     final result = DateTime.tryParse(value);
     if (result != null) return result;
-
-    // Log problematic values for debugging
-    debugPrint('⚠️ Invalid date format detected: "$value"');
-    debugPrint('   Type: ${value.runtimeType}');
-    debugPrint('   Length: ${value.length}');
-
-    // Try to handle common formats
-    // Format: "dd-MM" or "dd-yy"
-    if (value.contains('-')) {
-      final parts = value.split('-');
-      if (parts.length == 2) {
-        try {
-          final day = int.tryParse(parts[0]) ?? 1;
-          final monthOrYear = int.tryParse(parts[1]) ?? 1;
-
-          // If second part is < 13, it's likely a month (dd-MM format)
-          // Otherwise it's likely a year (dd-yy format)
-          if (monthOrYear < 13) {
-            debugPrint(
-              '   → Interpreting as dd-MM: day=$day, month=$monthOrYear',
-            );
-            return DateTime(DateTime.now().year, monthOrYear, day);
-          } else {
-            debugPrint(
-              '   → Interpreting as dd-yy: day=$day, year=20$monthOrYear',
-            );
-            return DateTime(2000 + monthOrYear, 1, day);
-          }
-        } catch (e) {
-          debugPrint('   → Failed to parse: $e');
-        }
-      }
-    }
-
-    return null;
   }
   return null;
 }
