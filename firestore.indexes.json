@@ -1,4 +1,52 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "normalizedTitle", "order": "ASCENDING" },
+        { "fieldPath": "normalizedArtist", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "titleSoundex", "order": "ASCENDING" },
+        { "fieldPath": "artistSoundex", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "songs",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "spotifyId", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "songs",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "isrc", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "songs",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "musicbrainzId", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "bandId", "order": "ASCENDING" },
+        { "fieldPath": "normalizedTitle", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "bandId", "order": "ASCENDING" },
+        { "fieldPath": "normalizedArtist", "order": "ASCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

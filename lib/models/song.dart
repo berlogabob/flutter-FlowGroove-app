@@ -68,6 +68,34 @@ class Song {
   )
   final List<Section> sections;
 
+  // ============================================================
+  // MATCHING & EXTERNAL IDS (for song deduplication and APIs)
+  // ============================================================
+
+  /// External IDs for cross-referencing with music databases
+  final String? spotifyId; // Spotify track ID
+  final String? musicbrainzId; // MusicBrainz recording ID
+  final String? isrc; // International Standard Recording Code
+  final String? deezerId; // Deezer track ID
+
+  /// Cached normalized fields for faster search
+  final String? normalizedTitle; // Normalized title for matching
+  final String? normalizedArtist; // Normalized artist for matching
+
+  /// Phonetic codes for sound-alike matching
+  final String? titleSoundex; // Soundex code for title
+  final String? artistSoundex; // Soundex code for artist
+
+  /// Duration in milliseconds (for matching)
+  final int? durationMs;
+
+  /// Album name (for matching)
+  final String? album;
+
+  /// Song variant information
+  final String? variantType; // 'original', 'live', 'acoustic', 'remix', etc.
+  final String? variantOf; // ID of original song if this is a variant
+
   Song({
     required this.id,
     required this.title,
@@ -92,6 +120,18 @@ class Song {
     this.regularBeats = 1,
     this.beatModes = const [],
     this.sections = const [],
+    this.spotifyId,
+    this.musicbrainzId,
+    this.isrc,
+    this.deezerId,
+    this.normalizedTitle,
+    this.normalizedArtist,
+    this.titleSoundex,
+    this.artistSoundex,
+    this.durationMs,
+    this.album,
+    this.variantType,
+    this.variantOf,
   });
 
   Song copyWith({
@@ -118,6 +158,18 @@ class Song {
     int? regularBeats,
     List<List<BeatMode>>? beatModes,
     List<Section>? sections,
+    Object? spotifyId = _sentinel,
+    Object? musicbrainzId = _sentinel,
+    Object? isrc = _sentinel,
+    Object? deezerId = _sentinel,
+    Object? normalizedTitle = _sentinel,
+    Object? normalizedArtist = _sentinel,
+    Object? titleSoundex = _sentinel,
+    Object? artistSoundex = _sentinel,
+    Object? durationMs = _sentinel,
+    Object? album = _sentinel,
+    Object? variantType = _sentinel,
+    Object? variantOf = _sentinel,
   }) {
     return Song(
       id: id ?? this.id,
@@ -157,6 +209,32 @@ class Song {
       regularBeats: regularBeats ?? this.regularBeats,
       beatModes: beatModes ?? this.beatModes,
       sections: sections ?? this.sections,
+      spotifyId: spotifyId == _sentinel ? this.spotifyId : spotifyId as String?,
+      musicbrainzId: musicbrainzId == _sentinel
+          ? this.musicbrainzId
+          : musicbrainzId as String?,
+      isrc: isrc == _sentinel ? this.isrc : isrc as String?,
+      deezerId: deezerId == _sentinel ? this.deezerId : deezerId as String?,
+      normalizedTitle: normalizedTitle == _sentinel
+          ? this.normalizedTitle
+          : normalizedTitle as String?,
+      normalizedArtist: normalizedArtist == _sentinel
+          ? this.normalizedArtist
+          : normalizedArtist as String?,
+      titleSoundex: titleSoundex == _sentinel
+          ? this.titleSoundex
+          : titleSoundex as String?,
+      artistSoundex: artistSoundex == _sentinel
+          ? this.artistSoundex
+          : artistSoundex as String?,
+      durationMs: durationMs == _sentinel
+          ? this.durationMs
+          : durationMs as int?,
+      album: album == _sentinel ? this.album : album as String?,
+      variantType: variantType == _sentinel
+          ? this.variantType
+          : variantType as String?,
+      variantOf: variantOf == _sentinel ? this.variantOf : variantOf as String?,
     );
   }
 
