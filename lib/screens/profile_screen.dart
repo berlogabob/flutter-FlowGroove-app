@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -215,10 +216,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Open Telegram with start parameter
               final opened = await telegramService.openBotChat(userId);
               if (!opened && mounted) {
+                // Try copying link to clipboard as fallback
+                final link = 'https://t.me/repsyncappbot?start=link_$userId';
+                await Clipboard.setData(ClipboardData(text: link));
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                      'Could not open Telegram. Please install Telegram app.',
+                      'Could not open Telegram. Link copied to clipboard - paste in Telegram to continue.',
                     ),
                   ),
                 );

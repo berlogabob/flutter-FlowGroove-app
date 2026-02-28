@@ -132,7 +132,28 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       if (badges.isNotEmpty) {
         subtitleWidgets.add(Row(children: badges));
       }
+
+      // Add attribution badge for copied songs
+      if (song.isCopy) {
+        subtitleWidgets.add(
+          const Row(
+            children: [
+              Icon(Icons.content_copy, size: 12, color: Color(0xFFFF9800)),
+              SizedBox(width: 4),
+              Text(
+                'Shared to band',
+                style: TextStyle(
+                  color: Color(0xFFFF9800),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
     }
+    // Band subtitle
     // Band subtitle
     else if (item is BandItemAdapter) {
       final band = item as BandItemAdapter;

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TelegramUser {
@@ -23,20 +24,29 @@ class TelegramUser {
 }
 
 class TelegramService {
-  // Your bot token from @BotFather
-  static const String botToken =
-      '8607318703:AAFmKm6MmiXXZEjYzUMn0w__wlr0LnWGEAE';
-  static const String botUsername = 'repsyncappbot'; // Your bot username
+  static String get botToken => dotenv.env['TELEGRAM_BOT_TOKEN'] ?? '';
+  static const String botUsername = 'repsyncappbot';
 
   /// Opens Telegram chat with the bot and sends /link command
   Future<bool> openBotChat(String? userId) async {
     try {
       final startParam = userId != null ? 'link_$userId' : 'link';
-      final url = Uri.parse('https://t.me/$botUsername?start=$startParam');
 
-      if (await canLaunchUrl(url)) {
-        return await launchUrl(url, mode: LaunchMode.externalApplication);
+      // Try native Telegram app first with tg:// scheme
+      final nativeUrl = Uri.parse(
+        'tg://resolve?domain=$botUsername&start=$startParam',
+      );
+
+      if (await canLaunchUrl(nativeUrl)) {
+        return await launchUrl(nativeUrl, mode: LaunchMode.externalApplication);
       }
+
+      // Fallback to web/Telegram TV
+      final webUrl = Uri.parse('https://t.me/$botUsername?start=$startParam');
+      if (await canLaunchUrl(webUrl)) {
+        return await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      }
+
       return false;
     } catch (e) {
       debugPrint('Error opening Telegram: $e');

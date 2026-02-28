@@ -11,14 +11,11 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('RepSync')),
-      body: const Column(
-        children: [
-          OfflineIndicator.banner(),
-          Expanded(child: HomeScreenBody()),
-        ],
-      ),
+    return const Column(
+      children: [
+        OfflineIndicator.banner(),
+        Expanded(child: HomeScreenBody()),
+      ],
     );
   }
 }

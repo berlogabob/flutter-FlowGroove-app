@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
 import '../widgets/error_banner.dart';
 import '../theme/mono_pulse_theme.dart';
 
-/// Login screen with comprehensive error handling.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -30,7 +28,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  /// Clears the current error.
   void _clearError() {
     setState(() {
       _currentError = null;
@@ -38,7 +35,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.read(errorNotifierProvider.notifier).clearError();
   }
 
-  /// Handles an error by updating state and showing a message.
   void _handleError(ApiError error) {
     setState(() {
       _currentError = error;
@@ -63,8 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
 
       if (mounted) {
-        // Navigate to home after successful login using GoRouter named route
-        context.goNamed('home');
+        context.go('/main/home');
       }
     } on ApiError catch (e) {
       _handleError(e);
@@ -107,7 +102,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              // Error banner
               if (_currentError != null) ...[
                 ErrorBanner.banner(
                   message:
@@ -193,86 +187,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              const Row(
-                children: [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'or',
-                      style: TextStyle(color: MonoPulseColors.textSecondary),
-                    ),
-                  ),
-                  Expanded(child: Divider()),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildSocialLoginButtons(),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildSocialLoginButtons() {
-    return Column(children: [_buildTwitterButton()]);
-  }
-
-  Widget _buildTwitterButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: _isLoading ? null : _signInWithTwitter,
-        icon: const Icon(Icons.flutter_dash),
-        label: const Text('Continue with X (Twitter)'),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _signInWithTwitter() async {
-    setState(() {
-      _isLoading = true;
-      _currentError = null;
-    });
-
-    try {
-      // Twitter credentials from .env
-      final apiKey = dotenv.env['TWITTER_API_KEY'] ?? '';
-      final apiSecretKey = dotenv.env['TWITTER_API_SECRET'] ?? '';
-      const redirectUri = 'https://repsync-app-8685c.web.app/__/auth/handler';
-
-      if (apiKey.isEmpty || apiSecretKey.isEmpty) {
-        _handleError(
-          ApiError.auth(message: 'Twitter credentials not configured'),
-        );
-        return;
-      }
-
-      await ref
-          .read(appUserProvider.notifier)
-          .signInWithTwitter(
-            apiKey: apiKey,
-            apiSecretKey: apiSecretKey,
-            redirectUri: redirectUri,
-          );
-
-      if (mounted) {
-        context.goNamed('home');
-      }
-    } on ApiError catch (e) {
-      _handleError(e);
-    } catch (e, stackTrace) {
-      final error = ApiError.fromException(e, stackTrace: stackTrace);
-      _handleError(error);
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
   }
 }

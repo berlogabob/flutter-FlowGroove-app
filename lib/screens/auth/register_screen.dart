@@ -42,7 +42,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             password: _passwordController.text,
           );
       if (mounted) {
-        context.goNamed('home');
+        context.go('/main/home');
       }
     } on FirebaseAuthException catch (e) {
       String message;

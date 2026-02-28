@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:twitter_login/twitter_login.dart';
 import '../../models/api_error.dart';
 import '../../models/user.dart';
 import '../../services/cache_service.dart';
@@ -177,50 +176,6 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
 
   /// Signs in with Twitter.
   ///
-  /// [apiKey] - Twitter API Key
-  /// [apiSecretKey] - Twitter API Secret
-  /// [redirectUri] - Twitter OAuth redirect URI
-  ///
-  /// Throws [ApiError] if sign in fails.
-  Future<UserCredential> signInWithTwitter({
-    required String apiKey,
-    required String apiSecretKey,
-    required String redirectUri,
-  }) async {
-    try {
-      final twitterLogin = TwitterLogin(
-        apiKey: apiKey,
-        apiSecretKey: apiSecretKey,
-        redirectURI: redirectUri,
-      );
-
-      final authResult = await twitterLogin.loginV2();
-
-      if (authResult.status == TwitterLoginStatus.loggedIn) {
-        final twitterAuthCredential = TwitterAuthProvider.credential(
-          accessToken: authResult.authToken!,
-          secret: authResult.authTokenSecret!,
-        );
-
-        return await ref
-            .read(firebaseAuthProvider)
-            .signInWithCredential(twitterAuthCredential);
-      } else {
-        throw ApiError.auth(
-          message: 'Twitter login failed: ${authResult.errorMessage}',
-        );
-      }
-    } on FirebaseAuthException catch (e, stackTrace) {
-      final apiError = _mapFirebaseAuthException(e);
-      state = AsyncValue.error(apiError, stackTrace);
-      throw apiError;
-    } catch (e, stackTrace) {
-      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
-      state = AsyncValue.error(apiError, stackTrace);
-      throw apiError;
-    }
-  }
-
   /// Updates the user's base tags (role tags like guitarist, vocalist, etc.)
   ///
   /// Throws [ApiError] if update fails.

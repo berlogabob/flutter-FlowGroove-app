@@ -100,156 +100,166 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const RegisterScreen(),
     ),
 
-    // Main app shell (authenticated routes)
-    GoRoute(
-      path: '/main',
-      name: 'main',
-      builder: (context, state) => const MainShell(),
-      routes: [
-        // Home dashboard
-        GoRoute(
-          path: 'home',
-          name: 'home',
-          builder: (context, state) => const HomeScreen(),
-        ),
-
-        // Songs routes
-        GoRoute(
-          path: 'songs',
-          name: 'songs',
-          builder: (context, state) => const SongsListScreen(),
+    // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return MainShell(navigationShell: navigationShell);
+      },
+      branches: [
+        // Home branch
+        StatefulShellBranch(
           routes: [
             GoRoute(
-              path: 'add',
-              name: 'add-song',
-              builder: (context, state) {
-                final bandId = state.uri.queryParameters['bandId'];
-                return AddSongScreen(bandId: bandId);
-              },
+              path: '/main/home',
+              name: 'home',
+              builder: (context, state) => const HomeScreen(),
+            ),
+          ],
+        ),
+        // Songs branch
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/main/songs',
+              name: 'songs',
+              builder: (context, state) => const SongsListScreen(),
+              routes: [
+                GoRoute(
+                  path: 'add',
+                  name: 'add-song',
+                  builder: (context, state) {
+                    final bandId = state.uri.queryParameters['bandId'];
+                    return AddSongScreen(bandId: bandId);
+                  },
+                ),
+                GoRoute(
+                  path: ':id/edit',
+                  name: 'edit-song',
+                  builder: (context, state) {
+                    final extra = state.extra;
+                    Song? song;
+                    String? bandId;
+                    if (extra is Song) {
+                      song = extra;
+                    } else if (extra is Map) {
+                      song = extra['song'] as Song?;
+                      bandId = extra['bandId'] as String?;
+                    }
+                    return AddSongScreen(song: song, bandId: bandId);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        // Bands branch
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/main/bands',
+              name: 'bands',
+              builder: (context, state) => const MyBandsScreen(),
+              routes: [
+                GoRoute(
+                  path: 'create',
+                  name: 'create-band',
+                  builder: (context, state) => const CreateBandScreen(),
+                ),
+                GoRoute(
+                  path: ':id/edit',
+                  name: 'edit-band',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    return CreateBandScreen(band: band);
+                  },
+                ),
+                GoRoute(
+                  path: ':id/songs',
+                  name: 'band-songs',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    if (band == null) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    return BandSongsScreen(band: band);
+                  },
+                ),
+                GoRoute(
+                  path: ':id/about',
+                  name: 'band-about',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    if (band == null) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    return BandAboutScreen(band: band);
+                  },
+                ),
+              ],
             ),
             GoRoute(
-              path: ':id/edit',
-              name: 'edit-song',
+              path: '/main/join-band',
+              name: 'join-band',
               builder: (context, state) {
-                final extra = state.extra;
-                Song? song;
-                String? bandId;
-                if (extra is Song) {
-                  song = extra;
-                } else if (extra is Map) {
-                  song = extra['song'] as Song?;
-                  bandId = extra['bandId'] as String?;
-                }
-                return AddSongScreen(song: song, bandId: bandId);
+                final code = state.uri.queryParameters['code'];
+                return JoinBandScreen(inviteCode: code);
               },
             ),
           ],
         ),
-
-        // Bands routes
-        GoRoute(
-          path: 'bands',
-          name: 'bands',
-          builder: (context, state) => const MyBandsScreen(),
+        // Setlists branch
+        StatefulShellBranch(
           routes: [
             GoRoute(
-              path: 'create',
-              name: 'create-band',
-              builder: (context, state) => const CreateBandScreen(),
-            ),
-            GoRoute(
-              path: ':id/edit',
-              name: 'edit-band',
-              builder: (context, state) {
-                final band = state.extra as Band?;
-                return CreateBandScreen(band: band);
-              },
-            ),
-            GoRoute(
-              path: ':id/songs',
-              name: 'band-songs',
-              builder: (context, state) {
-                final band = state.extra as Band?;
-                if (band == null) {
-                  // Redirect back if no band provided
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.goNamed('bands');
-                  });
-                  return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                return BandSongsScreen(band: band);
-              },
-            ),
-            GoRoute(
-              path: ':id/about',
-              name: 'band-about',
-              builder: (context, state) {
-                final band = state.extra as Band?;
-                if (band == null) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context.goNamed('bands');
-                  });
-                  return const Scaffold(
-                    body: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                return BandAboutScreen(band: band);
-              },
+              path: '/main/setlists',
+              name: 'setlists',
+              builder: (context, state) => const SetlistsListScreen(),
+              routes: [
+                GoRoute(
+                  path: 'create',
+                  name: 'create-setlist',
+                  builder: (context, state) => const CreateSetlistScreen(),
+                ),
+                GoRoute(
+                  path: ':id/edit',
+                  name: 'edit-setlist',
+                  builder: (context, state) {
+                    final setlist = state.extra as Setlist?;
+                    return CreateSetlistScreen(setlist: setlist);
+                  },
+                ),
+              ],
             ),
           ],
         ),
-
-        // Join band route
-        GoRoute(
-          path: 'join-band',
-          name: 'join-band',
-          builder: (context, state) {
-            final code = state.uri.queryParameters['code'];
-            return JoinBandScreen(inviteCode: code);
-          },
-        ),
-
-        // Setlists routes
-        GoRoute(
-          path: 'setlists',
-          name: 'setlists',
-          builder: (context, state) => const SetlistsListScreen(),
+        // Profile branch
+        StatefulShellBranch(
           routes: [
             GoRoute(
-              path: 'create',
-              name: 'create-setlist',
-              builder: (context, state) => const CreateSetlistScreen(),
-            ),
-            GoRoute(
-              path: ':id/edit',
-              name: 'edit-setlist',
-              builder: (context, state) {
-                final setlist = state.extra as Setlist?;
-                return CreateSetlistScreen(setlist: setlist);
-              },
+              path: '/main/profile',
+              name: 'profile',
+              builder: (context, state) => const ProfileScreen(),
             ),
           ],
         ),
-
-        // Profile route
-        GoRoute(
-          path: 'profile',
-          name: 'profile',
-          builder: (context, state) => const ProfileScreen(),
-        ),
-
-        // Tools routes
-        GoRoute(
-          path: 'metronome',
-          name: 'metronome',
-          builder: (context, state) => const MetronomeScreen(),
-        ),
-        GoRoute(
-          path: 'tuner',
-          name: 'tuner',
-          builder: (context, state) => const TunerScreen(),
+        // Tools branch (not in bottom nav)
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/main/metronome',
+              name: 'metronome',
+              builder: (context, state) => const MetronomeScreen(),
+            ),
+            GoRoute(
+              path: '/main/tuner',
+              name: 'tuner',
+              builder: (context, state) => const TunerScreen(),
+            ),
+          ],
         ),
       ],
     ),
