@@ -120,11 +120,11 @@ void main() async {
 }
 
 Map<String, dynamic> _analyzeBands(List<QueryDocumentSnapshot> docs) {
-  final exportData = {
+  final exportData = <String, dynamic>{
     'exportedAt': DateTime.now().toIso8601String(),
     'totalBands': docs.length,
     'bands': <Map<String, dynamic>>[],
-    'summary': {
+    'summary': <String, dynamic>{
       'bandsWithIssues': 0,
       'totalIssues': 0,
       'commonIssues': <String, int>{},
@@ -135,23 +135,19 @@ Map<String, dynamic> _analyzeBands(List<QueryDocumentSnapshot> docs) {
     final bandId = bandDoc.id;
     final bandData = bandDoc.data() as Map<String, dynamic>;
     final analysis = _analyzeBand(bandId, bandData);
-    exportData['bands'].add(analysis);
+    (exportData['bands'] as List).add(analysis);
 
     // Update summary
+    final summary = exportData['summary'] as Map<String, dynamic>;
     final issues = analysis['issues'] as List?;
     if (issues != null && issues.isNotEmpty) {
-      exportData['summary']['bandsWithIssues'] =
-          ((exportData['summary']['bandsWithIssues'] as int?) ?? 0) + 1;
-      exportData['summary']['totalIssues'] =
-          ((exportData['summary']['totalIssues'] as int?) ?? 0) + issues.length;
+      summary['bandsWithIssues'] = (summary['bandsWithIssues'] as int) + 1;
+      summary['totalIssues'] = (summary['totalIssues'] as int) + issues.length;
 
       for (final issue in issues) {
         final issueType = issue.split(':')[0];
-        final commonIssues =
-            exportData['summary']['commonIssues'] as Map<String, int>?;
-        if (commonIssues != null) {
-          commonIssues[issueType] = (commonIssues[issueType] ?? 0) + 1;
-        }
+        final commonIssues = summary['commonIssues'] as Map<String, int>;
+        commonIssues[issueType] = (commonIssues[issueType] ?? 0) + 1;
       }
     }
   }
