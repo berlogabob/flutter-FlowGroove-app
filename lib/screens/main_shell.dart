@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/mono_pulse_theme.dart';
 import 'home_screen.dart';
 import 'songs/songs_list_screen.dart';
@@ -26,106 +27,95 @@ class BottomNavNotifier extends Notifier<int> {
 }
 
 /// Main application shell with bottom navigation.
-///
-/// Uses IndexedStack to preserve state of each tab.
-class MainShell extends ConsumerStatefulWidget {
-  const MainShell({super.key});
+/// Works with StatefulShellRoute.indexedStack for proper tab switching.
+class MainShell extends ConsumerWidget {
+  final StatefulNavigationShell navigationShell;
+
+  const MainShell({super.key, required this.navigationShell});
 
   @override
-  ConsumerState<MainShell> createState() => _MainShellState();
-}
-
-class _MainShellState extends ConsumerState<MainShell> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    SongsListScreen(),
-    MyBandsScreen(),
-    SetlistsListScreen(),
-    ProfileScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop && _currentIndex != 0) {
-          setState(() => _currentIndex = 0);
-        }
-      },
-      child: Scaffold(
-        body: IndexedStack(index: _currentIndex, children: _screens),
-        bottomNavigationBar: Container(
-          decoration: const BoxDecoration(
-            color: MonoPulseColors.black,
-            border: Border(
-              top: BorderSide(color: MonoPulseColors.borderSubtle, width: 1),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      body: navigationShell,
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: MonoPulseColors.black,
+          border: Border(
+            top: BorderSide(color: MonoPulseColors.borderSubtle, width: 1),
+          ),
+        ),
+        child: NavigationBar(
+          backgroundColor: MonoPulseColors.black,
+          indicatorColor: MonoPulseColors.accentOrangeSubtle,
+          selectedIndex: navigationShell.currentIndex,
+          onDestinationSelected: (index) => _onTap(context, index),
+          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(
+                Icons.home_outlined,
+                color: MonoPulseColors.textTertiary,
+              ),
+              selectedIcon: Icon(
+                Icons.home,
+                color: MonoPulseColors.accentOrange,
+              ),
+              label: 'Home',
             ),
-          ),
-          child: NavigationBar(
-            backgroundColor: MonoPulseColors.black,
-            indicatorColor: MonoPulseColors.accentOrangeSubtle,
-            selectedIndex: _currentIndex,
-            onDestinationSelected: _onDestinationSelected,
-            labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-            destinations: [
-              _buildDestination(Icons.home_outlined, Icons.home, 'Home', 0),
-              _buildDestination(
+            NavigationDestination(
+              icon: Icon(
                 Icons.music_note_outlined,
+                color: MonoPulseColors.textTertiary,
+              ),
+              selectedIcon: Icon(
                 Icons.music_note,
-                'Songs',
-                1,
+                color: MonoPulseColors.accentOrange,
               ),
-              _buildDestination(
+              label: 'Songs',
+            ),
+            NavigationDestination(
+              icon: Icon(
                 Icons.groups_outlined,
+                color: MonoPulseColors.textTertiary,
+              ),
+              selectedIcon: Icon(
                 Icons.groups,
-                'Bands',
-                2,
+                color: MonoPulseColors.accentOrange,
               ),
-              _buildDestination(
+              label: 'Bands',
+            ),
+            NavigationDestination(
+              icon: Icon(
                 Icons.queue_music_outlined,
+                color: MonoPulseColors.textTertiary,
+              ),
+              selectedIcon: Icon(
                 Icons.queue_music,
-                'Setlists',
-                3,
+                color: MonoPulseColors.accentOrange,
               ),
-              _buildDestination(
+              label: 'Setlists',
+            ),
+            NavigationDestination(
+              icon: Icon(
                 Icons.person_outlined,
-                Icons.person,
-                'Profile',
-                4,
+                color: MonoPulseColors.textTertiary,
               ),
-            ],
-          ),
+              selectedIcon: Icon(
+                Icons.person,
+                color: MonoPulseColors.accentOrange,
+              ),
+              label: 'Profile',
+            ),
+          ],
         ),
       ),
     );
   }
 
-  NavigationDestination _buildDestination(
-    IconData icon,
-    IconData selectedIcon,
-    String label,
-    int index,
-  ) {
-    final isSelected = _currentIndex == index;
-    return NavigationDestination(
-      icon: Icon(
-        icon,
-        color: isSelected
-            ? MonoPulseColors.accentOrange
-            : MonoPulseColors.textTertiary,
-      ),
-      selectedIcon: Icon(selectedIcon, color: MonoPulseColors.accentOrange),
-      label: label,
+  void _onTap(BuildContext context, int index) {
+    navigationShell.goBranch(
+      index,
+      initialLocation: index == navigationShell.currentIndex,
     );
-  }
-
-  void _onDestinationSelected(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-    ref.read(bottomNavIndexProvider.notifier).setIndex(index);
   }
 }

@@ -397,7 +397,7 @@ final cachedSetlistsProvider =
       return CachedSetlistsNotifier();
     });
 
-/// Stream provider that watches setlists for the current user with caching.
+/// Stream provider that watches setlists for the current user.
 final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
 
@@ -405,43 +405,8 @@ final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
     data: (user) {
       if (user == null) return Stream.value([]);
 
-      final cache = ref.watch(cacheProvider);
       final setlistRepo = ref.watch(setlistRepositoryProvider);
-
-      return Stream.multi((listener) {
-        bool hasEmittedCache = false;
-
-        cache.getCachedSetlists(user.uid).then((cachedSetlists) {
-          if (cachedSetlists.isNotEmpty && !listener.isClosed) {
-            listener.add(cachedSetlists);
-            hasEmittedCache = true;
-          }
-        });
-
-        final subscription = setlistRepo
-            .watchSetlists(user.uid)
-            .listen(
-              (setlists) async {
-                await cache.cacheSetlists(user.uid, setlists);
-                if (!listener.isClosed) {
-                  listener.add(setlists);
-                }
-              },
-              onError: (error) {
-                if (!hasEmittedCache && !listener.isClosed) {
-                  cache.getCachedSetlists(user.uid).then((cachedSetlists) {
-                    if (!listener.isClosed) {
-                      listener.add(cachedSetlists);
-                    }
-                  });
-                }
-              },
-            );
-
-        listener.onCancel = () {
-          subscription.cancel();
-        };
-      });
+      return setlistRepo.watchSetlists(user.uid);
     },
     loading: () => Stream.value([]),
     error: (error, stack) => Stream.value([]),

@@ -69,11 +69,11 @@ class RepSyncApp extends ConsumerWidget {
           if (user != null && previous?.value == null) {
             // User just logged in - navigate to home
             debugPrint('🔑 Auth Event: USER_LOGIN - email=${user.email}');
-            GoRouter.of(context).goNamed('home');
+            GoRouter.of(context).go('/main/home');
           } else if (user == null && previous?.value != null) {
             // User just logged out - navigate to login
             debugPrint('🔑 Auth Event: USER_LOGOUT - previous user logged out');
-            GoRouter.of(context).goNamed('login');
+            GoRouter.of(context).go('/login');
           } else if (user != null) {
             // Auth state restored (app resume/refresh)
             debugPrint('🔑 Auth Event: AUTH_RESTORED - email=${user.email}');
