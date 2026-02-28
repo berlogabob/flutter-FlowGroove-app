@@ -10,7 +10,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/standard_screen_scaffold.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -490,8 +490,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         user?.displayName ??
         'User';
 
-    return Scaffold(
-      appBar: CustomAppBar.buildNoBack(context, title: 'Profile'),
+    return StandardScreenScaffold(
+      title: 'Profile',
+      showBackButton: false,
+      showOfflineIndicator: true,
       body: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [

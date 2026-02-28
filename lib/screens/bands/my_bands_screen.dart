@@ -9,15 +9,16 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/custom_app_bar.dart';
-import '../../widgets/unified_item/unified_filter_sort_widget.dart';
-import '../../widgets/unified_item/unified_item_list.dart';
+import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/list_screen_content.dart';
+import '../../widgets/fab_variants.dart';
 import '../../widgets/unified_item/adapters/band_item_adapter.dart';
+import '../../widgets/unified_item/unified_item_list.dart';
+import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/error_banner.dart';
-import '../../widgets/offline_indicator.dart';
 
 /// Screen for displaying the user's bands with search, filter, sort,
 /// swipe-to-delete, and drag-and-drop reordering.
@@ -201,43 +202,31 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   Widget build(BuildContext context) {
     final bandsAsync = ref.watch(bandsProvider);
 
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
-        title: 'My Bands',
-        menuItems: [
-          PopupMenuItem<void>(
-            child: const Text('Create Band'),
-            onTap: () => context.goNamed('create-band'),
-          ),
-          PopupMenuItem<void>(
-            child: const Text('Join Band'),
-            onTap: () => context.goNamed('join-band'),
-          ),
-        ],
+    return StandardScreenScaffold(
+      title: 'My Bands',
+      menuItems: [
+        PopupMenuItem<void>(
+          child: const Text('Create Band'),
+          onTap: () => context.goNamed('create-band'),
+        ),
+        PopupMenuItem<void>(
+          child: const Text('Join Band'),
+          onTap: () => context.goNamed('join-band'),
+        ),
+      ],
+      floatingActionButton: DualFab(
+        primary: FabAction(
+          icon: Icons.add,
+          label: 'Create',
+          onPressed: () => context.goNamed('create-band'),
+        ),
+        secondary: FabAction(
+          icon: Icons.group_add,
+          label: 'Join',
+          onPressed: () => context.goNamed('join-band'),
+        ),
       ),
-      body: Column(
-        children: [
-          const OfflineIndicator.banner(),
-          Expanded(child: _buildBody(bandsAsync)),
-        ],
-      ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton.small(
-            heroTag: 'create',
-            onPressed: () => context.goNamed('create-band'),
-            child: const Icon(Icons.add),
-          ),
-          const SizedBox(height: 8),
-          FloatingActionButton.small(
-            heroTag: 'join',
-            onPressed: () => context.goNamed('join-band'),
-            child: const Icon(Icons.group_add),
-          ),
-        ],
-      ),
+      body: _buildBody(bandsAsync),
     );
   }
 

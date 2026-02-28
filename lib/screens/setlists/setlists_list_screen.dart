@@ -7,13 +7,14 @@ import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../services/export/pdf_service.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/list_screen_content.dart';
+import '../../widgets/fab_variants.dart';
+import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
-import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/offline_indicator.dart';
 
 /// Screen for displaying the list of setlists with unified item system.
 ///
@@ -152,28 +153,20 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Widget build(BuildContext context) {
     final setlistsAsync = ref.watch(setlistsProvider);
 
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
-        title: 'Setlists',
-        menuItems: [
-          PopupMenuItem<void>(
-            child: const Text('Create Setlist'),
-            onTap: () => context.goNamed('create-setlist'),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          const OfflineIndicator.banner(),
-          Expanded(child: _buildBody(setlistsAsync)),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'setlists_fab',
+    return StandardScreenScaffold(
+      title: 'Setlists',
+      menuItems: [
+        PopupMenuItem<void>(
+          child: const Text('Create Setlist'),
+          onTap: () => context.goNamed('create-setlist'),
+        ),
+      ],
+      floatingActionButton: SingleFab(
+        icon: Icons.add,
         onPressed: () => context.goNamed('create-setlist'),
-        child: const Icon(Icons.add),
+        heroTag: 'setlists_fab',
       ),
+      body: _buildBody(setlistsAsync),
     );
   }
 
