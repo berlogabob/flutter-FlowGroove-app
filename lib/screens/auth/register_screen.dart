@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/auth/auth_provider.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -109,14 +110,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           Icon(
             isMet ? Icons.check_circle : Icons.circle_outlined,
             size: 16,
-            color: isMet ? Colors.green : Colors.grey[400],
+            color: isMet
+                ? MonoPulseColors.successGreen
+                : MonoPulseColors.textTertiary,
           ),
           const SizedBox(width: 8),
           Text(
             text,
             style: TextStyle(
               fontSize: 12,
-              color: isMet ? Colors.green : Colors.grey[600],
+              color: isMet
+                  ? MonoPulseColors.successGreen
+                  : MonoPulseColors.textSecondary,
             ),
           ),
         ],
@@ -152,9 +157,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 8),
               Text(
                 'Create an account to manage your band repertoire',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
@@ -225,7 +230,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: MonoPulseColors.textPrimary,
                         ),
                       )
                     : const Text('Create Account'),

@@ -5,7 +5,8 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'match_scorer.dart';
+import '../../theme/mono_pulse_theme.dart';
+import '../../services/matching/match_scorer.dart';
 
 /// Dialog for confirming song matches.
 class SongMatchDialog extends StatelessWidget {
@@ -71,7 +72,7 @@ class SongMatchDialog extends StatelessWidget {
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _getGradeColor(grade).withOpacity(0.3),
+                color: _getGradeColor(grade).withValues(alpha: 0.3),
                 width: 2,
               ),
             ),
@@ -160,10 +161,10 @@ class SongMatchDialog extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: _getGradeColor(grade).withOpacity(0.2),
+                    color: _getGradeColor(grade).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: _getGradeColor(grade).withOpacity(0.5),
+                      color: _getGradeColor(grade).withValues(alpha: 0.5),
                     ),
                   ),
                   child: Row(
@@ -266,15 +267,15 @@ class SongMatchDialog extends StatelessWidget {
   Color _getGradeColor(MatchGrade grade) {
     switch (grade) {
       case MatchGrade.exact:
-        return Colors.green;
+        return MonoPulseColors.matchExact;
       case MatchGrade.high:
-        return Colors.lightGreen;
+        return MonoPulseColors.matchHigh;
       case MatchGrade.medium:
-        return Colors.orange;
+        return MonoPulseColors.matchMedium;
       case MatchGrade.low:
-        return Colors.deepOrange;
+        return MonoPulseColors.matchLow;
       case MatchGrade.none:
-        return Colors.red;
+        return MonoPulseColors.matchNone;
     }
   }
 

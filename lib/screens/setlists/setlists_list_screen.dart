@@ -7,6 +7,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../services/export/pdf_service.dart';
+import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/fab_variants.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
@@ -14,6 +15,8 @@ import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/error_banner.dart';
+import '../../widgets/loading_indicator.dart';
 
 class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});
@@ -137,8 +140,13 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Widget _buildBody(AsyncValue<List<Setlist>> setlistsAsync) {
     return setlistsAsync.when(
       data: (setlists) => _buildContent(setlists),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      loading: () => const LoadingIndicator(),
+      error: (e, _) => Center(
+        child: ErrorBanner.card(
+          message: e.toString(),
+          onRetry: () => ref.invalidate(setlistsProvider),
+        ),
+      ),
     );
   }
 
@@ -293,7 +301,11 @@ class _PdfExportAction implements UnifiedItemAction {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.picture_as_pdf, size: 20, color: Colors.red),
+      icon: const Icon(
+        Icons.picture_as_pdf,
+        size: 20,
+        color: MonoPulseColors.error,
+      ),
       onPressed: onPressed,
       tooltip: 'Export PDF',
     );

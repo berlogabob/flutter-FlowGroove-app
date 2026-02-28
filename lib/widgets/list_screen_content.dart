@@ -5,6 +5,7 @@ import 'unified_item/unified_item_list.dart';
 import 'unified_item/unified_filter_sort_widget.dart';
 import 'empty_state.dart';
 import 'error_banner.dart';
+import 'loading_indicator.dart';
 
 /// Generic list content widget for displaying unified items.
 ///
@@ -99,7 +100,7 @@ class _ListScreenContentState<T extends UnifiedItemModel>
   Widget build(BuildContext context) {
     // Handle loading state
     if (widget.itemsAsync?.isLoading == true && widget.items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const LoadingIndicator();
     }
 
     // Handle error state

@@ -9,6 +9,7 @@ import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 /// Screen for creating or editing a band with comprehensive error handling.
 class CreateBandScreen extends ConsumerStatefulWidget {
@@ -26,8 +27,15 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
   final _descriptionController = TextEditingController();
   bool _isLoading = false;
   ApiError? _currentError;
+  bool _hasUnsavedChanges = false;
 
   bool get _isEditing => widget.band != null;
+
+  void _markAsChanged() {
+    if (!_hasUnsavedChanges) {
+      setState(() => _hasUnsavedChanges = true);
+    }
+  }
 
   @override
   void initState() {
@@ -140,6 +148,8 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
               ),
             ),
           );
+          // Clear unsaved changes flag after successful save
+          setState(() => _hasUnsavedChanges = false);
           Navigator.pop(context);
         }
       }
@@ -165,6 +175,29 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
         });
       }
     }
+  }
+
+  Future<bool> _showDiscardChangesDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard Changes?'),
+            content: const Text(
+              'You have unsaved changes. Are you sure you want to discard them?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   /// Shows a dialog with the invite code and a copy button.
@@ -234,72 +267,98 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
-        title: _isEditing ? 'Edit Band' : 'Create Band',
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                _isEditing ? 'Edit band details' : 'Create a new band',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return; // Already popped
+
+        if (_hasUnsavedChanges) {
+          final confirm = await _showDiscardChangesDialog();
+          if (confirm && context.mounted) {
+            if (context.mounted) {
+              Navigator.pop(context); // Allow pop
+            }
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: CustomAppBar.build(
+          context,
+          title: _isEditing ? 'Edit Band' : 'Create Band',
+          menuItems: [
+            PopupMenuItem<void>(
+              onTap: _saveBand,
+              child: const Text('Save Band'),
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  _isEditing ? 'Edit band details' : 'Create a new band',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _isEditing
-                    ? 'Update band information'
-                    : 'Invite your bandmates',
-                style: TextStyle(color: Colors.grey[600]),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              // Error banner
-              if (_currentError != null) ...[
-                ErrorBanner.banner(
-                  message:
-                      _currentError?.message ?? 'An unexpected error occurred',
-                  onRetry: _saveBand,
+                const SizedBox(height: 8),
+                Text(
+                  _isEditing
+                      ? 'Update band information'
+                      : 'Invite your bandmates',
+                  style: const TextStyle(color: MonoPulseColors.textSecondary),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
+                // Error banner
+                if (_currentError != null) ...[
+                  ErrorBanner.banner(
+                    message:
+                        _currentError?.message ??
+                        'An unexpected error occurred',
+                    onRetry: _saveBand,
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Band Name *',
+                    prefixIcon: Icon(Icons.groups),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) => _markAsChanged(),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                  textInputAction: TextInputAction.done,
+                  onChanged: (_) => _markAsChanged(),
+                  onFieldSubmitted: (_) => _saveBand(),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _saveBand,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(
+                          color: MonoPulseColors.textPrimary,
+                        )
+                      : Text(_isEditing ? 'Save Changes' : 'Create Band'),
+                ),
               ],
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Band Name *',
-                  prefixIcon: Icon(Icons.groups),
-                ),
-                textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _saveBand(),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveBand,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(_isEditing ? 'Save Changes' : 'Create Band'),
-              ),
-            ],
+            ),
           ),
         ),
       ),

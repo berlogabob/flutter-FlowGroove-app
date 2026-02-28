@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../services/api/spotify_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/loading_indicator.dart';
 
 /// A bottom sheet widget for searching and selecting tracks from Spotify.
 ///
@@ -85,7 +86,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
             future: _searchResults,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const LoadingIndicator();
               }
 
               if (snapshot.hasError) {

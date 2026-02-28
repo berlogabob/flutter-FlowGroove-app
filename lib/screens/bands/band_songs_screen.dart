@@ -10,10 +10,13 @@ import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/confirmation_dialog.dart';
 import '../../../widgets/custom_app_bar.dart';
+import '../../../widgets/error_banner.dart';
 import '../../../widgets/unified_item/unified_item_list.dart';
 import '../../../widgets/unified_item/unified_item_model.dart';
 import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
 import '../../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../../widgets/fab_variants.dart';
+import '../../../widgets/loading_indicator.dart';
 import 'song_picker_screen.dart';
 
 /// Screen for displaying a band's shared songs.
@@ -179,14 +182,19 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       ),
       body: songsAsync.when(
         data: (songs) => _buildContent(context, ref, songs),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        loading: () => const LoadingIndicator(),
+        error: (e, _) => Center(
+          child: ErrorBanner.card(
+            message: e.toString(),
+            onRetry: () => ref.invalidate(songsProvider),
+          ),
+        ),
       ),
       floatingActionButton: _canEdit
-          ? FloatingActionButton(
-              heroTag: 'band_songs_fab',
+          ? SingleFab(
+              icon: Icons.add,
               onPressed: () => _addSongToBand(context, ref),
-              child: const Icon(Icons.add),
+              heroTag: 'band_songs_fab',
             )
           : null,
     );
@@ -707,15 +715,15 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     String icon;
     switch (role) {
       case 'admin':
-        color = Colors.red;
+        color = MonoPulseColors.roleAdmin;
         icon = 'A';
         break;
       case 'editor':
-        color = Colors.blue;
+        color = MonoPulseColors.roleEditor;
         icon = 'E';
         break;
       default:
-        color = Colors.grey;
+        color = MonoPulseColors.textTertiary;
         icon = 'V';
     }
     return Container(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/api/musicbrainz_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/loading_indicator.dart';
 
 /// A bottom sheet widget for searching and selecting recordings from MusicBrainz.
 ///
@@ -66,7 +67,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
             future: _searchResults,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const LoadingIndicator();
               }
 
               if (snapshot.hasError) {

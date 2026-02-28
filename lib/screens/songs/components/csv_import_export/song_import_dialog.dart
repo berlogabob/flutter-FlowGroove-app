@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_repsync_app/services/csv/song_csv_parser.dart';
 import 'package:flutter_repsync_app/services/csv/song_csv_service.dart';
+import '../../../../widgets/loading_indicator.dart';
 import 'song_csv_preview_table.dart';
 
 /// Dialog for importing songs from CSV file or clipboard.
@@ -57,7 +58,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const LoadingIndicator();
     }
 
     if (_result != null) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// Widget to display song BPM with quick metronome start
 class SongBPMBadge extends StatelessWidget {
@@ -19,29 +20,33 @@ class SongBPMBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.blue.shade50,
+          color: MonoPulseColors.accentOrangeSubtle,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.blue, width: 1.5),
+          border: Border.all(color: MonoPulseColors.accentOrange, width: 1.5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.speed, size: 16, color: Colors.blue.shade700),
+            const Icon(
+              Icons.speed,
+              size: 16,
+              color: MonoPulseColors.accentOrange,
+            ),
             const SizedBox(width: 4),
             Text(
               '$bpm BPM',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue.shade700,
+                color: MonoPulseColors.accentOrange,
               ),
             ),
             if (onTap != null) ...[
               const SizedBox(width: 4),
-              Icon(
+              const Icon(
                 Icons.play_circle_outline,
                 size: 16,
-                color: Colors.blue.shade700,
+                color: MonoPulseColors.accentOrange,
               ),
             ],
           ],

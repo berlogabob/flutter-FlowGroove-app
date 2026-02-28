@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../models/band.dart';
@@ -52,22 +53,31 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       final band = await service.getBandByInviteCode(code);
 
       if (band == null) {
-        setState(() {
-          _error = 'Invalid invite code';
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _error = 'Invalid invite code';
+          });
+        }
         return;
       }
 
-      setState(() {
-        _band = band;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _band = band;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = 'Error loading band: $e';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = 'Error loading band: $e';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -76,8 +86,15 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
     final user = userAsync.value;
 
     if (user == null) {
-      // Navigate to login, then come back
-      context.goNamed('login');
+      // Store the join code for later and navigate to login
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'pending_join_code',
+        _codeController.text.trim().toUpperCase(),
+      );
+      if (mounted) {
+        context.pushNamed('login');
+      }
       return;
     }
 
@@ -148,107 +165,121 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
 
     return Scaffold(
       appBar: CustomAppBar.buildSimple(context, title: 'Join Band'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Band info card (if loaded)
-              if (_band != null) ...[
-                _buildBandInfoCard(),
-                const SizedBox(height: 24),
-              ],
+      body: Stack(
+        children: [
+          // Main content
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Band info card (if loaded)
+                  if (_band != null) ...[
+                    _buildBandInfoCard(),
+                    const SizedBox(height: 24),
+                  ],
 
-              // Error message
-              if (_error != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
+                  // Error message
+                  if (_error != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        _error!,
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
-              // Invite code input (if no band loaded)
-              if (_band == null) ...[
-                Text(
-                  'Join a band',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  widget.inviteCode != null
-                      ? 'Loading band info...'
-                      : 'Enter invite code',
-                  style: TextStyle(color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
+                  // Invite code input (if no band loaded)
+                  if (_band == null) ...[
+                    Text(
+                      'Join a band',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.inviteCode != null
+                          ? 'Loading band info...'
+                          : 'Enter invite code',
+                      style: TextStyle(color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
 
-                TextFormField(
-                  controller: _codeController,
-                  textCapitalization: TextCapitalization.characters,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _loadBand(),
-                  decoration: const InputDecoration(
-                    labelText: 'Invite Code *',
-                    prefixIcon: Icon(Icons.vpn_key),
-                    hintText: 'ABC123',
-                  ),
-                  validator: (v) => (v == null || v.trim().length < 6)
-                      ? 'Enter 6-char code'
-                      : null,
-                ),
-                const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _codeController,
+                      textCapitalization: TextCapitalization.characters,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _loadBand(),
+                      decoration: const InputDecoration(
+                        labelText: 'Invite Code *',
+                        prefixIcon: Icon(Icons.vpn_key),
+                        hintText: 'ABC123',
+                      ),
+                      validator: (v) => (v == null || v.trim().length < 6)
+                          ? 'Enter 6-char code'
+                          : null,
+                    ),
+                    const SizedBox(height: 24),
 
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _loadBand,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Find Band'),
-                ),
-              ],
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _loadBand,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Find Band'),
+                    ),
+                  ],
 
-              // Join button (if band is loaded)
-              if (_band != null) ...[
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _joinBand,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: MonoPulseColors.accentOrange,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(isLoggedIn ? 'Join Band' : 'Login to Join'),
-                ),
+                  // Join button (if band is loaded)
+                  if (_band != null) ...[
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _joinBand,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: MonoPulseColors.accentOrange,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(isLoggedIn ? 'Join Band' : 'Login to Join'),
+                    ),
 
-                if (!isLoggedIn) ...[
-                  const SizedBox(height: 16),
-                  Text(
-                    'You need to create an account to join this band',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    textAlign: TextAlign.center,
-                  ),
+                    if (!isLoggedIn) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'You need to create an account to join this band',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ],
                 ],
-              ],
-            ],
+              ),
+            ),
           ),
-        ),
+
+          // Loading overlay
+          if (_isLoading)
+            Container(
+              color: Colors.black.withValues(alpha: 0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+          ],
+        ],
       ),
     );
   }
