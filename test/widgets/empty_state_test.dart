@@ -59,14 +59,13 @@ void main() {
     testWidgets('renders action button with valid onAction callback', (
       WidgetTester tester,
     ) async {
-      bool actionCalled = false;
       await pumpAppWidget(
         tester,
         EmptyState(
           icon: Icons.search,
           message: 'No results',
           actionLabel: 'Search',
-          onAction: () => actionCalled = true,
+          onAction: () {},
         ),
       );
 
@@ -185,10 +184,7 @@ void main() {
     testWidgets('renders songs empty state with onAdd callback', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        EmptyState.songs(onAdd: () {}),
-      );
+      await pumpAppWidget(tester, EmptyState.songs(onAdd: () {}));
 
       expect(findIcon(Icons.music_note), findsOneWidget);
       expect(findText('No songs yet'), findsOneWidget);
@@ -228,10 +224,7 @@ void main() {
     testWidgets('renders bands empty state with onCreate callback', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        EmptyState.bands(onCreate: () {}),
-      );
+      await pumpAppWidget(tester, EmptyState.bands(onCreate: () {}));
 
       expect(findIcon(Icons.groups), findsOneWidget);
       expect(findText('No bands yet'), findsOneWidget);
@@ -263,10 +256,7 @@ void main() {
       expect(findIcon(Icons.playlist_play), findsOneWidget);
       expect(findText('No setlists yet'), findsOneWidget);
       // Check for either hint message
-      expect(
-        find.textContaining('setlist'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('setlist'), findsOneWidget);
       // Button won't render without onCreate callback
       expect(find.byType(ElevatedButton), findsNothing);
     });
@@ -274,10 +264,7 @@ void main() {
     testWidgets('renders setlists empty state with onCreate callback', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        EmptyState.setlists(onCreate: () {}),
-      );
+      await pumpAppWidget(tester, EmptyState.setlists(onCreate: () {}));
 
       expect(findIcon(Icons.playlist_play), findsOneWidget);
       expect(findText('No setlists yet'), findsOneWidget);

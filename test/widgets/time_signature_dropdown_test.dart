@@ -10,12 +10,11 @@ void main() {
     testWidgets('renders numerator and denominator dropdowns', (
       WidgetTester tester,
     ) async {
-      TimeSignature? newValue;
       await pumpAppWidget(
         tester,
         TimeSignatureDropdown(
           value: const TimeSignature(numerator: 4, denominator: 4),
-          onChanged: (v) => newValue = v,
+          onChanged: (_) {},
         ),
       );
 
@@ -97,9 +96,7 @@ void main() {
       expect(newValue, isNull);
     });
 
-    testWidgets('has correct container styling', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('has correct container styling', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         TimeSignatureDropdown(

@@ -317,7 +317,6 @@ void main() {
   group('Band model with repository', () {
     test('should generate unique invite codes', () async {
       // Arrange
-      final repository = MockBandRepository();
       final codes = <String>{};
 
       // Act
