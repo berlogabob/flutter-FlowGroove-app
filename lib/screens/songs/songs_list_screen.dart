@@ -492,6 +492,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
     return StandardScreenScaffold(
       title: 'Songs',
+      showBackButton: false, // Hide back button for main tabs
       menuItems: [
         PopupMenuItem<void>(
           onTap: _handleImport,

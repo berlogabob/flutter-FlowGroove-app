@@ -34,7 +34,6 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   String _searchQuery = '';
   String? _filterContributor;
   SortOption _sortOption = SortOption.alphabetical;
-  bool _isTagsExpanded = false;
   bool _isMembersExpanded = true; // Changed to true - show members by default
 
   final List<String> _availableTags = [
@@ -279,91 +278,43 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Description section (replaces "Ready to rock?")
+          // Description section - Centered under band name
           if (description != null && description.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(
-                description,
-                style: const TextStyle(
-                  color: MonoPulseColors.textSecondary,
-                  fontSize: 14,
+              child: Center(
+                child: Text(
+                  description,
+                  style: const TextStyle(
+                    color: MonoPulseColors.textPrimary,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             )
           else
             const Padding(
               padding: EdgeInsets.only(bottom: 12),
-              child: Text(
-                'Ready to rock',
-                style: TextStyle(
-                  color: MonoPulseColors.textTertiary,
-                  fontSize: 14,
-                  fontStyle: FontStyle.italic,
+              child: Center(
+                child: Text(
+                  'Ready to rock?',
+                  style: TextStyle(
+                    color: MonoPulseColors.textTertiary,
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
 
-          // Quick Actions - Tags and Members (collapsible)
+          // Quick Actions - Members only (Tags section removed)
           Card(
             child: Column(
               children: [
-                // Tags section
-                InkWell(
-                  onTap: () =>
-                      setState(() => _isTagsExpanded = !_isTagsExpanded),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.label_outline, size: 20),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Tags',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${band.tags.length}',
-                          style: const TextStyle(
-                            color: MonoPulseColors.textSecondary,
-                          ),
-                        ),
-                        AnimatedRotation(
-                          turns: _isTagsExpanded ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: const Icon(Icons.keyboard_arrow_down),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (_isTagsExpanded)
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _availableTags.map((tag) {
-                        final isSelected = band.tags.contains(tag);
-                        return FilterChip(
-                          label: Text(tag),
-                          selected: isSelected,
-                          onSelected: _canEdit
-                              ? (selected) => _toggleTag(tag, selected)
-                              : null,
-                          selectedColor: MonoPulseColors.accentOrangeSubtle,
-                          checkmarkColor: MonoPulseColors.accentOrange,
-                        );
-                      }).toList(),
-                    ),
-                  ),
-
-                if (_isTagsExpanded && _isMembersExpanded)
-                  const Divider(height: 1),
-
                 // Members section
                 InkWell(
                   onTap: () =>
