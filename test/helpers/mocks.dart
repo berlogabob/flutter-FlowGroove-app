@@ -105,7 +105,7 @@ class MockDataHelper {
     String name = 'Test Setlist',
     List<String>? songIds,
     String? description,
-    String? eventDate,
+    DateTime? eventDate,
   }) {
     return Setlist(
       id: id,

@@ -35,7 +35,7 @@ void main() {
           bandId: 'band-2',
           name: 'Complete Setlist',
           description: 'A complete test setlist',
-          eventDate: '2024-06-15',
+          eventDate: DateTime(2024, 6, 15),
           eventLocation: 'Main Stage Arena',
           songIds: testSongIds,
           totalDuration: 3600,
@@ -47,7 +47,7 @@ void main() {
         expect(setlist.bandId, 'band-2');
         expect(setlist.name, 'Complete Setlist');
         expect(setlist.description, 'A complete test setlist');
-        expect(setlist.eventDate, '2024-06-15');
+        expect(setlist.eventDate, DateTime(2024, 6, 15));
         expect(setlist.eventLocation, 'Main Stage Arena');
         expect(setlist.songIds.length, 3);
         expect(setlist.totalDuration, 3600);
@@ -77,7 +77,7 @@ void main() {
         expect(setlist.bandId, 'band-3');
         expect(setlist.name, 'JSON Setlist');
         expect(setlist.description, 'Setlist from JSON');
-        expect(setlist.eventDate, '2024-07-20');
+        expect(setlist.eventDate, DateTime(2024, 7, 20));
         expect(setlist.eventLocation, 'JSON Venue');
         expect(setlist.songIds.length, 3);
         expect(setlist.songIds[0], 'song-a');
@@ -175,7 +175,7 @@ void main() {
           bandId: 'band-6',
           name: 'Serialize Setlist',
           description: 'Setlist for serialization test',
-          eventDate: '2024-08-25',
+          eventDate: DateTime(2024, 8, 25),
           eventLocation: 'Serialize Venue',
           songIds: testSongIds,
           totalDuration: 5400,
@@ -189,7 +189,7 @@ void main() {
         expect(json['bandId'], 'band-6');
         expect(json['name'], 'Serialize Setlist');
         expect(json['description'], 'Setlist for serialization test');
-        expect(json['eventDate'], '2024-08-25');
+        expect(json['eventDate'], DateTime(2024, 8, 25).toIso8601String());
         expect(json['eventLocation'], 'Serialize Venue');
         expect(json['songIds'], isA<List>());
         expect(json['songIds'].length, 3);
@@ -226,7 +226,7 @@ void main() {
           bandId: 'band-8',
           name: 'Inverse Setlist',
           description: 'Inverse test setlist',
-          eventDate: '2024-09-30',
+          eventDate: DateTime(2024, 9, 30),
           eventLocation: 'Inverse Venue',
           songIds: testSongIds,
           totalDuration: 2700,
@@ -257,7 +257,7 @@ void main() {
           bandId: 'band-9',
           name: 'Original Setlist',
           description: 'Original description',
-          eventDate: '2024-10-10',
+          eventDate: DateTime(2024, 10, 10),
           eventLocation: 'Original Venue',
           songIds: testSongIds,
           totalDuration: 1800,
@@ -333,14 +333,16 @@ void main() {
           id: 'setlist-id-13',
           bandId: 'band-13',
           name: 'Setlist 13',
-          eventDate: '2024-01-01',
+          eventDate: DateTime(2024, 1, 1),
           createdAt: testDate,
           updatedAt: testDate,
         );
 
-        final copiedSetlist = originalSetlist.copyWith(eventDate: '2024-12-31');
+        final copiedSetlist = originalSetlist.copyWith(
+          eventDate: DateTime(2024, 12, 31),
+        );
 
-        expect(copiedSetlist.eventDate, '2024-12-31');
+        expect(copiedSetlist.eventDate, DateTime(2024, 12, 31));
       });
 
       test('updates eventLocation field', () {
@@ -399,7 +401,7 @@ void main() {
           bandId: 'band-17',
           name: 'Setlist 17',
           description: 'Description',
-          eventDate: '2024-01-01',
+          eventDate: DateTime(2024, 1, 1),
           eventLocation: 'Venue',
           totalDuration: 1000,
           createdAt: testDate,
@@ -409,7 +411,7 @@ void main() {
         final copiedSetlist = originalSetlist.copyWith(
           name: 'Updated Setlist',
           description: 'Updated description',
-          eventDate: '2024-12-31',
+          eventDate: DateTime(2024, 12, 31),
           eventLocation: 'Updated Venue',
           totalDuration: 6000,
           updatedAt: newDate,
@@ -417,7 +419,7 @@ void main() {
 
         expect(copiedSetlist.name, 'Updated Setlist');
         expect(copiedSetlist.description, 'Updated description');
-        expect(copiedSetlist.eventDate, '2024-12-31');
+        expect(copiedSetlist.eventDate, DateTime(2024, 12, 31));
         expect(copiedSetlist.eventLocation, 'Updated Venue');
         expect(copiedSetlist.totalDuration, 6000);
         expect(copiedSetlist.updatedAt, newDate);
@@ -430,7 +432,7 @@ void main() {
           bandId: 'band-18',
           name: 'Setlist 18',
           description: 'Some description',
-          eventDate: '2024-01-01',
+          eventDate: DateTime(2024, 1, 1),
           eventLocation: 'Some Venue',
           totalDuration: 1000,
           createdAt: testDate,

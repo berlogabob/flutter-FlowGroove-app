@@ -25,7 +25,7 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           description: 'Test Description',
-          eventDate: '2024-12-25',
+          eventDate: DateTime(2024, 12, 25),
           eventLocation: 'Test Venue',
           songIds: ['song-1', 'song-2'],
           totalDuration: 600,
@@ -35,7 +35,7 @@ void main() {
 
         expect(setlist.name, equals('Test Setlist'));
         expect(setlist.description, equals('Test Description'));
-        expect(setlist.eventDate, equals('2024-12-25'));
+        expect(setlist.eventDate, equals(DateTime(2024, 12, 25)));
         expect(setlist.eventLocation, equals('Test Venue'));
         expect(setlist.songIds.length, equals(2));
         expect(setlist.totalDuration, equals(600));
@@ -69,7 +69,7 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           description: 'Test Description',
-          eventDate: '2024-12-25',
+          eventDate: DateTime(2024, 12, 25),
           eventLocation: 'Test Venue',
           songIds: ['song-1'],
           totalDuration: 300,
@@ -82,7 +82,10 @@ void main() {
         expect(json['bandId'], equals('band-1'));
         expect(json['name'], equals('Test Setlist'));
         expect(json['description'], equals('Test Description'));
-        expect(json['eventDate'], equals('2024-12-25'));
+        expect(
+          json['eventDate'],
+          equals(DateTime(2024, 12, 25).toIso8601String()),
+        );
         expect(json['eventLocation'], equals('Test Venue'));
         expect(json['songIds'], equals(['song-1']));
         expect(json['totalDuration'], equals(300));
@@ -107,7 +110,7 @@ void main() {
         expect(setlist.bandId, equals('band-1'));
         expect(setlist.name, equals('Test Setlist'));
         expect(setlist.description, equals('Test Description'));
-        expect(setlist.eventDate, equals('2024-12-25'));
+        expect(setlist.eventDate, equals(DateTime(2024, 12, 25)));
         expect(setlist.eventLocation, equals('Test Venue'));
         expect(setlist.songIds.length, equals(2));
         expect(setlist.totalDuration, equals(600));
@@ -170,7 +173,7 @@ void main() {
           bandId: 'band-1',
           name: 'Test',
           description: 'Description',
-          eventDate: '2024-12-25',
+          eventDate: DateTime(2024, 12, 25),
           eventLocation: 'Venue',
           songIds: ['song-1'],
           totalDuration: 300,
@@ -182,7 +185,7 @@ void main() {
 
         expect(copied.name, equals('Updated'));
         expect(copied.description, equals('Description'));
-        expect(copied.eventDate, equals('2024-12-25'));
+        expect(copied.eventDate, equals(DateTime(2024, 12, 25)));
         expect(copied.eventLocation, equals('Venue'));
         expect(copied.songIds, equals(['song-1']));
         expect(copied.totalDuration, equals(300));

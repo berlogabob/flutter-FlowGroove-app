@@ -297,7 +297,7 @@ void main() {
           bandId: 'band-id',
           name: 'Test Setlist',
           description: 'Test Description',
-          eventDate: '2026-03-01',
+          eventDate: DateTime(2026, 3, 1),
           eventLocation: 'Test Venue',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -308,7 +308,7 @@ void main() {
 
         // Assert
         expect(repository.setlists.first.description, 'Test Description');
-        expect(repository.setlists.first.eventDate, '2026-03-01');
+        expect(repository.setlists.first.eventDate, DateTime(2026, 3, 1));
         expect(repository.setlists.first.eventLocation, 'Test Venue');
       });
     });
