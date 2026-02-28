@@ -697,12 +697,6 @@ void main() {
           ),
         );
 
-        // Find the GestureDetector for back button
-        final gestureDetectors = tester.widgetList<GestureDetector>(
-          find.byType(GestureDetector),
-        );
-
-        // The first GestureDetector should be the back button
         // Verify it wraps a 48x48 SizedBox
         final sizedBoxes = tester.widgetList<SizedBox>(find.byType(SizedBox));
         final hasMinTouchTarget = sizedBoxes.any(

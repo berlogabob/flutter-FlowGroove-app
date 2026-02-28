@@ -24,12 +24,10 @@ import '../helpers/integration_test_helpers.dart';
 void main() {
   group('Authentication Flow Integration Tests - INT-AUTH-01', () {
     late AuthIntegrationFixture authFixture;
-    late NavigationTracker navigationTracker;
 
     setUp(() {
       authFixture = AuthIntegrationFixture();
       authFixture.setUp();
-      navigationTracker = NavigationTracker();
     });
 
     // =========================================================================

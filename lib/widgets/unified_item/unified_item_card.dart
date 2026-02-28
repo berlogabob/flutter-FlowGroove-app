@@ -257,26 +257,4 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
 
     return Row(children: compactSubtitles);
   }
-
-  String _formatDate(String? dateString) {
-    if (dateString == null || dateString.isEmpty) return '';
-
-    try {
-      final date = DateTime.parse(dateString);
-      final now = DateTime.now();
-      final diff = now.difference(date);
-
-      if (diff.inDays == 0) {
-        return 'Today';
-      } else if (diff.inDays == 1) {
-        return 'Yesterday';
-      } else if (diff.inDays < 7) {
-        return '${diff.inDays}d ago';
-      } else {
-        return '${date.day}/${date.month}';
-      }
-    } catch (e) {
-      return dateString;
-    }
-  }
 }

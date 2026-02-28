@@ -161,27 +161,6 @@ DateTime? _parseTimestamp(dynamic value) {
   return null;
 }
 
-DateTime? _parseNullableDateTime(dynamic value) {
-  if (value == null) return null;
-  if (value is DateTime) return value;
-  if (value is String) {
-    final result = DateTime.tryParse(value);
-    if (result != null) return result;
-  }
-  return null;
-}
-
-// Parse string field (legacy support)
-String? _parseStringField(dynamic value) {
-  if (value == null) return null;
-  return value.toString();
-}
-
-String? _stringFieldToJson(dynamic value) {
-  if (value == null) return null;
-  return value.toString();
-}
-
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
 
 Map<String, SetlistAssignment> _assignmentsFromJson(dynamic value) {

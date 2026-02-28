@@ -36,26 +36,6 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   SortOption _sortOption = SortOption.alphabetical;
   bool _isMembersExpanded = true; // Changed to true - show members by default
 
-  final List<String> _availableTags = [
-    'rock',
-    'pop',
-    'jazz',
-    'blues',
-    'metal',
-    'folk',
-    'country',
-    'reggae',
-    'funk',
-    'r&b',
-    'cover band',
-    'original',
-    'tribute',
-    'wedding',
-    'bar',
-    'live',
-    'studio',
-  ];
-
   /// Get the current user's role in the band.
   String? get _userRole {
     final userAsync = ref.read(currentUserProvider);
@@ -360,34 +340,6 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         ],
       ),
     );
-  }
-
-  Future<void> _toggleTag(String tag, bool selected) async {
-    final currentTags = List<String>.from(widget.band.tags);
-    if (selected) {
-      currentTags.add(tag);
-    } else {
-      currentTags.remove(tag);
-    }
-
-    final updatedBand = widget.band.copyWith(tags: currentTags);
-
-    try {
-      final userAsync = ref.read(currentUserProvider);
-      final user = userAsync.value;
-      if (user == null) return;
-
-      await ref.read(firestoreProvider).saveBand(updatedBand, uid: user.uid);
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating tags: $e')));
-      }
-    }
   }
 
   Widget _buildSearchAndFilter(
