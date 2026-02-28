@@ -22,6 +22,7 @@ class Setlist {
   @JsonKey(defaultValue: '')
   final String name;
   final String? description;
+  @JsonKey(fromJson: _parseNullableDateTime, toJson: _dateTimeToJson)
   final DateTime? eventDate;
   final String? eventLocation;
   @JsonKey(defaultValue: [])
@@ -121,6 +122,12 @@ DateTime _parseDateTime(dynamic value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   return DateTime.parse(value as String);
+}
+
+DateTime? _parseNullableDateTime(dynamic value) {
+  if (value == null) return null;
+  if (value is DateTime) return value;
+  return DateTime.tryParse(value as String);
 }
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
