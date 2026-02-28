@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../providers/tuner_provider.dart';
-import '../widgets/tuner/mode_switcher.dart';
+import '../../widgets/tools/tool_scaffold.dart';
+import '../../widgets/tools/tool_mode_switcher.dart';
 import '../widgets/tuner/central_dial.dart';
 import '../widgets/tuner/transport_bar.dart';
-import '../widgets/custom_app_bar.dart';
 
 /// Tuner Screen - Mono Pulse Design (Stage 2 - Fully Interactive)
 ///
@@ -45,46 +44,40 @@ class _TunerScreenState extends ConsumerState<TunerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: MonoPulseColors.black,
-        appBar: CustomAppBar.buildSimple(context, title: 'Tuner'),
-        body: SafeArea(child: _buildBody(context)),
-      ),
+    final state = ref.watch(tunerProvider);
+    final notifier = ref.read(tunerProvider.notifier);
+
+    return ToolScreenScaffold(
+      title: 'Tuner',
+      mainWidget: _buildMainContent(notifier, state),
+      bottomWidget: const TransportBar(),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl),
+  Widget _buildMainContent(TunerNotifier notifier, TunerState state) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl),
       child: Column(
         children: [
-          // 1. Air gap after AppBar (64-80px)
-          SizedBox(height: MonoPulseSpacing.huge),
-
-          // 2. Mode Switcher (Two pills) with AnimatedSwitcher
-          AnimatedSwitcher(
-            duration: Duration(milliseconds: 250),
-            switchInCurve: MonoPulseAnimation.curveCustom,
-            switchOutCurve: MonoPulseAnimation.curveCustom,
-            child: ModeSwitcher(),
+          const SizedBox(height: MonoPulseSpacing.huge),
+          ToolModeSwitcher<TunerMode>(
+            activeMode: state.mode,
+            options: const [
+              ToolModeOption(
+                mode: TunerMode.generate,
+                label: 'Generate Tone',
+                icon: Icons.graphic_eq,
+              ),
+              ToolModeOption(
+                mode: TunerMode.listen,
+                label: 'Listen & Tune',
+                icon: Icons.mic,
+              ),
+            ],
+            onModeChanged: (mode) => notifier.setMode(mode),
           ),
-
-          // Air gap to circle (48px)
-          SizedBox(height: MonoPulseSpacing.massive),
-
-          // 3. Central Circle (Main Visual)
-          Expanded(child: CentralDial()),
-
-          // Air gap to transport bar (48-64px)
-          SizedBox(height: MonoPulseSpacing.massive),
-
-          // 4. Bottom Transport Bar
-          TransportBar(),
-
-          // Bottom padding for SafeArea
-          SizedBox(height: MonoPulseSpacing.lg),
+          const SizedBox(height: MonoPulseSpacing.massive),
+          const Expanded(child: CentralDial()),
         ],
       ),
     );
