@@ -575,8 +575,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                 leading: CircleAvatar(
                   backgroundColor: MonoPulseColors.accentOrange,
                   child: Text(
-                    (member.displayName ?? member.email ?? '?')[0]
-                        .toUpperCase(),
+                    _getMemberInitials(member).toUpperCase(),
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
@@ -661,6 +660,16 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     );
   }
 
+  /// Get member initials safely (handles empty strings).
+  String _getMemberInitials(BandMember member) {
+    final text = member.displayName != null && member.displayName!.isNotEmpty
+        ? member.displayName!
+        : member.email != null && member.email!.isNotEmpty
+        ? member.email!
+        : '?';
+    return text.isNotEmpty ? text[0] : '?';
+  }
+
   Widget _buildMemberTile(BandMember member) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -675,8 +684,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                   backgroundColor: MonoPulseColors.accentOrange,
                   radius: 20,
                   child: Text(
-                    (member.displayName ?? member.email ?? '?')[0]
-                        .toUpperCase(),
+                    _getMemberInitials(member).toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
