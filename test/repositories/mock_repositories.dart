@@ -125,9 +125,7 @@ class MockBandRepository implements BandRepository {
   @override
   Future<Band?> getBandByInviteCode(String code) async {
     try {
-      return _bands.values.firstWhere(
-        (band) => band.inviteCode == code,
-      );
+      return _bands.values.firstWhere((band) => band.inviteCode == code);
     } on StateError {
       return null;
     }

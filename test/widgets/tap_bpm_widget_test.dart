@@ -154,11 +154,11 @@ void main() {
 
       final tapButton = find.byIcon(Icons.touch_app);
       expect(tapButton, findsOneWidget);
-      
+
       // Should be able to tap
       await tester.tap(tapButton);
       await tester.pump();
-      
+
       // Widget should still be present
       expect(find.byIcon(Icons.touch_app), findsOneWidget);
     });

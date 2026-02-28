@@ -14,11 +14,16 @@ void main() {
   group('FirestoreService', () {
     // All tests skipped - requires Firebase initialization
     // Functionality tested in integration tests instead
-    
-    test('FirestoreService tests - SKIPPED (requires Firebase)', () {
-      // Skip - requires Firebase initialization
-      // These are integration tests, not unit tests
-      // See integration tests for actual functionality testing
-    }, skip: 'Requires Firebase initialization - functionality tested in integration tests');
+
+    test(
+      'FirestoreService tests - SKIPPED (requires Firebase)',
+      () {
+        // Skip - requires Firebase initialization
+        // These are integration tests, not unit tests
+        // See integration tests for actual functionality testing
+      },
+      skip:
+          'Requires Firebase initialization - functionality tested in integration tests',
+    );
   });
 }

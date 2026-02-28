@@ -30,7 +30,8 @@ class SpotifyProxyService {
   }
 
   /// Check if backend proxy is configured
-  static bool get isProxyConfigured => _proxyUrl != null && _proxyUrl!.isNotEmpty;
+  static bool get isProxyConfigured =>
+      _proxyUrl != null && _proxyUrl!.isNotEmpty;
 
   /// Search for tracks using proxy or direct API.
   ///
@@ -57,7 +58,9 @@ class SpotifyProxyService {
         return await _searchViaProxy(sanitizedQuery);
       } else {
         // Fallback to direct API (development mode)
-        debugPrint('WARNING: Using direct Spotify API. Configure SPOTIFY_PROXY_URL for production.');
+        debugPrint(
+          'WARNING: Using direct Spotify API. Configure SPOTIFY_PROXY_URL for production.',
+        );
         return await SpotifyService.search(sanitizedQuery);
       }
     } on ApiError {
@@ -71,9 +74,7 @@ class SpotifyProxyService {
   static Future<SpotifyAudioFeatures?> getAudioFeatures(String trackId) async {
     // Validate track ID format
     if (trackId.isEmpty || trackId.length > 50) {
-      throw ApiError.validation(
-        message: 'Invalid track ID format.',
-      );
+      throw ApiError.validation(message: 'Invalid track ID format.');
     }
 
     // Sanitize track ID (alphanumeric only)
@@ -96,21 +97,23 @@ class SpotifyProxyService {
   /// Search via backend proxy.
   static Future<List<SpotifyTrack>> _searchViaProxy(String query) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_proxyUrl/search'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: json.encode({'query': query}),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw ApiError.network(
-            message: 'Proxy request timed out. Please try again.',
+      final response = await http
+          .post(
+            Uri.parse('$_proxyUrl/search'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: json.encode({'query': query}),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw ApiError.network(
+                message: 'Proxy request timed out. Please try again.',
+              );
+            },
           );
-        },
-      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -140,21 +143,23 @@ class SpotifyProxyService {
   }
 
   /// Get audio features via backend proxy.
-  static Future<SpotifyAudioFeatures?> _getAudioFeaturesViaProxy(String trackId) async {
+  static Future<SpotifyAudioFeatures?> _getAudioFeaturesViaProxy(
+    String trackId,
+  ) async {
     try {
-      final response = await http.get(
-        Uri.parse('$_proxyUrl/audio-features/$trackId'),
-        headers: {
-          'Accept': 'application/json',
-        },
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw ApiError.network(
-            message: 'Proxy request timed out. Please try again.',
+      final response = await http
+          .get(
+            Uri.parse('$_proxyUrl/audio-features/$trackId'),
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw ApiError.network(
+                message: 'Proxy request timed out. Please try again.',
+              );
+            },
           );
-        },
-      );
 
       if (response.statusCode == 200) {
         return SpotifyAudioFeatures.fromJson(json.decode(response.body));
@@ -174,5 +179,6 @@ class SpotifyProxyService {
   }
 
   /// Check if Spotify is configured (proxy or direct).
-  static bool get isConfigured => isProxyConfigured || SpotifyService.isConfigured;
+  static bool get isConfigured =>
+      isProxyConfigured || SpotifyService.isConfigured;
 }

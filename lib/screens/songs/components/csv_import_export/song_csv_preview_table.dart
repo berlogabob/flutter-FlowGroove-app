@@ -1,5 +1,6 @@
 /// Preview table for CSV import data.
 library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 
@@ -20,9 +21,7 @@ class SongCsvPreviewTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (songs.isEmpty && errors.isEmpty) {
-      return const Center(
-        child: Text('No data found in CSV'),
-      );
+      return const Center(child: Text('No data found in CSV'));
     }
 
     if (errors.isNotEmpty && songs.isEmpty) {
@@ -47,21 +46,21 @@ class SongCsvPreviewTable extends StatelessWidget {
       color: songs.isNotEmpty && errors.isEmpty
           ? Colors.green.shade50
           : errors.isNotEmpty && songs.isNotEmpty
-              ? Colors.amber.shade50
-              : Colors.red.shade50,
+          ? Colors.amber.shade50
+          : Colors.red.shade50,
       child: Row(
         children: [
           Icon(
             songs.isNotEmpty && errors.isEmpty
                 ? Icons.check_circle
                 : errors.isNotEmpty && songs.isNotEmpty
-                    ? Icons.warning
-                    : Icons.error,
+                ? Icons.warning
+                : Icons.error,
             color: songs.isNotEmpty && errors.isEmpty
                 ? Colors.green
                 : errors.isNotEmpty && songs.isNotEmpty
-                    ? Colors.amber
-                    : Colors.red,
+                ? Colors.amber
+                : Colors.red,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -77,8 +76,8 @@ class SongCsvPreviewTable extends StatelessWidget {
                     color: songs.isNotEmpty && errors.isEmpty
                         ? Colors.green.shade700
                         : errors.isNotEmpty && songs.isNotEmpty
-                            ? Colors.amber.shade700
-                            : Colors.red.shade700,
+                        ? Colors.amber.shade700
+                        : Colors.red.shade700,
                   ),
                 ),
                 if (errors.isNotEmpty)
@@ -110,21 +109,23 @@ class SongCsvPreviewTable extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
-          ...errors.map((error) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error, color: Colors.red, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        error,
-                        style: const TextStyle(color: Colors.red),
-                      ),
+          ...errors.map(
+            (error) => Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.red, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      error,
+                      style: const TextStyle(color: Colors.red),
                     ),
-                  ],
-                ),
-              )),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -144,8 +145,11 @@ class SongCsvPreviewTable extends StatelessWidget {
             itemCount: errors.length,
             itemBuilder: (context, index) {
               return ListTile(
-                leading: const Icon(Icons.error_outline,
-                    color: Colors.red, size: 20),
+                leading: const Icon(
+                  Icons.error_outline,
+                  color: Colors.red,
+                  size: 20,
+                ),
                 title: Text(
                   errors[index],
                   style: const TextStyle(fontSize: 12),
@@ -176,16 +180,22 @@ class SongCsvPreviewTable extends StatelessWidget {
                 DataColumn(label: Text('Tags')),
               ],
               rows: songs.take(10).map((song) {
-                return DataRow(cells: [
-                  DataCell(Text(song.title, maxLines: 1)),
-                  DataCell(Text(song.artist, maxLines: 1)),
-                  DataCell(Text(song.ourKey ?? song.originalKey ?? '-')),
-                  DataCell(Text(song.ourBPM?.toString() ??
-                      song.originalBPM?.toString() ??
-                      '-')),
-                  DataCell(Text('${song.sections.length}')),
-                  DataCell(Text(song.tags.take(3).join(', '))),
-                ]);
+                return DataRow(
+                  cells: [
+                    DataCell(Text(song.title, maxLines: 1)),
+                    DataCell(Text(song.artist, maxLines: 1)),
+                    DataCell(Text(song.ourKey ?? song.originalKey ?? '-')),
+                    DataCell(
+                      Text(
+                        song.ourBPM?.toString() ??
+                            song.originalBPM?.toString() ??
+                            '-',
+                      ),
+                    ),
+                    DataCell(Text('${song.sections.length}')),
+                    DataCell(Text(song.tags.take(3).join(', '))),
+                  ],
+                );
               }).toList(),
             ),
           ),
