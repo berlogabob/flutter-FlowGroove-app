@@ -9,15 +9,15 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/list_screen_content.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/error_banner.dart';
-import '../../widgets/offline_indicator.dart';
-import '../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../widgets/unified_item/adapters/song_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
-import '../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/tag_cloud_widget.dart';
 import 'components/csv_import_export/csv_import_export.dart';
 
@@ -490,34 +490,26 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     final songsAsync = ref.watch(songsProvider);
     final bandsAsync = ref.watch(bandsProvider);
 
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
-        title: 'Songs',
-        menuItems: [
-          PopupMenuItem<void>(
-            onTap: _handleImport,
-            child: const Text('Import from CSV'),
-          ),
-          PopupMenuItem<void>(
-            onTap: songsAsync.value != null && songsAsync.value!.isNotEmpty
-                ? () => _handleExport(songsAsync.value!)
-                : null,
-            child: const Text('Export to CSV'),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          const OfflineIndicator.banner(),
-          Expanded(child: _buildBody(songsAsync, bandsAsync)),
-        ],
-      ),
+    return StandardScreenScaffold(
+      title: 'Songs',
+      menuItems: [
+        PopupMenuItem<void>(
+          onTap: _handleImport,
+          child: const Text('Import from CSV'),
+        ),
+        PopupMenuItem<void>(
+          onTap: songsAsync.value != null && songsAsync.value!.isNotEmpty
+              ? () => _handleExport(songsAsync.value!)
+              : null,
+          child: const Text('Export to CSV'),
+        ),
+      ],
       floatingActionButton: FloatingActionButton(
         heroTag: 'songs_fab',
         onPressed: () => context.goNamed('add-song'),
         child: const Icon(Icons.add),
       ),
+      body: _buildBody(songsAsync, bandsAsync),
     );
   }
 
