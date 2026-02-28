@@ -20,8 +20,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/mocks.mocks.dart';
-
 /// Initialize Firebase with mocks for integration tests
 /// Note: Firebase is initialized with test options, actual mocking is done
 /// through MockFirebaseFirestore and MockFirebaseAuth in individual tests

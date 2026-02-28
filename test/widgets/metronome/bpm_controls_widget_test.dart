@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_repsync_app/widgets/metronome/bpm_controls_widget.dart';
 import 'package:flutter_repsync_app/providers/data/metronome_provider.dart';
-import 'package:flutter_repsync_app/models/metronome_state.dart';
 
 import '../../helpers/test_helpers.dart';
 
@@ -149,7 +148,9 @@ void main() {
       expect(find.text('140'), findsWidgets);
     });
 
-    testWidgets('handles BPM below minimum gracefully', (WidgetTester tester) async {
+    testWidgets('handles BPM below minimum gracefully', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -165,7 +166,9 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('handles BPM above maximum gracefully', (WidgetTester tester) async {
+    testWidgets('handles BPM above maximum gracefully', (
+      WidgetTester tester,
+    ) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),

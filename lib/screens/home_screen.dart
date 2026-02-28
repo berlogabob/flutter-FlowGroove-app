@@ -7,7 +7,6 @@ import '../models/user.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/standard_screen_scaffold.dart';
 import '../widgets/dashboard_grid.dart';
-import '../widgets/offline_indicator.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});

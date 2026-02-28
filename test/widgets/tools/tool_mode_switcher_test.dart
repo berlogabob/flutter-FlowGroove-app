@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_repsync_app/widgets/tools/tool_mode_switcher.dart';
 import 'package:flutter_repsync_app/theme/mono_pulse_theme.dart';
-import 'package:flutter_repsync_app/widgets/tools/tool_scaffold.dart';
-
-import '../../helpers/test_helpers.dart';
 
 // Test enum for mode switcher
 enum TestMode { mode1, mode2, mode3 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/offline_indicator.dart';
 import 'tool_app_bar.dart';

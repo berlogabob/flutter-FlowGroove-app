@@ -10,7 +10,6 @@ import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/list_screen_content.dart';
 import '../../widgets/fab_variants.dart';
 import '../../widgets/unified_item/adapters/band_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_list.dart';

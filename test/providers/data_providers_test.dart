@@ -9,7 +9,6 @@ import 'package:flutter_repsync_app/repositories/repositories.dart';
 import 'package:flutter_repsync_app/services/cache_service.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/setlist.dart';
 
 @GenerateMocks([
   SongRepository,

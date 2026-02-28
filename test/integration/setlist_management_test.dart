@@ -19,12 +19,9 @@ import 'package:uuid/uuid.dart';
 
 import 'package:flutter_repsync_app/models/setlist.dart';
 import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/screens/setlists/setlists_list_screen.dart';
 import 'package:flutter_repsync_app/screens/setlists/create_setlist_screen.dart';
 
 import '../helpers/mocks.mocks.dart';
-import '../helpers/test_helpers.dart';
-import '../helpers/integration_test_helpers.dart';
 
 void main() {
   group('Setlist Management Flow Integration Tests - INT-SETLIST-01', () {

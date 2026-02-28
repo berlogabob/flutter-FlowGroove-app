@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_repsync_app/widgets/tools/tool_app_bar.dart';
 import 'package:flutter_repsync_app/theme/mono_pulse_theme.dart';
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
 
 import '../../helpers/test_helpers.dart';
 

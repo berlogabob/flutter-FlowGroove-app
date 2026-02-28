@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_repsync_app/widgets/tools/tool_scaffold.dart';
-import 'package:flutter_repsync_app/widgets/tools/tool_app_bar.dart';
 import 'package:flutter_repsync_app/theme/mono_pulse_theme.dart';
 import 'package:flutter_repsync_app/widgets/offline_indicator.dart';
-
-import '../../helpers/test_helpers.dart';
 
 const Size _testViewport = Size(1200, 800);
 

@@ -12,17 +12,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/user.dart';
 import 'package:flutter_repsync_app/widgets/band_card.dart';
 
 import '../helpers/mocks.mocks.dart';
-import '../helpers/test_helpers.dart';
-import '../helpers/integration_test_helpers.dart';
 
 void main() {
   group('Band Management Flow Integration Tests - INT-BAND-01', () {
@@ -44,8 +40,9 @@ void main() {
     // BAND MODEL TESTS
     // =========================================================================
     group('Band Model Core Tests', () {
-      testWidgets('INT-BAND-01.1: Band model creates with valid data',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.1: Band model creates with valid data', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act: Create band model
         final band = Band(
           id: const Uuid().v4(),
@@ -64,8 +61,9 @@ void main() {
         expect(band.adminUids, contains('test-user-id'));
       });
 
-      testWidgets('INT-BAND-01.2: Band model generates unique invite code',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.2: Band model generates unique invite code', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act: Generate multiple invite codes
         final code1 = Band.generateUniqueInviteCode();
         final code2 = Band.generateUniqueInviteCode();
@@ -80,8 +78,9 @@ void main() {
         expect(code1, isNot(equals(code3)));
       });
 
-      testWidgets('INT-BAND-01.3: Band invite code is alphanumeric',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.3: Band invite code is alphanumeric', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act
         final code = Band.generateUniqueInviteCode();
 
@@ -89,8 +88,9 @@ void main() {
         expect(code, matches(r'^[A-Z0-9]{6}$'));
       });
 
-      testWidgets('INT-BAND-01.4: Band member roles are correct',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.4: Band member roles are correct', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -115,8 +115,9 @@ void main() {
         expect(band.memberUids, contains('viewer-1'));
       });
 
-      testWidgets('INT-BAND-01.5: Band copyWith updates name',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.5: Band copyWith updates name', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final originalBand = Band(
           id: const Uuid().v4(),
@@ -135,8 +136,9 @@ void main() {
         expect(updatedBand.createdBy, equals(originalBand.createdBy));
       });
 
-      testWidgets('INT-BAND-01.6: Band copyWith updates description',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.6: Band copyWith updates description', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final originalBand = Band(
           id: const Uuid().v4(),
@@ -148,23 +150,24 @@ void main() {
         );
 
         // Act
-        final updatedBand = originalBand.copyWith(description: 'New description');
+        final updatedBand = originalBand.copyWith(
+          description: 'New description',
+        );
 
         // Assert
         expect(updatedBand.description, equals('New description'));
         expect(updatedBand.name, equals(originalBand.name));
       });
 
-      testWidgets('INT-BAND-01.7: Band copyWith adds members',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.7: Band copyWith adds members', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final originalBand = Band(
           id: const Uuid().v4(),
           name: 'Test Band',
           createdBy: 'test-user-id',
-          members: [
-            BandMember(uid: 'user-1', role: BandMember.roleAdmin),
-          ],
+          members: [BandMember(uid: 'user-1', role: BandMember.roleAdmin)],
           createdAt: DateTime.now(),
         );
 
@@ -181,8 +184,9 @@ void main() {
         expect(updatedBand.editorUids, contains('user-2'));
       });
 
-      testWidgets('INT-BAND-01.8: Band toJson and fromJson roundtrip',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.8: Band toJson and fromJson roundtrip', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final originalBand = Band(
           id: const Uuid().v4(),
@@ -214,8 +218,9 @@ void main() {
         expect(deserializedBand.inviteCode, equals(originalBand.inviteCode));
       });
 
-      testWidgets('INT-BAND-01.9: Band with null description handled',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.9: Band with null description handled', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act
         final band = Band(
           id: const Uuid().v4(),
@@ -231,8 +236,9 @@ void main() {
         expect(band.name, equals('Test Band'));
       });
 
-      testWidgets('INT-BAND-01.10: Band member with email',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.10: Band member with email', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final member = BandMember(
           uid: 'user-1',
@@ -248,8 +254,9 @@ void main() {
         expect(member.role, equals(BandMember.roleAdmin));
       });
 
-      testWidgets('INT-BAND-01.11: Band member toJson roundtrip',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.11: Band member toJson roundtrip', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final originalMember = BandMember(
           uid: 'user-1',
@@ -265,7 +272,10 @@ void main() {
         // Assert
         expect(deserializedMember.uid, equals(originalMember.uid));
         expect(deserializedMember.role, equals(originalMember.role));
-        expect(deserializedMember.displayName, equals(originalMember.displayName));
+        expect(
+          deserializedMember.displayName,
+          equals(originalMember.displayName),
+        );
         expect(deserializedMember.email, equals(originalMember.email));
       });
     });
@@ -274,8 +284,9 @@ void main() {
     // MEMBER MANAGEMENT TESTS
     // =========================================================================
     group('Member Management Tests', () {
-      testWidgets('INT-BAND-01.12: Add member to band',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.12: Add member to band', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -301,8 +312,9 @@ void main() {
         expect(updatedBand.memberUids, contains('new-user-id'));
       });
 
-      testWidgets('INT-BAND-01.13: Remove member from band',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.13: Remove member from band', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -326,16 +338,15 @@ void main() {
         expect(updatedBand.memberUids, isNot(contains('user-to-remove')));
       });
 
-      testWidgets('INT-BAND-01.14: Change member role',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.14: Change member role', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
           name: 'Test Band',
           createdBy: 'test-user-id',
-          members: [
-            BandMember(uid: 'user-1', role: BandMember.roleViewer),
-          ],
+          members: [BandMember(uid: 'user-1', role: BandMember.roleViewer)],
           createdAt: DateTime.now(),
         );
 
@@ -354,8 +365,9 @@ void main() {
         expect(updatedBand.adminUids, isEmpty);
       });
 
-      testWidgets('INT-BAND-01.15: Multiple admins supported',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.15: Multiple admins supported', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -375,8 +387,9 @@ void main() {
         expect(band.adminUids, contains('admin-2'));
       });
 
-      testWidgets('INT-BAND-01.16: Band with many members',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.16: Band with many members', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act: Create band with 10 members
         final members = List.generate(
           10,
@@ -405,8 +418,9 @@ void main() {
     // EDGE CASES AND ERROR HANDLING
     // =========================================================================
     group('Edge Cases and Error Handling', () {
-      testWidgets('INT-BAND-01.17: Band name with special characters',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.17: Band name with special characters', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -420,8 +434,9 @@ void main() {
         expect(band.name, equals('Test Band @ # \$!'));
       });
 
-      testWidgets('INT-BAND-01.18: Very long band name',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.18: Very long band name', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final longName = 'A' * 100;
         final band = Band(
@@ -436,8 +451,9 @@ void main() {
         expect(band.name.length, equals(100));
       });
 
-      testWidgets('INT-BAND-01.19: Duplicate band names allowed',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.19: Duplicate band names allowed', (
+        WidgetTester tester,
+      ) async {
         // Arrange: Multiple bands with same name
         final band1 = Band(
           id: const Uuid().v4(),
@@ -460,8 +476,9 @@ void main() {
         expect(band1.id, isNot(equals(band2.id)));
       });
 
-      testWidgets('INT-BAND-01.20: Empty band members list',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.20: Empty band members list', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -478,8 +495,9 @@ void main() {
         expect(band.memberUids.isEmpty, isTrue);
       });
 
-      testWidgets('INT-BAND-01.21: Band JSON with default values',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.21: Band JSON with default values', (
+        WidgetTester tester,
+      ) async {
         // Arrange: Minimal band data
         final json = {
           'id': 'test-id',
@@ -499,13 +517,11 @@ void main() {
         expect(band.inviteCode, isNull);
       });
 
-      testWidgets('INT-BAND-01.22: Band member with minimal data',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.22: Band member with minimal data', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act
-        final member = BandMember(
-          uid: 'user-1',
-          role: BandMember.roleViewer,
-        );
+        final member = BandMember(uid: 'user-1', role: BandMember.roleViewer);
 
         // Assert
         expect(member.uid, equals('user-1'));
@@ -514,8 +530,9 @@ void main() {
         expect(member.email, isNull);
       });
 
-      testWidgets('INT-BAND-01.23: Invite code uniqueness',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.23: Invite code uniqueness', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act: Generate 100 codes
         final codes = Set<String>();
         for (int i = 0; i < 100; i++) {
@@ -526,8 +543,9 @@ void main() {
         expect(codes.length, equals(100));
       });
 
-      testWidgets('INT-BAND-01.24: Band createdAt timestamp preserved',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.24: Band createdAt timestamp preserved', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final createdAt = DateTime(2024, 6, 15, 10, 30, 0);
         final band = Band(
@@ -544,8 +562,9 @@ void main() {
         expect(band.createdAt.day, equals(15));
       });
 
-      testWidgets('INT-BAND-01.25: Band copyWith preserves createdAt',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.25: Band copyWith preserves createdAt', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final originalCreatedAt = DateTime(2024, 1, 1);
         final originalBand = Band(
@@ -564,8 +583,9 @@ void main() {
         expect(updatedBand.name, equals('Updated Name'));
       });
 
-      testWidgets('INT-BAND-01.26: Band with all optional fields',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.26: Band with all optional fields', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final band = Band(
           id: const Uuid().v4(),
@@ -598,17 +618,14 @@ void main() {
     // BAND CARD WIDGET TESTS
     // =========================================================================
     group('Band Card Widget Tests', () {
-      testWidgets('INT-BAND-01.27: Band card displays band name',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.27: Band card displays band name', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(
-              body: BandCard(
-                id: 'test-id',
-                name: 'Test Band',
-                memberCount: 3,
-              ),
+              body: BandCard(id: 'test-id', name: 'Test Band', memberCount: 3),
             ),
           ),
         );
@@ -618,8 +635,9 @@ void main() {
         expect(find.text('Test Band'), findsOneWidget);
       });
 
-      testWidgets('INT-BAND-01.28: Band card displays member count',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.28: Band card displays member count', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act
         await tester.pumpWidget(
           const MaterialApp(
@@ -640,8 +658,9 @@ void main() {
         expect(find.textContaining('5'), findsOneWidget);
       });
 
-      testWidgets('INT-BAND-01.29: Band card is tappable',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.29: Band card is tappable', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         bool wasTapped = false;
 
@@ -667,8 +686,9 @@ void main() {
         expect(wasTapped, isTrue);
       });
 
-      testWidgets('INT-BAND-01.30: Band card with description',
-          (WidgetTester tester) async {
+      testWidgets('INT-BAND-01.30: Band card with description', (
+        WidgetTester tester,
+      ) async {
         // Arrange & Act
         await tester.pumpWidget(
           const MaterialApp(
