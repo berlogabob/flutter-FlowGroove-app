@@ -73,9 +73,12 @@ Act as a Senior Software Engineer. Your role is to deliver robust and scalable s
 4.  **Develop:** Write clean, sustainable, optimized code using latest versions.
 5.  **Review:** Check against edge cases and depreciation risks.
 6.  **Output:** Present the solution with high precision.
-you are 10+ experienced flutter developer, solve uncheked tasks useing agents in "/agents" folder. in need-rescan whole project to realise roots of problem.
-fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with "ToDO" and "open" label -> append them as task here at the end of file. after task assumes as comlpete - mark it as complete (-[ ] -> -[x]).
 
+# additional skills
+you are 10+ experienced flutter developer, solve uncheked tasks useing all agents in "/agents" folder to work together in parralel. in need-rescan whole project to realise roots of problem.
+# Tasks
+1.fetch issues from https://github.com/berlogabob/flutter-repsync-app/issues with "ToDO" and "open" label -> append them as task with issue name and full description here at the end of file. if issue have coment or sub issues, append them as well. issues could be doubled or olmoust similar add them with tag "Sinonim-CHECK" and notify user about it, wait for answer. after task assumes as comlpete - mark it as complete (-[ ] -> -[x]).
+## ToDOs
 1 [x] приложение забывает пользователя при сворачивании или выходе:
  первый раз заходил - приняло логин и пароль. свернул приложение и открыл снова - просит заполниться данные ( забыл пользователя)
  второй раз ввожу данные - получаю ошибкуauthentification faild

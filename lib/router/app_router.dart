@@ -179,8 +179,22 @@ final GoRouter appRouter = GoRouter(
                   builder: (context, state) {
                     final band = state.extra as Band?;
                     if (band == null) {
-                      return const Scaffold(
-                        body: Center(child: CircularProgressIndicator()),
+                      // Show error instead of infinite spinner
+                      return Scaffold(
+                        appBar: AppBar(title: const Text('Error')),
+                        body: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Failed to load band data'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => context.pop(),
+                                child: const Text('Go Back'),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     }
                     return BandSongsScreen(band: band);
@@ -192,8 +206,22 @@ final GoRouter appRouter = GoRouter(
                   builder: (context, state) {
                     final band = state.extra as Band?;
                     if (band == null) {
-                      return const Scaffold(
-                        body: Center(child: CircularProgressIndicator()),
+                      // Show error instead of infinite spinner
+                      return Scaffold(
+                        appBar: AppBar(title: const Text('Error')),
+                        body: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Failed to load band data'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => context.pop(),
+                                child: const Text('Go Back'),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     }
                     return BandAboutScreen(band: band);

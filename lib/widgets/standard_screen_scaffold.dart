@@ -19,7 +19,8 @@ import '../theme/mono_pulse_theme.dart';
 ///   menuItems: [
 ///     PopupMenuItem(child: Text('Import'), onTap: _import),
 ///   ],
-///   fab: FloatingActionButton(...),
+///   floatingActionButton: FloatingActionButton(...),
+///   showBackButton: false, // Hide back button for main tabs
 /// )
 /// ```
 class StandardScreenScaffold extends StatelessWidget {
