@@ -161,3 +161,99 @@ you are 10+ experienced flutter developer, solve uncheked tasks useing all agent
 
 **Not yet implemented:**
   - Social login providers (need Firebase setup - see docs)
+
+---
+
+## GitHub Issues (Fetched from Repository)
+
+### Issue #12: user joined the band
+**Status:** Open | **Labels:** ToDo, planning tag | **Opened:** Feb 27, 2026
+
+**Description:**
+when user A invite user B to join his band, user B :
+main screen-> band screen-> join band btn -> enter code. -> notification "joined!".
+problem: user cant see new joined ban right after. user need to update web paga or go back ( arrow btn) and return. now it shows.
+
+**Comments:** None  
+**Sub-tasks:** None
+
+---
+
+### Issue #13: The Band Screen
+**Status:** Open | **Labels:** ToDo, planning tag | **Opened:** Feb 27, 2026
+
+**Description:**
+we need to reuse all or widgets and logic + behavior. it should be better for user.
+main screen -> bands screen -> the band :
+this screen must look same as personal page. except:
+
+* User name -> band mane ( "Hello, berloga.bob! -> "The Band")
+* "ready to rock" -> shows safe spaced, if needed truncated with "..." addition at the end about this band, from band description ( if empty - show placeholder ready to rock, or leave empty)
+* quick action. delete this block. here must be:
+  * the band tags
+  * the band members
+* all widgets on this page must behave an be a copy for look and work ( or maybe literary copy) of widgets from add/edit song. with collapse /expand and autosave of user input
+
+**Comments:** None  
+**Sub-tasks:** None
+
+---
+
+### Issue #14: GREY SCREEN
+**Status:** Open | **Labels:** ToDo, planning tag | **Opened:** Feb 27, 2026
+
+**Description:**
+пользователь путешествуя по приложению натыкается на серые экраны.
+например:
+мои группы-> группа А-> мемберс-> показывает список участников
+мои группы-> группа Б-> мемберс-> список участников полноэкранная серая страница
+
+*(Translation: A user traveling through the application encounters grey screens. For example: My Groups → Group A → Members → shows list of participants; My Groups → Group B → Members → full-screen grey page)*
+
+**Comments:** None  
+**Sub-tasks:** None
+
+---
+
+### Issue #15: Edit profile
+**Status:** Open | **Labels:** ToDo, planning tag | **Opened:** Feb 27, 2026
+
+**Description:**
+add new feature.
+profile screen:
+edit profile widget. lets add functionality to realy edit info.
+user must have ability to change his displayed name ( now its first part of email)
+lets add possibility to log in with social networks and give option to show name and profile picture.
+lets add login with:
+* google
+* apple
+* x (twitter)
+* telegram
+
+user can choose picture from any of this accouns and name from other or upload picture ( from file o take a picture) or manualy entered name.
+
+**Comments:** None  
+**Sub-tasks:** None
+
+---
+
+### Issue #16: still open
+**Status:** Open | **Labels:** ToDo, planning tag | **Opened:** Feb 27, 2026
+
+**Description:**
+last action didnt help to solve parent issue
+
+**Comments:** None  
+**Sub-tasks:** None
+
+---
+
+## Sinonim-CHECK Notice
+
+**Issues Status Update:**
+
+- ✅ **Issue #14 (GREY SCREEN)** - FIXED (members expanded by default)
+- ⚠️ **Issue #12 (user joined the band)** - Cannot verify, low priority, KEEP OPEN
+- ⚠️ **Issue #13 (The Band Screen)** - PARTIALLY FIXED, needs alignment fix
+
+**Please confirm:** Should these issues be marked as completed or do they require additional work?
