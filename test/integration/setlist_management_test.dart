@@ -109,13 +109,13 @@ void main() {
           name: 'Gig Setlist',
           bandId: 'test-band-id',
           songIds: [],
-          eventDate: DateTime(2024, 6, 15),
+          eventDateTime: DateTime(2024, 6, 15),
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
 
         // Assert: Event date stored
-        expect(setlist.eventDate, equals(DateTime(2024, 6, 15)));
+        expect(setlist.eventDateTime, equals(DateTime(2024, 6, 15)));
       });
 
       testWidgets('INT-SETLIST-01.3: Create setlist with description', (

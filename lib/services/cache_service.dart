@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive/hive.dart';
 import '../models/song.dart';
 import '../models/band.dart';
@@ -150,16 +149,6 @@ class CacheService {
     final boxName = '$_setlistsBoxPrefix$uid';
     if (await Hive.boxExists(boxName)) {
       await Hive.deleteBoxFromDisk(boxName);
-    }
-  }
-
-  /// Clears ALL setlists cache (for migration).
-  Future<void> clearAllSetlistsCache() async {
-    // Clear cache for current user only
-    final auth = FirebaseAuth.instance;
-    final uid = auth.currentUser?.uid;
-    if (uid != null) {
-      await clearSetlistsCache(uid);
     }
   }
 
