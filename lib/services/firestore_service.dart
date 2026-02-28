@@ -388,14 +388,32 @@ class FirestoreService {
           .collection('setlists')
           .snapshots()
           .map(
-            (snapshot) => snapshot.docs
-                .map((doc) => Setlist.fromJson(doc.data()))
-                .toList(),
+            (snapshot) => snapshot.docs.map((doc) {
+              try {
+                return Setlist.fromJson(doc.data());
+              } catch (e, stackTrace) {
+                debugPrint('Failed to parse setlist ${doc.id}: $e');
+                debugPrint('Stack trace: $stackTrace');
+                // Return a default setlist with error info
+                return Setlist(
+                  id: doc.id,
+                  bandId: '',
+                  name: 'Error loading setlist',
+                  description: 'Failed to load: ${e.toString()}',
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                );
+              }
+            }).toList(),
           )
           .handleError((error, stackTrace) {
+            debugPrint('Stream error in watchSetlists: $error');
+            debugPrint('Stack trace: $stackTrace');
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });
     } catch (e, stackTrace) {
+      debugPrint('Error setting up watchSetlists: $e');
+      debugPrint('Stack trace: $stackTrace');
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
   }

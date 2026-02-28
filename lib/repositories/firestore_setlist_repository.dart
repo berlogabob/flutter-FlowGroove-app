@@ -1,46 +1,38 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../models/api_error.dart';
 import '../models/setlist.dart';
 import 'setlist_repository.dart';
 
-/// Firestore implementation of [SetlistRepository].
-///
-/// Handles all setlist-related data operations with Firestore.
 class FirestoreSetlistRepository implements SetlistRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
 
-  /// Helper method to get current user UID.
-  String get _currentUserId {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw ApiError.auth(
-        message: 'Authentication required. Please sign in to continue.',
-      );
+  FirestoreSetlistRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
+
+  String? get _currentUserId => _auth.currentUser?.uid;
+
+  void _requireAuth() {
+    if (_currentUserId == null) {
+      throw ApiError.auth(message: 'Authentication required');
     }
-    return user.uid;
   }
 
   @override
   Future<void> saveSetlist(Setlist setlist, {String? uid}) async {
     try {
       final userId = uid ?? _currentUserId;
+      _requireAuth();
+
       await _firestore
           .collection('users')
           .doc(userId)
           .collection('setlists')
           .doc(setlist.id)
           .set(setlist.toJson());
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to save this setlist.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -50,21 +42,14 @@ class FirestoreSetlistRepository implements SetlistRepository {
   Future<void> deleteSetlist(String setlistId, {String? uid}) async {
     try {
       final userId = uid ?? _currentUserId;
+      _requireAuth();
+
       await _firestore
           .collection('users')
           .doc(userId)
           .collection('setlists')
           .doc(setlistId)
           .delete();
-    } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
-        throw ApiError.permission(
-          message: 'You do not have permission to delete this setlist.',
-          exception: e,
-          stackTrace: stackTrace,
-        );
-      }
-      throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -78,15 +63,34 @@ class FirestoreSetlistRepository implements SetlistRepository {
           .doc(uid)
           .collection('setlists')
           .snapshots()
-          .map(
-            (snapshot) => snapshot.docs
-                .map((doc) => Setlist.fromJson(doc.data()))
-                .toList(),
-          )
+          .map((snapshot) {
+            try {
+              return snapshot.docs.map((doc) {
+                try {
+                  return Setlist.fromJson(doc.data());
+                } catch (e) {
+                  debugPrint('❌ Failed to parse setlist ${doc.id}: $e');
+                  return Setlist(
+                    id: doc.id,
+                    bandId: '',
+                    name: doc.data()['name'] ?? 'Unknown',
+                    description: 'Parse error: ${e.toString()}',
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                  );
+                }
+              }).toList();
+            } catch (e) {
+              debugPrint('❌ Failed to map snapshot: $e');
+              return <Setlist>[];
+            }
+          })
           .handleError((error, stackTrace) {
+            debugPrint('❌ Stream error: $error');
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });
     } catch (e, stackTrace) {
+      debugPrint('❌ watchSetlists exception: $e');
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
   }

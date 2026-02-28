@@ -124,23 +124,14 @@ class PdfService {
                 ),
               ),
             ],
-            if (setlist.eventDate != null || setlist.eventLocation != null) ...[
+            if (setlist.eventLocation != null) ...[
               pw.SizedBox(height: 8),
               pw.Row(
                 children: [
-                  if (setlist.eventDate != null)
-                    pw.Text(
-                      '📅 ${setlist.eventDate}',
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
-                  if (setlist.eventDate != null &&
-                      setlist.eventLocation != null)
-                    pw.Text('  •  ', style: const pw.TextStyle(fontSize: 10)),
-                  if (setlist.eventLocation != null)
-                    pw.Text(
-                      '📍 ${setlist.eventLocation}',
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
+                  pw.Text(
+                    '📍 ${setlist.eventLocation}',
+                    style: const pw.TextStyle(fontSize: 10),
+                  ),
                 ],
               ),
             ],

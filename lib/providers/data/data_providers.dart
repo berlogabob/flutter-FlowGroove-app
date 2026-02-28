@@ -401,15 +401,32 @@ final cachedSetlistsProvider =
 final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
 
+  debugPrint(
+    '🔵 setlistsProvider: userAsync.value = ${userAsync.value?.email ?? "NULL"}',
+  );
+
   return userAsync.when(
     data: (user) {
-      if (user == null) return Stream.value([]);
+      if (user == null) {
+        debugPrint('🔴 setlistsProvider: user is null, returning empty stream');
+        return Stream.value([]);
+      }
+
+      debugPrint('🟢 setlistsProvider: user=${user.email}, uid=${user.uid}');
 
       final setlistRepo = ref.watch(setlistRepositoryProvider);
-      return setlistRepo.watchSetlists(user.uid);
+      final stream = setlistRepo.watchSetlists(user.uid);
+      debugPrint('🔵 setlistsProvider: stream created');
+      return stream;
     },
-    loading: () => const Stream.empty(),
-    error: (error, stack) => Stream.value([]),
+    loading: () {
+      debugPrint('🟡 setlistsProvider: loading, returning empty stream');
+      return const Stream.empty();
+    },
+    error: (error, stack) {
+      debugPrint('🔴 setlistsProvider: error=$error');
+      return Stream.value([]);
+    },
   );
 });
 
@@ -471,8 +488,11 @@ final bandCountProvider = Provider<int>((ref) {
 
 /// Provider that returns the count of setlists.
 final setlistCountProvider = Provider<int>((ref) {
-  return ref
+  final count =
+      ref
           .watch(setlistsProvider)
           .whenOrNull(data: (setlists) => setlists.length) ??
       0;
+  debugPrint('🔵 setlistCountProvider: count=$count');
+  return count;
 });
