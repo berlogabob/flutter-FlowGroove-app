@@ -408,7 +408,7 @@ final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
       final setlistRepo = ref.watch(setlistRepositoryProvider);
       return setlistRepo.watchSetlists(user.uid);
     },
-    loading: () => Stream.value([]),
+    loading: () => const Stream.empty(),
     error: (error, stack) => Stream.value([]),
   );
 });
