@@ -9,7 +9,6 @@ import '../../models/song.dart';
 import '../../services/export/pdf_service.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/fab_variants.dart';
-import '../../widgets/offline_indicator.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';

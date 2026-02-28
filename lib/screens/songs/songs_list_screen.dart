@@ -10,7 +10,6 @@ import '../../providers/auth/error_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/list_screen_content.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/error_banner.dart';
