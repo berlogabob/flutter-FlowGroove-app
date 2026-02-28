@@ -7,23 +7,14 @@ import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../services/export/pdf_service.dart';
-import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/list_screen_content.dart';
-import '../../widgets/fab_variants.dart';
-import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
+import '../../widgets/custom_app_bar.dart';
+import '../../widgets/offline_indicator.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/empty_state.dart';
 
-/// Screen for displaying the list of setlists with unified item system.
-///
-/// Features:
-/// - UnifiedItemCard for consistent card display
-/// - UnifiedFilterSortWidget for search and sorting
-/// - UnifiedItemList for swipe-to-delete and drag-and-drop
-/// - PDF export as custom action
-/// - Event date and song count display
 class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});
 
@@ -35,14 +26,11 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   String _searchQuery = '';
   SortOption _sortOption = SortOption.manual;
 
-  /// Filter and sort setlists based on search query and sort option.
   List<SetlistItemAdapter> _filterAndSortSetlists(List<Setlist> setlists) {
-    // Convert setlists to adapters
     var adapters = setlists
         .map((setlist) => SetlistItemAdapter(setlist))
         .toList();
 
-    // Apply search filter
     if (_searchQuery.trim().isNotEmpty) {
       final query = _searchQuery.toLowerCase().trim();
       adapters = adapters.where((adapter) {
@@ -51,10 +39,8 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       }).toList();
     }
 
-    // Apply sorting
     switch (_sortOption) {
       case SortOption.manual:
-        // Keep original order (user can reorder via drag-and-drop)
         break;
       case SortOption.alphabetical:
         adapters.sort(
@@ -76,44 +62,28 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     return adapters;
   }
 
-  /// Handle setlist reordering (manual sort mode).
   void _handleReorder(int oldIndex, int newIndex) async {
-    if (newIndex > oldIndex) {
-      newIndex -= 1;
-    }
-
+    if (newIndex > oldIndex) newIndex -= 1;
     final setlists = ref.read(setlistsProvider).value;
     if (setlists == null) return;
-
-    // Perform the reordering locally first
     final setlist = setlists.removeAt(oldIndex);
     setlists.insert(newIndex, setlist);
-
-    // Save the reordered setlists to Firestore
     final service = ref.read(firestoreProvider);
-    final userAsync = ref.read(currentUserProvider);
-    final user = userAsync.value;
+    final user = ref.read(currentUserProvider).value;
     if (user != null) {
-      // Update order for all setlists
       for (int i = 0; i < setlists.length; i++) {
         await service.saveSetlist(setlists[i], uid: user.uid);
       }
     }
   }
 
-  /// Handle setlist deletion.
   void _handleDelete(int index) async {
     final adapters = _filterAndSortSetlists(
       ref.read(setlistsProvider).value ?? [],
     );
-
     if (index >= adapters.length) return;
-
-    final adapter = adapters[index];
-    final setlist = adapter.setlist;
-    final userAsync = ref.read(currentUserProvider);
-    final user = userAsync.value;
-
+    final setlist = adapters[index].setlist;
+    final user = ref.read(currentUserProvider).value;
     if (user != null) {
       await ref
           .read(firestoreProvider)
@@ -121,26 +91,19 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     }
   }
 
-  /// Handle setlist tap.
   void _handleTap(int index) {
     final adapters = _filterAndSortSetlists(
       ref.read(setlistsProvider).value ?? [],
     );
-
     if (index >= adapters.length) return;
-
-    final setlist = adapters[index].setlist;
-    _showExportOptions(context, ref, setlist);
+    _showExportOptions(context, ref, adapters[index].setlist);
   }
 
-  /// Handle setlist edit.
   void _handleEdit(int index) {
     final adapters = _filterAndSortSetlists(
       ref.read(setlistsProvider).value ?? [],
     );
-
     if (index >= adapters.length) return;
-
     final setlist = adapters[index].setlist;
     context.pushNamed(
       'edit-setlist',
@@ -153,49 +116,50 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Widget build(BuildContext context) {
     final setlistsAsync = ref.watch(setlistsProvider);
 
-    return StandardScreenScaffold(
-      title: 'Setlists',
-      menuItems: [
-        PopupMenuItem<void>(
-          child: const Text('Create Setlist'),
-          onTap: () => context.goNamed('create-setlist'),
-        ),
-      ],
-      floatingActionButton: SingleFab(
-        icon: Icons.add,
-        onPressed: () => context.goNamed('create-setlist'),
-        heroTag: 'setlists_fab',
+    return Scaffold(
+      appBar: CustomAppBar.build(
+        context,
+        title: 'Setlists',
+        menuItems: [
+          PopupMenuItem<void>(
+            child: const Text('Create Setlist'),
+            onTap: () => context.goNamed('create-setlist'),
+          ),
+        ],
       ),
-      body: _buildBody(setlistsAsync),
+      body: Column(
+        children: [
+          const OfflineIndicator.banner(),
+          Expanded(child: _buildBody(setlistsAsync)),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'setlists_fab',
+        onPressed: () => context.goNamed('create-setlist'),
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
   Widget _buildBody(AsyncValue<List<Setlist>> setlistsAsync) {
     return setlistsAsync.when(
-      data: (setlists) => _buildContent(context, ref, setlists),
+      data: (setlists) => _buildContent(setlists),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    WidgetRef ref,
-    List<Setlist> setlists,
-  ) {
+  Widget _buildContent(List<Setlist> setlists) {
     final filteredSetlists = _filterAndSortSetlists(setlists);
 
     return Column(
       children: [
-        // Unified filter/sort widget
         Padding(
           padding: const EdgeInsets.all(16),
           child: UnifiedFilterSortWidget(
             currentSort: _sortOption,
             onSortChanged: (option) {
-              if (option != null) {
-                setState(() => _sortOption = option);
-              }
+              if (option != null) setState(() => _sortOption = option);
             },
             filterText: _searchQuery.isEmpty ? null : _searchQuery,
             onFilterChanged: (value) =>
@@ -230,21 +194,21 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       onEdit: _handleEdit,
       showCompact: false,
       additionalActionsBuilder: (index) {
-        final setlist = adapters[index].setlist;
         return [
-          _PdfExportAction(onPressed: () => _exportPdf(context, ref, setlist)),
+          _PdfExportAction(
+            onPressed: () => _exportPdf(adapters[index].setlist),
+          ),
         ];
       },
     );
   }
 
-  void _exportPdf(BuildContext context, WidgetRef ref, Setlist setlist) async {
+  void _exportPdf(Setlist setlist) async {
     final songsAsync = ref.read(songsProvider);
     final allSongs = songsAsync.value ?? [];
     final setlistSongs = allSongs
         .where((s) => setlist.songIds.contains(s.id))
         .toList();
-
     try {
       await PdfService.exportSetlist(setlist, setlistSongs);
     } catch (e) {
@@ -308,9 +272,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   void _shareAsLinks(BuildContext context, Setlist setlist, List<Song> songs) {
     final buffer = StringBuffer();
     buffer.writeln('🎵 ${setlist.name}');
-    if (setlist.description != null) {
-      buffer.writeln(setlist.description);
-    }
+    if (setlist.description != null) buffer.writeln(setlist.description);
     buffer.writeln();
     buffer.writeln('Songs:');
     for (int i = 0; i < songs.length; i++) {
@@ -325,7 +287,6 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     }
     buffer.writeln();
     buffer.writeln('Created with RepSync');
-
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Setlist links copied to clipboard!')),
@@ -333,12 +294,9 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 }
 
-/// Custom action for PDF export in the unified item card.
 class _PdfExportAction implements UnifiedItemAction {
   final VoidCallback? onPressed;
-
   _PdfExportAction({this.onPressed});
-
   @override
   Widget build(BuildContext context) {
     return IconButton(

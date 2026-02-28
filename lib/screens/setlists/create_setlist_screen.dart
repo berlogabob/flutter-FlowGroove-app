@@ -36,7 +36,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       final setlist = widget.setlist!;
       _nameController.text = setlist.name;
       _descriptionController.text = setlist.description ?? '';
-      _eventDate = setlist.eventDate;
+      _eventDate = setlist.eventDateTime;
       _eventLocationController.text = setlist.eventLocation ?? '';
       _loadSongsForEditing(setlist.songIds);
     }
@@ -135,7 +135,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
           : null,
-      eventDate: _eventDate,
+      eventDateTime: _eventDate,
       eventLocation: _eventLocationController.text.trim().isNotEmpty
           ? _eventLocationController.text.trim()
           : null,

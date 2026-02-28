@@ -11,9 +11,7 @@ Setlist _$SetlistFromJson(Map<String, dynamic> json) => Setlist(
   bandId: json['bandId'] as String? ?? '',
   name: json['name'] as String? ?? '',
   description: json['description'] as String?,
-  eventDate: json['eventDate'] == null
-      ? null
-      : DateTime.parse(json['eventDate'] as String),
+  eventDateTime: _parseTimestamp(json['eventDateTime']),
   eventLocation: json['eventLocation'] as String?,
   songIds:
       (json['songIds'] as List<dynamic>?)?.map((e) => e as String).toList() ??
@@ -31,7 +29,7 @@ Map<String, dynamic> _$SetlistToJson(Setlist instance) => <String, dynamic>{
   'bandId': instance.bandId,
   'name': instance.name,
   'description': instance.description,
-  'eventDate': instance.eventDate?.toIso8601String(),
+  'eventDateTime': instance.eventDateTime?.toIso8601String(),
   'eventLocation': instance.eventLocation,
   'songIds': instance.songIds,
   'totalDuration': instance.totalDuration,

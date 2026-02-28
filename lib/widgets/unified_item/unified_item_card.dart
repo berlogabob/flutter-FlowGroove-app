@@ -175,8 +175,8 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
     }
     // Setlist subtitle
     else if (item is SetlistItemAdapter) {
-      final setlist = item as SetlistItemAdapter;
-      final songCount = setlist.songIdsLength;
+      final setlist = (item as SetlistItemAdapter).setlist;
+      final songCount = setlist.songIds.length;
       subtitleWidgets.add(
         Text(
           '$songCount ${songCount == 1 ? 'song' : 'songs'}',
@@ -184,19 +184,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         ),
       );
 
-      if (setlist.bandName?.isNotEmpty == true) {
+      if (setlist.eventDateTime != null) {
         subtitleWidgets.add(
           Text(
-            setlist.bandName!,
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-        );
-      }
-
-      if (setlist.eventDate != null) {
-        subtitleWidgets.add(
-          Text(
-            _formatDate(setlist.eventDate),
+            setlist.formattedEventDate,
             style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
         );
