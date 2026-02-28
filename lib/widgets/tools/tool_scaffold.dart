@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/offline_indicator.dart';
-import 'tool_app_bar.dart';
+import '../../widgets/custom_app_bar.dart';
 
 /// Responsive breakpoint system for tool screens.
 enum ToolBreakpoint {
@@ -120,7 +120,7 @@ class ToolScreenScaffold extends StatelessWidget {
   final Widget? bottomWidget;
 
   /// Menu items for 3-dot menu.
-  final List<PopupMenuItem<void>>? menuItems;
+  final List<PopupMenuEntry<dynamic>>? menuItems;
 
   /// Whether to show offline indicator.
   final bool showOfflineIndicator;
@@ -141,7 +141,12 @@ class ToolScreenScaffold extends StatelessWidget {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: MonoPulseColors.black,
-        appBar: ToolAppBar.build(context, title: title, menuItems: menuItems),
+        appBar: CustomAppBar.build(
+          context,
+          title: title,
+          menuItems: menuItems,
+          isTool: true,
+        ),
         body: SafeArea(
           child: Column(
             children: [

@@ -138,20 +138,20 @@ Map<String, dynamic> _analyzeBands(List<QueryDocumentSnapshot> docs) {
     exportData['bands'].add(analysis);
 
     // Update summary
-    if ((analysis['issues'] as List).isNotEmpty) {
+    final issues = analysis['issues'] as List?;
+    if (issues != null && issues.isNotEmpty) {
       exportData['summary']['bandsWithIssues'] =
-          (exportData['summary']['bandsWithIssues'] as int) + 1;
+          ((exportData['summary']['bandsWithIssues'] as int?) ?? 0) + 1;
       exportData['summary']['totalIssues'] =
-          (exportData['summary']['totalIssues'] as int) +
-          (analysis['issues'] as List).length;
+          ((exportData['summary']['totalIssues'] as int?) ?? 0) + issues.length;
 
-      for (final issue in analysis['issues'] as List<String>) {
+      for (final issue in issues) {
         final issueType = issue.split(':')[0];
-        exportData['summary']['commonIssues'][issueType] =
-            ((exportData['summary']['commonIssues']
-                    as Map<String, int>)[issueType] ??
-                0) +
-            1;
+        final commonIssues =
+            exportData['summary']['commonIssues'] as Map<String, int>?;
+        if (commonIssues != null) {
+          commonIssues[issueType] = (commonIssues[issueType] ?? 0) + 1;
+        }
       }
     }
   }

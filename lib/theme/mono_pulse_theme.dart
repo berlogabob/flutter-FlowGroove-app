@@ -105,6 +105,26 @@ class MonoPulseColors {
   static const Color orangeSubtle20 = Color(0x33FF5E00); // 20%
   static const Color orangeSubtle30 = Color(0x4DFF5E00); // 30%
 
+  // ============================================
+  // Section Colors (for song organization)
+  // ============================================
+  // 14 visually distinct colors that work on dark background
+
+  static const Color section1 = Color(0xFFE91E63); // Pink
+  static const Color section2 = Color(0xFF9C27B0); // Purple
+  static const Color section3 = Color(0xFF673AB7); // Deep Purple
+  static const Color section4 = Color(0xFF3F51B5); // Indigo
+  static const Color section5 = Color(0xFF03A9F4); // Light Blue
+  static const Color section6 = Color(0xFF00BCD4); // Cyan
+  static const Color section7 = Color(0xFF009688); // Teal
+  static const Color section8 = Color(0xFF4CAF50); // Green
+  static const Color section9 = Color(0xFF8BC34A); // Light Green
+  static const Color section10 = Color(0xFFCDDC39); // Lime
+  static const Color section11 = Color(0xFFFFEB3B); // Yellow
+  static const Color section12 = Color(0xFFFFC107); // Amber
+  static const Color section13 = Color(0xFFFF9800); // Orange
+  static const Color section14 = Color(0xFFFF5722); // Deep Orange
+
   // Special
   static const Color transparent = Colors.transparent;
   static const Color white = Color(0xFFFFFFFF);
@@ -162,6 +182,14 @@ class MonoPulseTypography {
     fontSize: 16,
     fontWeight: semibold,
     height: 1.45,
+  );
+
+  // Title - For tool screens
+  static const TextStyle titleLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 22,
+    fontWeight: semibold,
+    height: 1.36,
   );
 
   // Body
