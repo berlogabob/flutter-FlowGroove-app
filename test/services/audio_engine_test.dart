@@ -13,11 +13,16 @@ void main() {
   group('AudioEngine (Mobile)', () {
     // All tests skipped - requires native platform implementation
     // Functionality tested in integration tests and manual testing
-    
-    test('AudioEngine tests - SKIPPED (requires native platform)', () {
-      // Skip - requires native platform implementation
-      // These tests need to run on physical devices or emulators
-      // See integration tests for actual functionality testing
-    }, skip: 'Requires native platform implementation - functionality tested in integration tests and manual testing');
+
+    test(
+      'AudioEngine tests - SKIPPED (requires native platform)',
+      () {
+        // Skip - requires native platform implementation
+        // These tests need to run on physical devices or emulators
+        // See integration tests for actual functionality testing
+      },
+      skip:
+          'Requires native platform implementation - functionality tested in integration tests and manual testing',
+    );
   });
 }

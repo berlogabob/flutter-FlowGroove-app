@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
@@ -56,12 +57,18 @@ class _NewToolScreenState extends ConsumerState<NewToolScreen> {
   /// - Load Preset
   /// - Reset to Defaults
   /// - Settings
-  List<PopupMenuItem<void>> _buildMenuItems() {
+  List<PopupMenuItem<dynamic>> _buildMenuItems() {
     return [
-      PopupMenuItem<void>(child: const Text('Save Preset'), onTap: _savePreset),
-      PopupMenuItem<void>(child: const Text('Load Preset'), onTap: _loadPreset),
+      PopupMenuItem<dynamic>(
+        child: const Text('Save Preset'),
+        onTap: _savePreset,
+      ),
+      PopupMenuItem<dynamic>(
+        child: const Text('Load Preset'),
+        onTap: _loadPreset,
+      ),
       const PopupMenuDivider(),
-      PopupMenuItem<void>(
+      PopupMenuItem<dynamic>(
         child: const Text('Reset to Defaults'),
         onTap: _resetToDefaults,
       ),

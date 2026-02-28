@@ -79,10 +79,7 @@ void main() {
     testWidgets('renders inline with retry', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        ErrorBanner.inline(
-          message: 'Inline Error',
-          onRetry: () {},
-        ),
+        ErrorBanner.inline(message: 'Inline Error', onRetry: () {}),
       );
 
       expect(find.byIcon(Icons.error), findsOneWidget);

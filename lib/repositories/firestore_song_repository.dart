@@ -251,7 +251,10 @@ class FirestoreSongRepository implements SongRepository {
           .timeout(_firestoreTimeout);
 
       if (!songDoc.exists) {
-        throw const ApiError(type: ErrorType.notFound, message: 'Song not found');
+        throw const ApiError(
+          type: ErrorType.notFound,
+          message: 'Song not found',
+        );
       }
 
       final songData = songDoc.data()!;

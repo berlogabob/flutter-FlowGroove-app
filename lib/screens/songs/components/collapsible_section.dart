@@ -5,6 +5,7 @@
 /// - Expandable/collapsible content
 /// - Consistent styling across the app
 library;
+
 import 'package:flutter/material.dart';
 import '../../../theme/mono_pulse_theme.dart';
 
@@ -57,10 +58,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
       decoration: BoxDecoration(
         color: MonoPulseColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: MonoPulseColors.borderDefault,
-          width: 1,
-        ),
+        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
       ),
       child: Column(
         children: [
@@ -111,7 +109,10 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
               visible: _isExpanded,
               maintainState: true,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: widget.child,
               ),
             ),

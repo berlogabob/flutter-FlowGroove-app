@@ -428,7 +428,9 @@ class _SetlistList extends ConsumerWidget {
     return setlistsAsync.when(
       loading: () => const Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(MonoPulseColors.accentOrange),
+          valueColor: AlwaysStoppedAnimation<Color>(
+            MonoPulseColors.accentOrange,
+          ),
         ),
       ),
       error: (error, stack) => Center(

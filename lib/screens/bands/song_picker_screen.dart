@@ -1,6 +1,7 @@
 /// Screen for selecting songs from personal library to add to a band.
 /// Supports multi-select for adding multiple songs at once.
 library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

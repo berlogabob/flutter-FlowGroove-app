@@ -98,20 +98,13 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.search_off,
-                        size: 48,
-                        color: Colors.grey,
-                      ),
+                      Icon(Icons.search_off, size: 48, color: Colors.grey),
                       SizedBox(height: 16),
                       Text('No results found'),
                       SizedBox(height: 8),
                       Text(
                         'Try different keywords',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                     ],
                   ),

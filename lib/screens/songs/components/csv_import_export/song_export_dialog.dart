@@ -1,5 +1,6 @@
 /// Dialog for exporting songs to CSV.
 library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 import 'package:flutter_repsync_app/services/csv/song_csv_service.dart';
@@ -9,10 +10,7 @@ class SongExportDialog extends StatefulWidget {
   /// List of songs to export.
   final List<Song> songs;
 
-  const SongExportDialog({
-    super.key,
-    required this.songs,
-  });
+  const SongExportDialog({super.key, required this.songs});
 
   @override
   State<SongExportDialog> createState() => _SongExportDialogState();
@@ -113,21 +111,14 @@ class _SongExportDialogState extends State<SongExportDialog> {
     return const Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.check_circle,
-          color: Colors.green,
-          size: 64,
-        ),
+        Icon(Icons.check_circle, color: Colors.green, size: 64),
         SizedBox(height: 16),
         Text(
           'Export Successful!',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 8),
-        Text(
-          'Songs exported to CSV',
-          style: TextStyle(color: Colors.grey),
-        ),
+        Text('Songs exported to CSV', style: TextStyle(color: Colors.grey)),
       ],
     );
   }

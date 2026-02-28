@@ -62,7 +62,10 @@ void main() {
       );
 
       // Should have 4 beat buttons for 4/4 time (using GestureDetector)
-      expect(find.byType(GestureDetector), findsNWidgets(5)); // 4 beats + 1 reset button
+      expect(
+        find.byType(GestureDetector),
+        findsNWidgets(5),
+      ); // 4 beats + 1 reset button
     });
 
     testWidgets('renders beat numbers', (WidgetTester tester) async {
@@ -146,7 +149,10 @@ void main() {
       );
 
       // Should have 4 beat buttons for default 4/4 time (using GestureDetector)
-      expect(find.byType(GestureDetector), findsNWidgets(5)); // 4 beats + 1 reset button
+      expect(
+        find.byType(GestureDetector),
+        findsNWidgets(5),
+      ); // 4 beats + 1 reset button
     });
 
     testWidgets('renders beat labels below buttons', (

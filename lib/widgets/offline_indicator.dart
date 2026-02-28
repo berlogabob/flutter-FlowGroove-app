@@ -52,11 +52,7 @@ class OfflineIndicator extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.wifi_off,
-            color: MonoPulseColors.accentOrange,
-            size: 20,
-          ),
+          Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 20),
           SizedBox(width: 8),
           Text(
             'Offline - Some features may be limited',
@@ -82,11 +78,7 @@ class OfflineIndicator extends ConsumerWidget {
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.wifi_off,
-            color: MonoPulseColors.accentOrange,
-            size: 16,
-          ),
+          Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 16),
           SizedBox(width: 6),
           Text(
             'Offline',

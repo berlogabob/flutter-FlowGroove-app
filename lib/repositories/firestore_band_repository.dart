@@ -126,10 +126,7 @@ class FirestoreBandRepository implements BandRepository {
   Future<void> saveBandToGlobal(Band band) async {
     try {
       _requireAuth();
-      await _firestore
-          .collection('bands')
-          .doc(band.id)
-          .set(band.toJson());
+      await _firestore.collection('bands').doc(band.id).set(band.toJson());
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(

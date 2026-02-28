@@ -250,9 +250,7 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
-              songsProvider.overrideWith(
-                (ref) => Stream.error('Test error'),
-              ),
+              songsProvider.overrideWith((ref) => Stream.error('Test error')),
             ],
             child: MaterialApp(home: Scaffold(body: const SongLibraryBlock())),
           ),

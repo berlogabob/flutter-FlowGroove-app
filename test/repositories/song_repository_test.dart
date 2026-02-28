@@ -63,10 +63,7 @@ void main() {
         );
 
         // Act & Assert
-        expect(
-          () => repository.updateSong(song),
-          throwsException,
-        );
+        expect(() => repository.updateSong(song), throwsException);
       });
     });
 
@@ -175,10 +172,7 @@ void main() {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
-        await repository.addSongToBand(
-          song: song,
-          bandId: 'band-id',
-        );
+        await repository.addSongToBand(song: song, bandId: 'band-id');
 
         // Act
         await repository.deleteBandSong('band-id', 'test-id');
@@ -196,20 +190,14 @@ void main() {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
-        await repository.addSongToBand(
-          song: song,
-          bandId: 'band-id',
-        );
+        await repository.addSongToBand(song: song, bandId: 'band-id');
 
         // Act
         final updatedSong = song.copyWith(title: 'Updated Title');
         await repository.updateBandSong(updatedSong, 'band-id');
 
         // Assert
-        expect(
-          repository.getBandSongs('band-id').first.title,
-          'Updated Title',
-        );
+        expect(repository.getBandSongs('band-id').first.title, 'Updated Title');
       });
 
       test('should watch band songs', () async {
@@ -221,10 +209,7 @@ void main() {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
-        await repository.addSongToBand(
-          song: song,
-          bandId: 'band-id',
-        );
+        await repository.addSongToBand(song: song, bandId: 'band-id');
 
         // Act
         final songs = await repository.watchBandSongs('band-id').first;
@@ -271,7 +256,11 @@ void main() {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
         links: [
-          Link(type: Link.typeOther, url: 'https://example.com', title: 'Example'),
+          Link(
+            type: Link.typeOther,
+            url: 'https://example.com',
+            title: 'Example',
+          ),
         ],
       );
 
