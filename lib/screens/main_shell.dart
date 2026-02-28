@@ -2,29 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/mono_pulse_theme.dart';
-import 'home_screen.dart';
-import 'songs/songs_list_screen.dart';
-import 'bands/my_bands_screen.dart';
-import 'setlists/setlists_list_screen.dart';
-import 'profile_screen.dart';
-
-/// Provider to track the current bottom navigation index.
-final bottomNavIndexProvider = NotifierProvider<BottomNavNotifier, int>(() {
-  return BottomNavNotifier();
-});
-
-class BottomNavNotifier extends Notifier<int> {
-  @override
-  int build() => 0;
-
-  void setIndex(int index) {
-    state = index;
-  }
-
-  void reset() {
-    state = 0;
-  }
-}
 
 /// Main application shell with bottom navigation.
 /// Works with StatefulShellRoute.indexedStack for proper tab switching.
@@ -113,9 +90,6 @@ class MainShell extends ConsumerWidget {
   }
 
   void _onTap(BuildContext context, int index) {
-    navigationShell.goBranch(
-      index,
-      initialLocation: index == navigationShell.currentIndex,
-    );
+    navigationShell.goBranch(index);
   }
 }

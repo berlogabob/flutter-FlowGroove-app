@@ -236,14 +236,14 @@ void main() {
         bandId: 'test-band-id',
         songIds: ['song-1', 'song-2', 'song-3'],
         description: 'Test setlist for integration testing',
-        eventDate: '2024-06-15',
+        eventDate: DateTime(2024, 6, 15),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
       expect(setlist.name, equals('Test Setlist'));
       expect(setlist.songIds.length, equals(3));
-      expect(setlist.eventDate, equals('2024-06-15'));
+      expect(setlist.eventDate, equals(DateTime(2024, 6, 15)));
     });
 
     test('reads a setlist', () async {
@@ -329,12 +329,12 @@ void main() {
         name: 'Gig Setlist',
         bandId: 'test-band-id',
         songIds: [],
-        eventDate: '2024-12-31',
+        eventDate: DateTime(2024, 12, 31),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      expect(setlist.eventDate, equals('2024-12-31'));
+      expect(setlist.eventDate, equals(DateTime(2024, 12, 31)));
     });
   });
 

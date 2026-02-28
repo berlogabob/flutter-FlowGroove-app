@@ -54,8 +54,9 @@ void main() {
     // CREATE SETLIST FLOW TESTS
     // =========================================================================
     group('Create Setlist Flow', () {
-      testWidgets('INT-SETLIST-01.1: Create setlist with valid name succeeds',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.1: Create setlist with valid name succeeds', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlistId = const Uuid().v4();
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
@@ -74,9 +75,7 @@ void main() {
 
         await tester.pumpWidget(
           ProviderScope(
-            child: MaterialApp(
-              home: CreateSetlistScreen(setlist: setlist),
-            ),
+            child: MaterialApp(home: CreateSetlistScreen(setlist: setlist)),
           ),
         );
         await tester.pumpAndSettle();
@@ -95,8 +94,9 @@ void main() {
         verify(mockDocument.set(any, any)).called(1);
       });
 
-      testWidgets('INT-SETLIST-01.2: Create setlist with event date',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.2: Create setlist with event date', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlistId = const Uuid().v4();
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
@@ -109,17 +109,18 @@ void main() {
           name: 'Gig Setlist',
           bandId: 'test-band-id',
           songIds: [],
-          eventDate: '2024-06-15',
+          eventDate: DateTime(2024, 6, 15),
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
 
         // Assert: Event date stored
-        expect(setlist.eventDate, equals('2024-06-15'));
+        expect(setlist.eventDate, equals(DateTime(2024, 6, 15)));
       });
 
-      testWidgets('INT-SETLIST-01.3: Create setlist with description',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.3: Create setlist with description', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlistId = const Uuid().v4();
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
@@ -141,38 +142,39 @@ void main() {
         expect(setlist.description, equals('Setlist for summer tour'));
       });
 
-      testWidgets('INT-SETLIST-01.4: Create setlist with empty name shows validation',
-          (WidgetTester tester) async {
-        // Arrange
-        final setlist = Setlist(
-          id: '',
-          bandId: 'test-band-id',
-          name: '',
-          songIds: [],
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
+      testWidgets(
+        'INT-SETLIST-01.4: Create setlist with empty name shows validation',
+        (WidgetTester tester) async {
+          // Arrange
+          final setlist = Setlist(
+            id: '',
+            bandId: 'test-band-id',
+            name: '',
+            songIds: [],
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
 
-        await tester.pumpWidget(
-          ProviderScope(
-            child: MaterialApp(
-              home: CreateSetlistScreen(setlist: setlist),
+          await tester.pumpWidget(
+            ProviderScope(
+              child: MaterialApp(home: CreateSetlistScreen(setlist: setlist)),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
+          );
+          await tester.pumpAndSettle();
 
-        // Act: Try to create without name
-        final createButton = find.text('Create Setlist');
-        await tester.tap(createButton);
-        await tester.pumpAndSettle();
+          // Act: Try to create without name
+          final createButton = find.text('Create Setlist');
+          await tester.tap(createButton);
+          await tester.pumpAndSettle();
 
-        // Assert: Validation error
-        expect(find.textContaining('required'), findsOneWidget);
-      });
+          // Assert: Validation error
+          expect(find.textContaining('required'), findsOneWidget);
+        },
+      );
 
-      testWidgets('INT-SETLIST-01.5: Create setlist appears in setlists list',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.5: Create setlist appears in setlists list', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final testSetlist = Setlist(
           id: const Uuid().v4(),
@@ -184,9 +186,12 @@ void main() {
         );
 
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
-        when(mockCollection.where(any, isEqualTo: anyNamed('isEqualTo')))
-            .thenReturn(mockCollection);
-        when(mockCollection.get(any)).thenAnswer((_) async => mockQuerySnapshot);
+        when(
+          mockCollection.where(any, isEqualTo: anyNamed('isEqualTo')),
+        ).thenReturn(mockCollection);
+        when(
+          mockCollection.get(any),
+        ).thenAnswer((_) async => mockQuerySnapshot);
 
         // Use mockDocSnapshot from setUp instead of creating new mock
         when(mockDocSnapshot.exists).thenReturn(true);
@@ -195,7 +200,10 @@ void main() {
         // Mock query snapshot returns list with one document
         when(mockQuerySnapshot.size).thenReturn(1);
         // Use dynamic cast to work around type system - mockito handles it
-        when(mockQuerySnapshot.docs).thenReturn(<dynamic>[mockDocSnapshot] as List<QueryDocumentSnapshot<Map<String, dynamic>>>);
+        when(mockQuerySnapshot.docs).thenReturn(
+          <dynamic>[mockDocSnapshot]
+              as List<QueryDocumentSnapshot<Map<String, dynamic>>>,
+        );
 
         // Act
         await tester.pumpWidget(
@@ -218,8 +226,9 @@ void main() {
         expect(find.text('Test Setlist'), findsOneWidget);
       });
 
-      testWidgets('INT-SETLIST-01.6: Create setlist links to band',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.6: Create setlist links to band', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlistId = const Uuid().v4();
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
@@ -245,8 +254,9 @@ void main() {
     // ADD SONGS TO SETLIST FLOW TESTS
     // =========================================================================
     group('Add Songs to Setlist Flow', () {
-      testWidgets('INT-SETLIST-01.7: Add songs to setlist',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.7: Add songs to setlist', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -272,8 +282,9 @@ void main() {
         expect(updatedSetlist.songIds.length, equals(2));
       });
 
-      testWidgets('INT-SETLIST-01.8: Add songs calculates setlist duration',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.8: Add songs calculates setlist duration', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final songs = [
           Song(
@@ -301,8 +312,9 @@ void main() {
         expect(estimatedDuration, equals(480)); // 8 minutes
       });
 
-      testWidgets('INT-SETLIST-01.9: Add songs displays in order',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.9: Add songs displays in order', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -348,8 +360,9 @@ void main() {
         expect(orderedSongs[2].title, equals('Third Song'));
       });
 
-      testWidgets('INT-SETLIST-01.10: Add duplicate song to setlist',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.10: Add duplicate song to setlist', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -368,8 +381,9 @@ void main() {
         expect(uniqueSongIds.length, equals(1));
       });
 
-      testWidgets('INT-SETLIST-01.11: Add songs persists to Firestore',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.11: Add songs persists to Firestore', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
         when(mockCollection.doc(any)).thenReturn(mockDocument);
@@ -386,8 +400,9 @@ void main() {
         verify(mockDocument.update(any)).called(1);
       });
 
-      testWidgets('INT-SETLIST-01.12: Add songs updates UI',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.12: Add songs updates UI', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -430,8 +445,9 @@ void main() {
     // REORDER SETLIST FLOW TESTS
     // =========================================================================
     group('Reorder Setlist Flow', () {
-      testWidgets('INT-SETLIST-01.13: Reorder songs in setlist',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.13: Reorder songs in setlist', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -454,8 +470,9 @@ void main() {
         expect(updatedSetlist.songIds[2], equals('song-2'));
       });
 
-      testWidgets('INT-SETLIST-01.14: Reorder updates Firestore',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.14: Reorder updates Firestore', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
         when(mockCollection.doc(any)).thenReturn(mockDocument);
@@ -471,8 +488,9 @@ void main() {
         verify(mockDocument.update(any)).called(1);
       });
 
-      testWidgets('INT-SETLIST-01.15: Reorder recalculates duration',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.15: Reorder recalculates duration', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -495,8 +513,9 @@ void main() {
         expect(updatedSetlist.totalDuration, equals(720));
       });
 
-      testWidgets('INT-SETLIST-01.16: Drag and drop reordering UI',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.16: Drag and drop reordering UI', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final songs = ['Song 1', 'Song 2', 'Song 3'];
 
@@ -531,8 +550,9 @@ void main() {
     // REMOVE SONG FROM SETLIST FLOW TESTS
     // =========================================================================
     group('Remove Song from Setlist Flow', () {
-      testWidgets('INT-SETLIST-01.17: Remove song from setlist',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.17: Remove song from setlist', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -548,8 +568,9 @@ void main() {
         when(mockDocument.update(any)).thenAnswer((_) async => {});
 
         // Act: Remove song-2
-        final newSongIds =
-            setlist.songIds.where((id) => id != 'song-2').toList();
+        final newSongIds = setlist.songIds
+            .where((id) => id != 'song-2')
+            .toList();
         final updatedSetlist = setlist.copyWith(
           songIds: newSongIds,
           updatedAt: DateTime.now(),
@@ -560,8 +581,9 @@ void main() {
         expect(updatedSetlist.songIds.contains('song-2'), isFalse);
       });
 
-      testWidgets('INT-SETLIST-01.18: Remove song recalculates duration',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.18: Remove song recalculates duration', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -574,18 +596,19 @@ void main() {
         );
 
         // Act: Remove one song
-        final newSongIds =
-            setlist.songIds.where((id) => id != 'song-2').toList();
-        final newDuration =
-            (newSongIds.length * 4 * 60); // Recalculate
+        final newSongIds = setlist.songIds
+            .where((id) => id != 'song-2')
+            .toList();
+        final newDuration = (newSongIds.length * 4 * 60); // Recalculate
 
         // Assert
         expect(newSongIds.length, equals(2));
         expect(newDuration, equals(480)); // 8 minutes
       });
 
-      testWidgets('INT-SETLIST-01.19: Remove song updates UI',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.19: Remove song updates UI', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -597,8 +620,9 @@ void main() {
         );
 
         // Act: Remove song-2
-        final newSongIds =
-            setlist.songIds.where((id) => id != 'song-2').toList();
+        final newSongIds = setlist.songIds
+            .where((id) => id != 'song-2')
+            .toList();
 
         await tester.pumpWidget(
           ProviderScope(
@@ -622,8 +646,9 @@ void main() {
         expect(find.text('Song 3'), findsNothing);
       });
 
-      testWidgets('INT-SETLIST-01.20: Remove last song from setlist',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.20: Remove last song from setlist', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -635,8 +660,9 @@ void main() {
         );
 
         // Act: Remove last song
-        final newSongIds =
-            setlist.songIds.where((id) => id != 'song-1').toList();
+        final newSongIds = setlist.songIds
+            .where((id) => id != 'song-1')
+            .toList();
 
         // Assert: Empty setlist is valid
         expect(newSongIds.isEmpty, isTrue);
@@ -647,8 +673,9 @@ void main() {
     // DELETE SETLIST FLOW TESTS
     // =========================================================================
     group('Delete Setlist Flow', () {
-      testWidgets('INT-SETLIST-01.21: Delete setlist from settings',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.21: Delete setlist from settings', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
         when(mockCollection.doc(any)).thenReturn(mockDocument);
@@ -678,39 +705,42 @@ void main() {
         expect(deleteButton, findsOneWidget);
       });
 
-      testWidgets('INT-SETLIST-01.22: Delete setlist confirms before deletion',
-          (WidgetTester tester) async {
-        // Arrange
-        await tester.pumpWidget(
-          const ProviderScope(
-            child: MaterialApp(
-              home: Scaffold(
-                body: AlertDialog(
-                  title: Text('Delete Setlist'),
-                  content: Text('Are you sure?'),
-                  actions: [
-                    TextButton(
-                      onPressed: null, // Cancel
-                      child: Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: null, // Confirm
-                      child: Text('Delete'),
-                    ),
-                  ],
+      testWidgets(
+        'INT-SETLIST-01.22: Delete setlist confirms before deletion',
+        (WidgetTester tester) async {
+          // Arrange
+          await tester.pumpWidget(
+            const ProviderScope(
+              child: MaterialApp(
+                home: Scaffold(
+                  body: AlertDialog(
+                    title: Text('Delete Setlist'),
+                    content: Text('Are you sure?'),
+                    actions: [
+                      TextButton(
+                        onPressed: null, // Cancel
+                        child: Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: null, // Confirm
+                        child: Text('Delete'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
+          );
+          await tester.pumpAndSettle();
 
-        // Assert: Confirmation dialog shown
-        expect(find.text('Are you sure?'), findsOneWidget);
-      });
+          // Assert: Confirmation dialog shown
+          expect(find.text('Are you sure?'), findsOneWidget);
+        },
+      );
 
-      testWidgets('INT-SETLIST-01.23: Delete setlist removes from Firestore',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.23: Delete setlist removes from Firestore', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
         when(mockCollection.doc(any)).thenReturn(mockDocument);
@@ -724,8 +754,9 @@ void main() {
         verify(mockDocument.delete()).called(1);
       });
 
-      testWidgets('INT-SETLIST-01.24: Delete setlist does NOT delete songs',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.24: Delete setlist does NOT delete songs', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final songs = [
           Song(
@@ -757,41 +788,44 @@ void main() {
         // Note: Songs collection not touched
       });
 
-      testWidgets('INT-SETLIST-01.25: Delete setlist redirects to setlists list',
-          (WidgetTester tester) async {
-        // Arrange & Act: Simulate navigation after delete
-        await tester.pumpWidget(
-          ProviderScope(
-            child: MaterialApp(
-              home: Scaffold(
-                body: Column(
-                  children: [
-                    const Text('Setlist Detail'),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Would navigate back to list
-                      },
-                      child: const Text('Back to Setlists'),
-                    ),
-                  ],
+      testWidgets(
+        'INT-SETLIST-01.25: Delete setlist redirects to setlists list',
+        (WidgetTester tester) async {
+          // Arrange & Act: Simulate navigation after delete
+          await tester.pumpWidget(
+            ProviderScope(
+              child: MaterialApp(
+                home: Scaffold(
+                  body: Column(
+                    children: [
+                      const Text('Setlist Detail'),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Would navigate back to list
+                        },
+                        child: const Text('Back to Setlists'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
+          );
+          await tester.pumpAndSettle();
 
-        // Assert: Back button present
-        expect(find.text('Back to Setlists'), findsOneWidget);
-      });
+          // Assert: Back button present
+          expect(find.text('Back to Setlists'), findsOneWidget);
+        },
+      );
     });
 
     // =========================================================================
     // SETLIST + PDF EXPORT INTEGRATION TESTS
     // =========================================================================
     group('Setlist + PDF Export Integration', () {
-      testWidgets('INT-SETLIST-01.26: Export setlist to PDF',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.26: Export setlist to PDF', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -827,8 +861,9 @@ void main() {
         expect(find.text('Export PDF'), findsOneWidget);
       });
 
-      testWidgets('INT-SETLIST-01.27: PDF contains all songs',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.27: PDF contains all songs', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -855,8 +890,9 @@ void main() {
         expect(pdfContent, contains('Third Song'));
       });
 
-      testWidgets('INT-SETLIST-01.28: PDF contains setlist order',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.28: PDF contains setlist order', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -884,8 +920,9 @@ void main() {
         expect(orderedTitles[2], equals('Second Song'));
       });
 
-      testWidgets('INT-SETLIST-01.29: PDF export with empty setlist',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.29: PDF export with empty setlist', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -903,8 +940,9 @@ void main() {
         expect(canExport, isFalse);
       });
 
-      testWidgets('INT-SETLIST-01.30: PDF export shows success message',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.30: PDF export shows success message', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(
           const ProviderScope(
@@ -935,8 +973,9 @@ void main() {
     // EDGE CASES AND ERROR HANDLING
     // =========================================================================
     group('Edge Cases and Error Handling', () {
-      testWidgets('INT-SETLIST-01.31: Create setlist with network error',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.31: Create setlist with network error', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         when(mockFirestore.collection('setlists')).thenReturn(mockCollection);
         when(mockCollection.doc(any)).thenReturn(mockDocument);
@@ -949,12 +988,15 @@ void main() {
         );
 
         // Act & Assert
-        expect(() async => await mockDocument.set({}, SetOptions()),
-            throwsA(isA<FirebaseException>()));
+        expect(
+          () async => await mockDocument.set({}, SetOptions()),
+          throwsA(isA<FirebaseException>()),
+        );
       });
 
-      testWidgets('INT-SETLIST-01.32: Setlist name with special characters',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.32: Setlist name with special characters', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
@@ -969,8 +1011,9 @@ void main() {
         expect(setlist.name.contains('@'), isTrue);
       });
 
-      testWidgets('INT-SETLIST-01.33: Very long setlist name handled',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.33: Very long setlist name handled', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final longName = 'A' * 100;
         final setlist = Setlist(
@@ -986,8 +1029,9 @@ void main() {
         expect(setlist.name.length, equals(100));
       });
 
-      testWidgets('INT-SETLIST-01.34: Setlist with many songs',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.34: Setlist with many songs', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final manySongIds = List.generate(50, (i) => 'song-$i');
         final setlist = Setlist(
@@ -1003,8 +1047,9 @@ void main() {
         expect(setlist.songIds.length, equals(50));
       });
 
-      testWidgets('INT-SETLIST-01.35: Setlist duration calculation edge case',
-          (WidgetTester tester) async {
+      testWidgets('INT-SETLIST-01.35: Setlist duration calculation edge case', (
+        WidgetTester tester,
+      ) async {
         // Arrange
         final setlist = Setlist(
           id: const Uuid().v4(),
