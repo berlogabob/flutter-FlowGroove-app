@@ -396,6 +396,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
+          _buildSection(title: 'My Tags', children: [_buildTagsSection()]),
+          const SizedBox(height: MonoPulseSpacing.lg),
           _buildSection(
             title: 'Account',
             children: [
@@ -485,6 +487,56 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         Card(child: Column(children: children)),
       ],
+    );
+  }
+
+  Widget _buildTagsSection() {
+    final userAsync = ref.watch(appUserProvider);
+
+    return userAsync.when(
+      data: (user) {
+        final tags = user?.baseTags ?? [];
+
+        if (tags.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'No tags yet. Add your instruments and roles in band assignments.',
+              style: TextStyle(color: MonoPulseColors.textTertiary),
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: tags.map((tag) {
+              return Chip(
+                label: Text(
+                  tag,
+                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                ),
+                backgroundColor: MonoPulseColors.accentOrange,
+                padding: EdgeInsets.zero,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              );
+            }).toList(),
+          ),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: CircularProgressIndicator(),
+      ),
+      error: (_, __) => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text(
+          'Error loading tags',
+          style: TextStyle(color: MonoPulseColors.error),
+        ),
+      ),
     );
   }
 

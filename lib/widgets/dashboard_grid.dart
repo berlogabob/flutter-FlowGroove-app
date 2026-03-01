@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../theme/mono_pulse_theme.dart';
 
@@ -397,14 +399,19 @@ class GreetingCard extends StatelessWidget {
           CircleAvatar(
             radius: 30,
             backgroundColor: MonoPulseColors.surfaceRaised,
-            child: Text(
-              initial,
-              style: const TextStyle(
-                fontSize: 24,
-                color: MonoPulseColors.accentOrange,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            backgroundImage: avatarPath != null && avatarPath!.isNotEmpty
+                ? FileImage(File(avatarPath!))
+                : null,
+            child: avatarPath == null || avatarPath!.isEmpty
+                ? Text(
+                    initial,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      color: MonoPulseColors.accentOrange,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: MonoPulseSpacing.lg),
           Expanded(
