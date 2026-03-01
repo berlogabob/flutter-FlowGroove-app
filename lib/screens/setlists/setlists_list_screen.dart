@@ -28,9 +28,16 @@ class SetlistsListScreen extends ConsumerStatefulWidget {
 class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   String _searchQuery = '';
   SortOption _sortOption = SortOption.manual;
+  List<Setlist>? _manualOrder; // Store manual order for manual sort mode
 
   List<SetlistItemAdapter> _filterAndSortSetlists(List<Setlist> setlists) {
-    var adapters = setlists
+    // Use manual order if in manual sort mode and we have it
+    List<Setlist> setlistsToUse = setlists;
+    if (_sortOption == SortOption.manual && _manualOrder != null) {
+      setlistsToUse = _manualOrder!;
+    }
+
+    var adapters = setlistsToUse
         .map((setlist) => SetlistItemAdapter(setlist))
         .toList();
 
@@ -42,41 +49,63 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       }).toList();
     }
 
-    switch (_sortOption) {
-      case SortOption.manual:
-        break;
-      case SortOption.alphabetical:
-        adapters.sort(
-          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-        );
-        break;
-      case SortOption.dateAdded:
-        adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
-      case SortOption.dateModified:
-        adapters.sort(
-          (a, b) => (b.updatedAt ?? DateTime(0)).compareTo(
-            a.updatedAt ?? DateTime(0),
-          ),
-        );
-        break;
+    // Apply sorting (only for non-manual modes)
+    if (_sortOption != SortOption.manual) {
+      switch (_sortOption) {
+        case SortOption.alphabetical:
+          adapters.sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+          );
+          break;
+        case SortOption.dateAdded:
+          adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          break;
+        case SortOption.dateModified:
+          adapters.sort(
+            (a, b) => (b.updatedAt ?? DateTime(0)).compareTo(
+              a.updatedAt ?? DateTime(0),
+            ),
+          );
+          break;
+        case SortOption.manual:
+          break;
+      }
     }
 
     return adapters;
   }
 
-  void _handleReorder(int oldIndex, int newIndex) async {
-    if (newIndex > oldIndex) newIndex -= 1;
-    final setlists = ref.read(setlistsProvider).value;
-    if (setlists == null) return;
-    final setlist = setlists.removeAt(oldIndex);
-    setlists.insert(newIndex, setlist);
-    final service = ref.read(firestoreProvider);
+  void _handleReorder(int oldIndex, int newIndex) {
+    // Update manual order when reordering (same pattern as songs)
+    if (_manualOrder != null &&
+        oldIndex >= 0 &&
+        newIndex >= 0 &&
+        oldIndex < _manualOrder!.length &&
+        newIndex < _manualOrder!.length) {
+      // Create a copy to avoid modifying the original list directly
+      final newOrder = List<Setlist>.from(_manualOrder!);
+
+      // Move item from oldIndex to newIndex
+      final item = newOrder.removeAt(oldIndex);
+      newOrder.insert(newIndex, item);
+
+      setState(() {
+        _manualOrder = newOrder;
+      });
+
+      // Save to Firestore
+      _saveManualOrder(newOrder);
+    }
+  }
+
+  Future<void> _saveManualOrder(List<Setlist> order) async {
     final user = ref.read(currentUserProvider).value;
-    if (user != null) {
-      for (int i = 0; i < setlists.length; i++) {
-        await service.saveSetlist(setlists[i], uid: user.uid);
-      }
+    if (user == null) return;
+    final service = ref.read(firestoreProvider);
+
+    // Save all setlists with new order
+    for (int i = 0; i < order.length; i++) {
+      await service.saveSetlist(order[i], uid: user.uid);
     }
   }
 
@@ -99,7 +128,8 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       ref.read(setlistsProvider).value ?? [],
     );
     if (index >= adapters.length) return;
-    _showExportOptions(context, ref, adapters[index].setlist);
+    // Open setlist for editing on tap
+    _handleEdit(index);
   }
 
   void _handleEdit(int index) {
