@@ -89,6 +89,19 @@ bot.action("consent_allow", async (ctx) => {
   const telegramUsername = ctx.from.username || ctx.from.first_name;
 
   try {
+    // Fetch user's profile photo from Telegram
+    const photos = await ctx.telegram.getUserProfilePhotos(userId, {
+      limit: 1,
+    });
+    let telegramPhotoURL = null;
+
+    if (photos.total_count > 0 && photos.photos[0] && photos.photos[0][0]) {
+      const fileId = photos.photos[0][0].file_id;
+      const file = await ctx.telegram.getFile(fileId);
+      telegramPhotoURL = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN.value()}/${file.file_path}`;
+      console.log(`📸 Fetched Telegram photo: ${telegramPhotoURL}`);
+    }
+
     const userDoc = await db
       .collection("users")
       .where("telegramId", "==", userId)
@@ -100,17 +113,16 @@ bot.action("consent_allow", async (ctx) => {
         telegramConsent: true,
         telegramConsentDate: admin.firestore.FieldValue.serverTimestamp(),
         telegramUsername: telegramUsername,
+        telegramPhotoURL: telegramPhotoURL, // ✅ NOW SAVED!
       });
 
       await ctx.answerCbQuery("✅ Принято!");
-      await ctx.reply(
-        `✅ *Готово!*\n\n` +
-          `Импортируем:\n` +
-          `• Имя: \`${telegramUsername}\`\n` +
-          `• Фото: из Telegram\n\n` +
-          `Есть вопросы? Пишите в поддержку!`,
-        { parse_mode: "Markdown" },
-      );
+
+      const replyMsg = telegramPhotoURL
+        ? `✅ *Готово!*\n\nИмпортируем:\n• Имя: \`${telegramUsername}\`\n• Фото: из Telegram\n\nЕсть вопросы? Пишите в поддержку!`
+        : `✅ *Готово!*\n\nИмпортируем:\n• Имя: \`${telegramUsername}\`\n\nФото не найдено в Telegram.\n\nЕсть вопросы? Пишите в поддержку!`;
+
+      await ctx.reply(replyMsg, { parse_mode: "Markdown" });
     } else {
       await ctx.answerCbQuery("⚠️ Сначала /link");
       await ctx.reply(
@@ -121,6 +133,7 @@ bot.action("consent_allow", async (ctx) => {
       );
     }
   } catch (error) {
+    console.error(`❌ consent_allow error for user ${userId}:`, error);
     await ctx.answerCbQuery("❌ Error");
     await ctx.reply("❌ Ошибка. Попробуйте позже.");
   }
