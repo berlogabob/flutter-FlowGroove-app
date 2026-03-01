@@ -399,8 +399,11 @@ class GreetingCard extends StatelessWidget {
           CircleAvatar(
             radius: 30,
             backgroundColor: MonoPulseColors.surfaceRaised,
+            // Try to load from URL first, then from file, then show initial
             backgroundImage: avatarPath != null && avatarPath!.isNotEmpty
-                ? FileImage(File(avatarPath!))
+                ? (avatarPath!.startsWith('http')
+                      ? NetworkImage(avatarPath!) as ImageProvider
+                      : FileImage(File(avatarPath!)))
                 : null,
             child: avatarPath == null || avatarPath!.isEmpty
                 ? Text(

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/api_error.dart';
 import '../../models/user.dart';
@@ -56,17 +57,44 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       data: (user) {
         if (user != null) {
           String displayName = user.displayName ?? '';
+          String? photoURL = user.photoURL;
+
           if (displayName.isEmpty) {
             // Use email or fallback to 'User'
             final emailPrefix = user.email?.split('@').first ?? 'User';
             displayName = emailPrefix.isNotEmpty ? emailPrefix : 'User';
           }
+
+          // Load Telegram photo if consent given
+          _loadTelegramProfile(user.uid).then((telegramData) {
+            if (telegramData != null) {
+              // Use Telegram name if no Firebase name
+              if (displayName == 'User' &&
+                  telegramData['telegramUsername'] != null) {
+                displayName = telegramData['telegramUsername']!;
+              }
+              // Use Telegram photo if available
+              photoURL = telegramData['telegramPhotoURL'];
+
+              // Update state with Telegram data
+              state = AsyncValue.data(
+                AppUser(
+                  uid: user.uid,
+                  email: user.email,
+                  displayName: displayName,
+                  photoURL: photoURL,
+                  createdAt: DateTime.now(),
+                ),
+              );
+            }
+          });
+
           return AsyncValue.data(
             AppUser(
               uid: user.uid,
               email: user.email,
-              displayName: displayName.isNotEmpty ? displayName : 'User',
-              photoURL: user.photoURL,
+              displayName: displayName,
+              photoURL: photoURL,
               createdAt: DateTime.now(),
             ),
           );
@@ -80,6 +108,28 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         return AsyncValue.error(apiError, stack);
       },
     );
+  }
+
+  /// Load Telegram profile data if user gave consent
+  Future<Map<String, dynamic>?> _loadTelegramProfile(String uid) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final userDoc = await firestore.collection('users').doc(uid).get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        if (data != null && data['telegramConsent'] == true) {
+          return {
+            'telegramUsername': data['telegramUsername'],
+            'telegramPhotoURL': data['telegramPhotoURL'],
+          };
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error loading Telegram profile: $e');
+      return null;
+    }
   }
 
   void dispose() {

@@ -93,6 +93,7 @@ class HomeScreen extends ConsumerWidget {
     return userAsync.when(
       data: (user) => GreetingCard(
         userName: user?.displayName ?? 'User',
+        avatarPath: user?.photoURL, // Use photo URL (Telegram or Firebase)
         subtitle: 'Ready to rock?',
       ),
       loading: () => GreetingCard(userName: 'Loading...', subtitle: ''),
