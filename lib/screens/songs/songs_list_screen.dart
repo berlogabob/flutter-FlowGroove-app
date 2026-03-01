@@ -10,7 +10,6 @@ import '../../providers/auth/error_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/list_screen_content.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/error_banner.dart';
@@ -19,6 +18,8 @@ import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/tag_cloud_widget.dart';
+import '../../widgets/fab_variants.dart';
+import '../../widgets/loading_indicator.dart';
 import 'components/csv_import_export/csv_import_export.dart';
 
 /// Notifier for songs filter/sort state.
@@ -167,7 +168,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Error: User not logged in'),
-            backgroundColor: Colors.red,
+            backgroundColor: MonoPulseColors.error,
           ),
         );
         return;
@@ -195,21 +196,21 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Successfully imported $savedCount song(s)'),
-            backgroundColor: Colors.green,
+            backgroundColor: MonoPulseColors.success,
           ),
         );
       } else if (savedCount > 0 && failedCount > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Imported $savedCount song(s), $failedCount failed'),
-            backgroundColor: Colors.amber,
+            backgroundColor: MonoPulseColors.warning,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Failed to import songs'),
-            backgroundColor: Colors.red,
+            backgroundColor: MonoPulseColors.error,
           ),
         );
       }
@@ -221,7 +222,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Import error: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: MonoPulseColors.error,
         ),
       );
     }
@@ -233,7 +234,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('No songs to export'),
-          backgroundColor: Colors.amber,
+          backgroundColor: MonoPulseColors.warning,
         ),
       );
       return;
@@ -492,6 +493,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
     return StandardScreenScaffold(
       title: 'Songs',
+      showBackButton: false, // Hide back button for main tabs
       menuItems: [
         PopupMenuItem<void>(
           onTap: _handleImport,
@@ -504,10 +506,10 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           child: const Text('Export to CSV'),
         ),
       ],
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'songs_fab',
+      floatingActionButton: SingleFab(
+        icon: Icons.add,
         onPressed: () => context.goNamed('add-song'),
-        child: const Icon(Icons.add),
+        heroTag: 'songs_fab',
       ),
       body: _buildBody(songsAsync, bandsAsync),
     );
@@ -525,7 +527,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         }
         return _buildContent(context, ref, songs, bandsAsync);
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingIndicator(),
       error: (e, stack) {
         _handleStreamError(e, stack);
         return _buildErrorState();
@@ -832,7 +834,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Song deleted'),
-          backgroundColor: Colors.green,
+          backgroundColor: MonoPulseColors.success,
         ),
       );
     } on ApiError catch (e) {
@@ -901,7 +903,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Added "${song.title}" to band'),
-          backgroundColor: Colors.green,
+          backgroundColor: MonoPulseColors.success,
         ),
       );
     } on ApiError catch (e) {

@@ -25,7 +25,7 @@ class TelegramUser {
 
 class TelegramService {
   static String get botToken => dotenv.env['TELEGRAM_BOT_TOKEN'] ?? '';
-  static const String botUsername = 'repsyncappbot';
+  static const String botUsername = 'repsyncbot';
 
   /// Opens Telegram chat with the bot and sends /link command
   Future<bool> openBotChat(String? userId) async {

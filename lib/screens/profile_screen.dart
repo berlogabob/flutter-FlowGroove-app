@@ -236,218 +236,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _showManualTelegramLinkDialog() {
-    final telegramController = TextEditingController();
-    final telegramService = TelegramService();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Link Telegram (Alternative)'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'If the previous method does not work, you can try this:',
-              style: TextStyle(
-                fontSize: 14,
-                color: MonoPulseColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: telegramController,
-              decoration: const InputDecoration(
-                labelText: 'Telegram User ID',
-                hintText: 'Enter your Telegram ID',
-                prefixIcon: Icon(Icons.tag),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'How to get your ID:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-            const Text(
-              '1. Open Telegram\n2. Search for @userinfobot\n3. Send /start\n4. Copy your ID',
-              style: TextStyle(
-                fontSize: 12,
-                color: MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final idStr = telegramController.text.trim();
-              if (idStr.isEmpty) return;
-
-              final userId = int.tryParse(idStr);
-              if (userId == null) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Invalid Telegram ID')),
-                  );
-                }
-                return;
-              }
-
-              Navigator.pop(context);
-              await _linkTelegramById(userId, telegramService);
-            },
-            child: const Text('Link'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _linkTelegramById(
-    int telegramId,
-    TelegramService service,
-  ) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      final telegramUser = TelegramUser(
-        id: telegramId,
-        firstName: 'Telegram User',
-      );
-
-      // Update display name
-      final userAsync = ref.read(currentUserProvider);
-      final user = userAsync.value;
-      if (user != null) {
-        await user.updateDisplayName(telegramUser.displayName);
-        await ref
-            .read(firestoreProvider)
-            .updateUserProfile(
-              uid: user.uid,
-              displayName: telegramUser.displayName,
-            );
-      }
-
-      // Try to get photo
-      final photoUrl = await service.getUserPhotoUrl(telegramId);
-      if (photoUrl != null && mounted) {
-        final directory = await getApplicationDocumentsDirectory();
-        final savedFile = await service.downloadPhoto(
-          photoUrl,
-          '${directory.path}/profile_photo.jpg',
-        );
-        if (savedFile != null && mounted) {
-          setState(() {
-            _profilePhotoPath = savedFile.path;
-          });
-        }
-      }
-
-      if (!mounted) return;
-      Navigator.pop(context);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Linked Telegram! Name: ${telegramUser.displayName}'),
-        ),
-      );
-      setState(() {});
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
-
-  Future<void> _linkTelegramAccount(
-    String username,
-    TelegramService service,
-  ) async {
-    // Show loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      // Get user from Telegram
-      final telegramUser = await service.getUserByUsername(username);
-
-      if (!mounted) return;
-      Navigator.pop(context); // Close loading
-
-      if (telegramUser == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Could not find Telegram user. Make sure you have started a conversation with the bot.',
-            ),
-          ),
-        );
-        return;
-      }
-
-      // Update display name
-      final userAsync = ref.read(currentUserProvider);
-      final user = userAsync.value;
-      if (user != null) {
-        await user.updateDisplayName(telegramUser.displayName);
-        await ref
-            .read(firestoreProvider)
-            .updateUserProfile(
-              uid: user.uid,
-              displayName: telegramUser.displayName,
-            );
-      }
-
-      // Try to get photo
-      final photoUrl = await service.getUserPhotoUrl(telegramUser.id);
-      if (photoUrl != null && mounted) {
-        // Download and save photo
-        final directory = await getApplicationDocumentsDirectory();
-        final savedFile = await service.downloadPhoto(
-          photoUrl,
-          '${directory.path}/profile_photo.jpg',
-        );
-        if (savedFile != null && mounted) {
-          setState(() {
-            _profilePhotoPath = savedFile.path;
-          });
-        }
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Linked Telegram! Name: ${telegramUser.displayName}'),
-          ),
-        );
-        setState(() {});
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context); // Close loading
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error linking Telegram: $e')));
-      }
-    }
-  }
-
   Future<void> _saveDisplayName() async {
     final newName = _nameController.text.trim();
     if (newName.isEmpty) {
@@ -608,6 +396,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
+          _buildSection(title: 'My Tags', children: [_buildTagsSection()]),
+          const SizedBox(height: MonoPulseSpacing.lg),
           _buildSection(
             title: 'Account',
             children: [
@@ -616,16 +406,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 title: 'Edit Profile',
                 subtitle: 'Change name and photo',
                 onTap: _showPhotoOptions,
-              ),
-              _buildMenuItem(
-                icon: Icons.lock_outline,
-                title: 'Change Password',
-                subtitle: 'Update your password',
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Feature coming soon')),
-                  );
-                },
               ),
               _buildMenuItem(
                 icon: Icons.send,
@@ -707,6 +487,56 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         Card(child: Column(children: children)),
       ],
+    );
+  }
+
+  Widget _buildTagsSection() {
+    final userAsync = ref.watch(appUserProvider);
+
+    return userAsync.when(
+      data: (user) {
+        final tags = user?.baseTags ?? [];
+
+        if (tags.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'No tags yet. Add your instruments and roles in band assignments.',
+              style: TextStyle(color: MonoPulseColors.textTertiary),
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: tags.map((tag) {
+              return Chip(
+                label: Text(
+                  tag,
+                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                ),
+                backgroundColor: MonoPulseColors.accentOrange,
+                padding: EdgeInsets.zero,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              );
+            }).toList(),
+          ),
+        );
+      },
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: CircularProgressIndicator(),
+      ),
+      error: (_, __) => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text(
+          'Error loading tags',
+          style: TextStyle(color: MonoPulseColors.error),
+        ),
+      ),
     );
   }
 

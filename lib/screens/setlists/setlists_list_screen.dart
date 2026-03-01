@@ -7,13 +7,16 @@ import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../services/export/pdf_service.dart';
-import '../../widgets/custom_app_bar.dart';
-import '../../widgets/offline_indicator.dart';
+import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/fab_variants.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/error_banner.dart';
+import '../../widgets/loading_indicator.dart';
 
 class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});
@@ -25,9 +28,16 @@ class SetlistsListScreen extends ConsumerStatefulWidget {
 class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   String _searchQuery = '';
   SortOption _sortOption = SortOption.manual;
+  List<Setlist>? _manualOrder; // Store manual order for manual sort mode
 
   List<SetlistItemAdapter> _filterAndSortSetlists(List<Setlist> setlists) {
-    var adapters = setlists
+    // Use manual order if in manual sort mode and we have it
+    List<Setlist> setlistsToUse = setlists;
+    if (_sortOption == SortOption.manual && _manualOrder != null) {
+      setlistsToUse = _manualOrder!;
+    }
+
+    var adapters = setlistsToUse
         .map((setlist) => SetlistItemAdapter(setlist))
         .toList();
 
@@ -39,41 +49,63 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       }).toList();
     }
 
-    switch (_sortOption) {
-      case SortOption.manual:
-        break;
-      case SortOption.alphabetical:
-        adapters.sort(
-          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-        );
-        break;
-      case SortOption.dateAdded:
-        adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
-      case SortOption.dateModified:
-        adapters.sort(
-          (a, b) => (b.updatedAt ?? DateTime(0)).compareTo(
-            a.updatedAt ?? DateTime(0),
-          ),
-        );
-        break;
+    // Apply sorting (only for non-manual modes)
+    if (_sortOption != SortOption.manual) {
+      switch (_sortOption) {
+        case SortOption.alphabetical:
+          adapters.sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+          );
+          break;
+        case SortOption.dateAdded:
+          adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          break;
+        case SortOption.dateModified:
+          adapters.sort(
+            (a, b) => (b.updatedAt ?? DateTime(0)).compareTo(
+              a.updatedAt ?? DateTime(0),
+            ),
+          );
+          break;
+        case SortOption.manual:
+          break;
+      }
     }
 
     return adapters;
   }
 
-  void _handleReorder(int oldIndex, int newIndex) async {
-    if (newIndex > oldIndex) newIndex -= 1;
-    final setlists = ref.read(setlistsProvider).value;
-    if (setlists == null) return;
-    final setlist = setlists.removeAt(oldIndex);
-    setlists.insert(newIndex, setlist);
-    final service = ref.read(firestoreProvider);
+  void _handleReorder(int oldIndex, int newIndex) {
+    // Update manual order when reordering (same pattern as songs)
+    if (_manualOrder != null &&
+        oldIndex >= 0 &&
+        newIndex >= 0 &&
+        oldIndex < _manualOrder!.length &&
+        newIndex < _manualOrder!.length) {
+      // Create a copy to avoid modifying the original list directly
+      final newOrder = List<Setlist>.from(_manualOrder!);
+
+      // Move item from oldIndex to newIndex
+      final item = newOrder.removeAt(oldIndex);
+      newOrder.insert(newIndex, item);
+
+      setState(() {
+        _manualOrder = newOrder;
+      });
+
+      // Save to Firestore
+      _saveManualOrder(newOrder);
+    }
+  }
+
+  Future<void> _saveManualOrder(List<Setlist> order) async {
     final user = ref.read(currentUserProvider).value;
-    if (user != null) {
-      for (int i = 0; i < setlists.length; i++) {
-        await service.saveSetlist(setlists[i], uid: user.uid);
-      }
+    if (user == null) return;
+    final service = ref.read(firestoreProvider);
+
+    // Save all setlists with new order
+    for (int i = 0; i < order.length; i++) {
+      await service.saveSetlist(order[i], uid: user.uid);
     }
   }
 
@@ -96,7 +128,8 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       ref.read(setlistsProvider).value ?? [],
     );
     if (index >= adapters.length) return;
-    _showExportOptions(context, ref, adapters[index].setlist);
+    // Open setlist for editing on tap
+    _handleEdit(index);
   }
 
   void _handleEdit(int index) {
@@ -116,36 +149,34 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Widget build(BuildContext context) {
     final setlistsAsync = ref.watch(setlistsProvider);
 
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
-        title: 'Setlists',
-        menuItems: [
-          PopupMenuItem<void>(
-            child: const Text('Create Setlist'),
-            onTap: () => context.goNamed('create-setlist'),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          const OfflineIndicator.banner(),
-          Expanded(child: _buildBody(setlistsAsync)),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'setlists_fab',
+    return StandardScreenScaffold(
+      title: 'Setlists',
+      showBackButton: false, // Hide back button for main tabs
+      menuItems: [
+        PopupMenuItem<void>(
+          child: const Text('Create Setlist'),
+          onTap: () => context.goNamed('create-setlist'),
+        ),
+      ],
+      floatingActionButton: SingleFab(
+        icon: Icons.add,
         onPressed: () => context.goNamed('create-setlist'),
-        child: const Icon(Icons.add),
+        heroTag: 'setlists_fab',
       ),
+      body: _buildBody(setlistsAsync),
     );
   }
 
   Widget _buildBody(AsyncValue<List<Setlist>> setlistsAsync) {
     return setlistsAsync.when(
       data: (setlists) => _buildContent(setlists),
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      loading: () => const LoadingIndicator(),
+      error: (e, _) => Center(
+        child: ErrorBanner.card(
+          message: e.toString(),
+          onRetry: () => ref.invalidate(setlistsProvider),
+        ),
+      ),
     );
   }
 
@@ -300,7 +331,11 @@ class _PdfExportAction implements UnifiedItemAction {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.picture_as_pdf, size: 20, color: Colors.red),
+      icon: const Icon(
+        Icons.picture_as_pdf,
+        size: 20,
+        color: MonoPulseColors.error,
+      ),
       onPressed: onPressed,
       tooltip: 'Export PDF',
     );

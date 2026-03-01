@@ -26,8 +26,15 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   DateTime? _eventDate;
   final _eventLocationController = TextEditingController();
   List<Song> _selectedSongs = [];
+  bool _hasUnsavedChanges = false;
 
   bool get _isEditing => widget.setlist != null;
+
+  void _markAsChanged() {
+    if (!_hasUnsavedChanges) {
+      setState(() => _hasUnsavedChanges = true);
+    }
+  }
 
   @override
   void initState() {
@@ -81,12 +88,18 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       },
     );
     if (picked != null) {
-      setState(() => _eventDate = picked);
+      setState(() {
+        _eventDate = picked;
+        _markAsChanged();
+      });
     }
   }
 
   void _clearDate() {
-    setState(() => _eventDate = null);
+    setState(() {
+      _eventDate = null;
+      _markAsChanged();
+    });
   }
 
   void _showSongPicker() async {
@@ -106,7 +119,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           selectedSongs: _selectedSongs,
           scrollController: scrollController,
           onConfirm: (selected) {
-            setState(() => _selectedSongs = selected);
+            setState(() {
+              _selectedSongs = selected;
+              _markAsChanged();
+            });
             Navigator.pop(context);
           },
         ),
@@ -158,6 +174,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
         ),
       );
 
+      // Clear unsaved changes flag after successful save
+      setState(() => _hasUnsavedChanges = false);
+
       // Small delay to allow provider to refresh before navigating back
       await Future.delayed(const Duration(milliseconds: 300));
 
@@ -167,235 +186,281 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     }
   }
 
+  Future<bool> _showDiscardChangesDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard Changes?'),
+            content: const Text(
+              'You have unsaved changes. Are you sure you want to discard them?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
-        title: _isEditing ? 'Edit Setlist' : 'Create Setlist',
-        menuItems: [
-          PopupMenuItem<void>(onTap: _saveSetlist, child: const Text('Save')),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Setlist Name *',
-                prefixIcon: Icon(Icons.queue_music),
-              ),
-              textInputAction: TextInputAction.next,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: MonoPulseColors.surfaceRaised,
-                  borderRadius: BorderRadius.circular(12),
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return; // Already popped
+
+        if (_hasUnsavedChanges) {
+          final confirm = await _showDiscardChangesDialog();
+          if (confirm && context.mounted) {
+            if (context.mounted) {
+              Navigator.pop(context); // Allow pop
+            }
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: CustomAppBar.build(
+          context,
+          title: _isEditing ? 'Edit Setlist' : 'Create Setlist',
+          menuItems: [
+            PopupMenuItem<void>(onTap: _saveSetlist, child: const Text('Save')),
+          ],
+        ),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Setlist Name *',
+                  prefixIcon: Icon(Icons.queue_music),
                 ),
-                child: const Icon(
-                  Icons.calendar_today,
-                  color: MonoPulseColors.textSecondary,
-                ),
+                textInputAction: TextInputAction.next,
+                onChanged: (_) => _markAsChanged(),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
-              title: const Text(
-                'Event Date',
-                style: TextStyle(
-                  color: MonoPulseColors.textSecondary,
-                  fontSize: 12,
-                ),
-              ),
-              subtitle: Text(
-                _eventDate != null
-                    ? '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}'
-                    : 'Tap to select date',
-                style: TextStyle(
-                  color: _eventDate != null
-                      ? MonoPulseColors.textPrimary
-                      : MonoPulseColors.textTertiary,
-                  fontSize: 16,
-                ),
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_eventDate != null)
-                    IconButton(
-                      icon: const Icon(
-                        Icons.clear,
-                        color: MonoPulseColors.textSecondary,
-                      ),
-                      onPressed: _clearDate,
-                    ),
-                  const Icon(
-                    Icons.chevron_right,
+              const SizedBox(height: 16),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: MonoPulseColors.surfaceRaised,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.calendar_today,
                     color: MonoPulseColors.textSecondary,
                   ),
-                ],
-              ),
-              onTap: _pickDate,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _eventLocationController,
-              decoration: const InputDecoration(
-                labelText: 'Event Location',
-                prefixIcon: Icon(Icons.location_on),
-              ),
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _saveSetlist(),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Songs (${_selectedSongs.length})',
-                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                TextButton.icon(
-                  onPressed: _showSongPicker,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add'),
+                title: const Text(
+                  'Event Date',
+                  style: TextStyle(
+                    color: MonoPulseColors.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (_selectedSongs.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(MonoPulseSpacing.xxxl),
-                decoration: BoxDecoration(
-                  border: Border.all(color: MonoPulseColors.borderDefault),
-                  borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                subtitle: Text(
+                  _eventDate != null
+                      ? '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}'
+                      : 'Tap to select date',
+                  style: TextStyle(
+                    color: _eventDate != null
+                        ? MonoPulseColors.textPrimary
+                        : MonoPulseColors.textTertiary,
+                    fontSize: 16,
+                  ),
                 ),
-                child: const Column(
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.music_note,
-                      size: 48,
-                      color: MonoPulseColors.textTertiary,
-                    ),
-                    SizedBox(height: MonoPulseSpacing.md),
-                    Text(
-                      'No songs added',
-                      style: TextStyle(color: MonoPulseColors.textSecondary),
+                    if (_eventDate != null)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.clear,
+                          color: MonoPulseColors.textSecondary,
+                        ),
+                        onPressed: _clearDate,
+                      ),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: MonoPulseColors.textSecondary,
                     ),
                   ],
                 ),
-              )
-            else
-              ReorderableListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _selectedSongs.length,
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    if (newIndex > oldIndex) newIndex--;
-                    final song = _selectedSongs.removeAt(oldIndex);
-                    _selectedSongs.insert(newIndex, song);
-                  });
-                },
-                itemBuilder: (context, index) {
-                  final song = _selectedSongs[index];
-                  return Card(
-                    key: ValueKey(song.id),
-                    margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
-                    child: ListTile(
-                      leading: ReorderableDragStartListener(
-                        index: index,
-                        child: const Icon(
-                          Icons.drag_handle,
-                          color: MonoPulseColors.textTertiary,
-                        ),
+                onTap: _pickDate,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _eventLocationController,
+                decoration: const InputDecoration(
+                  labelText: 'Event Location',
+                  prefixIcon: Icon(Icons.location_on),
+                ),
+                textInputAction: TextInputAction.done,
+                onChanged: (_) => _markAsChanged(),
+                onFieldSubmitted: (_) => _saveSetlist(),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLines: 2,
+                onChanged: (_) => _markAsChanged(),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Songs (${_selectedSongs.length})',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  TextButton.icon(
+                    onPressed: _showSongPicker,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (_selectedSongs.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(MonoPulseSpacing.xxxl),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: MonoPulseColors.borderDefault),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                  ),
+                  child: const Column(
+                    children: [
+                      Icon(
+                        Icons.music_note,
+                        size: 48,
+                        color: MonoPulseColors.textTertiary,
                       ),
-                      title: Text(
-                        song.title,
-                        style: const TextStyle(
-                          color: MonoPulseColors.textPrimary,
-                        ),
+                      SizedBox(height: MonoPulseSpacing.md),
+                      Text(
+                        'No songs added',
+                        style: TextStyle(color: MonoPulseColors.textSecondary),
                       ),
-                      subtitle: Text(
-                        song.artist,
-                        style: const TextStyle(
-                          color: MonoPulseColors.textSecondary,
-                        ),
+                    ],
+                  ),
+                )
+              else
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _selectedSongs.length,
+                  onReorder: (oldIndex, newIndex) {
+                    setState(() {
+                      if (newIndex > oldIndex) newIndex--;
+                      final song = _selectedSongs.removeAt(oldIndex);
+                      _selectedSongs.insert(newIndex, song);
+                      _markAsChanged();
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    final song = _selectedSongs[index];
+                    return Card(
+                      key: ValueKey(song.id),
+                      margin: const EdgeInsets.only(
+                        bottom: MonoPulseSpacing.md,
                       ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: MonoPulseSpacing.md,
-                              vertical: MonoPulseSpacing.xs,
-                            ),
-                            decoration: BoxDecoration(
-                              color: MonoPulseColors.accentOrangeSubtle,
-                              borderRadius: BorderRadius.circular(
-                                MonoPulseRadius.small,
-                              ),
-                            ),
-                            child: Text(
-                              song.ourKey ?? '-',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: MonoPulseColors.accentOrange,
-                              ),
-                            ),
+                      child: ListTile(
+                        leading: ReorderableDragStartListener(
+                          index: index,
+                          child: const Icon(
+                            Icons.drag_handle,
+                            color: MonoPulseColors.textTertiary,
                           ),
-                          const SizedBox(width: 8),
-                          if (song.ourBPM != null)
-                            Text(
-                              '${song.ourBPM}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                        ),
+                        title: Text(
+                          song.title,
+                          style: const TextStyle(
+                            color: MonoPulseColors.textPrimary,
+                          ),
+                        ),
+                        subtitle: Text(
+                          song.artist,
+                          style: const TextStyle(
+                            color: MonoPulseColors.textSecondary,
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: MonoPulseSpacing.md,
+                                vertical: MonoPulseSpacing.xs,
+                              ),
+                              decoration: BoxDecoration(
+                                color: MonoPulseColors.accentOrangeSubtle,
+                                borderRadius: BorderRadius.circular(
+                                  MonoPulseRadius.small,
+                                ),
+                              ),
+                              child: Text(
+                                song.ourKey ?? '-',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: MonoPulseColors.accentOrange,
+                                ),
                               ),
                             ),
-                          if (song.spotifyUrl != null) ...[
-                            const SizedBox(width: 4),
-                            InkWell(
-                              onTap: () async {
-                                final uri = Uri.parse(song.spotifyUrl!);
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(
-                                    uri,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
-                              },
-                              child: const Icon(
-                                Icons.play_circle_fill,
-                                color: Colors.green,
-                                size: 24,
+                            const SizedBox(width: 8),
+                            if (song.ourBPM != null)
+                              Text(
+                                '${song.ourBPM}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
+                            if (song.spotifyUrl != null) ...[
+                              const SizedBox(width: 4),
+                              InkWell(
+                                onTap: () async {
+                                  final uri = Uri.parse(song.spotifyUrl!);
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(
+                                      uri,
+                                      mode: LaunchMode.externalApplication,
+                                    );
+                                  }
+                                },
+                                child: const Icon(
+                                  Icons.play_circle_fill,
+                                  color: MonoPulseColors.beatModeAccent,
+                                  size: 24,
+                                ),
+                              ),
+                            ],
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: () => setState(() {
+                                _selectedSongs.removeAt(index);
+                                _markAsChanged();
+                              }),
                             ),
                           ],
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 20),
-                            onPressed: () =>
-                                setState(() => _selectedSongs.removeAt(index)),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
-          ],
+                    );
+                  },
+                ),
+            ],
+          ),
         ),
       ),
     );

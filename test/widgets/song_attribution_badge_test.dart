@@ -24,10 +24,7 @@ void main() {
     testWidgets('renders copy badge when isCopy is true', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        const SongAttributionBadge(isCopy: true),
-      );
+      await pumpAppWidget(tester, const SongAttributionBadge(isCopy: true));
 
       expect(find.byIcon(Icons.content_copy), findsOneWidget);
       expect(find.text('Shared'), findsWidgets);
@@ -36,10 +33,7 @@ void main() {
     testWidgets('does not render copy badge when isCopy is false', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        const SongAttributionBadge(isCopy: false),
-      );
+      await pumpAppWidget(tester, const SongAttributionBadge(isCopy: false));
 
       expect(find.byIcon(Icons.content_copy), findsNothing);
     });
@@ -89,10 +83,7 @@ void main() {
     ) async {
       await pumpAppWidget(
         tester,
-        const SongAttributionBadge(
-          contributorName: 'Jane Doe',
-          isCopy: false,
-        ),
+        const SongAttributionBadge(contributorName: 'Jane Doe', isCopy: false),
       );
 
       expect(find.byIcon(Icons.add_circle_outline), findsNothing);
@@ -126,10 +117,7 @@ void main() {
     testWidgets('respects showCopyIndicator flag', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
-        const SongAttributionBadge(
-          isCopy: true,
-          showCopyIndicator: false,
-        ),
+        const SongAttributionBadge(isCopy: true, showCopyIndicator: false),
       );
 
       expect(find.byIcon(Icons.content_copy), findsNothing);
@@ -165,10 +153,7 @@ void main() {
     });
 
     testWidgets('uses Wrap for layout', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const SongAttributionBadge(isCopy: true),
-      );
+      await pumpAppWidget(tester, const SongAttributionBadge(isCopy: true));
 
       expect(find.byType(Wrap), findsOneWidget);
     });
@@ -178,10 +163,7 @@ void main() {
     testWidgets('renders nothing when isCopy is false', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        const CompactAttributionBadge(isCopy: false),
-      );
+      await pumpAppWidget(tester, const CompactAttributionBadge(isCopy: false));
 
       expect(find.byType(SizedBox), findsOneWidget);
     });
@@ -189,10 +171,7 @@ void main() {
     testWidgets('renders copy badge when isCopy is true', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        const CompactAttributionBadge(isCopy: true),
-      );
+      await pumpAppWidget(tester, const CompactAttributionBadge(isCopy: true));
 
       expect(find.byIcon(Icons.content_copy), findsOneWidget);
     });
@@ -202,10 +181,7 @@ void main() {
     ) async {
       await pumpAppWidget(
         tester,
-        const CompactAttributionBadge(
-          isCopy: true,
-          contributorName: 'Jane',
-        ),
+        const CompactAttributionBadge(isCopy: true, contributorName: 'Jane'),
       );
 
       expect(find.textContaining('by Jane'), findsOneWidget);

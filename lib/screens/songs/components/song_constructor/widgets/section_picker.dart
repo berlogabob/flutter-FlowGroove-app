@@ -70,7 +70,9 @@ class _SectionPickerState extends State<SectionPicker>
             ),
             const SizedBox(height: 20),
             Divider(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.3),
               thickness: 1.5,
             ),
             const SizedBox(height: 16),

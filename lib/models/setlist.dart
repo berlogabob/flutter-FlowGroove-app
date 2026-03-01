@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'setlist_assignment.dart';
 import 'band.dart';
@@ -160,27 +159,6 @@ DateTime? _parseTimestamp(dynamic value) {
     return DateTime.fromMillisecondsSinceEpoch(value);
   }
   return null;
-}
-
-DateTime? _parseNullableDateTime(dynamic value) {
-  if (value == null) return null;
-  if (value is DateTime) return value;
-  if (value is String) {
-    final result = DateTime.tryParse(value);
-    if (result != null) return result;
-  }
-  return null;
-}
-
-// Parse string field (legacy support)
-String? _parseStringField(dynamic value) {
-  if (value == null) return null;
-  return value.toString();
-}
-
-String? _stringFieldToJson(dynamic value) {
-  if (value == null) return null;
-  return value.toString();
 }
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();

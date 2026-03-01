@@ -1,7 +1,9 @@
 /// Preview table for CSV import data.
 library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_repsync_app/models/song.dart';
+import '../../../../theme/mono_pulse_theme.dart';
 
 /// Widget for displaying CSV import preview with validation errors.
 class SongCsvPreviewTable extends StatelessWidget {
@@ -20,9 +22,7 @@ class SongCsvPreviewTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (songs.isEmpty && errors.isEmpty) {
-      return const Center(
-        child: Text('No data found in CSV'),
-      );
+      return const Center(child: Text('No data found in CSV'));
     }
 
     if (errors.isNotEmpty && songs.isEmpty) {
@@ -45,23 +45,23 @@ class SongCsvPreviewTable extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       color: songs.isNotEmpty && errors.isEmpty
-          ? Colors.green.shade50
+          ? MonoPulseColors.successGreenSubtle
           : errors.isNotEmpty && songs.isNotEmpty
-              ? Colors.amber.shade50
-              : Colors.red.shade50,
+          ? MonoPulseColors.warningSubtle
+          : MonoPulseColors.errorSubtle,
       child: Row(
         children: [
           Icon(
             songs.isNotEmpty && errors.isEmpty
                 ? Icons.check_circle
                 : errors.isNotEmpty && songs.isNotEmpty
-                    ? Icons.warning
-                    : Icons.error,
+                ? Icons.warning
+                : Icons.error,
             color: songs.isNotEmpty && errors.isEmpty
-                ? Colors.green
+                ? MonoPulseColors.successGreen
                 : errors.isNotEmpty && songs.isNotEmpty
-                    ? Colors.amber
-                    : Colors.red,
+                ? MonoPulseColors.warning
+                : MonoPulseColors.error,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -75,10 +75,10 @@ class SongCsvPreviewTable extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: songs.isNotEmpty && errors.isEmpty
-                        ? Colors.green.shade700
+                        ? MonoPulseColors.successGreen
                         : errors.isNotEmpty && songs.isNotEmpty
-                            ? Colors.amber.shade700
-                            : Colors.red.shade700,
+                        ? MonoPulseColors.warning
+                        : MonoPulseColors.error,
                   ),
                 ),
                 if (errors.isNotEmpty)
@@ -87,8 +87,8 @@ class SongCsvPreviewTable extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: songs.isNotEmpty && errors.isNotEmpty
-                          ? Colors.amber.shade700
-                          : Colors.red.shade700,
+                          ? MonoPulseColors.warning
+                          : MonoPulseColors.error,
                     ),
                   ),
               ],
@@ -110,21 +110,27 @@ class SongCsvPreviewTable extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
-          ...errors.map((error) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error, color: Colors.red, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        error,
-                        style: const TextStyle(color: Colors.red),
-                      ),
+          ...errors.map(
+            (error) => Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error,
+                    color: MonoPulseColors.error,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      error,
+                      style: const TextStyle(color: MonoPulseColors.error),
                     ),
-                  ],
-                ),
-              )),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -132,7 +138,7 @@ class SongCsvPreviewTable extends StatelessWidget {
 
   Widget _buildErrorsSection() {
     return ExpansionTile(
-      leading: const Icon(Icons.warning, color: Colors.amber),
+      leading: const Icon(Icons.warning, color: MonoPulseColors.warning),
       title: const Text('Validation Errors'),
       subtitle: Text('${errors.length} error(s) found'),
       initiallyExpanded: true,
@@ -144,8 +150,11 @@ class SongCsvPreviewTable extends StatelessWidget {
             itemCount: errors.length,
             itemBuilder: (context, index) {
               return ListTile(
-                leading: const Icon(Icons.error_outline,
-                    color: Colors.red, size: 20),
+                leading: const Icon(
+                  Icons.error_outline,
+                  color: MonoPulseColors.error,
+                  size: 20,
+                ),
                 title: Text(
                   errors[index],
                   style: const TextStyle(fontSize: 12),
@@ -176,16 +185,22 @@ class SongCsvPreviewTable extends StatelessWidget {
                 DataColumn(label: Text('Tags')),
               ],
               rows: songs.take(10).map((song) {
-                return DataRow(cells: [
-                  DataCell(Text(song.title, maxLines: 1)),
-                  DataCell(Text(song.artist, maxLines: 1)),
-                  DataCell(Text(song.ourKey ?? song.originalKey ?? '-')),
-                  DataCell(Text(song.ourBPM?.toString() ??
-                      song.originalBPM?.toString() ??
-                      '-')),
-                  DataCell(Text('${song.sections.length}')),
-                  DataCell(Text(song.tags.take(3).join(', '))),
-                ]);
+                return DataRow(
+                  cells: [
+                    DataCell(Text(song.title, maxLines: 1)),
+                    DataCell(Text(song.artist, maxLines: 1)),
+                    DataCell(Text(song.ourKey ?? song.originalKey ?? '-')),
+                    DataCell(
+                      Text(
+                        song.ourBPM?.toString() ??
+                            song.originalBPM?.toString() ??
+                            '-',
+                      ),
+                    ),
+                    DataCell(Text('${song.sections.length}')),
+                    DataCell(Text(song.tags.take(3).join(', '))),
+                  ],
+                );
               }).toList(),
             ),
           ),

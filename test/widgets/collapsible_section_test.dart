@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_repsync_app/screens/songs/components/collapsible_section.dart';
 
 void main() {
-  testWidgets('CollapsibleSection renders title and content', (WidgetTester tester) async {
+  testWidgets('CollapsibleSection renders title and content', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -18,12 +20,14 @@ void main() {
 
     // Verify title is shown
     expect(find.text('Test Section'), findsOneWidget);
-    
+
     // Verify content is shown (expanded by default)
     expect(find.text('Test Content'), findsOneWidget);
   });
 
-  testWidgets('CollapsibleSection can be collapsed', (WidgetTester tester) async {
+  testWidgets('CollapsibleSection can be collapsed', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -43,7 +47,9 @@ void main() {
     expect(find.text('Test Content'), findsNothing);
   });
 
-  testWidgets('CollapsibleSection can be expanded again', (WidgetTester tester) async {
+  testWidgets('CollapsibleSection can be expanded again', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -68,7 +74,9 @@ void main() {
     expect(find.text('Test Content'), findsOneWidget);
   });
 
-  testWidgets('CollapsibleSection with icon shows icon', (WidgetTester tester) async {
+  testWidgets('CollapsibleSection with icon shows icon', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -85,9 +93,11 @@ void main() {
     expect(find.byIcon(Icons.star), findsOneWidget);
   });
 
-  testWidgets('CollapsibleSection with action shows action', (WidgetTester tester) async {
+  testWidgets('CollapsibleSection with action shows action', (
+    WidgetTester tester,
+  ) async {
     bool actionPressed = false;
-    
+
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -114,7 +124,9 @@ void main() {
     expect(actionPressed, isTrue);
   });
 
-  testWidgets('CollapsibleSection respects initiallyExpanded', (WidgetTester tester) async {
+  testWidgets('CollapsibleSection respects initiallyExpanded', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(

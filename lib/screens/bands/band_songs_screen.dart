@@ -10,10 +10,13 @@ import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/confirmation_dialog.dart';
 import '../../../widgets/custom_app_bar.dart';
+import '../../../widgets/error_banner.dart';
 import '../../../widgets/unified_item/unified_item_list.dart';
 import '../../../widgets/unified_item/unified_item_model.dart';
 import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
 import '../../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../../widgets/fab_variants.dart';
+import '../../../widgets/loading_indicator.dart';
 import 'song_picker_screen.dart';
 
 /// Screen for displaying a band's shared songs.
@@ -34,28 +37,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   String _searchQuery = '';
   String? _filterContributor;
   SortOption _sortOption = SortOption.alphabetical;
-  bool _isTagsExpanded = false;
   bool _isMembersExpanded = true; // Changed to true - show members by default
-
-  final List<String> _availableTags = [
-    'rock',
-    'pop',
-    'jazz',
-    'blues',
-    'metal',
-    'folk',
-    'country',
-    'reggae',
-    'funk',
-    'r&b',
-    'cover band',
-    'original',
-    'tribute',
-    'wedding',
-    'bar',
-    'live',
-    'studio',
-  ];
 
   /// Get the current user's role in the band.
   String? get _userRole {
@@ -200,14 +182,19 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       ),
       body: songsAsync.when(
         data: (songs) => _buildContent(context, ref, songs),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        loading: () => const LoadingIndicator(),
+        error: (e, _) => Center(
+          child: ErrorBanner.card(
+            message: e.toString(),
+            onRetry: () => ref.invalidate(songsProvider),
+          ),
+        ),
       ),
       floatingActionButton: _canEdit
-          ? FloatingActionButton(
-              heroTag: 'band_songs_fab',
+          ? SingleFab(
+              icon: Icons.add,
               onPressed: () => _addSongToBand(context, ref),
-              child: const Icon(Icons.add),
+              heroTag: 'band_songs_fab',
             )
           : null,
     );
@@ -279,91 +266,43 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Description section (replaces "Ready to rock?")
+          // Description section - Centered under band name
           if (description != null && description.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(
-                description,
-                style: const TextStyle(
-                  color: MonoPulseColors.textSecondary,
-                  fontSize: 14,
+              child: Center(
+                child: Text(
+                  description,
+                  style: const TextStyle(
+                    color: MonoPulseColors.textPrimary,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             )
           else
             const Padding(
               padding: EdgeInsets.only(bottom: 12),
-              child: Text(
-                'Ready to rock',
-                style: TextStyle(
-                  color: MonoPulseColors.textTertiary,
-                  fontSize: 14,
-                  fontStyle: FontStyle.italic,
+              child: Center(
+                child: Text(
+                  'Ready to rock?',
+                  style: TextStyle(
+                    color: MonoPulseColors.textTertiary,
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
 
-          // Quick Actions - Tags and Members (collapsible)
+          // Quick Actions - Members only (Tags section removed)
           Card(
             child: Column(
               children: [
-                // Tags section
-                InkWell(
-                  onTap: () =>
-                      setState(() => _isTagsExpanded = !_isTagsExpanded),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.label_outline, size: 20),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Tags',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${band.tags.length}',
-                          style: const TextStyle(
-                            color: MonoPulseColors.textSecondary,
-                          ),
-                        ),
-                        AnimatedRotation(
-                          turns: _isTagsExpanded ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: const Icon(Icons.keyboard_arrow_down),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (_isTagsExpanded)
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _availableTags.map((tag) {
-                        final isSelected = band.tags.contains(tag);
-                        return FilterChip(
-                          label: Text(tag),
-                          selected: isSelected,
-                          onSelected: _canEdit
-                              ? (selected) => _toggleTag(tag, selected)
-                              : null,
-                          selectedColor: MonoPulseColors.accentOrangeSubtle,
-                          checkmarkColor: MonoPulseColors.accentOrange,
-                        );
-                      }).toList(),
-                    ),
-                  ),
-
-                if (_isTagsExpanded && _isMembersExpanded)
-                  const Divider(height: 1),
-
                 // Members section
                 InkWell(
                   onTap: () =>
@@ -409,34 +348,6 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         ],
       ),
     );
-  }
-
-  Future<void> _toggleTag(String tag, bool selected) async {
-    final currentTags = List<String>.from(widget.band.tags);
-    if (selected) {
-      currentTags.add(tag);
-    } else {
-      currentTags.remove(tag);
-    }
-
-    final updatedBand = widget.band.copyWith(tags: currentTags);
-
-    try {
-      final userAsync = ref.read(currentUserProvider);
-      final user = userAsync.value;
-      if (user == null) return;
-
-      await ref.read(firestoreProvider).saveBand(updatedBand, uid: user.uid);
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating tags: $e')));
-      }
-    }
   }
 
   Widget _buildSearchAndFilter(
@@ -624,8 +535,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                 leading: CircleAvatar(
                   backgroundColor: MonoPulseColors.accentOrange,
                   child: Text(
-                    (member.displayName ?? member.email ?? '?')[0]
-                        .toUpperCase(),
+                    _getMemberInitials(member).toUpperCase(),
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
@@ -710,6 +620,16 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     );
   }
 
+  /// Get member initials safely (handles empty strings).
+  String _getMemberInitials(BandMember member) {
+    final text = member.displayName != null && member.displayName!.isNotEmpty
+        ? member.displayName!
+        : member.email != null && member.email!.isNotEmpty
+        ? member.email!
+        : '?';
+    return text.isNotEmpty ? text[0] : '?';
+  }
+
   Widget _buildMemberTile(BandMember member) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -724,8 +644,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                   backgroundColor: MonoPulseColors.accentOrange,
                   radius: 20,
                   child: Text(
-                    (member.displayName ?? member.email ?? '?')[0]
-                        .toUpperCase(),
+                    _getMemberInitials(member).toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -796,15 +715,15 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     String icon;
     switch (role) {
       case 'admin':
-        color = Colors.red;
+        color = MonoPulseColors.roleAdmin;
         icon = 'A';
         break;
       case 'editor':
-        color = Colors.blue;
+        color = MonoPulseColors.roleEditor;
         icon = 'E';
         break;
       default:
-        color = Colors.grey;
+        color = MonoPulseColors.textTertiary;
         icon = 'V';
     }
     return Container(

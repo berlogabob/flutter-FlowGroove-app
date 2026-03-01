@@ -10,7 +10,6 @@ import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/list_screen_content.dart';
 import '../../widgets/fab_variants.dart';
 import '../../widgets/unified_item/adapters/band_item_adapter.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
@@ -19,6 +18,7 @@ import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/error_banner.dart';
+import '../../widgets/loading_indicator.dart';
 
 /// Screen for displaying the user's bands with search, filter, sort,
 /// swipe-to-delete, and drag-and-drop reordering.
@@ -240,7 +240,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         }
         return _buildContent(context, ref, bands);
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingIndicator(),
       error: (e, stack) {
         _handleStreamError(e, stack);
         return _buildErrorState();
@@ -581,9 +581,9 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
+                color: MonoPulseColors.errorSubtle,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.shade200),
+                border: Border.all(color: MonoPulseColors.errorSubtle20),
               ),
               child: Row(
                 children: [

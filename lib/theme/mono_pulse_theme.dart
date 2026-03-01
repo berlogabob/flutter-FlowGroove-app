@@ -57,6 +57,74 @@ class MonoPulseColors {
   static const Color success = accentOrange;
   static const Color successAlt = textPrimary;
 
+  // ============================================
+  // Status Colors
+  // ============================================
+
+  // Success (green - for non-orange success states)
+  static const Color successGreen = Color(0xFF4CAF50);
+  static const Color successGreenSubtle = Color(0x0D4CAF50); // 5% opacity
+
+  // Warning
+  static const Color warning = Color(0xFFFF9800);
+  static const Color warningSubtle = Color(0x0DFF9800); // 5% opacity
+
+  // Info
+  static const Color info = Color(0xFF2196F3);
+  static const Color infoSubtle = Color(0x0D2196F3); // 5% opacity
+
+  // ============================================
+  // Role Colors
+  // ============================================
+
+  static const Color roleAdmin = Color(0xFFFF5252);
+  static const Color roleEditor = Color(0xFF42A5F5);
+  static const Color roleViewer = Color(0xFF9E9E9E);
+
+  // ============================================
+  // Match Grade Colors
+  // ============================================
+
+  static const Color matchExact = Color(0xFF4CAF50);
+  static const Color matchHigh = Color(0xFF8BC34A);
+  static const Color matchMedium = Color(0xFFFF9800);
+  static const Color matchLow = Color(0xFFF57C00);
+  static const Color matchNone = Color(0xFFF44336);
+
+  // ============================================
+  // Opacity Variants
+  // ============================================
+
+  // Error opacity variants
+  static const Color errorSubtle5 = Color(0x0DFF2D55); // 5%
+  static const Color errorSubtle20 = Color(0x33FF2D55); // 20%
+  static const Color errorSubtle30 = Color(0x4DFF2D55); // 30%
+
+  // Orange opacity variants
+  static const Color orangeSubtle5 = Color(0x0DFF5E00); // 5%
+  static const Color orangeSubtle20 = Color(0x33FF5E00); // 20%
+  static const Color orangeSubtle30 = Color(0x4DFF5E00); // 30%
+
+  // ============================================
+  // Section Colors (for song organization)
+  // ============================================
+  // 14 visually distinct colors that work on dark background
+
+  static const Color section1 = Color(0xFFE91E63); // Pink
+  static const Color section2 = Color(0xFF9C27B0); // Purple
+  static const Color section3 = Color(0xFF673AB7); // Deep Purple
+  static const Color section4 = Color(0xFF3F51B5); // Indigo
+  static const Color section5 = Color(0xFF03A9F4); // Light Blue
+  static const Color section6 = Color(0xFF00BCD4); // Cyan
+  static const Color section7 = Color(0xFF009688); // Teal
+  static const Color section8 = Color(0xFF4CAF50); // Green
+  static const Color section9 = Color(0xFF8BC34A); // Light Green
+  static const Color section10 = Color(0xFFCDDC39); // Lime
+  static const Color section11 = Color(0xFFFFEB3B); // Yellow
+  static const Color section12 = Color(0xFFFFC107); // Amber
+  static const Color section13 = Color(0xFFFF9800); // Orange
+  static const Color section14 = Color(0xFFFF5722); // Deep Orange
+
   // Special
   static const Color transparent = Colors.transparent;
   static const Color white = Color(0xFFFFFFFF);
@@ -114,6 +182,14 @@ class MonoPulseTypography {
     fontSize: 16,
     fontWeight: semibold,
     height: 1.45,
+  );
+
+  // Title - For tool screens
+  static const TextStyle titleLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 22,
+    fontWeight: semibold,
+    height: 1.36,
   );
 
   // Body

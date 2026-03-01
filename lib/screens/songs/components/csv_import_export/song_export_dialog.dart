@@ -1,18 +1,18 @@
 /// Dialog for exporting songs to CSV.
 library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_repsync_app/models/song.dart';
 import 'package:flutter_repsync_app/services/csv/song_csv_service.dart';
+import '../../../../theme/mono_pulse_theme.dart';
+import '../../../../widgets/loading_indicator.dart';
 
 /// Dialog for exporting songs to CSV file.
 class SongExportDialog extends StatefulWidget {
   /// List of songs to export.
   final List<Song> songs;
 
-  const SongExportDialog({
-    super.key,
-    required this.songs,
-  });
+  const SongExportDialog({super.key, required this.songs});
 
   @override
   State<SongExportDialog> createState() => _SongExportDialogState();
@@ -63,7 +63,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const LoadingIndicator();
     }
 
     if (_exported) {
@@ -103,7 +103,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
         const SizedBox(height: 16),
         const Text(
           'CSV file can be opened in Excel, Google Sheets, or imported back to RepSync',
-          style: TextStyle(color: Colors.grey, fontSize: 14),
+          style: TextStyle(color: MonoPulseColors.textSecondary, fontSize: 14),
         ),
       ],
     );
@@ -113,11 +113,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
     return const Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.check_circle,
-          color: Colors.green,
-          size: 64,
-        ),
+        Icon(Icons.check_circle, color: MonoPulseColors.successGreen, size: 64),
         SizedBox(height: 16),
         Text(
           'Export Successful!',
@@ -126,7 +122,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
         SizedBox(height: 8),
         Text(
           'Songs exported to CSV',
-          style: TextStyle(color: Colors.grey),
+          style: TextStyle(color: MonoPulseColors.textSecondary),
         ),
       ],
     );

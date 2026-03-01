@@ -44,7 +44,12 @@ class SongCsvSchema {
 
   // Sections (up to 10 sections)
   static const int maxSections = 10;
-  static const List<String> sectionFields = ['name', 'notes', 'duration', 'color'];
+  static const List<String> sectionFields = [
+    'name',
+    'notes',
+    'duration',
+    'color',
+  ];
 
   // Links (up to 5 links)
   static const int maxLinks = 5;
@@ -123,10 +128,10 @@ class SongCsvSchema {
   /// Validate a header name against the schema
   static bool isValidHeader(String header) {
     if (allHeaders.contains(header)) return true;
-    
+
     // Allow legacy single-field key headers for backward compatibility
     if (header == originalKey || header == ourKey) return true;
-    
+
     // Allow legacy beat mode headers for backward compatibility
     if (header.startsWith('beatMode_')) return true;
 
@@ -135,7 +140,9 @@ class SongCsvSchema {
     if (sectionMatch != null) {
       final sectionNum = int.tryParse(sectionMatch.group(1)!) ?? 0;
       final field = sectionMatch.group(2)!;
-      return sectionNum >= 1 && sectionNum <= maxSections && sectionFields.contains(field);
+      return sectionNum >= 1 &&
+          sectionNum <= maxSections &&
+          sectionFields.contains(field);
     }
 
     // Check link headers: link_{n}_{field}
@@ -148,17 +155,21 @@ class SongCsvSchema {
 
     return false;
   }
-  
+
   /// Encode beat modes to compact string format.
   /// Format: "{{4,2},{[1,0,0,0],[1,0,0,0]}}"
-  static String encodeBeatModes(List<List<int>> beatModes, int accentBeats, int regularBeats) {
+  static String encodeBeatModes(
+    List<List<int>> beatModes,
+    int accentBeats,
+    int regularBeats,
+  ) {
     if (beatModes.isEmpty) {
       return '';
     }
-    
+
     final buffer = StringBuffer();
     buffer.write('{$accentBeats,$regularBeats},{');
-    
+
     for (int i = 0; i < beatModes.length; i++) {
       if (i > 0) buffer.write(',');
       buffer.write('[');
@@ -168,36 +179,42 @@ class SongCsvSchema {
       }
       buffer.write(']');
     }
-    
+
     buffer.write('}');
     return buffer.toString();
   }
-  
+
   /// Decode beat modes from compact string format.
   /// Format: "{{4,2},{[1,0,0,0],[1,0,0,0]}}"
   static Map<String, dynamic>? decodeBeatModes(String? pattern) {
     if (pattern == null || pattern.isEmpty) {
       return null;
     }
-    
+
     try {
       // Parse: {{4,2},{[1,0,0,0],[1,0,0,0]}}
-      final outerMatch = RegExp(r'\{(\d+),(\d+)\},\{(.+)\}').firstMatch(pattern);
+      final outerMatch = RegExp(
+        r'\{(\d+),(\d+)\},\{(.+)\}',
+      ).firstMatch(pattern);
       if (outerMatch == null) return null;
-      
+
       final accentBeats = int.parse(outerMatch.group(1)!);
       final regularBeats = int.parse(outerMatch.group(2)!);
       final rowsStr = outerMatch.group(3)!;
-      
+
       final beatModes = <List<int>>[];
-      
+
       // Parse each row: [1,0,0,0],[1,0,0,0]
       final rowMatches = RegExp(r'\[([\d,]+)\]').allMatches(rowsStr);
       for (final match in rowMatches) {
-        final values = match.group(1)!.split(',').map((v) => int.parse(v.trim())).toList();
+        final values = match
+            .group(1)!
+            .split(',')
+            .map((v) => int.parse(v.trim()))
+            .toList();
         beatModes.add(values);
       }
-      
+
       return {
         'accentBeats': accentBeats,
         'regularBeats': regularBeats,
@@ -209,46 +226,39 @@ class SongCsvSchema {
   }
 
   /// Get required headers (core fields that must be present)
-  static const List<String> requiredHeaders = [
-    title,
-    artist,
-  ];
-  
+  static const List<String> requiredHeaders = [title, artist];
+
   /// Parse a key string (e.g., "C#m", "Bb") into components
   static Map<String, String?> parseKeyString(String? key) {
     if (key == null || key.isEmpty) {
       return {'base': null, 'accidental': null, 'scale': null};
     }
-    
+
     key = key.trim();
     String? base;
     String? accidental;
     String? scale;
-    
+
     // Extract base note (first character)
     if (key.isNotEmpty) {
       base = key[0].toUpperCase();
     }
-    
+
     // Check for accidental (second character if # or b)
     if (key.length > 1 && (key[1] == '#' || key[1] == 'b')) {
       accidental = key[1];
     }
-    
+
     // Check for scale (minor if ends with 'm')
     if (key.endsWith('m')) {
       scale = 'minor';
     } else {
       scale = 'major';
     }
-    
-    return {
-      'base': base,
-      'accidental': accidental,
-      'scale': scale,
-    };
+
+    return {'base': base, 'accidental': accidental, 'scale': scale};
   }
-  
+
   /// Build a key string from components
   static String buildKeyString({
     required String base,

@@ -20,13 +20,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'mocks.mocks.dart';
-import 'test_helpers.dart';
 
 /// Test data factory for creating mock entities
 class TestDataFactory {
@@ -50,10 +48,12 @@ class TestDataFactory {
     return 'Test Setlist $id';
   }
 
-  static String get userId => 'test-user-${DateTime.now().millisecondsSinceEpoch}';
+  static String get userId =>
+      'test-user-${DateTime.now().millisecondsSinceEpoch}';
   static String get bandId => 'band-${DateTime.now().millisecondsSinceEpoch}';
   static String get songId => 'song-${DateTime.now().millisecondsSinceEpoch}';
-  static String get setlistId => 'setlist-${DateTime.now().millisecondsSinceEpoch}';
+  static String get setlistId =>
+      'setlist-${DateTime.now().millisecondsSinceEpoch}';
 }
 
 /// Integration test fixture for authentication flows
@@ -102,13 +102,15 @@ class AuthIntegrationFixture {
   }
 
   void setupPasswordReset() {
-    when(mockAuth.sendPasswordResetEmail(email: anyNamed('email')))
-        .thenAnswer((_) async => {});
+    when(
+      mockAuth.sendPasswordResetEmail(email: anyNamed('email')),
+    ).thenAnswer((_) async => {});
   }
 
   void setupAuthStateChanges() {
-    when(mockAuth.authStateChanges())
-        .thenAnswer((_) => Stream<User?>.value(mockUser));
+    when(
+      mockAuth.authStateChanges(),
+    ).thenAnswer((_) => Stream<User?>.value(mockUser));
   }
 
   void setupFailedSignUp(String errorCode, String message) {
@@ -117,9 +119,7 @@ class AuthIntegrationFixture {
         email: anyNamed('email'),
         password: anyNamed('password'),
       ),
-    ).thenThrow(
-      FirebaseAuthException(code: errorCode, message: message),
-    );
+    ).thenThrow(FirebaseAuthException(code: errorCode, message: message));
   }
 
   void setupFailedSignIn(String errorCode, String message) {
@@ -128,9 +128,7 @@ class AuthIntegrationFixture {
         email: anyNamed('email'),
         password: anyNamed('password'),
       ),
-    ).thenThrow(
-      FirebaseAuthException(code: errorCode, message: message),
-    );
+    ).thenThrow(FirebaseAuthException(code: errorCode, message: message));
   }
 }
 

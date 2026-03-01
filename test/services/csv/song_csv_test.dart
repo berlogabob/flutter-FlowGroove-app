@@ -103,7 +103,7 @@ void main() {
       );
 
       final csv = serializer.serialize([song]);
-      
+
       expect(csv, contains('Test Song'));
       expect(csv, contains('Test Artist'));
       expect(csv, contains('rock,live'));
@@ -184,7 +184,7 @@ void main() {
       );
 
       final csv = serializer.serialize([song]);
-      
+
       expect(csv, contains('section_1_name'));
       expect(csv, contains('Intro'));
       expect(csv, contains('Verse'));
@@ -225,7 +225,7 @@ void main() {
       );
 
       final csv = serializer.serialize([song]);
-      
+
       expect(csv, contains('link_1_url'));
       expect(csv, contains('youtube.com'));
     });
@@ -278,7 +278,7 @@ title,artist
 ''';
 
       final result = parser.parse(csv);
-      
+
       expect(result.errors, isNotEmpty);
       expect(result.successful, isEmpty);
     });
@@ -291,7 +291,7 @@ Test Song
 ''';
 
       final result = parser.parse(csv);
-      
+
       expect(result.errors, isNotEmpty);
       expect(result.errors.first, contains('Missing required header'));
     });
@@ -304,7 +304,7 @@ Test Song,Artist,Intro,4,Verse,8
 ''';
 
       final result = parser.parse(csv);
-      
+
       expect(result.errors, isEmpty);
       expect(result.successful, hasLength(1));
       expect(result.successful.first.sections, hasLength(2));
@@ -321,13 +321,19 @@ Test Song,Artist,https://youtube.com/test,Official Video,youtube_original
 ''';
 
       final result = parser.parse(csv);
-      
+
       expect(result.errors, isEmpty);
       expect(result.successful, hasLength(1));
       expect(result.successful.first.links, hasLength(1));
       expect(result.successful.first.links.first.url, contains('youtube.com'));
-      expect(result.successful.first.links.first.title, equals('Official Video'));
-      expect(result.successful.first.links.first.type, equals('youtube_original'));
+      expect(
+        result.successful.first.links.first.title,
+        equals('Official Video'),
+      );
+      expect(
+        result.successful.first.links.first.type,
+        equals('youtube_original'),
+      );
     });
 
     test('parses CSV with beat modes', () {
@@ -338,7 +344,7 @@ Test Song,Artist,4,2,accent,normal,normal
 ''';
 
       final result = parser.parse(csv);
-      
+
       expect(result.errors, isEmpty);
       expect(result.successful, hasLength(1));
       expect(result.successful.first.accentBeats, equals(4));
@@ -353,7 +359,7 @@ Test Song,Artist,4,2,accent,normal,normal
       final csv = '';
 
       final result = parser.parse(csv);
-      
+
       expect(result.errors, isNotEmpty);
       expect(result.errors.first, contains('empty'));
     });
@@ -368,7 +374,7 @@ Song 3,Artist 3
 ''';
 
       final result = parser.parse(csv);
-      
+
       expect(result.errors, isEmpty);
       expect(result.successful, hasLength(3));
       expect(result.successful[0].title, equals('Song 1'));
@@ -381,7 +387,7 @@ Song 3,Artist 3
     test('serialize then parse preserves data', () {
       final serializer = SongCsvSerializer();
       final parser = SongCsvParser();
-      
+
       final originalSong = Song(
         id: 'test-roundtrip',
         title: 'Round Trip Song',
@@ -419,13 +425,13 @@ Song 3,Artist 3
 
       // Serialize
       final csv = serializer.serialize([originalSong]);
-      
+
       // Parse
       final result = parser.parse(csv);
-      
+
       expect(result.errors, isEmpty);
       expect(result.successful, hasLength(1));
-      
+
       final parsedSong = result.successful.first;
       expect(parsedSong.title, equals(originalSong.title));
       expect(parsedSong.artist, equals(originalSong.artist));

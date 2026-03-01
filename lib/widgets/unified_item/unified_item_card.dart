@@ -5,6 +5,7 @@ import 'unified_item_trailing_actions.dart';
 import 'adapters/song_item_adapter.dart';
 import 'adapters/band_item_adapter.dart';
 import 'adapters/setlist_item_adapter.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 /// Unified card widget for displaying items (Song, Band, Setlist)
 class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
@@ -75,7 +76,9 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
           : const Color(0xFF1A1A1A),
       child: Icon(
         isShared ? Icons.content_copy : icon,
-        color: isShared ? const Color(0xFFFF9800) : Colors.orange,
+        color: isShared
+            ? const Color(0xFFFF9800)
+            : MonoPulseColors.accentOrange,
       ),
     );
   }
@@ -94,7 +97,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         subtitleWidgets.add(
           Text(
             song.subtitle!,
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
+            style: const TextStyle(
+              color: MonoPulseColors.textSecondary,
+              fontSize: 12,
+            ),
           ),
         );
       }
@@ -107,12 +113,16 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.speed, size: 14, color: Colors.orange),
+              const Icon(
+                Icons.speed,
+                size: 14,
+                color: MonoPulseColors.accentOrange,
+              ),
               const SizedBox(width: 4),
               Text(
                 '$displayBPM BPM',
                 style: const TextStyle(
-                  color: Colors.orange,
+                  color: MonoPulseColors.accentOrange,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -122,10 +132,18 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         );
       }
       if (song.ourKey != null) {
-        badges.add(UnifiedItemBadge(text: song.ourKey!, color: Colors.orange));
+        badges.add(
+          UnifiedItemBadge(
+            text: song.ourKey!,
+            color: MonoPulseColors.accentOrange,
+          ),
+        );
       } else if (song.originalKey != null) {
         badges.add(
-          UnifiedItemBadge(text: song.originalKey!, color: Colors.grey),
+          UnifiedItemBadge(
+            text: song.originalKey!,
+            color: MonoPulseColors.textTertiary,
+          ),
         );
       }
 
@@ -138,12 +156,16 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         subtitleWidgets.add(
           const Row(
             children: [
-              Icon(Icons.content_copy, size: 12, color: Color(0xFFFF9800)),
+              Icon(
+                Icons.content_copy,
+                size: 12,
+                color: MonoPulseColors.accentOrange,
+              ),
               SizedBox(width: 4),
               Text(
                 'Shared to band',
                 style: TextStyle(
-                  color: Color(0xFFFF9800),
+                  color: MonoPulseColors.accentOrange,
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                 ),
@@ -161,7 +183,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         subtitleWidgets.add(
           Text(
             band.subtitle!,
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
+            style: const TextStyle(
+              color: MonoPulseColors.textSecondary,
+              fontSize: 12,
+            ),
           ),
         );
       }
@@ -169,7 +194,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       subtitleWidgets.add(
         Text(
           '$membersCount ${membersCount == 1 ? 'member' : 'members'}',
-          style: const TextStyle(color: Colors.grey, fontSize: 12),
+          style: const TextStyle(
+            color: MonoPulseColors.textSecondary,
+            fontSize: 12,
+          ),
         ),
       );
     }
@@ -180,7 +208,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       subtitleWidgets.add(
         Text(
           '$songCount ${songCount == 1 ? 'song' : 'songs'}',
-          style: const TextStyle(color: Colors.grey, fontSize: 12),
+          style: const TextStyle(
+            color: MonoPulseColors.textSecondary,
+            fontSize: 12,
+          ),
         ),
       );
 
@@ -188,7 +219,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         subtitleWidgets.add(
           Text(
             setlist.formattedEventDate,
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
+            style: const TextStyle(
+              color: MonoPulseColors.textSecondary,
+              fontSize: 12,
+            ),
           ),
         );
       }
@@ -210,7 +244,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
           Text(
             song.ourKey!,
             style: const TextStyle(
-              color: Colors.orange,
+              color: MonoPulseColors.accentOrange,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -221,7 +255,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
           Text(
             song.originalKey!,
             style: const TextStyle(
-              color: Colors.grey,
+              color: MonoPulseColors.textTertiary,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -235,11 +269,18 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.speed, size: 14, color: Colors.orange),
+              const Icon(
+                Icons.speed,
+                size: 14,
+                color: MonoPulseColors.accentOrange,
+              ),
               const SizedBox(width: 2),
               Text(
                 '$displayBPM BPM',
-                style: const TextStyle(color: Colors.orange, fontSize: 12),
+                style: const TextStyle(
+                  color: MonoPulseColors.accentOrange,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -250,33 +291,14 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       compactSubtitles.add(
         Text(
           '${setlist.songIdsLength} songs',
-          style: const TextStyle(color: Colors.grey, fontSize: 12),
+          style: const TextStyle(
+            color: MonoPulseColors.textSecondary,
+            fontSize: 12,
+          ),
         ),
       );
     }
 
     return Row(children: compactSubtitles);
-  }
-
-  String _formatDate(String? dateString) {
-    if (dateString == null || dateString.isEmpty) return '';
-
-    try {
-      final date = DateTime.parse(dateString);
-      final now = DateTime.now();
-      final diff = now.difference(date);
-
-      if (diff.inDays == 0) {
-        return 'Today';
-      } else if (diff.inDays == 1) {
-        return 'Yesterday';
-      } else if (diff.inDays < 7) {
-        return '${diff.inDays}d ago';
-      } else {
-        return '${date.day}/${date.month}';
-      }
-    } catch (e) {
-      return dateString;
-    }
   }
 }

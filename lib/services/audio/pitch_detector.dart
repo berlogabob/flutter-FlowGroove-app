@@ -1,26 +1,44 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:pitch_detector_dart/pitch_detector.dart' as pid;
+import 'package:pcm_stream_recorder/pcm_stream_recorder.dart';
 
 /// Pitch Detector service for microphone input
 ///
-/// Stage 2: Stub implementation with simulated pitch detection
-/// Stage 3: Will implement real pitch detection using FFT or YIN algorithm
+/// Stage 3: Real pitch detection using YIN algorithm via pitch_detector_dart package
+/// Uses pcm_stream_recorder for real-time PCM audio capture
+/// Provides accurate frequency detection from microphone input for tuner functionality
 class PitchDetector {
-  FlutterSoundRecorder? _recorder;
+  PcmStreamRecorder? _recorder;
+  pid.PitchDetector? _pitchDetectorDart;
   bool _isInitialized = false;
   bool _isListening = false;
+
+  StreamSubscription<Uint8List>? _pcmSubscription;
+
+  /// Callback for detected pitch (frequency in Hz)
+  Function(double frequency)? onPitchDetected;
 
   /// Sample rate for audio recording
   static const int sampleRate = 44100;
 
-  /// Initialize the audio recorder
+  /// Buffer size for pitch detection (must be power of 2 for optimal performance)
+  static const int bufferSize = 2048;
+
+  /// Initialize the audio recorder and pitch detection algorithm
   Future<void> _ensureInitialized() async {
     if (_isInitialized) return;
 
     try {
-      _recorder = FlutterSoundRecorder();
-      await _recorder!.openRecorder();
+      _recorder = PcmStreamRecorder();
+
+      // Initialize the YIN pitch detection algorithm with named parameters
+      _pitchDetectorDart = pid.PitchDetector(
+        audioSampleRate: sampleRate * 1.0,
+        bufferSize: bufferSize,
+      );
+
       _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing pitch detector: $e');
@@ -59,8 +77,8 @@ class PitchDetector {
 
   /// Start listening to microphone
   ///
-  /// Stage 2: This is a stub - actual pitch detection is simulated
-  /// Stage 3: Will implement real-time pitch detection
+  /// Stage 3: Real-time pitch detection enabled using YIN algorithm
+  /// Calls onPitchDetected callback when pitch is detected
   Future<void> startListening() async {
     await _ensureInitialized();
 
@@ -71,16 +89,22 @@ class PitchDetector {
         throw Exception('Microphone permission not granted');
       }
 
-      // Start recorder (Stage 2: we don't actually process the audio)
-      await _recorder!.startRecorder(
-        toFile: null, // Don't save to file
-        codec: Codec.pcm16,
-        numChannels: 1,
-        sampleRate: sampleRate,
-      );
+      // Start recording with PCM stream
+      final pcmStream = await _recorder!.start(sampleRate: sampleRate);
+
+      // Listen to PCM data and detect pitch in real-time
+      _pcmSubscription = pcmStream.listen((pcmChunk) async {
+        if (!_isListening || _pitchDetectorDart == null) return;
+
+        final frequency = await detectPitchFromBuffer(pcmChunk);
+
+        if (frequency > 0 && onPitchDetected != null) {
+          onPitchDetected!(frequency);
+        }
+      });
 
       _isListening = true;
-      debugPrint('Pitch detector started (Stage 2: simulated mode)');
+      debugPrint('Pitch detector started (Stage 3: real detection mode)');
     } catch (e) {
       debugPrint('Error starting pitch detector: $e');
       rethrow;
@@ -89,11 +113,12 @@ class PitchDetector {
 
   /// Stop listening to microphone
   Future<void> stopListening() async {
-    if (!_isInitialized || _recorder == null) return;
-
     try {
-      if (_isListening) {
-        await _recorder!.stopRecorder();
+      _pcmSubscription?.cancel();
+      _pcmSubscription = null;
+
+      if (_recorder != null && _isListening) {
+        await _recorder!.stop();
         _isListening = false;
         debugPrint('Pitch detector stopped');
       }
@@ -107,27 +132,42 @@ class PitchDetector {
 
   /// Process audio buffer for pitch detection
   ///
-  /// Stage 2: Stub - returns simulated values
-  /// Stage 3: Will implement real FFT-based pitch detection
-  double detectPitch(List<int> pcmData) {
-    // Stage 2: Return simulated frequency
-    // This will be replaced with actual pitch detection in Stage 3
-    return 440.0; // A4 reference
+  /// Stage 3: Uses YIN algorithm for accurate pitch detection
+  ///
+  /// [pcmData] - PCM16 audio data from microphone
+  /// Returns detected frequency in Hz, or 0.0 if no pitch detected
+  Future<double> detectPitchFromBuffer(Uint8List pcmData) async {
+    final detector = _pitchDetectorDart;
+    if (detector == null || pcmData.isEmpty) {
+      return 0.0;
+    }
+
+    try {
+      // Use YIN algorithm to detect pitch from PCM16 buffer (async)
+      final result = await detector.getPitchFromIntBuffer(pcmData);
+
+      // Return detected pitch if valid, otherwise 0.0
+      if (result.pitched && result.pitch > 0) {
+        return result.pitch;
+      }
+
+      return 0.0;
+    } catch (e) {
+      debugPrint('Error detecting pitch: $e');
+      return 0.0;
+    }
   }
 
-  /// Calculate frequency from audio buffer using autocorrelation
-  ///
-  /// Stage 3: Will implement this properly
-  // ignore: unused_element - Placeholder for Stage 3 implementation
-  double _autocorrelate(List<int> pcmData) {
-    // Placeholder for Stage 3 implementation
-    // This will use the YIN algorithm or similar for accurate pitch detection
-    return 440.0;
+  /// Process audio buffer for pitch detection (legacy method for compatibility)
+  @Deprecated('Use detectPitchFromBuffer instead')
+  Future<double> detectPitch(List<int> pcmData) {
+    return detectPitchFromBuffer(Uint8List.fromList(pcmData));
   }
 
   /// Convert PCM bytes to double samples
-  // ignore: unused_element - Placeholder for Stage 3 implementation
-  List<double> _pcm16ToDouble(List<int> pcmData) {
+  ///
+  /// Used for debugging or alternative processing
+  List<double> pcm16ToDouble(Uint8List pcmData) {
     final samples = <double>[];
     for (int i = 0; i < pcmData.length; i += 2) {
       if (i + 1 < pcmData.length) {
@@ -138,14 +178,18 @@ class PitchDetector {
     return samples;
   }
 
+  /// Get the pitch detector instance for advanced usage
+  pid.PitchDetector? get detector => _pitchDetectorDart;
+
   /// Dispose of resources
   Future<void> dispose() async {
     try {
       await stopListening();
       if (_recorder != null) {
-        await _recorder!.closeRecorder();
+        await _recorder!.dispose();
         _recorder = null;
       }
+      _pitchDetectorDart = null;
       _isInitialized = false;
     } catch (e) {
       debugPrint('Error disposing pitch detector: $e');
@@ -153,26 +197,10 @@ class PitchDetector {
   }
 }
 
-/// Stage 3: Real pitch detection helper class
+/// Stage 3: Helper utilities for pitch/note conversion
 ///
-/// This will be implemented in Stage 3 with proper FFT analysis
+/// Provides musical note conversion and frequency calculations
 class PitchDetectionAlgorithm {
-  /// YIN algorithm for pitch detection
-  ///
-  /// More accurate than simple autocorrelation
-  static double yin(List<double> samples, int sampleRate) {
-    // TODO: Implement YIN algorithm for Stage 3
-    return 440.0;
-  }
-
-  /// FFT-based pitch detection
-  ///
-  /// Uses Fast Fourier Transform to find dominant frequency
-  static double fft(List<double> samples, int sampleRate) {
-    // TODO: Implement FFT-based detection for Stage 3
-    return 440.0;
-  }
-
   /// Convert frequency to MIDI note number
   static double frequencyToMidi(double frequency) {
     if (frequency <= 0) return 0;
@@ -182,6 +210,42 @@ class PitchDetectionAlgorithm {
   /// Convert MIDI note number to frequency
   static double midiToFrequency(double midi) {
     return 440.0 * pow(2.0, (midi - 69) / 12.0);
+  }
+
+  /// Get note name from MIDI note number
+  static String midiToNoteName(double midi) {
+    const noteNames = [
+      'C',
+      'C#',
+      'D',
+      'D#',
+      'E',
+      'F',
+      'F#',
+      'G',
+      'G#',
+      'A',
+      'A#',
+      'B',
+    ];
+    final noteIndex = midi.round() % 12;
+    final octave = (midi.round() ~/ 12) - 1;
+    return '${noteNames[noteIndex]}$octave';
+  }
+
+  /// Calculate cents deviation from frequency to nearest note
+  static int calculateCents(double frequency) {
+    if (frequency <= 0) return 0;
+
+    const referenceFrequency = 440.0;
+    const referenceNoteIndex = 69;
+
+    final midiNote =
+        referenceNoteIndex + 12 * log(frequency / referenceFrequency) / ln2;
+    final roundedMidiNote = midiNote.round();
+    final cents = ((midiNote - roundedMidiNote) * 100).round();
+
+    return cents.clamp(-50, 50);
   }
 
   // Helper math functions

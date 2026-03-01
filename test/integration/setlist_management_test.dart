@@ -19,17 +19,12 @@ import 'package:uuid/uuid.dart';
 
 import 'package:flutter_repsync_app/models/setlist.dart';
 import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/screens/setlists/setlists_list_screen.dart';
 import 'package:flutter_repsync_app/screens/setlists/create_setlist_screen.dart';
 
 import '../helpers/mocks.mocks.dart';
-import '../helpers/test_helpers.dart';
-import '../helpers/integration_test_helpers.dart';
 
 void main() {
   group('Setlist Management Flow Integration Tests - INT-SETLIST-01', () {
-    late MockFirebaseAuth mockAuth;
-    late MockUser mockUser;
     late MockFirebaseFirestore mockFirestore;
     late MockCollectionReference<Map<String, dynamic>> mockCollection;
     late MockDocumentReference<Map<String, dynamic>> mockDocument;
@@ -38,8 +33,6 @@ void main() {
 
     setUp(() {
       // Create fresh mock instances for each test
-      mockAuth = MockFirebaseAuth();
-      mockUser = MockUser();
       mockFirestore = MockFirebaseFirestore();
       mockCollection = MockCollectionReference<Map<String, dynamic>>();
       mockDocument = MockDocumentReference<Map<String, dynamic>>();
@@ -865,15 +858,6 @@ void main() {
         WidgetTester tester,
       ) async {
         // Arrange
-        final setlist = Setlist(
-          id: const Uuid().v4(),
-          name: 'Test Setlist',
-          bandId: 'test-band-id',
-          songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-
         final songs = [
           {'id': 'song-1', 'title': 'First Song'},
           {'id': 'song-2', 'title': 'Second Song'},

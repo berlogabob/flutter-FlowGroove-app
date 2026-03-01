@@ -1,6 +1,7 @@
 /// Screen for selecting songs from personal library to add to a band.
 /// Supports multi-select for adding multiple songs at once.
 library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import '../../../providers/data/data_providers.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/empty_state.dart';
+import '../../../widgets/error_banner.dart';
 import '../../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
 
@@ -84,7 +86,9 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  MonoPulseColors.textPrimary,
+                ),
               ),
             ),
             SizedBox(width: 16),
@@ -156,7 +160,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
           duration: const Duration(seconds: 4),
           action: SnackBarAction(
             label: 'RETRY',
-            textColor: Colors.white,
+            textColor: MonoPulseColors.textPrimary,
             onPressed: () {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
             },
@@ -190,7 +194,12 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
       body: songsAsync.when(
         data: (songs) => _buildContent(context, songs),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(
+          child: ErrorBanner.card(
+            message: e.toString(),
+            onRetry: () => ref.invalidate(songsProvider),
+          ),
+        ),
       ),
     );
   }

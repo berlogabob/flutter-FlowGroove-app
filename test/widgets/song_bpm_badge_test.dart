@@ -6,20 +6,18 @@ import '../helpers/test_helpers.dart';
 
 void main() {
   group('SongBPMBadge', () {
-    testWidgets('renders nothing when BPM is null', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const SongBPMBadge(bpm: null),
-      );
+    testWidgets('renders nothing when BPM is null', (
+      WidgetTester tester,
+    ) async {
+      await pumpAppWidget(tester, const SongBPMBadge(bpm: null));
 
       expect(find.byType(SizedBox), findsOneWidget);
     });
 
-    testWidgets('renders BPM badge with valid BPM', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const SongBPMBadge(bpm: 120),
-      );
+    testWidgets('renders BPM badge with valid BPM', (
+      WidgetTester tester,
+    ) async {
+      await pumpAppWidget(tester, const SongBPMBadge(bpm: 120));
 
       expect(find.text('120 BPM'), findsOneWidget);
       expect(find.byIcon(Icons.speed), findsOneWidget);
@@ -51,10 +49,7 @@ void main() {
     testWidgets('shows play icon when onTap is provided', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        SongBPMBadge(bpm: 120, onTap: () {}),
-      );
+      await pumpAppWidget(tester, SongBPMBadge(bpm: 120, onTap: () {}));
 
       expect(find.byIcon(Icons.play_circle_outline), findsOneWidget);
     });
@@ -62,23 +57,19 @@ void main() {
     testWidgets('hides play icon when onTap is null', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        const SongBPMBadge(bpm: 120, onTap: null),
-      );
+      await pumpAppWidget(tester, const SongBPMBadge(bpm: 120, onTap: null));
 
       expect(find.byIcon(Icons.play_circle_outline), findsNothing);
     });
 
-    testWidgets('calls onTap when badge is tapped', (WidgetTester tester) async {
+    testWidgets('calls onTap when badge is tapped', (
+      WidgetTester tester,
+    ) async {
       bool wasTapped = false;
 
       await pumpAppWidget(
         tester,
-        SongBPMBadge(
-          bpm: 120,
-          onTap: () => wasTapped = true,
-        ),
+        SongBPMBadge(bpm: 120, onTap: () => wasTapped = true),
       );
 
       await tester.tap(find.byType(GestureDetector));
@@ -88,30 +79,19 @@ void main() {
     });
 
     testWidgets('has correct container styling', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const SongBPMBadge(bpm: 120),
-      );
+      await pumpAppWidget(tester, const SongBPMBadge(bpm: 120));
 
-      final container = tester.widget<Container>(
-        find.byType(Container).first,
-      );
+      final container = tester.widget<Container>(find.byType(Container).first);
       expect(container.decoration, isA<BoxDecoration>());
     });
 
     testWidgets('displays different BPM values correctly', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        const SongBPMBadge(bpm: 60),
-      );
+      await pumpAppWidget(tester, const SongBPMBadge(bpm: 60));
       expect(find.text('60 BPM'), findsOneWidget);
 
-      await pumpAppWidget(
-        tester,
-        const SongBPMBadge(bpm: 200),
-      );
+      await pumpAppWidget(tester, const SongBPMBadge(bpm: 200));
       expect(find.text('200 BPM'), findsOneWidget);
     });
   });

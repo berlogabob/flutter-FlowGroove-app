@@ -31,11 +31,13 @@ class CustomAppBar {
   /// [title] - AppBar title text
   /// [menuItems] - List of menu items (optional)
   /// [onBack] - Custom back action (optional, defaults to Navigator.pop)
+  /// [isTool] - Whether this is a tool screen (uses titleLarge typography)
   static PreferredSizeWidget build(
     BuildContext context, {
     required String title,
-    List<PopupMenuItem<void>>? menuItems,
+    List<PopupMenuEntry<dynamic>>? menuItems,
     VoidCallback? onBack,
+    bool isTool = false,
   }) {
     return AppBar(
       backgroundColor: MonoPulseColors.black,
@@ -77,10 +79,14 @@ class CustomAppBar {
       ),
       title: Text(
         title,
-        style: MonoPulseTypography.headlineLarge.copyWith(
-          color: MonoPulseColors.textHighEmphasis,
-          fontWeight: FontWeight.bold,
-        ),
+        style:
+            (isTool
+                    ? MonoPulseTypography.titleLarge
+                    : MonoPulseTypography.headlineLarge)
+                .copyWith(
+                  color: MonoPulseColors.textHighEmphasis,
+                  fontWeight: FontWeight.bold,
+                ),
       ),
       centerTitle: true,
       actions: menuItems != null
@@ -189,7 +195,7 @@ class CustomAppBar {
   static PreferredSizeWidget buildNoBack(
     BuildContext context, {
     required String title,
-    List<PopupMenuItem<void>>? menuItems,
+    List<PopupMenuEntry<dynamic>>? menuItems,
   }) {
     return AppBar(
       backgroundColor: MonoPulseColors.black,

@@ -980,7 +980,6 @@ void main() {
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.start(120, 4);
-        final firstBeat = container.read(metronomeProvider).currentBeat;
 
         metronome.start(120, 4);
 

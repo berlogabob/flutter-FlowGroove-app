@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/api/musicbrainz_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/loading_indicator.dart';
 
 /// A bottom sheet widget for searching and selecting recordings from MusicBrainz.
 ///
@@ -66,7 +67,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
             future: _searchResults,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const LoadingIndicator();
               }
 
               if (snapshot.hasError) {
@@ -98,20 +99,13 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.search_off,
-                        size: 48,
-                        color: Colors.grey,
-                      ),
+                      Icon(Icons.search_off, size: 48, color: Colors.grey),
                       SizedBox(height: 16),
                       Text('No results found'),
                       SizedBox(height: 8),
                       Text(
                         'Try different keywords',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                     ],
                   ),
