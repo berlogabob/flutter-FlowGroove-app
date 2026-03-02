@@ -50,7 +50,15 @@ class CustomAppBar {
           if (onBack != null) {
             onBack();
           } else {
-            context.pop();
+            // For StatefulShellRoute (Metronome/Tuner), always go home
+            // For normal routes, use pop
+            final currentRoute = GoRouterState.of(context).uri.path;
+            if (currentRoute.startsWith('/main/metronome') ||
+                currentRoute.startsWith('/main/tuner')) {
+              context.go('/main/home');
+            } else {
+              context.pop();
+            }
           }
         },
         // 48px minimum touch zone
@@ -150,7 +158,15 @@ class CustomAppBar {
           if (onBack != null) {
             onBack();
           } else {
-            context.pop();
+            // For StatefulShellRoute (Metronome/Tuner), always go home
+            // For normal routes, use pop
+            final currentRoute = GoRouterState.of(context).uri.path;
+            if (currentRoute.startsWith('/main/metronome') ||
+                currentRoute.startsWith('/main/tuner')) {
+              context.go('/main/home');
+            } else {
+              context.pop();
+            }
           }
         },
         // 48px minimum touch zone
@@ -231,10 +247,15 @@ class CustomAppBar {
                           width: 1.5,
                         ),
                       ),
-                      child: const Icon(
-                        Icons.more_horiz,
-                        color: MonoPulseColors.textSecondary,
-                        size: 20,
+                      child: PopupMenuButton<void>(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(
+                          Icons.more_horiz,
+                          color: MonoPulseColors.textSecondary,
+                          size: 22,
+                        ),
+                        itemBuilder: (context) => menuItems,
+                        onSelected: (value) {},
                       ),
                     ),
                   ),
