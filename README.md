@@ -1,97 +1,76 @@
+# FlowGroove (ex-RepSync)
 
-# RepSync
+[![Flutter](https://img.shields.io/badge/Flutter-3.19+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.3+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.11.1+29-brightgreen.svg)](https://github.com/berlogabob/flutter-repsync-app/releases)
+[![Live Demo](https://img.shields.io/badge/Live%20App-flowgroove.app-blue)](https://flowgroove.app)
 
-[![Flutter Version](https://img.shields.io/badge/Flutter-3.19+-blue.svg)](https://flutter.dev)
-[![Dart Version](https://img.shields.io/badge/Dart-3.3+-blue.svg)](https://dart.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/berlogabob/flutter-repsync-app?style=social)](https://github.com/berlogabob/flutter-repsync-app/network/members)
+**Real-time repertoire & setlist manager built specifically for cover bands and gigging musicians.**
 
-**Flutter app for managing band repertoires, setlists, and shared song databases for cover bands**
+Tired of chaotic WhatsApp groups and outdated Google Docs?  
+FlowGroove gives your entire band **one single source of truth** for songs and setlists — with instant sync and full offline support.
 
-## Features
-- Shared song database with unique IDs
-- Setlists for gigs and rehearsals (drag & drop, per-event overrides)
-- Multi-group support (one user in several bands)
-- PDF export for setlists
-- Web-first (works in browser on iPhone/Android)
-- Spotify integration for BPM & key detection
-- Real-time collaboration with band members
-- **Offline-first architecture** - Full offline support with local data synchronization
-- **Mobile audio playback** - Audio support for practice and performance
-- **Enhanced navigation** - Improved routing with go_router
-- **Robust error handling** - Comprehensive error management throughout the app
-
-## Tech Stack
-- Flutter (web-first)
-- Dart
-- Firebase (auth, Firestore realtime sync)
-- Hive (local offline storage)
-- pdf & printing packages (PDF generation)
-
-## Project Roadmap (MVP - February 2026)
-
-Web version with manual song input & PDF export
-Post-MVP: MusicBrainz autofill, mobile builds, premium features
-
-## Quick Links
-
-| Documentation | Description |
-|---------------|-------------|
-| [📖 Build Guide](BUILD_GUIDE.md) | Complete build instructions for all platforms |
-| [✅ Deployment Checklist](DEPLOYMENT_CHECKLIST.md) | Step-by-step deployment checklists |
-| [🚀 Release Process](RELEASE_PROCESS.md) | Version management and release workflow |
-| [📱 Platform Guide](docs/PLATFORMS.md) | Platform support and features |
-| [⚡ Quick Start](QUICK_START.md) | Get started in 5 minutes |
-| [🔧 Troubleshooting](TROUBLESHOOTING.md) | Common issues and solutions |
-
-## Security
-
-### Environment Variables
-Sensitive credentials (Spotify API keys) are stored in environment variables using `flutter_dotenv`.
-
-**Setup:**
-1. Copy `.env.example` to `.env`
-2. Replace placeholder values with your actual credentials
-3. The `.env` file is gitignored to prevent accidental commits
-
-**Required variables:**
-- `SPOTIFY_CLIENT_ID` - Your Spotify API Client ID
-- `SPOTIFY_CLIENT_SECRET` - Your Spotify API Client Secret
-
-### Firestore Security Rules
-Firestore security rules ensure that users can only access their own data and authorized band data.
-
-**Rules Overview:**
-- `users/{userId}/songs/{songId}` - Only the owner can read/write
-- `users/{userId}/setlists/{setlistId}` - Only the owner can read/write
-- `users/{userId}/bands/{bandId}` - Band members can read, owner can write
-
-**Deploy Rules:**
-```bash
-# Install Firebase CLI
-npm install -g firebase-tools
-
-# Login to Firebase
-firebase login
-
-# Deploy rules to Firebase
-firebase deploy --only firestore:rules
-```
-
-**Test Rules:**
-```bash
-# Start Firebase Emulator
-firebase emulators:start --only firestore
-
-# Or use Rules Playground in Firebase Console
-# Go to Firebase Console > Firestore > Rules > Rules Playground
-```
-
-See `firestore.rules` for the complete rules implementation and `firestore.test.rules` for test cases.
-
-## License
-MIT License — see LICENSE file
+**Try it live right now:** [https://flowgroove.app](https://flowgroove.app)
 
 ---
-### Built with ❤️ for musicians and cover bands
+
+## ✨ Key Features
+
+- **Shared Song Library** with unique IDs
+- **Drag & Drop Setlists** — per-gig overrides (key, BPM, notes, custom order)
+- **Multiple Bands** — one account, many groups
+- **Real-time Sync** powered by Firestore
+- **Full Offline Mode** (Hive) with automatic sync
+- **Professional PDF Export**
+- **Built-in Audio Player + Metronome** (perfect for rehearsals)
+- **Mobile-friendly** — works perfectly in any browser (iPhone & Android)
+
+## 🚀 Quick Start (30 seconds)
+
+1. Open [flowgroove.app](https://flowgroove.app)
+2. Sign up with Google or Email
+3. Create a band and add your first song
+4. Invite bandmates — everything syncs instantly
+
+## Tech Stack
+
+- Flutter (Web-first + Android/iOS ready)
+- Firebase (Auth + Firestore Realtime)
+- Hive (offline-first storage)
+- Riverpod (state management)
+- go_router
+- pdf + printing
+- audioplayers + flutter_sound
+
+## Documentation
+
+- [Platform Guide](docs/PLATFORMS.md)
+- [Makefile Commands](MAKEFILE_GUIDE.md)
+- [Changelog](CHANGELOG.md)
+
+## Roadmap
+
+**✅ Done (v0.11+)**  
+- Real-time sync, offline mode, PDF export, built-in audio player + metronome  
+- Stable web version
+
+**🔨 Planning / Next**  
+- Spotify Integration (auto BPM + key fetch)
+- Smart song auto-fill (MusicBrainz or similar)
+- Premium features
+- Native mobile apps (App Store & Play Store)
+- Gig calendar integration
+
+## License
+
+MIT License — free to use, fork, and contribute.
+
+---
+
+**Built with love by a musician for musicians ❤️**
+
+Created because I was tired of the same pain in cover bands for 10+ years.
+
+**Feedback is extremely welcome!**  
+Try the app and tell me what’s missing or what you love. Open an Issue or just DM me.
