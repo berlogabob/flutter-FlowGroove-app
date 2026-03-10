@@ -217,8 +217,7 @@ class _SectionPickerState extends State<SectionPicker>
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
+              style: MonoPulseTypography.labelLarge.copyWith(
                 fontWeight: FontWeight.w700,
                 color: color != null
                     ? SectionColorPalette.getContrastingTextColor(color)

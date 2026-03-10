@@ -364,9 +364,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Filter Options',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: MonoPulseTypography.titleLarge.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -696,9 +698,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
               const Spacer(),
               Text(
                 '${filteredSongs.length} ${filteredSongs.length == 1 ? 'song' : 'songs'}',
-                style: const TextStyle(
+                style: MonoPulseTypography.bodySmall.copyWith(
                   color: MonoPulseColors.textSecondary,
-                  fontSize: 12,
                 ),
               ),
             ],

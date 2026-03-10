@@ -98,9 +98,8 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
               Expanded(
                 child: Text(
                   widget.song.title,
-                  style: const TextStyle(
+                  style: MonoPulseTypography.titleMedium.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
                     color: MonoPulseColors.textPrimary,
                   ),
                 ),
@@ -110,9 +109,8 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
           const SizedBox(height: 4),
           Text(
             widget.song.artist,
-            style: const TextStyle(
+            style: MonoPulseTypography.bodyMedium.copyWith(
               color: MonoPulseColors.textTertiary,
-              fontSize: 14,
             ),
           ),
           const SizedBox(height: 8),
@@ -188,9 +186,11 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Select a band:',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: MonoPulseTypography.labelLarge.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -232,8 +232,7 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
       ),
       subtitle: Text(
         '${band.members.length} member${band.members.length != 1 ? 's' : ''}',
-        style: const TextStyle(
-          fontSize: 12,
+        style: MonoPulseTypography.bodySmall.copyWith(
           color: MonoPulseColors.textTertiary,
         ),
       ),

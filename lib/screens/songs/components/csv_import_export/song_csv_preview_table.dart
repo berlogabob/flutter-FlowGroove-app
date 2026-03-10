@@ -157,7 +157,7 @@ class SongCsvPreviewTable extends StatelessWidget {
                 ),
                 title: Text(
                   errors[index],
-                  style: const TextStyle(fontSize: 12),
+                  style: MonoPulseTypography.bodySmall,
                 ),
               );
             },

@@ -45,7 +45,9 @@ class KeySelector extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+            style: MonoPulseTypography.labelMedium.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 4),
         ],

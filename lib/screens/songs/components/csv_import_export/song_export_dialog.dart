@@ -83,8 +83,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
       children: [
         Text(
           'Export ${widget.songs.length} song(s) to CSV file:',
-          style: const TextStyle(
-            fontSize: 16,
+          style: MonoPulseTypography.titleMedium.copyWith(
             fontWeight: FontWeight.w500,
             color: MonoPulseColors.textHighEmphasis,
           ),
@@ -111,8 +110,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
         const SizedBox(height: 16),
         Text(
           'CSV file can be opened in Excel, Google Sheets, or imported back to RepSync',
-          style: const TextStyle(
-            fontSize: 14,
+          style: MonoPulseTypography.bodyMedium.copyWith(
             color: MonoPulseColors.textSecondary,
           ),
         ),

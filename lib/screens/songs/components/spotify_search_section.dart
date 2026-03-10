@@ -116,7 +116,9 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                         isPremiumError
                             ? 'Spotify API needs Premium subscription'
                             : 'Try again later',
-                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                        style: MonoPulseTypography.bodySmall.copyWith(
+                          color: Colors.grey,
+                        ),
                       ),
                       if (isPremiumError) ...[
                         const SizedBox(height: 16),
@@ -154,8 +156,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                       const SizedBox(height: 8),
                       Text(
                         'Spotify API not configured.\nSee lib/services/spotify_service.dart',
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: MonoPulseTypography.bodySmall.copyWith(
                           color: MonoPulseColors.textSecondary,
                         ),
                         textAlign: TextAlign.center,
