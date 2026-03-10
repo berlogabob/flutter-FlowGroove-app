@@ -3,7 +3,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-3.19+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.3+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.11.1+29-brightgreen.svg)](https://github.com/berlogabob/flutter-repsync-app/releases)
+[![Version](https://img.shields.io/badge/version-0.11.1+29-brightgreen.svg)](https://github.com/berlogabob/flutter-FlowGroove-app/releases)
 [![Live Demo](https://img.shields.io/badge/Live%20App-flowgroove.app-blue)](https://flowgroove.app)
 
 **Real-time repertoire & setlist manager built specifically for cover bands and gigging musicians.**
@@ -57,10 +57,17 @@ FlowGroove gives your entire band **one single source of truth** for songs and s
 
 **🔨 Planning / Next**  
 - Spotify Integration (auto BPM + key fetch)
-- Smart song auto-fill (MusicBrainz or similar)
+- Smart song auto-fill
 - Premium features
 - Native mobile apps (App Store & Play Store)
 - Gig calendar integration
+
+## ❤️ Support Development
+
+FlowGroove is still in active development.  
+If the app already saves you time and nerves — you can buy me a coffee and help me develop it faster.
+
+[☕ Buy Me a Coffee on Ko-fi](https://ko-fi.com/flowgrooveapp)
 
 ## License
 
