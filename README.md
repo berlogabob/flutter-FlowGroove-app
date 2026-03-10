@@ -81,3 +81,8 @@ Created because I was tired of the same pain in cover bands for 10+ years.
 
 **Feedback is extremely welcome!**  
 Try the app and tell me what’s missing or what you love. Open an Issue or just DM me.
+
+
+❤️ Support the project
+If FlowGroove saves you time and nerves — you can buy me a coffee. Every donation helps me keep developing it faster.
+[Buy Me a Coffee](https://buymeacoffee.com/andreyflowgroove)
