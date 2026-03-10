@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -7,6 +8,10 @@ import '../../models/song.dart';
 class PdfService {
   static Future<void> exportSetlist(Setlist setlist, List<Song> songs) async {
     final pdf = pw.Document();
+
+    // Load font that supports Cyrillic characters (Roboto)
+    final font = await PdfGoogleFonts.robotoRegular();
+    final fontBold = await PdfGoogleFonts.robotoBold();
 
     final songWidgets = <pw.Widget>[];
 
@@ -112,7 +117,10 @@ class PdfService {
           children: [
             pw.Text(
               setlist.name,
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(
+                fontSize: 24,
+                fontWeight: pw.FontWeight.bold,
+              ),
             ),
             if (setlist.description != null) ...[
               pw.SizedBox(height: 4),

@@ -179,12 +179,11 @@ class _SongConstructorState extends State<SongConstructor> {
                   ),
                   const SizedBox(width: 8),
                   // Title
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Song Structure',
-                      style: TextStyle(
+                      style: MonoPulseTypography.titleMedium.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
                         color: MonoPulseColors.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,

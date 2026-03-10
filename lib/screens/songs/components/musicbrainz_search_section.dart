@@ -85,7 +85,9 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                       const SizedBox(height: 8),
                       Text(
                         'Try again later',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: MonoPulseTypography.bodySmall.copyWith(
+                          color: Colors.grey[600],
+                        ),
                       ),
                     ],
                   ),
@@ -95,17 +97,20 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
               final results = snapshot.data ?? [];
 
               if (results.isEmpty) {
-                return const Center(
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.search_off, size: 48, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text('No results found'),
-                      SizedBox(height: 8),
+                      const Icon(Icons.search_off, size: 48, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      const Text('No results found'),
+                      const SizedBox(height: 8),
                       Text(
                         'Try different keywords',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),

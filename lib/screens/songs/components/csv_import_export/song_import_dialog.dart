@@ -81,8 +81,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
         children: [
           Text(
             'Choose how to import songs:',
-            style: const TextStyle(
-              fontSize: 16,
+            style: MonoPulseTypography.titleMedium.copyWith(
               fontWeight: FontWeight.w500,
               color: MonoPulseColors.textHighEmphasis,
             ),
@@ -109,8 +108,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
           const SizedBox(height: 16),
           Text(
             'Supports CSV files from Google Sheets, Excel, or other apps',
-            style: const TextStyle(
-              fontSize: 14,
+            style: MonoPulseTypography.bodyMedium.copyWith(
               color: MonoPulseColors.textSecondary,
             ),
           ),

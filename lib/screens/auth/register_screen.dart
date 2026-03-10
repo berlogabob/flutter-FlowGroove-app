@@ -117,8 +117,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           const SizedBox(width: 8),
           Text(
             text,
-            style: TextStyle(
-              fontSize: 12,
+            style: MonoPulseTypography.bodySmall.copyWith(
               color: isMet
                   ? MonoPulseColors.successGreen
                   : MonoPulseColors.textSecondary,

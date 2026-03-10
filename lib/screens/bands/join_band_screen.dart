@@ -261,7 +261,9 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                       const SizedBox(height: 16),
                       Text(
                         'You need to create an account to join this band',
-                        style: TextStyle(color: MonoPulseColors.textTertiary, fontSize: 12),
+                        style: MonoPulseTypography.bodySmall.copyWith(
+                          color: MonoPulseColors.textTertiary,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
