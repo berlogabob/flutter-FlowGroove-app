@@ -236,7 +236,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
         body: Form(
           key: _formKey,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             children: [
               TextFormField(
                 controller: _nameController,
@@ -257,29 +257,27 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   height: 48,
                   decoration: BoxDecoration(
                     color: MonoPulseColors.surfaceRaised,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.large),
                   ),
                   child: const Icon(
                     Icons.calendar_today,
                     color: MonoPulseColors.textSecondary,
                   ),
                 ),
-                title: const Text(
+                title: Text(
                   'Event Date',
-                  style: TextStyle(
+                  style: MonoPulseTypography.bodySmall.copyWith(
                     color: MonoPulseColors.textSecondary,
-                    fontSize: 12,
                   ),
                 ),
                 subtitle: Text(
                   _eventDate != null
                       ? '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}'
                       : 'Tap to select date',
-                  style: TextStyle(
+                  style: MonoPulseTypography.bodyLarge.copyWith(
                     color: _eventDate != null
                         ? MonoPulseColors.textPrimary
                         : MonoPulseColors.textTertiary,
-                    fontSize: 16,
                   ),
                 ),
                 trailing: Row(
@@ -363,10 +361,11 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _selectedSongs.length,
                   onReorder: (oldIndex, newIndex) {
+                    var adjustedIndex = newIndex;
                     setState(() {
-                      if (newIndex > oldIndex) newIndex--;
+                      if (adjustedIndex > oldIndex) adjustedIndex--;
                       final song = _selectedSongs.removeAt(oldIndex);
-                      _selectedSongs.insert(newIndex, song);
+                      _selectedSongs.insert(adjustedIndex, song);
                       _markAsChanged();
                     });
                   },
@@ -508,7 +507,7 @@ class _SongPickerSheetState extends State<_SongPickerSheet> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

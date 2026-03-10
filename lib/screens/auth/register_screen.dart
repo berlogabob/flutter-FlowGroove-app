@@ -140,7 +140,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
         child: Form(
           key: _formKey,
           child: Column(
@@ -149,8 +149,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 32),
               Text(
                 'Join RepSync',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                style: MonoPulseTypography.headlineMedium.copyWith(
+                  color: MonoPulseColors.textHighEmphasis,
                 ),
                 textAlign: TextAlign.center,
               ),

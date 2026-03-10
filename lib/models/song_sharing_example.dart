@@ -47,7 +47,7 @@ void main() {
     'artist': 'The Beatles',
     'originalKey': 'F',
     'links': [],
-    'tags': ['classic'],
+    'tags': <String>['classic'],
     'createdAt': DateTime.now().toIso8601String(),
     'updatedAt': DateTime.now().toIso8601String(),
   };

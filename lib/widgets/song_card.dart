@@ -163,19 +163,17 @@ class CompactSongCard extends StatelessWidget {
             if (song.ourKey != null)
               Text(
                 song.ourKey!,
-                style: const TextStyle(
+                style: MonoPulseTypography.bodySmall.copyWith(
                   color: MonoPulseColors.accentOrange,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
                 ),
               ),
             if (song.ourBPM != null) ...[
               const SizedBox(width: MonoPulseSpacing.sm),
               Text(
                 '${song.ourBPM} BPM',
-                style: const TextStyle(
+                style: MonoPulseTypography.bodySmall.copyWith(
                   color: MonoPulseColors.accentOrange,
-                  fontSize: 12,
                 ),
               ),
             ],

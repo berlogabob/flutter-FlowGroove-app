@@ -82,9 +82,9 @@ class _SongConstructorState extends State<SongConstructor> {
         final index = _sections.indexWhere((s) => s.id == section.id);
         if (index != -1) {
           _sections[index] = section.copyWith(
-            name: result['name'],
-            notes: result['notes'],
-            duration: result['duration'],
+            name: result['name'] as String?,
+            notes: result['notes'] as String?,
+            duration: result['duration'] as int?,
           );
         }
       });
@@ -154,7 +154,7 @@ class _SongConstructorState extends State<SongConstructor> {
     return Container(
       decoration: BoxDecoration(
         color: MonoPulseColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
       ),
       child: Column(
@@ -162,9 +162,9 @@ class _SongConstructorState extends State<SongConstructor> {
           // Header
           InkWell(
             onTap: _toggleExpanded,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
               child: Row(
                 children: [
                   // Expand/collapse icon
@@ -233,7 +233,7 @@ class _SongConstructorState extends State<SongConstructor> {
               maintainState: true,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                  horizontal: MonoPulseSpacing.lg,
                   vertical: 8,
                 ),
                 child: _buildExpandedState(),
@@ -243,7 +243,7 @@ class _SongConstructorState extends State<SongConstructor> {
           // Pill view when collapsed
           if (!_expanded)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg, vertical: 8),
               child: SizedBox(height: 36, child: PillView(sections: _sections)),
             ),
         ],
@@ -276,12 +276,12 @@ class _SongConstructorState extends State<SongConstructor> {
                         color: MonoPulseColors.accentOrange,
                         child: const Row(
                           children: [
-                            Icon(Icons.edit, color: Colors.white),
+                            Icon(Icons.edit, color: MonoPulseColors.textPrimary),
                             SizedBox(width: 8),
                             Text(
                               'Edit',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: MonoPulseColors.textPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -291,19 +291,19 @@ class _SongConstructorState extends State<SongConstructor> {
                       secondaryBackground: Container(
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 20),
-                        color: Colors.red,
+                        color: MonoPulseColors.error,
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Text(
                               'Delete',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: MonoPulseColors.textPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             SizedBox(width: 8),
-                            Icon(Icons.delete, color: Colors.white),
+                            Icon(Icons.delete, color: MonoPulseColors.textPrimary),
                           ],
                         ),
                       ),

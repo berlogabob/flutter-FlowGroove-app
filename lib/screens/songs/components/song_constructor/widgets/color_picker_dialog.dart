@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../theme/mono_pulse_theme.dart';
 import '../core/theme/app_colors.dart';
 
 /// Color picker dialog with 3 methods: theme colors, color wheel, hex input.
@@ -149,7 +150,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
       spacing: 8,
       runSpacing: 8,
       children: [
-        for (final color in SectionColorPalette.themeColors)
+        for (final color in SectionColorPalette.sectionColors)
           _buildColorCircle(context, color),
       ],
     );
@@ -303,11 +304,11 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
       spacing: 6,
       runSpacing: 6,
       children: [
-        for (int i = 0; i < SectionColorPalette.paletteColors.length; i++)
+        for (int i = 0; i < SectionColorPalette.sectionColors.length; i++)
           GestureDetector(
             onTap: () {
               setState(() {
-                _selectedColor = SectionColorPalette.paletteColors[i];
+                _selectedColor = SectionColorPalette.sectionColors[i];
                 _hexController.text = SectionColorPalette.colorToHex(
                   _selectedColor,
                 );
@@ -317,10 +318,10 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: SectionColorPalette.paletteColors[i],
+                color: SectionColorPalette.sectionColors[i],
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _selectedColor == SectionColorPalette.paletteColors[i]
+                  color: _selectedColor == SectionColorPalette.sectionColors[i]
                       ? Theme.of(context).colorScheme.primary
                       : Colors.transparent,
                   width: 2,
@@ -406,7 +407,7 @@ class _HexPresetChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           border: Border.all(color: Colors.black26),
         ),
         child: Text(

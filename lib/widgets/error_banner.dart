@@ -36,7 +36,7 @@ class ErrorBanner extends StatelessWidget {
   Widget _buildBanner(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       decoration: BoxDecoration(
         color: MonoPulseColors.errorSubtle,
         border: Border.all(color: MonoPulseColors.error),
@@ -55,10 +55,8 @@ class ErrorBanner extends StatelessWidget {
               Expanded(
                 child: Text(
                   message,
-                  style: const TextStyle(
+                  style: MonoPulseTypography.labelLarge.copyWith(
                     color: MonoPulseColors.textPrimary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -87,9 +85,9 @@ class ErrorBanner extends StatelessWidget {
   Widget _buildCard(BuildContext context) {
     return Card(
       color: MonoPulseColors.errorSubtle,
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           children: [
             const Icon(
@@ -100,9 +98,8 @@ class ErrorBanner extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(
+              style: MonoPulseTypography.bodyMedium.copyWith(
                 color: MonoPulseColors.textPrimary,
-                fontSize: 14,
               ),
               textAlign: TextAlign.center,
             ),
@@ -131,9 +128,8 @@ class ErrorBanner extends StatelessWidget {
         Expanded(
           child: Text(
             message,
-            style: const TextStyle(
+            style: MonoPulseTypography.bodySmall.copyWith(
               color: MonoPulseColors.textPrimary,
-              fontSize: 13,
             ),
           ),
         ),

@@ -56,7 +56,7 @@ class CacheService {
       final box = await _openBox(boxName);
       final timestamp = box.get(_cacheTimestampKey);
       if (timestamp == null) return null;
-      return DateTime.parse(timestamp);
+      return DateTime.parse(timestamp as String);
     } catch (e) {
       return null;
     }

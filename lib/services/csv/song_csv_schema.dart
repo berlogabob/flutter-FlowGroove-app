@@ -234,14 +234,14 @@ class SongCsvSchema {
       return {'base': null, 'accidental': null, 'scale': null};
     }
 
-    key = key.trim();
+    var trimmedKey = key.trim();
     String? base;
     String? accidental;
     String? scale;
 
     // Extract base note (first character)
-    if (key.isNotEmpty) {
-      base = key[0].toUpperCase();
+    if (trimmedKey.isNotEmpty) {
+      base = trimmedKey[0].toUpperCase();
     }
 
     // Check for accidental (second character if # or b)

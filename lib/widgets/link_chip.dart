@@ -39,7 +39,7 @@ class LinkChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chip = Chip(
-      label: Text(_getLinkLabel(), style: const TextStyle(fontSize: 12)),
+      label: Text(_getLinkLabel(), style: MonoPulseTypography.labelMedium),
       avatar: _getLinkIcon(),
       deleteIcon: showDelete ? const Icon(Icons.close, size: 16) : null,
       onDeleted: onDelete,
@@ -49,7 +49,7 @@ class LinkChip extends StatelessWidget {
     if (onTap != null) {
       return InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
         child: chip,
       );
     }

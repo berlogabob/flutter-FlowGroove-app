@@ -175,7 +175,7 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
     if (widget.bands.isEmpty) {
       return const Center(
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(MonoPulseSpacing.lg),
           child: Text(
             'You are not a member of any bands yet.\nJoin or create a band to share songs.',
             textAlign: TextAlign.center,
@@ -287,7 +287,7 @@ class BandSelectorField extends StatelessWidget {
   Widget build(BuildContext context) {
     if (bands.isEmpty) {
       return const Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(MonoPulseSpacing.lg),
         child: Text(
           'No bands available. Join or create a band to share songs.',
           style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),

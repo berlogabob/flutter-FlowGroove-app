@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../models/section.dart';
+import '../../../../../theme/mono_pulse_theme.dart';
 
 /// Dialog for editing a section's name, duration, and notes.
 class EditSectionDialog extends StatefulWidget {
@@ -42,7 +43,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +61,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 12,
+                  horizontal: MonoPulseSpacing.md,
                   vertical: 0,
                 ),
               ),
@@ -133,7 +134,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                       labelText: 'Custom',
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: MonoPulseSpacing.sm,
                         vertical: 0,
                       ),
                     ),

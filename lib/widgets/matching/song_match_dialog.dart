@@ -42,7 +42,7 @@ class SongMatchDialog extends StatelessWidget {
     final grade = matchScore.grade;
 
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge)),
       title: Row(
         children: [
           Icon(_getGradeIcon(grade), color: _getGradeColor(grade)),
@@ -67,10 +67,10 @@ class SongMatchDialog extends StatelessWidget {
 
           // Matched song card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(MonoPulseRadius.large),
               border: Border.all(
                 color: _getGradeColor(grade).withValues(alpha: 0.3),
                 width: 2,
@@ -178,10 +178,9 @@ class SongMatchDialog extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         '${confidence.toStringAsFixed(0)}% Match',
-                        style: TextStyle(
+                        style: MonoPulseTypography.bodySmall.copyWith(
                           color: _getGradeColor(grade),
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -195,10 +194,10 @@ class SongMatchDialog extends StatelessWidget {
 
           // User input comparison
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(MonoPulseSpacing.md),
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(MonoPulseRadius.small),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

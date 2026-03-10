@@ -56,9 +56,9 @@ class TrackAnalysisService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(response.body) as Map<String, dynamic>;
         if (data['success'] == true && data['result'] != null) {
-          return TrackAnalysis.fromJson(data['result']);
+          return TrackAnalysis.fromJson(data['result'] as Map<String, dynamic>);
         }
       }
     } catch (e) {

@@ -43,7 +43,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

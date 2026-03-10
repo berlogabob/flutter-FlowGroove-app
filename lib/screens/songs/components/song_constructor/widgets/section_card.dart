@@ -26,10 +26,10 @@ class SectionCard extends StatelessWidget {
 
     return Card(
       elevation: 1,
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: MonoPulseSpacing.sm),
       child: ListTile(
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg, vertical: 8),
         leading: _buildColorIndicator(color),
         title: _buildTitle(context),
         subtitle: _buildSubtitle(context),
@@ -108,7 +108,7 @@ class SectionCard extends StatelessWidget {
             icon: const Icon(Icons.delete_outline, size: 20),
             onPressed: onDelete,
             color: Theme.of(context).colorScheme.error,
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(MonoPulseSpacing.sm),
             constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 4),

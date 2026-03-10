@@ -90,7 +90,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
         child: Form(
           key: _formKey,
           child: Column(

@@ -200,19 +200,13 @@ class SettingsInfoItem extends SettingsItem {
     return ListTile(
       title: Text(
         title,
-        style: const TextStyle(
-          color: MonoPulseColors.textSecondary,
-          fontSize: 12,
-        ),
+        style: MonoPulseTypography.bodySmall,
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: Text(
           value,
-          style: const TextStyle(
-            color: MonoPulseColors.textPrimary,
-            fontSize: 16,
-          ),
+          style: MonoPulseTypography.bodyLarge,
         ),
       ),
       trailing: onTap != null
@@ -284,10 +278,7 @@ class _SettingsEditableItemState extends State<SettingsEditableItem> {
     return ListTile(
       title: Text(
         widget.title,
-        style: const TextStyle(
-          color: MonoPulseColors.textSecondary,
-          fontSize: 12,
-        ),
+        style: MonoPulseTypography.bodySmall,
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 8),
@@ -297,10 +288,7 @@ class _SettingsEditableItemState extends State<SettingsEditableItem> {
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      style: const TextStyle(
-                        color: MonoPulseColors.textPrimary,
-                        fontSize: 16,
-                      ),
+                      style: MonoPulseTypography.bodyLarge,
                       decoration: const InputDecoration(
                         isDense: true,
                         contentPadding: EdgeInsets.symmetric(
@@ -333,10 +321,7 @@ class _SettingsEditableItemState extends State<SettingsEditableItem> {
                   Expanded(
                     child: Text(
                       widget.value,
-                      style: const TextStyle(
-                        color: MonoPulseColors.textPrimary,
-                        fontSize: 16,
-                      ),
+                      style: MonoPulseTypography.bodyLarge,
                     ),
                   ),
                   IconButton(
@@ -423,9 +408,11 @@ class SignOutButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
         ),
-        child: const Text(
+        child: Text(
           'Sign Out',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          style: MonoPulseTypography.bodyLarge.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

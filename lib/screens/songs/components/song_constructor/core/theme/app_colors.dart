@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../../theme/mono_pulse_theme.dart';
 
 /// Color palette for Song Structure Constructor.
-/// Adapted to work with MonoPulse dark theme.
+/// Uses MonoPulse design system colors.
 class SectionColorPalette {
   SectionColorPalette._();
 
@@ -24,51 +24,8 @@ class SectionColorPalette {
     MonoPulseColors.section14, // Deep Orange
   ];
 
-  /// Material theme colors for color picker.
-  static List<Color> get themeColors => [
-    const Color(0xFFEF5350),
-    const Color(0xFFEC407A),
-    const Color(0xFFAB47BC),
-    const Color(0xFF7E57C2),
-    const Color(0xFF5C6BC0),
-    const Color(0xFF42A5F5),
-    const Color(0xFF4FC3F7),
-    const Color(0xFF26C6DA),
-    const Color(0xFF26A69A),
-    const Color(0xFF66BB6A),
-    const Color(0xFF9CCC65),
-    const Color(0xFFD4E157),
-    const Color(0xFFFFEE58),
-    const Color(0xFFFFCA28),
-    const Color(0xFFFFA726),
-    const Color(0xFFFF7043),
-    const Color(0xFF8D6E63),
-    const Color(0xFFBDBDBD),
-    const Color(0xFF78909C),
-  ];
-
-  /// Extended palette for color wheel (shades).
-  static List<Color> get paletteColors => [
-    const Color(0xFFEF5350),
-    const Color(0xFFE57373),
-    const Color(0xFFEF5350),
-    const Color(0xFFE53935),
-    const Color(0xFFEC407A),
-    const Color(0xFFF06292),
-    const Color(0xFFEC407A),
-    const Color(0xFFD81B60),
-    const Color(0xFFAB47BC),
-    const Color(0xFFBA68C8),
-    const Color(0xFFAB47BC),
-    const Color(0xFF8E24AA),
-    const Color(0xFF7E57C2),
-    const Color(0xFF9575CD),
-    const Color(0xFF7E57C2),
-    const Color(0xFF5E35B1),
-  ];
-
   /// Get color at index with fallback.
-  static Color getColorAt(int index, {int shade = 300}) {
+  static Color getColorAt(int index) {
     if (index < 0 || index >= sectionColors.length) {
       return sectionColors.first;
     }
@@ -77,8 +34,9 @@ class SectionColorPalette {
 
   /// Get contrasting text color for a background color.
   static Color getContrastingTextColor(Color bgColor) {
-    final luminance = bgColor.computeLuminance();
-    return luminance > 0.5 ? Colors.black : Colors.white;
+    return bgColor.computeLuminance() > 0.5
+        ? MonoPulseColors.black
+        : MonoPulseColors.textPrimary;
   }
 
   /// Convert color to hex string (RRGGBB format).
@@ -99,81 +57,49 @@ class SectionColorPalette {
     }
   }
 
-  /// Get suggested colors for a section type.
+  /// Get suggested colors for a section type (using MonoPulse colors).
   static List<Color> getSuggestedColors(String sectionName) {
     switch (sectionName.toLowerCase()) {
       case 'intro':
-        return [
-          const Color(0xFF64B5F6),
-          const Color(0xFF4DD0E1),
-          const Color(0xFF7986CB),
-        ];
+        return [MonoPulseColors.section5, MonoPulseColors.section6, MonoPulseColors.section4];
       case 'verse':
-        return [
-          const Color(0xFF81C784),
-          const Color(0xFF4DB6AC),
-          const Color(0xFFAED581),
-        ];
+        return [MonoPulseColors.section8, MonoPulseColors.section7, MonoPulseColors.section9];
       case 'chorus':
-        return [
-          const Color(0xFFE57373),
-          const Color(0xFFFFB74D),
-          const Color(0xFFF06292),
-        ];
+        return [MonoPulseColors.section1, MonoPulseColors.section13, MonoPulseColors.section2];
       case 'bridge':
-        return [const Color(0xFFBA68C8), const Color(0xFF9575CD)];
+        return [MonoPulseColors.section2, MonoPulseColors.section3];
       case 'outro':
-        return [
-          const Color(0xFF90A4AE),
-          const Color(0xFFBDBDBD),
-          const Color(0xFF4DD0E1),
-        ];
+        return [MonoPulseColors.section6, MonoPulseColors.textSecondary, MonoPulseColors.section5];
       case 'instrumental':
-        return [
-          const Color(0xFFFFCA28),
-          const Color(0xFFFFEE58),
-          const Color(0xFFFFA726),
-        ];
+        return [MonoPulseColors.section12, MonoPulseColors.section11, MonoPulseColors.section13];
       case 'solo':
-        return [
-          const Color(0xFFBA68C8),
-          const Color(0xFFF06292),
-          const Color(0xFFE57373),
-        ];
+        return [MonoPulseColors.section2, MonoPulseColors.section2, MonoPulseColors.section1];
       case 'pause':
-        return [
-          const Color(0xFFBDBDBD),
-          const Color(0xFF78909C),
-          const Color(0xFF8D6E63),
-        ];
+        return [MonoPulseColors.textSecondary, MonoPulseColors.textTertiary, MonoPulseColors.section10];
       default:
-        return [
-          const Color(0xFFBDBDBD),
-          const Color(0xFF64B5F6),
-          const Color(0xFF81C784),
-        ];
+        return [MonoPulseColors.textSecondary, MonoPulseColors.section5, MonoPulseColors.section8];
     }
   }
 
-  /// Hex preset colors for quick selection.
+  /// Hex preset colors for quick selection (using MonoPulse section colors).
   static const Map<String, int> hexPresets = {
-    'EF5350': 0xFFEF5350, // Red
-    '66BB6A': 0xFF66BB6A, // Green
-    '42A5F5': 0xFF42A5F5, // Blue
-    'FFA726': 0xFFFFA726, // Orange
-    'AB47BC': 0xFFAB47BC, // Purple
-    '26A69A': 0xFF26A69A, // Teal
+    'EF5350': 0xFFEF5350, // Red (section1 similar)
+    '66BB6A': 0xFF66BB6A, // Green (section8 similar)
+    '42A5F5': 0xFF42A5F5, // Blue (section5 similar)
+    'FFA726': 0xFFFFA726, // Orange (section13 similar)
+    'AB47BC': 0xFFAB47BC, // Purple (section2 similar)
+    '26A69A': 0xFF26A69A, // Teal (section7 similar)
   };
 }
 
-/// Common spacing and sizing constants adapted to MonoPulse.
+/// Common spacing and sizing constants using MonoPulse design system.
 class AppDimensions {
   AppDimensions._();
 
   /// Grid spacing for section picker.
   static const double gridSpacing = 8.0;
 
-  /// Border radius for section cards.
+  /// Border radius for section cards (using MonoPulseRadius.large).
   static const double cardBorderRadius = 12.0;
 
   /// Border radius for pills.
@@ -196,14 +122,4 @@ class AppDimensions {
 
   /// Color picker dialog height.
   static const double colorPickerHeight = 350.0;
-}
-
-/// Common duration presets.
-class AppDurationPresets {
-  AppDurationPresets._();
-
-  static const List<int> presets = [1, 2, 3, 4];
-  static const int minDuration = 1;
-  static const int maxDuration = 4;
-  static const int defaultDuration = 1;
 }

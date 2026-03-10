@@ -38,7 +38,9 @@ class BpmSelector extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+            style: MonoPulseTypography.labelMedium.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 4),
         ],
@@ -103,7 +105,9 @@ class KeyBpmSelector extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+          style: MonoPulseTypography.labelMedium.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 4),
         IntrinsicHeight(
@@ -146,9 +150,7 @@ class KeyBpmSelector extends StatelessWidget {
         isDense: true,
         isExpanded: true,
         underline: const SizedBox(),
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
+        style: MonoPulseTypography.labelLarge.copyWith(
           color: MonoPulseColors.textPrimary,
         ),
         dropdownColor: MonoPulseColors.surfaceRaised,
@@ -158,8 +160,7 @@ class KeyBpmSelector extends StatelessWidget {
                 value: k,
                 child: Text(
                   k.isEmpty ? '-' : k,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: MonoPulseTypography.labelLarge.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,

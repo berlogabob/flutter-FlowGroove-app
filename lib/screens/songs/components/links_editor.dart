@@ -140,8 +140,7 @@ class _LinkChip extends StatelessWidget {
     return Chip(
       label: Text(
         link.type.replaceAll('_', ' '),
-        style: const TextStyle(
-          fontSize: 12,
+        style: MonoPulseTypography.bodySmall.copyWith(
           color: MonoPulseColors.textPrimary,
         ),
       ),

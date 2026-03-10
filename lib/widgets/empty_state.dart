@@ -52,17 +52,14 @@ class EmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            style: MonoPulseTypography.titleMedium,
             textAlign: TextAlign.center,
           ),
           if (hint != null) ...[
             const SizedBox(height: 8),
             Text(
               hint!,
-              style: const TextStyle(
-                color: MonoPulseColors.textSecondary,
-                fontSize: 14,
-              ),
+              style: MonoPulseTypography.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ],

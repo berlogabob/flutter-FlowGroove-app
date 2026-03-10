@@ -150,7 +150,6 @@ class _ModePillState extends State<_ModePill>
                 style: MonoPulseTypography.bodyLarge.copyWith(
                   color: textColor,
                   fontWeight: MonoPulseTypography.medium,
-                  fontSize: 18,
                 ),
               ),
             ),

@@ -67,26 +67,17 @@ class SetlistCard extends StatelessWidget {
           children: [
             Text(
               '$songCount ${songCount == 1 ? 'song' : 'songs'}',
-              style: const TextStyle(
-                color: MonoPulseColors.textTertiary,
-                fontSize: 12,
-              ),
+              style: MonoPulseTypography.bodySmall,
             ),
             if (bandName != null && bandName!.isNotEmpty)
               Text(
                 bandName!,
-                style: const TextStyle(
-                  color: MonoPulseColors.textTertiary,
-                  fontSize: 12,
-                ),
+                style: MonoPulseTypography.bodySmall,
               ),
             if (date != null)
               Text(
                 _formatDate(date) ?? '',
-                style: const TextStyle(
-                  color: MonoPulseColors.textTertiary,
-                  fontSize: 12,
-                ),
+                style: MonoPulseTypography.bodySmall,
               ),
           ],
         ),

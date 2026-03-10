@@ -1,0 +1,30 @@
+# Riverpod lint configuration for consistent provider patterns
+# See: https://riverpod.dev/docs/essentials/riverpod_lint
+
+linter:
+  # Enforces best practices for Riverpod providers
+  - avoid_public_notifier_properties
+  - avoid_read_auto_dispose
+  - avoid_read_in_build
+  - avoid_read_outside_build
+  - avoid_widget_state_provider
+  - prefer_final_provider
+  - prefer_provider_scope
+  - provider_dependencies
+  - provider_parameters
+  - readonly_provider_scope
+  - unsupported_provider_value
+
+# Configure specific rules
+rules:
+  # Warn when AsyncNotifier methods don't return Future
+  async_value_not_unwrapped: warning
+  
+  # Ensure proper dispose patterns
+  avoid_unnecessary_dispose: warning
+  
+  # Prefer AsyncNotifier over Notifier<AsyncValue<T>>
+  prefer_async_notifier: error
+  
+  # Ensure providers are properly scoped
+  scoped_providers_should_use_ref_keep_alive: warning

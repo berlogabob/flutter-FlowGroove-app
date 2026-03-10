@@ -21,7 +21,7 @@ class SongBPMBadge extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: MonoPulseColors.accentOrangeSubtle,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
           border: Border.all(color: MonoPulseColors.accentOrange, width: 1.5),
         ),
         child: Row(
@@ -35,8 +35,7 @@ class SongBPMBadge extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               '$bpm BPM',
-              style: const TextStyle(
-                fontSize: 14,
+              style: MonoPulseTypography.bodyMedium.copyWith(
                 fontWeight: FontWeight.bold,
                 color: MonoPulseColors.accentOrange,
               ),

@@ -120,7 +120,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
           _buildBandInfo(),
           const SizedBox(height: 24),
@@ -137,7 +137,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   Widget _buildBandInfo() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -148,10 +148,8 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                   backgroundColor: MonoPulseColors.accentOrange,
                   child: Text(
                     _band.name.isNotEmpty ? _band.name[0].toUpperCase() : '?',
-                    style: const TextStyle(
+                    style: MonoPulseTypography.headlineLarge.copyWith(
                       color: MonoPulseColors.textPrimary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -162,18 +160,15 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                     children: [
                       Text(
                         _band.name,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                        style: MonoPulseTypography.headlineMedium.copyWith(
                           color: MonoPulseColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Created ${_formatDate(_band.createdAt)}',
-                        style: const TextStyle(
+                        style: MonoPulseTypography.bodyMedium.copyWith(
                           color: MonoPulseColors.textSecondary,
-                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -207,7 +202,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrangeSubtle,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -216,9 +211,8 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(
+            style: MonoPulseTypography.bodySmall.copyWith(
               color: MonoPulseColors.accentOrange,
-              fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -230,19 +224,17 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   Widget _buildDescriptionSection() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.description_outlined, size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.description_outlined, size: 20),
+                const SizedBox(width: 8),
                 Text(
                   'Description',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  style: MonoPulseTypography.headlineSmall.copyWith(
                     color: MonoPulseColors.textPrimary,
                   ),
                 ),
@@ -278,19 +270,17 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   Widget _buildTagsSection() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.label_outline, size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.label_outline, size: 20),
+                const SizedBox(width: 8),
                 Text(
                   'Tags',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  style: MonoPulseTypography.headlineSmall.copyWith(
                     color: MonoPulseColors.textPrimary,
                   ),
                 ),
@@ -352,22 +342,20 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   Widget _buildMembersSection() {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.people, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.people, size: 20),
+                    const SizedBox(width: 8),
                     Text(
                       'Members',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      style: MonoPulseTypography.headlineSmall.copyWith(
                         color: MonoPulseColors.textPrimary,
                       ),
                     ),

@@ -169,7 +169,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         children: [
           // Main content
           SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
             child: Form(
               key: _formKey,
               child: Column(
@@ -184,14 +184,14 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                   // Error message
                   if (_error != null) ...[
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                       decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: MonoPulseColors.errorSubtle,
+                        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
                       ),
                       child: Text(
                         _error!,
-                        style: const TextStyle(color: Colors.red),
+                        style: const TextStyle(color: MonoPulseColors.error),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -202,8 +202,9 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                   if (_band == null) ...[
                     Text(
                       'Join a band',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: MonoPulseTypography.headlineSmall.copyWith(
+                        color: MonoPulseColors.textHighEmphasis,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
@@ -211,7 +212,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                       widget.inviteCode != null
                           ? 'Loading band info...'
                           : 'Enter invite code',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(color: MonoPulseColors.textTertiary),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -238,7 +239,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? const CircularProgressIndicator(color: MonoPulseColors.textPrimary)
                           : const Text('Find Band'),
                     ),
                   ],
@@ -252,7 +253,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? const CircularProgressIndicator(color: MonoPulseColors.textPrimary)
                           : Text(isLoggedIn ? 'Join Band' : 'Login to Join'),
                     ),
 
@@ -260,7 +261,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                       const SizedBox(height: 16),
                       Text(
                         'You need to create an account to join this band',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: TextStyle(color: MonoPulseColors.textTertiary, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -273,7 +274,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
           // Loading overlay
           if (_isLoading)
             Container(
-              color: Colors.black.withValues(alpha: 0.3),
+              color: MonoPulseColors.black.withValues(alpha: 0.3),
               child: const Center(child: CircularProgressIndicator()),
             ),
         ],
@@ -283,10 +284,10 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
 
   Widget _buildBandInfoCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       decoration: BoxDecoration(
         color: MonoPulseColors.surfaceRaised,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
         border: Border.all(
           color: MonoPulseColors.accentOrange.withValues(alpha: 0.3),
           width: 2,
@@ -305,9 +306,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
             child: Center(
               child: Text(
                 _band!.name.isNotEmpty ? _band!.name[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 36,
+                style: MonoPulseTypography.headlineLarge.copyWith(
+                  color: MonoPulseColors.textPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -318,9 +318,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
           // Band name
           Text(
             _band!.name,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+            style: MonoPulseTypography.headlineMedium.copyWith(
               color: MonoPulseColors.textHighEmphasis,
             ),
             textAlign: TextAlign.center,
@@ -331,7 +329,9 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
             const SizedBox(height: 8),
             Text(
               _band!.description!,
-              style: TextStyle(color: Colors.grey[400], fontSize: 14),
+              style: MonoPulseTypography.bodyMedium.copyWith(
+                color: MonoPulseColors.textTertiary,
+              ),
               textAlign: TextAlign.center,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
@@ -351,9 +351,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
               const SizedBox(width: 8),
               Text(
                 '${_band!.members.length} member${_band!.members.length == 1 ? '' : 's'}',
-                style: const TextStyle(
+                style: MonoPulseTypography.bodyMedium.copyWith(
                   color: MonoPulseColors.textSecondary,
-                  fontSize: 14,
                 ),
               ),
             ],

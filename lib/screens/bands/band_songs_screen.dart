@@ -262,7 +262,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     final description = band.description;
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -273,9 +273,8 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
               child: Center(
                 child: Text(
                   description,
-                  style: const TextStyle(
+                  style: MonoPulseTypography.bodyLarge.copyWith(
                     color: MonoPulseColors.textPrimary,
-                    fontSize: 16,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 2,
@@ -291,7 +290,6 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                   'Ready to rock?',
                   style: TextStyle(
                     color: MonoPulseColors.textTertiary,
-                    fontSize: 16,
                     fontStyle: FontStyle.italic,
                   ),
                   textAlign: TextAlign.center,
@@ -308,7 +306,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                   onTap: () =>
                       setState(() => _isMembersExpanded = !_isMembersExpanded),
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(MonoPulseSpacing.md),
                     child: Row(
                       children: [
                         const Icon(Icons.people_outline, size: 20),
@@ -378,7 +376,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
               children: [
                 FilterChip(
                   label: const Text('All'),
@@ -454,9 +452,10 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
 
   void _handleReorder(int oldIndex, int newIndex, List<Song> songs) {
     setState(() {
-      if (newIndex > oldIndex) newIndex--;
+      var adjustedIndex = newIndex;
+      if (adjustedIndex > oldIndex) adjustedIndex--;
       final item = songs.removeAt(oldIndex);
-      songs.insert(newIndex, item);
+      songs.insert(adjustedIndex, item);
     });
   }
 
@@ -515,7 +514,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     ScrollController scrollController,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: ListView(
         controller: scrollController,
         children: [
@@ -536,7 +535,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                   backgroundColor: MonoPulseColors.accentOrange,
                   child: Text(
                     _getMemberInitials(member).toUpperCase(),
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: MonoPulseColors.textPrimary),
                   ),
                 ),
                 title: Text(member.displayName ?? member.email ?? 'Unknown'),
@@ -634,7 +633,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(MonoPulseSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -646,7 +645,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                   child: Text(
                     _getMemberInitials(member).toUpperCase(),
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: MonoPulseColors.textPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -658,9 +657,8 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                     children: [
                       Text(
                         member.displayName ?? member.email ?? 'Unknown',
-                        style: const TextStyle(
+                        style: MonoPulseTypography.labelLarge.copyWith(
                           fontWeight: FontWeight.w600,
-                          fontSize: 14,
                         ),
                       ),
                       // Permission role badge
@@ -916,7 +914,7 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
       expand: false,
       builder: (context, scrollController) {
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: ListView(
             controller: scrollController,
             children: [
@@ -942,8 +940,7 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
               // Member name
               Text(
                 widget.member.displayName ?? widget.member.email ?? 'Unknown',
-                style: const TextStyle(
-                  fontSize: 18,
+                style: MonoPulseTypography.titleLarge.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -961,9 +958,9 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
               Wrap(
                 spacing: 8,
                 children: [
-                  _buildPermissionChip('admin', 'Admin', Colors.red),
-                  _buildPermissionChip('editor', 'Editor', Colors.blue),
-                  _buildPermissionChip('viewer', 'Viewer', Colors.grey),
+                  _buildPermissionChip('admin', 'Admin', MonoPulseColors.error),
+                  _buildPermissionChip('editor', 'Editor', MonoPulseColors.info),
+                  _buildPermissionChip('viewer', 'Viewer', MonoPulseColors.textTertiary),
                 ],
               ),
               const SizedBox(height: 24),
@@ -1046,7 +1043,7 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MonoPulseColors.accentOrange,
-                  foregroundColor: Colors.white,
+                  foregroundColor: MonoPulseColors.textPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text('Save Changes'),

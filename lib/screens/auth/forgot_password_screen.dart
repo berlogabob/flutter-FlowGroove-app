@@ -80,7 +80,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         foregroundColor: MonoPulseColors.textPrimary,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
         child: Form(
           key: _formKey,
           child: Column(
@@ -95,9 +95,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               const SizedBox(height: 24),
               Text(
                 'Forgot Password?',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                style: MonoPulseTypography.headlineSmall.copyWith(
                   color: MonoPulseColors.textPrimary,
-                  fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -112,11 +111,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               const SizedBox(height: 32),
               if (_emailSent && _successMessage != null) ...[
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                   decoration: BoxDecoration(
                     color: MonoPulseColors.successAlt.withValues(alpha: 0.1),
                     border: Border.all(color: MonoPulseColors.successAlt),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                   ),
                   child: Row(
                     children: [
@@ -129,9 +128,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       Expanded(
                         child: Text(
                           _successMessage!,
-                          style: const TextStyle(
+                          style: MonoPulseTypography.bodyMedium.copyWith(
                             color: MonoPulseColors.textPrimary,
-                            fontSize: 14,
                           ),
                         ),
                       ),
@@ -142,11 +140,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ],
               if (_errorMessage != null) ...[
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                   decoration: BoxDecoration(
                     color: MonoPulseColors.errorSubtle,
                     border: Border.all(color: MonoPulseColors.error),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                   ),
                   child: Row(
                     children: [
@@ -159,9 +157,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(
+                          style: MonoPulseTypography.bodyMedium.copyWith(
                             color: MonoPulseColors.textPrimary,
-                            fontSize: 14,
                           ),
                         ),
                       ),
@@ -185,19 +182,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     color: MonoPulseColors.textSecondary,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                     borderSide: const BorderSide(
                       color: MonoPulseColors.borderDefault,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                     borderSide: const BorderSide(
                       color: MonoPulseColors.borderDefault,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                     borderSide: const BorderSide(
                       color: MonoPulseColors.accentOrange,
                       width: 2,
@@ -222,7 +219,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   foregroundColor: MonoPulseColors.textPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                   ),
                 ),
                 child: _isLoading

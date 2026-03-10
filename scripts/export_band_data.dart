@@ -145,7 +145,7 @@ Map<String, dynamic> _analyzeBands(List<QueryDocumentSnapshot> docs) {
       summary['totalIssues'] = (summary['totalIssues'] as int) + issues.length;
 
       for (final issue in issues) {
-        final issueType = issue.split(':')[0];
+        final issueType = (issue as String).split(':')[0];
         final commonIssues = summary['commonIssues'] as Map<String, int>;
         commonIssues[issueType] = (commonIssues[issueType] ?? 0) + 1;
       }
@@ -419,13 +419,13 @@ void _printComparisonSummary(Map<String, dynamic> exportData) {
       status = '✅ OK';
     }
 
-    final name = band['name'].toString().length > 18
-        ? band['name'].toString().substring(0, 17) + '…'
-        : band['name'];
+    final name = (band['name'] as String).length > 18
+        ? (band['name'] as String).substring(0, 17) + '…'
+        : band['name'] as String;
 
     print(
       '│' +
-          centerText(band['id'].substring(0, 8), 10) +
+          centerText((band['id'] as String).substring(0, 8), 10) +
           '│' +
           centerText(name, 20) +
           '│' +

@@ -20,7 +20,7 @@ void main() async {
 
   // Load environment variables
   try {
-    await dotenv.load(fileName: '.env');
+    await dotenv.load(fileName: 'assets/env.json');
   } catch (e) {
     debugPrint(
       'Note: .env file not loaded. Using environment variables if available.',

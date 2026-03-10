@@ -359,7 +359,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           final currentBpm = state.bpmFilter;
 
           return Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,7 +539,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     if (_currentError != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
           child: ErrorBanner.card(
             message: _currentError?.message ?? 'An unexpected error occurred',
             onRetry: () {
@@ -586,7 +586,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         // Inline error banner if there's an error but we have cached data
         if (_currentError != null && filteredSongs.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             child: ErrorBanner.inline(
               message: _currentError?.message ?? 'An unexpected error occurred',
               onRetry: () {
@@ -599,7 +599,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
         // Unified filter/sort widget
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: UnifiedFilterSortWidget(
             currentSort: state.sortOption,
             onSortChanged: (option) {
@@ -629,7 +629,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         // Filter indicators
         if (state.keyFilter != null || state.bpmFilter != null)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
             child: Row(
               children: [
                 if (state.keyFilter != null)
@@ -668,13 +668,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         // Tag cloud filter
         if (songs.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg, vertical: 8),
             child: _buildTagCloud(songs),
           ),
 
         // Filter button
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg, vertical: 8),
           child: Row(
             children: [
               const Text(
@@ -688,7 +688,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                 label: const Text('Key / BPM'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: MonoPulseSpacing.md,
                     vertical: 8,
                   ),
                 ),
