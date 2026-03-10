@@ -7,6 +7,7 @@ import '../../models/api_error.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
+import '../../repositories/repositories.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';
@@ -135,17 +136,17 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       final user = userAsync.value;
       if (user != null) {
         try {
-          final service = ref.read(firestoreProvider);
+          final bandRepo = ref.read(bandRepositoryProvider);
 
           // Remove user from global band members
           final updatedMembers = band.members
               .where((m) => m.uid != user.uid)
               .toList();
           final updatedBand = band.copyWith(members: updatedMembers);
-          await service.saveBandToGlobal(updatedBand);
+          await bandRepo.saveBandToGlobal(updatedBand);
 
           // Remove from user's bands collection
-          await service.removeUserFromBand(band.id, userId: user.uid);
+          await bandRepo.removeUserFromBand(band.id, userId: user.uid);
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -252,7 +253,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (_currentError != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
           child: ErrorBanner.card(
             message: _currentError?.message ?? 'An unexpected error occurred',
             onRetry: () {
@@ -281,7 +282,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         // Inline error banner if there's an error but we have cached data
         if (_currentError != null && filteredBands.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             child: ErrorBanner.inline(
               message: _currentError?.message ?? 'An unexpected error occurred',
               onRetry: () {
@@ -293,7 +294,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         ],
         // Unified filter/sort widget
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: UnifiedFilterSortWidget(
             currentSort: _sortOption,
             onSortChanged: (option) {
@@ -402,13 +403,13 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
 
       final updatedBand = widget.band.copyWith(inviteCode: newCode);
 
+      final bandRepo = ref.read(bandRepositoryProvider);
+
       // Save to global collection
-      await ref.read(firestoreProvider).saveBandToGlobal(updatedBand);
+      await bandRepo.saveBandToGlobal(updatedBand);
 
       // Save to user's collection
-      await ref
-          .read(firestoreProvider)
-          .saveBand(updatedBand, uid: widget.currentUserId);
+      await bandRepo.saveBand(updatedBand, uid: widget.currentUserId);
 
       setState(() {
         _inviteCode = newCode;
@@ -579,10 +580,10 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
           // Error banner
           if (_currentError != null) ...[
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(MonoPulseSpacing.md),
               decoration: BoxDecoration(
                 color: MonoPulseColors.errorSubtle,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                 border: Border.all(color: MonoPulseColors.errorSubtle20),
               ),
               child: Row(
@@ -596,9 +597,8 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                   Expanded(
                     child: Text(
                       _currentError?.message ?? 'An unexpected error occurred',
-                      style: const TextStyle(
+                      style: MonoPulseTypography.bodySmall.copyWith(
                         color: MonoPulseColors.textPrimary,
-                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -617,9 +617,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
             ),
             child: Text(
               _isRegenerating ? 'Generating...' : _inviteCode,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+              style: MonoPulseTypography.headlineLarge.copyWith(
                 letterSpacing: 2,
                 color: MonoPulseColors.textPrimary,
               ),

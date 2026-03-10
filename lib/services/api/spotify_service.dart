@@ -87,8 +87,8 @@ class SpotifyService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        _accessToken = data['access_token'];
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        _accessToken = data['access_token'] as String;
         final expiresIn = data['expires_in'] as int;
         _tokenExpiry = DateTime.now().add(Duration(seconds: expiresIn - 60));
         return true;
@@ -132,9 +132,11 @@ class SpotifyService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(response.body) as Map<String, dynamic>;
         final tracks = data['tracks']['items'] as List<dynamic>? ?? [];
-        return tracks.map((t) => SpotifyTrack.fromJson(t)).toList();
+        return tracks
+            .map((t) => SpotifyTrack.fromJson(t as Map<String, dynamic>))
+            .toList();
       } else if (response.statusCode == 401) {
         // Token expired, try to re-authenticate
         _accessToken = null;
@@ -190,7 +192,9 @@ class SpotifyService {
       );
 
       if (response.statusCode == 200) {
-        return SpotifyAudioFeatures.fromJson(json.decode(response.body));
+        return SpotifyAudioFeatures.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
       } else if (response.statusCode == 401) {
         // Token expired, try to re-authenticate
         _accessToken = null;

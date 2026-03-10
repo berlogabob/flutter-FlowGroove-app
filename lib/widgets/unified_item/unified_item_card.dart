@@ -36,11 +36,13 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         leading: _buildLeadingIcon(context),
         title: Text(
           item.title,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: showCompact ? FontWeight.w500 : FontWeight.bold,
-            fontSize: showCompact ? 14 : 16,
-          ),
+          style: showCompact
+              ? MonoPulseTypography.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w500,
+                )
+              : MonoPulseTypography.bodyLarge.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
         ),
         subtitle: _buildSubtitle(context),
         trailing: UnifiedItemTrailingActions(
@@ -97,10 +99,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         subtitleWidgets.add(
           Text(
             song.subtitle!,
-            style: const TextStyle(
-              color: MonoPulseColors.textSecondary,
-              fontSize: 12,
-            ),
+            style: MonoPulseTypography.bodySmall,
           ),
         );
       }
@@ -121,10 +120,9 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 '$displayBPM BPM',
-                style: const TextStyle(
+                style: MonoPulseTypography.bodySmall.copyWith(
                   color: MonoPulseColors.accentOrange,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
                 ),
               ),
             ],
@@ -154,19 +152,18 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       // Add attribution badge for copied songs
       if (song.isCopy) {
         subtitleWidgets.add(
-          const Row(
+          Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.content_copy,
                 size: 12,
                 color: MonoPulseColors.accentOrange,
               ),
-              SizedBox(width: 4),
+              const SizedBox(width: 4),
               Text(
                 'Shared to band',
-                style: TextStyle(
+                style: MonoPulseTypography.labelSmall.copyWith(
                   color: MonoPulseColors.accentOrange,
-                  fontSize: 11,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -183,10 +180,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         subtitleWidgets.add(
           Text(
             band.subtitle!,
-            style: const TextStyle(
-              color: MonoPulseColors.textSecondary,
-              fontSize: 12,
-            ),
+            style: MonoPulseTypography.bodySmall,
           ),
         );
       }
@@ -194,10 +188,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       subtitleWidgets.add(
         Text(
           '$membersCount ${membersCount == 1 ? 'member' : 'members'}',
-          style: const TextStyle(
-            color: MonoPulseColors.textSecondary,
-            fontSize: 12,
-          ),
+          style: MonoPulseTypography.bodySmall,
         ),
       );
     }
@@ -208,10 +199,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       subtitleWidgets.add(
         Text(
           '$songCount ${songCount == 1 ? 'song' : 'songs'}',
-          style: const TextStyle(
-            color: MonoPulseColors.textSecondary,
-            fontSize: 12,
-          ),
+          style: MonoPulseTypography.bodySmall,
         ),
       );
 
@@ -219,10 +207,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         subtitleWidgets.add(
           Text(
             setlist.formattedEventDate,
-            style: const TextStyle(
-              color: MonoPulseColors.textSecondary,
-              fontSize: 12,
-            ),
+            style: MonoPulseTypography.bodySmall,
           ),
         );
       }
@@ -243,10 +228,9 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         compactSubtitles.add(
           Text(
             song.ourKey!,
-            style: const TextStyle(
+            style: MonoPulseTypography.bodySmall.copyWith(
               color: MonoPulseColors.accentOrange,
               fontWeight: FontWeight.bold,
-              fontSize: 12,
             ),
           ),
         );
@@ -254,10 +238,9 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         compactSubtitles.add(
           Text(
             song.originalKey!,
-            style: const TextStyle(
+            style: MonoPulseTypography.bodySmall.copyWith(
               color: MonoPulseColors.textTertiary,
               fontWeight: FontWeight.bold,
-              fontSize: 12,
             ),
           ),
         );
@@ -277,10 +260,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
               const SizedBox(width: 2),
               Text(
                 '$displayBPM BPM',
-                style: const TextStyle(
-                  color: MonoPulseColors.accentOrange,
-                  fontSize: 12,
-                ),
+                style: MonoPulseTypography.bodySmall,
               ),
             ],
           ),
@@ -291,10 +271,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       compactSubtitles.add(
         Text(
           '${setlist.songIdsLength} songs',
-          style: const TextStyle(
-            color: MonoPulseColors.textSecondary,
-            fontSize: 12,
-          ),
+          style: MonoPulseTypography.bodySmall,
         ),
       );
     }

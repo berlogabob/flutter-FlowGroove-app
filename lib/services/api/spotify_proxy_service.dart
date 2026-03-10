@@ -116,9 +116,11 @@ class SpotifyProxyService {
           );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = json.decode(response.body) as Map<String, dynamic>;
         final tracks = data['tracks'] as List<dynamic>? ?? [];
-        return tracks.map((t) => SpotifyTrack.fromJson(t)).toList();
+        return tracks
+            .map((t) => SpotifyTrack.fromJson(t as Map<String, dynamic>))
+            .toList();
       } else if (response.statusCode == 401) {
         throw ApiError.auth(
           message: 'Proxy authentication failed.',
@@ -162,7 +164,9 @@ class SpotifyProxyService {
           );
 
       if (response.statusCode == 200) {
-        return SpotifyAudioFeatures.fromJson(json.decode(response.body));
+        return SpotifyAudioFeatures.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
       } else if (response.statusCode == 404) {
         return null;
       } else {

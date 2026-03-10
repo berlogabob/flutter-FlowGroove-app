@@ -66,15 +66,17 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
           }
 
           // Load Telegram photo if consent given
-          _loadTelegramProfile(user.uid).then((telegramData) {
+          _loadTelegramProfile(user.uid).then((
+            Map<String, dynamic>? telegramData,
+          ) {
             if (telegramData != null) {
               // Use Telegram name if no Firebase name
               if (displayName == 'User' &&
                   telegramData['telegramUsername'] != null) {
-                displayName = telegramData['telegramUsername']!;
+                displayName = telegramData['telegramUsername'] as String;
               }
               // Use Telegram photo if available
-              photoURL = telegramData['telegramPhotoURL'];
+              photoURL = telegramData['telegramPhotoURL'] as String?;
 
               // Update state with Telegram data
               state = AsyncValue.data(

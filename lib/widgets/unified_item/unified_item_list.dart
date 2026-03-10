@@ -85,13 +85,14 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
         );
       },
       onReorder: (oldIndex, newIndex) {
-        if (newIndex > oldIndex) {
-          newIndex -= 1;
+        var adjustedIndex = newIndex;
+        if (adjustedIndex > oldIndex) {
+          adjustedIndex -= 1;
         }
 
         // Only call onReorder if it's enabled and the user is in manual sort mode
         if (widget.enableReorder && widget.onReorder != null) {
-          widget.onReorder!(oldIndex, newIndex);
+          widget.onReorder!(oldIndex, adjustedIndex);
         }
       },
     );

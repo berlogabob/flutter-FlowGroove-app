@@ -211,7 +211,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
       children: [
         // Search and sort
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: UnifiedFilterSortWidget(
             currentSort: _sortOption,
             onSortChanged: (option) {

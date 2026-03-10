@@ -43,12 +43,12 @@ class OfflineIndicator extends ConsumerWidget {
   Widget _buildBanner(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(MonoPulseSpacing.sm),
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrangeSubtle,
         border: Border.all(color: MonoPulseColors.accentOrange),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -56,9 +56,8 @@ class OfflineIndicator extends ConsumerWidget {
           SizedBox(width: 8),
           Text(
             'Offline - Some features may be limited',
-            style: TextStyle(
+            style: MonoPulseTypography.bodySmall.copyWith(
               color: MonoPulseColors.textPrimary,
-              fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -72,19 +71,18 @@ class OfflineIndicator extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrangeSubtle,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
         border: Border.all(color: MonoPulseColors.accentOrange),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 16),
           SizedBox(width: 6),
           Text(
             'Offline',
-            style: TextStyle(
+            style: MonoPulseTypography.bodySmall.copyWith(
               color: MonoPulseColors.textPrimary,
-              fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
           ),

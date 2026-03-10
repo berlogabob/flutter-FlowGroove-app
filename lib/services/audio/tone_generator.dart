@@ -160,9 +160,10 @@ class ToneGenerator {
   /// Convert integer to little-endian bytes
   List<int> _intToLittleEndian(int value, int bytes) {
     final result = <int>[];
+    var currentValue = value;
     for (int i = 0; i < bytes; i++) {
-      result.add(value & 0xFF);
-      value >>= 8;
+      result.add(currentValue & 0xFF);
+      currentValue >>= 8;
     }
     return result;
   }

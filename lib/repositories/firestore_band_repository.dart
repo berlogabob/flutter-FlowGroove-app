@@ -114,7 +114,7 @@ class FirestoreBandRepository implements BandRepository {
             }
             return bands;
           })
-          .handleError((error, stackTrace) {
+          .handleError((Object error, StackTrace stackTrace) {
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });
     } catch (e, stackTrace) {

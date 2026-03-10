@@ -60,14 +60,14 @@ class SectionColorManager {
     return SectionColorPalette.getSuggestedColors(sectionName);
   }
 
-  /// Get all theme colors.
+  /// Get all section colors from MonoPulse theme.
   List<Color> getThemeColors() {
-    return SectionColorPalette.themeColors;
+    return SectionColorPalette.sectionColors;
   }
 
-  /// Get palette colors (shades).
+  /// Get section colors (same as theme colors - using MonoPulse system).
   List<Color> getPaletteColors() {
-    return SectionColorPalette.paletteColors;
+    return SectionColorPalette.sectionColors;
   }
 }
 

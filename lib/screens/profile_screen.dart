@@ -63,7 +63,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (data != null && data['telegramConsent'] == true) {
           print('✅ Telegram consent found');
           setState(() {
-            _telegramPhotoURL = data['telegramPhotoURL'];
+            _telegramPhotoURL = data['telegramPhotoURL'] as String?;
             print('🖼️ Telegram photo URL: $_telegramPhotoURL');
             // If no local photo, use Telegram
             if (_profilePhotoPath == null && _telegramPhotoURL != null) {
@@ -177,7 +177,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ListTile(
               leading: Icon(
                 Icons.send,
-                color: _telegramPhotoURL != null ? Colors.blue : Colors.grey,
+                color: _telegramPhotoURL != null ? MonoPulseColors.info : MonoPulseColors.textTertiary,
               ),
               title: Text(
                 _telegramPhotoURL != null
@@ -188,12 +188,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ? (_photoSource == 'telegram'
                         ? const Text(
                             '✓ Currently using',
-                            style: TextStyle(color: Colors.green),
+                            style: TextStyle(color: MonoPulseColors.success),
                           )
                         : null)
                   : const Text(
                       'Import photo from Telegram',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: MonoPulseColors.textTertiary),
                     ),
               onTap: () {
                 Navigator.pop(context);
@@ -215,7 +215,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               subtitle: _photoSource == 'local' && _profilePhotoPath != null
                   ? const Text(
                       '✓ Currently using',
-                      style: TextStyle(color: Colors.green),
+                      style: TextStyle(color: MonoPulseColors.success),
                     )
                   : null,
               onTap: () {
@@ -229,7 +229,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               subtitle: _photoSource == 'local' && _profilePhotoPath != null
                   ? const Text(
                       '✓ Currently using',
-                      style: TextStyle(color: Colors.green),
+                      style: TextStyle(color: MonoPulseColors.success),
                     )
                   : null,
               onTap: () {
@@ -239,10 +239,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             if (_profilePhotoPath != null || _photoSource == 'telegram')
               ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
+                leading: const Icon(Icons.delete, color: MonoPulseColors.error),
                 title: const Text(
                   'Remove Photo',
-                  style: TextStyle(color: Colors.red),
+                  style: TextStyle(color: MonoPulseColors.error),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -271,19 +271,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Link your Telegram account to automatically import your profile name and photo to RepSync.',
-              style: TextStyle(
-                fontSize: 14,
+              style: MonoPulseTypography.bodyMedium.copyWith(
                 color: MonoPulseColors.textSecondary,
               ),
             ),
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(MonoPulseSpacing.md),
               decoration: BoxDecoration(
                 color: MonoPulseColors.surfaceRaised,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(MonoPulseRadius.small),
               ),
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,7 +432,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             child: const Icon(
                               Icons.camera_alt,
                               size: 16,
-                              color: Colors.white,
+                              color: MonoPulseColors.textPrimary,
                             ),
                           ),
                         ),
@@ -474,9 +473,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       children: [
                         Text(
                           displayName,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                          style: MonoPulseTypography.headlineLarge.copyWith(
                             color: MonoPulseColors.textPrimary,
                           ),
                         ),
@@ -495,8 +492,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 4),
                   Text(
                     user?.email ?? '',
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: MonoPulseTypography.bodyLarge.copyWith(
                       color: MonoPulseColors.textSecondary,
                     ),
                   ),
@@ -564,10 +560,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   }
                 }
               },
-              icon: const Icon(Icons.logout, color: Colors.red),
+              icon: const Icon(Icons.logout, color: MonoPulseColors.error),
               label: const Text(
                 'Sign Out',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(color: MonoPulseColors.error),
               ),
             ),
           ),
@@ -587,9 +583,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             title,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+            style: MonoPulseTypography.labelLarge.copyWith(
               color: MonoPulseColors.textSecondary,
             ),
           ),
@@ -608,7 +602,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         if (tags.isEmpty) {
           return const Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             child: Text(
               'No tags yet. Add your instruments and roles in band assignments.',
               style: TextStyle(color: MonoPulseColors.textTertiary),
@@ -617,7 +611,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         }
 
         return Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -625,7 +619,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               return Chip(
                 label: Text(
                   tag,
-                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: MonoPulseColors.textPrimary,
+                  ),
                 ),
                 backgroundColor: MonoPulseColors.accentOrange,
                 padding: EdgeInsets.zero,
@@ -636,11 +632,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         );
       },
       loading: () => const Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: CircularProgressIndicator(),
       ),
       error: (_, __) => const Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Text(
           'Error loading tags',
           style: TextStyle(color: MonoPulseColors.error),

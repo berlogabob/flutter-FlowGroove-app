@@ -176,7 +176,7 @@ class FirestoreService {
             (snapshot) =>
                 snapshot.docs.map((doc) => Song.fromJson(doc.data())).toList(),
           )
-          .handleError((error, stackTrace) {
+          .handleError((Object error, StackTrace stackTrace) {
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });
     } catch (e, stackTrace) {
@@ -297,7 +297,7 @@ class FirestoreService {
             }
             return bands;
           })
-          .handleError((error, stackTrace) {
+          .handleError((Object error, StackTrace stackTrace) {
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });
     } catch (e, stackTrace) {
@@ -406,7 +406,7 @@ class FirestoreService {
               }
             }).toList(),
           )
-          .handleError((error, stackTrace) {
+          .handleError((Object error, StackTrace stackTrace) {
             debugPrint('Stream error in watchSetlists: $error');
             debugPrint('Stack trace: $stackTrace');
             throw ApiError.fromException(error, stackTrace: stackTrace);
@@ -756,7 +756,7 @@ class FirestoreService {
             (snapshot) =>
                 snapshot.docs.map((doc) => Song.fromJson(doc.data())).toList(),
           )
-          .handleError((error, stackTrace) {
+          .handleError((Object error, StackTrace stackTrace) {
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });
     } catch (e, stackTrace) {

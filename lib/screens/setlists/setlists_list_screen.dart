@@ -186,7 +186,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: UnifiedFilterSortWidget(
             currentSort: _sortOption,
             onSortChanged: (option) {

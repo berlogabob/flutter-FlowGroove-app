@@ -163,7 +163,8 @@ class TelegramService {
             // Get the smallest photo (index 0 has smallest)
             final photo = photos[0] as List;
             if (photo.isNotEmpty) {
-              final fileId = photo[0]['file_id'];
+              final fileId =
+                  (photo[0] as Map<String, dynamic>)['file_id'] as String;
               // Now get the file path
               return await _getFilePath(fileId);
             }

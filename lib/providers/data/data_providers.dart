@@ -150,7 +150,7 @@ class CachedSongsNotifier extends Notifier<AsyncValue<List<Song>>> {
             );
             state = AsyncValue.data(songs);
           },
-          onError: (error, stackTrace) {
+          onError: (Object error, StackTrace stackTrace) {
             debugPrint('❌ STREAM ERROR: Real-time song stream error: $error');
             // On error, try to show cached data
             cache.getCachedSongs(uid).then((cachedSongs) {
@@ -217,7 +217,7 @@ final songsProvider = StreamProvider<List<Song>>((ref) {
                   listener.add(songs);
                 }
               },
-              onError: (error) {
+              onError: (Object error) {
                 // On error, emit cached data if not already emitted
                 if (!hasEmittedCache && !listener.isClosed) {
                   cache.getCachedSongs(user.uid).then((cachedSongs) {
@@ -330,7 +330,7 @@ final bandsProvider = StreamProvider<List<Band>>((ref) {
                   listener.add(bands);
                 }
               },
-              onError: (error) {
+              onError: (Object error) {
                 if (!hasEmittedCache && !listener.isClosed) {
                   cache.getCachedBands(user.uid).then((cachedBands) {
                     if (!listener.isClosed) {
@@ -457,7 +457,7 @@ final bandSongsProvider = StreamProvider.family<List<Song>, String>((
               listener.add(songs);
             }
           },
-          onError: (error) {
+          onError: (Object error) {
             if (!hasEmittedCache && !listener.isClosed) {
               cache.getCachedBandSongs(bandId).then((cachedSongs) {
                 if (!listener.isClosed) {

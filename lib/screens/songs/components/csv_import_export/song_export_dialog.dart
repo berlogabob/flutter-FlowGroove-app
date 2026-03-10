@@ -40,7 +40,11 @@ class _SongExportDialogState extends State<SongExportDialog> {
                   SizedBox(width: 12),
                   Text(
                     'Export Songs to CSV',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: MonoPulseColors.textHighEmphasis,
+                    ),
                   ),
                 ],
               ),
@@ -79,7 +83,11 @@ class _SongExportDialogState extends State<SongExportDialog> {
       children: [
         Text(
           'Export ${widget.songs.length} song(s) to CSV file:',
-          style: const TextStyle(fontSize: 16),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: MonoPulseColors.textHighEmphasis,
+          ),
         ),
         const SizedBox(height: 24),
         Row(
@@ -101,25 +109,32 @@ class _SongExportDialogState extends State<SongExportDialog> {
           ],
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'CSV file can be opened in Excel, Google Sheets, or imported back to RepSync',
-          style: TextStyle(color: MonoPulseColors.textSecondary, fontSize: 14),
+          style: const TextStyle(
+            fontSize: 14,
+            color: MonoPulseColors.textSecondary,
+          ),
         ),
       ],
     );
   }
 
   Widget _buildSuccessContent() {
-    return const Column(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.check_circle, color: MonoPulseColors.successGreen, size: 64),
-        SizedBox(height: 16),
+        const Icon(Icons.check_circle, color: MonoPulseColors.successGreen, size: 64),
+        const SizedBox(height: 16),
         Text(
           'Export Successful!',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: MonoPulseColors.textHighEmphasis,
+          ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           'Songs exported to CSV',
           style: TextStyle(color: MonoPulseColors.textSecondary),

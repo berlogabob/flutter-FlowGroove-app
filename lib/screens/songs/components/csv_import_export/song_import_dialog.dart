@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_repsync_app/services/csv/song_csv_parser.dart';
 import 'package:flutter_repsync_app/services/csv/song_csv_service.dart';
+import '../../../../theme/mono_pulse_theme.dart';
 import '../../../../widgets/loading_indicator.dart';
 import 'song_csv_preview_table.dart';
 
@@ -38,7 +39,11 @@ class _SongImportDialogState extends State<SongImportDialog> {
                   SizedBox(width: 12),
                   Text(
                     'Import Songs from CSV',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: MonoPulseColors.textHighEmphasis,
+                    ),
                   ),
                 ],
               ),
@@ -74,9 +79,13 @@ class _SongImportDialogState extends State<SongImportDialog> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             'Choose how to import songs:',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: MonoPulseColors.textHighEmphasis,
+            ),
           ),
           const SizedBox(height: 24),
           Row(
@@ -98,9 +107,12 @@ class _SongImportDialogState extends State<SongImportDialog> {
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Supports CSV files from Google Sheets, Excel, or other apps',
-            style: TextStyle(color: Colors.grey, fontSize: 14),
+            style: const TextStyle(
+              fontSize: 14,
+              color: MonoPulseColors.textSecondary,
+            ),
           ),
         ],
       ),

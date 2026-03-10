@@ -94,11 +94,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
             children: [
               Text(
                 widget.title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: MonoPulseColors.textPrimary,
-                ),
+                style: MonoPulseTypography.titleMedium,
               ),
               IconButton(
                 icon: const Icon(Icons.close),
@@ -136,10 +132,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
             const SizedBox(height: 12),
             const Text(
               'Suggestions:',
-              style: TextStyle(
-                fontSize: 12,
-                color: MonoPulseColors.textTertiary,
-              ),
+              style: MonoPulseTypography.labelSmall,
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -158,10 +151,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
           if (_tags.isNotEmpty) ...[
             const Text(
               'Your tags:',
-              style: TextStyle(
-                fontSize: 12,
-                color: MonoPulseColors.textTertiary,
-              ),
+              style: MonoPulseTypography.labelSmall,
             ),
             const SizedBox(height: 8),
             Wrap(

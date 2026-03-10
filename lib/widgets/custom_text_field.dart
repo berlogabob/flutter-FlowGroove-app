@@ -84,10 +84,9 @@ class CustomTextField extends StatelessWidget {
           RichText(
             text: TextSpan(
               text: label,
-              style: const TextStyle(
+              style: MonoPulseTypography.bodyMedium.copyWith(
                 color: MonoPulseColors.textPrimary,
                 fontWeight: FontWeight.w500,
-                fontSize: 14,
               ),
               children: required
                   ? [

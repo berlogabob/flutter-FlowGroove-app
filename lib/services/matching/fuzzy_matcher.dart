@@ -173,8 +173,8 @@ class Soundex {
   static String encode(String input) {
     if (input.isEmpty) return '';
 
-    input = input.toUpperCase();
-    final firstLetter = input[0];
+    var upperInput = input.toUpperCase();
+    final firstLetter = upperInput[0];
 
     // Soundex mapping:
     // B, F, P, V = 1

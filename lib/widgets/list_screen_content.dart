@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../theme/mono_pulse_theme.dart';
 import 'unified_item/unified_item_model.dart';
 import 'unified_item/unified_item_list.dart';
 import 'unified_item/unified_filter_sort_widget.dart';
@@ -115,7 +116,7 @@ class _ListScreenContentState<T extends UnifiedItemModel>
         // Filter/Sort widget
         if (widget.filterText != null || widget.sortOption != SortOption.manual)
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             child: UnifiedFilterSortWidget(
               currentSort: widget.sortOption,
               onSortChanged: (_) {},

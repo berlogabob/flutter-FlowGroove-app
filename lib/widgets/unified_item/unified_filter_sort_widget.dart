@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 /// Sort options for unified lists
 enum SortOption {
@@ -51,7 +52,7 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
         border: Border.all(
           color: Theme.of(context).colorScheme.outline,
           width: 0.5,

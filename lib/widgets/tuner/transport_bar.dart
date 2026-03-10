@@ -125,7 +125,6 @@ class _MainActionButton extends StatelessWidget {
                   label,
                   style: MonoPulseTypography.labelSmall.copyWith(
                     color: MonoPulseColors.textSecondary,
-                    fontSize: 10,
                   ),
                 ),
               ),

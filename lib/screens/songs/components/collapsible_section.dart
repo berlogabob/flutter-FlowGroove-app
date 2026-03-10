@@ -57,7 +57,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
     return Container(
       decoration: BoxDecoration(
         color: MonoPulseColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
       ),
       child: Column(
@@ -65,9 +65,9 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
           // Header
           InkWell(
             onTap: _toggleExpanded,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
               child: Row(
                 children: [
                   // Expand/collapse icon
@@ -85,9 +85,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                   Expanded(
                     child: Text(
                       widget.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                      style: MonoPulseTypography.titleLarge.copyWith(
                         color: MonoPulseColors.textPrimary,
                       ),
                     ),
@@ -110,7 +108,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
               maintainState: true,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                  horizontal: MonoPulseSpacing.lg,
                   vertical: 8,
                 ),
                 child: widget.child,

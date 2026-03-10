@@ -84,7 +84,46 @@ class SongFormData {
        beatModes = beatModes ?? [],
        sections = sections ?? [];
 
-  /// Creates SongFormData from an existing Song.
+  /// Creates a copy of this SongFormData with the given fields replaced.
+  SongFormData copyWith({
+    String? title,
+    String? artist,
+    String? originalBpm,
+    String? ourBpm,
+    String? notes,
+    List<Link>? links,
+    List<String>? selectedTags,
+    String? originalKeyBase,
+    String? originalKeyModifier,
+    String? ourKeyBase,
+    String? ourKeyModifier,
+    String? spotifyUrl,
+    int? accentBeats,
+    int? regularBeats,
+    List<List<BeatMode>>? beatModes,
+    List<Section>? sections,
+  }) {
+    return SongFormData(
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      originalBpm: originalBpm ?? this.originalBpm,
+      ourBpm: ourBpm ?? this.ourBpm,
+      notes: notes ?? this.notes,
+      links: links ?? List.from(this.links),
+      selectedTags: selectedTags ?? List.from(this.selectedTags),
+      originalKeyBase: originalKeyBase ?? this.originalKeyBase,
+      originalKeyModifier: originalKeyModifier ?? this.originalKeyModifier,
+      ourKeyBase: ourKeyBase ?? this.ourKeyBase,
+      ourKeyModifier: ourKeyModifier ?? this.ourKeyModifier,
+      spotifyUrl: spotifyUrl ?? this.spotifyUrl,
+      accentBeats: accentBeats ?? this.accentBeats,
+      regularBeats: regularBeats ?? this.regularBeats,
+      beatModes: beatModes ?? this.beatModes.map((row) => row.map((mode) => mode).toList()).toList(),
+      sections: sections ?? List.from(this.sections),
+    );
+  }
+
+  /// Creates a new SongFormData instance from an existing Song.
   factory SongFormData.fromSong(Song song) {
     final data = SongFormData(
       title: song.title,
@@ -120,17 +159,17 @@ class SongFormData {
     if (key == null || key.isEmpty) return;
 
     final setKey = isOriginal
-        ? (base, modifier) {
+        ? (String base, String modifier) {
             originalKeyBase = base;
             originalKeyModifier = modifier;
           }
-        : (base, modifier) {
+        : (String base, String modifier) {
             ourKeyBase = base;
             ourKeyModifier = modifier;
           };
 
     if (key.length > 1 && key.endsWith('m')) {
-      setKey(key[0].toUpperCase(), 'm');
+      setKey(key[0].toUpperCase(), key.substring(1));
     } else if (key.length > 1) {
       setKey(key[0].toUpperCase(), key.substring(1));
     } else {
@@ -356,11 +395,12 @@ class SongFormData {
 
   /// Reorder sections (for drag and drop).
   void reorderSection(int oldIndex, int newIndex) {
-    if (newIndex > oldIndex) {
-      newIndex -= 1;
+    var adjustedIndex = newIndex;
+    if (adjustedIndex > oldIndex) {
+      adjustedIndex -= 1;
     }
     final section = sections.removeAt(oldIndex);
-    sections.insert(newIndex, section);
+    sections.insert(adjustedIndex, section);
   }
 
   /// Set all sections.

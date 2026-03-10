@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 class UnifiedItemBadge extends StatelessWidget {
   final String text;
@@ -16,10 +17,9 @@ class UnifiedItemBadge extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: TextStyle(
+        style: MonoPulseTypography.labelSmall.copyWith(
           fontWeight: FontWeight.bold,
           color: color,
-          fontSize: 11,
         ),
       ),
     );

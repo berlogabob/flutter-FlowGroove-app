@@ -260,9 +260,8 @@ class CompactAttributionBadge extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               'by $contributorName',
-              style: const TextStyle(
+              style: MonoPulseTypography.labelSmall.copyWith(
                 color: MonoPulseColors.accentOrange,
-                fontSize: 10,
                 fontWeight: FontWeight.w500,
               ),
             ),

@@ -43,7 +43,7 @@ class SongCsvPreviewTable extends StatelessWidget {
 
   Widget _buildSummary() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       color: songs.isNotEmpty && errors.isEmpty
           ? MonoPulseColors.successGreenSubtle
           : errors.isNotEmpty && songs.isNotEmpty
@@ -72,8 +72,7 @@ class SongCsvPreviewTable extends StatelessWidget {
                   songs.isNotEmpty
                       ? '${songs.length} song(s) ready to import'
                       : 'No songs to import',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
+                  style: MonoPulseTypography.titleLarge.copyWith(
                     color: songs.isNotEmpty && errors.isEmpty
                         ? MonoPulseColors.successGreen
                         : errors.isNotEmpty && songs.isNotEmpty
@@ -84,8 +83,7 @@ class SongCsvPreviewTable extends StatelessWidget {
                 if (errors.isNotEmpty)
                   Text(
                     '${errors.length} error(s) found',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: MonoPulseTypography.bodySmall.copyWith(
                       color: songs.isNotEmpty && errors.isNotEmpty
                           ? MonoPulseColors.warning
                           : MonoPulseColors.error,
@@ -101,13 +99,15 @@ class SongCsvPreviewTable extends StatelessWidget {
 
   Widget _buildErrorsOnly() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Import Errors:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: MonoPulseTypography.titleLarge.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
           ...errors.map(
@@ -173,7 +173,7 @@ class SongCsvPreviewTable extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             child: DataTable(
               headingRowColor: WidgetStateProperty.all(Colors.grey.shade200),
               columns: const [

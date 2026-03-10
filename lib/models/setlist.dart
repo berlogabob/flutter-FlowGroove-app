@@ -169,9 +169,10 @@ Map<String, SetlistAssignment> _assignmentsFromJson(dynamic value) {
     final result = <String, SetlistAssignment>{};
     for (final entry in value.entries) {
       final key = entry.key.toString();
-      if (entry.value is Map) {
+      if (entry.value is Map<dynamic, dynamic>) {
+        final mapValue = entry.value as Map<dynamic, dynamic>;
         result[key] = SetlistAssignment.fromJson(
-          Map<String, dynamic>.from(entry.value),
+          Map<String, dynamic>.from(mapValue),
         );
       } else {
         result[key] = SetlistAssignment(oderId: key);

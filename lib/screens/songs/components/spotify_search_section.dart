@@ -62,14 +62,18 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
                   'Spotify: ${widget.query}',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: MonoPulseColors.textHighEmphasis,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -112,7 +116,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                         isPremiumError
                             ? 'Spotify API needs Premium subscription'
                             : 'Try again later',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: const TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                       if (isPremiumError) ...[
                         const SizedBox(height: 16),
@@ -140,17 +144,20 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
               final results = snapshot.data ?? [];
 
               if (results.isEmpty) {
-                return const Center(
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.music_off, size: 48, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text('No results found'),
-                      SizedBox(height: 8),
+                      const Icon(Icons.music_off, size: 48, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      const Text('No results found'),
+                      const SizedBox(height: 8),
                       Text(
                         'Spotify API not configured.\nSee lib/services/spotify_service.dart',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: MonoPulseColors.textSecondary,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -174,9 +181,8 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                         if (features != null)
                           Text(
                             '${features.musicalKey} • ${features.bpm} BPM',
-                            style: const TextStyle(
+                            style: MonoPulseTypography.bodySmall.copyWith(
                               color: MonoPulseColors.accentOrange,
-                              fontSize: 12,
                             ),
                           ),
                       ],

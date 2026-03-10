@@ -213,23 +213,22 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
           children: [
             const Text(
               'Share this invite code with your bandmates:',
-              style: TextStyle(fontSize: 14),
+              style: MonoPulseTypography.bodyMedium,
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(MonoPulseSpacing.md),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                       border: Border.all(color: Colors.grey[300]!),
                     ),
                     child: Text(
                       inviteCode,
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: MonoPulseTypography.headlineSmall.copyWith(
                         fontWeight: FontWeight.bold,
                         fontFamily: 'monospace',
                       ),
@@ -293,7 +292,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
           ],
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
           child: Form(
             key: _formKey,
             child: Column(

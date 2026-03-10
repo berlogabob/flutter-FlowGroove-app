@@ -161,7 +161,7 @@ class FirestoreSongRepository implements SongRepository {
             (snapshot) =>
                 snapshot.docs.map((doc) => Song.fromJson(doc.data())).toList(),
           )
-          .handleError((error, stackTrace) {
+          .handleError((Object error, StackTrace stackTrace) {
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });
     } catch (e, stackTrace) {
@@ -349,7 +349,7 @@ class FirestoreSongRepository implements SongRepository {
             (snapshot) =>
                 snapshot.docs.map((doc) => Song.fromJson(doc.data())).toList(),
           )
-          .handleError((error, stackTrace) {
+          .handleError((Object error, StackTrace stackTrace) {
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });
     } catch (e, stackTrace) {

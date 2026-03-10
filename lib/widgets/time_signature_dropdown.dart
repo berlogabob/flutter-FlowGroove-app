@@ -45,11 +45,7 @@ class TimeSignatureDropdown extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md),
           child: Text(
             '/',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: MonoPulseColors.textPrimary,
-            ),
+            style: MonoPulseTypography.headlineLarge,
           ),
         ),
 
@@ -88,11 +84,7 @@ class TimeSignatureDropdown extends StatelessWidget {
           Icons.arrow_drop_down,
           color: MonoPulseColors.accentOrange,
         ),
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: MonoPulseColors.textPrimary,
-        ),
+        style: MonoPulseTypography.titleLarge,
         items: items
             .map(
               (item) => DropdownMenuItem(

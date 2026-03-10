@@ -67,13 +67,14 @@ class FirestoreSetlistRepository implements SetlistRepository {
             try {
               return snapshot.docs.map((doc) {
                 try {
-                  return Setlist.fromJson(doc.data());
+                  return Setlist.fromJson(doc.data() as Map<String, dynamic>);
                 } catch (e) {
                   debugPrint('❌ Failed to parse setlist ${doc.id}: $e');
+                  final data = doc.data() as Map<String, dynamic>;
                   return Setlist(
                     id: doc.id,
                     bandId: '',
-                    name: doc.data()['name'] ?? 'Unknown',
+                    name: (data['name'] as String?) ?? 'Unknown',
                     description: 'Parse error: ${e.toString()}',
                     createdAt: DateTime.now(),
                     updatedAt: DateTime.now(),
@@ -85,7 +86,7 @@ class FirestoreSetlistRepository implements SetlistRepository {
               return <Setlist>[];
             }
           })
-          .handleError((error, stackTrace) {
+          .handleError((Object error, StackTrace stackTrace) {
             debugPrint('❌ Stream error: $error');
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });

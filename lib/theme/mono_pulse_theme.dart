@@ -125,6 +125,12 @@ class MonoPulseColors {
   static const Color section13 = Color(0xFFFF9800); // Orange
   static const Color section14 = Color(0xFFFF5722); // Deep Orange
 
+  /// Complete list of section colors for easy iteration.
+  static const List<Color> sectionColors = [
+    section1, section2, section3, section4, section5, section6, section7, section8,
+    section9, section10, section11, section12, section13, section14,
+  ];
+
   // Special
   static const Color transparent = Colors.transparent;
   static const Color white = Color(0xFFFFFFFF);
@@ -190,6 +196,13 @@ class MonoPulseTypography {
     fontSize: 22,
     fontWeight: semibold,
     height: 1.36,
+  );
+
+  static const TextStyle titleMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 16,
+    fontWeight: semibold,
+    height: 1.45,
   );
 
   // Body

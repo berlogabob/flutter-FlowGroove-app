@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../models/section.dart';
+import '../../../../../theme/mono_pulse_theme.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/section_color_manager.dart';
 import 'color_picker_dialog.dart';
@@ -39,7 +40,7 @@ class _SectionPickerState extends State<SectionPicker>
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +94,7 @@ class _SectionPickerState extends State<SectionPicker>
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
       ),
       child: TabBar(
         controller: _tabController,
@@ -101,7 +102,7 @@ class _SectionPickerState extends State<SectionPicker>
         unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
         indicator: BoxDecoration(
           color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
@@ -123,7 +124,7 @@ class _SectionPickerState extends State<SectionPicker>
               hintText: 'Custom name',
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
+                horizontal: MonoPulseSpacing.lg,
                 vertical: 12,
               ),
             ),
@@ -142,7 +143,7 @@ class _SectionPickerState extends State<SectionPicker>
             }
           },
           style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxl, vertical: 16),
           ),
           child: const Text('Add', style: TextStyle(fontSize: 15)),
         ),
@@ -210,7 +211,7 @@ class _SectionPickerState extends State<SectionPicker>
         ),
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm, vertical: 12),
             child: Text(
               template,
               maxLines: 2,

@@ -46,12 +46,7 @@ class LoadingIndicator extends StatelessWidget {
             const SizedBox(height: MonoPulseSpacing.lg),
             Text(
               message!,
-              style:
-                  messageStyle ??
-                  const TextStyle(
-                    color: MonoPulseColors.textPrimary,
-                    fontSize: 14,
-                  ),
+              style: messageStyle ?? MonoPulseTypography.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ],

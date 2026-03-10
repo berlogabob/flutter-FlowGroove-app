@@ -64,10 +64,7 @@ class BandCard extends StatelessWidget {
               ),
             Text(
               '$memberCount ${memberCount == 1 ? 'member' : 'members'}',
-              style: const TextStyle(
-                color: MonoPulseColors.textTertiary,
-                fontSize: 12,
-              ),
+              style: MonoPulseTypography.bodySmall,
             ),
           ],
         ),

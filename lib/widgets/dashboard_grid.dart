@@ -351,9 +351,8 @@ class ToolButton extends StatelessWidget {
                 ),
                 child: Text(
                   'Soon',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  style: MonoPulseTypography.labelSmall.copyWith(
                     color: MonoPulseColors.textPrimary,
-                    fontSize: 10,
                   ),
                 ),
               ),
@@ -408,8 +407,7 @@ class GreetingCard extends StatelessWidget {
             child: avatarPath == null || avatarPath!.isEmpty
                 ? Text(
                     initial,
-                    style: const TextStyle(
-                      fontSize: 24,
+                    style: MonoPulseTypography.headlineSmall.copyWith(
                       color: MonoPulseColors.accentOrange,
                       fontWeight: FontWeight.bold,
                     ),

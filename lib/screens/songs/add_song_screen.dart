@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/api_error.dart';
+import '../../models/beat_mode.dart';
 import '../../models/song.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
+import '../../providers/song_form_provider.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'components/song_form.dart';
@@ -28,15 +30,11 @@ class AddSongScreen extends ConsumerStatefulWidget {
 class _AddSongScreenState extends ConsumerState<AddSongScreen>
     with AddSongScreenHelper, WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
-  late SongFormData _formData;
   late TextEditingController _titleController;
   late TextEditingController _artistController;
   late TextEditingController _originalBpmController;
   late TextEditingController _ourBpmController;
   late TextEditingController _notesController;
-  ApiError? _currentError;
-  bool _hasUnsavedChanges = false;
-  bool _isAutoSaving = false;
 
   final List<String> _availableTags = [
     'ready',
@@ -51,9 +49,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   @override
   void initState() {
     super.initState();
-    _formData = _isEditing
-        ? SongFormData.fromSong(widget.song!)
-        : SongFormData();
     _initControllers();
     WidgetsBinding.instance.addObserver(this);
   }
@@ -64,99 +59,106 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     if (state == AppLifecycleState.resumed) {
       _syncControllersToFormData();
       // Auto-save if there are unsaved changes
-      if (_hasUnsavedChanges && !_isAutoSaving) {
+      final formState = ref.read(songFormStateProvider);
+      if (formState.hasUnsavedChanges && !formState.isAutoSaving) {
         _autoSave();
       }
     }
   }
 
-  void _markAsChanged() {
-    if (!_hasUnsavedChanges) {
-      setState(() => _hasUnsavedChanges = true);
-    }
-  }
-
   Future<void> _autoSave() async {
-    if (_isAutoSaving || !_hasUnsavedChanges) return;
+    final formState = ref.read(songFormStateProvider);
+    if (formState.isAutoSaving || !formState.hasUnsavedChanges) return;
     if (_titleController.text.trim().isEmpty) return;
 
-    setState(() => _isAutoSaving = true);
+    ref.read(songFormStateProvider.notifier).setAutoSaving(true);
 
     try {
       final userAsync = ref.read(currentUserProvider);
       final user = userAsync.value;
       if (user == null) return;
 
-      final song = _formData.toSong(
-        id: _isEditing ? widget.song!.id : const Uuid().v4(),
-        createdAt: _isEditing ? widget.song!.createdAt : DateTime.now(),
-        bandId: widget.bandId,
-      );
-
       final songRepo = ref.read(songRepositoryProvider);
+      final success = await ref
+          .read(songFormStateProvider.notifier)
+          .autoSave(
+            songRepo: songRepo,
+            uid: user.uid,
+            bandId: widget.bandId,
+            isEditing: _isEditing,
+            existingSong: widget.song,
+          );
 
-      if (widget.bandId != null) {
-        await songRepo.saveBandSong(song, widget.bandId!);
-      } else {
-        await songRepo.saveSong(song, uid: user.uid);
-      }
-
-      if (mounted) {
-        setState(() {
-          _hasUnsavedChanges = false;
-          _isAutoSaving = false;
-        });
-        debugPrint('✅ Auto-saved song: ${song.title}');
+      if (success && mounted) {
+        debugPrint('✅ Auto-saved song: ${formState.formData.title}');
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isAutoSaving = false);
+        ref.read(songFormStateProvider.notifier).setAutoSaving(false);
         debugPrint('❌ Auto-save failed: $e');
       }
     }
   }
 
   void _initControllers() {
-    _titleController = TextEditingController(text: _formData.title);
-    _artistController = TextEditingController(text: _formData.artist);
-    _originalBpmController = TextEditingController(text: _formData.originalBpm);
-    _ourBpmController = TextEditingController(text: _formData.ourBpm);
-    _notesController = TextEditingController(text: _formData.notes);
+    // Initialize form state from song if editing
+    if (_isEditing && widget.song != null) {
+      ref.read(songFormStateProvider.notifier).initFromSong(widget.song!);
+    }
+
+    final formData = ref.read(songFormStateProvider).formData;
+
+    _titleController = TextEditingController(text: formData.title);
+    _artistController = TextEditingController(text: formData.artist);
+    _originalBpmController = TextEditingController(text: formData.originalBpm);
+    _ourBpmController = TextEditingController(text: formData.ourBpm);
+    _notesController = TextEditingController(text: formData.notes);
 
     // Add listeners to sync controller changes to form data
     _titleController.addListener(() {
-      _formData.updateTitle(_titleController.text);
-      _markAsChanged();
+      ref
+          .read(songFormStateProvider.notifier)
+          .updateTitle(_titleController.text);
     });
     _artistController.addListener(() {
-      _formData.updateArtist(_artistController.text);
-      _markAsChanged();
+      ref
+          .read(songFormStateProvider.notifier)
+          .updateArtist(_artistController.text);
     });
     _originalBpmController.addListener(() {
-      _formData.updateOriginalBpm(_originalBpmController.text);
-      _markAsChanged();
+      ref
+          .read(songFormStateProvider.notifier)
+          .updateOriginalBpm(_originalBpmController.text);
     });
     _ourBpmController.addListener(() {
-      _formData.updateOurBpm(_ourBpmController.text);
-      _markAsChanged();
+      ref
+          .read(songFormStateProvider.notifier)
+          .updateOurBpm(_ourBpmController.text);
     });
     _notesController.addListener(() {
-      _formData.updateNotes(_notesController.text);
-      _markAsChanged();
+      ref
+          .read(songFormStateProvider.notifier)
+          .updateNotes(_notesController.text);
     });
 
     // Initialize beat modes for new songs or songs without metronome settings
-    if (_formData.beatModes.isEmpty) {
-      _formData.initializeBeatModes();
+    if (formData.beatModes.isEmpty) {
+      ref.read(songFormStateProvider.notifier).setSections(formData.sections);
     }
   }
 
   void _syncControllersToFormData() {
-    _formData.updateTitle(_titleController.text);
-    _formData.updateArtist(_artistController.text);
-    _formData.updateOriginalBpm(_originalBpmController.text);
-    _formData.updateOurBpm(_ourBpmController.text);
-    _formData.updateNotes(_notesController.text);
+    ref.read(songFormStateProvider.notifier).updateTitle(_titleController.text);
+    ref
+        .read(songFormStateProvider.notifier)
+        .updateArtist(_artistController.text);
+    ref
+        .read(songFormStateProvider.notifier)
+        .updateOriginalBpm(_originalBpmController.text);
+    ref
+        .read(songFormStateProvider.notifier)
+        .updateOurBpm(_ourBpmController.text);
+    ref.read(songFormStateProvider.notifier).updateNotes(_notesController.text);
   }
 
   @override
@@ -172,16 +174,16 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
 
   // AddSongScreenHelper implementation
   @override
-  SongFormData get formData => _formData;
+  SongFormData get formData => ref.read(songFormStateProvider).formData;
   @override
   GlobalKey<FormState> get formKey => _formKey;
   @override
   bool get isEditing => _isEditing;
   @override
-  ApiError? get currentError => _currentError;
+  ApiError? get currentError => ref.read(songFormStateProvider).error;
   @override
   set currentError(ApiError? value) {
-    setState(() => _currentError = value);
+    ref.read(songFormStateProvider.notifier).setError(value);
   }
 
   /// Save the song to Firestore.
@@ -197,47 +199,28 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     }
 
     try {
-      final song = _formData.toSong(
-        id: _isEditing ? widget.song!.id : const Uuid().v4(),
-        createdAt: _isEditing ? widget.song!.createdAt : DateTime.now(),
-        bandId: widget.bandId,
-      );
-
-      // Debug: Print song data to console
-      debugPrint('=== Saving Song ===');
-      debugPrint('Title: ${song.title}');
-      debugPrint('accentBeats: ${song.accentBeats}');
-      debugPrint('regularBeats: ${song.regularBeats}');
-      debugPrint('beatModes: ${song.beatModes}');
-      debugPrint('beatModes type: ${song.beatModes.runtimeType}');
-
-      final songJson = song.toJson();
-      debugPrint('beatModes in JSON: ${songJson['beatModes']}');
-      debugPrint('beatModes JSON type: ${songJson['beatModes'].runtimeType}');
-      debugPrint('===================');
-
       final songRepo = ref.read(songRepositoryProvider);
+      final success = await ref
+          .read(songFormStateProvider.notifier)
+          .saveSong(
+            songRepo: songRepo,
+            uid: user.uid,
+            bandId: widget.bandId,
+            isEditing: _isEditing,
+            existingSong: widget.song,
+          );
 
-      // If bandId is provided, save to band's collection
-      if (widget.bandId != null) {
-        await songRepo.saveBandSong(song, widget.bandId!);
-      } else {
-        await songRepo.saveSong(song, uid: user.uid);
-      }
-
-      if (mounted) {
+      if (success && mounted) {
+        final formData = ref.read(songFormStateProvider).formData;
         Navigator.pop(context);
-        showMessage('${song.title} ${_isEditing ? 'updated' : 'added'}');
+        showMessage('${formData.title} ${_isEditing ? 'updated' : 'added'}');
       }
     } on ApiError catch (e) {
       debugPrint('ApiError while saving: ${e.message}');
-      debugPrint('Error details: ${e.details}');
-      debugPrint('Error type: ${e.type}');
       handleError(e);
       if (mounted) showMessage(e.message);
     } catch (e, stackTrace) {
       debugPrint('Exception while saving: $e');
-      debugPrint('Stack trace: $stackTrace');
       final error = ApiError.fromException(e, stackTrace: stackTrace);
       handleError(error);
       if (mounted) showMessage(error.message);
@@ -246,11 +229,17 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Watch form state for reactive updates
+    final formState = ref.watch(songFormStateProvider);
+    final formData = formState.formData;
+    final error = formState.error;
+    final isSaving = formState.isSaving;
+
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop &&
-            _hasUnsavedChanges &&
+            formState.hasUnsavedChanges &&
             _titleController.text.trim().isNotEmpty) {
           await _autoSave();
         }
@@ -260,18 +249,27 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
           context,
           title: _isEditing ? 'Edit Song' : 'Add Song',
           menuItems: [
-            PopupMenuItem<void>(onTap: _saveSong, child: const Text('Save')),
+            PopupMenuItem<void>(
+              onTap: isSaving ? null : _saveSong,
+              child: isSaving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Save'),
+            ),
           ],
         ),
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // Error banner
-            if (_currentError != null) ...[
+            if (error != null) ...[
               ErrorBanner.banner(
-                message:
-                    _currentError?.message ?? 'An unexpected error occurred',
-                onRetry: clearError,
+                message: error.message,
+                onRetry: () =>
+                    ref.read(songFormStateProvider.notifier).clearError(),
               ),
               const SizedBox(height: 16),
             ],
@@ -283,65 +281,75 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
               originalBpmController: _originalBpmController,
               ourBpmController: _ourBpmController,
               notesController: _notesController,
-              links: _formData.links,
-              selectedTags: _formData.selectedTags,
+              links: formData.links,
+              selectedTags: formData.selectedTags,
               availableTags: _availableTags,
-              originalKeyBase: _formData.originalKeyBase,
-              originalKeyModifier: _formData.originalKeyModifier,
-              ourKeyBase: _formData.ourKeyBase,
-              ourKeyModifier: _formData.ourKeyModifier,
-              onOriginalKeyChanged: (b, m) => setState(() {
-                _formData.originalKeyBase = b;
-                _formData.originalKeyModifier = m;
-                _markAsChanged();
-              }),
-              onOurKeyChanged: (b, m) => setState(() {
-                _formData.ourKeyBase = b;
-                _formData.ourKeyModifier = m;
-                _markAsChanged();
-              }),
-              onAddLink: (link) => setState(() {
-                _formData.addLink(link);
-                _markAsChanged();
-              }),
-              onRemoveLink: (index) => setState(() {
-                _formData.removeLink(index);
-                _markAsChanged();
-              }),
-              onTagChanged: (tag, selected) => setState(() {
-                _formData.toggleTag(tag, selected);
-                _markAsChanged();
-              }),
-              onCopyFromOriginal: () => setState(() {
-                _formData.copyFromOriginal();
+              originalKeyBase: formData.originalKeyBase,
+              originalKeyModifier: formData.originalKeyModifier,
+              ourKeyBase: formData.ourKeyBase,
+              ourKeyModifier: formData.ourKeyModifier,
+              onOriginalKeyChanged: (b, m) {
+                ref
+                    .read(songFormStateProvider.notifier)
+                    .updateOriginalKey(b, m);
+                ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              onOurKeyChanged: (b, m) {
+                ref.read(songFormStateProvider.notifier).updateOurKey(b, m);
+                ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              onAddLink: (link) {
+                ref.read(songFormStateProvider.notifier).addLink(link);
+                ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              onRemoveLink: (index) {
+                ref.read(songFormStateProvider.notifier).removeLink(index);
+                ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              onTagChanged: (tag, selected) {
+                ref
+                    .read(songFormStateProvider.notifier)
+                    .toggleTag(tag, selected);
+                ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              onCopyFromOriginal: () {
+                ref.read(songFormStateProvider.notifier).copyFromOriginal();
                 _ourBpmController.text = _originalBpmController.text;
-                _markAsChanged();
-              }),
-              onAccentBeatsChanged: (value) => setState(() {
-                _formData.updateAccentBeats(value);
-                _formData.initializeBeatModes();
-                _markAsChanged();
-              }),
-              onRegularBeatsChanged: (value) => setState(() {
-                _formData.updateRegularBeats(value);
-                _formData.initializeBeatModes();
-                _markAsChanged();
-              }),
-              onBeatModeChanged: (beatIndex, subdivisionIndex, mode) =>
-                  setState(() {
-                    _formData.updateBeatMode(beatIndex, subdivisionIndex, mode);
-                    _markAsChanged();
-                  }),
+                ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              onAccentBeatsChanged: (value) {
+                ref
+                    .read(songFormStateProvider.notifier)
+                    .updateAccentBeats(value);
+                ref.read(songFormStateProvider.notifier).initializeBeatModes();
+                ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              onRegularBeatsChanged: (value) {
+                ref
+                    .read(songFormStateProvider.notifier)
+                    .updateRegularBeats(value);
+                ref.read(songFormStateProvider.notifier).initializeBeatModes();
+                ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              onBeatModeChanged:
+                  (int beatIndex, int subdivisionIndex, dynamic mode) {
+                    ref
+                        .read(songFormStateProvider.notifier)
+                        .updateBeatMode(beatIndex, subdivisionIndex, mode);
+                    ref.read(songFormStateProvider.notifier).markAsChanged();
+                  },
               onSectionsChanged: (newSections) {
-                _formData.setSections(newSections);
-                _markAsChanged();
+                ref
+                    .read(songFormStateProvider.notifier)
+                    .setSections(newSections);
+                ref.read(songFormStateProvider.notifier).markAsChanged();
               },
               onSubmit: _saveSong,
               isEditing: _isEditing,
-              accentBeats: _formData.accentBeats,
-              regularBeats: _formData.regularBeats,
-              beatModes: _formData.beatModes,
-              sections: _formData.sections,
+              accentBeats: formData.accentBeats,
+              regularBeats: formData.regularBeats,
+              beatModes: formData.beatModes,
+              sections: formData.sections,
             ),
             const SizedBox(height: 24),
             // Search buttons row
