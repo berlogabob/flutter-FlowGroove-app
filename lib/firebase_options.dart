@@ -29,6 +29,7 @@ class DefaultFirebaseOptions {
       projectId: 'repsync-app-8685c',
       authDomain: 'repsync-app-8685c.firebaseapp.com',
       storageBucket: 'repsync-app-8685c.firebasestorage.app',
+      measurementId: 'G-DQC026CRM8',
     );
   }
 
