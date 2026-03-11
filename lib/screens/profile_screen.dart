@@ -1,6 +1,5 @@
-import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +9,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
-import '../../services/storage_service.dart';
 import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';
@@ -25,13 +23,11 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _version = 'Loading...';
   String _buildDate = '';
-  String? _profilePhotoPath; // Local file path for temporary upload
-  String? _firebasePhotoURL; // URL from Firebase Storage
-  String? _telegramPhotoURL; // URL from Telegram
-  String _photoSource = 'firebase'; // 'telegram', 'firebase', 'local'
+  String? _profilePhotoPath;
+  String? _telegramPhotoURL;
+  String _photoSource = 'local'; // 'telegram', 'google', 'local'
   bool _isEditingName = false;
   late TextEditingController _nameController;
-  bool _isUploadingPhoto = false;
 
   @override
   void initState() {
@@ -40,52 +36,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _loadVersionInfo();
     _loadProfilePhoto();
     _loadTelegramProfile();
-  }
-
-  /// Load profile photo from Firebase Storage
-  Future<void> _loadProfilePhoto() async {
-    try {
-      final user = ref.read(currentUserProvider).value;
-      if (user == null) return;
-
-      // Load from Firestore user document
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      if (userDoc.exists) {
-        final data = userDoc.data();
-        if (data != null) {
-          final photoURL = data['photoURL'] as String?;
-          final photoSource = data['photoSource'] as String?;
-
-          if (photoURL != null && photoSource == 'firebase') {
-            setState(() {
-              _firebasePhotoURL = photoURL;
-              _photoSource = 'firebase';
-            });
-          } else if (photoURL != null) {
-            // Legacy photo URL from Firebase Auth or other source
-            setState(() {
-              _firebasePhotoURL = photoURL;
-            });
-          }
-        }
-      }
-
-      // Also check for local photo as fallback
-      final directory = await getApplicationDocumentsDirectory();
-      final photoFile = File('${directory.path}/profile_photo.jpg');
-      if (await photoFile.exists() && _firebasePhotoURL == null) {
-        setState(() {
-          _profilePhotoPath = photoFile.path;
-          _photoSource = 'local';
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading profile photo: $e');
-    }
   }
 
   /// Load Telegram profile data if user gave consent
@@ -115,8 +65,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           setState(() {
             _telegramPhotoURL = data['telegramPhotoURL'] as String?;
             print('🖼️ Telegram photo URL: $_telegramPhotoURL');
-            // If no firebase photo, use Telegram
-            if (_firebasePhotoURL == null && _telegramPhotoURL != null) {
+            // If no local photo, use Telegram
+            if (_profilePhotoPath == null && _telegramPhotoURL != null) {
               _photoSource = 'telegram';
               print('📱 Set photo source to telegram');
             }
@@ -141,30 +91,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final packageInfo = await PackageInfo.fromPlatform();
       if (mounted) {
         setState(() {
-          final version = packageInfo.version;
-          final buildNumber = packageInfo.buildNumber;
-
-          debugPrint('📱 PackageInfo - version: $version, buildNumber: $buildNumber');
-
-          // Combine version and buildNumber for consistent display
-          if (buildNumber.isNotEmpty && buildNumber != '1') {
-            _version = '$version+$buildNumber';
-            debugPrint('✅ Showing: $_version');
-          } else {
-            _version = version;
-            debugPrint('⚠️ Using version only: $_version');
-          }
+          _version = '${packageInfo.version}+${packageInfo.buildNumber}';
           _buildDate = '';
         });
       }
     } catch (e) {
-      debugPrint('❌ Error loading version: $e');
       if (mounted) {
         setState(() {
-          _version = '0.13.1+146';
+          _version = '0.11.0+1';
           _buildDate = '';
         });
       }
+    }
+  }
+
+  Future<void> _loadProfilePhoto() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final photoFile = File('${directory.path}/profile_photo.jpg');
+      if (await photoFile.exists()) {
+        setState(() {
+          _profilePhotoPath = photoFile.path;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading profile photo: $e');
     }
   }
 
@@ -179,64 +130,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
 
       if (pickedFile != null) {
-        setState(() => _isUploadingPhoto = true);
-
-        // Upload to Firebase Storage
-        final storageService = StorageService();
-        final downloadUrl = await storageService.uploadProfilePicture(
-          File(pickedFile.path),
-        );
-
-        // Update state with new photo URL
-        if (mounted) {
-          setState(() {
-            _firebasePhotoURL = downloadUrl;
-            _photoSource = 'firebase';
-            _profilePhotoPath = null; // Clear local path
-            _isUploadingPhoto = false;
-          });
-
-          // Refresh the app user provider
-          await ref.read(appUserProvider.notifier).updateProfilePhoto(downloadUrl);
-        }
+        final directory = await getApplicationDocumentsDirectory();
+        final savedFile = await File(
+          pickedFile.path,
+        ).copy('${directory.path}/profile_photo.jpg');
+        setState(() {
+          _profilePhotoPath = savedFile.path;
+        });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isUploadingPhoto = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error uploading photo: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error picking photo: $e')));
       }
     }
   }
 
   Future<void> _removePhoto() async {
     try {
-      setState(() => _isUploadingPhoto = true);
-
-      // Delete from Firebase Storage
-      final storageService = StorageService();
-      await storageService.deleteProfilePicture();
-
-      // Update state
-      if (mounted) {
-        setState(() {
-          _firebasePhotoURL = null;
-          _profilePhotoPath = null;
-          _photoSource = 'local';
-          _isUploadingPhoto = false;
-        });
-
-        // Refresh the app user provider
-        await ref.read(appUserProvider.notifier).removeProfilePhoto();
+      final directory = await getApplicationDocumentsDirectory();
+      final photoFile = File('${directory.path}/profile_photo.jpg');
+      if (await photoFile.exists()) {
+        await photoFile.delete();
       }
+      setState(() {
+        _profilePhotoPath = null;
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() => _isUploadingPhoto = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error removing photo: $e')));
-      }
+      debugPrint('Error removing photo: $e');
     }
   }
 
@@ -288,48 +210,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
             ),
             ListTile(
-              leading: _isUploadingPhoto 
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.camera_alt),
+              leading: const Icon(Icons.camera_alt),
               title: const Text('Take Photo'),
-              subtitle: _photoSource == 'firebase' && _firebasePhotoURL != null
+              subtitle: _photoSource == 'local' && _profilePhotoPath != null
                   ? const Text(
                       '✓ Currently using',
                       style: TextStyle(color: MonoPulseColors.success),
                     )
                   : null,
-              enabled: !_isUploadingPhoto,
               onTap: () {
                 Navigator.pop(context);
                 _pickPhoto(ImageSource.camera);
               },
             ),
             ListTile(
-              leading: _isUploadingPhoto 
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.photo_library),
+              leading: const Icon(Icons.photo_library),
               title: const Text('Choose from Gallery'),
-              subtitle: _photoSource == 'firebase' && _firebasePhotoURL != null
+              subtitle: _photoSource == 'local' && _profilePhotoPath != null
                   ? const Text(
                       '✓ Currently using',
                       style: TextStyle(color: MonoPulseColors.success),
                     )
                   : null,
-              enabled: !_isUploadingPhoto,
               onTap: () {
                 Navigator.pop(context);
                 _pickPhoto(ImageSource.gallery);
               },
             ),
-            if (_firebasePhotoURL != null || _photoSource == 'telegram')
+            if (_profilePhotoPath != null || _photoSource == 'telegram')
               ListTile(
                 leading: const Icon(Icons.delete, color: MonoPulseColors.error),
                 title: const Text(
@@ -338,7 +246,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  _removePhoto();
+                  setState(() {
+                    _profilePhotoPath = null;
+                    _photoSource = 'local';
+                  });
                 },
               ),
           ],
@@ -458,11 +369,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (_photoSource == 'telegram' && _telegramPhotoURL != null) {
       return NetworkImage(_telegramPhotoURL!);
     }
-    // Firebase photo (stored in Firebase Storage)
-    if (_photoSource == 'firebase' && _firebasePhotoURL != null) {
-      return NetworkImage(_firebasePhotoURL!);
-    }
-    // Local photo (fallback for legacy)
+    // Local photo
     if (_profilePhotoPath != null) {
       return FileImage(File(_profilePhotoPath!));
     }
@@ -617,9 +524,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _buildSection(
             title: 'App Info',
             children: [
+              _buildInfoItem(title: 'Version', value: _version),
               _buildInfoItem(
-                title: 'Version', 
-                value: _version,
+                title: 'Build',
+                value: _buildDate.isNotEmpty ? _buildDate : 'Production',
               ),
             ],
           ),
