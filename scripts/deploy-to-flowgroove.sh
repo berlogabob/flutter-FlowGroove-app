@@ -1,6 +1,6 @@
 #!/bin/bash
 # Deploy to flowgroove.app via FTP
-# Usage: ./deploy-to-flowgroove.sh [version]
+# Usage: ./scripts/deploy-to-flowgroove.sh
 
 set -e
 
@@ -9,25 +9,16 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_DIR"
 
-# Configuration
-FTP_HOST="${FTP_HOST:-ftp.flowgroove.app}"
-FTP_USER="${FTP_USER:-}"
-FTP_PASS="${FTP_PASS:-}"
+# Configuration (from FTP_data.md)
+FTP_HOST="${FTP_HOST:-ftp.soundingdoubts.pt}"
+FTP_USER="${FTP_USER:-sounding}"
+FTP_PASS="${FTP_PASS:-M*9!atF0g43QJv}"
 REMOTE_DIR="${REMOTE_DIR:-public_html}"
 
-# Check if credentials are provided
-if [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ]; then
-    echo "❌ FTP credentials not set!"
-    echo ""
-    echo "Please set environment variables:"
-    echo "  export FTP_USER=your_ftp_username"
-    echo "  export FTP_PASS=your_ftp_password"
-    echo ""
-    echo "Or create a .ftp-env file (added to .gitignore):"
-    echo "  FTP_USER=your_ftp_username"
-    echo "  FTP_PASS=your_ftp_password"
-    echo ""
-    exit 1
+# Load from .ftp-env if it exists
+if [ -f ".ftp-env" ]; then
+    echo "📋 Loading credentials from .ftp-env..."
+    source .ftp-env
 fi
 
 # Check if build/web exists

@@ -2,11 +2,13 @@
 # Copy this file to .ftp-env and fill in your credentials
 # This file is in .gitignore - never commit real credentials!
 
-FTP_HOST=ftp.flowgroove.app
-FTP_USER=your_ftp_username_here
-FTP_PASS=your_ftp_password_here
+# FTP Configuration (from FTP_data.md)
+FTP_HOST=ftp.soundingdoubts.pt
+# Alternative: FTP_HOST=194.39.124.68
+FTP_USER=sounding
+FTP_PASS=M*9!atF0g43QJv
 REMOTE_DIR=public_html
 
 # Optional: Use environment variables instead
-# export FTP_USER=your_username
-# export FTP_PASS=your_password
+# export FTP_USER=sounding
+# export FTP_PASS=M*9!atF0g43QJv

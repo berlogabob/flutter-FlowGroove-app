@@ -9,24 +9,23 @@
 
 ---
 
-## 🔐 Step 1: Set Up FTP Credentials
+## 🔐 Step 1: FTP Credentials (Already Configured!)
 
-Create `.ftp-env` file with your FTP credentials:
+Your FTP credentials from `FTP_data.md` are already configured in the deployment script:
 
-```bash
-# Copy the example file
-cp .ftp-env.example .ftp-env
-
-# Edit with your actual credentials
-nano .ftp-env
+```env
+FTP Host: ftp.soundingdoubts.pt (or 194.39.124.68)
+FTP User: sounding
+FTP Pass: M*9!atF0g43QJv
+Remote Dir: public_html
 ```
 
-**Fill in your FTP details:**
-```env
-FTP_HOST=ftp.flowgroove.app
-FTP_USER=your_ftp_username
-FTP_PASS=your_ftp_password
-REMOTE_DIR=public_html
+**✅ No setup needed!** You can deploy right away.
+
+**Optional:** If you want to change credentials, create `.ftp-env`:
+```bash
+cp .ftp-env.example .ftp-env
+nano .ftp-env  # Edit if needed
 ```
 
 **⚠️ Important:** The `.ftp-env` file contains secrets and is already in `.gitignore` - never commit it!
