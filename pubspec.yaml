@@ -1,7 +1,7 @@
 name: flutter_repsync_app
 description: "RepSync - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.13.0+136
+version: 0.13.0+140
 
 environment:
   sdk: ^3.11.1
@@ -24,11 +24,6 @@ dependencies:
   hive_flutter: ^1.1.0
   shared_preferences: ^2.5.3
   flutter_secure_storage: ^9.2.0
-
-  # Database (Isar - migrating from Hive)
-  isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
-  path_provider: ^2.1.5
 
   # Connectivity
   connectivity_plus: ^7.0.0
