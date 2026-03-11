@@ -31,30 +31,20 @@
 
 ## 🛠️ FTP Setup
 
-### Step 1: Create FTP Credentials File
+### Step 1: FTP Credentials (Already Configured)
 
-```bash
-# Copy the example file
-cp .ftp-env.example .ftp-env
-
-# Edit with your credentials
-nano .ftp-env
-```
-
-### Step 2: Add Your FTP Credentials
-
-Edit `.ftp-env` with your actual credentials:
+Your FTP credentials are already configured in the deployment script from `FTP_data.md`:
 
 ```env
-FTP_HOST=ftp.flowgroove.app
-FTP_USER=your_actual_ftp_username
-FTP_PASS=your_actual_ftp_password
-REMOTE_DIR=public_html
+FTP Host: ftp.soundingdoubts.pt (or 194.39.124.68)
+FTP User: sounding
+FTP Pass: M*9!atF0g43QJv
+Remote Dir: public_html
 ```
 
-**⚠️ SECURITY:** The `.ftp-env` file is in `.gitignore` - never commit it!
+**✅ Ready to use!** The credentials are pre-configured in the deployment script.
 
-### Step 3: Install lftp (Recommended)
+### Step 2: Install lftp (Recommended)
 
 For faster deployments, install `lftp`:
 
@@ -224,17 +214,28 @@ make deploy-stable
 
 ### FTP Upload Fails
 
-**Error:** `FTP credentials not set!`
+**Error:** `Connection timeout` or `Authentication failed`
 
-**Solution:**
-```bash
-# Check if .ftp-env file exists
-ls -la .ftp-env
+**Solutions:**
 
-# If not, create it
-cp .ftp-env.example .ftp-env
-nano .ftp-env  # Add your credentials
-```
+1. **Check FTP credentials** (already configured from FTP_data.md):
+   ```bash
+   # Test FTP connection
+   lftp -u sounding,'M*9!atF0g43QJv' ftp.soundingdoubts.pt -e "ls; quit"
+   ```
+
+2. **Verify FTP host is reachable:**
+   ```bash
+   ping ftp.soundingdoubts.pt
+   ```
+
+3. **Try alternative FTP host (IP):**
+   ```bash
+   export FTP_HOST=194.39.124.68
+   make deploy-flowgroove
+   ```
+
+4. **Check with hosting provider** if FTP server is down
 
 ---
 
