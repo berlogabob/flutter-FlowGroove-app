@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import '../providers/data/data_providers.dart';
 import '../providers/auth/auth_provider.dart';
 import '../models/user.dart';
@@ -13,6 +14,12 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Log screen view for analytics
+    FirebaseAnalytics.instance.logScreenView(
+      screenName: 'HomeScreen',
+      screenClass: 'HomeScreen',
+    );
+
     return StandardScreenScaffold(
       title: 'Home',
       showBackButton: false, // Hide back button for main tabs
