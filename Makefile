@@ -87,7 +87,7 @@ agents-format:
 # Build for Web (GitHub Pages)
 build-web:
 	@echo "🔨 Building web app..."
-	@flutter build web --release --base-href "/flutter-repsync-app/"
+	@flutter build web --release --base-href "/flutter-FlowGroove-app/"
 	@echo "✅ Web build complete: build/web/"
 	@ls -lh build/web/ | tail -5
 
