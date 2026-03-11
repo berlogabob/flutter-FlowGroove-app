@@ -1,11 +1,11 @@
-# Makefile for Flutter RepSync App
+# Makefile for Flutter FlowGroove App
 # Build, Deploy, and Release Automation
 
 .PHONY: help build-web build-android build-all deploy-web deploy-android release increment-version clean test analyze agents-check agents-format
 
 # Default target
 help:
-	@echo "Flutter RepSync App - Build Commands"
+	@echo "Flutter FlowGroove App - Build Commands"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make increment-version    - Increment build number (e.g., 0.11.2+70 → 0.11.2+71)"
@@ -88,6 +88,7 @@ agents-format:
 build-web:
 	@echo "🔨 Building web app..."
 	@flutter build web --release --base-href "/flutter-FlowGroove-app/"
+	@./scripts/fix-version.sh
 	@echo "✅ Web build complete: build/web/"
 	@ls -lh build/web/ | tail -5
 
@@ -139,7 +140,7 @@ deploy: build-web
 	@git push origin HEAD
 	@echo ""
 	@echo "✅ Deploy complete!"
-	@echo "🌐 GitHub Pages: https://berlogabob.github.io/flutter-repsync-app/"
+	@echo "🌐 GitHub Pages: https://berlogabob.github.io/flutter-FlowGroove-app/"
 	@echo "⏱️  Deployment takes 1-2 minutes"
 
 # Full release cycle: increment + build + deploy + GitHub Release
@@ -187,10 +188,10 @@ release: increment-version build-web build-android build-appbundle agents-check
 	@echo "🎉 Release $(NEW_VERSION) complete!"
 	@echo ""
 	@echo "📱 Artifacts:"
-	@echo "   Web: https://berlogabob.github.io/flutter-repsync-app/"
+	@echo "   Web: https://berlogabob.github.io/flutter-FlowGroove-app/"
 	@echo "   Android APK: build/app/outputs/flutter-apk/app-release.apk"
 	@echo "   Android AAB: build/app/outputs/bundle/release/app-release.aab"
-	@echo "   GitHub Release: https://github.com/berlogabob/flutter-repsync-app/releases/tag/v$(NEW_VERSION)"
+	@echo "   GitHub Release: https://github.com/berlogabob/flutter-FlowGroove-app/releases/tag/v$(NEW_VERSION)"
 	@echo ""
 	@echo "📝 Next steps:"
 	@echo "   1. Test web deployment"
@@ -237,7 +238,7 @@ version:
 
 # Show build info
 info:
-	@echo "Flutter RepSync App - Build Info"
+	@echo "Flutter FlowGroove App - Build Info"
 	@echo "================================"
 	@echo ""
 	@echo "Version: $(CURRENT_VERSION)+$(CURRENT_BUILD)"
@@ -367,6 +368,6 @@ release-notes:
 	@echo "" >> RELEASE_NOTES.md
 	@echo "## Full Changelog" >> RELEASE_NOTES.md
 	@echo "" >> RELEASE_NOTES.md
-	@echo "https://github.com/berlogabob/flutter-repsync-app/compare/v$(CURRENT_VERSION)+$(shell echo $$(($(CURRENT_BUILD)-1)))...v$(NEW_VERSION)" >> RELEASE_NOTES.md
+	@echo "https://github.com/berlogabob/flutter-FlowGroove-app/compare/v$(CURRENT_VERSION)+$(shell echo $$(($(CURRENT_BUILD)-1)))...v$(NEW_VERSION)" >> RELEASE_NOTES.md
 	@echo "✅ Release notes created: RELEASE_NOTES.md"
 	@cat RELEASE_NOTES.md

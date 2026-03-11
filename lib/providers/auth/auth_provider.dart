@@ -262,6 +262,53 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
+  /// Updates the user's profile photo URL.
+  ///
+  /// This method uploads the photo to Firebase Storage and updates
+  /// both Firestore and Firebase Auth with the new photo URL.
+  ///
+  /// Throws [ApiError] if update fails.
+  Future<void> updateProfilePhoto(String photoUrl) async {
+    final currentUser = state.value;
+    if (currentUser == null) {
+      throw ApiError.auth(message: 'No user logged in');
+    }
+
+    try {
+      final updatedUser = currentUser.copyWith(photoURL: photoUrl);
+      final firestore = FirestoreService();
+      await firestore.saveUser(updatedUser);
+      state = AsyncValue.data(updatedUser);
+    } catch (e, stackTrace) {
+      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
+      state = AsyncValue.error(apiError, stackTrace);
+      throw apiError;
+    }
+  }
+
+  /// Removes the user's profile photo.
+  ///
+  /// Clears the photo URL from both Firestore and Firebase Auth.
+  ///
+  /// Throws [ApiError] if update fails.
+  Future<void> removeProfilePhoto() async {
+    final currentUser = state.value;
+    if (currentUser == null) {
+      throw ApiError.auth(message: 'No user logged in');
+    }
+
+    try {
+      final updatedUser = currentUser.copyWith(photoURL: null);
+      final firestore = FirestoreService();
+      await firestore.saveUser(updatedUser);
+      state = AsyncValue.data(updatedUser);
+    } catch (e, stackTrace) {
+      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
+      state = AsyncValue.error(apiError, stackTrace);
+      throw apiError;
+    }
+  }
+
   /// Maps Firebase Auth exceptions to ApiError with user-friendly messages.
   ApiError _mapFirebaseAuthException(FirebaseAuthException e) {
     switch (e.code) {
