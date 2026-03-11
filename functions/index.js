@@ -1,5 +1,5 @@
 /**
- * RepSync Telegram Bot - Simplified & Clean
+ * FlowGroove Telegram Bot - Simplified & Clean
  *
  * User Commands:
  * /start - Welcome + consent buttons
@@ -61,8 +61,8 @@ bot.start(async (ctx) => {
   const userId = ctx.startPayload;
 
   const welcomeMessage =
-    `👋 *Привет! Я RepSync бот.*\n\n` +
-    `Помогу привязать Telegram к RepSync и импортировать имя и фото.\n\n` +
+    `👋 *Привет! Я FlowGroove бот.*\n\n` +
+    `Помогу привязать Telegram к FlowGroove и импортировать имя и фото.\n\n` +
     `Разрешаете импортировать профиль?`;
 
   const keyboard = {
@@ -128,7 +128,7 @@ bot.action("consent_allow", async (ctx) => {
       await ctx.reply(
         `⚠️ *Сначала привяжите аккаунт*\n\n` +
           `/link <your_user_id>\n\n` +
-          `RepSync → Profile → Link Telegram`,
+          `FlowGroove → Profile → Link Telegram`,
         { parse_mode: "Markdown" },
       );
     }
@@ -156,7 +156,7 @@ bot.command("link", async (ctx) => {
   if (!userId) {
     await ctx.reply(
       `❌ *Использование:* /link <your_user_id>\n\n` +
-        `RepSync → Profile → там ваш ID`,
+        `FlowGroove → Profile → там ваш ID`,
       { parse_mode: "Markdown" },
     );
     return;
@@ -188,7 +188,7 @@ bot.command("unlink", async (ctx) => {
     .get();
 
   if (userSnapshot.empty) {
-    await ctx.reply("❌ Telegram не привязан к RepSync.");
+    await ctx.reply("❌ Telegram не привязан к FlowGroove.");
     return;
   }
 
@@ -200,7 +200,7 @@ bot.command("unlink", async (ctx) => {
     telegramLinkedAt: admin.firestore.FieldValue.delete(),
   });
 
-  await ctx.reply("✅ Telegram отвязан от RepSync.");
+  await ctx.reply("✅ Telegram отвязан от FlowGroove.");
 });
 
 bot.command("status", async (ctx) => {
@@ -269,7 +269,7 @@ async function handleLink(ctx, userId) {
       await ctx.reply(
         `❌ *Не найден*\n\n` +
           `User ID \`${userId}\` не найден.\n\n` +
-          `Проверьте ID в RepSync.`,
+          `Проверьте ID в FlowGroove.`,
         { parse_mode: "Markdown" },
       );
       return;
@@ -285,7 +285,7 @@ async function handleLink(ctx, userId) {
 
     await ctx.reply(
       `✅ *Готово!*\n\n` +
-        `Telegram привязан к RepSync.\n\n` +
+        `Telegram привязан к FlowGroove.\n\n` +
         `Теперь можно импортировать имя и фото.`,
       { parse_mode: "Markdown" },
     );
@@ -394,7 +394,7 @@ bot.on("text", async (ctx) => {
   const groupId = getSupportGroupId();
 
   if (!groupId) {
-    await ctx.reply(`⚠️ Поддержка не настроена. Пишите @repsync_support`);
+    await ctx.reply(`⚠️ Поддержка не настроена. Пишите @flowgroove_support`);
     return;
   }
 
@@ -419,7 +419,7 @@ exports.telegramWebhook = functions.https.onRequest(async (req, res) => {
   if (req.method === "POST") {
     await bot.handleUpdate(req.body, res);
   } else if (req.method === "GET") {
-    res.status(200).send("RepSync Bot 🤖");
+    res.status(200).send("FlowGroove Bot 🤖");
   } else {
     res.status(405).send("Method Not Allowed");
   }

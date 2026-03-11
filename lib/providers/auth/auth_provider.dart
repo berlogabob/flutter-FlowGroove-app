@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/secure_storage_service.dart';
 import '../../models/api_error.dart';
 import '../../models/user.dart';
 import '../../services/cache_service.dart';
@@ -194,10 +194,9 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   /// Returns the join code if one was stored, null otherwise.
   /// Clears the stored code after retrieving it.
   static Future<String?> getAndClearPendingJoinCode() async {
-    final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('pending_join_code');
+    final code = await secureStorage.read(key: 'pending_join_code');
     if (code != null) {
-      await prefs.remove('pending_join_code');
+      await secureStorage.delete(key: 'pending_join_code');
     }
     return code;
   }

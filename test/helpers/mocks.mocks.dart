@@ -2963,6 +2963,23 @@ class MockFirestoreService extends _i1.Mock implements _i17.FirestoreService {
           as _i7.Future<_i21.AppUser?>);
 
   @override
+  _i7.Future<void> updateUserProfile({
+    required String? uid,
+    String? displayName,
+    String? photoURL,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateUserProfile, [], {
+              #uid: uid,
+              #displayName: displayName,
+              #photoURL: photoURL,
+            }),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
   _i7.Future<Map<String, int>> getTagCloud({String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#getTagCloud, [], {#uid: uid}),

@@ -45,11 +45,11 @@ class GoRouterRefreshStream extends ChangeNotifier {
 /// Root navigator key for GoRouter.
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-/// GoRouter configuration for RepSync.
+/// GoRouter configuration for FlowGroove.
 ///
 /// Features:
 /// - Type-safe navigation with path parameters
-/// - Deep linking support via repSync:// scheme and https://repsync.app
+/// - Deep linking support via flowgroove:// scheme and https://flowgroove.app
 /// - Nested routes for main app shell
 /// - Auth state redirect on startup
 ///

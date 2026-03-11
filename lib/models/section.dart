@@ -1,33 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
 import '../theme/mono_pulse_theme.dart';
+
+part 'section.g.dart';
 
 /// Model class representing a song section block.
 ///
 /// Sections are used to build song structures like:
 /// Intro → Verse → Chorus → Verse → Chorus → Bridge → Chorus → Outro
+@collection
+@JsonSerializable()
 class Section {
   /// Unique identifier for this section.
-  final String id;
+  Id id = Isar.autoIncrement;
 
   /// The name/type of section (e.g., 'Intro', 'Verse', 'Chorus').
-  String name;
+  @Index()
+  String name = '';
 
   /// Optional notes for this section (e.g., chord progressions).
-  String notes;
+  String notes = '';
 
   /// Duration in phrases/bars.
-  int duration;
+  int duration = 1;
 
   /// Optional custom color (ARGB value).
   int? colorValue;
 
   Section({
-    required this.id,
+    this.id = Isar.autoIncrement,
     required this.name,
     this.notes = '',
     this.duration = 1,
     this.colorValue,
   });
+
+  /// Create from map for Isar compatibility.
+  factory Section.fromMap(Map<String, dynamic> data) => Section(
+    id: data['id'] as int? ?? Isar.autoIncrement,
+    name: data['name'] as String? ?? '',
+    notes: data['notes'] as String? ?? '',
+    duration: data['duration'] as int? ?? 1,
+    colorValue: data['colorValue'] as int?,
+  );
+
+  /// Convert to map for Isar compatibility.
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'notes': notes,
+    'duration': duration,
+    'colorValue': colorValue,
+  };
+
+  Map<String, dynamic> toJson() => _$SectionToJson(this);
+  factory Section.fromJson(Map<String, dynamic> json) => _$SectionFromJson(json);
 
   /// Equality operator based on unique ID.
   @override
@@ -65,28 +93,6 @@ class Section {
       notes: notes ?? this.notes,
       duration: duration ?? this.duration,
       colorValue: colorValue ?? this.colorValue,
-    );
-  }
-
-  /// Convert to JSON map.
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'notes': notes,
-      'duration': duration,
-      if (colorValue != null) 'colorValue': colorValue,
-    };
-  }
-
-  /// Create from JSON map.
-  factory Section.fromJson(Map<String, dynamic> json) {
-    return Section(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      notes: json['notes'] as String? ?? '',
-      duration: json['duration'] as int? ?? 1,
-      colorValue: json['colorValue'] as int?,
     );
   }
 

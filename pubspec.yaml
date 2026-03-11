@@ -1,7 +1,7 @@
 name: flutter_repsync_app
 description: "RepSync - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.13.0+135
+version: 0.13.0+136
 
 environment:
   sdk: ^3.11.1
@@ -17,17 +17,33 @@ dependencies:
 
   # State Management (Updated)
   flutter_riverpod: ^3.3.1
+  riverpod_annotation: ^4.0.2
 
   # Offline & Storage (Updated - considering migration to Isar)
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   shared_preferences: ^2.5.3
+  flutter_secure_storage: ^9.2.0
+
+  # Database (Isar - migrating from Hive)
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.5
 
   # Connectivity
   connectivity_plus: ^7.0.0
 
+  # HTTP Client (Upgraded from http to dio)
+  dio: ^5.7.0
+
+  # Forms & Validation
+  formz: ^0.8.0
+
   # Navigation
   go_router: ^17.1.0
+
+  # UI Utilities
+  gap: ^3.0.0
 
   # Audio
   audioplayers: ^6.6.0
@@ -51,7 +67,6 @@ dependencies:
 
   # Image picking
   image_picker: ^1.1.2
-  path_provider: ^2.1.5
 
   # File picker for import/export
   file_picker: ^10.3.10
@@ -75,9 +90,10 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.3
   flutter_test:
     sdk: flutter
-  json_serializable: ^6.13.0
+  json_serializable: ^6.9.0
   mockito: ^5.6.3
   mocktail: ^1.0.0
+  riverpod_generator: ^4.0.3
 
 flutter:
   uses-material-design: true
