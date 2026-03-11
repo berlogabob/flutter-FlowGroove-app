@@ -90,45 +90,75 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _loadVersionInfo() async {
+    // Default fallback version
+    String fallbackVersion = '0.13.1+146';
+    
     try {
-      // On web, directly fetch version.json to get buildNumber correctly
+      // On web, try to fetch version.json directly
       if (kIsWeb) {
         try {
-          final response = await http.get(Uri.parse('version.json'));
+          final response = await http.get(Uri.parse('version.json')).timeout(
+            const Duration(seconds: 3),
+          );
+          
           if (response.statusCode == 200) {
-            final data = jsonDecode(response.body);
-            final version = data['version'] as String? ?? '';
-            final buildNumber = data['buildNumber'] as String? ?? '';
-            
-            if (mounted) {
-              setState(() {
-                if (buildNumber.isNotEmpty && buildNumber != '1') {
-                  _version = '$version+$buildNumber';
-                } else {
-                  _version = version;
-                }
-                _buildDate = '';
-              });
+            try {
+              final data = jsonDecode(response.body);
+              final version = data['version'] as String? ?? '';
+              final buildNumber = data['buildNumber'] as String? ?? '';
+              
+              if (mounted) {
+                setState(() {
+                  if (buildNumber.isNotEmpty && buildNumber != '1' && version.isNotEmpty) {
+                    _version = '$version+$buildNumber';
+                  } else if (version.isNotEmpty) {
+                    _version = version;
+                  } else {
+                    _version = fallbackVersion;
+                  }
+                  _buildDate = '';
+                });
+              }
+              return;
+            } catch (e) {
+              // JSON parse error - continue to fallback
             }
-            return;
           }
-        } catch (_) {
-          // Fallback to package_info_plus
+        } catch (e) {
+          // HTTP error or timeout - continue to fallback
         }
       }
       
-      // For mobile or if web fetch fails
-      final packageInfo = await PackageInfo.fromPlatform();
-      if (mounted) {
-        setState(() {
-          _version = '${packageInfo.version}+${packageInfo.buildNumber}';
-          _buildDate = '';
-        });
+      // For mobile or if web fetch fails, use package_info_plus
+      try {
+        final packageInfo = await PackageInfo.fromPlatform();
+        if (mounted) {
+          setState(() {
+            final version = packageInfo.version;
+            final buildNumber = packageInfo.buildNumber;
+            
+            if (buildNumber.isNotEmpty && buildNumber != '1') {
+              _version = '$version+$buildNumber';
+            } else {
+              _version = version.isNotEmpty ? version : fallbackVersion;
+            }
+            _buildDate = '';
+          });
+        }
+      } catch (e) {
+        // package_info_plus failed - use fallback
+        if (mounted) {
+          setState(() {
+            _version = fallbackVersion;
+            _buildDate = '';
+          });
+        }
       }
     } catch (e) {
+      // Catch-all for any other errors
       if (mounted) {
         setState(() {
-          _version = '0.13.1+146';
+          _version = fallbackVersion;
           _buildDate = '';
         });
       }
