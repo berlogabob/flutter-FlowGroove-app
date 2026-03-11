@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
@@ -31,6 +33,10 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('✅ Firebase initialized');
 
+  // Initialize Firebase Analytics
+  final analytics = FirebaseAnalytics.instance;
+  debugPrint('📊 Firebase Analytics initialized');
+
   // Enable Firebase Auth persistence for Android
   try {
     await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
@@ -44,15 +50,20 @@ void main() async {
     );
     debugPrint('   UID: ${currentUser.uid}');
     debugPrint('   Email verified: ${currentUser.emailVerified}');
+    
+    // Log login event for existing user
+    analytics.logLogin(loginMethod: 'auto');
   } else {
     debugPrint('🔑 NO USER: No user found from previous session');
   }
 
-  runApp(const ProviderScope(child: RepSyncApp()));
+  runApp(ProviderScope(child: RepSyncApp(analytics: analytics)));
 }
 
 class RepSyncApp extends ConsumerWidget {
-  const RepSyncApp({super.key});
+  final FirebaseAnalytics analytics;
+
+  RepSyncApp({super.key, required this.analytics});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

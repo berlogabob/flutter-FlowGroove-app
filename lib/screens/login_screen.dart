@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:formz/formz.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
@@ -73,6 +74,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await authNotifier.signInWithEmailAndPassword(
         email: _email.value,
         password: _password.value,
+      );
+
+      // Log successful login
+      FirebaseAnalytics.instance.logLogin(loginMethod: 'email');
+      FirebaseAnalytics.instance.logEvent(
+        name: 'login_success',
+        parameters: {'method': 'email'},
       );
 
       if (mounted) {
