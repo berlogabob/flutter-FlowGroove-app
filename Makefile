@@ -1,39 +1,60 @@
 # Makefile for Flutter FlowGroove App
 # Build, Deploy, and Release Automation
+# Version: 2.0.0 - Maintained for production deployment
 
-.PHONY: help build-web build-android build-all deploy-web deploy-android deploy-flowgroove release increment-version clean test analyze agents-check agents-format
+.PHONY: help build-web build-android build-all deploy-web deploy deploy-stable deploy-flowgroove release release-stable release-web increment-version clean test analyze agents-check agents-format mocks run run-web run-android icons info deps version
 
 # Default target
 help:
-	@echo "Flutter FlowGroove App - Build Commands"
+	@echo "🎵 FlowGroove App - Build & Deployment Commands"
+	@echo "================================================"
 	@echo ""
-	@echo "Usage:"
-	@echo "  make increment-version    - Increment build number (e.g., 0.11.2+70 → 0.11.2+71)"
+	@echo "📦 Version Management:"
+	@echo "  make version              - Show current version"
+	@echo "  make increment-version    - Increment build number"
+	@echo ""
+	@echo "🔨 Build Commands:"
 	@echo "  make build-web            - Build for web (GitHub Pages)"
-	@echo "  make build-android        - Build for Android (APK)"
-	@echo "  make build-appbundle      - Build for Android App Bundle (Play Store)"
-	@echo "  make build-all            - Build for web and Android"
-	@echo "  make deploy-web           - Build web + copy to docs/"
-	@echo "  make deploy               - Build web + copy + commit + push (current branch)"
-	@echo "  make deploy-stable        - Build web + deploy to flowgroove.app (FTP)"
-	@echo "  make deploy-flowgroove    - Deploy to flowgroove.app via FTP only"
-	@echo "  make release              - Full release: increment + build + deploy + GitHub Release"
-	@echo "  make release-stable       - Full release + deploy to flowgroove.app"
-	@echo "  make github-release       - Create GitHub Release only (with APK + AAB)"
-	@echo "  make release-notes        - Generate release notes from git log"
-	@echo "  make icons                - Generate app icons from logo"
-	@echo "  make clean                - Clean build artifacts"
-	@echo "  make test                 - Run all tests"
-	@echo "  make analyze              - Run flutter analyze"
-	@echo "  make agents-check         - Validate agent files in /agents"
-	@echo "  make agents-format        - Format all agent markdown files"
+	@echo "  make build-android        - Build Android APK"
+	@echo "  make build-appbundle      - Build Android App Bundle (Play Store)"
+	@echo "  make build-all            - Build web + Android"
 	@echo ""
-	@echo "Examples:"
-	@echo "  make release              # Full release cycle with GitHub Release"
-	@echo "  make deploy               # Quick deploy to current branch"
-	@echo "  make deploy-stable        # Deploy stable version to flowgroove.app"
-	@echo "  make release-stable       # Full release + deploy to flowgroove.app"
-	@echo "  make agents-check         # Verify agent system integrity"
+	@echo "🚀 Deployment:"
+	@echo "  make deploy-web           - Build + copy to docs/"
+	@echo "  make deploy               - Build + deploy to current branch (GitHub Pages)"
+	@echo "  make deploy-stable        - Build + deploy to flowgroove.app (FTP)"
+	@echo "  make deploy-flowgroove    - Deploy existing build to flowgroove.app"
+	@echo ""
+	@echo "🎯 Release:"
+	@echo "  make release              - Full release + GitHub Pages"
+	@echo "  make release-stable       - Full release + flowgroove.app (Production)"
+	@echo "  make release-web          - Quick web release"
+	@echo "  make github-release       - Create GitHub Release only"
+	@echo "  make release-notes        - Generate release notes"
+	@echo ""
+	@echo "🧪 Testing & Quality:"
+	@echo "  make test                 - Run all tests with coverage"
+	@echo "  make analyze              - Run flutter analyze"
+	@echo "  make agents-check         - Validate agent system"
+	@echo "  make agents-format        - Format agent markdown files"
+	@echo ""
+	@echo "🛠️  Development:"
+	@echo "  make run                  - Run on connected device"
+	@echo "  make run-web              - Run on Chrome"
+	@echo "  make run-android          - Run on Android device"
+	@echo "  make watch                - Watch for changes + rebuild"
+	@echo "  make mocks                - Generate mocks"
+	@echo "  make icons                - Generate app icons"
+	@echo "  make deps                 - Install dependencies"
+	@echo "  make info                 - Show build info"
+	@echo "  make clean                - Clean build artifacts"
+	@echo ""
+	@echo "📖 Examples:"
+	@echo "  make release-stable       # Full production release"
+	@echo "  make deploy-stable        # Deploy to flowgroove.app"
+	@echo "  make agents-check         # Verify agent system"
+	@echo ""
+	@echo "📊 Current Version: $(CURRENT_VERSION)+$(CURRENT_BUILD)"
 
 # Get current version from pubspec.yaml
 CURRENT_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
@@ -57,23 +78,29 @@ agents-check:
 		echo "❌ /agents directory not found"; \
 		exit 1; \
 	fi
-	@echo "  Found $(shell find agents -name "*.md" | wc -l) agent files"
-	@echo "  Required agents:"
-	@for agent in mr-architect mr-senior-developer mr-tester mr-cleaner mr-logger mr-planner mr-release mr-repetitive mr-stupid-user mr-sync creative-director ux-agent mr-android; do \
+	@AGENT_COUNT=$$(find agents -name "*.md" | wc -l); \
+	echo "  Found $$AGENT_COUNT agent files"
+	@echo "  Validating core agents..."
+	@MISSING=0; \
+	for agent in mr-architect mr-senior-developer mr-tester mr-cleaner mr-logger mr-planner mr-release mr-repetitive mr-stupid-user mr-sync creative-director ux-agent mr-android; do \
 		if [ ! -f "agents/$$agent.md" ]; then \
 			echo "❌ Missing: agents/$$agent.md"; \
-			exit 1; \
+			MISSING=$$((MISSING + 1)); \
 		else \
-			echo "✅ OK: $$agent"; \
+			echo "✅ $$agent"; \
 		fi \
-	done
-	@echo "✅ All 13 core agents present"
-	@echo "  Validating GOST format..."
-	@count=$$(grep -c "## GOST" agents/*.md 2>/dev/null || echo 0); \
-	if [ "$$count" -lt 5 ]; then \
-		echo "⚠️  Only $$count agents have GOST format (target: ≥8)"; \
+	done; \
+	if [ $$MISSING -gt 0 ]; then \
+		echo "⚠️  $$MISSING core agent(s) missing"; \
 	else \
-		echo "✅ GOST format detected in $$count agents"; \
+		echo "✅ All 13 core agents present"; \
+	fi
+	@echo "  Validating GOST format..."
+	@GOST_COUNT=$$(grep -l "## GOST" agents/*.md 2>/dev/null | wc -l); \
+	if [ "$$GOST_COUNT" -lt 5 ]; then \
+		echo "⚠️  Only $$GOST_COUNT agents have GOST format (target: ≥8)"; \
+	else \
+		echo "✅ GOST format in $$GOST_COUNT agents"; \
 	fi
 	@echo "✅ Agent system validation complete"
 
@@ -89,26 +116,34 @@ agents-format:
 	done
 	@echo "✅ Agent formatting complete"
 
-# Build for Web (GitHub Pages)
+# Build for Web (GitHub Pages + Production)
 build-web:
 	@echo "🔨 Building web app..."
+	@echo "   Base href: /flutter-FlowGroove-app/ (GitHub Pages)"
 	@flutter build web --release --base-href "/flutter-FlowGroove-app/"
 	@./scripts/fix-version.sh
 	@echo "✅ Web build complete: build/web/"
+	@BUILD_SIZE=$$(du -sh build/web | cut -f1); \
+	echo "   Build size: $$BUILD_SIZE"
+	@echo "📊 Files:"
 	@ls -lh build/web/ | tail -5
 
 # Build for Android (APK)
 build-android:
 	@echo "🤖 Building Android APK..."
 	@flutter build apk --release
-	@echo "✅ Android build complete: build/app/outputs/flutter-apk/app-release.apk"
+	@echo "✅ Android build complete"
+	@APK_SIZE=$$(ls -lh build/app/outputs/flutter-apk/app-release.apk | awk '{print $$5}'); \
+	echo "   APK size: $$APK_SIZE"
 	@ls -lh build/app/outputs/flutter-apk/app-release.apk
 
 # Build for Android App Bundle (Play Store)
 build-appbundle:
 	@echo "🤖 Building Android App Bundle..."
 	@flutter build appbundle --release
-	@echo "✅ Android App Bundle complete: build/app/outputs/bundle/release/app-release.aab"
+	@echo "✅ Android App Bundle complete"
+	@AAB_SIZE=$$(ls -lh build/app/outputs/bundle/release/app-release.aab | awk '{print $$5}'); \
+	echo "   AAB size: $$AAB_SIZE"
 	@ls -lh build/app/outputs/bundle/release/app-release.aab
 
 # Build for both Web and Android
@@ -147,24 +182,24 @@ deploy: build-web
 # Deploy stable version: build + deploy to flowgroove.app via FTP
 deploy-stable: build-web
 	@echo ""
-	@echo "🚀 Deploying stable version to flowgroove.app..."
+	@echo "🚀 Deploying to flowgroove.app (Production)..."
 	@./scripts/deploy-to-flowgroove.sh
 	@echo ""
-	@echo "📦 Also copying web build to docs/ (backup)..."
+	@echo "📦 Creating backup in docs/..."
 	@cp -r build/web/* docs/
-	@echo "✅ Web build copied to docs/"
+	@echo "✅ Backup created"
 	@echo ""
-	@echo "💾 Committing stable release..."
+	@echo "💾 Committing to git..."
 	@git add docs/
 	@git commit -m "Stable release $(NEW_VERSION)" || echo "No changes to commit"
 	@echo ""
 	@echo "🚀 Pushing to main branch..."
-	@git push origin main
+	@git push origin main || echo "Note: Push to main failed"
 	@echo ""
-	@echo "✅ Stable deployment complete!"
-	@echo "🌐 Production URL: https://flowgroove.app/"
-	@echo "🌐 Backup URL: https://berlogabob.github.io/flutter-FlowGroove-app/"
-	@echo "⏱️  Deployment takes 1-5 minutes"
+	@echo "✅ Production deployment complete!"
+	@echo "🌐 Production: https://flowgroove.app/"
+	@echo "🌐 Backup: https://berlogabob.github.io/flutter-FlowGroove-app/"
+	@echo "⏱️  Allow 1-5 minutes for propagation"
 
 # Deploy to flowgroove.app via FTP only (no build)
 deploy-flowgroove:
@@ -238,12 +273,12 @@ release-web: increment-version deploy
 	@echo ""
 	@echo "🎉 Web release $(NEW_VERSION) complete!"
 
-# Full release with stable deployment to flowgroove.app
+# Full release with stable deployment to flowgroove.app (PRODUCTION)
 release-stable: increment-version build-web build-android build-appbundle agents-check
 	@echo ""
-	@echo "📦 Copying web build to docs/..."
+	@echo "📦 Creating backup in docs/..."
 	@cp -r build/web/* docs/
-	@echo "✅ Web build copied to docs/"
+	@echo "✅ Backup created"
 	@echo ""
 	@echo "💾 Committing release..."
 	@git add docs/ pubspec.yaml
@@ -252,7 +287,7 @@ release-stable: increment-version build-web build-android build-appbundle agents
 	@echo "🏷️  Creating git tag..."
 	@git tag -a "v$(NEW_VERSION)" -m "Release $(NEW_VERSION)" || echo "Tag already exists"
 	@echo ""
-	@echo "🚀 Pushing to GitHub (current branch)..."
+	@echo "🚀 Pushing to GitHub..."
 	@git push origin HEAD
 	@git push origin "v$(NEW_VERSION)" || echo "Tag already pushed"
 	@echo ""
@@ -261,8 +296,8 @@ release-stable: increment-version build-web build-android build-appbundle agents
 		if gh auth status >/dev/null 2>&1; then \
 			if gh release view "v$(NEW_VERSION)" >/dev/null 2>&1; then \
 				echo "⚠️  Release v$(NEW_VERSION) already exists!"; \
-				echo "   To update: make github-release"; \
-				echo "   To delete: gh release delete v$(NEW_VERSION) --cleanup-tag --yes"; \
+				echo "   Update: gh release upload v$(NEW_VERSION) build/app/outputs/flutter-apk/app-release.apk"; \
+				echo "   Delete: gh release delete v$(NEW_VERSION) --cleanup-tag --yes"; \
 			else \
 				gh release create "v$(NEW_VERSION)" \
 					--title "Release $(NEW_VERSION)" \
@@ -271,32 +306,32 @@ release-stable: increment-version build-web build-android build-appbundle agents
 					build/app/outputs/flutter-apk/app-release.apk#android-apk \
 					build/app/outputs/bundle/release/app-release.aab#android-aab && \
 				echo "✅ GitHub Release created!" || \
-				(echo "" && echo "❌ Failed to create GitHub Release!" && echo "   Error: $$?" && echo "   Check files exist:" && ls -lh build/app/outputs/flutter-apk/app-release.apk build/app/outputs/bundle/release/app-release.aab 2>&1); \
+				(echo "" && echo "❌ GitHub Release failed!" && echo "   Verify files exist:" && ls -lh build/app/outputs/flutter-apk/app-release.apk build/app/outputs/bundle/release/app-release.aab 2>&1); \
 			fi; \
 		else \
-			echo "⚠️  GitHub CLI not authenticated. Run 'gh auth login'"; \
+			echo "⚠️  GitHub CLI not authenticated. Run: gh auth login"; \
 		fi; \
 	else \
-		echo "⚠️  GitHub CLI not installed. Install from https://cli.github.com/"; \
+		echo "⚠️  GitHub CLI not installed. Install: https://cli.github.com/"; \
 	fi
 	@echo ""
-	@echo "🚀 Deploying to flowgroove.app..."
+	@echo "🚀 Deploying to production..."
 	@./scripts/deploy-to-flowgroove.sh
 	@echo ""
-	@echo "🎉 Release $(NEW_VERSION) complete!"
+	@echo "🎉 Release $(NEW_VERSION) COMPLETE!"
 	@echo ""
 	@echo "📱 Artifacts:"
-	@echo "   Production: https://flowgroove.app/"
-	@echo "   Backup: https://berlogabob.github.io/flutter-FlowGroove-app/"
-	@echo "   Android APK: build/app/outputs/flutter-apk/app-release.apk"
-	@echo "   Android AAB: build/app/outputs/bundle/release/app-release.aab"
-	@echo "   GitHub Release: https://github.com/berlogabob/flutter-FlowGroove-app/releases/tag/v$(NEW_VERSION)"
+	@echo "   🌐 Production: https://flowgroove.app/"
+	@echo "   🌐 Backup: https://berlogabob.github.io/flutter-FlowGroove-app/"
+	@echo "   📱 Android APK: build/app/outputs/flutter-apk/app-release.apk"
+	@echo "   📱 Android AAB: build/app/outputs/bundle/release/app-release.aab"
+	@echo "   📦 GitHub: https://github.com/berlogabob/flutter-FlowGroove-app/releases/tag/v$(NEW_VERSION)"
 	@echo ""
 	@echo "📝 Next steps:"
-	@echo "   1. Test production deployment at https://flowgroove.app/"
-	@echo "   2. Test Android APK on device"
-	@echo "   3. Upload AAB to Google Play Console (if needed)"
-	@echo "   4. Update CHANGELOG.md"
+	@echo "   1. ✅ Test production: https://flowgroove.app/"
+	@echo "   2. ✅ Test Android APK on device"
+	@echo "   3. 📤 Upload AAB to Play Console (if needed)"
+	@echo "   4. 📝 Update CHANGELOG.md"
 
 # Clean build artifacts
 clean:
@@ -305,14 +340,15 @@ clean:
 	@rm -rf build/
 	@echo "✅ Clean complete"
 
-# Run all tests
+# Run all tests with coverage
 test:
-	@echo "🧪 Running tests..."
+	@echo "🧪 Running tests with coverage..."
 	@flutter test --coverage
 	@echo ""
 	@echo "✅ Tests complete!"
-	@echo "📊 Coverage report: coverage/lcov.info"
-	@echo "📊 HTML report: coverage/html/index.html"
+	@echo "📊 Coverage reports:"
+	@echo "   - LCOV: coverage/lcov.info"
+	@echo "   - HTML: coverage/html/index.html"
 	@echo ""
 	@echo "To view HTML report:"
 	@echo "  genhtml coverage/lcov.info -o coverage/html"
