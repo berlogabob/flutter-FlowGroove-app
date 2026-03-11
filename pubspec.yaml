@@ -1,7 +1,7 @@
 name: flutter_repsync_app
 description: "RepSync - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.13.0+142
+version: 0.13.0+143
 
 environment:
   sdk: ^3.11.1
@@ -15,6 +15,7 @@ dependencies:
   firebase_auth: ^6.2.0
   firebase_core: ^4.5.0
   firebase_analytics: ^12.1.3
+  firebase_storage: ^13.1.0
 
   # State Management (Updated)
   flutter_riverpod: ^3.3.1
