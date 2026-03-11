@@ -11,6 +11,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/web_version_loader_export.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -88,17 +89,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _loadVersionInfo() async {
     try {
-      final packageInfo = await PackageInfo.fromPlatform();
+      String version = '';
+      String buildNumber = '';
+      
+      // On web, try to load version from version.json directly
+      if (buildNumber.isEmpty) {
+        try {
+          final webVersion = await loadVersionFromJson();
+          version = webVersion['version'] ?? '';
+          buildNumber = webVersion['buildNumber'] ?? '';
+        } catch (_) {
+          // Ignore web loader errors
+        }
+      }
+      
+      // If web loader didn't work, use package_info_plus
+      if (version.isEmpty || buildNumber.isEmpty) {
+        final packageInfo = await PackageInfo.fromPlatform();
+        if (version.isEmpty) version = packageInfo.version;
+        if (buildNumber.isEmpty) buildNumber = packageInfo.buildNumber;
+      }
+      
       if (mounted) {
         setState(() {
-          _version = '${packageInfo.version}+${packageInfo.buildNumber}';
+          if (buildNumber.isNotEmpty && buildNumber != '1') {
+            _version = '$version+$buildNumber';
+          } else {
+            _version = version;
+          }
           _buildDate = '';
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _version = '0.11.0+1';
+          _version = '0.13.1+146';
           _buildDate = '';
         });
       }
