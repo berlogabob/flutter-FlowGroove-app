@@ -36,6 +36,14 @@ void main() async {
   // Initialize Firebase Analytics
   final analytics = FirebaseAnalytics.instance;
   debugPrint('📊 Firebase Analytics initialized');
+  
+  // Enable analytics collection (explicitly)
+  await analytics.setAnalyticsCollectionEnabled(true);
+  debugPrint('📊 Analytics collection enabled');
+  
+  // Log app open event
+  analytics.logAppOpen();
+  debugPrint('📊 App open event logged');
 
   // Enable Firebase Auth persistence for Android
   try {
