@@ -58,7 +58,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
     setState(() {
       _currentError = error;
     });
-    ref.read(errorNotifierProvider.notifier).handleError(error);
+    ref.read(errorStateProvider.notifier).handleError(error);
   }
 
   /// Generates a unique invite code with collision detection.

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
+import '../../services/secure_storage_service.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -87,11 +87,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
 
     if (user == null) {
       // Store the join code for later and navigate to login
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        'pending_join_code',
-        _codeController.text.trim().toUpperCase(),
-      );
+      final joinCode = _codeController.text.trim().toUpperCase();
+      await secureStorage.write(key: 'pending_join_code', value: joinCode);
       if (mounted) {
         context.pushNamed('login');
       }

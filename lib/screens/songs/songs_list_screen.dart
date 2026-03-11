@@ -345,7 +345,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     setState(() {
       _currentError = apiError;
     });
-    ref.read(errorNotifierProvider.notifier).handleError(apiError);
+    ref.read(errorStateProvider.notifier).handleError(apiError);
   }
 
   /// Show filter options bottom sheet.

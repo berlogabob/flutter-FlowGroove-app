@@ -80,7 +80,7 @@ class RepSyncApp extends ConsumerWidget {
     });
 
     return MaterialApp.router(
-      title: 'RepSync',
+      title: 'FlowGroove',
       debugShowCheckedModeBanner: false,
       theme: MonoPulseTheme.theme,
       darkTheme: MonoPulseTheme.theme,

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:formz/formz.dart';
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
 import '../widgets/error_banner.dart';
 import '../theme/mono_pulse_theme.dart';
+import 'songs/models/inputs/email_input.dart';
+import 'songs/models/inputs/password_input.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +21,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  Email _email = const Email.pure();
+  Password _password = const Password.pure();
   bool _isLoading = false;
   ApiError? _currentError;
 
@@ -28,23 +33,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  void _onEmailChanged(String value) {
+    setState(() {
+      _email = Email.dirty(value);
+    });
+  }
+
+  void _onPasswordChanged(String value) {
+    setState(() {
+      _password = Password.dirty(value);
+    });
+  }
+
   void _clearError() {
     setState(() {
       _currentError = null;
     });
-    ref.read(errorNotifierProvider.notifier).clearError();
+    ref.read(errorStateProvider.notifier).clearError();
   }
 
   void _handleError(ApiError error) {
     setState(() {
       _currentError = error;
     });
-    ref.read(errorNotifierProvider.notifier).handleError(error);
+    ref.read(errorStateProvider.notifier).handleError(error);
   }
 
   Future<void> _login() async {
-    final formState = _formKey.currentState;
-    if (formState == null || !formState.validate()) return;
+    // Validate using Formz
+    if (!_email.isValid || !_password.isValid) return;
 
     setState(() {
       _isLoading = true;
@@ -54,8 +71,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final authNotifier = ref.read(appUserProvider.notifier);
       await authNotifier.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+        email: _email.value,
+        password: _password.value,
       );
 
       if (mounted) {
@@ -124,44 +141,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                onChanged: _onEmailChanged,
                 decoration: InputDecoration(
                   labelText: 'Email',
                   prefixIcon: const Icon(Icons.email_outlined),
-                  errorText:
-                      _currentError?.isValidation == true &&
-                          _currentError?.message.toLowerCase().contains(
-                                'email',
-                              ) ==
-                              true
-                      ? _currentError?.message
-                      : null,
+                  errorText: _email.errorMessage,
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
                 textInputAction: TextInputAction.done,
+                onChanged: _onPasswordChanged,
                 onFieldSubmitted: (_) => _login(),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outlined),
+                  prefixIcon: const Icon(Icons.lock_outlined),
+                  errorText: _password.errorMessage,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
               ),
               Align(
                 alignment: Alignment.centerRight,

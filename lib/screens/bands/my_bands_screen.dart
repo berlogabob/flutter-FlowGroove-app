@@ -94,7 +94,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     setState(() {
       _currentError = apiError;
     });
-    ref.read(errorNotifierProvider.notifier).handleError(apiError);
+    ref.read(errorStateProvider.notifier).handleError(apiError);
   }
 
   /// Handle band reordering (manual sort mode).
@@ -389,7 +389,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
     setState(() {
       _currentError = error;
     });
-    ref.read(errorNotifierProvider.notifier).handleError(error);
+    ref.read(errorStateProvider.notifier).handleError(error);
   }
 
   void _generateNewCode() async {

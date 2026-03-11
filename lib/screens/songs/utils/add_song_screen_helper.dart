@@ -46,7 +46,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
   /// Handles an error by updating state and notifying error provider.
   void handleError(ApiError error) {
     currentError = error;
-    ref.read(errorNotifierProvider.notifier).handleError(error);
+    ref.read(errorStateProvider.notifier).handleError(error);
   }
 
   /// Fetch track analysis from external API.

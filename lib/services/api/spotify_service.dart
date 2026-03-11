@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import '../../models/api_error.dart';
 import 'web_config.stub.dart' if (dart.library.html) 'web_config.web.dart';
 
@@ -64,6 +64,7 @@ class SpotifyService {
 
   static String? _accessToken;
   static DateTime? _tokenExpiry;
+  static final Dio _dio = Dio();
 
   static Future<bool> _authenticate() async {
     if (_accessToken != null &&
@@ -77,17 +78,19 @@ class SpotifyService {
         utf8.encode('$_clientId:$_clientSecret'),
       );
 
-      final response = await http.post(
-        Uri.parse('https://accounts.spotify.com/api/token'),
-        headers: {
-          'Authorization': 'Basic $credentials',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: 'grant_type=client_credentials',
+      final response = await _dio.post(
+        'https://accounts.spotify.com/api/token',
+        options: Options(
+          headers: {
+            'Authorization': 'Basic $credentials',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        ),
+        data: 'grant_type=client_credentials',
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body) as Map<String, dynamic>;
+        final data = response.data as Map<String, dynamic>;
         _accessToken = data['access_token'] as String;
         final expiresIn = data['expires_in'] as int;
         _tokenExpiry = DateTime.now().add(Duration(seconds: expiresIn - 60));
@@ -95,12 +98,12 @@ class SpotifyService {
       } else if (response.statusCode == 401) {
         throw ApiError.auth(
           message: 'Invalid Spotify credentials. Please check your API keys.',
-          exception: 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+          exception: 'HTTP ${response.statusCode}',
         );
       } else {
         throw ApiError.network(
           message: 'Failed to authenticate with Spotify.',
-          exception: 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+          exception: 'HTTP ${response.statusCode}',
         );
       }
     } on ApiError {
@@ -126,13 +129,15 @@ class SpotifyService {
       final encodedQuery = Uri.encodeComponent(query);
       final url = '$_baseUrl/search?q=$encodedQuery&type=track&limit=10';
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {'Authorization': 'Bearer $_accessToken'},
+      final response = await _dio.get(
+        url,
+        options: Options(
+          headers: {'Authorization': 'Bearer $_accessToken'},
+        ),
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body) as Map<String, dynamic>;
+        final data = response.data as Map<String, dynamic>;
         final tracks = data['tracks']['items'] as List<dynamic>? ?? [];
         return tracks
             .map((t) => SpotifyTrack.fromJson(t as Map<String, dynamic>))
@@ -146,12 +151,12 @@ class SpotifyService {
         }
         throw ApiError.auth(
           message: 'Spotify authentication expired. Please try again.',
-          exception: 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+          exception: 'HTTP ${response.statusCode}',
         );
       } else if (response.statusCode == 403) {
         throw ApiError.permission(
           message: 'Spotify Premium required for API access.',
-          exception: 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+          exception: 'HTTP ${response.statusCode}',
         );
       } else if (response.statusCode == 429) {
         throw ApiError.network(
@@ -161,7 +166,7 @@ class SpotifyService {
       } else {
         throw ApiError.network(
           message: 'Failed to search Spotify.',
-          exception: 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+          exception: 'HTTP ${response.statusCode}',
         );
       }
     } on ApiError {
@@ -186,14 +191,16 @@ class SpotifyService {
 
     try {
       final url = '$_baseUrl/audio-features/$trackId';
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {'Authorization': 'Bearer $_accessToken'},
+      final response = await _dio.get(
+        url,
+        options: Options(
+          headers: {'Authorization': 'Bearer $_accessToken'},
+        ),
       );
 
       if (response.statusCode == 200) {
         return SpotifyAudioFeatures.fromJson(
-          json.decode(response.body) as Map<String, dynamic>,
+          response.data as Map<String, dynamic>,
         );
       } else if (response.statusCode == 401) {
         // Token expired, try to re-authenticate
@@ -204,7 +211,7 @@ class SpotifyService {
         }
         throw ApiError.auth(
           message: 'Spotify authentication expired. Please try again.',
-          exception: 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+          exception: 'HTTP ${response.statusCode}',
         );
       } else if (response.statusCode == 404) {
         // Audio features not available for this track
@@ -212,7 +219,7 @@ class SpotifyService {
       } else {
         throw ApiError.network(
           message: 'Failed to get audio features from Spotify.',
-          exception: 'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+          exception: 'HTTP ${response.statusCode}',
         );
       }
     } on ApiError {

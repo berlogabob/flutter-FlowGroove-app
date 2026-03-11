@@ -33,6 +33,18 @@ Song _$SongFromJson(Map<String, dynamic> json) => Song(
       ? []
       : _beatModesFromJson(json['beatModes']),
   sections: json['sections'] == null ? [] : _sectionsFromJson(json['sections']),
+  spotifyId: json['spotifyId'] as String?,
+  musicbrainzId: json['musicbrainzId'] as String?,
+  isrc: json['isrc'] as String?,
+  deezerId: json['deezerId'] as String?,
+  normalizedTitle: json['normalizedTitle'] as String?,
+  normalizedArtist: json['normalizedArtist'] as String?,
+  titleSoundex: json['titleSoundex'] as String?,
+  artistSoundex: json['artistSoundex'] as String?,
+  durationMs: (json['durationMs'] as num?)?.toInt(),
+  album: json['album'] as String?,
+  variantType: json['variantType'] as String?,
+  variantOf: json['variantOf'] as String?,
 );
 
 Map<String, dynamic> _$SongToJson(Song instance) => <String, dynamic>{
@@ -59,4 +71,16 @@ Map<String, dynamic> _$SongToJson(Song instance) => <String, dynamic>{
   'regularBeats': instance.regularBeats,
   'beatModes': _beatModesToJson(instance.beatModes),
   'sections': _sectionsToJson(instance.sections),
+  'spotifyId': instance.spotifyId,
+  'musicbrainzId': instance.musicbrainzId,
+  'isrc': instance.isrc,
+  'deezerId': instance.deezerId,
+  'normalizedTitle': instance.normalizedTitle,
+  'normalizedArtist': instance.normalizedArtist,
+  'titleSoundex': instance.titleSoundex,
+  'artistSoundex': instance.artistSoundex,
+  'durationMs': instance.durationMs,
+  'album': instance.album,
+  'variantType': instance.variantType,
+  'variantOf': instance.variantOf,
 };

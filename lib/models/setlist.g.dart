@@ -29,7 +29,7 @@ Map<String, dynamic> _$SetlistToJson(Setlist instance) => <String, dynamic>{
   'bandId': instance.bandId,
   'name': instance.name,
   'description': instance.description,
-  'eventDateTime': instance.eventDateTime?.toIso8601String(),
+  'eventDateTime': _dateTimeToJson(instance.eventDateTime),
   'eventLocation': instance.eventLocation,
   'songIds': instance.songIds,
   'totalDuration': instance.totalDuration,
