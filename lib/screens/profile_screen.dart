@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -140,51 +138,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _loadVersionInfo() async {
     try {
-      // On web, directly fetch version.json for accurate build number
-      if (kIsWeb) {
-        try {
-          final response = await http.get(Uri.parse('version.json'));
-          if (response.statusCode == 200) {
-            final data = jsonDecode(response.body);
-            final version = data['version'] as String;
-            final buildNumber = data['buildNumber'] as String;
-            
-            debugPrint('🌐 Web version.json - version: $version, buildNumber: $buildNumber');
-            
-            if (mounted) {
-              setState(() {
-                if (buildNumber.isNotEmpty && buildNumber != '1') {
-                  _version = '$version+$buildNumber';
-                  debugPrint('✅ Web showing: $_version');
-                } else {
-                  _version = version;
-                  debugPrint('⚠️ Web build number empty or "1", showing: $_version');
-                }
-                _buildDate = '';
-              });
-            }
-            return;
-          }
-        } catch (e) {
-          debugPrint('⚠️ Failed to fetch version.json, falling back to PackageInfo: $e');
-        }
-      }
-      
-      // Fallback to PackageInfo for all platforms (or if web fetch fails)
       final packageInfo = await PackageInfo.fromPlatform();
       if (mounted) {
         setState(() {
           final version = packageInfo.version;
           final buildNumber = packageInfo.buildNumber;
-          
+
           debugPrint('📱 PackageInfo - version: $version, buildNumber: $buildNumber');
-          
+
+          // Combine version and buildNumber for consistent display
           if (buildNumber.isNotEmpty && buildNumber != '1') {
             _version = '$version+$buildNumber';
             debugPrint('✅ Showing: $_version');
           } else {
             _version = version;
-            debugPrint('⚠️ Build number empty or "1", showing: $_version');
+            debugPrint('⚠️ Using version only: $_version');
           }
           _buildDate = '';
         });
@@ -193,7 +161,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       debugPrint('❌ Error loading version: $e');
       if (mounted) {
         setState(() {
-          _version = '0.13.0+146';
+          _version = '0.13.1+146';
           _buildDate = '';
         });
       }
