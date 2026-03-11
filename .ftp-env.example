@@ -1,0 +1,12 @@
+# FTP Deployment Configuration for flowgroove.app
+# Copy this file to .ftp-env and fill in your credentials
+# This file is in .gitignore - never commit real credentials!
+
+FTP_HOST=ftp.flowgroove.app
+FTP_USER=your_ftp_username_here
+FTP_PASS=your_ftp_password_here
+REMOTE_DIR=public_html
+
+# Optional: Use environment variables instead
+# export FTP_USER=your_username
+# export FTP_PASS=your_password
