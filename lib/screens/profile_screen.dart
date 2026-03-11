@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -88,6 +91,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _loadVersionInfo() async {
     try {
+      // On web, directly fetch version.json to get buildNumber correctly
+      if (kIsWeb) {
+        try {
+          final response = await http.get(Uri.parse('version.json'));
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body);
+            final version = data['version'] as String? ?? '';
+            final buildNumber = data['buildNumber'] as String? ?? '';
+            
+            if (mounted) {
+              setState(() {
+                if (buildNumber.isNotEmpty && buildNumber != '1') {
+                  _version = '$version+$buildNumber';
+                } else {
+                  _version = version;
+                }
+                _buildDate = '';
+              });
+            }
+            return;
+          }
+        } catch (_) {
+          // Fallback to package_info_plus
+        }
+      }
+      
+      // For mobile or if web fetch fails
       final packageInfo = await PackageInfo.fromPlatform();
       if (mounted) {
         setState(() {
@@ -98,7 +128,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _version = '0.11.0+1';
+          _version = '0.13.1+146';
           _buildDate = '';
         });
       }
