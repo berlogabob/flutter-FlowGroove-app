@@ -1,7 +1,7 @@
 # Makefile for Flutter FlowGroove App
 # Build, Deploy, and Release Automation
 
-.PHONY: help build-web build-android build-all deploy-web deploy-android release increment-version clean test analyze agents-check agents-format
+.PHONY: help build-web build-android build-all deploy-web deploy-android deploy-flowgroove release increment-version clean test analyze agents-check agents-format
 
 # Default target
 help:
@@ -15,8 +15,10 @@ help:
 	@echo "  make build-all            - Build for web and Android"
 	@echo "  make deploy-web           - Build web + copy to docs/"
 	@echo "  make deploy               - Build web + copy + commit + push (current branch)"
-	@echo "  make deploy-stable        - Build web + copy + commit + push to main (stable)"
+	@echo "  make deploy-stable        - Build web + deploy to flowgroove.app (FTP)"
+	@echo "  make deploy-flowgroove    - Deploy to flowgroove.app via FTP only"
 	@echo "  make release              - Full release: increment + build + deploy + GitHub Release"
+	@echo "  make release-stable       - Full release + deploy to flowgroove.app"
 	@echo "  make github-release       - Create GitHub Release only (with APK + AAB)"
 	@echo "  make release-notes        - Generate release notes from git log"
 	@echo "  make icons                - Generate app icons from logo"
@@ -29,7 +31,8 @@ help:
 	@echo "Examples:"
 	@echo "  make release              # Full release cycle with GitHub Release"
 	@echo "  make deploy               # Quick deploy to current branch"
-	@echo "  make deploy-stable        # Deploy stable version to main branch"
+	@echo "  make deploy-stable        # Deploy stable version to flowgroove.app"
+	@echo "  make release-stable       # Full release + deploy to flowgroove.app"
 	@echo "  make agents-check         # Verify agent system integrity"
 
 # Get current version from pubspec.yaml
@@ -141,10 +144,13 @@ deploy: build-web
 	@echo "🚀 Pushing to GitHub (current branch)..."
 	@git push origin HEAD
 
-# Deploy stable version: build + deploy to main branch
+# Deploy stable version: build + deploy to flowgroove.app via FTP
 deploy-stable: build-web
 	@echo ""
-	@echo "📦 Copying web build to docs/..."
+	@echo "🚀 Deploying stable version to flowgroove.app..."
+	@./scripts/deploy-to-flowgroove.sh
+	@echo ""
+	@echo "📦 Also copying web build to docs/ (backup)..."
 	@cp -r build/web/* docs/
 	@echo "✅ Web build copied to docs/"
 	@echo ""
@@ -156,8 +162,20 @@ deploy-stable: build-web
 	@git push origin main
 	@echo ""
 	@echo "✅ Stable deployment complete!"
-	@echo "🌐 GitHub Pages: https://berlogabob.github.io/flutter-FlowGroove-app/"
-	@echo "⏱️  Deployment takes 1-2 minutes"
+	@echo "🌐 Production URL: https://flowgroove.app/"
+	@echo "🌐 Backup URL: https://berlogabob.github.io/flutter-FlowGroove-app/"
+	@echo "⏱️  Deployment takes 1-5 minutes"
+
+# Deploy to flowgroove.app via FTP only (no build)
+deploy-flowgroove:
+	@echo ""
+	@echo "🚀 Deploying to flowgroove.app via FTP..."
+	@if [ ! -d "build/web" ]; then \
+		echo "❌ Build directory not found!"; \
+		echo "💡 Run 'make build-web' first"; \
+		exit 1; \
+	fi
+	@./scripts/deploy-to-flowgroove.sh
 
 # Full release cycle: increment + build + deploy + GitHub Release
 release: increment-version build-web build-android build-appbundle agents-check
@@ -219,6 +237,66 @@ release: increment-version build-web build-android build-appbundle agents-check
 release-web: increment-version deploy
 	@echo ""
 	@echo "🎉 Web release $(NEW_VERSION) complete!"
+
+# Full release with stable deployment to flowgroove.app
+release-stable: increment-version build-web build-android build-appbundle agents-check
+	@echo ""
+	@echo "📦 Copying web build to docs/..."
+	@cp -r build/web/* docs/
+	@echo "✅ Web build copied to docs/"
+	@echo ""
+	@echo "💾 Committing release..."
+	@git add docs/ pubspec.yaml
+	@git commit -m "Release $(NEW_VERSION)" || echo "No changes to commit"
+	@echo ""
+	@echo "🏷️  Creating git tag..."
+	@git tag -a "v$(NEW_VERSION)" -m "Release $(NEW_VERSION)" || echo "Tag already exists"
+	@echo ""
+	@echo "🚀 Pushing to GitHub (current branch)..."
+	@git push origin HEAD
+	@git push origin "v$(NEW_VERSION)" || echo "Tag already pushed"
+	@echo ""
+	@echo "📱 Creating GitHub Release..."
+	@if command -v gh >/dev/null 2>&1; then \
+		if gh auth status >/dev/null 2>&1; then \
+			if gh release view "v$(NEW_VERSION)" >/dev/null 2>&1; then \
+				echo "⚠️  Release v$(NEW_VERSION) already exists!"; \
+				echo "   To update: make github-release"; \
+				echo "   To delete: gh release delete v$(NEW_VERSION) --cleanup-tag --yes"; \
+			else \
+				gh release create "v$(NEW_VERSION)" \
+					--title "Release $(NEW_VERSION)" \
+					--notes "Release $(NEW_VERSION) - $$(date +%Y-%m-%d)" \
+					--target main \
+					build/app/outputs/flutter-apk/app-release.apk#android-apk \
+					build/app/outputs/bundle/release/app-release.aab#android-aab && \
+				echo "✅ GitHub Release created!" || \
+				(echo "" && echo "❌ Failed to create GitHub Release!" && echo "   Error: $$?" && echo "   Check files exist:" && ls -lh build/app/outputs/flutter-apk/app-release.apk build/app/outputs/bundle/release/app-release.aab 2>&1); \
+			fi; \
+		else \
+			echo "⚠️  GitHub CLI not authenticated. Run 'gh auth login'"; \
+		fi; \
+	else \
+		echo "⚠️  GitHub CLI not installed. Install from https://cli.github.com/"; \
+	fi
+	@echo ""
+	@echo "🚀 Deploying to flowgroove.app..."
+	@./scripts/deploy-to-flowgroove.sh
+	@echo ""
+	@echo "🎉 Release $(NEW_VERSION) complete!"
+	@echo ""
+	@echo "📱 Artifacts:"
+	@echo "   Production: https://flowgroove.app/"
+	@echo "   Backup: https://berlogabob.github.io/flutter-FlowGroove-app/"
+	@echo "   Android APK: build/app/outputs/flutter-apk/app-release.apk"
+	@echo "   Android AAB: build/app/outputs/bundle/release/app-release.aab"
+	@echo "   GitHub Release: https://github.com/berlogabob/flutter-FlowGroove-app/releases/tag/v$(NEW_VERSION)"
+	@echo ""
+	@echo "📝 Next steps:"
+	@echo "   1. Test production deployment at https://flowgroove.app/"
+	@echo "   2. Test Android APK on device"
+	@echo "   3. Upload AAB to Google Play Console (if needed)"
+	@echo "   4. Update CHANGELOG.md"
 
 # Clean build artifacts
 clean:

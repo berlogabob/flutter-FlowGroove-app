@@ -9,6 +9,7 @@
 
 # Environment variables (contains secrets)
 .env
+.ftp-env
 web/config.js
 
 
