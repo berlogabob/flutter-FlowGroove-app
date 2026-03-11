@@ -14,7 +14,8 @@ help:
 	@echo "  make build-appbundle      - Build for Android App Bundle (Play Store)"
 	@echo "  make build-all            - Build for web and Android"
 	@echo "  make deploy-web           - Build web + copy to docs/"
-	@echo "  make deploy               - Build web + copy + commit + push"
+	@echo "  make deploy               - Build web + copy + commit + push (current branch)"
+	@echo "  make deploy-stable        - Build web + copy + commit + push to main (stable)"
 	@echo "  make release              - Full release: increment + build + deploy + GitHub Release"
 	@echo "  make github-release       - Create GitHub Release only (with APK + AAB)"
 	@echo "  make release-notes        - Generate release notes from git log"
@@ -27,8 +28,9 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo "  make release              # Full release cycle with GitHub Release"
-	@echo "  make deploy               # Quick deploy to GitHub Pages"
-	@echo "  make agents-check"       # Verify agent system integrity
+	@echo "  make deploy               # Quick deploy to current branch"
+	@echo "  make deploy-stable        # Deploy stable version to main branch"
+	@echo "  make agents-check         # Verify agent system integrity"
 
 # Get current version from pubspec.yaml
 CURRENT_VERSION := $(shell grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
@@ -125,7 +127,7 @@ deploy-web: build-web
 	@echo "   git commit -m 'Deploy web build $(NEW_VERSION)'"
 	@echo "   git push origin main"
 
-# Full deploy: build + copy + commit + push
+# Full deploy: build + copy + commit + push (current branch)
 deploy: build-web
 	@echo ""
 	@echo "📦 Copying web build to docs/..."
@@ -138,8 +140,22 @@ deploy: build-web
 	@echo ""
 	@echo "🚀 Pushing to GitHub (current branch)..."
 	@git push origin HEAD
+
+# Deploy stable version: build + deploy to main branch
+deploy-stable: build-web
 	@echo ""
-	@echo "✅ Deploy complete!"
+	@echo "📦 Copying web build to docs/..."
+	@cp -r build/web/* docs/
+	@echo "✅ Web build copied to docs/"
+	@echo ""
+	@echo "💾 Committing stable release..."
+	@git add docs/
+	@git commit -m "Stable release $(NEW_VERSION)" || echo "No changes to commit"
+	@echo ""
+	@echo "🚀 Pushing to main branch..."
+	@git push origin main
+	@echo ""
+	@echo "✅ Stable deployment complete!"
 	@echo "🌐 GitHub Pages: https://berlogabob.github.io/flutter-FlowGroove-app/"
 	@echo "⏱️  Deployment takes 1-2 minutes"
 
