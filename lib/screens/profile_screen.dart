@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -90,75 +87,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _loadVersionInfo() async {
-    // Default fallback version
-    String fallbackVersion = '0.13.1+146';
-    
     try {
-      // On web, try to fetch version.json directly
-      if (kIsWeb) {
-        try {
-          final response = await http.get(Uri.parse('version.json')).timeout(
-            const Duration(seconds: 3),
-          );
-          
-          if (response.statusCode == 200) {
-            try {
-              final data = jsonDecode(response.body);
-              final version = data['version'] as String? ?? '';
-              final buildNumber = data['buildNumber'] as String? ?? '';
-              
-              if (mounted) {
-                setState(() {
-                  if (buildNumber.isNotEmpty && buildNumber != '1' && version.isNotEmpty) {
-                    _version = '$version+$buildNumber';
-                  } else if (version.isNotEmpty) {
-                    _version = version;
-                  } else {
-                    _version = fallbackVersion;
-                  }
-                  _buildDate = '';
-                });
-              }
-              return;
-            } catch (e) {
-              // JSON parse error - continue to fallback
-            }
-          }
-        } catch (e) {
-          // HTTP error or timeout - continue to fallback
-        }
-      }
-      
-      // For mobile or if web fetch fails, use package_info_plus
-      try {
-        final packageInfo = await PackageInfo.fromPlatform();
-        if (mounted) {
-          setState(() {
-            final version = packageInfo.version;
-            final buildNumber = packageInfo.buildNumber;
-            
-            if (buildNumber.isNotEmpty && buildNumber != '1') {
-              _version = '$version+$buildNumber';
-            } else {
-              _version = version.isNotEmpty ? version : fallbackVersion;
-            }
-            _buildDate = '';
-          });
-        }
-      } catch (e) {
-        // package_info_plus failed - use fallback
-        if (mounted) {
-          setState(() {
-            _version = fallbackVersion;
-            _buildDate = '';
-          });
-        }
-      }
-    } catch (e) {
-      // Catch-all for any other errors
+      final packageInfo = await PackageInfo.fromPlatform();
       if (mounted) {
         setState(() {
-          _version = fallbackVersion;
+          _version = '${packageInfo.version}+${packageInfo.buildNumber}';
+          _buildDate = '';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _version = '0.11.0+1';
           _buildDate = '';
         });
       }
