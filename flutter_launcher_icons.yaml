@@ -1,0 +1,28 @@
+name: flutter_launcher_icons
+description: "FlowGroove Launcher Icons"
+
+flutter_launcher_icons:
+  # Android
+  android: true
+  image_path: "assets/logo_clean.png"
+  adaptive_icon_background: "#1A1A2E"
+  adaptive_icon_foreground: "assets/logo_clean.png"
+  
+  # iOS
+  ios: true
+  image_path_ios: "assets/logo_clean.png"
+  
+  # Web
+  web:
+    generate: true
+    image_path: "assets/logo_clean.png"
+  
+  # Windows
+  windows:
+    generate: true
+    image_path: "assets/logo_clean.png"
+  
+  # macOS
+  macos:
+    generate: true
+    image_path: "assets/logo_clean.png"
