@@ -8,6 +8,7 @@ import '../models/user.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/standard_screen_scaffold.dart';
 import '../widgets/dashboard_grid.dart';
+import '../utils/analytics_debug.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -15,6 +16,12 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Log screen view for analytics
+    AnalyticsDebug.logScreenView(
+      screenName: 'HomeScreen',
+      screenClass: 'HomeScreen',
+    );
+    
+    // Also log with Firebase Analytics directly
     FirebaseAnalytics.instance.logScreenView(
       screenName: 'HomeScreen',
       screenClass: 'HomeScreen',

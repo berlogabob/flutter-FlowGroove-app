@@ -13,6 +13,7 @@ import 'providers/auth/auth_provider.dart';
 import 'router/app_router.dart';
 import 'models/user.dart';
 import 'widgets/loading_indicator.dart';
+import 'utils/analytics_debug.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,13 +37,19 @@ void main() async {
   // Initialize Firebase Analytics
   final analytics = FirebaseAnalytics.instance;
   debugPrint('📊 Firebase Analytics initialized');
-  
+
   // Enable analytics collection (explicitly)
   await analytics.setAnalyticsCollectionEnabled(true);
   debugPrint('📊 Analytics collection enabled');
   
+  // Enable debug mode for development
+  AnalyticsDebug.enableDebugMode();
+  
+  // Test analytics connection
+  AnalyticsDebug.testConnection();
+
   // Log app open event
-  analytics.logAppOpen();
+  AnalyticsDebug.logAppOpen();
   debugPrint('📊 App open event logged');
 
   // Enable Firebase Auth persistence for Android
