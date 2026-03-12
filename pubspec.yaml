@@ -1,7 +1,7 @@
 name: flutter_repsync_app
 description: "RepSync - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.13.1+151
+version: 0.13.1+152
 
 environment:
   sdk: ^3.11.1
@@ -98,14 +98,4 @@ flutter:
   assets:
     - assets/env.json
     - assets/sounds/
-    - assets/icon1.png
-
-flutter_launcher_icons:
-  android: true
-  ios:
-    remove_alpha_ios: true
-  web:
-    generate: true
-  image_path: "assets/icon1.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icon1.png"
+    - assets/logo_clean.png
