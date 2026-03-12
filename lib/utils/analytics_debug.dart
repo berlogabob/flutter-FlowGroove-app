@@ -87,7 +87,7 @@ class AnalyticsDebug {
   }) async {
     await _analytics.logEvent(
       name: name,
-      parameters: parameters,
+      parameters: parameters?.cast<String, Object>(),
     );
     
     if (_debugMode) {
