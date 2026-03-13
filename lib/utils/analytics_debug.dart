@@ -22,42 +22,52 @@ class AnalyticsDebug {
   /// Test analytics connection
   static Future<void> testConnection() async {
     debugPrint('🔍 Testing Firebase Analytics Connection...');
-    
+
     try {
       // Check if analytics is initialized
       debugPrint('✅ Analytics instance created');
-      
+
       // Enable collection
       await _analytics.setAnalyticsCollectionEnabled(true);
       debugPrint('✅ Analytics collection enabled');
-      
-      // Set debug mode
-      await _analytics.setSessionTimeoutDuration(const Duration(seconds: 30));
-      debugPrint('✅ Session timeout set to 30 seconds');
-      
+
+      // Set debug mode (not supported on Web)
+      if (!kIsWeb) {
+        await _analytics.setSessionTimeoutDuration(const Duration(seconds: 30));
+        debugPrint('✅ Session timeout set to 30 seconds');
+      } else {
+        debugPrint('🌐 Web platform - session timeout not available');
+      }
+
       // Log test event
       await _analytics.logEvent(
         name: 'analytics_test',
         parameters: {
           'timestamp': DateTime.now().toIso8601String(),
-          'platform': defaultTargetPlatform.name,
+          'platform': 'web',
           'test': true,
         },
       );
       debugPrint('✅ Test event logged: analytics_test');
-      
-      // Get app instance ID
-      final appId = await _analytics.appInstanceId;
-      debugPrint('📱 App Instance ID: $appId');
-      
+
+      // Get app instance ID (not available on Web)
+      if (!kIsWeb) {
+        final appId = await _analytics.appInstanceId;
+        debugPrint('📱 App Instance ID: $appId');
+      }
+
       debugPrint('');
       debugPrint('🎉 Analytics Test COMPLETE');
       debugPrint('');
       debugPrint('📊 Check events at:');
       debugPrint('   https://console.firebase.google.com/project/repsync-app-8685c/analytics/debugview');
       debugPrint('');
-      debugPrint('⏱️  Realtime updates every 30 seconds');
-      
+      if (!kIsWeb) {
+        debugPrint('⏱️  Realtime updates every 30 seconds');
+      } else {
+        debugPrint('⏱️  Web analytics may take 24-48 hours to appear in dashboard');
+      }
+
     } catch (e, stack) {
       debugPrint('❌ Analytics Test FAILED');
       debugPrint('   Error: $e');

@@ -17,6 +17,7 @@ import '../screens/bands/create_band_screen.dart';
 import '../screens/bands/join_band_screen.dart';
 import '../screens/bands/band_songs_screen.dart';
 import '../screens/bands/band_about_screen.dart';
+import '../screens/bands/the_band_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/profile_screen.dart';
@@ -166,6 +167,32 @@ final GoRouter appRouter = GoRouter(
               name: 'bands',
               builder: (context, state) => const MyBandsScreen(),
               routes: [
+                GoRoute(
+                  path: ':id',
+                  name: 'the-band',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    if (band == null) {
+                      return Scaffold(
+                        appBar: AppBar(title: const Text('Error')),
+                        body: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Failed to load band data'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => context.pop(),
+                                child: const Text('Go Back'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return TheBandScreen(band: band);
+                  },
+                ),
                 GoRoute(
                   path: 'create',
                   name: 'create-band',
@@ -332,6 +359,10 @@ extension GoRouterExtension on BuildContext {
   /// Navigate to edit band screen.
   void goEditBand(Band band) =>
       goNamed('edit-band', pathParameters: {'id': band.id}, extra: band);
+
+  /// Navigate to the band screen (band details page).
+  void goTheBand(Band band) =>
+      goNamed('the-band', pathParameters: {'id': band.id}, extra: band);
 
   /// Navigate to join band screen.
   void goJoinBand() => goNamed('join-band');

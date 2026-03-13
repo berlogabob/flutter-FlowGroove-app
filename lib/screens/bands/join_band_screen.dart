@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../services/secure_storage_service.dart';
+import '../../services/analytics_service.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -135,6 +136,13 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
 
       // Add to user's bands collection (for quick access)
       await service.addUserToBand(_band!.id, userId: user.uid);
+
+      // Log analytics event
+      await AnalyticsService.logBandJoined(
+        bandId: _band!.id,
+        bandName: _band!.name,
+        inviteCode: _codeController.text.trim().toUpperCase(),
+      );
 
       if (mounted) {
         // Invalidate bands provider to ensure UI refresh

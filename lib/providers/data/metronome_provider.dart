@@ -6,6 +6,7 @@ import '../../models/song.dart';
 import '../../models/setlist.dart';
 import '../../models/beat_mode.dart';
 import '../../services/audio/audio_engine_export.dart';
+import '../../services/analytics_service.dart';
 
 /// Metronome Notifier class
 ///
@@ -366,6 +367,14 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       stop();
     } else {
       start(state.bpm, state.timeSignature.numerator);
+      
+      // Log analytics event when starting metronome
+      AnalyticsService.logMetronomeStarted(
+        bpm: state.bpm,
+        timeSignature: '${state.timeSignature.numerator}/${state.timeSignature.denominator}',
+        subdivision: state.regularBeats,
+        soundType: 'digital',
+      );
     }
   }
 
