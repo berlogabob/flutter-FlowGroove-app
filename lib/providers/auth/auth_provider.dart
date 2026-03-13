@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +7,7 @@ import '../../models/api_error.dart';
 import '../../models/user.dart';
 import '../../services/cache_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/analytics_service.dart';
 
 /// Provider for the FirebaseAuth instance.
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
@@ -108,6 +110,52 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         // Convert Firebase auth errors to ApiError
         final apiError = ApiError.fromException(error, stackTrace: stack);
         return AsyncValue.error(apiError, stack);
+      },
+    );
+    
+    // Set user properties when user data is available
+    authState.whenOrNull(
+      data: (user) async {
+        if (user != null) {
+          // Load user data from Firestore to get counts
+          try {
+            final firestore = FirebaseFirestore.instance;
+            final userDoc = await firestore.collection('users').doc(user.uid).get();
+            
+            int bandCount = 0;
+            int songCount = 0;
+            int setlistCount = 0;
+            
+            if (userDoc.exists) {
+              final data = userDoc.data();
+              if (data != null) {
+                bandCount = (data['bandIds'] as List?)?.length ?? 0;
+                // Note: Song and setlist counts would require additional queries
+                // For now, we track bands and can expand later
+              }
+            }
+            
+            // Create AppUser for analytics
+            final appUser = AppUser(
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              bandIds: List.generate(bandCount, (i) => 'band_$i'),
+              createdAt: DateTime.now(),
+            );
+            
+            // Set user properties for analytics segmentation
+            await AnalyticsService.setUserProperties(
+              user: appUser,
+              bandCount: bandCount,
+              songCount: songCount,
+              setlistCount: setlistCount,
+            );
+          } catch (e) {
+            debugPrint('Error setting user properties: $e');
+          }
+        }
       },
     );
   }

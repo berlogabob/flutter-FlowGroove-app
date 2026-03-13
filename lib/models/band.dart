@@ -107,6 +107,14 @@ class Band {
                .map((m) => m.uid)
                .toList();
 
+  /// Empty band instance for initialization
+  static final empty = Band(
+    id: '',
+    name: '',
+    createdBy: '',
+    createdAt: DateTime(0),
+  );
+
   Band copyWith({
     String? id,
     String? name,

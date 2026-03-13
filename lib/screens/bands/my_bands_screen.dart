@@ -190,13 +190,17 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     );
   }
 
-  /// Handle band tap - navigate to band songs screen.
+  /// Handle band tap - navigate to the band screen.
   void _handleTap(int index) {
     final bands = ref.read(bandsProvider).value;
     if (bands == null || index >= bands.length) return;
 
     final band = bands[index];
-    _handleViewSongs(band);
+    context.goNamed(
+      'the-band',
+      pathParameters: {'id': band.id},
+      extra: band,
+    );
   }
 
   @override

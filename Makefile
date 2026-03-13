@@ -14,19 +14,22 @@ help:
 	@echo "  make increment-version    - Increment build number"
 	@echo ""
 	@echo "🔨 Build Commands:"
-	@echo "  make build-web            - Build for web (GitHub Pages)"
+	@echo "  make build-web            - Build for web (Firebase Hosting, base href: /)"
+	@echo "  make build-web-github     - Build for web (GitHub Pages, base href: /flutter-FlowGroove-app/)"
 	@echo "  make build-android        - Build Android APK"
 	@echo "  make build-appbundle      - Build Android App Bundle (Play Store)"
 	@echo "  make build-all            - Build web + Android"
 	@echo ""
 	@echo "🚀 Deployment:"
-	@echo "  make deploy-web           - Build + copy to docs/"
+	@echo "  make deploy-web           - Build + copy to docs/ (GitHub Pages)"
 	@echo "  make deploy               - Build + deploy to current branch (GitHub Pages)"
+	@echo "  make firebase-deploy      - Deploy to Firebase Hosting (no build)"
 	@echo "  make deploy-stable        - Build + deploy to flowgroove.app (FTP)"
 	@echo "  make deploy-flowgroove    - Deploy existing build to flowgroove.app"
 	@echo ""
 	@echo "🎯 Release:"
 	@echo "  make release              - Full release + GitHub Pages"
+	@echo "  make firebase-release     - Full release + Firebase Hosting"
 	@echo "  make release-stable       - Full release + flowgroove.app (Production)"
 	@echo "  make release-web          - Quick web release"
 	@echo "  make github-release       - Create GitHub Release only"
@@ -116,9 +119,21 @@ agents-format:
 	done
 	@echo "✅ Agent formatting complete"
 
-# Build for Web (GitHub Pages + Production)
+# Build for Web (Firebase Hosting - Root domain)
 build-web:
 	@echo "🔨 Building web app..."
+	@echo "   Base href: / (Firebase Hosting)"
+	@flutter build web --release
+	@./scripts/fix-version.sh
+	@echo "✅ Web build complete: build/web/"
+	@BUILD_SIZE=$$(du -sh build/web | cut -f1); \
+	echo "   Build size: $$BUILD_SIZE"
+	@echo "📊 Files:"
+	@ls -lh build/web/ | tail -5
+
+# Build for Web with GitHub Pages base href
+build-web-github:
+	@echo "🔨 Building web app for GitHub Pages..."
 	@echo "   Base href: /flutter-FlowGroove-app/ (GitHub Pages)"
 	@flutter build web --release --base-href "/flutter-FlowGroove-app/"
 	@./scripts/fix-version.sh
@@ -164,6 +179,19 @@ deploy-web: build-web
 	@echo "   git add docs/"
 	@echo "   git commit -m 'Deploy web build $(NEW_VERSION)'"
 	@echo "   git push origin main"
+
+# Deploy to Firebase Hosting (no build)
+firebase-deploy:
+	@echo ""
+	@echo "🚀 Deploying to Firebase Hosting..."
+	@if [ ! -d "build/web" ]; then \
+		echo "❌ Build directory not found!"; \
+		echo "💡 Run 'make build-web' first"; \
+		exit 1; \
+	fi
+	@firebase deploy --only hosting
+	@echo ""
+	@echo "✅ Deployed to https://repsync-app-8685c.web.app"
 
 # Full deploy: build + copy + commit + push (current branch)
 deploy: build-web
@@ -212,10 +240,10 @@ deploy-flowgroove:
 	fi
 	@./scripts/deploy-to-flowgroove.sh
 
-# Full release cycle: increment + build + deploy + GitHub Release
-release: increment-version build-web build-android build-appbundle agents-check
+# Full release cycle: increment + build + deploy to GitHub Pages + GitHub Release
+release: increment-version build-web-github build-android build-appbundle agents-check
 	@echo ""
-	@echo "📦 Copying web build to docs/..."
+	@echo "📦 Copying web build to docs/ (GitHub Pages)..."
 	@cp -r build/web/* docs/
 	@echo "✅ Web build copied to docs/"
 	@echo ""
@@ -272,6 +300,21 @@ release: increment-version build-web build-android build-appbundle agents-check
 release-web: increment-version deploy
 	@echo ""
 	@echo "🎉 Web release $(NEW_VERSION) complete!"
+
+# Firebase Hosting release (increment + build + deploy to Firebase)
+firebase-release: increment-version build-web
+	@echo ""
+	@echo "🚀 Deploying to Firebase Hosting..."
+	@firebase deploy --only hosting
+	@echo ""
+	@echo "🎉 Firebase release $(NEW_VERSION) complete!"
+	@echo ""
+	@echo "🌐 Live at: https://repsync-app-8685c.web.app"
+	@echo ""
+	@echo "📝 Next steps:"
+	@echo "   1. Test Firebase deployment"
+	@echo "   2. Check Firebase Analytics: https://console.firebase.google.com/project/repsync-app-8685c/analytics"
+	@echo "   3. Commit version change: git add pubspec.yaml && git commit -m 'Bump version to $(NEW_VERSION)'"
 
 # Full release with stable deployment to flowgroove.app (PRODUCTION)
 release-stable: increment-version build-web build-android build-appbundle agents-check

@@ -7,6 +7,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../models/band.dart';
+import '../../services/analytics_service.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../theme/mono_pulse_theme.dart';
@@ -135,6 +136,9 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
 
       // Save to user's collection (for quick access and listing)
       await service.saveBand(band, uid: user.uid);
+
+      // Log analytics event
+      await AnalyticsService.logBandCreatedFromBand(band);
 
       if (mounted) {
         // Show invite code dialog for new bands

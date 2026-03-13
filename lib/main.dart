@@ -14,6 +14,7 @@ import 'router/app_router.dart';
 import 'models/user.dart';
 import 'widgets/loading_indicator.dart';
 import 'utils/analytics_debug.dart';
+import 'services/analytics_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,9 @@ void main() async {
   final analytics = FirebaseAnalytics.instance;
   debugPrint('📊 Firebase Analytics initialized');
 
+  // Initialize Analytics Service
+  await AnalyticsService.initialize();
+  
   // Enable analytics collection (explicitly)
   await analytics.setAnalyticsCollectionEnabled(true);
   debugPrint('📊 Analytics collection enabled');

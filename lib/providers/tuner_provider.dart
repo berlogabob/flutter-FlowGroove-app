@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/audio/tone_generator.dart';
 import '../services/audio/pitch_detector.dart';
+import '../services/analytics_service.dart';
 
 /// Tuner modes
 enum TunerMode {
@@ -176,6 +177,11 @@ class TunerNotifier extends Notifier<TunerState> {
       await stopPlaying();
     } else {
       await startPlaying();
+      // Log analytics event
+      AnalyticsService.logTunerUsed(
+        mode: 'generate',
+        targetNote: state.note,
+      );
     }
   }
 
@@ -199,6 +205,13 @@ class TunerNotifier extends Notifier<TunerState> {
 
       await _pitchDetector.startListening();
       state = state.copyWith(isListening: true);
+      
+      // Log analytics event
+      AnalyticsService.logTunerUsed(
+        mode: 'listen',
+        detectedNote: state.note,
+        cents: state.cents,
+      );
     } catch (e) {
       debugPrint('Error starting listening: $e');
     }

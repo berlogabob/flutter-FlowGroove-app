@@ -6,6 +6,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
+import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
 
@@ -161,6 +162,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     );
 
     await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
+    
+    // Log analytics event
+    await AnalyticsService.logSetlistCreatedFromSetlist(setlist);
+    
     if (mounted) {
       // Invalidate the setlists provider to ensure UI refresh
       ref.invalidate(setlistsProvider);

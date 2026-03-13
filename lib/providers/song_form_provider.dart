@@ -5,6 +5,7 @@ import '../models/api_error.dart';
 import '../models/link.dart';
 import '../models/section.dart';
 import '../repositories/song_repository.dart';
+import '../services/analytics_service.dart';
 import '../screens/songs/models/song_form_data.dart';
 
 /// Provider for managing song form state.
@@ -273,6 +274,17 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
         await songRepo.saveBandSong(song, bandId);
       } else {
         await songRepo.saveSong(song, uid: uid);
+      }
+
+      // Log analytics event for new song
+      if (!isEditing) {
+        await AnalyticsService.logSongAddedFromSong(song);
+      } else {
+        // Log song edit with changed fields
+        await AnalyticsService.logSongEdited(
+          songId: song.id,
+          fieldsChanged: ['title', 'artist'], // Would need to track actual changes
+        );
       }
 
       clearUnsavedChanges();
