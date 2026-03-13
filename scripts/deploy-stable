@@ -1,0 +1,39 @@
+#!/bin/bash
+# =============================================================================
+# RepSync Stable Deployment
+# =============================================================================
+# Quick deploy to ALL platforms with a single command
+# 
+# This script:
+# 1. Builds web version
+# 2. Deploys to FTP (flowgroove.app)
+# 3. Deploys to GitHub Pages  
+# 4. Deploys to Firebase Hosting
+# 5. Builds Android APK
+# 6. Commits and tags everything in git
+#
+# Usage: ./scripts/deploy-stable
+# =============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "🚀 Starting full deployment to all platforms..."
+echo ""
+echo "This will:"
+echo "  ✓ Build web version"
+echo "  ✓ Deploy to FTP (flowgroove.app)"
+echo "  ✓ Deploy to GitHub Pages"
+echo "  ✓ Deploy to Firebase Hosting"
+echo "  ✓ Build Android APK"
+echo "  ✓ Git commit & tag"
+echo ""
+read -p "Continue? (y/n) " -n 1 -r
+echo ""
+
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "❌ Deployment cancelled"
+    exit 0
+fi
+
+# Run the full deployment script
+"$SCRIPT_DIR/deploy-all.sh"
