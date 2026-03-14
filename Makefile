@@ -122,6 +122,22 @@ build-android:
 	@echo "📱 APK location: build/app/outputs/flutter-apk/app-release.apk"
 	@echo ""
 
+# Build for Android App Bundle (Play Store)
+build-appbundle:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Building Android App Bundle (AAB)                 ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🤖 Building Android App Bundle..."
+	@flutter build appbundle --release
+	@echo ""
+	@echo "✅ AAB build complete!"
+	@AAB_SIZE=$$(du -h build/app/outputs/bundle/release/app-release.aab | cut -f1); \
+	echo "   AAB size: $$AAB_SIZE"
+	@echo ""
+	@echo "📦 AAB location: build/app/outputs/bundle/release/app-release.aab"
+	@echo ""
+
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
@@ -135,7 +151,7 @@ FTP_DIR ?= flowgroove.app
 # =============================================================================
 # RELEASE - ANDROID APK + GITHUB RELEASE
 # =============================================================================
-release: build-android
+release: build-android build-appbundle
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Creating GitHub Release with Android APK          ║"
