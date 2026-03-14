@@ -1,0 +1,36 @@
+
+=== second01 vs feature/march-14-complete ===
+
+=== second01 vs backup/march-14-analytics-fix ===
+ agents/mr-memory.md         |  94 ------------------------------------
+ memory/CRITICAL_PROBLEMS.md | 114 --------------------------------------------
+ memory/README.md            |  95 ------------------------------------
+ 3 files changed, 303 deletions(-)
+
+=== second01 vs feature/tools-migration-backup ===
+ MARCH_14_WORK_SUMMARY.md    | 290 --------------------------------------------
+ agents/mr-memory.md         |  94 --------------
+ lib/main.dart               |  52 ++++----
+ memory/CRITICAL_PROBLEMS.md | 114 -----------------
+ memory/README.md            |  95 ---------------
+ 5 files changed, 23 insertions(+), 622 deletions(-)
+
+=== feature/march-14-complete vs backup/march-14-analytics-fix ===
+ agents/mr-memory.md         |  94 ------------------------------------
+ memory/CRITICAL_PROBLEMS.md | 114 --------------------------------------------
+ memory/README.md            |  95 ------------------------------------
+ 3 files changed, 303 deletions(-)
+
+=== feature/march-14-complete vs feature/tools-migration-backup ===
+ MARCH_14_WORK_SUMMARY.md    | 290 --------------------------------------------
+ agents/mr-memory.md         |  94 --------------
+ lib/main.dart               |  52 ++++----
+ memory/CRITICAL_PROBLEMS.md | 114 -----------------
+ memory/README.md            |  95 ---------------
+ 5 files changed, 23 insertions(+), 622 deletions(-)
+
+=== backup/march-14-analytics-fix vs feature/tools-migration-backup ===
+ MARCH_14_WORK_SUMMARY.md | 290 -----------------------------------------------
+ lib/main.dart            |  52 ++++-----
+ 2 files changed, 23 insertions(+), 319 deletions(-)
+
