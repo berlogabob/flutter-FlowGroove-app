@@ -148,11 +148,16 @@ if [ "$SKIP_FTP" = false ]; then
 
     if command -v lftp >/dev/null 2>&1; then
         log_info "Uploading via lftp..."
+        # CRITICAL: First remove ALL old files, then upload new ones
+        # This ensures clean deployment and prevents old files from remaining
         lftp -c "
             set ftp:ssl-allow no
             open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST'
             cd $REMOTE_DIR
-            mirror --reverse --delete --only-newer '$PROJECT_DIR/build/web' .
+            # Remove all existing files first
+            rm -rf *
+            # Upload fresh build
+            mirror --reverse --delete '$PROJECT_DIR/build/web' .
             bye
         "
         log_success "FTP deployment complete"
