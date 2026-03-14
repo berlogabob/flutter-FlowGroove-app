@@ -1,13 +1,17 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../services/secure_storage_service.dart';
+
 import '../../models/api_error.dart';
 import '../../models/user.dart';
+import '../../services/analytics_service.dart';
 import '../../services/cache_service.dart';
 import '../../services/firestore_service.dart';
-import '../../services/analytics_service.dart';
+import '../../services/secure_storage_service.dart';
+import '../../services/storage_service.dart';
 
 /// Provider for the FirebaseAuth instance.
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
@@ -334,6 +338,36 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
+  /// Uploads a profile photo to Firebase Storage.
+  ///
+  /// This method uploads the photo file to Firebase Storage and updates
+  /// both Firestore and Firebase Auth with the new photo URL.
+  ///
+  /// Returns the download URL of the uploaded photo.
+  ///
+  /// Throws [ApiError] if upload fails.
+  Future<String> uploadProfilePhoto(File file) async {
+    final currentUser = state.value;
+    if (currentUser == null) {
+      throw ApiError.auth(message: 'No user logged in');
+    }
+
+    try {
+      final storageService = StorageService();
+      final downloadUrl = await storageService.uploadProfilePicture(file);
+      
+      // Update local state with new photo URL
+      final updatedUser = currentUser.copyWith(photoURL: downloadUrl);
+      state = AsyncValue.data(updatedUser);
+      
+      return downloadUrl;
+    } catch (e, stackTrace) {
+      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
+      state = AsyncValue.error(apiError, stackTrace);
+      throw apiError;
+    }
+  }
+
   /// Removes the user's profile photo.
   ///
   /// Clears the photo URL from both Firestore and Firebase Auth.
@@ -346,9 +380,11 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
 
     try {
+      final storageService = StorageService();
+      await storageService.deleteProfilePicture();
+      
+      // Update local state
       final updatedUser = currentUser.copyWith(photoURL: null);
-      final firestore = FirestoreService();
-      await firestore.saveUser(updatedUser);
       state = AsyncValue.data(updatedUser);
     } catch (e, stackTrace) {
       final apiError = ApiError.fromException(e, stackTrace: stackTrace);

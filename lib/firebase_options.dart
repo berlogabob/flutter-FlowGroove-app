@@ -29,7 +29,7 @@ class DefaultFirebaseOptions {
       projectId: 'repsync-app-8685c',
       authDomain: 'repsync-app-8685c.firebaseapp.com',
       storageBucket: 'repsync-app-8685c.firebasestorage.app',
-      measurementId: 'G-T6YBX0M53W', // flowgroove.app stream - used for all deployments
+      measurementId: 'G-DQC026CRM8', // Updated to match Firebase server config
     );
   }
 

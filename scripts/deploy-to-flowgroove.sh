@@ -9,11 +9,13 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_DIR"
 
-# Configuration (from FTP_data.md)
-FTP_HOST="${FTP_HOST:-ftp.soundingdoubts.pt}"
+# Configuration from FileZilla export & FTP_data.md
+# Using IP address directly (from FileZilla export)
+FTP_HOST="${FTP_HOST:-194.39.124.68}"
 FTP_USER="${FTP_USER:-sounding}"
 FTP_PASS="${FTP_PASS:-M*9!atF0g43QJv}"
-REMOTE_DIR="${REMOTE_DIR:-public_html}"
+# Deploy to flowgroove.app subdirectory (as per FTP_data.md: /home/sounding/flowgroove.app/)
+REMOTE_DIR="${REMOTE_DIR:-flowgroove.app}"
 
 # Load from .ftp-env if it exists
 if [ -f ".ftp-env" ]; then
@@ -29,9 +31,9 @@ if [ ! -d "build/web" ]; then
 fi
 
 echo "🚀 Deploying to flowgroove.app..."
-echo "   FTP Host: $FTP_HOST"
+echo "   FTP Host: $FTP_HOST (194.39.124.68)"
 echo "   FTP User: $FTP_USER"
-echo "   Remote Dir: $REMOTE_DIR"
+echo "   Remote Dir: /$REMOTE_DIR/"
 echo ""
 
 # Use lftp for reliable FTP deployment with mirror

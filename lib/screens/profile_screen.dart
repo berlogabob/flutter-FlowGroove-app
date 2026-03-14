@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../services/storage_service.dart';
 import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/web_version_loader_export.dart';
@@ -26,8 +28,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _buildDate = '';
   String? _profilePhotoPath;
   String? _telegramPhotoURL;
-  String _photoSource = 'local'; // 'telegram', 'google', 'local'
+  String? _firebasePhotoURL;
+  String _photoSource = 'local'; // 'telegram', 'google', 'local', 'firebase'
   bool _isEditingName = false;
+  bool _isUploading = false;
   late TextEditingController _nameController;
 
   @override
@@ -37,6 +41,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _loadVersionInfo();
     _loadProfilePhoto();
     _loadTelegramProfile();
+    _loadFirebasePhoto();
   }
 
   /// Load Telegram profile data if user gave consent
@@ -78,6 +83,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       }
     } catch (e) {
       print('❌ Error loading Telegram profile: $e');
+    }
+  }
+
+  /// Load profile photo from Firebase Storage
+  Future<void> _loadFirebasePhoto() async {
+    try {
+      final user = ref.read(currentUserProvider).value;
+      if (user == null) return;
+
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        if (data != null) {
+          final photoURL = data['photoURL'] as String?;
+          final photoSource = data['photoSource'] as String?;
+          
+          if (photoURL != null && photoSource == 'firebase') {
+            setState(() {
+              _firebasePhotoURL = photoURL;
+              _photoSource = 'firebase';
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error loading Firebase photo: $e');
     }
   }
 
@@ -155,16 +190,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
 
       if (pickedFile != null) {
-        final directory = await getApplicationDocumentsDirectory();
-        final savedFile = await File(
-          pickedFile.path,
-        ).copy('${directory.path}/profile_photo.jpg');
-        setState(() {
-          _profilePhotoPath = savedFile.path;
-        });
+        setState(() => _isUploading = true);
+
+        try {
+          // Upload to Firebase Storage
+          final storageService = StorageService();
+          String downloadUrl;
+          
+          if (kIsWeb) {
+            // On web, read the file as bytes
+            final bytes = await pickedFile.readAsBytes();
+            downloadUrl = await storageService.uploadProfilePicture(bytes);
+          } else {
+            // On mobile, pass the file path
+            downloadUrl = await storageService.uploadProfilePicture(
+              File(pickedFile.path),
+            );
+          }
+
+          // Update local state
+          if (mounted) {
+            setState(() {
+              _profilePhotoPath = null; // Clear local path
+              _firebasePhotoURL = downloadUrl;
+              _photoSource = 'firebase';
+              _isUploading = false;
+            });
+          }
+        } catch (uploadError) {
+          if (mounted) {
+            setState(() => _isUploading = false);
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(
+              content: Text('Error uploading photo: $uploadError'),
+              backgroundColor: MonoPulseColors.error,
+            ));
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
+        setState(() => _isUploading = false);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error picking photo: $e')));
@@ -174,16 +241,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _removePhoto() async {
     try {
+      // Delete from Firebase Storage if using Firebase photo
+      if (_photoSource == 'firebase') {
+        final storageService = StorageService();
+        await storageService.deleteProfilePicture();
+      }
+      
+      // Delete local photo if exists
       final directory = await getApplicationDocumentsDirectory();
       final photoFile = File('${directory.path}/profile_photo.jpg');
       if (await photoFile.exists()) {
         await photoFile.delete();
       }
-      setState(() {
-        _profilePhotoPath = null;
-      });
+      
+      if (mounted) {
+        setState(() {
+          _profilePhotoPath = null;
+          _firebasePhotoURL = null;
+          _photoSource = 'local';
+        });
+      }
     } catch (e) {
-      debugPrint('Error removing photo: $e');
+      debugPrint('❌ Error removing photo: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(
+          content: Text('Error removing photo: $e'),
+          backgroundColor: MonoPulseColors.error,
+        ));
+      }
     }
   }
 
@@ -237,11 +324,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ListTile(
               leading: const Icon(Icons.camera_alt),
               title: const Text('Take Photo'),
-              subtitle: _photoSource == 'local' && _profilePhotoPath != null
-                  ? const Text(
-                      '✓ Currently using',
-                      style: TextStyle(color: MonoPulseColors.success),
-                    )
+              subtitle: (_photoSource == 'local' && _profilePhotoPath != null) ||
+                      _photoSource == 'firebase'
+                  ? (_photoSource == 'firebase'
+                        ? const Text(
+                            '✓ Currently using',
+                            style: TextStyle(color: MonoPulseColors.success),
+                          )
+                        : const Text(
+                            '✓ Currently using',
+                            style: TextStyle(color: MonoPulseColors.success),
+                          ))
                   : null,
               onTap: () {
                 Navigator.pop(context);
@@ -251,18 +344,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ListTile(
               leading: const Icon(Icons.photo_library),
               title: const Text('Choose from Gallery'),
-              subtitle: _photoSource == 'local' && _profilePhotoPath != null
-                  ? const Text(
-                      '✓ Currently using',
-                      style: TextStyle(color: MonoPulseColors.success),
-                    )
+              subtitle: (_photoSource == 'local' && _profilePhotoPath != null) ||
+                      _photoSource == 'firebase'
+                  ? (_photoSource == 'firebase'
+                        ? const Text(
+                            '✓ Currently using',
+                            style: TextStyle(color: MonoPulseColors.success),
+                          )
+                        : const Text(
+                            '✓ Currently using',
+                            style: TextStyle(color: MonoPulseColors.success),
+                          ))
                   : null,
               onTap: () {
                 Navigator.pop(context);
                 _pickPhoto(ImageSource.gallery);
               },
             ),
-            if (_profilePhotoPath != null || _photoSource == 'telegram')
+            if (_profilePhotoPath != null ||
+                _photoSource == 'telegram' ||
+                _photoSource == 'firebase')
               ListTile(
                 leading: const Icon(Icons.delete, color: MonoPulseColors.error),
                 title: const Text(
@@ -271,10 +372,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  setState(() {
-                    _profilePhotoPath = null;
-                    _photoSource = 'local';
-                  });
+                  _removePhoto();
                 },
               ),
           ],
@@ -390,11 +488,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   /// Get profile image based on source selection
   ImageProvider? _getProfileImage() {
+    // Firebase photo (highest priority)
+    if (_photoSource == 'firebase' && _firebasePhotoURL != null) {
+      return NetworkImage(_firebasePhotoURL!);
+    }
     // Telegram photo
     if (_photoSource == 'telegram' && _telegramPhotoURL != null) {
       return NetworkImage(_telegramPhotoURL!);
     }
-    // Local photo
+    // Local photo (legacy)
     if (_profilePhotoPath != null) {
       return FileImage(File(_profilePhotoPath!));
     }
@@ -433,34 +535,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           radius: 50,
                           backgroundColor: MonoPulseColors.surfaceRaised,
                           backgroundImage: _getProfileImage(),
-                          child: _getProfileImage() == null
-                              ? Text(
-                                  user?.email?.substring(0, 1).toUpperCase() ??
-                                      '?',
-                                  style: const TextStyle(
-                                    fontSize: 40,
-                                    color: MonoPulseColors.accentOrange,
-                                    fontWeight: FontWeight.bold,
+                          child: _isUploading
+                              ? const SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      MonoPulseColors.accentOrange,
+                                    ),
                                   ),
                                 )
-                              : null,
+                              : _getProfileImage() == null
+                                  ? Text(
+                                      user?.email?.substring(0, 1).toUpperCase() ??
+                                          '?',
+                                      style: const TextStyle(
+                                        fontSize: 40,
+                                        color: MonoPulseColors.accentOrange,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : null,
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: MonoPulseColors.accentOrange,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 16,
-                              color: MonoPulseColors.textPrimary,
+                        if (!_isUploading)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: MonoPulseColors.accentOrange,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                size: 16,
+                                color: MonoPulseColors.textPrimary,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),

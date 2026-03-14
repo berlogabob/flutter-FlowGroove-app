@@ -1,7 +1,8 @@
-import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:typed_data' show Uint8List;
 import '../models/api_error.dart';
 
 /// Service for handling Firebase Storage operations.
@@ -40,22 +41,47 @@ class StorageService {
   /// Returns the download URL of the uploaded file.
   ///
   /// Throws [ApiError] if upload fails or user is not authenticated.
-  Future<String> uploadProfilePicture(File file) async {
+  Future<String> uploadProfilePicture(dynamic file) async {
     try {
       _requireAuth();
       final uid = _currentUserId;
 
+      // Debug: Log current user and storage bucket
+      print('🔵 StorageService: Uploading profile picture for user: $uid');
+      print('🔵 StorageService: Storage bucket: ${_storage.app.options.storageBucket}');
+      print('🔵 StorageService: Is web: $kIsWeb');
+
       // Create a reference to the file location
       final ref = _storage.ref().child('profile_pictures').child('$uid.jpg');
+      print('🔵 StorageService: Upload path: profile_pictures/$uid.jpg');
 
-      // Upload the file
-      final uploadTask = ref.putFile(file);
+      // Upload the file - handle web vs mobile differently
+      final UploadTask uploadTask;
+      
+      if (kIsWeb) {
+        // Web: file should be Uint8List
+        if (file is Uint8List) {
+          uploadTask = ref.putData(
+            file,
+            SettableMetadata(contentType: 'image/jpeg'),
+          );
+          print('🔵 StorageService: Using web upload (putData with Uint8List)');
+        } else {
+          throw Exception('Unsupported file type on web: ${file.runtimeType}');
+        }
+      } else {
+        // Mobile: file is a dart:io.File
+        uploadTask = ref.putFile(file);
+        print('🔵 StorageService: Using mobile upload (putFile)');
+      }
 
       // Wait for upload to complete
       final snapshot = await uploadTask;
+      print('🔵 StorageService: Upload complete, bytes uploaded: ${snapshot.bytesTransferred}');
 
       // Get the download URL
       final downloadUrl = await snapshot.ref.getDownloadURL();
+      print('🔵 StorageService: Download URL obtained');
 
       // Update Firestore user document with the new photo URL
       await _firestore.collection('users').doc(uid).set({
@@ -69,15 +95,17 @@ class StorageService {
 
       return downloadUrl;
     } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
+      print('🔴 StorageService: FirebaseException - Code: ${e.code}, Message: ${e.message}');
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
-          message: 'You do not have permission to upload a profile picture.',
+          message: 'You do not have permission to upload a profile picture. Please check Firebase Storage rules.',
           exception: e,
           stackTrace: stackTrace,
         );
       }
       throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
+      print('🔴 StorageService: Exception - $e');
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
   }
@@ -165,15 +193,30 @@ class StorageService {
   /// [path] should be the full path including filename (e.g., 'bands/{bandId}/songs/{songId}.pdf')
   ///
   /// Returns the download URL of the uploaded file.
-  Future<String> uploadFile(File file, String path) async {
+  Future<String> uploadFile(dynamic file, String path) async {
     try {
       _requireAuth();
 
       // Create a reference to the file location
       final ref = _storage.ref().child(path);
 
-      // Upload the file
-      final uploadTask = ref.putFile(file);
+      // Upload the file - handle web vs mobile differently
+      final UploadTask uploadTask;
+      
+      if (kIsWeb) {
+        // Web: file should be Uint8List
+        if (file is Uint8List) {
+          uploadTask = ref.putData(
+            file,
+            SettableMetadata(contentType: 'application/octet-stream'),
+          );
+        } else {
+          throw Exception('Unsupported file type on web: ${file.runtimeType}');
+        }
+      } else {
+        // Mobile: file is a dart:io.File
+        uploadTask = ref.putFile(file);
+      }
 
       // Wait for upload to complete
       final snapshot = await uploadTask;

@@ -44,36 +44,38 @@ Added Storage configuration:
 
 #### `lib/screens/profile_screen.dart`
 Updated profile screen to use Firebase Storage:
-- **State variables**: Added `_firebasePhotoURL` and `_isUploadingPhoto`
-- **`_loadProfilePhoto()`**: Loads photo URL from Firestore/Firebase Storage
-- **`_pickPhoto()`**: Uploads selected photo to Firebase Storage
-- **`_removePhoto()`**: Deletes photo from Firebase Storage
-- **`_getProfileImage()`**: Returns NetworkImage for Firebase URLs
-- **UI**: Added loading indicator during photo upload
+- **State variables**: Added `_firebasePhotoURL`, `_isUploading`, and `_photoSource` ('firebase', 'telegram', 'local')
+- **`_loadFirebasePhoto()`**: Loads photo URL from Firestore
+- **`_pickPhoto()`**: Uploads selected photo to Firebase Storage via `StorageService`
+- **`_removePhoto()`**: Deletes photo from Firebase Storage via `StorageService`
+- **`_getProfileImage()`**: Returns NetworkImage for Firebase/Telegram URLs, FileImage for local
+- **UI**: Added loading indicator (CircularProgressIndicator) during photo upload
+- **Photo options dialog**: Updated to show "Currently using" indicator for Firebase photos
 
 #### `lib/providers/auth/auth_provider.dart`
 Added profile photo management methods:
-- `updateProfilePhoto(String photoUrl)` - Updates user's photo URL
-- `removeProfilePhoto()` - Clears user's photo URL
+- `uploadProfilePhoto(File file)` - Uploads photo file to Firebase Storage and returns URL
+- `updateProfilePhoto(String photoUrl)` - Updates user's photo URL in state
+- `removeProfilePhoto()` - Deletes photo from Firebase Storage and clears from state
 
 ## How It Works
 
 ### Upload Flow
 1. User selects photo from camera or gallery
 2. Photo is compressed (512x512, 85% quality)
-3. Uploaded to Firebase Storage at `profile_pictures/{uid}.jpg`
+3. Uploaded to Firebase Storage at `profile_pictures/{uid}.jpg` via `StorageService.uploadProfilePicture()`
 4. Firebase Storage returns download URL
-5. URL is saved to:
+5. `StorageService` automatically saves URL to:
    - Firestore `users/{uid}` document (field: `photoURL`, `photoSource`)
    - Firebase Auth profile
-   - App state (via `appUserProvider`)
-6. Home screen automatically updates via reactive state
+6. Profile screen updates local state with `_firebasePhotoURL` and `_photoSource = 'firebase'`
+7. Home screen automatically updates via reactive `appUserProvider` state
 
 ### Display Flow
 1. Home screen watches `appUserProvider`
 2. Gets `user.photoURL` from the AppUser model
 3. GreetingCard widget displays:
-   - NetworkImage if URL starts with "http"
+   - NetworkImage if URL starts with "http" (Firebase or Telegram)
    - FileImage for local paths (legacy support)
    - Initial letter as fallback
 
@@ -146,6 +148,17 @@ Existing users with local photos:
 - Local photos are still supported as fallback
 - Next time user updates photo, it will be uploaded to Firebase
 - No data loss during transition
+
+## Implementation Status
+
+✅ **COMPLETE** - As of March 13, 2026
+
+The implementation is now fully functional:
+- `StorageService` is properly integrated into `profile_screen.dart`
+- Profile photos upload to Firebase Storage
+- Photos sync across devices via Firestore
+- Loading state and error handling implemented
+- Build compiles successfully
 
 ## Future Enhancements
 
