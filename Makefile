@@ -198,6 +198,15 @@ release: increment-version build-web build-android build-appbundle agents-check
 	@echo "   3. Upload AAB to Google Play Console (if needed)"
 	@echo "   4. Update CHANGELOG.md"
 
+# Full deployment to all platforms (FTP + GitHub + Firebase + Android)
+release-stable:
+	@echo "🚀 Starting full release cycle to ALL platforms..."
+	@./scripts/deploy-stable
+
+deploy-stable:
+	@echo "🚀 Starting full deployment to ALL platforms..."
+	@./scripts/deploy-stable
+
 # Quick release (increment + web deploy only)
 release-web: increment-version deploy
 	@echo ""
