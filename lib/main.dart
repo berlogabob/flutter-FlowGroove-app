@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -35,26 +36,31 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('✅ Firebase initialized');
 
-  // Initialize Firebase Analytics
-  final analytics = FirebaseAnalytics.instance;
-  debugPrint('📊 Firebase Analytics initialized');
+  // Initialize Firebase Analytics ONLY on mobile (not web)
+  FirebaseAnalytics? analytics;
+  if (!kIsWeb) {
+    analytics = FirebaseAnalytics.instance;
+    debugPrint('📊 Firebase Analytics initialized');
 
-  // Initialize Analytics Service
-  await AnalyticsService.initialize();
-  
-  // Enable analytics collection (explicitly)
-  await analytics.setAnalyticsCollectionEnabled(true);
-  debugPrint('📊 Analytics collection enabled');
-  
-  // Enable debug mode for development
-  AnalyticsDebug.enableDebugMode();
-  
-  // Test analytics connection
-  AnalyticsDebug.testConnection();
+    // Initialize Analytics Service
+    await AnalyticsService.initialize();
 
-  // Log app open event
-  AnalyticsDebug.logAppOpen();
-  debugPrint('📊 App open event logged');
+    // Enable analytics collection (explicitly)
+    await analytics.setAnalyticsCollectionEnabled(true);
+    debugPrint('📊 Analytics collection enabled');
+
+    // Enable debug mode for development
+    AnalyticsDebug.enableDebugMode();
+
+    // Test analytics connection
+    AnalyticsDebug.testConnection();
+
+    // Log app open event
+    AnalyticsDebug.logAppOpen();
+    debugPrint('📊 App open event logged');
+  } else {
+    debugPrint('ℹ️  Web platform - skipping Analytics initialization');
+  }
 
   // Enable Firebase Auth persistence for Android
   try {
@@ -71,7 +77,7 @@ void main() async {
     debugPrint('   Email verified: ${currentUser.emailVerified}');
     
     // Log login event for existing user
-    analytics.logLogin(loginMethod: 'auto');
+    analytics?.logLogin(loginMethod: 'auto');
   } else {
     debugPrint('🔑 NO USER: No user found from previous session');
   }
@@ -80,9 +86,9 @@ void main() async {
 }
 
 class RepSyncApp extends ConsumerWidget {
-  final FirebaseAnalytics analytics;
+  final FirebaseAnalytics? analytics;
 
-  RepSyncApp({super.key, required this.analytics});
+  RepSyncApp({super.key, this.analytics});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
