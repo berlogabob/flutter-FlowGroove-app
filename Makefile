@@ -123,8 +123,9 @@ agents-format:
 build-web:
 	@echo "🔨 Building web app..."
 	@echo "   Base href: / (Firebase Hosting)"
+	@echo "📝 Updating version.json..."
+	@./scripts/update-version-json.sh
 	@flutter build web --release
-	@./scripts/fix-version.sh
 	@echo "✅ Web build complete: build/web/"
 	@BUILD_SIZE=$$(du -sh build/web | cut -f1); \
 	echo "   Build size: $$BUILD_SIZE"
