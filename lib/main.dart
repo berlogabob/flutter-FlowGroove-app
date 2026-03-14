@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -17,14 +18,17 @@ void main() async {
   // Initialize Hive for offline caching
   await Hive.initFlutter();
 
-  // Load environment variables
-  try {
-    await dotenv.load(fileName: '.env');
-  } catch (e) {
-    debugPrint(
-      'Note: .env file not loaded. Using environment variables if available.',
-    );
+  // Load environment variables ONLY if file exists (development only)
+  // In production, Firebase credentials are hardcoded in firebase_options.dart
+  if (!kIsWeb) {
+    // Only try to load .env on mobile/desktop (not web)
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      // Silently ignore - production builds don't have .env
+    }
   }
+  // On web, skip .env loading entirely - use hardcoded Firebase config
 
   // Initialize Firebase first
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
