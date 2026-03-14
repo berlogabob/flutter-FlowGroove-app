@@ -34,10 +34,17 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   debugPrint('✅ Firebase initialized');
 
-  // Enable Firebase Auth persistence for Android
-  try {
-    await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
-  } catch (_) {}
+  // Enable Firebase Auth persistence for Android ONLY (not web)
+  if (!kIsWeb) {
+    try {
+      await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+      debugPrint('✅ Auth persistence set to LOCAL');
+    } catch (e) {
+      debugPrint('⚠️  Auth persistence failed: $e');
+    }
+  } else {
+    debugPrint('ℹ️  Web platform - using default auth persistence');
+  }
 
   // Check if user is already logged in (from previous session)
   final currentUser = FirebaseAuth.instance.currentUser;
