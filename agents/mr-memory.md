@@ -13,6 +13,46 @@ I read memory before ANY code change and:
 2. Warn about potential issues
 3. Suggest safer alternatives
 4. Document new problems when discovered
+5. **PROTECT files with `tags: [user]`**
+
+---
+
+## 🛡️ CRITICAL: PROTECTED FILES ENFORCEMENT
+
+### My Responsibility
+I MUST enforce the Protected Files Rule:
+
+**ANY `.md` file with:**
+```markdown
+---
+tags: [user]
+---
+```
+
+**Is PROTECTED and CANNOT be:**
+- ❌ Modified by any agent
+- ❌ Deleted by any agent
+- ❌ Moved or renamed
+- ❌ Had tags changed
+
+**Can only be:**
+- ✅ Read by agents
+- ✅ Referenced by agents
+
+### How I Enforce
+1. **Check before suggesting changes:**
+   ```bash
+   head -5 file.md | grep "tags: \[user\]"
+   ```
+
+2. **Warn if agent tries to modify:**
+   ```
+   🔴 STOP! This file has tags: [user]
+   Protected files cannot be modified by agents.
+   See: agents/PROTECTED_FILES_RULE.md
+   ```
+
+3. **Report violations immediately**
 
 ---
 

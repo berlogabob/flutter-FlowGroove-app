@@ -13,6 +13,27 @@
 
 ---
 
+## 🛡️ PROTECTED FILES RULE
+
+**CRITICAL:** ANY markdown file with frontmatter `tags: [user]` is PROTECTED!
+
+```markdown
+---
+tags: [user]
+---
+```
+
+### Rules for ALL Agents:
+- ❌ **CANNOT** modify protected files
+- ❌ **CANNOT** delete protected files
+- ❌ **CANNOT** change tags or frontmatter
+- ✅ **CAN** read protected files
+- ✅ **CAN** reference protected files
+
+**See:** `agents/PROTECTED_FILES_RULE.md` for complete rules
+
+---
+
 ## 🎯 How This Works
 
 ### 1. **Before ANY code change:**
