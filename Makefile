@@ -1,10 +1,11 @@
 # FlowGroove App - Simple Deployment Makefile
 # =============================================
-# Two commands only:
+# Three commands:
 #   make deploy-stable   - Deploy to FTP (flowgroove.app)
 #   make deploy-test     - Deploy to GitHub Pages (test)
+#   make release         - Build Android + GitHub Release
 
-.PHONY: help deploy-stable deploy-test build-web build-web-github
+.PHONY: help deploy-stable deploy-test release build-web build-web-github build-android
 
 # Default target
 help:
@@ -16,10 +17,12 @@ help:
 	@echo ""
 	@echo "  make deploy-stable   - Build + Deploy to FTP (flowgroove.app)"
 	@echo "  make deploy-test     - Build + Deploy to GitHub Pages (test)"
+	@echo "  make release         - Build Android APK + GitHub Release"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make deploy-stable   # Production deployment"
 	@echo "  make deploy-test     # Test deployment"
+	@echo "  make release         # Android release with GitHub Release"
 	@echo ""
 
 # =============================================================================
@@ -103,6 +106,22 @@ build-web-github:
 	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
 	@echo ""
 
+# Build for Android APK
+build-android:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║              Building Android APK                         ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🤖 Building Android APK..."
+	@flutter build apk --release
+	@echo ""
+	@echo "✅ Android build complete!"
+	@APK_SIZE=$$(du -h build/app/outputs/flutter-apk/app-release.apk | cut -f1); \
+	echo "   APK size: $$APK_SIZE"
+	@echo ""
+	@echo "📱 APK location: build/app/outputs/flutter-apk/app-release.apk"
+	@echo ""
+
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
@@ -112,3 +131,67 @@ FTP_HOST ?= 194.39.124.68
 FTP_USER ?= sounding
 FTP_PASS ?= M*9!atF0g43QJv
 FTP_DIR ?= flowgroove.app
+
+# =============================================================================
+# RELEASE - ANDROID APK + GITHUB RELEASE
+# =============================================================================
+release: build-android
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Creating GitHub Release with Android APK          ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📝 Getting version info..."
+	$(eval NEW_VERSION := $(shell grep "^version:" pubspec.yaml | sed 's/version: //'))
+	@echo "   Version: $(NEW_VERSION)"
+	@echo ""
+	@echo "💾 Committing changes..."
+	@git add -A
+	@git commit -m "Release $(NEW_VERSION)" || echo "No changes to commit"
+	@echo ""
+	@echo "🏷️  Creating git tag..."
+	@git tag -a "v$(NEW_VERSION)" -m "Release $(NEW_VERSION)" || echo "Tag already exists"
+	@echo ""
+	@echo "🚀 Pushing to GitHub..."
+	@git push origin HEAD
+	@git push origin "v$(NEW_VERSION)" || echo "Tag already pushed"
+	@echo ""
+	@echo "📱 Creating GitHub Release..."
+	@if command -v gh >/dev/null 2>&1; then \
+		if gh auth status >/dev/null 2>&1; then \
+			if gh release view "v$(NEW_VERSION)" >/dev/null 2>&1; then \
+				echo "⚠️  Release v$(NEW_VERSION) already exists!"; \
+				echo "   To update: gh release upload v$(NEW_VERSION) build/app/outputs/flutter-apk/app-release.apk"; \
+			else \
+				gh release create "v$(NEW_VERSION)" \
+					--title "Release $(NEW_VERSION)" \
+					--notes "Release $(NEW_VERSION) - $$(date +%Y-%m-%d)" \
+					--target $(CURRENT_BRANCH) \
+					build/app/outputs/flutter-apk/app-release.apk#android-apk \
+					build/app/outputs/bundle/release/app-release.aab#aab && \
+				echo "✅ GitHub Release created!"; \
+			fi; \
+		else \
+			echo "⚠️  GitHub CLI not authenticated. Run 'gh auth login'"; \
+		fi; \
+	else \
+		echo "⚠️  GitHub CLI not installed. Install from https://cli.github.com/"; \
+	fi
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║              🎉 Release Complete! 🎉                      ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📦 Version: $(NEW_VERSION)"
+	@echo "📱 Android APK: build/app/outputs/flutter-apk/app-release.apk"
+	@echo "📦 Android AAB: build/app/outputs/bundle/release/app-release.aab"
+	@echo "🔗 GitHub Release: https://github.com/berlogabob/flutter-FlowGroove-app/releases/tag/v$(NEW_VERSION)"
+	@echo ""
+	@echo "📝 Next steps:"
+	@echo "   1. Test Android APK on device"
+	@echo "   2. Upload AAB to Google Play Console (if needed)"
+	@echo "   3. Share GitHub Release link with testers"
+	@echo ""
+
+# Get current branch
+CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
