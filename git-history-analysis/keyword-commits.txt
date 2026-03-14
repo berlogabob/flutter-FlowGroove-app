@@ -1,0 +1,51 @@
+
+=== Keyword: analytics ===
+03dec0c feat: Add Memory System with Mr. Memory agent
+a768bd9 backup: Analytics disabled on web (working version)
+6da4468 Add Firebase Analytics debugging utilities
+782ec13 Add measurementId for Google Analytics 4
+970ace6 Add analytics debug logging
+
+=== Keyword: firebase ===
+03dec0c feat: Add Memory System with Mr. Memory agent
+876cf6c chore: deploy v0.13.1+168
+8255a5f chore: deploy v0.13.1+168
+857a067 chore: deploy v0.13.1+168
+0742651 chore: deploy v0.13.1+168
+
+=== Keyword: web ===
+03dec0c feat: Add Memory System with Mr. Memory agent
+a768bd9 backup: Analytics disabled on web (working version)
+876cf6c chore: deploy v0.13.1+168
+8255a5f chore: deploy v0.13.1+168
+0e0d728 Merge feature/tools-migration-backup: White screen fixes
+
+=== Keyword: profile ===
+47f3d80 Fix web build - restored working profile_screen.dart
+41360aa profile
+9348e77 Feat: Unified custom AppBar across all screens
+fb02142 Fix: Unify AppBar across all screens
+12b7e34 Fix: Use goNamed() for all GoRouter navigation
+
+=== Keyword: ko-fi ===
+
+=== Keyword: memory ===
+03dec0c feat: Add Memory System with Mr. Memory agent
+0e0d728 Merge feature/tools-migration-backup: White screen fixes
+7c3a144 feat: Add Memory System with Mr. Memory Agent
+989db4b optimize: critical performance optimizations
+
+=== Keyword: fix ===
+b302ea1 fix: Force clean FTP deploy (remove old files first)
+0e0d728 Merge feature/tools-migration-backup: White screen fixes
+ead3e55 docs: Add setPersistence fix documentation
+6a5c88c fix: setPersistence only on Android (not web)
+bbcafbf docs: Add white screen fix summary
+
+=== Keyword: deploy ===
+03dec0c feat: Add Memory System with Mr. Memory agent
+b302ea1 fix: Force clean FTP deploy (remove old files first)
+876cf6c chore: deploy v0.13.1+168
+c32d02e Deploy 0.13.1+168 to GitHub Pages
+8255a5f chore: deploy v0.13.1+168
+

@@ -1,0 +1,55 @@
+* 03dec0c (HEAD -> second01, origin/second01, origin/feature/march-14-complete, feature/march-14-complete) feat: Add Memory System with Mr. Memory agent
+* dc0ef84 (origin/backup/march-14-analytics-fix, backup/march-14-analytics-fix) docs: Add work summary and recovery plan for March 14
+* a768bd9 backup: Analytics disabled on web (working version)
+| * b302ea1 (origin/feature/tools-migration-backup) fix: Force clean FTP deploy (remove old files first)
+| * e73f2be (tag: v0.13.1+169) Release 0.13.1+169
+| * 876cf6c chore: deploy v0.13.1+168
+| * 8255a5f chore: deploy v0.13.1+168
+| | * c32d02e (origin/gh-pages, gh-pages) Deploy 0.13.1+168 to GitHub Pages
+| | * ad01c6f Deploy 0.13.1+168 to GitHub Pages
+| | * b37e97c Deploy 0.13.1+168 to GitHub Pages
+| | * 099db03 Deploy 0.13.1+168 to GitHub Pages
+| | * 3055710 Deploy 0.13.1+168 to GitHub Pages
+| | * 2c19e9b Deploy 0.13.1+168 to GitHub Pages
+| | * aa897c1 Deploy 0.11.2+112 to GitHub Pages
+| | * 08d20e2 Deploy 0.11.2+112 to GitHub Pages
+| | * 685d473 Deploy 0.13.1+167 to GitHub Pages
+| | * 5c2debc Initial commit
+| | *   0e0d728 (origin/srch20, srch20) Merge feature/tools-migration-backup: White screen fixes
+| | |\  
+| | |/  
+| |/|   
+| * | 857a067 chore: deploy v0.13.1+168
+| * | ead3e55 docs: Add setPersistence fix documentation
+| * | 6a5c88c fix: setPersistence only on Android (not web)
+| * | 0742651 chore: deploy v0.13.1+168
+| * | a6fa8af chore: deploy v0.13.1+168
+| * | bbcafbf docs: Add white screen fix summary
+| * | d4bb5aa fix: Skip .env loading on web (fixes white screen)
+| * | fca58e9 (tag: v0.13.1+168) chore: deploy v0.13.1+168
+| * | 7c3a144 feat: Add Memory System with Mr. Memory Agent
+| * | c6d648c fix: remove .env from assets (security fix for FTP deployment)
+| * | 82552ac chore: update dependencies and fix deployment scripts
+| * | 18ce155 chore: deploy v0.11.2+112
+| * | 7520263 chore: deploy v0.11.2+112
+| | * ea64e17 14 march. 17:01 working orounf firebase
+| | * db6cdeb feat: Add multi-platform deployment system
+| |/  
+|/|   
+* | 5ed6781 (tag: v0.13.1+167, feature/tools-migration-backup) Release 0.13.1+167
+* | 16fd4c8 Stable release 0.13.1+167
+* | 259d234 (tag: v0.13.1+166) Release 0.13.1+166
+* | 3727fae (tag: v0.13.1+165) Release 0.13.1+165
+* | c1ef13d (tag: v0.13.1+164) Release 0.13.1+164
+* | e8d5e14 (tag: v0.13.1+163) Release 0.13.1+163
+* | d7642b7 Stable release 0.13.1+163
+* | e3bcf8c (tag: v0.13.1+162) Release 0.13.1+162
+* | 481561a фаербэйс аналитика. настройка
+* | 739e2b1 (tag: v0.13.1+161) Release 0.13.1+161
+* | 63e0ed0 (tag: v0.13.1+160) Release 0.13.1+160
+* | 38605f4 (tag: v0.13.1+159) Release 0.13.1+159
+* | 2e652b3 (tag: v0.13.1+158) Release 0.13.1+158
+* | 8806a00 (tag: v0.13.1+156) Release 0.13.1+156
+* | 5101c92 (tag: v0.13.1+155) Release 0.13.1+155
+* | ac674d7 (tag: v0.13.1+154) Release 0.13.1+154
+* | 56910cf (tag: v0.13.1+153) Release 0.13.1+153

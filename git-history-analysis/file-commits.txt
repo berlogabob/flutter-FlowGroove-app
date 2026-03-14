@@ -1,0 +1,40 @@
+
+=== lib/main.dart ===
+a768bd9 backup: Analytics disabled on web (working version)
+6a5c88c fix: setPersistence only on Android (not web)
+d4bb5aa fix: Skip .env loading on web (fixes white screen)
+481561a фаербэйс аналитика. настройка
+6da4468 Add Firebase Analytics debugging utilities
+970ace6 Add analytics debug logging
+5299356 add analitics
+bf2cd15 new migration
+f0d1c68 big update
+487a60a after phase 1-4.
+
+=== lib/screens/profile_screen.dart ===
+ea64e17 14 march. 17:01 working orounf firebase
+00116f0 Use dart:html for web version fetch (no http package)
+a3af586 Revert to working version - fix white screen
+76d92f6 Add robust error handling for web version fetch
+22a6210 Fix web version display - fetch version.json directly on web
+47f3d80 Fix web build - restored working profile_screen.dart
+4b8b415 Revert to package_info_plus to fix white screen
+eac8660 Fix web version display - directly fetch version.json instead of using package_info_plus
+f0d1c68 big update
+dd30c53 Fix Telegram photo import + Deploy web
+
+=== pubspec.yaml ===
+e73f2be Release 0.13.1+169
+c6d648c fix: remove .env from assets (security fix for FTP deployment)
+82552ac chore: update dependencies and fix deployment scripts
+5ed6781 Release 0.13.1+167
+259d234 Release 0.13.1+166
+3727fae Release 0.13.1+165
+c1ef13d Release 0.13.1+164
+e8d5e14 Release 0.13.1+163
+e3bcf8c Release 0.13.1+162
+739e2b1 Release 0.13.1+161
+
+=== lib/services/analytics_service.dart ===
+481561a фаербэйс аналитика. настройка
+

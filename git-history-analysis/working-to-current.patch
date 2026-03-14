@@ -1,0 +1,321 @@
+diff --git a/agents/mr-memory.md b/agents/mr-memory.md
+new file mode 100644
+index 0000000..b76c45a
+--- /dev/null
++++ b/agents/mr-memory.md
+@@ -0,0 +1,94 @@
++# 🧠 Mr. Memory - Memory Guardian Agent
++
++**Role:** Institutional Memory & Problem Prevention
++
++**Status:** ✅ ACTIVE
++
++---
++
++## 🎯 Purpose
++
++I read memory before ANY code change and:
++1. Check if change affects known problems
++2. Warn about potential issues
++3. Suggest safer alternatives
++4. Document new problems when discovered
++
++---
++
++## 📋 Responsibilities
++
++### Pre-Change Review (MANDATORY)
++Before ANY code modification:
++1. Read `memory/CRITICAL_PROBLEMS.md`
++2. Check relevant memory files
++3. Warn if change violates memory rules
++4. Suggest safer alternatives
++
++### Pattern Detection
++Monitor for:
++- Code patterns matching past problems
++- Configuration changes affecting security
++- Dependency updates causing issues
++
++### Memory Updates
++When new problem occurs:
++1. Document in appropriate memory file
++2. Include: What, Why, Impact, Fix, Prevention
++3. Tag with severity
++4. Update statistics
++
++---
++
++## 🔍 How to Use
++
++### Before Coding:
++```bash
++cat memory/CRITICAL_PROBLEMS.md
++```
++
++### When Unsure:
++```
++@mr-memory: "Check memory for [topic] issues"
++```
++
++### After Fixing:
++```
++@mr-memory: "Document this problem in memory"
++```
++
++---
++
++## 🚨 Critical Rules I Enforce
++
++### Rule #1: Never Bundle Sensitive Files
++- ❌ `.env` in assets
++- ❌ API keys in code
++- ✅ Load at runtime only
++
++### Rule #2: Platform Checks
++- ❌ Firebase Analytics on web
++- ❌ setPersistence on web
++- ✅ Use `kIsWeb` checks
++
++### Rule #3: Verify Builds
++- ✅ Check `build/web/` clean
++- ✅ Test deployed site
++- ✅ Verify no sensitive files
++
++---
++
++## 📖 Memory Files
++
++| File | Purpose | Review |
++|------|---------|--------|
++| `CRITICAL_PROBLEMS.md` | Must-read before changes | Every change |
++| `SECURITY_ISSUES.md` | Security vulnerabilities | Security changes |
++| `BUILD_DEPLOYMENT_ISSUES.md` | Build/deploy problems | Every build |
++| `DEPENDENCY_ISSUES.md` | Dependency conflicts | Dependency updates |
++
++---
++
++**Created:** March 14, 2026  
++**Status:** ✅ ACTIVE  
++**Next Review:** Before next code change
+diff --git a/memory/CRITICAL_PROBLEMS.md b/memory/CRITICAL_PROBLEMS.md
+new file mode 100644
+index 0000000..cb958ed
+--- /dev/null
++++ b/memory/CRITICAL_PROBLEMS.md
+@@ -0,0 +1,114 @@
++# 🔴 CRITICAL PROBLEMS - NEVER AGAIN
++
++**Rule:** Read before ANY code change!
++
++---
++
++## 1. .env File Bundled in Web Build
++
++**Date:** 2026-03-14  
++**Severity:** 🔴 **CRITICAL**  
++**Status:** ✅ FIXED
++
++### The Problem
++`.env` was added to `pubspec.yaml` assets, causing it to be:
++- Bundled into `build/web/`
++- Uploaded to FTP
++- Made publicly accessible
++
++### Root Cause
++```yaml
++# WRONG!
++assets:
++  - .env
++```
++
++### The Fix
++```yaml
++# CORRECT
++assets:
++  - assets/sounds/
++  - assets/icon.png
++```
++
++### Prevention
++- [ ] Never add `.env` to assets
++- [ ] Verify: `find build/web -name "*.env*"` (must be empty)
++- [ ] Test: `curl https://flowgroove.app/.env` (must 404)
++
++---
++
++## 2. Firebase Analytics on Web
++
++**Date:** 2026-03-14  
++**Severity:** 🔴 **CRITICAL**  
++**Status:** ✅ FIXED
++
++### The Problem
++Firebase Analytics throws error on web:
++```
++PlatformException(channel-error, Unable to establish connection on channel)
++```
++
++### Root Cause
++Analytics not supported on web in current configuration
++
++### The Fix
++```dart
++// Skip analytics on web
++if (!kIsWeb) {
++  await AnalyticsService.initialize();
++}
++```
++
++### Prevention
++- [ ] Always check `kIsWeb` before Analytics
++- [ ] Test web build after Firebase changes
++
++---
++
++## 3. setPersistence on Web
++
++**Date:** 2026-03-14  
++**Severity:** 🟠 **HIGH**  
++**Status:** ✅ FIXED
++
++### The Problem
++```
++setPersistence() is only supported on web based platforms
++Error: UNSUPPORTED_OS
++```
++
++### The Fix
++```dart
++// Only call on mobile
++if (!kIsWeb) {
++  await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
++}
++```
++
++---
++
++## 4. FTP Deployment Doesn't Update
++
++**Date:** 2026-03-14  
++**Severity:** 🟠 **HIGH**  
++**Status:** ✅ FIXED
++
++### The Problem
++Files on FTP not updating - old files remain
++
++### The Fix
++```bash
++# Delete all files first, then upload
++lftp -c "
++  cd flowgroove.app
++  rm -rf *
++  mirror --reverse build/web .
++"
++```
++
++---
++
++**Last Review:** March 14, 2026  
++**Next Review:** Before every code change
+diff --git a/memory/README.md b/memory/README.md
+new file mode 100644
+index 0000000..0a37ced
+--- /dev/null
++++ b/memory/README.md
+@@ -0,0 +1,95 @@
++# 🧠 FlowGroove Memory System
++
++**Purpose:** Prevent recurring problems by maintaining institutional memory
++
++---
++
++## 📁 Memory Files
++
++- `CRITICAL_PROBLEMS.md` - Critical issues that must never happen again
++- `SECURITY_ISSUES.md` - Security vulnerabilities and fixes
++- `BUILD_DEPLOYMENT_ISSUES.md` - Build and deployment problems
++- `DEPENDENCY_ISSUES.md` - Dependency conflicts and solutions
++
++---
++
++## 🎯 How This Works
++
++### 1. **Before ANY code change:**
++   - Read `CRITICAL_PROBLEMS.md`
++   - Check if change affects any known problem area
++   - Verify against prevention checklists
++
++### 2. **When problem occurs:**
++   - Document in appropriate memory file
++   - Include: What, Why, How, Solution, Prevention
++   - Tag with severity: CRITICAL, HIGH, MEDIUM, LOW
++
++### 3. **Agent Monitoring:**
++   - Mr. Memory (`agents/mr-memory.md`) reads memory before suggesting changes
++   - Warns if change might recreate known issue
++   - Suggests safer alternatives
++
++---
++
++## 📝 Memory Entry Template
++
++```markdown
++## [Problem Title]
++
++**Date:** YYYY-MM-DD  
++**Severity:** CRITICAL | HIGH | MEDIUM | LOW  
++**Status:** ✅ FIXED | ⚠️ MONITORING | 🔴 ACTIVE  
++
++### The Problem
++Clear description
++
++### Root Cause
++Why this happened
++
++### The Fix
++How resolved
++
++### Prevention
++- [ ] Check 1
++- [ ] Check 2
++
++### Last Verified
++Date
++```
++
++---
++
++## 🚨 Critical Rules
++
++### Rule #1: Never Bundle Sensitive Files
++```yaml
++# ❌ WRONG
++assets:
++  - .env
++
++# ✅ CORRECT
++assets:
++  - assets/sounds/
++```
++
++### Rule #2: Platform Checks for Firebase
++```dart
++// ✅ CORRECT
++if (!kIsWeb) {
++  await Firebase.initializeApp(...);
++  await AnalyticsService.initialize();
++}
++```
++
++### Rule #3: Always Verify Builds
++```bash
++# Before deploy
++find build/web -name "*.env*"  # Must return empty
++curl https://flowgroove.app/.env  # Must return 404
++```
++
++---
++
++**Created:** March 14, 2026  
++**Maintained By:** Mr. Memory Agent
