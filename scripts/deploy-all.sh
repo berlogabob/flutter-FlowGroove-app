@@ -300,10 +300,15 @@ else
     log_warning "Tag already exists: $TAG_NAME"
 fi
 
-# Push to GitHub
-log_info "Pushing to GitHub..."
-git push origin main
-git push origin "$TAG_NAME"
+# Push to GitHub (current branch)
+log_info "Pushing to GitHub (current branch: $(git branch --show-current))..."
+CURRENT_BRANCH=$(git branch --show-current)
+git push origin "$CURRENT_BRANCH"
+if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1 || git branch -a --contains "$TAG_NAME" | grep -q "$CURRENT_BRANCH"; then
+    git push origin "$TAG_NAME" 2>/dev/null || log_warning "Tag already pushed"
+else
+    log_info "Tag exists on different branch, skipping tag push"
+fi
 log_success "Git push complete"
 
 # =============================================================================
