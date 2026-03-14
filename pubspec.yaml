@@ -1,7 +1,7 @@
 name: flutter_repsync_app
 description: "FlowGroove - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.13.1+168
+version: 0.13.1+169
 
 environment:
   sdk: ^3.11.1
