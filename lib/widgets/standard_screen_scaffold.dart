@@ -31,7 +31,7 @@ class StandardScreenScaffold extends StatelessWidget {
   final Widget body;
 
   /// Optional menu items for three-dots menu.
-  final List<PopupMenuItem<void>>? menuItems;
+  final List<PopupMenuEntry<dynamic>>? menuItems;
 
   /// Optional floating action button.
   final Widget? floatingActionButton;
