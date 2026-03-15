@@ -9,8 +9,8 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../widgets/dashboard_grid.dart';
+import '../../widgets/standard_screen_scaffold.dart';
 
 /// The Band Screen - displays band dashboard similar to personal page.
 ///
@@ -76,20 +76,17 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       screenClass: 'TheBandScreen',
     );
 
-    return Scaffold(
-      backgroundColor: MonoPulseColors.black,
-      appBar: CustomAppBar.build(
-        context,
-        title: widget.band.name,
-        onBack: () => context.pop(),
-        menuItems: _buildMenuItems(),
-      ),
+    return StandardScreenScaffold(
+      title: widget.band.name,
+      showBackButton: true,
+      showOfflineIndicator: true,
       body: _buildBandDashboard(),
+      menuItems: _buildMenuItems(),
     );
   }
 
   /// Build menu items for 3-dots menu
-  List<PopupMenuEntry<void>> _buildMenuItems() {
+  List<PopupMenuEntry<dynamic>> _buildMenuItems() {
     return [
       // Edit Band Name
       PopupMenuItem<void>(
@@ -207,27 +204,15 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     // TODO: Add band setlist count provider when implemented
     const setlistCount = '0'; // Placeholder
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Band greeting card (replaces user greeting)
-          _buildBandGreetingCard(),
-          const SizedBox(height: MonoPulseSpacing.xxxl),
-
-          // Dashboard with statistics and quick actions
-          DashboardGrid(
-            statistics: _buildStatistics(
-              userAsync,
-              songCountAsync,
-              setlistCount,
-            ),
-            quickActions: _buildQuickActions(),
-            tools: _buildTools(),
-          ),
-        ],
+    return DashboardGrid(
+      greetingCard: _buildBandGreetingCard(),
+      statistics: _buildStatistics(
+        userAsync,
+        songCountAsync,
+        setlistCount,
       ),
+      quickActions: _buildQuickActions(),
+      tools: _buildTools(),
     );
   }
 
@@ -316,53 +301,14 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     ];
   }
 
-  /// Band greeting card - similar to GreetingCard but for bands
+  /// Band greeting card - uses GreetingCard widget with band initials as avatar
   Widget _buildBandGreetingCard() {
     final description = widget.band.description;
 
-    return Container(
-      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrangeSubtle,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Band name
-          Text(
-            widget.band.name,
-            style: MonoPulseTypography.headlineMedium.copyWith(
-              color: MonoPulseColors.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.md),
-
-          // Description / "Ready to rock" section
-          Row(
-            children: [
-              const Icon(
-                Icons.info_outline,
-                color: MonoPulseColors.textSecondary,
-                size: 20,
-              ),
-              const SizedBox(width: MonoPulseSpacing.sm),
-              Expanded(
-                child: Text(
-                  description ?? 'Ready to rock?',
-                  style: MonoPulseTypography.bodyMedium.copyWith(
-                    color: MonoPulseColors.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+    return GreetingCard(
+      userName: widget.band.name,
+      subtitle: description ?? 'Ready to rock?',
+      avatarPath: null, // No photo - will show initial
     );
   }
 
