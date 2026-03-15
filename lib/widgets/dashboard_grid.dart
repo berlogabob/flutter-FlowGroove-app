@@ -122,13 +122,12 @@ class DashboardGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
-        
+
         // Responsive column count for quick actions
-        final columns = screenWidth < 400
+        // Always use 2 columns on phones for 2x2 layout with 4 actions
+        final columns = screenWidth < 350
             ? 1
-            : screenWidth < 600
-                ? 2
-                : 2;
+            : 2;
 
         return _buildResponsiveGrid(
           children: quickActions.map((action) => action).toList(),
@@ -142,9 +141,10 @@ class DashboardGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
-        
-        // Tools use 2 columns on wider screens, 1 on narrow
-        final columns = screenWidth < 500 ? 1 : 2;
+
+        // Tools use 2 columns on most screens for 2x2 layout support
+        // 1 column only on very narrow screens
+        final columns = screenWidth < 350 ? 1 : 2;
 
         return _buildResponsiveGrid(
           children: tools.map((tool) => tool).toList(),
