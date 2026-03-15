@@ -6,7 +6,7 @@ import '../theme/mono_pulse_theme.dart';
 /// Dashboard grid displaying statistics and quick actions.
 ///
 /// Features:
-/// - Responsive grid layout
+/// - Responsive grid layout with automatic wrapping
 /// - Stat cards with icons, labels, and values
 /// - Quick action buttons
 /// - Tool buttons with "Soon" badges
@@ -42,10 +42,10 @@ class DashboardGrid extends StatelessWidget {
 
   const DashboardGrid({
     super.key,
-    this.greetingCard,
     required this.statistics,
     required this.quickActions,
     required this.tools,
+    this.greetingCard,
   });
 
   @override
@@ -99,75 +99,87 @@ class DashboardGrid extends StatelessWidget {
   }
 
   Widget _buildStatisticsGrid(BuildContext context) {
-    return Row(
-      children: statistics.map((stat) {
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              right: stat == statistics.last ? 0 : MonoPulseSpacing.md,
-            ),
-            child: stat,
-          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        
+        // Responsive column count based on available width
+        final columns = screenWidth < 400
+            ? 1
+            : screenWidth < 700
+                ? 2
+                : 3;
+
+        return _buildResponsiveGrid(
+          children: statistics.map((stat) => stat).toList(),
+          columns: columns,
         );
-      }).toList(),
+      },
     );
   }
 
   Widget _buildQuickActionsGrid(BuildContext context) {
-    return Column(
-      children: [
-        // First row
-        Row(
-          children: quickActions.take(2).map((action) {
-            return Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  right:
-                      quickActions.indexOf(action) % 2 == 0 &&
-                          quickActions.indexOf(action) < quickActions.length - 1
-                      ? MonoPulseSpacing.md
-                      : 0,
-                ),
-                child: action,
-              ),
-            );
-          }).toList(),
-        ),
-        // Second row (if more than 2 actions)
-        if (quickActions.length > 2)
-          Row(
-            children: quickActions.skip(2).take(2).map((action) {
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    right:
-                        quickActions.indexOf(action) % 2 == 0 &&
-                            quickActions.indexOf(action) <
-                                quickActions.length - 1
-                        ? MonoPulseSpacing.md
-                        : 0,
-                  ),
-                  child: action,
-                ),
-              );
-            }).toList(),
-          ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        
+        // Responsive column count for quick actions
+        final columns = screenWidth < 400
+            ? 1
+            : screenWidth < 600
+                ? 2
+                : 2;
+
+        return _buildResponsiveGrid(
+          children: quickActions.map((action) => action).toList(),
+          columns: columns,
+        );
+      },
     );
   }
 
   Widget _buildToolsGrid(BuildContext context) {
-    return Row(
-      children: tools.map((tool) {
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(
-              right: tool == tools.last ? 0 : MonoPulseSpacing.md,
-            ),
-            child: tool,
-          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        
+        // Tools use 2 columns on wider screens, 1 on narrow
+        final columns = screenWidth < 500 ? 1 : 2;
+
+        return _buildResponsiveGrid(
+          children: tools.map((tool) => tool).toList(),
+          columns: columns,
         );
-      }).toList(),
+      },
+    );
+  }
+
+  /// Builds a responsive grid with specified number of columns.
+  /// Uses Wrap widget for automatic wrapping and proper spacing.
+  Widget _buildResponsiveGrid({
+    required List<Widget> children,
+    required int columns,
+  }) {
+    if (children.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final itemWidth = (availableWidth - (MonoPulseSpacing.md * (columns - 1))) / columns;
+
+        return Wrap(
+          spacing: MonoPulseSpacing.md,
+          runSpacing: MonoPulseSpacing.md,
+          children: children.map((child) {
+            return SizedBox(
+              width: itemWidth,
+              child: child,
+            );
+          }).toList(),
+        );
+      },
     );
   }
 }
@@ -235,6 +247,9 @@ class StatCard extends StatelessWidget {
 }
 
 /// Quick action button for dashboard.
+///
+/// Uses a vertical layout (icon above text) for better space utilization
+/// on narrow screens and to prevent overflow issues.
 class QuickActionButton extends StatelessWidget {
   /// Icon to display.
   final IconData icon;
@@ -261,23 +276,27 @@ class QuickActionButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xxl),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           decoration: BoxDecoration(
             color: MonoPulseColors.surface,
             border: Border.all(color: MonoPulseColors.borderDefault),
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: MonoPulseColors.accentOrange),
-              const SizedBox(width: MonoPulseSpacing.md),
+              Icon(icon, color: MonoPulseColors.accentOrange, size: 28),
+              const SizedBox(height: MonoPulseSpacing.sm),
               Text(
                 label,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: MonoPulseColors.accentOrange,
                   fontWeight: FontWeight.w600,
                 ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -288,6 +307,9 @@ class QuickActionButton extends StatelessWidget {
 }
 
 /// Tool button for dashboard (may be disabled with "Soon" badge).
+///
+/// Uses a vertical layout (icon above text) for better space utilization
+/// on narrow screens and to prevent overflow issues.
 class ToolButton extends StatelessWidget {
   /// Icon to display.
   final IconData icon;
@@ -312,7 +334,7 @@ class ToolButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xxl),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         decoration: BoxDecoration(
           color: isEnabled
               ? MonoPulseColors.surface
@@ -320,7 +342,8 @@ class ToolButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           border: Border.all(color: MonoPulseColors.borderSubtle),
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
@@ -329,7 +352,7 @@ class ToolButton extends StatelessWidget {
                   ? MonoPulseColors.accentOrange
                   : MonoPulseColors.textTertiary,
             ),
-            const SizedBox(width: MonoPulseSpacing.md),
+            const SizedBox(height: MonoPulseSpacing.sm),
             Text(
               label,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -337,9 +360,12 @@ class ToolButton extends StatelessWidget {
                     ? MonoPulseColors.accentOrange
                     : MonoPulseColors.textTertiary,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
             if (!isEnabled) ...[
-              const SizedBox(width: MonoPulseSpacing.sm),
+              const SizedBox(height: MonoPulseSpacing.xs),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: MonoPulseSpacing.sm,
