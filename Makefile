@@ -157,6 +157,9 @@ release: build-android build-appbundle
 	@echo "║         Creating GitHub Release with Android APK          ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
+	@echo "📝 Updating version.json for GitHub Pages..."
+	@./scripts/update-version-json.sh
+	@echo ""
 	@echo "📝 Getting version info..."
 	$(eval NEW_VERSION := $(shell grep "^version:" pubspec.yaml | sed 's/version: //'))
 	@echo "   Version: $(NEW_VERSION)"
