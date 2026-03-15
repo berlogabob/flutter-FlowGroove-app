@@ -369,10 +369,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (user == null) return;
 
     try {
-      await user.updateDisplayName(newName);
-      await ref
-          .read(firestoreProvider)
-          .updateUserProfile(uid: user.uid, displayName: newName);
+      // Use the provider method which updates both Firebase and local state
+      await ref.read(appUserProvider.notifier).updateDisplayName(newName);
+      
       if (mounted) {
         setState(() => _isEditingName = false);
         ScaffoldMessenger.of(
