@@ -137,7 +137,7 @@ class DashboardGrid extends StatelessWidget {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: MonoPulseSpacing.md,
         mainAxisSpacing: MonoPulseSpacing.md,
-        childAspectRatio: 1.2,
+        childAspectRatio: 2.2,
       ),
       itemCount: children.length,
       itemBuilder: (context, index) => children[index],
