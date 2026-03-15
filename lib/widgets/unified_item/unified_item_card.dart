@@ -74,12 +74,12 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
 
     return CircleAvatar(
       backgroundColor: isShared
-          ? const Color(0xFFFFE0B2)
-          : const Color(0xFF1A1A1A),
+          ? MonoPulseColors.sharedBackground
+          : MonoPulseColors.surfaceRaised,
       child: Icon(
         isShared ? Icons.content_copy : icon,
         color: isShared
-            ? const Color(0xFFFF9800)
+            ? MonoPulseColors.sharedIcon
             : MonoPulseColors.accentOrange,
       ),
     );

@@ -78,7 +78,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                       const Icon(
                         Icons.error_outline,
                         size: 48,
-                        color: Colors.red,
+                        color: MonoPulseColors.error,
                       ),
                       const SizedBox(height: 16),
                       const Text('Search error'),
@@ -86,7 +86,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                       Text(
                         'Try again later',
                         style: MonoPulseTypography.bodySmall.copyWith(
-                          color: Colors.grey[600],
+                          color: MonoPulseColors.textTertiary,
                         ),
                       ),
                     ],

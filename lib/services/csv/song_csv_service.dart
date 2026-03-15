@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../models/song.dart';
 import '../../models/section.dart';
+import '../../theme/mono_pulse_theme.dart';
 import 'song_csv_parser.dart';
 import 'song_csv_serializer.dart';
 
@@ -157,14 +158,14 @@ class SongCsvService {
           name: 'Intro',
           notes: '',
           duration: 4,
-          colorValue: Colors.blue.toARGB32(),
+          colorValue: MonoPulseColors.section5.value!,
         ),
         Section(
           id: '',
           name: 'Verse',
           notes: '',
           duration: 8,
-          colorValue: Colors.green.toARGB32(),
+          colorValue: MonoPulseColors.section8.value!,
         ),
       ],
     );

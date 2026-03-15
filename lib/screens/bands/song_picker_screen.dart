@@ -126,7 +126,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
                   ? 'Added $successCount song(s). $failCount failed.'
                   : 'Successfully added $successCount song(s) to ${widget.band.name}!',
             ),
-            backgroundColor: failCount > 0 ? Colors.orange : Colors.green,
+            backgroundColor: failCount > 0 ? MonoPulseColors.warning : MonoPulseColors.successGreen,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -156,7 +156,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
-          backgroundColor: Colors.red,
+          backgroundColor: MonoPulseColors.error,
           duration: const Duration(seconds: 4),
           action: SnackBarAction(
             label: 'RETRY',

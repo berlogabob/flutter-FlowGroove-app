@@ -103,7 +103,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                       Icon(
                         isPremiumError ? Icons.lock : Icons.error_outline,
                         size: 48,
-                        color: isPremiumError ? Colors.orange : Colors.red,
+                        color: isPremiumError ? MonoPulseColors.warning : MonoPulseColors.error,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -117,7 +117,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                             ? 'Spotify API needs Premium subscription'
                             : 'Try again later',
                         style: MonoPulseTypography.bodySmall.copyWith(
-                          color: Colors.grey,
+                          color: MonoPulseColors.textTertiary,
                         ),
                       ),
                       if (isPremiumError) ...[
