@@ -88,9 +88,10 @@ Technical reports, fix documentation, and analysis.
 
 Historical documents and auto-generated exports.
 
-#### Auto-generated Exports
-- `qwen-code-export-*.md` - Qwen Code session exports
-- `chat-export-*.json` - Chat export backups
+#### Auto-generated Exports (Save Here)
+- `qwen-code-export-*.md` → `docs/archive/`
+- `chat-export-*.json` → `docs/archive/`
+- `*-export-*.json` → `docs/archive/`
 
 #### Historical Documentation
 - `GIT_HISTORY_REFERENCE.md` - Git history analysis

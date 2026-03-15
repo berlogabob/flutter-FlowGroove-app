@@ -18,11 +18,13 @@ help:
 	@echo "  make deploy-stable   - Build + Deploy to FTP (flowgroove.app)"
 	@echo "  make deploy-test     - Build + Deploy to GitHub Pages (test)"
 	@echo "  make release         - Build Android APK + GitHub Release"
+	@echo "  make clean-exports   - Move chat exports to docs/archive/"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make deploy-stable   # Production deployment"
 	@echo "  make deploy-test     # Test deployment"
 	@echo "  make release         # Android release with GitHub Release"
+	@echo "  make clean-exports   # Clean up chat exports"
 	@echo ""
 
 # =============================================================================
@@ -214,3 +216,16 @@ release: build-android build-appbundle
 
 # Get current branch
 CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+
+# =============================================================================
+# UTILITIES
+# =============================================================================
+
+# Move chat exports to archive
+clean-exports:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Moving Chat Exports to Archive                    ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@./scripts/move-chat-exports.sh
+	@echo ""
