@@ -23,7 +23,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _version = 'Loading...';
-  String _buildDate = '';
   String? _profilePhotoPath;
   String? _telegramPhotoURL;
   String _photoSource = 'local'; // 'telegram', 'google', 'local'
@@ -117,14 +116,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           } else {
             _version = version;
           }
-          _buildDate = '';
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _version = '0.13.1+146';
-          _buildDate = '';
         });
       }
     }
@@ -550,8 +547,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               _buildInfoItem(title: 'Version', value: _version),
               _buildInfoItem(
-                title: 'Build',
-                value: _buildDate.isNotEmpty ? _buildDate : 'Production',
+                title: 'Made by Berloga with love from Portugal',
+                value: '❤️ 🇵🇹',
               ),
             ],
           ),
