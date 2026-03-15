@@ -357,6 +357,39 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
+  /// Updates the user's display name.
+  ///
+  /// This method updates both Firebase Auth and Firestore,
+  /// then refreshes the local state to reflect the change immediately.
+  ///
+  /// Throws [ApiError] if update fails.
+  Future<void> updateDisplayName(String newName) async {
+    final currentUser = state.value;
+    if (currentUser == null) {
+      throw ApiError.auth(message: 'No user logged in');
+    }
+
+    try {
+      // Update Firebase Auth
+      final firebaseUser = ref.read(firebaseAuthProvider).currentUser;
+      if (firebaseUser != null) {
+        await firebaseUser.updateDisplayName(newName);
+      }
+
+      // Update Firestore and local state
+      final updatedUser = currentUser.copyWith(displayName: newName);
+      final firestore = FirestoreService();
+      await firestore.saveUser(updatedUser);
+      
+      // Update local state to trigger UI refresh
+      state = AsyncValue.data(updatedUser);
+    } catch (e, stackTrace) {
+      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
+      state = AsyncValue.error(apiError, stackTrace);
+      throw apiError;
+    }
+  }
+
   /// Maps Firebase Auth exceptions to ApiError with user-friendly messages.
   ApiError _mapFirebaseAuthException(FirebaseAuthException e) {
     switch (e.code) {
