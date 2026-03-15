@@ -5,15 +5,36 @@ import '../theme/mono_pulse_theme.dart';
 
 /// Main application shell with bottom navigation.
 /// Works with StatefulShellRoute.indexedStack for proper tab switching.
-class MainShell extends ConsumerWidget {
+///
+/// Features:
+/// - Single tap: Navigate to tab or show next screen in branch
+/// - Double tap: Navigate to root screen of each branch
+class MainShell extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainShell({super.key, required this.navigationShell});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<MainShell> {
+  DateTime? _lastTapTime;
+  int? _lastTappedIndex;
+
+  // Root route names for each branch (0-4)
+  static const List<String> _rootRoutes = [
+    'home',       // 0 - Home
+    'songs',      // 1 - Songs
+    'bands',      // 2 - Bands
+    'setlists',   // 3 - Setlists
+    'profile',    // 4 - Profile
+  ];
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
+      body: widget.navigationShell,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: MonoPulseColors.black,
@@ -24,7 +45,7 @@ class MainShell extends ConsumerWidget {
         child: NavigationBar(
           backgroundColor: MonoPulseColors.black,
           indicatorColor: MonoPulseColors.accentOrangeSubtle,
-          selectedIndex: navigationShell.currentIndex,
+          selectedIndex: widget.navigationShell.currentIndex,
           onDestinationSelected: (index) => _onTap(context, index),
           labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
           destinations: const [
@@ -90,6 +111,46 @@ class MainShell extends ConsumerWidget {
   }
 
   void _onTap(BuildContext context, int index) {
-    navigationShell.goBranch(index);
+    final now = DateTime.now();
+
+    // Check for double-tap on the same tab
+    if (_lastTappedIndex == index &&
+        _lastTapTime != null &&
+        now.difference(_lastTapTime!).inMilliseconds < 300) {
+      // Double-tap detected - navigate to root of branch
+      _navigateToRootOfBranch(context, index);
+      _lastTapTime = null;
+      _lastTappedIndex = null;
+      return;
+    }
+
+    // Single tap - normal navigation
+    _lastTapTime = now;
+    _lastTappedIndex = index;
+    widget.navigationShell.goBranch(index);
+  }
+
+  /// Navigate to the root screen of the specified branch.
+  /// Works on both web and mobile by directly navigating to the branch root URL.
+  void _navigateToRootOfBranch(BuildContext context, int branchIndex) {
+    // Direct URL navigation - most reliable for web
+    // These URLs correspond to the root of each StatefulShellRoute branch
+    switch (branchIndex) {
+      case 0: // Home
+        context.go('/main/home');
+        break;
+      case 1: // Songs
+        context.go('/main/songs');
+        break;
+      case 2: // Bands
+        context.go('/main/bands');
+        break;
+      case 3: // Setlists
+        context.go('/main/setlists');
+        break;
+      case 4: // Profile
+        context.go('/main/profile');
+        break;
+    }
   }
 }
