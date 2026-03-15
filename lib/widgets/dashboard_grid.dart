@@ -99,89 +99,51 @@ class DashboardGrid extends StatelessWidget {
   }
 
   Widget _buildStatisticsGrid(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final screenWidth = constraints.maxWidth;
-        
-        // Responsive column count based on available width
-        final columns = screenWidth < 400
-            ? 1
-            : screenWidth < 700
-                ? 2
-                : 3;
-
-        return _buildResponsiveGrid(
-          children: statistics.map((stat) => stat).toList(),
-          columns: columns,
-        );
-      },
+    return _buildFixedGrid(
+      children: statistics.map((stat) => stat).toList(),
+      crossAxisCount: 3,
     );
   }
 
   Widget _buildQuickActionsGrid(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final screenWidth = constraints.maxWidth;
-
-        // Responsive column count for quick actions
-        // Always use 2 columns on phones for 2x2 layout with 4 actions
-        final columns = screenWidth < 350
-            ? 1
-            : 2;
-
-        return _buildResponsiveGrid(
-          children: quickActions.map((action) => action).toList(),
-          columns: columns,
-        );
-      },
+    // Always 2 columns for 2x2 layout with 4 quick actions
+    return _buildFixedGrid(
+      children: quickActions.map((action) => action).toList(),
+      crossAxisCount: 2,
     );
   }
 
   Widget _buildToolsGrid(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final screenWidth = constraints.maxWidth;
-
-        // Tools use 2 columns on most screens for 2x2 layout support
-        // 1 column only on very narrow screens
-        final columns = screenWidth < 350 ? 1 : 2;
-
-        return _buildResponsiveGrid(
-          children: tools.map((tool) => tool).toList(),
-          columns: columns,
-        );
-      },
+    // 2 columns for future 2x2 layout support
+    return _buildFixedGrid(
+      children: tools.map((tool) => tool).toList(),
+      crossAxisCount: 2,
     );
   }
 
-  /// Builds a responsive grid with specified number of columns.
-  /// Uses Wrap widget for automatic wrapping and proper spacing.
-  Widget _buildResponsiveGrid({
+  /// Builds a fixed grid with specified number of columns using GridView.
+  Widget _buildFixedGrid({
     required List<Widget> children,
-    required int columns,
+    required int crossAxisCount,
   }) {
     if (children.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth;
-        final itemWidth = (availableWidth - (MonoPulseSpacing.md * (columns - 1))) / columns;
-
-        return Wrap(
-          spacing: MonoPulseSpacing.md,
-          runSpacing: MonoPulseSpacing.md,
-          children: children.map((child) {
-            return SizedBox(
-              width: itemWidth,
-              child: child,
-            );
-          }).toList(),
-        );
-      },
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: MonoPulseSpacing.md,
+        mainAxisSpacing: MonoPulseSpacing.md,
+        childAspectRatio: 1.2,
+      ),
+      itemCount: children.length,
+      itemBuilder: (context, index) => children[index],
     );
   }
+
 }
 
 /// Statistics card displaying an icon, value, and label.
