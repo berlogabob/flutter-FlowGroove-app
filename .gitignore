@@ -12,6 +12,12 @@
 .ftp-env
 web/config.js
 
+# Chat exports (automatically moved to docs/archive/)
+chat-export-*.json
+console-export-*.log
+qwen-code-export-*.md
+*-export-*.json
+
 
 
 # Flutter repo-specific
