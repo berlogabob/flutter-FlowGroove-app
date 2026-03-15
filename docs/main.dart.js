@@ -34516,11 +34516,10 @@ this.c=c},
 B8:function B8(a){this.a=a},
 WE:function WE(){var _=this
 _.w="Loading..."
-_.x=""
-_.z=_.y=null
-_.Q="local"
-_.as=!1
-_.d=_.at=$
+_.y=_.x=null
+_.z="local"
+_.Q=!1
+_.d=_.as=$
 _.c=_.a=null},
 b9F:function b9F(a,b){this.a=a
 this.b=b},
@@ -126598,7 +126597,7 @@ a4(){return new A.WE()}}
 A.WE.prototype={
 av(){var s=this
 s.aP()
-s.at=new A.dM(B.c2,$.ak())
+s.as=new A.dM(B.c2,$.ak())
 s.CK()
 s.CI()
 s.Ja()},
@@ -126635,7 +126634,7 @@ break
 case 6:case 1:return A.p(q,r)
 case 2:return A.o(o.at(-1),r)}})
 return A.q($async$Ja,r)},
-m(){var s=this.at
+m(){var s=this.as
 s===$&&A.a()
 s.Y$=$.ak()
 s.O$=0
@@ -126752,7 +126751,7 @@ q.toString
 A.i8(s,s,!0,s,new A.b9T(this,new A.aUg(),p),q,s,!0,t.z)},
 D3(){var s=0,r=A.r(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h
 var $async$D3=A.n(function(a,b){if(a===1){o.push(b)
-s=p}for(;;)switch(s){case 0:i=n.at
+s=p}for(;;)switch(s){case 0:i=n.as
 i===$&&A.a()
 m=B.o.bp(i.a.a)
 if(J.aX(m)===0){n.K(new A.b9I(n))
@@ -126780,38 +126779,35 @@ case 6:case 1:return A.p(q,r)
 case 2:return A.o(o.at(-1),r)}})
 return A.q($async$D3,r)},
 a6Q(){var s,r=this
-if(r.Q==="telegram"&&r.z!=null){s=r.z
+if(r.z==="telegram"&&r.y!=null){s=r.y
 s.toString
-return new A.Ap(s)}s=r.y
+return new A.Ap(s)}s=r.x
 if(s!=null)return new A.rv(A.F6(s))
 return null},
-F(a){var s,r,q,p,o,n,m=this,l=null,k=m.gai(),j=k.c7($.eU(),t.g),i=j.gq(j)
-k=A.a0o(k.c7($.xN(),t.uN),new A.b9Z(),t.ih,t.N)
-if(k==null){k=i==null?l:i.a.c.a.c
-s=k}else s=k
+F(a){var s,r,q,p,o,n=this,m=null,l=n.gai(),k=l.c7($.eU(),t.g),j=k.gq(k)
+l=A.a0o(l.c7($.xN(),t.uN),new A.b9Z(),t.ih,t.N)
+if(l==null){l=j==null?m:j.a.c.a.c
+s=l}else s=l
 if(s==null)s="User"
-k=m.gaPO()
-r=m.a6Q()
-if(m.a6Q()==null){if(i==null)q=l
-else{q=i.a.c.a.b
-q=q==null?l:B.o.a7(q,0,1).toUpperCase()}q=A.Q(q==null?"?":q,l,l,l,l,B.b7R,l,l,l)}else q=l
+l=n.gaPO()
+r=n.a6Q()
+if(n.a6Q()==null){if(j==null)q=m
+else{q=j.a.c.a.b
+q=q==null?m:B.o.a7(q,0,1).toUpperCase()}q=A.Q(q==null?"?":q,m,m,m,m,B.b7R,m,m,m)}else q=m
 p=t.p
-q=A.b([A.d7(l,new A.eG(B.cR,l,B.bV,B.S,A.b([A.E0(B.cq,r,q,50),A.w8(0,A.aN(l,B.a43,B.J,l,l,B.lZ,l,l,l,B.fy,l,l,l),l,l,l,0,l,l)],p),l),B.Y,!1,l,l,l,l,l,l,l,l,l,l,l,l,l,l,l,l,k,l,l,l,l,l,l),B.ae],p)
-if(m.as){r=m.at
+q=A.b([A.d7(m,new A.eG(B.cR,m,B.bV,B.S,A.b([A.E0(B.cq,r,q,50),A.w8(0,A.aN(m,B.a43,B.J,m,m,B.lZ,m,m,m,B.fy,m,m,m),m,m,m,0,m,m)],p),m),B.Y,!1,m,m,m,m,m,m,m,m,m,m,m,m,m,m,m,m,l,m,m,m,m,m,m),B.ae],p)
+if(n.Q){r=n.as
 r===$&&A.a()
-q.push(A.aR(A.b([A.cd(A.lB(l,B.b1,!0,l,!0,B.S,l,A.mI(),r,l,l,l,l,l,2,B.a4D,B.Y,!0,l,!0,l,!1,l,B.cj,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,l,l,new A.ba_(m),l,!1,l,l,!1,l,!0,l,B.cF,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.ba,l,B.bp,l,l,l,l),1),A.hf(B.U,l,l,B.a2A,l,l,m.gaOx(),l,l,l,l),A.hf(l,l,l,B.ty,l,l,new A.ba0(m),l,l,l,l)],p),B.C,B.b9,B.E,0,l))}else q.push(A.aR(A.b([A.Q(s,l,l,l,l,B.e1.az(B.am),l,l,l),A.hf(B.ab,l,l,B.a2Y,l,l,new A.ba1(m,s),l,l,l,l)],p),B.C,B.b9,B.E,0,l))
+q.push(A.aR(A.b([A.cd(A.lB(m,B.b1,!0,m,!0,B.S,m,A.mI(),r,m,m,m,m,m,2,B.a4D,B.Y,!0,m,!0,m,!1,m,B.cj,m,m,m,m,m,m,m,m,1,m,m,!1,"\u2022",m,m,m,new A.ba_(n),m,!1,m,m,!1,m,!0,m,B.cF,m,m,m,m,m,m,m,m,m,m,m,m,!0,B.ba,m,B.bp,m,m,m,m),1),A.hf(B.U,m,m,B.a2A,m,m,n.gaOx(),m,m,m,m),A.hf(m,m,m,B.ty,m,m,new A.ba0(n),m,m,m,m)],p),B.C,B.b9,B.E,0,m))}else q.push(A.aR(A.b([A.Q(s,m,m,m,m,B.e1.az(B.am),m,m,m),A.hf(B.ab,m,m,B.a2Y,m,m,new A.ba1(n,s),m,m,m,m)],p),B.C,B.b9,B.E,0,m))
 q.push(B.eL)
-r=i==null?l:i.a.c.a.b
+r=j==null?m:j.a.c.a.b
 if(r==null)r=""
-q.push(A.Q(r,l,l,l,l,B.dz.az(B.ab),l,l,l))
-q=A.o3(new A.az(B.ec,A.aQ(q,B.C,B.D,B.E),l),l,l,l,l)
-r=m.Ri(A.b([m.ax6()],p),"My Tags")
-k=m.Ri(A.b([m.a3E(B.a1Y,k,"Change name and photo","Edit Profile"),m.a3E(B.tu,m.gaPV(),"Get name and photo from Telegram","Link Telegram")],p),"Account")
-o=m.w
-o=A.ii(!1,l,l,l,!0,l,l,!0,l,l,l,l,l,l,l,!1,l,l,l,l,l,l,A.Q("Version",l,l,l,l,l,l,l,l),l,A.Q(o,l,l,l,l,B.e0,l,l,l),l)
-n=m.x
-n=n.length!==0?n:"Production"
-return A.S1(A.zZ(A.b([q,B.ae,r,B.ae,k,B.ae,m.Ri(A.b([o,A.ii(!1,l,l,l,!0,l,l,!0,l,l,l,l,l,l,l,!1,l,l,l,l,l,l,A.Q("Build",l,l,l,l,l,l,l,l),l,A.Q(n,l,l,l,l,B.e0,l,l,l),l)],p),"App Info"),B.bE,A.cf(A.wL(B.a37,B.bca,new A.ba2(m,a),l),l,l)],p),l,B.ax,l,B.ar,!1),l,l,!1,!0,"Profile")},
+q.push(A.Q(r,m,m,m,m,B.dz.az(B.ab),m,m,m))
+q=A.o3(new A.az(B.ec,A.aQ(q,B.C,B.D,B.E),m),m,m,m,m)
+r=n.Ri(A.b([n.ax6()],p),"My Tags")
+l=n.Ri(A.b([n.a3E(B.a1Y,l,"Change name and photo","Edit Profile"),n.a3E(B.tu,n.gaPV(),"Get name and photo from Telegram","Link Telegram")],p),"Account")
+o=n.w
+return A.S1(A.zZ(A.b([q,B.ae,r,B.ae,l,B.ae,n.Ri(A.b([A.ii(!1,m,m,m,!0,m,m,!0,m,m,m,m,m,m,m,!1,m,m,m,m,m,m,A.Q("Version",m,m,m,m,m,m,m,m),m,A.Q(o,m,m,m,m,B.e0,m,m,m),m),A.ii(!1,m,m,m,!0,m,m,!0,m,m,m,m,m,m,m,!1,m,m,m,m,m,m,A.Q("Made by Berloga with love from Portugal",m,m,m,m,m,m,m,m),m,A.Q("\u2764\ufe0f \ud83c\uddf5\ud83c\uddf9",m,m,m,m,B.e0,m,m,m),m)],p),"App Info"),B.bE,A.cf(A.wL(B.a37,B.bca,new A.ba2(n,a),m),m,m)],p),m,B.ax,m,B.ar,!1),m,m,!1,!0,"Profile")},
 Ri(a,b){var s=null
 return A.aQ(A.b([new A.az(B.a0g,A.Q(b,s,s,s,s,B.cO.az(B.ab),s,s,s),s),A.o3(A.aQ(a,B.C,B.D,B.E),s,s,s,s)],t.p),B.aH,B.D,B.E)},
 ax6(){return A.l4(this.gai().c7($.xN(),t.uN),new A.b9B(),new A.b9C(),new A.b9D(),!1,!0,!1)},
@@ -126819,49 +126815,46 @@ a3E(a,b,c,d){var s=null,r=A.dR(a,B.U,s,s),q=A.Q(d,s,s,s,s,s,s,s,s),p=A.Q(c,s,s,s
 return A.ii(!1,s,s,s,!0,s,s,!0,s,r,s,s,s,s,b,!1,s,s,s,s,p,s,q,s,B.a3X,s)}}
 A.b9F.prototype={
 $0(){var s=this.a,r=A.ac(this.b.h(0,"telegramPhotoURL"))
-s.z=r
+s.y=r
 A.k6("\ud83d\uddbc\ufe0f Telegram photo URL: "+A.h(r))
-if(s.y==null&&s.z!=null){s.Q="telegram"
+if(s.x==null&&s.y!=null){s.z="telegram"
 A.k6("\ud83d\udcf1 Set photo source to telegram")}},
 $S:0}
 A.b9G.prototype={
 $0(){var s=this.a,r=s.a,q=r.length!==0&&r!=="1",p=this.b
 s=s.b
 if(q)p.w=s+"+"+r
-else p.w=s
-p.x=""},
+else p.w=s},
 $S:0}
 A.b9H.prototype={
-$0(){var s=this.a
-s.w="0.13.1+146"
-s.x=""},
+$0(){this.a.w="0.13.1+146"},
 $S:0}
 A.b9E.prototype={
-$0(){this.a.y=this.b.a},
+$0(){this.a.x=this.b.a},
 $S:0}
 A.b9Q.prototype={
-$1(a){var s=null,r=this.a,q=r.z!=null,p=A.dR(B.tu,q?B.k1:B.aE,s,s),o=A.Q(q?"Use Telegram Photo":"Link Telegram",s,s,s,s,s,s,s,s)
-if(q)q=r.Q==="telegram"?B.wv:s
+$1(a){var s=null,r=this.a,q=r.y!=null,p=A.dR(B.tu,q?B.k1:B.aE,s,s),o=A.Q(q?"Use Telegram Photo":"Link Telegram",s,s,s,s,s,s,s,s)
+if(q)q=r.z==="telegram"?B.wv:s
 else q=B.bbN
 o=A.ii(!1,s,s,s,!0,s,s,!0,s,p,s,s,s,s,new A.b9M(r,a),!1,s,s,s,s,q,s,o,s,s,s)
-q=r.Q==="local"
-p=q&&r.y!=null?B.wv:s
+q=r.z==="local"
+p=q&&r.x!=null?B.wv:s
 p=A.ii(!1,s,s,s,!0,s,s,!0,s,B.a2y,s,s,s,s,new A.b9N(r,a),!1,s,s,s,s,p,s,B.bcJ,s,s,s)
-q=q&&r.y!=null?B.wv:s
+q=q&&r.x!=null?B.wv:s
 q=A.b([o,p,A.ii(!1,s,s,s,!0,s,s,!0,s,B.a3R,s,s,s,s,new A.b9O(r,a),!1,s,s,s,s,q,s,B.bbU,s,s,s)],t.p)
-if(r.y!=null||r.Q==="telegram")q.push(A.ii(!1,s,s,s,!0,s,s,!0,s,B.a3U,s,s,s,s,new A.b9P(r,a),!1,s,s,s,s,s,s,B.bdc,s,s,s))
+if(r.x!=null||r.z==="telegram")q.push(A.ii(!1,s,s,s,!0,s,s,!0,s,B.a3U,s,s,s,s,new A.b9P(r,a),!1,s,s,s,s,s,s,B.bdc,s,s,s))
 return A.wm(!0,A.aQ(q,B.C,B.D,B.aw),!1,B.aO,!0)},
 $S:853}
 A.b9M.prototype={
 $0(){A.bA(this.b,!1).bF(null)
 var s=this.a
-if(s.z!=null)s.K(new A.b9L(s))
+if(s.y!=null)s.K(new A.b9L(s))
 else s.abg()},
 $S:0}
 A.b9L.prototype={
 $0(){var s=this.a
-s.Q="telegram"
-s.y=null},
+s.z="telegram"
+s.x=null},
 $S:0}
 A.b9N.prototype={
 $0(){A.bA(this.b,!1).bF(null)
@@ -126878,8 +126871,8 @@ s.K(new A.b9K(s))},
 $S:0}
 A.b9K.prototype={
 $0(){var s=this.a
-s.y=null
-s.Q="local"},
+s.x=null
+s.z="local"},
 $S:0}
 A.b9T.prototype={
 $1(a){var s=null,r=t.p,q=A.aQ(A.b([A.Q("Link your Telegram account to automatically import your profile name and photo to RepSync.",s,s,s,s,B.bW.az(B.ab),s,s,s),B.ae,A.aN(s,B.Z4,B.J,s,s,new A.b6(B.cq,s,s,A.bj(8),s,s,B.ah),s,s,s,B.mC,s,s,s)],r),B.aH,B.D,B.aw)
@@ -126906,10 +126899,10 @@ case 3:return A.p(null,r)}})
 return A.q($async$$0,r)},
 $S:3}
 A.b9I.prototype={
-$0(){return this.a.as=!1},
+$0(){return this.a.Q=!1},
 $S:0}
 A.b9J.prototype={
-$0(){return this.a.as=!1},
+$0(){return this.a.Q=!1},
 $S:0}
 A.b9Z.prototype={
 $1(a){return a==null?null:a.b},
@@ -126922,17 +126915,17 @@ $0(){var s=this.a
 return s.K(new A.b9Y(s))},
 $S:0}
 A.b9Y.prototype={
-$0(){return this.a.as=!1},
+$0(){return this.a.Q=!1},
 $S:0}
 A.ba1.prototype={
-$0(){var s,r=this.a,q=r.at
+$0(){var s,r=this.a,q=r.as
 q===$&&A.a()
 s=this.b
 q.scg(0,s==="User"?"":s)
 r.K(new A.b9X(r))},
 $S:0}
 A.b9X.prototype={
-$0(){return this.a.as=!0},
+$0(){return this.a.Q=!0},
 $S:0}
 A.ba2.prototype={
 $0(){var s=0,r=A.r(t.H),q=this,p,o
