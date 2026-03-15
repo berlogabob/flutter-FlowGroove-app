@@ -102,8 +102,17 @@ class MonoPulseColors {
 
   // Orange opacity variants
   static const Color orangeSubtle5 = Color(0x0DFF5E00); // 5%
+  static const Color orangeSubtle15 = Color(0x26FF5E00); // 15%
   static const Color orangeSubtle20 = Color(0x33FF5E00); // 20%
   static const Color orangeSubtle30 = Color(0x4DFF5E00); // 30%
+
+  // Accent orange opacity variants (for UI elements)
+  static const Color accentOrange15 = Color(0x26FF5E00); // 15%
+  static const Color accentOrange20 = Color(0x33FF5E00); // 20%
+  static const Color accentOrange30 = Color(0x4DFF5E00); // 30%
+
+  // Border opacity variants
+  static const Color borderSubtle30 = Color(0x4D222222); // 30%
 
   // ============================================
   // Section Colors (for song organization)
@@ -130,6 +139,14 @@ class MonoPulseColors {
     section1, section2, section3, section4, section5, section6, section7, section8,
     section9, section10, section11, section12, section13, section14,
   ];
+
+  // ============================================
+  // Shared/Copy State Colors
+  // ============================================
+  // For indicating shared/copied songs in unified item cards
+
+  static const Color sharedBackground = Color(0xFFFFE0B2);
+  static const Color sharedIcon = Color(0xFFFF9800);
 
   // Special
   static const Color transparent = Colors.transparent;

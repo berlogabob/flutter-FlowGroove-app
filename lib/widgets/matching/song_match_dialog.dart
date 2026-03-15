@@ -306,7 +306,7 @@ class SongMatchDialog extends StatelessWidget {
       differences.add(
         Row(
           children: [
-            const Icon(Icons.edit, size: 14, color: Colors.orange),
+            const Icon(Icons.edit, size: 14, color: MonoPulseColors.warning),
             const SizedBox(width: 8),
             Text(
               'Title spelling variation',
@@ -321,7 +321,7 @@ class SongMatchDialog extends StatelessWidget {
       differences.add(
         Row(
           children: [
-            const Icon(Icons.person_outline, size: 14, color: Colors.orange),
+            const Icon(Icons.person_outline, size: 14, color: MonoPulseColors.warning),
             const SizedBox(width: 8),
             Text(
               'Artist name variation',
@@ -336,7 +336,7 @@ class SongMatchDialog extends StatelessWidget {
       differences.add(
         Row(
           children: [
-            const Icon(Icons.timer_outlined, size: 14, color: Colors.orange),
+            const Icon(Icons.timer_outlined, size: 14, color: MonoPulseColors.warning),
             const SizedBox(width: 8),
             Text(
               'Duration difference',
