@@ -6,7 +6,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'theme/mono_pulse_theme.dart';
@@ -102,11 +101,12 @@ class RepSyncApp extends ConsumerWidget {
           if (user != null && previous?.value == null) {
             // User just logged in - navigate to home
             debugPrint('🔑 Auth Event: USER_LOGIN - email=${user.email}');
-            GoRouter.of(context).go('/main/home');
+            // Use the global appRouter directly (not from context)
+            appRouter.go('/main/home');
           } else if (user == null && previous?.value != null) {
             // User just logged out - navigate to login
             debugPrint('🔑 Auth Event: USER_LOGOUT - previous user logged out');
-            GoRouter.of(context).go('/login');
+            appRouter.go('/login');
           } else if (user != null) {
             // Auth state restored (app resume/refresh)
             debugPrint('🔑 Auth Event: AUTH_RESTORED - email=${user.email}');

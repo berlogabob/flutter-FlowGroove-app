@@ -17,7 +17,7 @@ enum PasswordValidationError {
 /// Extends [FormzInput] to provide standardized validation.
 ///
 /// Requirements:
-/// - At least 8 characters
+/// - At least 6 characters
 /// - At least one uppercase letter
 /// - At least one lowercase letter
 /// - At least one number
@@ -33,7 +33,7 @@ class Password extends FormzInput<String, PasswordValidationError> {
     if (value.isEmpty) {
       return PasswordValidationError.empty;
     }
-    if (value.length < 8) {
+    if (value.length < 6) {
       return PasswordValidationError.tooShort;
     }
     if (!_hasUppercase(value) || !_hasLowercase(value) || !_hasNumber(value)) {
@@ -60,7 +60,7 @@ class Password extends FormzInput<String, PasswordValidationError> {
       case PasswordValidationError.empty:
         return 'Password is required';
       case PasswordValidationError.tooShort:
-        return 'Password must be at least 8 characters';
+        return 'Password must be at least 6 characters';
       case PasswordValidationError.weak:
         return 'Password must contain uppercase, lowercase, and number';
       case null:
@@ -71,7 +71,7 @@ class Password extends FormzInput<String, PasswordValidationError> {
   /// Get password strength (0-3).
   int get strength {
     int score = 0;
-    if (value.length >= 8) score++;
+    if (value.length >= 6) score++;
     if (value.length >= 12) score++;
     if (_hasUppercase(value) && _hasLowercase(value)) score++;
     if (_hasNumber(value)) score++;

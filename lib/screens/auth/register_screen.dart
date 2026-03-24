@@ -147,7 +147,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             children: [
               const SizedBox(height: 32),
               Text(
-                'Join RepSync',
+                'Join FlowGroove',
                 style: MonoPulseTypography.headlineMedium.copyWith(
                   color: MonoPulseColors.textHighEmphasis,
                 ),

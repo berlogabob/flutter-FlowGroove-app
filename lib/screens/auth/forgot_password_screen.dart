@@ -6,7 +6,9 @@ import '../../theme/mono_pulse_theme.dart';
 
 /// Forgot Password Screen - Firebase password reset
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
-  const ForgotPasswordScreen({super.key});
+  final String? initialEmail;
+  
+  const ForgotPasswordScreen({super.key, this.initialEmail});
 
   @override
   ConsumerState<ForgotPasswordScreen> createState() =>
@@ -20,6 +22,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   bool _emailSent = false;
   String? _errorMessage;
   String? _successMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill email if provided from login screen
+    if (widget.initialEmail != null && widget.initialEmail!.isNotEmpty) {
+      _emailController.text = widget.initialEmail!;
+    }
+  }
 
   @override
   void dispose() {
