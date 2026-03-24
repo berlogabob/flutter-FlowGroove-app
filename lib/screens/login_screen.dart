@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:formz/formz.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import '../../router/app_router.dart';
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
@@ -10,6 +11,7 @@ import '../widgets/error_banner.dart';
 import '../theme/mono_pulse_theme.dart';
 import 'songs/models/inputs/email_input.dart';
 import 'songs/models/inputs/password_input.dart';
+import 'auth/forgot_password_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -47,6 +49,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _clearError() {
+    if (!mounted) return;
     setState(() {
       _currentError = null;
     });
@@ -54,6 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _handleError(ApiError error) {
+    if (!mounted) return;
     setState(() {
       _currentError = error;
     });
@@ -123,7 +127,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               const SizedBox(height: 48),
               Text(
-                'RepSync',
+                'FlowGroove',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -153,7 +157,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 decoration: InputDecoration(
                   labelText: 'Email',
                   prefixIcon: const Icon(Icons.email_outlined),
-                  errorText: _email.errorMessage,
+                  errorText: !_email.isPure ? _email.errorMessage : null,
                 ),
               ),
               const SizedBox(height: 16),
@@ -166,13 +170,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outlined),
-                  errorText: _password.errorMessage,
+                  errorText: !_password.isPure ? _password.errorMessage : null,
                 ),
               ),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () => context.goNamed('forgot-password'),
+                  onPressed: () {
+                    debugPrint('🔑 Forgot Password button tapped');
+                    debugPrint('🔑 Email from login: $_email.value');
+                    // Use Navigator to push the route with email
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ForgotPasswordScreen(
+                          initialEmail: _email.value,
+                        ),
+                      ),
+                    );
+                  },
                   child: const Text('Forgot Password?'),
                 ),
               ),
@@ -199,7 +214,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: () => context.goNamed('register'),
+                    onPressed: () => appRouter.goNamed('register'),
                     child: const Text('Sign Up'),
                   ),
                 ],

@@ -44,8 +44,8 @@ class AnalyticsDebug {
         name: 'analytics_test',
         parameters: {
           'timestamp': DateTime.now().toIso8601String(),
-          'platform': 'web',
-          'test': true,
+          'platform': kIsWeb ? 'web' : 'mobile',
+          'test': 'true',
         },
       );
       debugPrint('✅ Test event logged: analytics_test');
