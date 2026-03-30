@@ -1939,7 +1939,7 @@ class MockWriteBatch extends _i1.Mock implements _i6.WriteBatch {
   @override
   void update(
     _i6.DocumentReference<Object?>? document,
-    Map<String, dynamic>? data,
+    Map<Object, Object?>? data,
   ) => super.noSuchMethod(
     Invocation.method(#update, [document, data]),
     returnValueForMissingStub: null,
