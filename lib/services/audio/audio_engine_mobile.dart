@@ -35,6 +35,39 @@ class AudioEngine {
     }
   }
 
+  /// Pre-warm audio players to eliminate native initialization delay
+  /// This plays a silent buffer to complete platform channel setup
+  Future<void> preWarmPlayers() async {
+    if (!_initialized) return;
+
+    try {
+      // Trigger native platform initialization
+      await _player.setReleaseMode(ReleaseMode.stop);
+      await _player.setVolume(0.0);
+
+      // Generate and play silent buffer (10ms of silence)
+      final silentBuffer = _generateSilentBuffer();
+      await _player.play(BytesSource(silentBuffer));
+
+      // Wait for completion
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      debugPrint('[AudioEngine] Players pre-warmed');
+    } catch (e) {
+      debugPrint('[AudioEngine] Pre-warm failed: $e');
+      // Don't rethrow - pre-warm is optional optimization
+    }
+  }
+
+  /// Generate silent buffer for pre-warming
+  Uint8List _generateSilentBuffer() {
+    // 10ms of silence at 44100 Hz, 16-bit mono
+    final numSamples = (44100 * 0.01).round();
+    final bytes = Uint8List(numSamples * 2);
+    // All zeros = silence
+    return bytes;
+  }
+
   /// Play a click sound
   /// [isAccent] - true for accented beat (higher pitch)
   /// [waveType] - 'sine', 'square', 'triangle', or 'sawtooth'
