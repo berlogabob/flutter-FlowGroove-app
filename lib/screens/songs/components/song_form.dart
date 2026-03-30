@@ -100,7 +100,7 @@ class SongForm extends StatelessWidget {
   final Function(int)? onRegularBeatsChanged;
 
   /// Callback when a beat mode changes.
-  final Function(int, int, dynamic)? onBeatModeChanged;
+  final Function(int, int, BeatMode)? onBeatModeChanged;
 
   /// Callback when form is submitted (Enter key pressed).
   final VoidCallback? onSubmit;
@@ -139,12 +139,14 @@ class SongForm extends StatelessWidget {
     this.onRegularBeatsChanged,
     this.onBeatModeChanged,
     this.onSubmit,
-    required this.isEditing,
+    this.isEditing = false,
     this.accentBeats = 4,
     this.regularBeats = 1,
     this.beatModes = const [],
     this.sections = const [],
     this.onSectionsChanged,
+    this.bandId,
+    this.onSuggestionSelected,
   });
 
   @override

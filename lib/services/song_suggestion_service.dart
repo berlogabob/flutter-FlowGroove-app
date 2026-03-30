@@ -158,7 +158,7 @@ class SongSuggestionService {
             artist: song.artist,
             bandId: bandId,
             bandName: 'Band', // TODO: Get actual band name
-            bpm: song.originalBPM ?? song.ourBPM,
+            bpm: (song.originalBPM ?? song.ourBPM)?.toString(),
             key: song.originalKey ?? song.ourKey,
             canonicalSongId: song.canonicalSongId,
             isForkable: true, // Group songs can be forked to personal
