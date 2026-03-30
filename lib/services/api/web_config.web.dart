@@ -2,23 +2,18 @@
 /// This file is used only when building for web (dart.library.html)
 library;
 
-import 'dart:js_interop';
-
-// External access to window.env object
-@JS('window.env')
-external JSObject? get _env;
+import 'dart:js' as js;
 
 /// Get a value from window.env object
 String getWebConfig(String key) {
   try {
-    final env = _env;
+    final env = js.context['window']['env'];
     if (env == null) return '';
-    
-    // Dynamic property access
+
     final value = env[key];
     if (value == null) return '';
-    
-    return (value as JSString?)?.toDart ?? '';
+
+    return value.toString();
   } catch (e) {
     // Web config not available
     return '';
@@ -28,7 +23,8 @@ String getWebConfig(String key) {
 /// Check if window.env is available
 bool hasWebConfig() {
   try {
-    return _env != null;
+    final env = js.context['window']['env'];
+    return env != null;
   } catch (e) {
     return false;
   }
@@ -37,11 +33,11 @@ bool hasWebConfig() {
 /// Check if a specific key exists in window.env
 bool hasWebConfigKey(String key) {
   try {
-    final env = _env;
+    final env = js.context['window']['env'];
     if (env == null) return false;
-    
+
     final value = env[key];
-    return value != null && (value as JSString?)?.toDart.isNotEmpty == true;
+    return value != null && value.toString().isNotEmpty;
   } catch (e) {
     return false;
   }

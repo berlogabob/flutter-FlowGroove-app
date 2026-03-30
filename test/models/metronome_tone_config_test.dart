@@ -276,7 +276,7 @@ void main() {
       final config3 = MetronomeToneConfig.extreme();
 
       expect(config1, equals(config2));
-      expect(config1, isNot(equals(config3))));
+      expect(config1, isNot(equals(config3)));
     });
 
     // Test availablePresets
