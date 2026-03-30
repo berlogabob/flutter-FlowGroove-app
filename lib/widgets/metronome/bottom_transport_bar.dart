@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/metronome_selective_providers.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 /// Bottom transport bar with play/pause and navigation
 class BottomTransportBar extends ConsumerWidget {
@@ -132,7 +133,7 @@ class _PlayPauseButtonState extends State<_PlayPauseButton>
                           color: Theme.of(context)
                               .colorScheme
                               .primary
-                              .withOpacity(0.3),
+                              .withValues(alpha: 0.3),
                           blurRadius: 20,
                           spreadRadius: 5,
                         ),
@@ -215,7 +216,7 @@ class _LoadedContentDisplay extends StatelessWidget {
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.7),
+                        .withValues(alpha: 0.7),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -256,13 +257,12 @@ class _SetlistNavigation extends StatelessWidget {
           tooltip: 'Previous Song',
           color: canGoPrevious
               ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
         ),
         Text(
           '${currentIndex + 1} / $totalSongs',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
+          style: MonoPulseTypography.labelMedium.copyWith(
+            fontWeight: FontWeight.w700,
             color: Theme.of(context).colorScheme.primary,
           ),
         ),
@@ -272,7 +272,7 @@ class _SetlistNavigation extends StatelessWidget {
           tooltip: 'Next Song',
           color: canGoNext
               ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
         ),
       ],
     );

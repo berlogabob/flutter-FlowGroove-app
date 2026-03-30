@@ -13,6 +13,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/global_tone_config_provider.dart';
+import '../../theme/mono_pulse_theme.dart';
 import '../../models/metronome_tone_config.dart';
 
 /// Fullscreen tone settings dialog
@@ -175,7 +176,7 @@ class _PresetSelector extends StatelessWidget {
           'Presets',
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 12),
@@ -226,7 +227,7 @@ class _FrequencyMatrix extends StatelessWidget {
           'Frequencies',
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 12),
@@ -329,7 +330,7 @@ class _FrequencySlider extends StatelessWidget {
                 '${value.round()} Hz',
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ),
@@ -375,7 +376,7 @@ class _WaveTypeSelector extends StatelessWidget {
           'Wave Type',
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 12),
@@ -439,7 +440,10 @@ class _VolumeControl extends StatelessWidget {
             const Icon(Icons.volume_up, size: 20),
             Text(
               '${(currentVolume * 100).round()}%',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),
