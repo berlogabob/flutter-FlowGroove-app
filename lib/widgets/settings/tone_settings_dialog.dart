@@ -13,7 +13,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/global_tone_config_provider.dart';
-import '../../theme/mono_pulse_theme.dart';
 import '../../models/metronome_tone_config.dart';
 
 /// Fullscreen tone settings dialog
