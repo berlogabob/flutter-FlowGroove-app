@@ -436,19 +436,6 @@ class FirestoreSongRepository implements SongRepository {
   }
 
   @override
-  Stream<List<Song>> watchBandSongs(String bandId) {
-    _requireAuth();
-    return _firestore
-        .collection('bands')
-        .doc(bandId)
-        .collection('songs')
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Song.fromJson(doc.data()))
-            .toList());
-  }
-
-  @override
   Future<List<Song>> getSongs(String uid) async {
     try {
       final snapshot = await _firestore
