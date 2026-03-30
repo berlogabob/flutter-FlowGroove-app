@@ -140,9 +140,9 @@ List<List<BeatMode>> beatModesFromJson(
   else if (json is List) {
     for (int i = 0; i < json.length && i < accentBeats; i++) {
       if (json[i] is List) {
-        for (int j = 0; j < json[i].length && j < regularBeats; j++) {
+        for (int j = 0; j < (json[i] as List).length && j < regularBeats; j++) {
           final mode = BeatMode.values.firstWhere(
-            (m) => m.name == (json[i][j] as String),
+            (m) => m.name == ((json[i] as List)[j] as String),
             orElse: () => defaultMode,
           );
           grid[i][j] = mode;
