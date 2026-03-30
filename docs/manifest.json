@@ -1,11 +1,11 @@
 {
-    "name": "flutter_repsync_app",
-    "short_name": "flutter_repsync_app",
+    "name": "FlowGroove",
+    "short_name": "FlowGroove",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "FlowGroove - Band Repertoire Manager",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
