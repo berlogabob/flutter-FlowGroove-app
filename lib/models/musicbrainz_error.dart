@@ -19,6 +19,15 @@ sealed class MusicBrainzError implements Exception {
   }
 }
 
+/// Generic MusicBrainz error (non-sealed for general use)
+class MusicBrainzGenericError extends MusicBrainzError {
+  const MusicBrainzGenericError({
+    required super.message,
+    super.details,
+    super.originalError,
+  });
+}
+
 /// Rate limit exceeded (429)
 class RateLimitError extends MusicBrainzError {
   final Duration? retryAfter;

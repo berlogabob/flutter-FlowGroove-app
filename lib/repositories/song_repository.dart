@@ -44,4 +44,10 @@ abstract class SongRepository {
 
   /// Updates a song in a band's collection.
   Future<void> updateBandSong(Song song, String bandId);
+
+  /// Get all songs for a user
+  Future<List<Song>> getSongs(String uid);
+
+  /// Get all songs for a band
+  Future<List<Song>> getBandSongs(String bandId);
 }

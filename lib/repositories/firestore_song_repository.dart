@@ -434,4 +434,61 @@ class FirestoreSongRepository implements SongRepository {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
   }
+
+  @override
+  Stream<List<Song>> watchBandSongs(String bandId) {
+    _requireAuth();
+    return _firestore
+        .collection('bands')
+        .doc(bandId)
+        .collection('songs')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Song.fromJson(doc.data()))
+            .toList());
+  }
+
+  @override
+  Future<List<Song>> getSongs(String uid) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('songs')
+          .get()
+          .timeout(_firestoreTimeout);
+      
+      return snapshot.docs
+          .map((doc) => Song.fromJson(doc.data()))
+          .toList();
+    } on TimeoutException {
+      throw ApiError.network(
+        message: 'Request timed out. Please try again.',
+      );
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  @override
+  Future<List<Song>> getBandSongs(String bandId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('bands')
+          .doc(bandId)
+          .collection('songs')
+          .get()
+          .timeout(_firestoreTimeout);
+      
+      return snapshot.docs
+          .map((doc) => Song.fromJson(doc.data()))
+          .toList();
+    } on TimeoutException {
+      throw ApiError.network(
+        message: 'Request timed out. Please try again.',
+      );
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
 }
