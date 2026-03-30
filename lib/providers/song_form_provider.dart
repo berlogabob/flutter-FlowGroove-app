@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/song.dart';
 import '../models/api_error.dart';
@@ -280,16 +281,19 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
             ? existingSong.createdAt
             : DateTime.now(),
         bandId: bandId,
-        // Link to canonical song if suggestion was used
+      );
+      
+      // Update song with canonical linking if suggestion was used
+      final songWithCanonical = song.copyWith(
         canonicalSongId: state.selectedSuggestion?.canonicalSongId,
-        isFromMusicBrainz: state.selectedSuggestion?.source == 
+        isFromMusicBrainz: state.selectedSuggestion?.source ==
             SuggestionSource.musicbrainz,
       );
 
       if (bandId != null) {
-        await songRepo.saveBandSong(song, bandId);
+        await songRepo.saveBandSong(songWithCanonical, bandId);
       } else {
-        await songRepo.saveSong(song, uid: uid);
+        await songRepo.saveSong(songWithCanonical, uid: uid);
       }
 
       // Log analytics event for new song
@@ -421,9 +425,12 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     // Get songs for comparison
     List<Song> songsToCheck;
     if (bandId != null) {
-      songsToCheck = await songRepo.getBandSongs(bandId);
+      // Get band's songs from repository
+      final bandSongs = await songRepo.getBandSongs(bandId);
+      songsToCheck = bandSongs.map((s) => s).toList();
     } else {
-      songsToCheck = await songRepo.getSongsForUser(uid);
+      // Get user's personal songs
+      songsToCheck = await songRepo.getSongs(uid);
     }
 
     // Check each song for similarity

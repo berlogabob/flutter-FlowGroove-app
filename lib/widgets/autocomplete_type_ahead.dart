@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 
 import '../models/song_suggestion.dart';
 import '../services/song_suggestion_service.dart';
+import '../services/musicbrainz_service.dart';
+import '../repositories/firestore_song_repository.dart';
 import 'suggestion_card.dart';
 
 /// Autocomplete TypeAhead field for song search
