@@ -2,6 +2,8 @@
 /// This file is used only when building for web (dart.library.html)
 library;
 
+// Note: dart:js is used for web compatibility
+// ignore: deprecated_member_use
 import 'dart:js' as js;
 
 /// Get a value from window.env object

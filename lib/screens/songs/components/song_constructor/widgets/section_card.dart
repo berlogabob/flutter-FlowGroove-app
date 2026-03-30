@@ -55,8 +55,8 @@ class SectionCard extends StatelessWidget {
       style:
           Theme.of(
             context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold) ??
-          const TextStyle(fontWeight: FontWeight.bold),
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700) ??
+          const TextStyle(fontWeight: FontWeight.w700),
     );
   }
 

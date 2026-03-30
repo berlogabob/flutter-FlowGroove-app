@@ -83,7 +83,7 @@ class SongMatchDialog extends StatelessWidget {
                 Text(
                   song.title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -180,7 +180,7 @@ class SongMatchDialog extends StatelessWidget {
                         '${confidence.toStringAsFixed(0)}% Match',
                         style: MonoPulseTypography.bodySmall.copyWith(
                           color: _getGradeColor(grade),
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
@@ -206,7 +206,7 @@ class SongMatchDialog extends StatelessWidget {
                   'Your input:',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.grey.shade600,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -227,7 +227,7 @@ class SongMatchDialog extends StatelessWidget {
               'Differences detected:',
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             ..._buildDifferencesList(context, matchScore),

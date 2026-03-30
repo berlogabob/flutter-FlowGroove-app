@@ -99,7 +99,7 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
                 child: Text(
                   widget.song.title,
                   style: MonoPulseTypography.titleMedium.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     color: MonoPulseColors.textPrimary,
                   ),
                 ),
@@ -189,7 +189,7 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
         Text(
           'Select a band:',
           style: MonoPulseTypography.labelLarge.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 8),
@@ -224,7 +224,7 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
       title: Text(
         band.name,
         style: TextStyle(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
           color: isSelected
               ? MonoPulseColors.accentOrange
               : MonoPulseColors.textPrimary,

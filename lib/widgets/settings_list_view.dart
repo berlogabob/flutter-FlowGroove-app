@@ -64,7 +64,7 @@ class SettingsListView extends StatelessWidget {
           child: Text(
             section.title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: MonoPulseColors.textPrimary,
             ),
           ),

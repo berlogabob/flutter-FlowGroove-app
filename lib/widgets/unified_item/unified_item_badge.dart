@@ -18,7 +18,7 @@ class UnifiedItemBadge extends StatelessWidget {
       child: Text(
         text,
         style: MonoPulseTypography.labelSmall.copyWith(
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           color: color,
         ),
       ),
