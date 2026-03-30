@@ -28,7 +28,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void start(int bpm, int beatsPerMeasure) {
     if (state.isPlaying) return;
 
-    final clampedBpm = bpm.clamp(40, 220);
+    // NEW: BPM range restricted to industry standard (10-260 BPM)
+    final clampedBpm = bpm.clamp(10, 260);
     final timeSignature = TimeSignature(
       numerator: beatsPerMeasure,
       denominator: state.timeSignature.denominator,
@@ -245,7 +246,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Set tempo directly
   void setTempoDirectly(int bpm) {
-    final clampedBpm = bpm.clamp(1, 300);
+    // NEW: BPM range restricted to industry standard (10-260 BPM)
+    final clampedBpm = bpm.clamp(10, 260);
     state = state.copyWith(bpm: clampedBpm);
 
     if (state.isPlaying) {
