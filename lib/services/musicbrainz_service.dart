@@ -139,41 +139,6 @@ class MusicBrainzService {
       
       return MusicBrainzRecording.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        throw const NotFoundError(message: 'Recording not found');
-      }
-      throw _handleError(e);
-    }
-  }
-
-  /// Internal search implementation
-  Future<List<MusicBrainzRecording>> _search({
-    required String query,
-    required int limit,
-    int offset = 0,
-    List<String>? inc,
-  }) async {
-    await _enforceRateLimit();
-    
-    try {
-      final response = await _dio.get(
-        '$_baseUrl/recording',
-        queryParameters: {
-          'query': query,
-          'fmt': 'json',
-          'limit': limit.toString(),
-          'offset': offset.toString(),
-          'inc': inc?.join('+') ?? '',
-        },
-      );
-      
-      final data = response.data as Map<String, dynamic>;
-      final recordings = data['recordings'] as List<dynamic>? ?? [];
-      
-      return recordings
-          .map((r) => MusicBrainzRecording.fromJson(r as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
       throw _handleError(e);
     }
   }
@@ -188,7 +153,7 @@ class MusicBrainzService {
       if (elapsed < _rateLimitDelay) {
         final delay = _rateLimitDelay - elapsed;
         debugPrint('MusicBrainz rate limit: waiting ${delay.inMilliseconds}ms');
-        await Future.delayed(delay);
+        await Future.delayed<void>(delay);
       }
     }
     

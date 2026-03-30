@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/canonical_song.dart';
 
 /// Repository interface for canonical song data access
