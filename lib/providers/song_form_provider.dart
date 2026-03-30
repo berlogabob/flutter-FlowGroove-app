@@ -280,6 +280,10 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
             ? existingSong.createdAt
             : DateTime.now(),
         bandId: bandId,
+        // Link to canonical song if suggestion was used
+        canonicalSongId: state.selectedSuggestion?.canonicalSongId,
+        isFromMusicBrainz: state.selectedSuggestion?.source == 
+            SuggestionSource.musicbrainz,
       );
 
       if (bandId != null) {
@@ -401,7 +405,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
   }
 
   /// Check for potential duplicates before save.
-  /// Returns true if duplicate found and should show warning.
+  /// Returns the duplicate song if found (for warning dialog).
   Future<Song?> checkForDuplicates({
     required SongRepository songRepo,
     required String uid,
@@ -438,13 +442,89 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
         targetAlbum: song.album,
       );
 
-      // High confidence duplicate
+      // High confidence duplicate - show warning
       if (matchResult.overall >= 0.90) {
         return song;
       }
     }
 
     return null;
+  }
+
+  /// Save song after duplicate check
+  /// Shows warning if duplicate found, allows user to proceed or cancel
+  Future<bool> saveWithDuplicateCheck({
+    required SongRepository songRepo,
+    required String uid,
+    required BuildContext context,
+    String? bandId,
+    bool isEditing = false,
+    Song? existingSong,
+  }) async {
+    // Check for duplicates
+    final duplicate = await checkForDuplicates(
+      songRepo: songRepo,
+      uid: uid,
+      bandId: bandId,
+    );
+
+    // If duplicate found and not already using suggestion, show warning
+    if (duplicate != null && !state.isUsingSuggestion) {
+      final proceed = await _showDuplicateWarning(context, duplicate);
+      if (!proceed) {
+        return false; // User cancelled
+      }
+    }
+
+    // Proceed with save
+    return await saveSong(
+      songRepo: songRepo,
+      uid: uid,
+      bandId: bandId,
+      isEditing: isEditing,
+      existingSong: existingSong,
+    );
+  }
+
+  /// Show duplicate warning dialog
+  Future<bool> _showDuplicateWarning(
+    BuildContext context,
+    Song duplicate,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+        title: const Text('Similar Song Exists'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '"${duplicate.title}" by ${duplicate.artist}',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'A similar song already exists in your library. '
+              'Do you want to:',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false), // Cancel
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), // Proceed anyway
+            child: const Text('Save Anyway'),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
   }
 }
 

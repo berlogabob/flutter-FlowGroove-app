@@ -226,7 +226,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     ref.read(songFormStateProvider.notifier).setError(value);
   }
 
-  /// Save the song to Firestore.
+  /// Save the song to Firestore with duplicate check.
   Future<void> _saveSong() async {
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
@@ -238,32 +238,22 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       return;
     }
 
-    try {
-      final songRepo = ref.read(songRepositoryProvider);
-      final success = await ref
-          .read(songFormStateProvider.notifier)
-          .saveSong(
-            songRepo: songRepo,
-            uid: user.uid,
-            bandId: widget.bandId,
-            isEditing: _isEditing,
-            existingSong: widget.song,
-          );
+    final songRepo = ref.read(songRepositoryProvider);
+    final success = await ref
+        .read(songFormStateProvider.notifier)
+        .saveWithDuplicateCheck(
+          songRepo: songRepo,
+          uid: user.uid,
+          context: context,
+          bandId: widget.bandId,
+          isEditing: _isEditing,
+          existingSong: widget.song,
+        );
 
-      if (success && mounted) {
-        final formData = ref.read(songFormStateProvider).formData;
-        Navigator.pop(context);
-        showMessage('${formData.title} ${_isEditing ? 'updated' : 'added'}');
-      }
-    } on ApiError catch (e) {
-      debugPrint('ApiError while saving: ${e.message}');
-      handleError(e);
-      if (mounted) showMessage(e.message);
-    } catch (e, stackTrace) {
-      debugPrint('Exception while saving: $e');
-      final error = ApiError.fromException(e, stackTrace: stackTrace);
-      handleError(error);
-      if (mounted) showMessage(error.message);
+    if (success && mounted) {
+      final formData = ref.read(songFormStateProvider).formData;
+      Navigator.pop(context);
+      showMessage('${formData.title} ${_isEditing ? 'updated' : 'added'}');
     }
   }
 
