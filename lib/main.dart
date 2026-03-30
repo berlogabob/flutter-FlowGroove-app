@@ -15,6 +15,8 @@ import 'models/user.dart';
 import 'widgets/loading_indicator.dart';
 import 'utils/analytics_debug.dart';
 import 'services/analytics_service.dart';
+import 'services/audio/audio_engine_mobile.dart';
+import 'analytics/metronome_analytics.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,6 +67,36 @@ void main() async {
   try {
     await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
   } catch (_) {}
+
+  // Pre-initialize audio engine for instant first beat (50ms one-time cost)
+  if (!kIsWeb) {
+    final stopwatch = Stopwatch()..start();
+    Duration duration = Duration.zero;
+    
+    try {
+      final audioEngine = AudioEngine();
+      await audioEngine.initialize();
+      await audioEngine.preWarmPlayers();
+      
+      duration = stopwatch.elapsed;
+      debugPrint('✅ Audio pre-initialized in ${duration.inMilliseconds}ms');
+      
+      // Log analytics
+      await MetronomeAnalytics.logAudioInitialization(
+        success: true,
+        duration: duration,
+      );
+    } catch (e) {
+      duration = stopwatch.elapsed;
+      debugPrint('⚠️ Audio pre-initialization failed: $e');
+      // Graceful degradation - will initialize on first use
+      await MetronomeAnalytics.logAudioInitialization(
+        success: false,
+        duration: duration,
+        error: e.toString(),
+      );
+    }
+  }
 
   // Check if user is already logged in (from previous session)
   final currentUser = FirebaseAuth.instance.currentUser;
