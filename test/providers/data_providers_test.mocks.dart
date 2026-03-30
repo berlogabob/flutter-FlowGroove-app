@@ -134,6 +134,22 @@ class MockSongRepository extends _i1.Mock implements _i2.SongRepository {
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
           as _i3.Future<void>);
+
+  @override
+  _i3.Future<List<_i4.Song>> getSongs(String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSongs, [uid]),
+            returnValue: _i3.Future<List<_i4.Song>>.value(<_i4.Song>[]),
+          )
+          as _i3.Future<List<_i4.Song>>);
+
+  @override
+  _i3.Future<List<_i4.Song>> getBandSongs(String? bandId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBandSongs, [bandId]),
+            returnValue: _i3.Future<List<_i4.Song>>.value(<_i4.Song>[]),
+          )
+          as _i3.Future<List<_i4.Song>>);
 }
 
 /// A class which mocks [BandRepository].
