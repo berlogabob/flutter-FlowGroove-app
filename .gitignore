@@ -14,6 +14,7 @@ web/config.js
 
 # Chat exports (automatically moved to docs/archive/)
 chat-export-*.json
+chat-exports-collection/
 console-export-*.log
 qwen-code-export-*.md
 *-export-*.json
