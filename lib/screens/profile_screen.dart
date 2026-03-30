@@ -294,7 +294,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Link your Telegram account to automatically import your profile name and photo to RepSync.',
+              'Link your Telegram account to automatically import your profile name and photo to FlowGroove.',
               style: MonoPulseTypography.bodyMedium.copyWith(
                 color: MonoPulseColors.textSecondary,
               ),
@@ -335,7 +335,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               final opened = await telegramService.openBotChat(userId);
               if (!opened && mounted) {
                 // Try copying link to clipboard as fallback
-                final link = 'https://t.me/repsyncappbot?start=link_$userId';
+                final link = 'https://t.me/flowgroovebot?start=link_$userId';
                 await Clipboard.setData(ClipboardData(text: link));
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

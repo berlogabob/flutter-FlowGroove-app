@@ -434,13 +434,13 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
   }
 
   Future<void> _shareInvite() async {
-    const String domain = 'repsync-app-8685c.web.app';
+    const String domain = 'flowgroove.app';
 
     final message =
-        '🎸 Join my band "${widget.band.name}" on RepSync!\n\n'
+        '🎸 Join my band "${widget.band.name}" on FlowGroove!\n\n'
         'Use code: $_inviteCode\n'
         'Or click the link to join: https://$domain/join-band?code=$_inviteCode\n\n'
-        'Download RepSync: https://$domain';
+        'Download FlowGroove: https://$domain';
 
     final uri = Uri.parse('sms:?body=${Uri.encodeComponent(message)}');
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// Music API Test Script for RepSync
+/// Music API Test Script for FlowGroove
 ///
 /// This script tests all major music APIs for:
 /// - Response time
@@ -84,7 +84,7 @@ class MusicApiTester {
 
   Future<void> runAllTests() async {
     print('╔═══════════════════════════════════════════════════════════╗');
-    print('║         RepSync Music API Test Suite                      ║');
+    print('║         FlowGroove Music API Test Suite                      ║');
     print('║         Running comprehensive API tests...                ║');
     print('╚═══════════════════════════════════════════════════════════╝\n');
 
@@ -136,7 +136,7 @@ class MusicApiTester {
 
       final request = await HttpClient().getUrl(Uri.parse(url));
       request.headers.set('Accept', 'application/json');
-      request.headers.set('User-Agent', 'RepSync-Test/1.0');
+      request.headers.set('User-Agent', 'FlowGroove-Test/1.0');
 
       final response = await request.close();
       final body = await response.transform(utf8.decoder).join();

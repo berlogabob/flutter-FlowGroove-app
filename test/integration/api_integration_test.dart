@@ -399,7 +399,7 @@ void main() {
     test('validates MusicBrainz configuration', () async {
       final config = {
         'baseUrl': 'https://musicbrainz.org/ws/2',
-        'userAgent': 'RepSync/1.0.0',
+        'userAgent': 'FlowGroove/1.0.0',
         'rateLimit': 1,
       };
 

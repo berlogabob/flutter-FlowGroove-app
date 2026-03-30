@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/setlist.dart';
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/setlist.dart';
 import 'mock_repositories.dart';
 
 void main() {

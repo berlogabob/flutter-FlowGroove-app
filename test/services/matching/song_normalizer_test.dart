@@ -2,7 +2,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/services/matching/song_normalizer.dart';
+import 'package:flowgroove/services/matching/song_normalizer.dart';
 
 void main() {
   group('SongNormalizer.normalizeTitle', () {

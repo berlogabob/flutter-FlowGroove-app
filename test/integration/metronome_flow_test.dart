@@ -15,12 +15,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:flutter_repsync_app/models/metronome_state.dart';
-import 'package:flutter_repsync_app/models/metronome_preset.dart';
-import 'package:flutter_repsync_app/models/time_signature.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/beat_mode.dart';
-import 'package:flutter_repsync_app/providers/data/metronome_provider.dart';
+import 'package:flowgroove/models/metronome_state.dart';
+import 'package:flowgroove/models/metronome_preset.dart';
+import 'package:flowgroove/models/time_signature.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
 
 import '../helpers/mocks.mocks.dart';
 

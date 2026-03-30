@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:flutter_repsync_app/services/cache_service.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/setlist.dart';
-import 'package:flutter_repsync_app/models/link.dart';
+import 'package:flowgroove/services/cache_service.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/link.dart';
 
 void main() {
   group('CacheService', () {

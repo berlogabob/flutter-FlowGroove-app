@@ -1,4 +1,4 @@
-# RepSync
+# FlowGroove
 
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.19+-blue.svg)](https://flutter.dev)
 [![Dart Version](https://img.shields.io/badge/Dart-3.3+-blue.svg)](https://dart.dev)

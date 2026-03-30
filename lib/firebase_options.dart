@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
       projectId: 'repsync-app-8685c',
       authDomain: 'repsync-app-8685c.firebaseapp.com',
       storageBucket: 'repsync-app-8685c.firebasestorage.app',
-      iosBundleId: 'com.example.flutterRepsyncApp',
+      iosBundleId: 'com.flowgroove.app',
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/confirmation_dialog.dart';
+import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {

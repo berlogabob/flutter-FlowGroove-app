@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/link.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/link.dart';
 import 'mock_repositories.dart';
 
 void main() {

@@ -477,17 +477,17 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
       return;
     }
 
-    const String domain = 'repsync-app-8685c.web.app';
+    const String domain = 'flowgroove.app';
 
     final shareText =
-        'Join my band "${_band.name}" on RepSync!\n\n'
+        'Join my band "${_band.name}" on FlowGroove!\n\n'
         'Use invite code: $inviteCode\n\n'
         'Or click the link: https://$domain/join-band?code=$inviteCode';
 
     await SharePlus.instance.share(
       ShareParams(
         text: shareText,
-        subject: 'Join my band "${_band.name}" on RepSync',
+        subject: 'Join my band "${_band.name}" on FlowGroove',
       ),
     );
   }

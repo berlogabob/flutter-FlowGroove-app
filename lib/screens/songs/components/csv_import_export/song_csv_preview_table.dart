@@ -2,7 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_repsync_app/models/song.dart';
+import 'package:flowgroove/models/song.dart';
 import '../../../../theme/mono_pulse_theme.dart';
 
 /// Widget for displaying CSV import preview with validation errors.

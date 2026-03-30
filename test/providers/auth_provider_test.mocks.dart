@@ -9,10 +9,10 @@ import 'package:firebase_auth/firebase_auth.dart' as _i4;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart'
     as _i3;
 import 'package:firebase_core/firebase_core.dart' as _i2;
-import 'package:flutter_repsync_app/models/band.dart' as _i9;
-import 'package:flutter_repsync_app/models/setlist.dart' as _i10;
-import 'package:flutter_repsync_app/models/song.dart' as _i8;
-import 'package:flutter_repsync_app/services/cache_service.dart' as _i7;
+import 'package:flowgroove/models/band.dart' as _i9;
+import 'package:flowgroove/models/setlist.dart' as _i10;
+import 'package:flowgroove/models/song.dart' as _i8;
+import 'package:flowgroove/services/cache_service.dart' as _i7;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i6;
 

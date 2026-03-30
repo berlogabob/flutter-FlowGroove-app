@@ -7,12 +7,12 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
 
-import 'package:flutter_repsync_app/services/analytics_service.dart';
-import 'package:flutter_repsync_app/services/analytics_events.dart';
-import 'package:flutter_repsync_app/models/user.dart';
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/setlist.dart';
+import 'package:flowgroove/services/analytics_service.dart';
+import 'package:flowgroove/services/analytics_events.dart';
+import 'package:flowgroove/models/user.dart';
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/setlist.dart';
 
 // Mock Firebase Analytics
 class MockFirebaseAnalytics extends Mock implements FirebaseAnalytics {}

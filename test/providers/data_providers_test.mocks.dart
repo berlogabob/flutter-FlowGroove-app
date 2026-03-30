@@ -5,14 +5,14 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
 
-import 'package:flutter_repsync_app/models/band.dart' as _i6;
-import 'package:flutter_repsync_app/models/setlist.dart' as _i8;
-import 'package:flutter_repsync_app/models/song.dart' as _i4;
-import 'package:flutter_repsync_app/repositories/band_repository.dart' as _i5;
-import 'package:flutter_repsync_app/repositories/setlist_repository.dart'
+import 'package:flowgroove/models/band.dart' as _i6;
+import 'package:flowgroove/models/setlist.dart' as _i8;
+import 'package:flowgroove/models/song.dart' as _i4;
+import 'package:flowgroove/repositories/band_repository.dart' as _i5;
+import 'package:flowgroove/repositories/setlist_repository.dart'
     as _i7;
-import 'package:flutter_repsync_app/repositories/song_repository.dart' as _i2;
-import 'package:flutter_repsync_app/services/cache_service.dart' as _i9;
+import 'package:flowgroove/repositories/song_repository.dart' as _i2;
+import 'package:flowgroove/services/cache_service.dart' as _i9;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint

@@ -15,9 +15,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:flutter_repsync_app/screens/login_screen.dart';
-import 'package:flutter_repsync_app/screens/auth/register_screen.dart';
-import 'package:flutter_repsync_app/screens/auth/forgot_password_screen.dart';
+import 'package:flowgroove/screens/login_screen.dart';
+import 'package:flowgroove/screens/auth/register_screen.dart';
+import 'package:flowgroove/screens/auth/forgot_password_screen.dart';
 
 import '../helpers/integration_test_helpers.dart';
 

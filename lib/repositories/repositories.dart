@@ -1,4 +1,4 @@
-/// Repository pattern implementation for RepSync.
+/// Repository pattern implementation for FlowGroove.
 ///
 /// Repositories abstract data operations behind clean interfaces,
 /// enabling testability and swappable data sources.

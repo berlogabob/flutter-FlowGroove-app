@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/tools/tool_scaffold.dart';
+import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
 
 void main() {
   group('ToolSpacing Responsive Breakpoints', () {

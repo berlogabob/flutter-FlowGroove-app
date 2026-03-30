@@ -6,12 +6,12 @@ import 'package:hive/hive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:printing/printing.dart';
-import 'package:flutter_repsync_app/models/user.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/setlist.dart';
-import 'package:flutter_repsync_app/services/firestore_service.dart';
-import 'package:flutter_repsync_app/services/cache_service.dart';
+import 'package:flowgroove/models/user.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/services/firestore_service.dart';
+import 'package:flowgroove/services/cache_service.dart';
 
 @GenerateMocks([
   FirebaseAuth,

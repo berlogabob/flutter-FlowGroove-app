@@ -2,8 +2,8 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/services/csv/song_csv_service.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/services/csv/song_csv_service.dart';
 import '../../../../theme/mono_pulse_theme.dart';
 import '../../../../widgets/loading_indicator.dart';
 
@@ -109,7 +109,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
         ),
         const SizedBox(height: 16),
         Text(
-          'CSV file can be opened in Excel, Google Sheets, or imported back to RepSync',
+          'CSV file can be opened in Excel, Google Sheets, or imported back to FlowGroove',
           style: MonoPulseTypography.bodyMedium.copyWith(
             color: MonoPulseColors.textSecondary,
           ),

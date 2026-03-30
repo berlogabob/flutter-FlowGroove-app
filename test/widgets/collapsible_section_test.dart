@@ -1,7 +1,7 @@
 /// Tests for CollapsibleSection widget.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/screens/songs/components/collapsible_section.dart';
+import 'package:flowgroove/screens/songs/components/collapsible_section.dart';
 
 void main() {
   testWidgets('CollapsibleSection renders title and content', (

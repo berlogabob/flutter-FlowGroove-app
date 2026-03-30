@@ -317,7 +317,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       }
     }
     buffer.writeln();
-    buffer.writeln('Created with RepSync');
+    buffer.writeln('Created with FlowGroove');
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Setlist links copied to clipboard!')),

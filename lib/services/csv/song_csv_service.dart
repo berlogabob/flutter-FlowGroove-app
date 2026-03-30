@@ -84,7 +84,7 @@ class SongCsvService {
       // Get directory
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final filePath = '${directory.path}/repsync_export_$timestamp.csv';
+      final filePath = '${directory.path}/flowgroove_export_$timestamp.csv';
 
       // Write file with UTF-8 BOM for Excel compatibility
       final file = File(filePath);
@@ -115,8 +115,8 @@ class SongCsvService {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(filePath)],
-          subject: 'RepSync Song Export',
-          text: 'Exported ${songs.length} songs from RepSync',
+          subject: 'FlowGroove Song Export',
+          text: 'Exported ${songs.length} songs from FlowGroove',
         ),
       );
 

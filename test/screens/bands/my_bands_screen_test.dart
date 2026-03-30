@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_repsync_app/screens/bands/my_bands_screen.dart';
-import 'package:flutter_repsync_app/providers/data/data_providers.dart';
-import 'package:flutter_repsync_app/providers/auth/auth_provider.dart';
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/user.dart';
+import 'package:flowgroove/screens/bands/my_bands_screen.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/user.dart';
 import '../../helpers/test_helpers.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/mocks.mocks.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/link_chip.dart';
-import 'package:flutter_repsync_app/models/link.dart';
+import 'package:flowgroove/widgets/link_chip.dart';
+import 'package:flowgroove/models/link.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/error_banner.dart';
+import 'package:flowgroove/widgets/error_banner.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {
