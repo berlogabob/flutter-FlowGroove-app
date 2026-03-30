@@ -1,5 +1,5 @@
 """
-Firestore Service for RepSync Bot
+Firestore Service for FlowGroove Bot
 """
 import os
 import firebase_admin
@@ -7,7 +7,7 @@ from firebase_admin import credentials, firestore
 
 def init_firestore(credentials_path: str):
     """Initialize Firebase Admin SDK and return Firestore client"""
-    
+
     # Check if credentials file exists
     if not os.path.exists(credentials_path):
         # Try to use default credentials
@@ -18,15 +18,15 @@ def init_firestore(credentials_path: str):
             print(f"Error initializing Firebase with default credentials: {e}")
             print("Please provide serviceAccountKey.json")
             return None
-    
+
     # Initialize with credentials file
     cred = credentials.Certificate(credentials_path)
     firebase_admin.initialize_app(cred)
-    
+
     return firestore.client()
 
 async def link_user_account(db, telegram_id: str, user_id: str, telegram_data: dict):
-    """Link Telegram account to RepSync user"""
+    """Link Telegram account to FlowGroove user"""
     
     try:
         # Check if Telegram ID is already linked
@@ -39,8 +39,8 @@ async def link_user_account(db, telegram_id: str, user_id: str, telegram_data: d
                 'error': 'already_linked',
                 'message': 'Telegram account already linked'
             }
-        
-        # Find RepSync user
+
+        # Find FlowGroove user
         user_doc = users_ref.document(user_id).get()
         
         if not user_doc.exists:
@@ -78,7 +78,7 @@ async def link_user_account(db, telegram_id: str, user_id: str, telegram_data: d
         }
 
 async def unlink_user_account(db, telegram_id: str):
-    """Unlink Telegram account from RepSync"""
+    """Unlink Telegram account from FlowGroove"""
     
     try:
         users_ref = db.collection('users')

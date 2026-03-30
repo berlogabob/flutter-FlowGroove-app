@@ -50,7 +50,7 @@ async def handle_reply_command(message: Message):
 {reply_text}
 
 ---
-*RepSync Support Team*""",
+*FlowGroove Support Team*""",
             parse_mode="Markdown",
         )
 

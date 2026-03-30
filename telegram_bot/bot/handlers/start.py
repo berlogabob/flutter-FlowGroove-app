@@ -23,12 +23,12 @@ async def handle_start(message: Message):
     username = message.from_user.username or message.from_user.first_name
 
     # Welcome message
-    welcome_text = f"""👋 *Welcome to RepSync!*
+    welcome_text = f"""👋 *Welcome to FlowGroove!*
 
-Hello {username}! I'm the RepSync bot.
+Hello {username}! I'm the FlowGroove bot.
 
 *What I can do:*
-• Link your Telegram account to RepSync app
+• Link your Telegram account to FlowGroove app
 • Create personal support topic
 • Send you notifications about band activities
 • Import your profile photo automatically
@@ -85,7 +85,7 @@ Need help? Use /help"""
 
         await message.answer(
             f"🔗 *Linking Account*\n\n"
-            f"Attempting to link your Telegram account to RepSync...\n\n"
+            f"Attempting to link your Telegram account to FlowGroove...\n\n"
             f"User ID: `{clean_user_id}`",
             parse_mode="Markdown",
         )

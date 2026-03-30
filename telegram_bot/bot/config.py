@@ -1,5 +1,5 @@
 """
-RepSync Telegram Bot Configuration
+FlowGroove Telegram Bot Configuration
 """
 
 import os
@@ -29,8 +29,8 @@ class Config:
     ]
 
     # Bot Info
-    BOT_NAME = "RepSync Bot"
-    SUPPORT_USERNAME = "@repsync_support"
+    BOT_NAME = "FlowGroove Bot"
+    SUPPORT_USERNAME = "@flowgroove_support"
 
     # Webhook
     WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")

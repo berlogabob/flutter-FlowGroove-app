@@ -24,7 +24,7 @@ async def handle_support_message(message: Message):
     # Get support group ID
     if not hasattr(message.bot, "config") or not message.bot.config.SUPPORT_GROUP_ID:
         await message.answer(
-            "⚠️ *Support Not Configured*\n\nPlease contact @repsync_support directly.",
+            "⚠️ *Support Not Configured*\n\nPlease contact @flowgroove_support directly.",
             parse_mode="Markdown",
         )
         return
@@ -61,6 +61,6 @@ async def handle_support_message(message: Message):
         await message.answer(
             "❌ *Error*\n\n"
             "Failed to send message to support. "
-            "Please try again later or contact @repsync_support.",
+            "Please try again later or contact @flowgroove_support.",
             parse_mode="Markdown",
         )

@@ -40,7 +40,7 @@ class SupportTopicService:
             await self.bot.send_message(
                 chat_id=self.group_id,
                 message_thread_id=topic.message_thread_id,
-                text=f"""👋 Welcome to RepSync Support!
+                text=f"""👋 Welcome to FlowGroove Support!
 
 Your personal support topic has been created.
 

@@ -28,7 +28,7 @@ async def handle_unlink(message: Message):
     
     if result['success']:
         await message.answer(
-            "✅ Your Telegram account has been unlinked from RepSync.",
+            "✅ Your Telegram account has been unlinked from FlowGroove.",
             parse_mode='Markdown'
         )
     else:
