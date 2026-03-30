@@ -1,69 +1,52 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
+
 import '../models/song_suggestion.dart';
 
-/// Provider for autocomplete state management
-final autocompleteStateProvider = StateNotifierProvider<AutocompleteStateNotifier, AutocompleteState>((ref) {
-  return AutocompleteStateNotifier();
-});
+/// Simple notifier for autocomplete state (using ChangeNotifier instead of StateNotifier)
+class AutocompleteNotifier extends ChangeNotifier {
+  String _query = '';
+  List<SongSuggestion> _suggestions = [];
+  bool _isLoading = false;
+  String? _error;
+  SongSuggestion? _selectedSuggestion;
 
-/// Current autocomplete state
-class AutocompleteState {
-  final String query;
-  final List<SongSuggestion> suggestions;
-  final bool isLoading;
-  final String? error;
-  final SongSuggestion? selectedSuggestion;
-
-  const AutocompleteState({
-    this.query = '',
-    this.suggestions = const [],
-    this.isLoading = false,
-    this.error,
-    this.selectedSuggestion,
-  });
-
-  AutocompleteState copyWith({
-    String? query,
-    List<SongSuggestion>? suggestions,
-    bool? isLoading,
-    String? error,
-    SongSuggestion? selectedSuggestion,
-  }) {
-    return AutocompleteState(
-      query: query ?? this.query,
-      suggestions: suggestions ?? this.suggestions,
-      isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
-      selectedSuggestion: selectedSuggestion ?? this.selectedSuggestion,
-    );
-  }
-}
-
-/// State notifier for managing autocomplete state
-class AutocompleteStateNotifier extends StateNotifier<AutocompleteState> {
-  AutocompleteStateNotifier() : super(const AutocompleteState());
+  String get query => _query;
+  List<SongSuggestion> get suggestions => _suggestions;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  SongSuggestion? get selectedSuggestion => _selectedSuggestion;
 
   void updateQuery(String query) {
-    state = state.copyWith(query: query);
+    _query = query;
+    notifyListeners();
   }
 
   void setLoading(bool loading) {
-    state = state.copyWith(isLoading: loading);
+    _isLoading = loading;
+    notifyListeners();
   }
 
   void setSuggestions(List<SongSuggestion> suggestions) {
-    state = state.copyWith(suggestions: suggestions);
+    _suggestions = suggestions;
+    notifyListeners();
   }
 
   void setError(String? error) {
-    state = state.copyWith(error: error);
+    _error = error;
+    notifyListeners();
   }
 
   void selectSuggestion(SongSuggestion? suggestion) {
-    state = state.copyWith(selectedSuggestion: suggestion);
+    _selectedSuggestion = suggestion;
+    notifyListeners();
   }
 
   void clear() {
-    state = const AutocompleteState();
+    _query = '';
+    _suggestions = [];
+    _isLoading = false;
+    _error = null;
+    _selectedSuggestion = null;
+    notifyListeners();
   }
 }
