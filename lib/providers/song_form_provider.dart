@@ -4,8 +4,10 @@ import '../models/song.dart';
 import '../models/api_error.dart';
 import '../models/link.dart';
 import '../models/section.dart';
+import '../models/song_suggestion.dart';
 import '../repositories/song_repository.dart';
 import '../services/analytics_service.dart';
+import '../services/matching/fuzzy_matcher.dart';
 import '../screens/songs/models/song_form_data.dart';
 
 /// Provider for managing song form state.
@@ -26,6 +28,10 @@ class SongFormState {
   final bool isAutoSaving;
   final bool isSaving;
   final bool isLoading;
+  
+  // Autocomplete fields
+  final SongSuggestion? selectedSuggestion;
+  final bool isUsingSuggestion;
 
   const SongFormState({
     required this.formData,
@@ -34,6 +40,8 @@ class SongFormState {
     this.isAutoSaving = false,
     this.isSaving = false,
     this.isLoading = false,
+    this.selectedSuggestion,
+    this.isUsingSuggestion = false,
   });
 
   SongFormState copyWith({
@@ -43,6 +51,8 @@ class SongFormState {
     bool? isAutoSaving,
     bool? isSaving,
     bool? isLoading,
+    SongSuggestion? selectedSuggestion,
+    bool? isUsingSuggestion,
   }) {
     return SongFormState(
       formData: formData ?? this.formData,
@@ -51,6 +61,8 @@ class SongFormState {
       isAutoSaving: isAutoSaving ?? this.isAutoSaving,
       isSaving: isSaving ?? this.isSaving,
       isLoading: isLoading ?? this.isLoading,
+      selectedSuggestion: selectedSuggestion ?? this.selectedSuggestion,
+      isUsingSuggestion: isUsingSuggestion ?? this.isUsingSuggestion,
     );
   }
 
@@ -350,6 +362,89 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
   /// Reset form from song.
   void resetFromSong(Song song) {
     state = SongFormState.fromSong(song);
+  }
+
+  // ============================================================
+  // AUTOCOMPLETE INTEGRATION
+  // ============================================================
+
+  /// Handle selection of a song suggestion from autocomplete.
+  void selectSuggestion(SongSuggestion suggestion) {
+    state = state.copyWith(
+      selectedSuggestion: suggestion,
+      isUsingSuggestion: true,
+      formData: state.formData.copyWith(
+        title: suggestion.title,
+        artist: suggestion.artist,
+      ),
+    );
+    markAsChanged();
+  }
+
+  /// Clear selected suggestion and allow manual editing.
+  void clearSuggestion() {
+    state = state.copyWith(
+      selectedSuggestion: null,
+      isUsingSuggestion: false,
+    );
+  }
+
+  /// Apply suggestion data to form fields.
+  void applySuggestionToForm(SongSuggestion suggestion) {
+    state = state.copyWith(
+      formData: state.formData.copyWith(
+        title: suggestion.title,
+        artist: suggestion.artist,
+      ),
+    );
+    markAsChanged();
+  }
+
+  /// Check for potential duplicates before save.
+  /// Returns true if duplicate found and should show warning.
+  Future<Song?> checkForDuplicates({
+    required SongRepository songRepo,
+    required String uid,
+    String? bandId,
+  }) async {
+    final title = state.formData.title.trim();
+    final artist = state.formData.artist.trim();
+    
+    if (title.isEmpty || artist.isEmpty) {
+      return null;
+    }
+
+    // Get songs for comparison
+    List<Song> songsToCheck;
+    if (bandId != null) {
+      songsToCheck = await songRepo.getBandSongs(bandId);
+    } else {
+      songsToCheck = await songRepo.getSongsForUser(uid);
+    }
+
+    // Check each song for similarity
+    for (final song in songsToCheck) {
+      // Skip if this is the same song (editing)
+      if (state.selectedSuggestion != null && 
+          state.selectedSuggestion!.id == song.id) {
+        continue;
+      }
+
+      final matchResult = FuzzyMatcher.calculateMatchScore(
+        inputTitle: title,
+        inputArtist: artist,
+        targetTitle: song.title,
+        targetArtist: song.artist,
+        targetAlbum: song.album,
+      );
+
+      // High confidence duplicate
+      if (matchResult.overall >= 0.90) {
+        return song;
+      }
+    }
+
+    return null;
   }
 }
 
