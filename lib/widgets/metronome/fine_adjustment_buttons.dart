@@ -93,7 +93,7 @@ class _AdjustButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           borderRadius: BorderRadius.circular(8),

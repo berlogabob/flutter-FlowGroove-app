@@ -14,6 +14,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../theme/mono_pulse_theme.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/metronome_selective_providers.dart';
 
@@ -88,18 +89,16 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
                           fontSize: 64,
                           fontWeight: FontWeight.bold,
                           color: state.isPlaying
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.onSurface,
+                              ? MonoPulseColors.accentOrange
+                              : MonoPulseColors.textPrimary,
                         ),
                       ),
                       Text(
                         'BPM',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withOpacity(0.7),
+                          color: MonoPulseColors.textSecondary
+                              .withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -195,7 +194,7 @@ class TempoDialPainter extends CustomPainter {
 
     // Draw outer ring
     final ringPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.3)
+      ..color = MonoPulseColors.textTertiary.withValues(alpha: 0.3)
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
     canvas.drawCircle(center, radius, ringPaint);
@@ -209,7 +208,7 @@ class TempoDialPainter extends CustomPainter {
 
   void _drawTickMarks(Canvas canvas, Offset center, double radius) {
     final tickPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.5)
+      ..color = MonoPulseColors.textTertiary.withValues(alpha: 0.5)
       ..strokeWidth = 2;
 
     final labelPaint = TextPainter(
@@ -236,15 +235,10 @@ class TempoDialPainter extends CustomPainter {
       labelPaint.text = TextSpan(
         text: tick.toString(),
         style: const TextStyle(
-          color: Colors.grey,
+          color: MonoPulseColors.textTertiary,
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
-      );
-      labelPaint.layout();
-      labelPaint.paint(
-        canvas,
-        Offset(labelX - labelPaint.width / 2, labelY - labelPaint.height / 2),
       );
     }
   }
@@ -256,14 +250,14 @@ class TempoDialPainter extends CustomPainter {
 
     // Draw handle circle
     final handlePaint = Paint()
-      ..color = isPlaying ? Colors.orange : Colors.grey
+      ..color = isPlaying ? MonoPulseColors.accentOrange : MonoPulseColors.textTertiary
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(handleX, handleY), 8, handlePaint);
 
     // Draw glow effect when playing
     if (isPlaying) {
       final glowPaint = Paint()
-        ..color = Colors.orange.withOpacity(0.3)
+        ..color = MonoPulseColors.accentOrange.withValues(alpha: 0.3)
         ..style = PaintingStyle.fill
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
       canvas.drawCircle(Offset(handleX, handleY), 12, glowPaint);

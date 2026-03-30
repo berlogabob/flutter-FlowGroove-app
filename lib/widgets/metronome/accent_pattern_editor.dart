@@ -12,6 +12,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../theme/mono_pulse_theme.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../models/beat_mode.dart';
 
@@ -34,7 +35,7 @@ class AccentPatternEditor extends ConsumerWidget {
               'Beat Pattern',
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
             TextButton(
@@ -127,7 +128,7 @@ class _GridHeader extends StatelessWidget {
             'Beats: $accentBeats',
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
@@ -137,7 +138,7 @@ class _GridHeader extends StatelessWidget {
             'Subdivisions: $regularBeats',
             style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Theme.of(context).colorScheme.secondary,
             ),
             textAlign: TextAlign.right,
@@ -219,9 +220,9 @@ class _BeatModeCell extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           border: Border.all(color: color, width: 2),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(MonoPulseRadius.small),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -233,14 +234,14 @@ class _BeatModeCell extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 color: color,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
             Text(
               '${beatIndex + 1}.${subIndex + 1}',
               style: TextStyle(
                 fontSize: 8,
-                color: color.withOpacity(0.7),
+                color: color.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -252,11 +253,11 @@ class _BeatModeCell extends StatelessWidget {
   Color _getModeColor(BuildContext context) {
     switch (mode) {
       case BeatMode.normal:
-        return Colors.grey;
+        return MonoPulseColors.textTertiary;
       case BeatMode.accent:
         return Theme.of(context).colorScheme.primary;
       case BeatMode.silent:
-        return Colors.grey.withOpacity(0.3);
+        return MonoPulseColors.textTertiary.withValues(alpha: 0.3);
     }
   }
 
@@ -342,11 +343,11 @@ class _LegendItem extends StatelessWidget {
   Color _getModeColor(BuildContext context) {
     switch (mode) {
       case BeatMode.normal:
-        return Colors.grey;
+        return MonoPulseColors.textTertiary;
       case BeatMode.accent:
         return Theme.of(context).colorScheme.primary;
       case BeatMode.silent:
-        return Colors.grey.withOpacity(0.3);
+        return MonoPulseColors.textTertiary.withValues(alpha: 0.3);
     }
   }
 

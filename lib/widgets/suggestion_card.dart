@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/mono_pulse_theme.dart';
 import '../models/song_suggestion.dart';
 import 'source_icon.dart';
 import 'match_score_badge.dart';
@@ -39,17 +40,17 @@ class SuggestionCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      hoverColor: colorScheme.primary.withOpacity(0.04),
-      highlightColor: colorScheme.primary.withOpacity(0.08),
+      hoverColor: colorScheme.primary.withValues(alpha: 0.04),
+      highlightColor: colorScheme.primary.withValues(alpha: 0.08),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(MonoPulseSpacing.md),
         decoration: BoxDecoration(
           color: isSelected
               ? colorScheme.primaryContainer
               : Colors.transparent,
           border: Border(
             bottom: BorderSide(
-              color: colorScheme.outline.withOpacity(0.05),
+              color: colorScheme.outline.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
@@ -95,7 +96,7 @@ class SuggestionCard extends StatelessWidget {
                   child: Text(
                     suggestion.artist,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.7),
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -218,10 +219,10 @@ class _Badge extends StatelessWidget {
     final badge = Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -231,7 +232,7 @@ class _Badge extends StatelessWidget {
           Icon(
             icon,
             size: 12,
-            color: color.withOpacity(opacity ?? 1.0),
+            color: color.withValues(alpha: opacity ?? 1.0),
           ),
           const SizedBox(width: 3),
           Flexible(
@@ -239,7 +240,7 @@ class _Badge extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: color.withOpacity(opacity ?? 1.0),
+                color: color.withValues(alpha: opacity ?? 1.0),
                 fontWeight: FontWeight.w500,
               ),
               maxLines: 1,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// Match score badge for song suggestions
 /// 
@@ -37,10 +38,10 @@ class MatchScoreBadge extends StatelessWidget {
       height: size,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -72,13 +73,13 @@ class MatchScoreBadge extends StatelessWidget {
 
   Color _getColor() {
     if (score >= 0.90) {
-      return Colors.green;
+      return MonoPulseColors.matchExact;
     } else if (score >= 0.75) {
-      return Colors.orange;
+      return MonoPulseColors.matchMedium;
     } else if (score >= 0.60) {
-      return Colors.deepOrange;
+      return MonoPulseColors.matchLow;
     } else {
-      return Colors.red;
+      return MonoPulseColors.matchNone;
     }
   }
 
@@ -115,13 +116,13 @@ class MatchQualityDot extends StatelessWidget {
 
   Color _getColor() {
     if (score >= 0.90) {
-      return Colors.green;
+      return MonoPulseColors.matchExact;
     } else if (score >= 0.75) {
-      return Colors.orange;
+      return MonoPulseColors.matchMedium;
     } else if (score >= 0.60) {
-      return Colors.deepOrange;
+      return MonoPulseColors.matchLow;
     } else {
-      return Colors.red;
+      return MonoPulseColors.matchNone;
     }
   }
 }
