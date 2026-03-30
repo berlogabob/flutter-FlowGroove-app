@@ -106,7 +106,7 @@ class SongCsvPreviewTable extends StatelessWidget {
           Text(
             'Import Errors:',
             style: MonoPulseTypography.titleLarge.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),

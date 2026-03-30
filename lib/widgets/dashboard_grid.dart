@@ -92,7 +92,7 @@ class DashboardGrid extends StatelessWidget {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w700,
         color: MonoPulseColors.textPrimary,
       ),
     );
@@ -190,7 +190,7 @@ class StatCard extends StatelessWidget {
             Text(
               value,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: color,
               ),
             ),
@@ -397,7 +397,7 @@ class GreetingCard extends StatelessWidget {
                     initial,
                     style: MonoPulseTypography.headlineSmall.copyWith(
                       color: MonoPulseColors.accentOrange,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   )
                 : null,
@@ -410,7 +410,7 @@ class GreetingCard extends StatelessWidget {
                 Text(
                   'Hello, $userName!',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     color: MonoPulseColors.textPrimary,
                   ),
                 ),

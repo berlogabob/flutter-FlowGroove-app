@@ -158,6 +158,7 @@ class SongCsvService {
           name: 'Intro',
           notes: '',
           duration: 4,
+          // ignore: deprecated_member_use
           colorValue: MonoPulseColors.section5.value!,
         ),
         Section(
@@ -165,6 +166,7 @@ class SongCsvService {
           name: 'Verse',
           notes: '',
           duration: 8,
+          // ignore: deprecated_member_use
           colorValue: MonoPulseColors.section8.value!,
         ),
       ],

@@ -382,12 +382,14 @@ class _WaveTypeSelector extends StatelessWidget {
         const SizedBox(height: 12),
         ...waveTypes.map((wave) {
           final waveName = wave['name'] as String;
-          final isSelected = waveName.toLowerCase() == currentWaveType.toLowerCase();
+          // ignore: deprecated_member_use
           return RadioListTile<String>(
             title: Text(waveName),
             subtitle: Text(wave['desc'] as String),
             value: waveName.toLowerCase(),
+            // ignore: deprecated_member_use
             groupValue: currentWaveType.toLowerCase(),
+            // ignore: deprecated_member_use
             onChanged: (value) {
               if (value != null) {
                 onWaveTypeChanged(value);
@@ -420,7 +422,7 @@ class _VolumeControl extends StatelessWidget {
           'Volume',
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 12),

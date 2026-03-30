@@ -267,7 +267,7 @@ class MetronomePatternEditor extends StatelessWidget {
               '${beatIndex + 1}',
               style: MonoPulseTypography.labelMedium.copyWith(
                 color: MonoPulseColors.textSecondary,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
             ),

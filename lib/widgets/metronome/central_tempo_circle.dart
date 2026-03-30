@@ -87,7 +87,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
                         state.bpm.toString(),
                         style: TextStyle(
                           fontSize: 64,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           color: state.isPlaying
                               ? MonoPulseColors.accentOrange
                               : MonoPulseColors.textPrimary,
@@ -237,7 +237,7 @@ class TempoDialPainter extends CustomPainter {
         style: const TextStyle(
           color: MonoPulseColors.textTertiary,
           fontSize: 12,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
         ),
       );
     }

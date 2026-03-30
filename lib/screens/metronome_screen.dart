@@ -343,7 +343,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
             child: Text(
               'Update',
               style: MonoPulseTypography.labelLarge.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),

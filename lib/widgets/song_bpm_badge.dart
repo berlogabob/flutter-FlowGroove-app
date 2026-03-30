@@ -36,7 +36,7 @@ class SongBPMBadge extends StatelessWidget {
             Text(
               '$bpm BPM',
               style: MonoPulseTypography.bodyMedium.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: MonoPulseColors.accentOrange,
               ),
             ),

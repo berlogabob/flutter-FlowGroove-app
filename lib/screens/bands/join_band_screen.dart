@@ -315,7 +315,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                 _band!.name.isNotEmpty ? _band!.name[0].toUpperCase() : '?',
                 style: MonoPulseTypography.headlineLarge.copyWith(
                   color: MonoPulseColors.textPrimary,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),

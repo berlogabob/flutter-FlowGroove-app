@@ -41,7 +41,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 )
               : MonoPulseTypography.bodyLarge.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
         ),
         subtitle: _buildSubtitle(context),
@@ -122,7 +122,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
                 '$displayBPM BPM',
                 style: MonoPulseTypography.bodySmall.copyWith(
                   color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -230,7 +230,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
             song.ourKey!,
             style: MonoPulseTypography.bodySmall.copyWith(
               color: MonoPulseColors.accentOrange,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
         );
@@ -240,7 +240,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
             song.originalKey!,
             style: MonoPulseTypography.bodySmall.copyWith(
               color: MonoPulseColors.textTertiary,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
         );

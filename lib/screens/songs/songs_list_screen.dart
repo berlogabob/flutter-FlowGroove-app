@@ -367,7 +367,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                 Text(
                   'Filter Options',
                   style: MonoPulseTypography.titleLarge.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 16),

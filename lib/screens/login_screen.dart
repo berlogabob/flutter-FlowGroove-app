@@ -129,7 +129,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Text(
                 'FlowGroove',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
                 textAlign: TextAlign.center,
               ),

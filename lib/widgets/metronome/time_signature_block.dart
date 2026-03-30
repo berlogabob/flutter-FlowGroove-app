@@ -705,7 +705,7 @@ class _BeatButton extends StatelessWidget {
                           '$badgeCount',
                           style: TextStyle(
                             fontSize: badgeFontSize,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             color: MonoPulseColors.black,
                           ),
                         ),
