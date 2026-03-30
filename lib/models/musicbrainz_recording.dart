@@ -187,24 +187,6 @@ class MusicBrainzRecording extends Equatable {
   /// Check if this recording has ISRC
   bool get hasISRC => isrcs.isNotEmpty;
 
-  /// Convert to CanonicalSong
-  CanonicalSong toCanonicalSong() {
-    return CanonicalSong(
-      id: id,
-      title: title.trim(),
-      artist: artist.trim(),
-      artists: artists.map((a) => a.trim()).toList(),
-      album: album,
-      releaseYear: releaseYear,
-      durationMs: lengthMs,
-      isrc: isrc,
-      musicBrainzId: id,
-      disambiguation: disambiguation,
-      normalizedTitle: title.toLowerCase().trim(),
-      normalizedArtist: artist.toLowerCase().trim(),
-    );
-  }
-
   @override
   List<Object?> get props => [
         id,

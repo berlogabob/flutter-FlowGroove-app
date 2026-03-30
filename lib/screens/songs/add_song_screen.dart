@@ -8,7 +8,6 @@ import '../../models/song_suggestion.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/song_form_provider.dart';
-import '../../providers/song_autocomplete_provider.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';

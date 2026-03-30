@@ -132,7 +132,7 @@ class CanonicalSong extends Equatable {
       artist: artist.trim(),
       album: album?.trim(),
       releaseYear: releaseYear,
-      genres: genres,
+      genres: genres ?? [],
       normalizedTitle: title.toLowerCase().trim(),
       normalizedArtist: artist.toLowerCase().trim(),
     );

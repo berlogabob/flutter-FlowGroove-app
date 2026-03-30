@@ -78,7 +78,6 @@ class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
   Timer? _debounceTimer;
   
   int _selectedIndex = -1;
-  SongSuggestionService? _suggestionService;
 
   @override
   void initState() {
@@ -142,11 +141,11 @@ class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
     });
 
     try {
-      // TODO: Use provider
+      final user = FirebaseAuth.instance.currentUser;
       final service = SongSuggestionService(
-        songRepo: _getSongRepo(),
-        musicBrainz: _getMusicBrainzService(),
-        userId: _getUserId(),
+        songRepo: FirestoreSongRepository(),
+        musicBrainz: MusicBrainzService(),
+        userId: user?.uid ?? '',
         bandId: widget.bandId,
       );
 
@@ -173,11 +172,6 @@ class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
       });
     }
   }
-
-  // TODO: Replace with proper dependency injection
-  dynamic _getSongRepo() => null;
-  dynamic _getMusicBrainzService() => null;
-  String _getUserId() => 'current-user'; // TODO: Get from auth
 
   void _showOverlay() {
     if (_overlayEntry != null) return;

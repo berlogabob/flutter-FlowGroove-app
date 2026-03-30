@@ -27,13 +27,13 @@ import 'matching/fuzzy_matcher.dart';
 /// );
 /// ```
 class SongSuggestionService {
-  final SongRepository _songRepo;
+  final FirestoreSongRepository _songRepo;
   final MusicBrainzService _musicBrainz;
   final String _userId;
   final String? _bandId;
 
   SongSuggestionService({
-    required SongRepository songRepo,
+    required FirestoreSongRepository songRepo,
     required MusicBrainzService musicBrainz,
     required String userId,
     String? bandId,
@@ -190,7 +190,7 @@ class SongSuggestionService {
                 id: rec.id,
                 title: rec.title,
                 artist: rec.artist,
-                musicBrainzId: rec.musicBrainzId,
+                musicBrainzId: rec.id,
                 durationMs: rec.lengthMs,
                 releaseYear: rec.releaseYear,
                 album: rec.album,

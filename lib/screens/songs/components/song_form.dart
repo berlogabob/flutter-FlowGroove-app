@@ -4,7 +4,6 @@ import '../../../models/beat_mode.dart';
 import '../../../models/section.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/autocomplete_type_ahead.dart';
-import '../../../widgets/suggestion_selection_dialog.dart';
 import '../../../models/song_suggestion.dart';
 import 'bpm_selector.dart';
 import 'links_editor.dart';
