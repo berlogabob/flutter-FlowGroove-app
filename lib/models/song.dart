@@ -96,6 +96,13 @@ class Song {
   final String? variantType; // 'original', 'live', 'acoustic', 'remix', etc.
   final String? variantOf; // ID of original song if this is a variant
 
+  /// Link to canonical song (global song database)
+  final String? canonicalSongId;
+
+  /// Whether this song data came from MusicBrainz
+  @JsonKey(defaultValue: false)
+  final bool isFromMusicBrainz;
+
   Song({
     required this.id,
     required this.title,
@@ -132,6 +139,8 @@ class Song {
     this.album,
     this.variantType,
     this.variantOf,
+    this.canonicalSongId,
+    this.isFromMusicBrainz = false,
   });
 
   Song copyWith({
@@ -170,6 +179,8 @@ class Song {
     Object? album = _sentinel,
     Object? variantType = _sentinel,
     Object? variantOf = _sentinel,
+    Object? canonicalSongId = _sentinel,
+    Object? isFromMusicBrainz = _sentinel,
   }) {
     return Song(
       id: id ?? this.id,
@@ -235,6 +246,12 @@ class Song {
           ? this.variantType
           : variantType as String?,
       variantOf: variantOf == _sentinel ? this.variantOf : variantOf as String?,
+      canonicalSongId: canonicalSongId == _sentinel
+          ? this.canonicalSongId
+          : canonicalSongId as String?,
+      isFromMusicBrainz: isFromMusicBrainz == _sentinel
+          ? this.isFromMusicBrainz
+          : isFromMusicBrainz as bool,
     );
   }
 
