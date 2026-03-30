@@ -4,11 +4,14 @@ import 'package:uuid/uuid.dart';
 import '../../models/api_error.dart';
 import '../../models/beat_mode.dart';
 import '../../models/song.dart';
+import '../../models/song_suggestion.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/song_form_provider.dart';
+import '../../providers/song_autocomplete_provider.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/suggestion_selection_dialog.dart';
 import 'components/song_form.dart';
 import 'models/song_form_data.dart';
 import 'utils/add_song_screen_helper.dart';
@@ -161,6 +164,43 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     ref.read(songFormStateProvider.notifier).updateNotes(_notesController.text);
   }
 
+  /// Handle suggestion selection from autocomplete
+  Future<void> _handleSuggestionSelected(SongSuggestion suggestion) async {
+    // Show dialog to user
+    final action = await showDialog<SuggestionAction>(
+      context: context,
+      builder: (context) => SuggestionSelectionDialog(
+        suggestion: suggestion,
+      ),
+    );
+
+    if (!mounted || action == null) return;
+
+    switch (action) {
+      case SuggestionAction.useExisting:
+        // Use existing song - populate form and mark as linked
+        ref.read(songFormStateProvider.notifier).selectSuggestion(suggestion);
+        _titleController.text = suggestion.title;
+        _artistController.text = suggestion.artist;
+        break;
+        
+      case SuggestionAction.fork:
+        // Fork to personal - create new song based on existing
+        ref.read(songFormStateProvider.notifier).selectSuggestion(suggestion);
+        _titleController.text = suggestion.title;
+        _artistController.text = suggestion.artist;
+        // TODO: Implement fork logic
+        break;
+        
+      case SuggestionAction.createNew:
+        // Create new song - just populate form fields
+        ref.read(songFormStateProvider.notifier).applySuggestionToForm(suggestion);
+        _titleController.text = suggestion.title;
+        _artistController.text = suggestion.artist;
+        break;
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -273,7 +313,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
               ),
               const SizedBox(height: 16),
             ],
-            // Song form
+            // Song form with autocomplete
             SongForm(
               formKey: _formKey,
               titleController: _titleController,
@@ -288,6 +328,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
               originalKeyModifier: formData.originalKeyModifier,
               ourKeyBase: formData.ourKeyBase,
               ourKeyModifier: formData.ourKeyModifier,
+              bandId: widget.bandId,
+              onSuggestionSelected: _handleSuggestionSelected,
               onOriginalKeyChanged: (b, m) {
                 ref
                     .read(songFormStateProvider.notifier)

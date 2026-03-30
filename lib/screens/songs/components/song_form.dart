@@ -3,6 +3,9 @@ import '../../../models/link.dart';
 import '../../../models/beat_mode.dart';
 import '../../../models/section.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/autocomplete_type_ahead.dart';
+import '../../../widgets/suggestion_selection_dialog.dart';
+import '../../../models/song_suggestion.dart';
 import 'bpm_selector.dart';
 import 'links_editor.dart';
 import 'metronome_pattern_editor.dart';
@@ -106,6 +109,12 @@ class SongForm extends StatelessWidget {
   /// Whether we are in edit mode (vs. add mode).
   final bool isEditing;
 
+  /// Optional band ID for group song suggestions
+  final String? bandId;
+
+  /// Callback when a suggestion is selected
+  final Function(SongSuggestion)? onSuggestionSelected;
+
   const SongForm({
     super.key,
     required this.formKey,
@@ -145,13 +154,24 @@ class SongForm extends StatelessWidget {
       key: formKey,
       child: Column(
         children: [
-          // Title field
+          // Title field with autocomplete
+          AutocompleteTypeAhead(
+            onSuggestionSelected: onSuggestionSelected ?? (_) {},
+            bandId: bandId,
+            hint: 'Song Title *',
+            icon: Icons.music_note,
+          ),
+          const SizedBox(height: 4),
+          // Hidden title field for form validation
           TextFormField(
             controller: titleController,
             decoration: const InputDecoration(labelText: 'Title *'),
             textInputAction: TextInputAction.next,
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Title required' : null,
+            onChanged: (value) {
+              // Sync with autocomplete
+            },
           ),
           const SizedBox(height: 16),
           // Artist field
