@@ -11,6 +11,13 @@
 .env
 .ftp-env
 web/config.js
+assets/env.json
+
+# Docs build artifacts (should not contain secrets)
+/docs/assets/
+/docs/main.dart.js
+/docs/canvaskit/
+/docs/flutter.js
 
 # Chat exports (automatically moved to docs/archive/)
 chat-export-*.json

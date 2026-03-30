@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio/dio.dart';
+import '../../config/env_config.dart';
 import '../../models/api_error.dart';
 import 'web_config.stub.dart' if (dart.library.html) 'web_config.web.dart';
 
@@ -13,54 +13,25 @@ import 'web_config.stub.dart' if (dart.library.html) 'web_config.web.dart';
 /// 3. Add credentials to .env file (SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
 ///    OR for web: set window.env in web/config.js
 ///
+/// SECURITY: Credentials are loaded securely via EnvConfig
+/// - Mobile: From .env file (must be in .gitignore)
+/// - Web: From window.env (injected at runtime via config.js)
+/// - NEVER commit credentials to git!
+///
 /// All methods throw [ApiError] exceptions for proper error handling.
 class SpotifyService {
   /// Get Spotify Client ID from environment variables
-  /// For web, also checks window.env object
-  static String get _clientId {
-    if (kIsWeb) {
-      // Try dotenv first
-      final fromDotenv = dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
-      if (fromDotenv.isNotEmpty && fromDotenv != 'your_client_id_here') {
-        return fromDotenv;
-      }
-      // Fallback to web config (window.env)
-      final fromWeb = getWebConfig('SPOTIFY_CLIENT_ID');
-      if (fromWeb.isNotEmpty && fromWeb != 'your_client_id_here') {
-        return fromWeb;
-      }
-      return '';
-    }
-    return dotenv.env['SPOTIFY_CLIENT_ID'] ?? '';
-  }
+  /// Uses secure EnvConfig for all platforms
+  static String get _clientId => env.spotifyClientId;
 
   /// Get Spotify Client Secret from environment variables
-  /// For web, also checks window.env object
-  static String get _clientSecret {
-    if (kIsWeb) {
-      // Try dotenv first
-      final fromDotenv = dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
-      if (fromDotenv.isNotEmpty && fromDotenv != 'your_client_secret_here') {
-        return fromDotenv;
-      }
-      // Fallback to web config (window.env)
-      final fromWeb = getWebConfig('SPOTIFY_CLIENT_SECRET');
-      if (fromWeb.isNotEmpty && fromWeb != 'your_client_secret_here') {
-        return fromWeb;
-      }
-      return '';
-    }
-    return dotenv.env['SPOTIFY_CLIENT_SECRET'] ?? '';
-  }
+  /// Uses secure EnvConfig for all platforms
+  static String get _clientSecret => env.spotifyClientSecret;
 
   static const String _baseUrl = 'https://api.spotify.com/v1';
 
   /// Check if Spotify API is configured
-  static bool get isConfigured =>
-      _clientId.isNotEmpty &&
-      _clientId != 'your_client_id_here' &&
-      _clientSecret.isNotEmpty &&
-      _clientSecret != 'your_client_secret_here';
+  static bool get isConfigured => env.isSpotifyConfigured;
 
   static String? _accessToken;
   static DateTime? _tokenExpiry;

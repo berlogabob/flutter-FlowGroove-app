@@ -96,6 +96,5 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/env.json
     - assets/sounds/
     - assets/logo_clean.png
