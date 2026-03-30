@@ -432,6 +432,10 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
     // Play sound if not silent
     if (shouldPlay) {
+      // Vibration FIRST for perfect sync (triggers immediately)
+      // Then audio (slightly delayed, but syncs better perceptually)
+      HapticFeedback.lightImpact();
+      
       _audioEngine.playClick(
         isAccent: isMainBeat,
         waveType: state.waveType,
