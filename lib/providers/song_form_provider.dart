@@ -6,6 +6,7 @@ import '../models/api_error.dart';
 import '../models/link.dart';
 import '../models/section.dart';
 import '../models/song_suggestion.dart';
+import '../models/beat_mode.dart';
 import '../repositories/song_repository.dart';
 import '../services/analytics_service.dart';
 import '../services/matching/fuzzy_matcher.dart';
@@ -142,7 +143,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
   }
 
   /// Update form field: beat mode.
-  void updateBeatMode(int beatIndex, int subdivisionIndex, dynamic mode) {
+  void updateBeatMode(int beatIndex, int subdivisionIndex, BeatMode mode) {
     state = state.copyWith(
       formData: state.formData.copyWith(
         beatModes: state.formData.beatModes.map((beat) {

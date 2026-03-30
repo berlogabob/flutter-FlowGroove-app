@@ -317,8 +317,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
               originalKeyModifier: formData.originalKeyModifier,
               ourKeyBase: formData.ourKeyBase,
               ourKeyModifier: formData.ourKeyModifier,
-              bandId: widget.bandId,
-              onSuggestionSelected: _handleSuggestionSelected,
               onOriginalKeyChanged: (b, m) {
                 ref
                     .read(songFormStateProvider.notifier)
