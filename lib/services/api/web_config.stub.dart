@@ -12,3 +12,8 @@ String getWebConfig(String key) {
 bool hasWebConfig() {
   return false;
 }
+
+/// Check if a specific key exists in window.env (stub - always returns false)
+bool hasWebConfigKey(String key) {
+  return false;
+}
