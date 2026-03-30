@@ -81,13 +81,13 @@ void main() async {
     debugPrint('🔑 NO USER: No user found from previous session');
   }
 
-  runApp(ProviderScope(child: RepSyncApp(analytics: analytics)));
+  runApp(ProviderScope(child: FlowGrooveApp(analytics: analytics)));
 }
 
-class RepSyncApp extends ConsumerWidget {
+class FlowGrooveApp extends ConsumerWidget {
   final FirebaseAnalytics? analytics;
 
-  RepSyncApp({super.key, this.analytics});
+  FlowGrooveApp({super.key, this.analytics});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import 'package:flutter_repsync_app/providers/data/data_providers.dart';
-import 'package:flutter_repsync_app/repositories/repositories.dart';
-import 'package:flutter_repsync_app/services/cache_service.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/band.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/repositories/repositories.dart';
+import 'package:flowgroove/services/cache_service.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/band.dart';
 
 @GenerateMocks([
   SongRepository,

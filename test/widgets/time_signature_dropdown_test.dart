@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/time_signature_dropdown.dart';
-import 'package:flutter_repsync_app/models/time_signature.dart';
+import 'package:flowgroove/widgets/time_signature_dropdown.dart';
+import 'package:flowgroove/models/time_signature.dart';
 
 import '../helpers/test_helpers.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/tools/tool_transport_bar.dart';
-import 'package:flutter_repsync_app/theme/mono_pulse_theme.dart';
+import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
+import 'package:flowgroove/theme/mono_pulse_theme.dart';
 
 void main() {
   group('ToolTransportBar', () {

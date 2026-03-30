@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter_repsync_app/services/connectivity_service.dart';
+import 'package:flowgroove/services/connectivity_service.dart';
 
 void main() {
   group('ConnectivityService', () {

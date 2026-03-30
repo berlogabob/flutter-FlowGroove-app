@@ -2,7 +2,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/services/matching/fuzzy_matcher.dart';
+import 'package:flowgroove/services/matching/fuzzy_matcher.dart';
 
 void main() {
   group('Levenshtein', () {

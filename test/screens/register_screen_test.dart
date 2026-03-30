@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flutter_repsync_app/screens/auth/register_screen.dart';
-import 'package:flutter_repsync_app/providers/auth/auth_provider.dart';
+import 'package:flowgroove/screens/auth/register_screen.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
 import '../helpers/test_helpers.dart';
 import '../helpers/mocks.mocks.dart';
 
@@ -28,7 +28,7 @@ void main() {
       expect(findText('Create Account'), findsOneWidget);
 
       // Verify header
-      expect(findText('Join RepSync'), findsOneWidget);
+      expect(findText('Join FlowGroove'), findsOneWidget);
 
       // Verify subtitle
       expect(

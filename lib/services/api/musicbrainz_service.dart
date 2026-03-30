@@ -10,7 +10,7 @@ import '../../models/api_error.dart';
 /// All methods throw [ApiError] exceptions for proper error handling.
 class MusicBrainzService {
   static const String _baseUrl = 'https://musicbrainz.org/ws/2';
-  static const String _userAgent = 'RepSync/1.0.0 (berloga@example.com)';
+  static const String _userAgent = 'FlowGroove/1.0.0 (berloga@example.com)';
 
   /// Searches for recordings on MusicBrainz.
   ///

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/screens/songs/components/metronome_pattern_editor.dart';
-import 'package:flutter_repsync_app/models/beat_mode.dart';
+import 'package:flowgroove/screens/songs/components/metronome_pattern_editor.dart';
+import 'package:flowgroove/models/beat_mode.dart';
 
 void main() {
   group('MetronomePatternEditor Widget', () {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/models/section.dart';
-import 'package:flutter_repsync_app/screens/songs/components/song_constructor/song_constructor.dart';
+import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/screens/songs/components/song_constructor/song_constructor.dart';
 
 void main() {
   group('SongConstructor', () {

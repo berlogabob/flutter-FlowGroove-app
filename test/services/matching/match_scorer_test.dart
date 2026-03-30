@@ -3,8 +3,8 @@ library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uuid/uuid.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/services/matching/match_scorer.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/services/matching/match_scorer.dart';
 
 void main() {
   Song _createSong({

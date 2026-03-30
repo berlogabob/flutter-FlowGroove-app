@@ -25,7 +25,7 @@ class TelegramUser {
 
 class TelegramService {
   static String get botToken => dotenv.env['TELEGRAM_BOT_TOKEN'] ?? '';
-  static const String botUsername = 'repsyncbot';
+  static const String botUsername = 'flowgroovebot';
 
   /// Opens Telegram chat with the bot and sends /link command
   Future<bool> openBotChat(String? userId) async {
@@ -82,7 +82,7 @@ class TelegramService {
             body: json.encode({
               'chat_id': chatId,
               'text':
-                  'Do you want to link your Telegram profile to RepSync app?',
+                  'Do you want to link your Telegram profile to FlowGroove app?',
               'reply_markup': {
                 'inline_keyboard': [
                   [

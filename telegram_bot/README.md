@@ -1,11 +1,11 @@
-# RepSync Telegram Bot - Support Group Edition
+# FlowGroove Telegram Bot - Support Group Edition
 
 Modern Telegram bot with **Support Group + Topics** functionality.
 
 ## Features
 
 ### For Users:
-- ✅ Link Telegram account to RepSync
+- ✅ Link Telegram account to FlowGroove
 - ✅ Automatic personal support topic creation
 - ✅ Direct messaging to support team
 - ✅ Account status checking
@@ -82,7 +82,7 @@ gunicorn bot.main:app
 
 - `/start` - Welcome + create support topic
 - `/start <user_id>` - Welcome + link account
-- `/link <user_id>` - Link Telegram to RepSync
+- `/link <user_id>` - Link Telegram to FlowGroove
 - `/unlink` - Unlink account
 - `/status` - Check account status
 - `/help` - Show help
@@ -97,7 +97,7 @@ gunicorn bot.main:app
 ## Group Structure
 
 ```
-RepSync Support (Forum)
+FlowGroove Support (Forum)
 ├─ 📢 Announcements (read-only)
 ├─ 💬 General Chat
 ├─ 🔧 Support: username1
@@ -211,7 +211,7 @@ pip install -r requirements.txt
 sudo systemctl edit --force repsync-bot
 
 # [Unit]
-# Description=RepSync Telegram Bot
+# Description=FlowGroove Telegram Bot
 # After=network.target
 
 # [Service]
@@ -234,4 +234,4 @@ MIT
 
 ## Support
 
-Contact @repsync_support
+Contact @flowgroove_support

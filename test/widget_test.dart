@@ -1,4 +1,4 @@
-// Placeholder test file for RepSync app
+// Placeholder test file for FlowGroove app
 // Widget tests should be added as features are implemented
 
 import 'package:flutter_test/flutter_test.dart';

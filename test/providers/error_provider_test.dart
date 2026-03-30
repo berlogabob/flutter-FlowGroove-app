@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_repsync_app/providers/auth/error_provider.dart';
-import 'package:flutter_repsync_app/models/api_error.dart';
+import 'package:flowgroove/providers/auth/error_provider.dart';
+import 'package:flowgroove/models/api_error.dart';
 
 void main() {
   group('ErrorProvider', () {

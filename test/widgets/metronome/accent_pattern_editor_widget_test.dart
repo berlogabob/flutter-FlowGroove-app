@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/metronome/accent_pattern_editor_widget.dart';
-import 'package:flutter_repsync_app/providers/data/metronome_provider.dart';
+import 'package:flowgroove/widgets/metronome/accent_pattern_editor_widget.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
 
 import '../../helpers/test_helpers.dart';
 

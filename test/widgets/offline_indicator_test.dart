@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/offline_indicator.dart';
+import 'package:flowgroove/widgets/offline_indicator.dart';
 
 void main() {
   group('OfflineIndicator', () {

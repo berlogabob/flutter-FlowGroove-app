@@ -3,8 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_repsync_app/services/csv/song_csv_parser.dart';
-import 'package:flutter_repsync_app/services/csv/song_csv_service.dart';
+import 'package:flowgroove/services/csv/song_csv_parser.dart';
+import 'package:flowgroove/services/csv/song_csv_service.dart';
 import '../../../../theme/mono_pulse_theme.dart';
 import '../../../../widgets/loading_indicator.dart';
 import 'song_csv_preview_table.dart';

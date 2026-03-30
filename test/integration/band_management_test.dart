@@ -15,8 +15,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/widgets/band_card.dart';
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/widgets/band_card.dart';
 
 import '../helpers/mocks.mocks.dart';
 

@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Import the actual providers
-import 'package:flutter_repsync_app/providers/auth/auth_provider.dart';
-import 'package:flutter_repsync_app/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
 
 /// Test to trace the "Null check operator used on a null value" error
 /// that occurs during login flow.

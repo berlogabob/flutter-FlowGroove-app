@@ -1,11 +1,11 @@
 /// Tests for CSV parsing and serialization.
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/section.dart';
-import 'package:flutter_repsync_app/models/link.dart';
-import 'package:flutter_repsync_app/services/csv/song_csv_parser.dart';
-import 'package:flutter_repsync_app/services/csv/song_csv_serializer.dart';
-import 'package:flutter_repsync_app/services/csv/song_csv_schema.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/services/csv/song_csv_parser.dart';
+import 'package:flowgroove/services/csv/song_csv_serializer.dart';
+import 'package:flowgroove/services/csv/song_csv_schema.dart';
 
 void main() {
   group('SongCsvSchema', () {

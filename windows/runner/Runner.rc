@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "flutter_repsync_app" "\0"
+            VALUE "CompanyName", "com.flowgroove" "\0"
+            VALUE "FileDescription", "FlowGroove" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "flutter_repsync_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "flutter_repsync_app.exe" "\0"
-            VALUE "ProductName", "flutter_repsync_app" "\0"
+            VALUE "InternalName", "FlowGroove" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.flowgroove. All rights reserved." "\0"
+            VALUE "OriginalFilename", "FlowGroove.exe" "\0"
+            VALUE "ProductName", "FlowGroove" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

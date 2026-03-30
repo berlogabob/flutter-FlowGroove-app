@@ -9,10 +9,10 @@
 /// configure the emulator settings and remove mock behaviors.
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/setlist.dart';
-import 'package:flutter_repsync_app/models/link.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/link.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {

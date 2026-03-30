@@ -5,10 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_repsync_app/providers/auth/auth_provider.dart';
-import 'package:flutter_repsync_app/models/api_error.dart';
-import 'package:flutter_repsync_app/models/user.dart';
-import 'package:flutter_repsync_app/services/cache_service.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/models/api_error.dart';
+import 'package:flowgroove/models/user.dart';
+import 'package:flowgroove/services/cache_service.dart';
 
 @GenerateMocks([FirebaseAuth, User, UserCredential, CacheService])
 import 'auth_provider_test.mocks.dart';

@@ -1,4 +1,4 @@
-package com.example.flutter_repsync_app
+package com.flowgroove.app
 
 import io.flutter.embedding.android.FlutterActivity
 

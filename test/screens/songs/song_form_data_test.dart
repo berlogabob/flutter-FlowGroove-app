@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/screens/songs/models/song_form_data.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/link.dart';
-import 'package:flutter_repsync_app/models/beat_mode.dart';
+import 'package:flowgroove/screens/songs/models/song_form_data.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/beat_mode.dart';
 
 void main() {
   group('SongFormData - Metronome Settings', () {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_repsync_app/providers/tuner_provider.dart';
+import 'package:flowgroove/providers/tuner_provider.dart';
 
 void main() {
   group('TunerProvider', () {
