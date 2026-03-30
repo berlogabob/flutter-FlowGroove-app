@@ -231,3 +231,137 @@ class Soundex {
     return isSimilar(s1, s2) ? 1.0 : 0.0;
   }
 }
+
+/// Comprehensive multi-field fuzzy matcher for songs.
+///
+/// Combines multiple similarity algorithms with weighted scoring
+/// across title, artist, and album fields.
+class FuzzyMatcher {
+  /// Calculate multi-field match score for songs.
+  ///
+  /// Weights:
+  /// - Title: 50%
+  /// - Artist: 30%
+  /// - Album: 20% (if available)
+  ///
+  /// Uses combination of Levenshtein and Jaro-Winkler for best accuracy.
+  static MatchResult calculateMatchScore({
+    required String inputTitle,
+    required String inputArtist,
+    String? inputAlbum,
+    required String targetTitle,
+    required String targetArtist,
+    String? targetAlbum,
+  }) {
+    // Normalize inputs
+    final normInputTitle = _normalize(inputTitle);
+    final normInputArtist = _normalize(inputArtist);
+    final normInputAlbum = _normalize(inputAlbum ?? '');
+    
+    final normTargetTitle = _normalize(targetTitle);
+    final normTargetArtist = _normalize(targetArtist);
+    final normTargetAlbum = _normalize(targetAlbum ?? '');
+    
+    // Calculate individual scores using best algorithm for each
+    final titleScore = _calculateTitleScore(normInputTitle, normTargetTitle);
+    final artistScore = _calculateArtistScore(normInputArtist, normTargetArtist);
+    final albumScore = targetAlbum != null && targetAlbum.isNotEmpty &&
+            normTargetAlbum.isNotEmpty
+        ? Levenshtein.similarity(normInputAlbum, normTargetAlbum)
+        : 0.0;
+    
+    // Weighted average
+    double overallScore;
+    
+    if (albumScore > 0) {
+      overallScore = (titleScore * 0.5) + (artistScore * 0.3) + (albumScore * 0.2);
+    } else {
+      // No album, reweight
+      overallScore = (titleScore * 0.65) + (artistScore * 0.35);
+    }
+    
+    return MatchResult(
+      overall: overallScore,
+      title: titleScore,
+      artist: artistScore,
+      album: albumScore,
+    );
+  }
+
+  /// Calculate title score with partial matching
+  static double _calculateTitleScore(String s1, String s2) {
+    // Try exact match first
+    if (s1 == s2) return 1.0;
+    
+    // Try contains match
+    if (s2.contains(s1) || s1.contains(s2)) {
+      return 0.9;
+    }
+    
+    // Use best of multiple algorithms
+    final levenshtein = Levenshtein.similarity(s1, s2);
+    final jaroWinkler = JaroWinkler.similarity(s1, s2);
+    final tokenSort = TokenSortRatio.similarity(s1, s2);
+    
+    // Return highest score
+    return max(levenshtein, max(jaroWinkler, tokenSort));
+  }
+
+  /// Calculate artist score
+  static double _calculateArtistScore(String s1, String s2) {
+    if (s1 == s2) return 1.0;
+    
+    // Try token sort for artist names (handles "Queen" vs "Queen Band")
+    final tokenSort = TokenSortRatio.similarity(s1, s2);
+    final levenshtein = Levenshtein.similarity(s1, s2);
+    
+    return max(tokenSort, levenshtein);
+  }
+
+  /// Normalize string for comparison
+  static String _normalize(String s) {
+    return s
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[^\w\s]'), '') // Remove punctuation
+        .replaceAll(RegExp(r'\s+'), ' '); // Normalize whitespace
+  }
+}
+
+/// Result of multi-field fuzzy match
+class MatchResult {
+  final double overall;
+  final double title;
+  final double artist;
+  final double album;
+
+  const MatchResult({
+    required this.overall,
+    required this.title,
+    required this.artist,
+    required this.album,
+  });
+
+  /// Get match quality label
+  String get quality {
+    if (overall >= 0.95) return 'Exact';
+    if (overall >= 0.85) return 'Very Close';
+    if (overall >= 0.75) return 'Close';
+    if (overall >= 0.60) return 'Similar';
+    return 'Weak';
+  }
+
+  /// Check if this is a good match (>= 0.85)
+  bool get isGoodMatch => overall >= 0.85;
+
+  /// Check if this is an exact match (>= 0.95)
+  bool get isExactMatch => overall >= 0.95;
+
+  @override
+  String toString() {
+    return 'MatchResult(overall: ${(overall * 100).toInt()}%, '
+        'title: ${(title * 100).toInt()}%, '
+        'artist: ${(artist * 100).toInt()}%, '
+        'album: ${(album * 100).toInt()}%)';
+  }
+}
