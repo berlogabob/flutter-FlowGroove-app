@@ -188,7 +188,7 @@ class MusicBrainzService {
       if (elapsed < _rateLimitDelay) {
         final delay = _rateLimitDelay - elapsed;
         debugPrint('MusicBrainz rate limit: waiting ${delay.inMilliseconds}ms');
-        await Future.delayed<void>(delay);
+        await Future.delayed(Duration(milliseconds: delay.inMilliseconds));
       }
     }
     
@@ -244,7 +244,7 @@ class MusicBrainzService {
     }
     
     // Default: generic error
-    return MusicBrainzError(
+    return MusicBrainzGenericError(
       message: 'MusicBrainz API error',
       details: error.message,
       originalError: error,

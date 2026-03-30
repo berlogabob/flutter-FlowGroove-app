@@ -90,7 +90,7 @@ class SongSuggestionService {
   ) async {
     try {
       // Get user's songs from repository
-      final songs = await _songRepo.getSongsForUser(_userId);
+      final songs = await _songRepo.getSongs(_userId);
       
       final suggestions = <SongSuggestion>[];
       
