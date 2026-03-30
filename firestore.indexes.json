@@ -46,6 +46,51 @@
         { "fieldPath": "bandId", "order": "ASCENDING" },
         { "fieldPath": "normalizedArtist", "order": "ASCENDING" }
       ]
+    },
+    
+    // === Canonical Songs Indexes ===
+    {
+      "collectionGroup": "canonical_songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "normalizedTitle", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "canonical_songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "normalizedArtist", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "canonical_songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "normalizedTitle", "order": "ASCENDING" },
+        { "fieldPath": "normalizedArtist", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "canonical_songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "musicBrainzId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "canonical_songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isrc", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "canonical_songs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -143,5 +143,20 @@ service cloud.firestore {
         allow read, write, delete: if isAuthenticated() && isOwner(userId);
       }
     }
+
+    // ============================================================
+    // Canonical Songs Collection (Global Song Database)
+    // ============================================================
+    // Stores canonical song metadata from MusicBrainz and manual entries
+    // This is shared read-only data for all users
+    match /canonical_songs/{songId} {
+      // Any authenticated user can read canonical songs
+      allow read: if isAuthenticated();
+
+      // Write operations restricted to admin/cloud functions only
+      // Regular users cannot modify canonical songs directly
+      // Use Cloud Functions with validation for imports/updates
+      allow create, update, delete: if false;
+    }
   }
 }
