@@ -11,18 +11,18 @@ router = Router(name='help')
 async def handle_help(message: Message):
     """Handle /help command"""
     
-    help_text = f"""📖 *RepSync Bot Commands:*
+    help_text = f"""📖 *FlowGroove Bot Commands:*
 
 /start - Start using the bot
-/link <user_id> - Link your RepSync account
+/link <user_id> - Link your FlowGroove account
 /unlink - Unlink your Telegram account
 /status - Check your account status
 /help - Show this help message
 
 *What can I do?*
-• Link your Telegram to RepSync profile
+• Link your Telegram to FlowGroove profile
 • Send you notifications about band activities
-• Import your Telegram name and photo to RepSync
+• Import your Telegram name and photo to FlowGroove
 
 *Need support?*
 Contact {Config.SUPPORT_USERNAME}"""

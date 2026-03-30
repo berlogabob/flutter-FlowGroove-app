@@ -1,5 +1,5 @@
 """
-RepSync Telegram Bot - Main Entry Point
+FlowGroove Telegram Bot - Main Entry Point
 Support Group + Topics Edition
 """
 

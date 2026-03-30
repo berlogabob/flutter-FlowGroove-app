@@ -29,7 +29,7 @@ async def handle_status(message: Message):
     if status['linked']:
         status_text = f"""✅ *Account Status*
 
-*RepSync User ID:* `{status['user_id']}`
+*FlowGroove User ID:* `{status['user_id']}`
 *Display Name:* {status['display_name']}
 *Email:* {status['email']}
 *Linked:* Yes
@@ -39,7 +39,7 @@ Use /unlink to disconnect your account."""
     else:
         not_linked_text = """❌ *Not Linked*
 
-Your Telegram account is not linked to any RepSync account.
+Your Telegram account is not linked to any FlowGroove account.
 
 Use /link <your_user_id> to link your account."""
         await message.answer(not_linked_text, parse_mode='Markdown')

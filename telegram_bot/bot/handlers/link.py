@@ -18,11 +18,11 @@ async def handle_link_command(message: Message):
         usage_text = """❌ *Usage:* /link <your_user_id>
 
 *How to get your user ID:*
-1. Open RepSync app
+1. Open FlowGroove app
 2. Go to Profile
 3. Your user ID is shown there
 
-Or click the link button in the RepSync app!"""
+Or click the link button in the FlowGroove app!"""
         await message.answer(usage_text, parse_mode='Markdown')
         return
     
@@ -62,12 +62,12 @@ async def link_user(message: Message, user_id: str):
     if result['success']:
         success_text = """✅ *Account Linked Successfully!*
 
-Your Telegram account is now connected to RepSync.
+Your Telegram account is now connected to FlowGroove.
 
 *What's next?*
-• Your profile photo will be imported to RepSync
+• Your profile photo will be imported to FlowGroove
 • You'll receive notifications about band activities
-• Your Telegram name will be used in RepSync
+• Your Telegram name will be used in FlowGroove
 
 Use /help to see all available commands."""
         await message.answer(success_text, parse_mode='Markdown')
