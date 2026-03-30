@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import '../../config/env_config.dart';
 
 /// Track Analysis API - Free alternative to Spotify for BPM and key
 ///
@@ -12,11 +12,13 @@ import 'package:http/http.dart' as http;
 /// Configuration:
 /// 1. Add TRACK_ANALYSIS_API_KEY to your .env file
 /// 2. Get your key from: https://rapidapi.com/soundnet-soundnet-default/api/track-analysis
+///
+/// SECURITY: Uses EnvConfig for secure environment variable access.
 class TrackAnalysisService {
   /// Get Track Analysis API key from environment variables
   /// Falls back to 'demo' key for development if not configured
   static String get _apiKey {
-    final key = dotenv.env['TRACK_ANALYSIS_API_KEY'];
+    final key = env.trackAnalysisApiKey;
     if (key == null || key.isEmpty || key == 'your_rapidapi_key_here') {
       debugPrint('⚠️ WARNING: TRACK_ANALYSIS_API_KEY not set in .env');
       debugPrint(

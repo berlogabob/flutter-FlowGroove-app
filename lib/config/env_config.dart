@@ -69,6 +69,12 @@ class EnvConfig {
   /// Get Track Analysis API Key (RapidAPI)
   String get trackAnalysisApiKey => get('TRACK_ANALYSIS_API_KEY');
 
+  /// Get Telegram Bot Token
+  String get telegramBotToken => get('TELEGRAM_BOT_TOKEN');
+
+  /// Get Spotify Proxy URL
+  String get spotifyProxyUrlConfig => get('SPOTIFY_PROXY_URL');
+
   /// Check if Spotify credentials are configured
   bool get isSpotifyConfigured {
     return spotifyClientId.isNotEmpty && 
@@ -92,7 +98,7 @@ class EnvConfig {
 
   /// Get Spotify Proxy URL if configured
   String? get spotifyProxyUrl {
-    final url = get('SPOTIFY_PROXY_URL');
+    final url = spotifyProxyUrlConfig;
     if (url.isNotEmpty && !_isPlaceholder(url)) {
       return url;
     }
