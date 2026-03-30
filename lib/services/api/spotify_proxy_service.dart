@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import '../../config/env_config.dart';
 import '../../models/api_error.dart';
 import 'spotify_service.dart';
 
@@ -21,12 +21,15 @@ import 'spotify_service.dart';
 /// - Rate limiting controlled server-side
 /// - Request validation and sanitization
 /// - Audit logging of all API calls
+///
+/// SECURITY: Uses EnvConfig for secure environment variable access.
 class SpotifyProxyService {
   /// Backend proxy URL (optional)
   /// If not set, falls back to direct Spotify API calls
+  /// Note: Backend proxy not supported on web yet
   static String? get _proxyUrl {
-    if (kIsWeb) return null; // Backend proxy not supported on web yet
-    return dotenv.env['SPOTIFY_PROXY_URL'];
+    if (kIsWeb) return null;
+    return env.spotifyProxyUrl;
   }
 
   /// Check if backend proxy is configured

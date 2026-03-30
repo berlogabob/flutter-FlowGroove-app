@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../config/env_config.dart';
 
 class TelegramUser {
   final int id;
@@ -24,7 +24,9 @@ class TelegramUser {
 }
 
 class TelegramService {
-  static String get botToken => dotenv.env['TELEGRAM_BOT_TOKEN'] ?? '';
+  /// Get Telegram bot token from secure EnvConfig
+  /// Returns empty string if not configured
+  static String get botToken => env.telegramBotToken;
   static const String botUsername = 'flowgroovebot';
 
   /// Opens Telegram chat with the bot and sends /link command
