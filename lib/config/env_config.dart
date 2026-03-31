@@ -34,20 +34,29 @@ class EnvConfig {
       } catch (e) {
         // Web config not available, continue to fallback
       }
-      
+
       // Fallback to dotenv (if somehow loaded)
-      final fromDotenv = dotenv.env[key] ?? '';
-      if (fromDotenv.isNotEmpty && !_isPlaceholder(fromDotenv)) {
-        return fromDotenv;
+      try {
+        final fromDotenv = dotenv.env[key] ?? '';
+        if (fromDotenv.isNotEmpty && !_isPlaceholder(fromDotenv)) {
+          return fromDotenv;
+        }
+      } catch (e) {
+        // dotenv not initialized yet
       }
     } else {
       // Mobile/Desktop: Use dotenv
-      final value = dotenv.env[key] ?? '';
-      if (value.isNotEmpty && !_isPlaceholder(value)) {
-        return value;
+      try {
+        final value = dotenv.env[key] ?? '';
+        if (value.isNotEmpty && !_isPlaceholder(value)) {
+          return value;
+        }
+      } catch (e) {
+        // dotenv not initialized yet - this happens during Firebase initialization
+        // Return default value to prevent crash
       }
     }
-    
+
     return defaultValue;
   }
 
