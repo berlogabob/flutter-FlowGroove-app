@@ -57,7 +57,7 @@ class MetronomeToneConfig extends Equatable {
   });
 
   /// Classic preset - Traditional metronome sound
-  factory MetronomeToneConfig.classic() => const MetronomeToneConfig(
+  const factory MetronomeToneConfig.classic() => MetronomeToneConfig(
         mainRegularFreq: 1600.0,
         mainAccentFreq: 2060.0,
         subRegularFreq: 800.0,
@@ -69,7 +69,7 @@ class MetronomeToneConfig extends Equatable {
       );
 
   /// Subtle preset - Soft, gentle clicks
-  factory MetronomeToneConfig.subtle() => const MetronomeToneConfig(
+  const factory MetronomeToneConfig.subtle() => MetronomeToneConfig(
         mainRegularFreq: 1200.0,
         mainAccentFreq: 1600.0,
         subRegularFreq: 600.0,
@@ -81,7 +81,7 @@ class MetronomeToneConfig extends Equatable {
       );
 
   /// Extreme preset - Loud, distinct clicks
-  factory MetronomeToneConfig.extreme() => const MetronomeToneConfig(
+  const factory MetronomeToneConfig.extreme() => MetronomeToneConfig(
         mainRegularFreq: 2000.0,
         mainAccentFreq: 2800.0,
         subRegularFreq: 1000.0,
@@ -93,7 +93,7 @@ class MetronomeToneConfig extends Equatable {
       );
 
   /// Wood block preset - Simulates wood block sound
-  factory MetronomeToneConfig.woodBlock() => const MetronomeToneConfig(
+  const factory MetronomeToneConfig.woodBlock() => MetronomeToneConfig(
         mainRegularFreq: 1800.0,
         mainAccentFreq: 2400.0,
         subRegularFreq: 900.0,
@@ -105,7 +105,7 @@ class MetronomeToneConfig extends Equatable {
       );
 
   /// Electronic preset - Digital/electronic sound
-  factory MetronomeToneConfig.electronic() => const MetronomeToneConfig(
+  const factory MetronomeToneConfig.electronic() => MetronomeToneConfig(
         mainRegularFreq: 2200.0,
         mainAccentFreq: 3000.0,
         subRegularFreq: 1100.0,

@@ -13,6 +13,7 @@ import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/web_version_loader_export.dart';
 import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/loading_indicator.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});

@@ -22,15 +22,6 @@ class _MainShellState extends ConsumerState<MainShell> {
   DateTime? _lastTapTime;
   int? _lastTappedIndex;
 
-  // Root route names for each branch (0-4)
-  static const List<String> _rootRoutes = [
-    'home',       // 0 - Home
-    'songs',      // 1 - Songs
-    'bands',      // 2 - Bands
-    'setlists',   // 3 - Setlists
-    'profile',    // 4 - Profile
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

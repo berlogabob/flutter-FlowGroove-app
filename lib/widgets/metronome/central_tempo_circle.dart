@@ -229,8 +229,10 @@ class TempoDialPainter extends CustomPainter {
       canvas.drawLine(Offset(startX, startY), Offset(endX, endY), tickPaint);
 
       // Draw label
-      final labelX = center.dx + (radius - 30) * math.cos(angle);
-      final labelY = center.dy + (radius - 30) * math.sin(angle);
+      final labelPos = Offset(
+        center.dx + (radius - 30) * math.cos(angle),
+        center.dy + (radius - 30) * math.sin(angle),
+      );
 
       labelPaint.text = TextSpan(
         text: tick.toString(),

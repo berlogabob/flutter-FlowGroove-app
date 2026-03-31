@@ -1,13 +1,12 @@
 // FlowGroove Analytics Events Definition
 // Centralized event definitions for Firebase Analytics
-// 
+//
 // This file defines all analytics events used in the FlowGroove app.
 // Each event is strongly typed with required and optional parameters.
 
 import '../models/song.dart';
 import '../models/band.dart';
 import '../models/setlist.dart';
-import '../models/user.dart';
 
 /// Analytics event names - single source of truth
 class AnalyticsEvents {

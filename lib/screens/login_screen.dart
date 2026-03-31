@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:formz/formz.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '../../router/app_router.dart';
 import '../models/api_error.dart';
