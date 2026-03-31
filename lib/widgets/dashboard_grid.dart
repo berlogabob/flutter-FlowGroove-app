@@ -137,7 +137,7 @@ class DashboardGrid extends StatelessWidget {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: MonoPulseSpacing.md,
         mainAxisSpacing: MonoPulseSpacing.md,
-        childAspectRatio: 2.2,
+        childAspectRatio: 2.8,
       ),
       itemCount: children.length,
       itemBuilder: (context, index) => children[index],
@@ -177,28 +177,42 @@ class StatCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        padding: const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.lg,
+          vertical: MonoPulseSpacing.md,
+        ),
         decoration: BoxDecoration(
           color: MonoPulseColors.surface,
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           border: Border.all(color: MonoPulseColors.borderSubtle),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: MonoPulseSpacing.md),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: color,
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: MonoPulseSpacing.sm),
+            Flexible(
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                  fontSize: 18,
+                ),
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: MonoPulseColors.textTertiary,
+            const SizedBox(height: 2),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: MonoPulseColors.textTertiary,
+                  fontSize: 11,
+                ),
               ),
             ),
           ],
@@ -238,7 +252,10 @@ class QuickActionButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         child: Container(
-          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.lg,
+            vertical: MonoPulseSpacing.sm,
+          ),
           decoration: BoxDecoration(
             color: MonoPulseColors.surface,
             border: Border.all(color: MonoPulseColors.borderDefault),
@@ -248,17 +265,20 @@ class QuickActionButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: MonoPulseColors.accentOrange, size: 28),
-              const SizedBox(height: MonoPulseSpacing.sm),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.w600,
+              Icon(icon, color: MonoPulseColors.accentOrange, size: 24),
+              const SizedBox(height: 2),
+              Flexible(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: MonoPulseColors.accentOrange,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -296,7 +316,10 @@ class ToolButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        padding: const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.lg,
+          vertical: MonoPulseSpacing.sm,
+        ),
         decoration: BoxDecoration(
           color: isEnabled
               ? MonoPulseColors.surface
@@ -313,18 +336,22 @@ class ToolButton extends StatelessWidget {
               color: isEnabled
                   ? MonoPulseColors.accentOrange
                   : MonoPulseColors.textTertiary,
+              size: 24,
             ),
-            const SizedBox(height: MonoPulseSpacing.sm),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: isEnabled
-                    ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textTertiary,
+            const SizedBox(height: 2),
+            Flexible(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: isEnabled
+                      ? MonoPulseColors.accentOrange
+                      : MonoPulseColors.textTertiary,
+                  fontSize: 11,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
             if (!isEnabled) ...[
               const SizedBox(height: MonoPulseSpacing.xs),
@@ -384,7 +411,7 @@ class GreetingCard extends StatelessWidget {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 30,
+            radius: 24,
             backgroundColor: MonoPulseColors.surfaceRaised,
             // Try to load from URL first, then from file, then show initial
             backgroundImage: avatarPath != null && avatarPath!.isNotEmpty
@@ -398,6 +425,7 @@ class GreetingCard extends StatelessWidget {
                     style: MonoPulseTypography.headlineSmall.copyWith(
                       color: MonoPulseColors.accentOrange,
                       fontWeight: FontWeight.w700,
+                      fontSize: 18,
                     ),
                   )
                 : null,
@@ -406,19 +434,30 @@ class GreetingCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Hello, $userName!',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: MonoPulseColors.textPrimary,
+                Flexible(
+                  child: Text(
+                    'Hello, $userName!',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: MonoPulseColors.textPrimary,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle ?? 'Ready to rock?',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: MonoPulseColors.textTertiary,
+                const SizedBox(height: 2),
+                Flexible(
+                  child: Text(
+                    subtitle ?? 'Ready to rock?',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: MonoPulseColors.textTertiary,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],

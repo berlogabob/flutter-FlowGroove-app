@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'band.g.dart';
@@ -187,7 +188,17 @@ class Band {
 DateTime _parseDateTime(dynamic value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
-  return DateTime.parse(value as String);
+  try {
+    if (value is String) {
+      return DateTime.parse(value);
+    }
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+  } catch (e) {
+    debugPrint('⚠️ Invalid date format in Band: $value - ${e.toString()}');
+  }
+  return DateTime.now();
 }
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
