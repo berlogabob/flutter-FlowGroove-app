@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 import '../../models/api_error.dart';
-import '../../models/beat_mode.dart';
 import '../../models/song.dart';
 import '../../models/song_suggestion.dart';
 import '../../providers/data/data_providers.dart';

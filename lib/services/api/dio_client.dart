@@ -119,7 +119,6 @@ class _ErrorHandlingInterceptor extends Interceptor {
         break;
 
       case DioExceptionType.unknown:
-      default:
         message = 'An unexpected error occurred.';
         type = ErrorType.unknown;
         break;

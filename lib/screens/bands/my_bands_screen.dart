@@ -7,7 +7,6 @@ import '../../models/api_error.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
-import '../../repositories/repositories.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';

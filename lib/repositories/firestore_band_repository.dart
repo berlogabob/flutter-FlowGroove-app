@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/api_error.dart';
 import '../models/band.dart';
-import '../services/analytics_service.dart';
 import 'band_repository.dart';
 
 /// Firestore implementation of [BandRepository].
