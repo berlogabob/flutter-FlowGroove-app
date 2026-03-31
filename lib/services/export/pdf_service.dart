@@ -32,7 +32,7 @@ class PdfService {
               pw.Container(
                 width: 30,
                 height: 30,
-                decoration: const pw.BoxDecoration(
+                decoration: pw.BoxDecoration(
                   color: PdfColor.fromHex("E3F2FD"),
                   shape: pw.BoxShape.circle,
                 ),
