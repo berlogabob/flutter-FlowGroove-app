@@ -137,7 +137,7 @@ class DashboardGrid extends StatelessWidget {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: MonoPulseSpacing.md,
         mainAxisSpacing: MonoPulseSpacing.md,
-        childAspectRatio: 2.8,
+        childAspectRatio: 3.2,
       ),
       itemCount: children.length,
       itemBuilder: (context, index) => children[index],
@@ -179,7 +179,7 @@ class StatCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: MonoPulseSpacing.lg,
-          vertical: MonoPulseSpacing.md,
+          vertical: MonoPulseSpacing.xs,
         ),
         decoration: BoxDecoration(
           color: MonoPulseColors.surface,
@@ -187,32 +187,30 @@ class StatCard extends StatelessWidget {
           border: Border.all(color: MonoPulseColors.borderSubtle),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: MonoPulseSpacing.sm),
-            Flexible(
-              child: Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                  fontSize: 18,
-                ),
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 2),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: color,
+                fontSize: 18,
+                height: 1.1,
               ),
             ),
-            const SizedBox(height: 2),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: MonoPulseColors.textTertiary,
-                  fontSize: 11,
-                ),
+            const SizedBox(height: 1),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: MonoPulseColors.textTertiary,
+                fontSize: 11,
+                height: 1.1,
               ),
             ),
           ],
@@ -266,19 +264,18 @@ class QuickActionButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, color: MonoPulseColors.accentOrange, size: 24),
-              const SizedBox(height: 2),
-              Flexible(
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: MonoPulseColors.accentOrange,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: MonoPulseColors.accentOrange,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                  height: 1.2,
                 ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -338,20 +335,19 @@ class ToolButton extends StatelessWidget {
                   : MonoPulseColors.textTertiary,
               size: 24,
             ),
-            const SizedBox(height: 2),
-            Flexible(
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isEnabled
-                      ? MonoPulseColors.accentOrange
-                      : MonoPulseColors.textTertiary,
-                  fontSize: 11,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: isEnabled
+                    ? MonoPulseColors.accentOrange
+                    : MonoPulseColors.textTertiary,
+                fontSize: 12,
+                height: 1.2,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
             if (!isEnabled) ...[
               const SizedBox(height: MonoPulseSpacing.xs),
@@ -434,30 +430,28 @@ class GreetingCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Flexible(
-                  child: Text(
-                    'Hello, $userName!',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: MonoPulseColors.textPrimary,
-                      fontSize: 16,
-                    ),
+                Text(
+                  'Hello, $userName!',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: MonoPulseColors.textPrimary,
+                    fontSize: 16,
+                    height: 1.2,
                   ),
                 ),
                 const SizedBox(height: 2),
-                Flexible(
-                  child: Text(
-                    subtitle ?? 'Ready to rock?',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: MonoPulseColors.textTertiary,
-                      fontSize: 12,
-                    ),
+                Text(
+                  subtitle ?? 'Ready to rock?',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: MonoPulseColors.textTertiary,
+                    fontSize: 12,
+                    height: 1.2,
                   ),
                 ),
               ],
