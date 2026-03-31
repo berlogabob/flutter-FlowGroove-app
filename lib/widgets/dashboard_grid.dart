@@ -1,15 +1,24 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+
 import '../theme/mono_pulse_theme.dart';
+import '../utils/responsive_breakpoints.dart';
+import 'stat_card.dart';
+import 'quick_action_button.dart';
+import 'tool_button.dart';
 
 /// Dashboard grid displaying statistics and quick actions.
 ///
+/// Responsive design adapts layout based on screen breakpoint:
+/// - Mobile (< 600px): Single column, full-width cards
+/// - Tablet (600-1024px): 2-column grid
+/// - Desktop (> 1024px): 3-column grid with welcome widget for empty states
+///
 /// Features:
-/// - Responsive grid layout with automatic wrapping
+/// - Responsive grid layout with automatic breakpoint detection
 /// - Stat cards with icons, labels, and values
 /// - Quick action buttons
 /// - Tool buttons with "Soon" badges
+/// - Welcome widget for desktop empty states
 ///
 /// Usage:
 /// ```dart
@@ -25,6 +34,7 @@ import '../theme/mono_pulse_theme.dart';
 ///   tools: [
 ///     ToolButton(icon: Icons.tune, label: 'Tuner', ...),
 ///   ],
+///   welcomeWidget: DashboardWelcomeWidget.defaultWelcome(userName: 'John'),
 /// )
 /// ```
 class DashboardGrid extends StatelessWidget {
@@ -40,425 +50,186 @@ class DashboardGrid extends StatelessWidget {
   /// List of tool buttons.
   final List<ToolButton> tools;
 
+  /// Welcome widget for desktop empty states (optional).
+  final Widget? welcomeWidget;
+
   const DashboardGrid({
     super.key,
     required this.statistics,
     required this.quickActions,
     required this.tools,
     this.greetingCard,
+    this.welcomeWidget,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Greeting card
-          if (greetingCard != null) ...[
-            greetingCard!,
-            const SizedBox(height: MonoPulseSpacing.xxxl),
-          ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final breakpoint = getBreakpoint(constraints.maxWidth);
+        final padding = _getPaddingForBreakpoint(breakpoint);
+        final sectionSpacing = _getSectionSpacing(breakpoint);
 
-          // Statistics section
-          if (statistics.isNotEmpty) ...[
-            _buildSectionTitle(context, 'My Library'),
-            const SizedBox(height: MonoPulseSpacing.md),
-            _buildStatisticsGrid(context),
-            const SizedBox(height: MonoPulseSpacing.xxxl),
-          ],
+        return SingleChildScrollView(
+          padding: padding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Greeting card
+              if (greetingCard != null) ...[
+                greetingCard!,
+                SizedBox(height: sectionSpacing),
+              ],
 
-          // Quick actions section
-          if (quickActions.isNotEmpty) ...[
-            _buildSectionTitle(context, 'Quick Actions'),
-            const SizedBox(height: MonoPulseSpacing.md),
-            _buildQuickActionsGrid(context),
-            const SizedBox(height: MonoPulseSpacing.xxxl),
-          ],
+              // Statistics section
+              if (statistics.isNotEmpty) ...[
+                _buildSectionTitle(context, 'My Library', breakpoint),
+                SizedBox(height: MonoPulseSpacing.md),
+                _buildResponsiveStatisticsGrid(breakpoint),
+                SizedBox(height: sectionSpacing),
+              ],
 
-          // Tools section
-          if (tools.isNotEmpty) ...[
-            _buildSectionTitle(context, 'Tools'),
-            const SizedBox(height: MonoPulseSpacing.md),
-            _buildToolsGrid(context),
-          ],
-        ],
-      ),
+              // Quick actions section
+              if (quickActions.isNotEmpty) ...[
+                _buildSectionTitle(context, 'Quick Actions', breakpoint),
+                SizedBox(height: MonoPulseSpacing.md),
+                _buildResponsiveQuickActionsGrid(breakpoint),
+                SizedBox(height: sectionSpacing),
+              ],
+
+              // Tools section
+              if (tools.isNotEmpty) ...[
+                _buildSectionTitle(context, 'Tools', breakpoint),
+                SizedBox(height: MonoPulseSpacing.md),
+                _buildResponsiveToolsGrid(breakpoint, constraints.maxWidth),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
+  /// Get padding based on breakpoint.
+  EdgeInsets _getPaddingForBreakpoint(ScreenBreakpoint breakpoint) {
+    switch (breakpoint) {
+      case ScreenBreakpoint.mobile:
+        return const EdgeInsets.all(MonoPulseSpacing.lg);
+      case ScreenBreakpoint.tablet:
+        return const EdgeInsets.all(MonoPulseSpacing.xl);
+      case ScreenBreakpoint.desktop:
+        return const EdgeInsets.all(MonoPulseSpacing.xxl);
+    }
+  }
+
+  /// Get section spacing based on breakpoint.
+  double _getSectionSpacing(ScreenBreakpoint breakpoint) {
+    switch (breakpoint) {
+      case ScreenBreakpoint.mobile:
+        return MonoPulseSpacing.xxxl;
+      case ScreenBreakpoint.tablet:
+        return MonoPulseSpacing.xxxl + 8;
+      case ScreenBreakpoint.desktop:
+        return MonoPulseSpacing.xxxl + 16;
+    }
+  }
+
+  Widget _buildSectionTitle(
+    BuildContext context,
+    String title,
+    ScreenBreakpoint breakpoint,
+  ) {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.w700,
         color: MonoPulseColors.textPrimary,
+        fontSize: breakpoint == ScreenBreakpoint.desktop ? 18 : 16,
       ),
     );
   }
 
-  Widget _buildStatisticsGrid(BuildContext context) {
+  Widget _buildResponsiveStatisticsGrid(ScreenBreakpoint breakpoint) {
+    // Always 3 columns for statistics (Songs, Bands, Setlists in 1 row)
     return _buildFixedGrid(
-      children: statistics.map((stat) => stat).toList(),
+      children: statistics,
       crossAxisCount: 3,
+      aspectRatio: ResponsiveSizes.statCardAspectRatio(breakpoint),
     );
   }
 
-  Widget _buildQuickActionsGrid(BuildContext context) {
-    // Always 2 columns for 2x2 layout with 4 quick actions
+  Widget _buildResponsiveQuickActionsGrid(ScreenBreakpoint breakpoint) {
+    // Mobile: 2 columns, Tablet/Desktop: 4 columns (2x2 grid)
+    final crossAxisCount = breakpoint == ScreenBreakpoint.mobile ? 2 : 4;
     return _buildFixedGrid(
-      children: quickActions.map((action) => action).toList(),
-      crossAxisCount: 2,
+      children: quickActions,
+      crossAxisCount: crossAxisCount,
     );
   }
 
-  Widget _buildToolsGrid(BuildContext context) {
-    // 2 columns for future 2x2 layout support
+  Widget _buildResponsiveToolsGrid(
+    ScreenBreakpoint breakpoint,
+    double maxWidth,
+  ) {
+    // Mobile: 2 columns (Tuner, Metronome side by side)
+    // Tablet/Desktop: 2 columns with more tools in 2nd row
+    final crossAxisCount = 2;
+
+    // On desktop, show tools grid with welcome widget side-by-side
+    if (breakpoint == ScreenBreakpoint.desktop && welcomeWidget != null) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: _buildFixedGrid(
+              children: tools,
+              crossAxisCount: crossAxisCount,
+            ),
+          ),
+          const SizedBox(width: MonoPulseSpacing.lg),
+          Expanded(
+            flex: 1,
+            child: welcomeWidget!,
+          ),
+        ],
+      );
+    }
+
     return _buildFixedGrid(
-      children: tools.map((tool) => tool).toList(),
-      crossAxisCount: 2,
+      children: tools,
+      crossAxisCount: crossAxisCount,
     );
   }
 
-  /// Builds a fixed grid with specified number of columns using GridView.
+  /// Builds a responsive grid with specified number of columns using GridView.
   Widget _buildFixedGrid({
     required List<Widget> children,
     required int crossAxisCount,
+    double? aspectRatio,
   }) {
     if (children.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: MonoPulseSpacing.md,
-        mainAxisSpacing: MonoPulseSpacing.md,
-        childAspectRatio: 3.2,
-      ),
-      itemCount: children.length,
-      itemBuilder: (context, index) => children[index],
-    );
-  }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final breakpoint = getBreakpoint(constraints.maxWidth);
+        final gridAspectRatio = aspectRatio ?? ResponsiveSizes.cardAspectRatio(breakpoint);
 
-}
-
-/// Statistics card displaying an icon, value, and label.
-class StatCard extends StatelessWidget {
-  /// Icon to display.
-  final IconData icon;
-
-  /// Label text.
-  final String label;
-
-  /// Value text (the statistic).
-  final String value;
-
-  /// Icon color.
-  final Color color;
-
-  /// Callback when card is tapped (optional).
-  final VoidCallback? onTap;
-
-  const StatCard({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: MonoPulseSpacing.lg,
-          vertical: MonoPulseSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: MonoPulseColors.surface,
-          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-          border: Border.all(color: MonoPulseColors.borderSubtle),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: color,
-                fontSize: 18,
-                height: 1.1,
-              ),
-            ),
-            const SizedBox(height: 1),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: MonoPulseColors.textTertiary,
-                fontSize: 11,
-                height: 1.1,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Quick action button for dashboard.
-///
-/// Uses a vertical layout (icon above text) for better space utilization
-/// on narrow screens and to prevent overflow issues.
-class QuickActionButton extends StatelessWidget {
-  /// Icon to display.
-  final IconData icon;
-
-  /// Label text.
-  final String label;
-
-  /// Callback when button is pressed.
-  final VoidCallback onTap;
-
-  const QuickActionButton({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: MonoPulseColors.surface,
-      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: MonoPulseSpacing.lg,
-            vertical: MonoPulseSpacing.sm,
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: MonoPulseSpacing.md,
+            mainAxisSpacing: MonoPulseSpacing.md,
+            childAspectRatio: gridAspectRatio,
           ),
-          decoration: BoxDecoration(
-            color: MonoPulseColors.surface,
-            border: Border.all(color: MonoPulseColors.borderDefault),
-            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: MonoPulseColors.accentOrange, size: 24),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                  height: 1.2,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Tool button for dashboard (may be disabled with "Soon" badge).
-///
-/// Uses a vertical layout (icon above text) for better space utilization
-/// on narrow screens and to prevent overflow issues.
-class ToolButton extends StatelessWidget {
-  /// Icon to display.
-  final IconData icon;
-
-  /// Label text.
-  final String label;
-
-  /// Callback when button is pressed (null = disabled).
-  final VoidCallback? onTap;
-
-  const ToolButton({
-    super.key,
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isEnabled = onTap != null;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: MonoPulseSpacing.lg,
-          vertical: MonoPulseSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: isEnabled
-              ? MonoPulseColors.surface
-              : MonoPulseColors.surfaceOverlay,
-          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-          border: Border.all(color: MonoPulseColors.borderSubtle),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isEnabled
-                  ? MonoPulseColors.accentOrange
-                  : MonoPulseColors.textTertiary,
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: isEnabled
-                    ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textTertiary,
-                fontSize: 12,
-                height: 1.2,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (!isEnabled) ...[
-              const SizedBox(height: MonoPulseSpacing.xs),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: MonoPulseSpacing.sm,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: MonoPulseColors.borderStrong,
-                  borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                ),
-                child: Text(
-                  'Soon',
-                  style: MonoPulseTypography.labelSmall.copyWith(
-                    color: MonoPulseColors.textPrimary,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Greeting card widget for dashboard.
-class GreetingCard extends StatelessWidget {
-  /// User name to display.
-  final String userName;
-
-  /// User avatar URL or path (optional).
-  final String? avatarPath;
-
-  /// Subtitle text (optional).
-  final String? subtitle;
-
-  const GreetingCard({
-    super.key,
-    required this.userName,
-    this.avatarPath,
-    this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final initial = userName.isNotEmpty ? userName[0].toUpperCase() : 'U';
-
-    return Container(
-      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrangeSubtle,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: MonoPulseColors.surfaceRaised,
-            // Try to load from URL first, then from file, then show initial
-            backgroundImage: avatarPath != null && avatarPath!.isNotEmpty
-                ? (avatarPath!.startsWith('http')
-                      ? NetworkImage(avatarPath!) as ImageProvider
-                      : FileImage(File(avatarPath!)))
-                : null,
-            child: avatarPath == null || avatarPath!.isEmpty
-                ? Text(
-                    initial,
-                    style: MonoPulseTypography.headlineSmall.copyWith(
-                      color: MonoPulseColors.accentOrange,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                    ),
-                  )
-                : null,
-          ),
-          const SizedBox(width: MonoPulseSpacing.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Hello, $userName!',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: MonoPulseColors.textPrimary,
-                    fontSize: 16,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle ?? 'Ready to rock?',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: MonoPulseColors.textTertiary,
-                    fontSize: 12,
-                    height: 1.2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+          itemCount: children.length,
+          itemBuilder: (context, index) => children[index],
+        );
+      },
     );
   }
 }
