@@ -233,7 +233,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                     child: Text(
                       inviteCode,
                       style: MonoPulseTypography.headlineSmall.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         fontFamily: 'monospace',
                       ),
                       textAlign: TextAlign.center,
@@ -305,7 +305,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                 Text(
                   _isEditing ? 'Edit band details' : 'Create a new band',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.center,
                 ),

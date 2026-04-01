@@ -1,6 +1,4 @@
-import '../models/song.dart';
 import '../models/song_suggestion.dart';
-import '../models/canonical_song.dart';
 import '../repositories/firestore_song_repository.dart';
 import 'musicbrainz_service.dart';
 import 'matching/fuzzy_matcher.dart';

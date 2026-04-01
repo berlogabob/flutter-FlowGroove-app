@@ -418,7 +418,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                               child: Text(
                                 song.ourKey ?? '-',
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                   color: MonoPulseColors.accentOrange,
                                 ),
                               ),
@@ -428,7 +428,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                               Text(
                                 '${song.ourBPM}',
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             if (song.spotifyUrl != null) ...[

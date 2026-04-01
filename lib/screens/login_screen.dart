@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:formz/formz.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import '../../router/app_router.dart';
 import '../models/api_error.dart';
@@ -129,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Text(
                 'FlowGroove',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
                 textAlign: TextAlign.center,
               ),

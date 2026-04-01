@@ -10,6 +10,10 @@ import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
 import '../../widgets/dashboard_grid.dart';
+import '../../widgets/greeting_card.dart';
+import '../../widgets/quick_action_button.dart';
+import '../../widgets/stat_card.dart';
+import '../../widgets/tool_button.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 
 /// The Band Screen - displays band dashboard similar to personal page.

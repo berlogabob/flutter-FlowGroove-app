@@ -522,7 +522,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
             'Band Members',
             style: MonoPulseTypography.headlineLarge.copyWith(
               color: MonoPulseColors.textHighEmphasis,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 16),
@@ -646,7 +646,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                     _getMemberInitials(member).toUpperCase(),
                     style: const TextStyle(
                       color: MonoPulseColors.textPrimary,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -748,7 +748,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
             style: TextStyle(
               color: color,
               fontSize: 10,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -926,7 +926,7 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
                     'Edit Member',
                     style: MonoPulseTypography.headlineLarge.copyWith(
                       color: MonoPulseColors.textHighEmphasis,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   IconButton(
@@ -950,7 +950,7 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
               const Text(
                 'Permission Role',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: MonoPulseColors.textPrimary,
                 ),
               ),
@@ -969,7 +969,7 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
               const Text(
                 'Music Roles',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: MonoPulseColors.textPrimary,
                 ),
               ),
@@ -1002,7 +1002,7 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
               const Text(
                 'Working Roles',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   color: MonoPulseColors.textPrimary,
                 ),
               ),
@@ -1068,7 +1068,7 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
       selectedColor: color.withValues(alpha: 0.3),
       labelStyle: TextStyle(
         color: isSelected ? color : MonoPulseColors.textSecondary,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
       ),
     );
   }

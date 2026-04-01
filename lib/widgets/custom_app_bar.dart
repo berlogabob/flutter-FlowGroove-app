@@ -93,7 +93,7 @@ class CustomAppBar {
                     : MonoPulseTypography.headlineLarge)
                 .copyWith(
                   color: MonoPulseColors.textHighEmphasis,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
       ),
       centerTitle: true,
@@ -197,7 +197,7 @@ class CustomAppBar {
         title,
         style: MonoPulseTypography.headlineLarge.copyWith(
           color: MonoPulseColors.textHighEmphasis,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
         ),
       ),
       centerTitle: true,
@@ -223,7 +223,7 @@ class CustomAppBar {
         title,
         style: MonoPulseTypography.headlineLarge.copyWith(
           color: MonoPulseColors.textHighEmphasis,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
         ),
       ),
       centerTitle: true,

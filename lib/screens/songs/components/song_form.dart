@@ -198,7 +198,7 @@ class SongForm extends StatelessWidget {
             children: [
               const Text(
                 'Our Key & BPM',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.w700),
               ),
               TextButton.icon(
                 onPressed: onCopyFromOriginal,

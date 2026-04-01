@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/song_suggestion.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// Source icon for song suggestions
 /// 
@@ -32,7 +33,7 @@ class SourceIcon extends StatelessWidget {
       width: size + 8,
       height: size + 8,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(
@@ -65,7 +66,7 @@ class SourceIcon extends StatelessWidget {
       case SuggestionSource.group:
         return colorScheme.secondary;
       case SuggestionSource.musicbrainz:
-        return Colors.green;
+        return MonoPulseColors.successGreen;
       case SuggestionSource.canonical:
         return colorScheme.tertiary;
     }

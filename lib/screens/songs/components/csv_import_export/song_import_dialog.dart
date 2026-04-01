@@ -41,7 +41,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
                     'Import Songs from CSV',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: MonoPulseColors.textHighEmphasis,
                     ),
                   ),

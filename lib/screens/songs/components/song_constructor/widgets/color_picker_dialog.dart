@@ -414,7 +414,7 @@ class _HexPresetChip extends StatelessWidget {
           hex,
           style: TextStyle(
             fontSize: 10,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
           ),
         ),

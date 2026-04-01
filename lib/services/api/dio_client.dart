@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../models/api_error.dart';
+import '../../models/api_error.dart';
 
 /// Dio client configuration and interceptors.
 ///
@@ -79,7 +79,11 @@ class _ErrorHandlingInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final apiError = _handleDioException(err);
-    handler.reject(apiError);
+    handler.reject(DioException(
+      requestOptions: err.requestOptions,
+      error: apiError.message,
+      type: err.type,
+    ));
   }
 
   ApiError _handleDioException(DioException error) {
@@ -115,7 +119,6 @@ class _ErrorHandlingInterceptor extends Interceptor {
         break;
 
       case DioExceptionType.unknown:
-      default:
         message = 'An unexpected error occurred.';
         type = ErrorType.unknown;
         break;
@@ -185,7 +188,7 @@ class _ErrorHandlingInterceptor extends Interceptor {
     if (statusCode >= 400 && statusCode < 500) {
       return ErrorType.validation;
     } else if (statusCode >= 500) {
-      return ErrorType.server;
+      return ErrorType.network;
     }
 
     return ErrorType.unknown;

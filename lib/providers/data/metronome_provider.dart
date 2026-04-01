@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/metronome_state.dart';
 import '../../models/time_signature.dart';
@@ -28,7 +29,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void start(int bpm, int beatsPerMeasure) {
     if (state.isPlaying) return;
 
-    final clampedBpm = bpm.clamp(40, 220);
+    // NEW: BPM range restricted to industry standard (10-260 BPM)
+    final clampedBpm = bpm.clamp(10, 260);
     final timeSignature = TimeSignature(
       numerator: beatsPerMeasure,
       denominator: state.timeSignature.denominator,
@@ -245,7 +247,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Set tempo directly
   void setTempoDirectly(int bpm) {
-    final clampedBpm = bpm.clamp(1, 300);
+    // NEW: BPM range restricted to industry standard (10-260 BPM)
+    final clampedBpm = bpm.clamp(10, 260);
     state = state.copyWith(bpm: clampedBpm);
 
     if (state.isPlaying) {
@@ -432,6 +435,10 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
     // Play sound if not silent
     if (shouldPlay) {
+      // Vibration FIRST for perfect sync (triggers immediately)
+      // Then audio (slightly delayed, but syncs better perceptually)
+      HapticFeedback.lightImpact();
+      
       _audioEngine.playClick(
         isAccent: isMainBeat,
         waveType: state.waveType,

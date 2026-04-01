@@ -185,7 +185,7 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
                 'Add (${_selectedSongIds.length})',
                 style: const TextStyle(
                   color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),

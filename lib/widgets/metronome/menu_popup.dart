@@ -285,7 +285,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
             child: Text(
               'Update',
               style: MonoPulseTypography.labelLarge.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
