@@ -28,9 +28,26 @@ help:
 	@echo ""
 
 # =============================================================================
+# PRE-DEPLOYMENT VALIDATION
+# =============================================================================
+check-env:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Validating Deployment Configuration               ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@if [ ! -f .env ]; then \
+		echo "❌ ERROR: .env file not found!"; \
+		echo "   Run: cp .env.example .env and edit with your credentials"; \
+		exit 1; \
+	fi
+	@echo "✅ .env file found"
+	@./scripts/inject-web-config.sh
+	@echo ""
+
+# =============================================================================
 # STABLE DEPLOYMENT - FTP (flowgroove.app)
 # =============================================================================
-deploy-stable: build-web
+deploy-stable: check-env build-web
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Deploying to FTP (flowgroove.app)                 ║"
@@ -47,16 +64,19 @@ deploy-stable: build-web
 # =============================================================================
 # TEST DEPLOYMENT - GitHub Pages (second01 branch, /docs folder)
 # =============================================================================
-deploy-test: build-web-github
+deploy-test: check-env build-web-github
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║      Deploying to GitHub Pages (second01 branch)          ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "📦 Copying to docs/..."
+	@echo "   Preserving docs/config.js (contains secrets)..."
+	@if [ -f docs/config.js ]; then cp docs/config.js /tmp/docs-config.js.backup; fi
 	@rm -rf docs/*
 	@cp -r build/web/* docs/
-	@echo "✅ Files copied to docs/"
+	@if [ -f /tmp/docs-config.js.backup ]; then cp /tmp/docs-config.js.backup docs/config.js; rm /tmp/docs-config.js.backup; fi
+	@echo "✅ Files copied to docs/ (config.js preserved)"
 	@echo ""
 	@echo "📝 Committing changes..."
 	@git add docs/
@@ -87,6 +107,10 @@ build-web:
 	@echo "   Base href: / (FTP - flowgroove.app)"
 	@flutter build web --release
 	@echo ""
+	@echo "📦 Copying config.js to build/web/..."
+	@cp web/config.js build/web/config.js
+	@echo "✅ config.js injected into build"
+	@echo ""
 	@echo "✅ Build complete!"
 	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
 	@echo ""
@@ -103,6 +127,10 @@ build-web-github:
 	@echo "🔨 Building web app..."
 	@echo "   Base href: /flutter-FlowGroove-app/ (GitHub Pages)"
 	@flutter build web --release --base-href "/flutter-FlowGroove-app/"
+	@echo ""
+	@echo "📦 Copying config.js to build/web/..."
+	@cp web/config.js build/web/config.js
+	@echo "✅ config.js injected into build"
 	@echo ""
 	@echo "✅ Build complete!"
 	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
