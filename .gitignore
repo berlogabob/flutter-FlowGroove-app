@@ -15,7 +15,6 @@ assets/env.json
 
 # Docs build artifacts (should not contain secrets)
 /docs/assets/
-/docs/main.dart.js
 /docs/canvaskit/
 /docs/flutter.js
 
@@ -60,6 +59,7 @@ analysis_benchmark.json
 .pub-preload-cache/
 .pub/
 build/
+# Flutter screenshots in root (use screenshots/ directory instead)
 flutter_*.png
 linked_*.ds
 unlinked.ds
