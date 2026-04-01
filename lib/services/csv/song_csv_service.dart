@@ -158,14 +158,14 @@ class SongCsvService {
           name: 'Intro',
           notes: '',
           duration: 4,
-          colorValue: MonoPulseColors.section5.value!,
+          colorValue: MonoPulseColors.section5.withValues(alpha: 1.0).value,
         ),
         Section(
           id: '',
           name: 'Verse',
           notes: '',
           duration: 8,
-          colorValue: MonoPulseColors.section8.value!,
+          colorValue: MonoPulseColors.section8.withValues(alpha: 1.0).value,
         ),
       ],
     );

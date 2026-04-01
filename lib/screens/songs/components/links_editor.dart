@@ -31,7 +31,7 @@ class LinksEditor extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Links', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Links', style: TextStyle(fontWeight: FontWeight.w700)),
             TextButton.icon(
               onPressed: () => _showAddLinkDialog(context),
               icon: const Icon(Icons.add),

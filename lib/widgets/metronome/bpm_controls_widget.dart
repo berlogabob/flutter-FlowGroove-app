@@ -182,7 +182,7 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                       '${state.bpm}',
                       style: MonoPulseTypography.displayMedium.copyWith(
                         color: MonoPulseColors.textHighEmphasis,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(width: MonoPulseSpacing.md),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 import '../../models/api_error.dart';
-import '../../models/beat_mode.dart';
 import '../../models/song.dart';
 import '../../models/song_suggestion.dart';
 import '../../providers/data/data_providers.dart';
@@ -51,7 +49,12 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   @override
   void initState() {
     super.initState();
-    _initControllers();
+    // Delay initialization until after the first frame to avoid modifying providers during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initControllers();
+      }
+    });
     WidgetsBinding.instance.addObserver(this);
   }
 

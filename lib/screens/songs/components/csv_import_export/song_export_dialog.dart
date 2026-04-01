@@ -42,7 +42,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
                     'Export Songs to CSV',
                     style: TextStyle(
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: MonoPulseColors.textHighEmphasis,
                     ),
                   ),
@@ -128,7 +128,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
           'Export Successful!',
           style: TextStyle(
             fontSize: 22,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             color: MonoPulseColors.textHighEmphasis,
           ),
         ),

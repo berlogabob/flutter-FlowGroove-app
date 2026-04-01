@@ -73,7 +73,7 @@ class FirestoreSetlistRepository implements SetlistRepository {
                   final data = doc.data() as Map<String, dynamic>;
                   return Setlist(
                     id: doc.id,
-                    bandId: '',
+                    bandId: doc.id,
                     name: (data['name'] as String?) ?? 'Unknown',
                     description: 'Parse error: ${e.toString()}',
                     createdAt: DateTime.now(),

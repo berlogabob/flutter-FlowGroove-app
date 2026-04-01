@@ -273,6 +273,7 @@ class MonoPulseTypography {
 /// Spacing - 4-point grid system
 /// Generous padding for negative space
 class MonoPulseSpacing {
+  static const double xxs = 2;
   static const double xs = 4;
   static const double sm = 8;
   static const double md = 12;

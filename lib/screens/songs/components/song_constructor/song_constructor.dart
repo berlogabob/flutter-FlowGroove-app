@@ -183,7 +183,7 @@ class _SongConstructorState extends State<SongConstructor> {
                     child: Text(
                       'Song Structure',
                       style: MonoPulseTypography.titleMedium.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: MonoPulseColors.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -281,7 +281,7 @@ class _SongConstructorState extends State<SongConstructor> {
                               'Edit',
                               style: TextStyle(
                                 color: MonoPulseColors.textPrimary,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
@@ -298,7 +298,7 @@ class _SongConstructorState extends State<SongConstructor> {
                               'Delete',
                               style: TextStyle(
                                 color: MonoPulseColors.textPrimary,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                             SizedBox(width: 8),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/song_suggestion.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// Suggestion selection dialog
 /// 
@@ -118,7 +119,7 @@ class SuggestionSelectionDialog extends StatelessWidget {
       case SuggestionSource.group:
         return Icon(Icons.group, color: Theme.of(context).colorScheme.secondary);
       case SuggestionSource.musicbrainz:
-        return Icon(Icons.cloud, color: Colors.green);
+        return Icon(Icons.cloud, color: MonoPulseColors.successGreen);
       case SuggestionSource.canonical:
         return Icon(Icons.library_music, color: Theme.of(context).colorScheme.tertiary);
     }

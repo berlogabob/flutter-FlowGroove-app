@@ -86,7 +86,7 @@ class SongCard extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             song.ourKey!,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
         ],
         const SizedBox(width: 8),
@@ -112,7 +112,7 @@ class SongCard extends StatelessWidget {
       child: Text(
         '${song.ourBPM}',
         style: const TextStyle(
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           color: MonoPulseColors.accentOrange,
         ),
       ),
@@ -165,7 +165,7 @@ class CompactSongCard extends StatelessWidget {
                 song.ourKey!,
                 style: MonoPulseTypography.bodySmall.copyWith(
                   color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             if (song.ourBPM != null) ...[

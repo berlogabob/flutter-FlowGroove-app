@@ -13,6 +13,7 @@ import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/web_version_loader_export.dart';
 import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/loading_indicator.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -311,7 +312,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   Text(
                     'How it works:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                   SizedBox(height: 8),
                   Text('1. Click "Open Telegram" below'),
@@ -436,7 +437,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   style: const TextStyle(
                                     fontSize: 40,
                                     color: MonoPulseColors.accentOrange,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 )
                               : null,

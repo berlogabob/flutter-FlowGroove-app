@@ -154,7 +154,7 @@ class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
                         color: _calculatedBPM != null
                             ? MonoPulseColors.accentOrange
                             : MonoPulseColors.textSecondary,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -171,7 +171,7 @@ class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
               '$_calculatedBPM BPM',
               style: MonoPulseTypography.headlineMedium.copyWith(
                 color: MonoPulseColors.textHighEmphasis,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: MonoPulseSpacing.xs),
