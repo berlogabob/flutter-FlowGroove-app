@@ -1,0 +1,14 @@
+<!-- 🔧 REDIRECT SCRIPT — ВСТАВИТЬ ПЕРВЫМ -->
+<script>
+    (function () {
+        if (
+            !window.location.hash &&
+            window.location.hostname !== "localhost" &&
+            !window.location.hostname.startsWith("127.")
+        ) {
+            window.location.replace(
+                window.location.pathname + "#/home" + window.location.search,
+            );
+        }
+    })();
+</script>
