@@ -3,18 +3,11 @@
 #
 # This workflow deploys the test build to GitHub Pages on every push to second01 branch
 #
-# Required Secrets (set in GitHub Repository Settings > Secrets and variables > Actions):
-#   FIREBASE_API_KEY         - Firebase API key
-#   SPOTIFY_CLIENT_ID        - Spotify Client ID
-#   SPOTIFY_CLIENT_SECRET    - Spotify Client Secret
-#   TWITTER_API_KEY          - Twitter API Key (optional)
-#   TWITTER_API_SECRET       - Twitter API Secret (optional)
-#   TRACK_ANALYSIS_API_KEY   - RapidAPI Track Analysis Key (optional)
+# NO SECRETS REQUIRED! Uses demo configuration (Firebase works, Spotify disabled)
 #
-# Setup Instructions:
-# 1. Go to: https://github.com/berlogabob/flutter-FlowGroove-app/settings/secrets/actions
-# 2. Add each secret listed above
-# 3. Push to second01 branch to trigger deployment
+# To add Spotify/Twitter credentials later:
+# 1. Set secrets in GitHub Repository Settings > Secrets and variables > Actions
+# 2. Update the "Generate web configuration" step to use generate-web-config.sh
 
 name: Deploy Test (GitHub Pages)
 
@@ -35,37 +28,35 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Needed to push to gh-pages branch
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for version info
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: '3.41.x'
           cache: true
-      
+
       - name: Get Flutter dependencies
         run: flutter pub get
-      
-      - name: Generate web configuration
-        env:
-          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
-          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
-          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
-          TRACK_ANALYSIS_API_KEY: ${{ secrets.TRACK_ANALYSIS_API_KEY }}
-          SPOTIFY_PROXY_URL: ${{ secrets.SPOTIFY_PROXY_URL }}
-        run: ./scripts/generate-web-config.sh
-      
+
+      - name: Use demo configuration (no credentials needed)
+        run: |
+          echo "🔧 Using demo configuration for GitHub Pages"
+          echo "   (Firebase works, Spotify/Twitter disabled)"
+          cp web/config.demo.js web/config.js
+
       - name: Build web app
         run: flutter build web --release --base-href "/flutter-FlowGroove-app/"
-      
+
+      - name: Copy config to build
+        run: cp web/config.js build/web/config.js
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -76,9 +67,9 @@ jobs:
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_message: 'Deploy test build ${{ github.sha }}'
-      
+
       - name: Deployment summary
         run: |
           echo "✅ Deployment complete!"
           echo "🌐 Test URL: https://berlogabob.github.io/flutter-FlowGroove-app/"
-          echo "📝 Commit: ${{ github.sha }}"
+          echo "⏱️  GitHub Pages build: 1-2 minutes"
