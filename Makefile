@@ -1,64 +1,100 @@
-# FlowGroove App - Simple Deployment Makefile
-# =============================================
-# Three commands:
-#   make deploy-stable   - Deploy to FTP (flowgroove.app)
-#   make deploy-test     - Deploy to GitHub Pages (test)
-#   make release         - Build Android + GitHub Release
+# FlowGroove App - Deployment Makefile
+# =====================================
+# Version: 0.13.5+180
+# Last Updated: April 2, 2026
+#
+# Quick Start:
+#   make deploy-test   → Test on GitHub Pages (no credentials needed)
+#   make release       → Build Android APK + GitHub Release
+#   make deploy-stable → Production FTP deploy (requires credentials)
+#
+# Demo Configuration:
+#   - Firebase works out of the box (public key included)
+#   - Spotify/Twitter disabled (add credentials later if needed)
+#   - No .env file required for testing
 
-.PHONY: help deploy-stable deploy-test release build-web build-web-github build-android
+.PHONY: help deploy-stable deploy-test release build-web build-web-github build-android check-env check-env-test check-env-prod help-env clean-exports
 
-# Default target
+# =============================================================================
+# HELP
+# =============================================================================
+
 help:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         FlowGroove App - Deployment Commands              ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "Available commands:"
+	@echo "🚀 Quick Start:"
 	@echo ""
-	@echo "  make deploy-stable   - Build + Deploy to FTP (flowgroove.app)"
-	@echo "  make deploy-test     - Build + Deploy to GitHub Pages (test)"
-	@echo "  make release         - Build Android APK + GitHub Release"
-	@echo "  make clean-exports   - Move chat exports to docs/archive/"
+	@echo "  make deploy-test     # Test on GitHub Pages (recommended)"
+	@echo "  make release         # Build Android APK + GitHub Release"
+	@echo "  make deploy-stable   # Production FTP deployment"
 	@echo ""
-	@echo "Examples:"
-	@echo "  make deploy-stable   # Production deployment"
-	@echo "  make deploy-test     # Test deployment"
-	@echo "  make release         # Android release with GitHub Release"
-	@echo "  make clean-exports   # Clean up chat exports"
+	@echo "📋 All Commands:"
+	@echo ""
+	@echo "  make deploy-test     - Deploy to GitHub Pages (test)"
+	@echo "  make deploy-stable   - Deploy to FTP (flowgroove.app)"
+	@echo "  make release         - Build Android APK + AAB + GitHub Release"
+	@echo "  make build-android   - Build Android APK only"
+	@echo "  make build-web       - Build web app (production)"
+	@echo "  make clean-exports   - Archive chat exports"
+	@echo "  make help-env        - Show environment variable setup"
+	@echo ""
+	@echo "📝 Documentation:"
+	@echo ""
+	@echo "  docs/MODERNIZATION_COMPLETE.md  - Full modernization report"
+	@echo "  docs/MAKEFILE_MODERNIZATION_COMPLETE.md - Makefile guide"
+	@echo "  DEPLOYMENT_GUIDE.md             - Deployment instructions"
 	@echo ""
 
 # =============================================================================
 # PRE-DEPLOYMENT VALIDATION
 # =============================================================================
 
-# Validate configuration and inject web config
-# For deploy-test: Uses demo config (safe to commit)
-# For deploy-stable: Requires environment variables
 check-env:
+	@echo "Validating configuration..."
+
+# For GitHub Pages test deployment - uses demo config (no credentials needed)
+check-env-test:
+	@cp web/config.demo.js web/config.js
+
+# For production FTP deployment - requires environment variables
+check-env-prod:
+	@./scripts/generate-web-config.sh
+
+# =============================================================================
+# TEST DEPLOYMENT - GitHub Pages (second01 branch)
+# =============================================================================
+
+deploy-test: check-env-test build-web-github
+	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║         Validating Deployment Configuration               ║"
+	@echo "║      Deploying to GitHub Pages (second01 branch)          ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-
-# For GitHub Pages test deployment - uses demo config
-check-env-test:
-	@echo "🔧 Using demo configuration for GitHub Pages testing"
-	@echo "   (Firebase works, Spotify/Twitter disabled)"
+	@echo "📦 Copying to docs/..."
+	@if [ -f docs/config.js ]; then cp docs/config.js /tmp/docs-config.js.backup; fi
+	@rm -rf docs/*
+	@cp -r build/web/* docs/
+	@if [ -f /tmp/docs-config.js.backup ]; then cp /tmp/docs-config.js.backup docs/config.js; rm /tmp/docs-config.js.backup; fi
+	@echo "✅ Files copied to docs/"
 	@echo ""
-	@cp web/config.demo.js web/config.js
-	@echo "✅ Demo config ready"
+	@echo "📝 Committing changes..."
+	@git add docs/
+	@git commit -m "docs: Deploy test build $$(cat web/version.json | grep version | head -1)" || echo "No changes to commit"
 	@echo ""
-
-# For production FTP deployment - requires env vars
-check-env-prod:
-	@echo "🔧 Using environment variables for production deployment"
+	@echo "🚀 Pushing to second01 branch..."
+	@git push origin second01
 	@echo ""
-	@./scripts/generate-web-config.sh
+	@echo "✅ GitHub Pages deployment complete!"
+	@echo "🌐 Test URL: https://berlogabob.github.io/flutter-FlowGroove-app/"
+	@echo "⏱️  GitHub Pages build: 1-2 minutes"
 	@echo ""
 
 # =============================================================================
 # STABLE DEPLOYMENT - FTP (flowgroove.app)
 # =============================================================================
+
 deploy-stable: check-env-prod build-web
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
@@ -74,41 +110,10 @@ deploy-stable: check-env-prod build-web
 	@echo ""
 
 # =============================================================================
-# TEST DEPLOYMENT - GitHub Pages (second01 branch, /docs folder)
-# =============================================================================
-deploy-test: check-env-test build-web-github
-	@echo ""
-	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║      Deploying to GitHub Pages (second01 branch)          ║"
-	@echo "╚═══════════════════════════════════════════════════════════╝"
-	@echo ""
-	@echo "📦 Copying to docs/..."
-	@echo "   Preserving docs/config.js (contains secrets)..."
-	@if [ -f docs/config.js ]; then cp docs/config.js /tmp/docs-config.js.backup; fi
-	@rm -rf docs/*
-	@cp -r build/web/* docs/
-	@if [ -f /tmp/docs-config.js.backup ]; then cp /tmp/docs-config.js.backup docs/config.js; rm /tmp/docs-config.js.backup; fi
-	@echo "✅ Files copied to docs/ (config.js preserved)"
-	@echo ""
-	@echo "📝 Committing changes..."
-	@git add docs/
-	@git commit -m "docs: Deploy test build $$(cat web/version.json | grep version | head -1)" || echo "No changes to commit"
-	@echo ""
-	@echo "🚀 Pushing to second01 branch..."
-	@git push origin second01
-	@echo ""
-	@echo "✅ GitHub Pages deployment complete!"
-	@echo "🌐 Test URL: https://berlogabob.github.io/flutter-FlowGroove-app/"
-	@echo "⏱️  GitHub Pages build: 1-2 minutes"
-	@echo ""
-
-# =============================================================================
 # BUILD COMMANDS
 # =============================================================================
 
-# Build for FTP (flowgroove.app) - root domain
-# Uses demo config by default (safe, no credentials needed)
-# For production with Spotify, set env vars: SPOTIFY_CLIENT_ID, etc.
+# Build for web (production FTP) - uses demo config
 build-web:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║              Building Web (FTP / Root)                    ║"
@@ -117,17 +122,12 @@ build-web:
 	@echo "📝 Updating version.json..."
 	@./scripts/update-version-json.sh
 	@echo ""
-	@echo "📦 Using demo config (Firebase works, Spotify disabled)..."
 	@if [ ! -f web/config.js ]; then cp web/config.demo.js web/config.js; fi
-	@echo ""
 	@echo "🔨 Building web app..."
 	@echo "   Base href: / (FTP - flowgroove.app)"
 	@flutter build web --release
 	@echo ""
-	@echo "📦 Copying config.js to build/web/..."
 	@cp web/config.js build/web/config.js
-	@echo "✅ config.js injected into build"
-	@echo ""
 	@echo "✅ Build complete!"
 	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
 	@echo ""
@@ -145,62 +145,44 @@ build-web-github:
 	@echo "   Base href: /flutter-FlowGroove-app/ (GitHub Pages)"
 	@flutter build web --release --base-href "/flutter-FlowGroove-app/"
 	@echo ""
-	@echo "📦 Copying config.js to build/web/..."
 	@cp web/config.js build/web/config.js
-	@echo "✅ config.js injected into build"
-	@echo ""
 	@echo "✅ Build complete!"
 	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
 	@echo ""
 
-# Build for Android APK
-# Uses demo config by default (safe, no credentials needed)
-# For production with Spotify, set env vars before building
+# Build for Android APK - uses demo config
 build-android:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║              Building Android APK                         ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "📦 Using demo Firebase config (Spotify disabled)..."
 	@if [ ! -f assets/env.json ]; then cp assets/env.demo.json assets/env.json; fi
-	@echo ""
 	@echo "🤖 Building Android APK..."
 	@flutter build apk --release
 	@echo ""
 	@echo "✅ Android build complete!"
-	@APK_SIZE=$$(du -h build/app/outputs/flutter-apk/app-release.apk | cut -f1); \
-	echo "   APK size: $$APK_SIZE"
-	@echo ""
-	@echo "📱 APK location: build/app/outputs/flutter-apk/app-release.apk"
+	@echo "📱 APK: build/app/outputs/flutter-apk/app-release.apk"
 	@echo ""
 
-# Build for Android App Bundle (Play Store)
-# Uses demo config by default (safe, no credentials needed)
+# Build for Android App Bundle (Play Store) - uses demo config
 build-appbundle:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Building Android App Bundle (AAB)                 ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "📦 Using demo Firebase config (Spotify disabled)..."
 	@if [ ! -f assets/env.json ]; then cp assets/env.demo.json assets/env.json; fi
-	@echo ""
 	@echo "🤖 Building Android App Bundle..."
 	@flutter build appbundle --release
 	@echo ""
 	@echo "✅ AAB build complete!"
-	@AAB_SIZE=$$(du -h build/app/outputs/bundle/release/app-release.aab | cut -f1); \
-	echo "   AAB size: $$AAB_SIZE"
-	@echo ""
-	@echo "📦 AAB location: build/app/outputs/bundle/release/app-release.aab"
+	@echo "📦 AAB: build/app/outputs/bundle/release/app-release.aab"
 	@echo ""
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
-# FTP Configuration
-# Used ONLY for make deploy-stable (production FTP deployment)
-# NOT needed for make deploy-test (GitHub Pages) or Android builds
+# FTP Configuration (only needed for make deploy-stable)
 FTP_HOST := $(FTP_HOST)
 FTP_USER := $(FTP_USER)
 FTP_PASS := $(FTP_PASS)
@@ -209,18 +191,18 @@ FTP_DIR := $(or $(FTP_DIR),flowgroove.app)
 # =============================================================================
 # RELEASE - ANDROID APK + GITHUB RELEASE
 # =============================================================================
+
 release: build-android build-appbundle
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Creating GitHub Release with Android APK          ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "📝 Updating version.json for GitHub Pages..."
+	@echo "📝 Updating version.json..."
 	@./scripts/update-version-json.sh
 	@echo ""
-	@echo "📝 Getting version info..."
 	$(eval NEW_VERSION := $(shell grep "^version:" pubspec.yaml | sed 's/version: //'))
-	@echo "   Version: $(NEW_VERSION)"
+	@echo "📦 Version: $(NEW_VERSION)"
 	@echo ""
 	@echo "💾 Committing changes..."
 	@git add -A
@@ -238,7 +220,6 @@ release: build-android build-appbundle
 		if gh auth status >/dev/null 2>&1; then \
 			if gh release view "v$(NEW_VERSION)" >/dev/null 2>&1; then \
 				echo "⚠️  Release v$(NEW_VERSION) already exists!"; \
-				echo "   To update: gh release upload v$(NEW_VERSION) build/app/outputs/flutter-apk/app-release.apk"; \
 			else \
 				gh release create "v$(NEW_VERSION)" \
 					--title "Release $(NEW_VERSION)" \
@@ -252,32 +233,24 @@ release: build-android build-appbundle
 			echo "⚠️  GitHub CLI not authenticated. Run 'gh auth login'"; \
 		fi; \
 	else \
-		echo "⚠️  GitHub CLI not installed. Install from https://cli.github.com/"; \
+		echo "⚠️  GitHub CLI not installed."; \
 	fi
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║              🎉 Release Complete! 🎉                      ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "📦 Version: $(NEW_VERSION)"
-	@echo "📱 Android APK: build/app/outputs/flutter-apk/app-release.apk"
-	@echo "📦 Android AAB: build/app/outputs/bundle/release/app-release.aab"
-	@echo "🔗 GitHub Release: https://github.com/berlogabob/flutter-FlowGroove-app/releases/tag/v$(NEW_VERSION)"
-	@echo ""
-	@echo "📝 Next steps:"
-	@echo "   1. Test Android APK on device"
-	@echo "   2. Upload AAB to Google Play Console (if needed)"
-	@echo "   3. Share GitHub Release link with testers"
+	@echo "📱 APK: build/app/outputs/flutter-apk/app-release.apk"
+	@echo "📦 AAB: build/app/outputs/bundle/release/app-release.aab"
+	@echo "🔗 Release: https://github.com/berlogabob/flutter-FlowGroove-app/releases/tag/v$(NEW_VERSION)"
 	@echo ""
 
-# Get current branch
 CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
 # =============================================================================
 # UTILITIES
 # =============================================================================
 
-# Move chat exports to archive
 clean-exports:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Moving Chat Exports to Archive                    ║"
@@ -286,39 +259,26 @@ clean-exports:
 	@./scripts/move-chat-exports.sh
 	@echo ""
 
-# Show environment variable setup instructions
 help-env:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║      Setting Environment Variables for Deployment         ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "📋 DEFAULT BEHAVIOR (No credentials needed):"
+	@echo "📋 DEFAULT (No credentials needed):"
 	@echo ""
 	@echo "  make deploy-test   → GitHub Pages (demo config)"
 	@echo "  make build-android → Android APK (demo config)"
 	@echo "  make build-web     → Web build (demo config)"
 	@echo ""
-	@echo "  ✅ Firebase works (public key)"
+	@echo "  ✅ Firebase works (public key included)"
 	@echo "  ⚠️  Spotify/Twitter disabled"
 	@echo ""
-	@echo "📝 For PRODUCTION with Spotify/Twitter:"
+	@echo "📝 For PRODUCTION (with Spotify/Twitter):"
 	@echo ""
-	@echo "  # Firebase Configuration"
-	@echo "  export FIREBASE_API_KEY=your_firebase_key"
+	@echo "  export FIREBASE_API_KEY=your_key"
+	@echo "  export SPOTIFY_CLIENT_ID=your_id"
+	@echo "  export SPOTIFY_CLIENT_SECRET=your_secret"
+	@echo "  export FTP_PASS=your_password"
 	@echo ""
-	@echo "  # Spotify API Credentials"
-	@echo "  export SPOTIFY_CLIENT_ID=your_spotify_client_id"
-	@echo "  export SPOTIFY_CLIENT_SECRET=your_spotify_client_secret"
-	@echo ""
-	@echo "  # FTP Deployment (for make deploy-stable)"
-	@echo "  export FTP_HOST=194.39.124.68"
-	@echo "  export FTP_USER=sounding"
-	@echo "  export FTP_PASS=your_ftp_password"
-	@echo "  export FTP_DIR=flowgroove.app"
-	@echo ""
-	@echo "💡 Tip: Add these to your shell profile (~/.zshrc or ~/.bashrc)"
-	@echo "   to avoid setting them every time."
-	@echo ""
-	@echo "🚀 Quick deployment (one-liner):"
-	@echo "   FIREBASE_API_KEY=xxx SPOTIFY_CLIENT_ID=yyy SPOTIFY_CLIENT_SECRET=zzz make deploy-stable"
+	@echo "  Then: make deploy-stable"
 	@echo ""
