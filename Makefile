@@ -119,8 +119,12 @@ backup-production:
 	@echo ""
 	@mkdir -p backup/production-$(shell date +%Y%m%d-%H%M%S)
 	@echo "📦 Downloading current production files..."
-	@lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse=false backup/production-$(shell date +%Y%m%d-%H%M%S)/" || echo "⚠️  Backup skipped (FTP credentials may be missing)"
+	@lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror backup/production-$(shell date +%Y%m%d-%H%M%S)/" || echo "⚠️  Backup skipped (FTP credentials may be missing)"
 	@echo "✅ Backup created"
+	@echo ""
+	@# Save latest backup path for auto-rollback
+	@echo "backup/production-$(shell date +%Y%m%d-%H%M%S)" > /tmp/flowgroove-latest-backup.txt
+	@echo "💾 Latest backup: backup/production-$(shell date +%Y%m%d-%H%M%S)/"
 	@echo ""
 
 # Upload to FTP with SSL support
@@ -135,7 +139,7 @@ ftp-upload:
 	@echo "✅ Upload complete"
 	@echo ""
 
-# Health check after deployment
+# Health check after deployment (with auto-rollback on failure)
 health-check-prod:
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
@@ -144,21 +148,54 @@ health-check-prod:
 	@echo ""
 	@echo "🔍 Checking production site..."
 	@sleep 5  # Wait for CDN propagation
+	@echo "📊 Checking site accessibility..."
 	@if curl -f -s https://flowgroove.app/ > /dev/null; then \
 		echo "✅ Site is accessible"; \
 	else \
 		echo "❌ ERROR: Site is not accessible!"; \
-		echo "🚨 Consider rollback: make rollback-production"; \
+		echo "🚨 Auto-rollback initiated..."; \
+		$(MAKE) auto-rollback; \
 		exit 1; \
 	fi
+	@echo "📊 Checking config.js..."
 	@if curl -f -s https://flowgroove.app/config.js | grep -q "FIREBASE_API_KEY"; then \
 		echo "✅ config.js is present and valid"; \
 	else \
 		echo "❌ ERROR: config.js missing or invalid!"; \
-		echo "🚨 Consider rollback: make rollback-production"; \
+		echo "🚨 Auto-rollback initiated..."; \
+		$(MAKE) auto-rollback; \
 		exit 1; \
 	fi
 	@echo "✅ Health check passed"
+	@echo ""
+	@echo "💾 Backup retained at: $(shell cat /tmp/flowgroove-latest-backup.txt 2>/dev/null || echo 'N/A')"
+	@echo "   (for manual rollback if issues discovered later)"
+	@echo ""
+
+# Automatic rollback (called by health-check-prod on failure)
+auto-rollback:
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         🚨 AUTO-ROLLBACK INITIATED                        ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@if [ -f /tmp/flowgroove-latest-backup.txt ]; then \
+		BACKUP_DIR=$$(cat /tmp/flowgroove-latest-backup.txt); \
+		if [ -d "$$BACKUP_DIR" ]; then \
+			echo "📦 Restoring from: $$BACKUP_DIR"; \
+			lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse $$BACKUP_DIR/ .; bye"; \
+			echo "✅ Auto-rollback complete!"; \
+			echo "🌐 Production restored to previous version"; \
+		else \
+			echo "❌ ERROR: Backup directory not found: $$BACKUP_DIR"; \
+			echo "🚨 Manual intervention required!"; \
+		fi; \
+	else \
+		echo "❌ ERROR: No backup info found!"; \
+		echo "🚨 Manual intervention required!"; \
+		echo "📝 Available backups:"; \
+		ls -1 backup/production-*/ 2>/dev/null || echo "   None found"; \
+	fi
 	@echo ""
 
 # =============================================================================
@@ -318,14 +355,50 @@ rollback-production:
 	@echo "║         Rolling Back Production Deployment                ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "⚠️  WARNING: This will restore the previous production version!"
-	@echo ""
-	@echo "📦 Available backups:"
-	@ls -1 backup/production-*/ 2>/dev/null | sed 's/^/   /' || echo "   No backups found!"
-	@echo ""
-	@echo "📝 Usage:"
-	@echo "   1. List backups: ls -la backup/production-*/"
-	@echo "   2. Restore: lftp -c \"open -u user,pass host; cd dir; mirror --reverse backup/production-YYYYMMDD-HHMMSS/ .\""
+	@if [ -f /tmp/flowgroove-latest-backup.txt ]; then \
+		BACKUP_DIR=$$(cat /tmp/flowgroove-latest-backup.txt); \
+		echo "📦 Latest backup: $$BACKUP_DIR"; \
+		echo ""; \
+		read -p "Use this backup for rollback? (y/N): " -n 1 -r; \
+		echo ""; \
+		if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
+			if [ -d "$$BACKUP_DIR" ]; then \
+				echo "📤 Restoring from $$BACKUP_DIR..."; \
+				lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse $$BACKUP_DIR/ .; bye"; \
+				echo "✅ Rollback complete!"; \
+				echo "🌐 Production restored to previous version"; \
+			else \
+				echo "❌ ERROR: Backup directory not found: $$BACKUP_DIR"; \
+				exit 1; \
+			fi; \
+		else \
+			echo "📦 Available backups:"; \
+			ls -1 backup/production-*/ 2>/dev/null | sed 's/^/   /' || echo "   No backups found!"; \
+			echo ""; \
+			read -p "Enter backup directory to restore: " BACKUP_DIR; \
+			if [ -d "$$BACKUP_DIR" ]; then \
+				echo "📤 Restoring from $$BACKUP_DIR..."; \
+				lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse $$BACKUP_DIR/ .; bye"; \
+				echo "✅ Rollback complete!"; \
+			else \
+				echo "❌ ERROR: Backup directory not found: $$BACKUP_DIR"; \
+				exit 1; \
+			fi; \
+		fi; \
+	else \
+		echo "📦 Available backups:"; \
+		ls -1 backup/production-*/ 2>/dev/null | sed 's/^/   /' || echo "   No backups found!"; \
+		echo ""; \
+		read -p "Enter backup directory to restore: " BACKUP_DIR; \
+		if [ -d "$$BACKUP_DIR" ]; then \
+			echo "📤 Restoring from $$BACKUP_DIR..."; \
+			lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse $$BACKUP_DIR/ .; bye"; \
+			echo "✅ Rollback complete!"; \
+		else \
+			echo "❌ ERROR: Backup directory not found: $$BACKUP_DIR"; \
+			exit 1; \
+		fi; \
+	fi
 	@echo ""
 
 help-env:
