@@ -88,7 +88,7 @@ class QuickActionButton extends StatelessWidget {
                 color: MonoPulseColors.accentOrange,
                 size: iconSize,
               ),
-              SizedBox(height: isCompact ? 2 : MonoPulseSpacing.xs),
+              const Spacer(),
               Text(
                 label,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(

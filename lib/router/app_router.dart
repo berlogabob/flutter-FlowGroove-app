@@ -23,6 +23,7 @@ import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/metronome_screen.dart';
 import '../screens/tuner_screen.dart';
+import '../widgets/desktop_shell.dart';
 
 /// Stream that notifies listeners when auth state changes.
 /// Used to refresh GoRouter redirect logic.
@@ -110,7 +111,9 @@ final GoRouter appRouter = GoRouter(
     // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return MainShell(navigationShell: navigationShell);
+        return DesktopShell(
+          child: MainShell(navigationShell: navigationShell),
+        );
       },
       branches: [
         // Home branch

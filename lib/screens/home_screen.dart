@@ -10,7 +10,6 @@ import '../theme/mono_pulse_theme.dart';
 import '../utils/analytics_debug.dart';
 import '../utils/responsive_breakpoints.dart';
 import '../widgets/dashboard_grid.dart';
-import '../widgets/dashboard_welcome_widget.dart';
 import '../widgets/greeting_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/standard_screen_scaffold.dart';
@@ -112,9 +111,6 @@ class HomeScreen extends ConsumerWidget {
               onTap: () => context.goNamed('metronome'),
             ),
           ],
-          welcomeWidget: breakpoint == ScreenBreakpoint.desktop
-              ? DashboardWelcomeWidget.defaultWelcome(userName: userName)
-              : null,
         );
       },
     );

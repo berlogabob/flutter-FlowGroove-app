@@ -65,135 +65,140 @@ class DashboardWelcomeWidget extends StatelessWidget {
     );
   }
 
+  /// Sidebar welcome widget optimized for desktop sidebar layout.
+  ///
+  /// Compact version designed for narrow sidebar display on desktop.
+  /// Features:
+  /// - Smaller icon size (48px)
+  /// - Compact typography
+  /// - Optimized spacing for sidebar context
+  factory DashboardWelcomeWidget.sidebar({String? userName}) {
+    return DashboardWelcomeWidget(
+      userName: userName,
+      message: 'Your music management hub',
+      quickTips: const [
+        'Add your first song to get started',
+        'Create a band to organize rehearsals',
+        'Use the tuner tool for quick tuning',
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final breakpoint = context.breakpoint;
+    final isSidebar = breakpoint == ScreenBreakpoint.desktop;
     final greeting = userName != null && userName!.isNotEmpty
         ? 'Welcome back, $userName!'
         : 'Welcome!';
 
-    return Container(
+    return SingleChildScrollView(
       padding: EdgeInsets.all(
-        breakpoint == ScreenBreakpoint.desktop
-            ? MonoPulseSpacing.xl
-            : MonoPulseSpacing.lg,
+        isSidebar ? MonoPulseSpacing.lg : MonoPulseSpacing.xl,
       ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            MonoPulseColors.surface,
-            MonoPulseColors.surfaceRaised,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Welcome icon
-          Icon(
-            Icons.music_note_rounded,
-            size: breakpoint == ScreenBreakpoint.desktop ? 64 : 48,
-            color: MonoPulseColors.accentOrange,
-          ),
-          SizedBox(height: MonoPulseSpacing.md),
-
-          // Greeting
-          Text(
-            greeting,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: MonoPulseColors.textPrimary,
-              fontSize: breakpoint == ScreenBreakpoint.desktop ? 24 : 20,
-              height: 1.2,
+      child: IntrinsicHeight(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome icon
+            Icon(
+              Icons.music_note_rounded,
+              size: isSidebar ? 48 : 64,
+              color: MonoPulseColors.accentOrange,
             ),
-          ),
-          SizedBox(height: MonoPulseSpacing.sm),
+            SizedBox(height: MonoPulseSpacing.md),
 
-          // Welcome message
-          if (message != null && message!.isNotEmpty)
+            // Greeting
             Text(
-              message!,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: MonoPulseColors.textSecondary,
-                fontSize: breakpoint == ScreenBreakpoint.desktop ? 16 : 14,
-                height: 1.4,
-              ),
-            ),
-
-          if (quickTips.isNotEmpty) ...[
-            SizedBox(height: MonoPulseSpacing.lg),
-
-            // Tips section
-            Text(
-              'Quick Tips:',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
+              greeting,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
                 color: MonoPulseColors.textPrimary,
-                fontSize: breakpoint == ScreenBreakpoint.desktop ? 14 : 13,
+                fontSize: isSidebar ? 20 : 24,
+                height: 1.2,
               ),
             ),
             SizedBox(height: MonoPulseSpacing.sm),
 
-            // Tips list
-            ...quickTips.map((tip) => Padding(
-              padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.check_circle,
-                    size: 16,
-                    color: MonoPulseColors.accentOrange,
-                  ),
-                  SizedBox(width: MonoPulseSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      tip,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: MonoPulseColors.textTertiary,
-                        fontSize: breakpoint == ScreenBreakpoint.desktop ? 14 : 13,
-                        height: 1.3,
+            // Welcome message
+            if (message != null && message!.isNotEmpty)
+              Text(
+                message!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                  fontSize: isSidebar ? 14 : 16,
+                  height: 1.4,
+                ),
+              ),
+
+            if (quickTips.isNotEmpty) ...[
+              SizedBox(height: MonoPulseSpacing.lg),
+
+              // Tips section
+              Text(
+                'Quick Tips:',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: MonoPulseColors.textPrimary,
+                  fontSize: isSidebar ? 13 : 14,
+                ),
+              ),
+              SizedBox(height: MonoPulseSpacing.sm),
+
+              // Tips list
+              ...quickTips.map((tip) => Padding(
+                padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      size: 16,
+                      color: MonoPulseColors.accentOrange,
+                    ),
+                    SizedBox(width: MonoPulseSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        tip,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: MonoPulseColors.textTertiary,
+                          fontSize: isSidebar ? 13 : 14,
+                          height: 1.3,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            )),
-          ],
+                  ],
+                ),
+              )),
+            ],
 
-          // Get started button
-          if (onGetStarted != null) ...[
-            SizedBox(height: MonoPulseSpacing.lg),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: onGetStarted,
-                icon: const Icon(Icons.add),
-                label: Text(
-                  breakpoint == ScreenBreakpoint.desktop
-                      ? 'Get Started'
-                      : 'Start',
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MonoPulseColors.accentOrange,
-                  foregroundColor: MonoPulseColors.white,
-                  padding: EdgeInsets.symmetric(
-                    vertical: MonoPulseSpacing.sm,
-                    horizontal: MonoPulseSpacing.lg,
+            // Get started button
+            if (onGetStarted != null) ...[
+              SizedBox(height: MonoPulseSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: onGetStarted,
+                  icon: const Icon(Icons.add),
+                  label: Text(
+                    isSidebar ? 'Get Started' : 'Get Started',
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: MonoPulseColors.accentOrange,
+                    foregroundColor: MonoPulseColors.white,
+                    padding: EdgeInsets.symmetric(
+                      vertical: MonoPulseSpacing.sm,
+                      horizontal: MonoPulseSpacing.lg,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
