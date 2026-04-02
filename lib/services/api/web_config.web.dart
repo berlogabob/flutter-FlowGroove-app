@@ -2,22 +2,33 @@
 /// This file is used only when building for web (dart.library.html)
 library;
 
-// Note: dart:js is used for web compatibility
-// ignore: deprecated_member_use
 import 'dart:js' as js;
 
 /// Get a value from window.env object
 String getWebConfig(String key) {
   try {
-    final env = js.context['window']['env'];
-    if (env == null) return '';
-
+    // Access window.env using dart:js
+    final windowObj = js.context;
+    
+    final env = windowObj['env'];
+    if (env == null) {
+      print('❌ window.env is null');
+      return '';
+    }
+    
     final value = env[key];
-    if (value == null) return '';
-
-    return value.toString();
+    if (value == null) {
+      print('⚠️  window.env.$key is null');
+      return '';
+    }
+    
+    final result = value.toString();
+    if (result.isNotEmpty) {
+      print('✅ getWebConfig($key) = ${result.substring(0, 10)}...');
+    }
+    return result;
   } catch (e) {
-    // Web config not available
+    print('❌ Error reading window.env.$key: $e');
     return '';
   }
 }
@@ -25,7 +36,7 @@ String getWebConfig(String key) {
 /// Check if window.env is available
 bool hasWebConfig() {
   try {
-    final env = js.context['window']['env'];
+    final env = js.context['env'];
     return env != null;
   } catch (e) {
     return false;
@@ -35,9 +46,9 @@ bool hasWebConfig() {
 /// Check if a specific key exists in window.env
 bool hasWebConfigKey(String key) {
   try {
-    final env = js.context['window']['env'];
+    final env = js.context['env'];
     if (env == null) return false;
-
+    
     final value = env[key];
     return value != null && value.toString().isNotEmpty;
   } catch (e) {

@@ -98,6 +98,7 @@ make deploy-stable
 - **docs/SECURITY_BEST_PRACTICES.md** - Security guidelines
 - **docs/ROLLBACK_PROCEDURE.md** - Emergency rollback
 - **docs/POST_DEPLOY_CHECKLIST.md** - Verification steps
+- **memory/CRITICAL_PROBLEMS.md** - Known issues & fixes
 
 ---
 
@@ -109,6 +110,7 @@ make deploy-stable
 - **Offline:** Hive (local database)
 - **Navigation:** GoRouter
 - **Theme:** MonoPulse (dark theme)
+- **Web Config:** `window.env` via `dart:js`
 
 ---
 
@@ -173,6 +175,7 @@ bash test/security/git_audit_test.sh
 - [Deployment Guide](DEPLOYMENT_GUIDE.md)
 - [Rollback Procedure](docs/ROLLBACK_PROCEDURE.md)
 - [Post-Deploy Checklist](docs/POST_DEPLOY_CHECKLIST.md)
+- [Critical Problems](memory/CRITICAL_PROBLEMS.md)
 
 ---
 
@@ -185,9 +188,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## 🙏 Acknowledgments
 
 Built with ❤️ for musicians and cover bands.
-
-**Version:** 0.13.5+180  
-**Last Updated:** April 2, 2026
 
 ---
 
@@ -208,3 +208,9 @@ export FTP_PASS=xxx
 make deploy-stable
 # Live at: https://flowgroove.app/
 ```
+
+---
+
+**Version:** 0.13.5+180  
+**Last Updated:** April 2, 2026  
+**Status:** ✅ Production Ready
