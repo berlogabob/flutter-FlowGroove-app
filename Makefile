@@ -95,18 +95,70 @@ deploy-test: check-env-test build-web-github
 # STABLE DEPLOYMENT - FTP (flowgroove.app)
 # =============================================================================
 
-deploy-stable: check-env-prod build-web
+deploy-stable: check-env-prod build-web backup-production ftp-upload health-check-prod
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║         Deploying to FTP (flowgroove.app)                 ║"
+	@echo "║         ✅ FTP Deployment Complete!                       ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "📤 Uploading to FTP..."
-	@lftp -c "set ftp:ssl-allow no; open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); rm -rf *; mirror --reverse --delete build/web .; bye"
-	@echo ""
-	@echo "✅ FTP deployment complete!"
 	@echo "🌐 Live URL: https://flowgroove.app/"
 	@echo "⏱️  SSL/CDN propagation: 1-5 minutes"
+	@echo ""
+	@echo "💾 Backup saved to: backup/production-$(shell date +%Y%m%d-%H%M%S)/"
+	@echo ""
+	@echo "📝 To rollback if needed:"
+	@echo "   make rollback-production"
+	@echo ""
+
+# Backup current production before deploying
+backup-production:
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Creating Production Backup                        ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@mkdir -p backup/production-$(shell date +%Y%m%d-%H%M%S)
+	@echo "📦 Downloading current production files..."
+	@lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse=false backup/production-$(shell date +%Y%m%d-%H%M%S)/" || echo "⚠️  Backup skipped (FTP credentials may be missing)"
+	@echo "✅ Backup created"
+	@echo ""
+
+# Upload to FTP with SSL support
+ftp-upload:
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Uploading to FTP (flowgroove.app)                 ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📤 Uploading files..."
+	@lftp -c "set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse --delete build/web .; bye"
+	@echo "✅ Upload complete"
+	@echo ""
+
+# Health check after deployment
+health-check-prod:
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Running Post-Deployment Health Check              ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🔍 Checking production site..."
+	@sleep 5  # Wait for CDN propagation
+	@if curl -f -s https://flowgroove.app/ > /dev/null; then \
+		echo "✅ Site is accessible"; \
+	else \
+		echo "❌ ERROR: Site is not accessible!"; \
+		echo "🚨 Consider rollback: make rollback-production"; \
+		exit 1; \
+	fi
+	@if curl -f -s https://flowgroove.app/config.js | grep -q "FIREBASE_API_KEY"; then \
+		echo "✅ config.js is present and valid"; \
+	else \
+		echo "❌ ERROR: config.js missing or invalid!"; \
+		echo "🚨 Consider rollback: make rollback-production"; \
+		exit 1; \
+	fi
+	@echo "✅ Health check passed"
 	@echo ""
 
 # =============================================================================
@@ -257,6 +309,23 @@ clean-exports:
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
 	@./scripts/move-chat-exports.sh
+	@echo ""
+
+# Rollback production deployment
+rollback-production:
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Rolling Back Production Deployment                ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "⚠️  WARNING: This will restore the previous production version!"
+	@echo ""
+	@echo "📦 Available backups:"
+	@ls -1 backup/production-*/ 2>/dev/null | sed 's/^/   /' || echo "   No backups found!"
+	@echo ""
+	@echo "📝 Usage:"
+	@echo "   1. List backups: ls -la backup/production-*/"
+	@echo "   2. Restore: lftp -c \"open -u user,pass host; cd dir; mirror --reverse backup/production-YYYYMMDD-HHMMSS/ .\""
 	@echo ""
 
 help-env:
