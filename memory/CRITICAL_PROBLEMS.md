@@ -1,15 +1,16 @@
 # 🔴 CRITICAL PROBLEMS - NEVER AGAIN
 
-**Rule:** Read before ANY code change!  
-**Last Updated:** March 14, 2026  
+**Rule:** Read before ANY code change!
+**Last Updated:** April 2, 2026
 **Branch:** second01
+**Version:** 0.13.5+180
 
 ---
 
 ## 1. .env File Bundled in Web Build
 
-**Date:** 2026-03-14  
-**Severity:** 🔴 **CRITICAL**  
+**Date:** 2026-03-14
+**Severity:** 🔴 **CRITICAL**
 **Status:** ✅ FIXED
 
 ### The Problem
@@ -41,33 +42,22 @@ assets:
 - [ ] Test after deploy: `curl https://flowgroove.app/.env` (must return 404)
 - [ ] Check `.gitignore` includes `.env`
 
-### Files Involved
-- `pubspec.yaml` - Assets configuration
-- `.gitignore` - Exclusion rules
-
-### Related Memory
-- `SECURITY_ISSUES.md` - Security vulnerabilities
-- `BUILD_DEPLOYMENT_ISSUES.md` - Deployment problems
-
 ---
 
 ## 2. Firebase Analytics on Web
 
-**Date:** 2026-03-14  
-**Severity:** 🔴 **CRITICAL**  
+**Date:** 2026-03-14
+**Severity:** 🔴 **CRITICAL**
 **Status:** ✅ FIXED (Disabled on web)
 
 ### The Problem
 Firebase Analytics throws error on web:
 ```
-PlatformException(channel-error, Unable to establish connection on channel: 
+PlatformException(channel-error, Unable to establish connection on channel:
 "dev.flutter.pigeon.firebase_analytics_platform_interface.FirebaseAnalyticsHostApi.setAnalyticsCollectionEnabled")
 ```
 
 **Impact:** App crashes on web, white screen
-
-### Root Cause
-Firebase Analytics not supported on web in current configuration. Error thrown during initialization breaks app startup.
 
 ### The Fix
 ```dart
@@ -75,264 +65,198 @@ Firebase Analytics not supported on web in current configuration. Error thrown d
 FirebaseAnalytics? analytics;
 if (!kIsWeb) {
   analytics = FirebaseAnalytics.instance;
-  await AnalyticsService.initialize();
-  // ... rest of analytics setup
+  // ... analytics setup
 } else {
   debugPrint('ℹ️  Web platform - skipping Analytics initialization');
 }
 ```
 
-**File:** `lib/main.dart`
+---
 
-### Prevention Checklist
-- [ ] Always check `kIsWeb` before Analytics initialization
-- [ ] Make analytics nullable: `FirebaseAnalytics?`
-- [ ] Use null-safe access: `analytics?.logLogin()`
-- [ ] Test web build after ANY Firebase changes
+## 3. Web Config Not Loading (dart:js Interop Issue)
+
+**Date:** 2026-04-02
+**Severity:** 🔴 **CRITICAL**
+**Status:** ✅ FIXED
+
+### The Problem
+After Flutter 3.41 web compiler update, `dart:js` interop broke:
+```
+NoSuchMethodError: method not found: '[]'
+Receiver: Instance of 'minified:CA'
+Arguments: ["env"]
+```
+
+**Impact:** App couldn't read `window.env`, showed "Firebase API key not configured" error
+
+### Root Cause
+```dart
+// ❌ WRONG - Doesn't work with Flutter 3.41+ web compiler
+final env = js.context['window']['env'];
+```
+
+The new dart2js compiler minifies JS objects, breaking `[]` operator access.
+
+### The Fix
+```dart
+// ✅ CORRECT - Access window.env directly
+import 'dart:js' as js;
+
+String getWebConfig(String key) {
+  final windowObj = js.context;  // Global context is window
+  final env = windowObj['env'];  // Access env property
+  if (env == null) return '';
+  return env[key].toString();
+}
+```
 
 ### Files Involved
-- `lib/main.dart` - Main entry point
-- `lib/services/analytics_service.dart` - Analytics service
+- `lib/services/api/web_config.web.dart` - Web config accessor
+- `lib/config/env_config.dart` - Config validation
+- `web/index.html` - Config script tag
+- `web/config.demo.js` - Demo configuration (committed to git)
+- `docs/config.js` - Deployed configuration (committed to git)
+
+### Prevention Checklist
+- [ ] Always test web config loading after Flutter updates
+- [ ] Add debug logging in `getWebConfig()` for troubleshooting
+- [ ] Verify `window.env` in browser console during testing
+- [ ] Keep `web/config.demo.js` with valid Firebase key for testing
+- [ ] Ensure `<script src="config.js">` loads BEFORE `flutter_bootstrap.js`
+
+### Configuration Architecture (Current - WORKING)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Web Deployment (GitHub Pages / FTP)                    │
+├─────────────────────────────────────────────────────────┤
+│  1. web/config.demo.js (source, committed)              │
+│  2. Copied to docs/config.js during deploy              │
+│  3. Loaded in index.html: <script src="config.js">      │
+│  4. Accessed via dart:js: js.context['env']             │
+│  5. Firebase initialized with window.env.FIREBASE_API_KEY │
+└─────────────────────────────────────────────────────────┘
+
+✅ NO .env FILE NEEDED FOR WEB TESTING!
+✅ Demo config uses public Firebase key (safe to commit)
+✅ Spotify/Twitter disabled in demo (add credentials later if needed)
+```
+
+### Testing Commands
+```bash
+# Deploy to GitHub Pages (no credentials needed)
+make deploy-test
+
+# Verify config.js is live
+curl https://berlogabob.github.io/flutter-FlowGroove-app/config.js
+
+# Check in browser console
+window.env  # Should show config object with FIREBASE_API_KEY
+```
+
+### Related Memory
+- `SECURITY_BEST_PRACTICES.md` - Firebase key security
+- `MAKEFILE_MODERNIZATION_COMPLETE.md` - Deployment workflow
+- `FINAL_SUMMARY.md` - Complete modernization report
 
 ---
 
-## 3. setPersistence on Web
+## 4. GitHub Pages Deploying to Wrong Branch
 
-**Date:** 2026-03-14  
-**Severity:** 🔴 **CRITICAL**  
+**Date:** 2026-04-02
+**Severity:** 🟡 **MEDIUM**
 **Status:** ✅ FIXED
 
 ### The Problem
-```
-setPersistence() is only supported on web based platforms
-Error: UNSUPPORTED_OS
-TypeError: Instance of 'minified:LY': type 'minified:LY' is not a subtype of type 'minified:r'
-```
+GitHub Actions workflow deployed to `gh-pages` branch, but GitHub Pages was configured to serve from `docs/` folder on `second01` branch.
 
-**Impact:** White screen, app crash on web
-
-### Root Cause
-`FirebaseAuth.instance.setPersistence()` not supported on web. Must only be called on mobile platforms.
+**Impact:** config.js was 404, app couldn't load Firebase config
 
 ### The Fix
-```dart
-// ✅ CORRECT - Only call on mobile
-if (!kIsWeb && firebaseOk) {
-  try {
-    await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
-    debugPrint('✅ Auth persistence set to LOCAL');
-  } catch (e) {
-    debugPrint('⚠️  Auth persistence failed: $e');
-  }
-}
-```
-
-**File:** `lib/main.dart`
+1. Deleted `gh-pages` branch
+2. Removed GitHub Actions workflow (`.github/workflows/deploy-test.yml`)
+3. Use `make deploy-test` which deploys to `docs/` folder
 
 ### Prevention Checklist
-- [ ] Always wrap with `if (!kIsWeb)`
-- [ ] Check Firebase initialized first: `firebaseOk`
-- [ ] Use try-catch for safety
-- [ ] Add debug logging
-
-### Related Issues
-- Firebase initialization must complete first
-- Analytics also needs web check
+- [ ] Verify GitHub Pages source in repository settings
+- [ ] Ensure deployment script targets correct branch/folder
+- [ ] Test config.js accessibility after deploy: `curl <url>/config.js`
+- [ ] Don't mix deployment methods (Actions + Makefile)
 
 ---
 
-## 4. FTP Deployment Doesn't Update Files
+## 5. docs/config.js in .gitignore
 
-**Date:** 2026-03-14  
-**Severity:** 🟠 **HIGH**  
+**Date:** 2026-04-02
+**Severity:** 🟡 **MEDIUM**
 **Status:** ✅ FIXED
 
 ### The Problem
-Files on FTP not updating - old files remain with old timestamps. Build succeeds but deployed site shows old version.
+`/docs/config.js` was in `.gitignore`, preventing it from being committed to git.
 
-**Impact:** Users see old version, fixes don't deploy
-
-### Root Cause
-lftp `mirror --reverse --delete --only-newer` only uploads newer files. If build produces same-size files, they're skipped.
+**Impact:** GitHub Pages served 404 for config.js, app couldn't load Firebase config
 
 ### The Fix
-```bash
-# ✅ CORRECT - Delete all files first, then upload
-lftp -c "
-  set ftp:ssl-allow no
-  open -u 'sounding','PASSWORD' 194.39.124.68
-  cd flowgroove.app
-  # Remove all existing files first
-  rm -rf *
-  # Upload fresh build
-  mirror --reverse --delete build/web .
-  bye
-"
+Removed `/docs/config.js` from `.gitignore`:
+```gitignore
+# ✅ CORRECT - Keep web/config.js ignored (generated locally)
+web/config.js
+
+# ✅ REMOVE this line - docs/config.js needs to be committed
+# /docs/config.js  ← REMOVED!
 ```
 
-**File:** `scripts/deploy-all.sh`
+### Why docs/config.js Must Be Committed
+- GitHub Pages serves from `docs/` folder
+- config.js contains Firebase config (public key, safe to commit)
+- Without it, web app can't initialize Firebase
 
 ### Prevention Checklist
-- [ ] Always `rm -rf *` before upload
-- [ ] Use `--delete` flag to remove old files
-- [ ] Verify after deploy: `curl -I https://flowgroove.app/`
-- [ ] Check timestamp: `last-modified` header should be recent
-
-### Files Involved
-- `scripts/deploy-all.sh` - Deployment script
-- `scripts/deploy-to-flowgroove.sh` - FTP deployment
+- [ ] Never ignore `docs/config.js` (must be deployed)
+- [ ] DO ignore `web/config.js` (generated during build)
+- [ ] Verify with `git status` before pushing
+- [ ] Test: `git ls-tree docs/ | grep config.js` should show file
 
 ---
 
-## 5. White Screen on Web (Multiple Causes)
+## Summary: Current Working Configuration
 
-**Date:** 2026-03-14  
-**Severity:** 🔴 **CRITICAL**  
-**Status:** ✅ FIXED
+### ✅ What Works Now
 
-### The Problem
-Web app shows white/gray screen, doesn't load. Console shows errors.
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Web Config Loading** | ✅ Working | `dart:js` fixed for Flutter 3.41 |
+| **Firebase Initialization** | ✅ Working | Uses `window.env.FIREBASE_API_KEY` |
+| **GitHub Pages Deploy** | ✅ Working | `docs/` folder on `second01` branch |
+| **Demo Config** | ✅ Working | `web/config.demo.js` with public Firebase key |
+| **No .env Required** | ✅ Working | Test deploys work without credentials |
+| **Spotify/Twitter** | ⚠️ Disabled | Add credentials later if needed |
 
-### Root Causes Found
-1. Firebase Analytics initialization error
-2. setPersistence error on web
-3. .env file not found (403)
-4. Missing files in build
+### 🚀 Deployment Commands
 
-### The Fix
-```dart
-// ✅ CORRECT - Comprehensive error handling
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase with error handling
-  bool firebaseOk = false;
-  try {
-    await Firebase.initializeApp(...);
-    firebaseOk = true;
-  } catch (e, stack) {
-    debugPrint('❌ Firebase failed: $e');
-  }
-  
-  // Skip analytics on web
-  if (!kIsWeb && firebaseOk) {
-    await AnalyticsService.initialize();
-  }
-  
-  // Skip persistence on web
-  if (!kIsWeb && firebaseOk) {
-    await FirebaseAuth.instance.setPersistence(...);
-  }
-  
-  runApp(...);
-}
-```
-
-### Prevention Checklist
-- [ ] Wrap ALL Firebase init in try-catch
-- [ ] Check `kIsWeb` for platform-specific code
-- [ ] Add debug logging at each step
-- [ ] Test in incognito mode (no cache)
-- [ ] Check browser console for errors
-
----
-
-## 6. GitHub Pages Wrong base-href
-
-**Date:** 2026-03-14  
-**Severity:** 🟡 **MEDIUM**  
-**Status:** ✅ UNDERSTOOD
-
-### The Problem
-Files load from wrong path:
-```
-GET https://flowgroove.app/flutter-repsync-app/main.dart.js 404
-```
-
-### Root Cause
-Build with wrong `--base-href`:
 ```bash
-# ❌ WRONG for flowgroove.app
-flutter build web --base-href "/flutter-repsync-app/"
+# Test deployment (no credentials needed)
+make deploy-test
 
-# ✅ CORRECT for flowgroove.app
-flutter build web --base-href "/"
+# Production deployment (requires FTP credentials)
+export FTP_PASS=your_password
+make deploy-stable
+
+# Android build (no credentials needed)
+make release
 ```
 
-### Prevention Checklist
-- [ ] Use `--base-href "/"` for flowgroove.app
-- [ ] Use `--base-href "/flutter-FlowGroove-app/"` for GitHub Pages
-- [ ] Check after build: `cat build/web/index.html | grep "base href"`
-- [ ] Verify deployed site loads all resources
+### 📚 Documentation
+
+- `DEPLOYMENT_GUIDE.md` - Full deployment instructions
+- `docs/MAKEFILE_MODERNIZATION_COMPLETE.md` - Makefile reference
+- `docs/FINAL_SUMMARY.md` - Modernization summary
+- `docs/SECURITY_BEST_PRACTICES.md` - Security guidelines
+- `docs/ROLLBACK_PROCEDURE.md` - Emergency rollback
+- `README.md` - Quick start guide
 
 ---
 
-## 📊 Quick Reference
-
-### Platform Checks
-```dart
-// Web-only code
-if (kIsWeb) {
-  // Web-specific
-}
-
-// Mobile-only code
-if (!kIsWeb) {
-  // Mobile-specific
-}
-```
-
-### Build Commands
-```bash
-# For flowgroove.app (FTP)
-flutter build web --release --base-href "/"
-
-# For GitHub Pages
-flutter build web --release --base-href "/flutter-FlowGroove-app/"
-```
-
-### Deployment Commands
-```bash
-# FTP with clean deploy
-lftp -c "
-  cd flowgroove.app
-  rm -rf *
-  mirror --reverse build/web .
-"
-
-# GitHub Pages
-npx gh-pages -d build/web -b gh-pages
-```
-
-### Verification Commands
-```bash
-# Check .env not in build
-find build/web -name "*.env*"
-
-# Test deployed site
-curl -I https://flowgroove.app/
-curl https://flowgroove.app/.env  # Should 404
-
-# Check base-href
-cat build/web/index.html | grep "base href"
-```
-
----
-
-## 🎯 Working Version Reference
-
-### Known Good Version
-- **Commit:** `5ed6781` (Release 0.13.1+167)
-- **Branch:** `backup/march-14-analytics-fix`
-- **Current:** `second01` branch
-
-### Key Files State
-- `lib/main.dart` - Analytics disabled on web, nullable
-- `pubspec.yaml` - No .env in assets
-- `scripts/deploy-all.sh` - Clean FTP deploy
-
----
-
-**Last Review:** March 14, 2026  
-**Next Review:** Before EVERY code change  
-**Maintained By:** Mr. Memory Agent (`agents/mr-memory.md`)
+**Last Verified:** April 2, 2026  
+**Version:** 0.13.5+180  
+**Status:** ✅ ALL SYSTEMS WORKING
