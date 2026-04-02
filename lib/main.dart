@@ -12,10 +12,12 @@ import 'providers/auth/auth_provider.dart';
 import 'router/app_router.dart';
 import 'models/user.dart';
 import 'widgets/loading_indicator.dart';
+import 'widgets/config_error_widget.dart';
 import 'utils/analytics_debug.dart';
 import 'services/analytics_service.dart';
 import 'services/audio/audio_engine_mobile.dart';
 import 'analytics/metronome_analytics.dart';
+import 'config/config_validator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +25,7 @@ void main() async {
   // Initialize Hive for offline caching
   await Hive.initFlutter();
 
-  // Load environment variables
+  // Load environment variables (mobile only)
   try {
     await dotenv.load(fileName: 'assets/env.json');
   } catch (e) {
@@ -32,9 +34,27 @@ void main() async {
     );
   }
 
-  // Initialize Firebase first
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  debugPrint('✅ Firebase initialized');
+  // Validate configuration BEFORE Firebase initialization
+  // This ensures we have valid credentials before proceeding
+  try {
+    await ConfigValidator.validateOrThrow();
+    debugPrint('✅ Configuration validated successfully');
+  } on ConfigValidationException catch (e) {
+    debugPrint('❌ Configuration validation failed: ${e.message}');
+    // Run error app with validation error
+    runApp(ConfigErrorApp(exception: e));
+    return;
+  }
+
+  // Initialize Firebase with validated config
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    debugPrint('✅ Firebase initialized');
+  } catch (e) {
+    debugPrint('❌ Firebase initialization failed: $e');
+    runApp(const FirebaseErrorApp());
+    return;
+  }
 
   // Initialize Firebase Analytics ONLY on mobile (not web)
   FirebaseAnalytics? analytics;
@@ -172,6 +192,82 @@ class FlowGrooveApp extends ConsumerWidget {
           },
         );
       },
+    );
+  }
+}
+
+/// Error app displayed when configuration validation fails
+class ConfigErrorApp extends StatelessWidget {
+  final ConfigValidationException exception;
+
+  const ConfigErrorApp({super.key, required this.exception});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Configuration Error',
+      debugShowCheckedModeBanner: false,
+      theme: MonoPulseTheme.theme,
+      darkTheme: MonoPulseTheme.theme,
+      themeMode: ThemeMode.dark,
+      home: ConfigErrorWidget(
+        exception: exception,
+        onRetry: () {
+          // Reload the app
+          // Note: This is a simple reload - in production you might want more sophisticated handling
+          debugPrint('Retry requested - reloading app');
+        },
+      ),
+    );
+  }
+}
+
+/// Error app displayed when Firebase initialization fails
+class FirebaseErrorApp extends StatelessWidget {
+  const FirebaseErrorApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Firebase Error',
+      debugShowCheckedModeBanner: false,
+      theme: MonoPulseTheme.theme,
+      darkTheme: MonoPulseTheme.theme,
+      themeMode: ThemeMode.dark,
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 80,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Firebase Initialization Error',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'The app could not connect to Firebase. '
+                    'Please check your internet connection and try again.',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

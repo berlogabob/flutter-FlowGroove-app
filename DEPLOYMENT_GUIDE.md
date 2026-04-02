@@ -1,7 +1,8 @@
 # FlowGroove Deployment Guide
 
-**Last Updated:** April 1, 2026  
-**Version:** 0.13.4+179
+**Last Updated:** April 2, 2026  
+**Version:** 0.13.5+180  
+**Configuration System:** Modern Environment Variable Injection ✅
 
 ---
 
@@ -9,6 +10,7 @@
 
 ### Production Deployment (FTP - flowgroove.app)
 
+**Option 1: Local Development (using .env file)**
 ```bash
 # 1. First time setup (only once)
 cp .env.example .env
@@ -16,6 +18,17 @@ cp .env.example .env
 
 # 2. Deploy
 make deploy-stable
+```
+
+**Option 2: CI/CD (using GitHub Actions)**
+```bash
+# 1. Set secrets in GitHub Repository Settings
+# Go to: Settings → Secrets and variables → Actions
+
+# 2. Push to second01 branch (automated deployment)
+git push origin second01
+
+# Or trigger manually: Actions → "Deploy Test" → Run workflow
 ```
 
 ### Test Deployment (GitHub Pages)
@@ -44,6 +57,7 @@ Before deploying, ensure you have:
 2. **Spotify API Credentials**
    - Get from: https://developer.spotify.com/dashboard
    - Create an app to get Client ID and Client Secret
+   - **PRODUCTION:** Use backend proxy (see `docs/SECURITY_BEST_PRACTICES.md`)
 
 3. **Twitter/X API Credentials** (optional)
    - Get from: https://developer.twitter.com/en/portal/dashboard
@@ -53,7 +67,7 @@ Before deploying, ensure you have:
    - Free tier: 100 requests/month
 
 5. **FTP Credentials** (for production only)
-   - FTP_HOST, FTP_USER, FTP_PASS
+   - FTP_HOST, FTP_USER, FTP_PASS, FTP_DIR
    - Provided by your hosting provider
 
 ---
@@ -268,6 +282,30 @@ build/web/
 - ✅ Preserved docs/config.js during test deployments
 - ✅ Fixed recurring credential deployment issues
 
+### v0.13.5+180 (April 2, 2026) - Configuration Modernization ✅
+
+**Major Changes:**
+- ✅ Modern environment variable injection system
+- ✅ CI/CD support via GitHub Actions
+- ✅ Runtime config validation
+- ✅ User-friendly error screens
+- ✅ Proper sed escaping for special characters
+- ✅ No hardcoded credentials
+- ✅ Dual-mode deployment (local .env + CI/CD env vars)
+
+**New Files:**
+- `web/config.template.js` - Modern template with `${VAR}` placeholders
+- `scripts/generate-web-config.sh` - CI/CD config generation
+- `.github/workflows/deploy-test.yml` - GitHub Actions workflow
+- `lib/config/config_validator.dart` - Runtime validation
+- `lib/widgets/config_error_widget.dart` - Error UI
+
+**Documentation:**
+- `docs/WEB_CONFIG_MIGRATION.md` - Migration guide
+- `docs/SECURITY_BEST_PRACTICES.md` - Security guidelines
+- `docs/ROLLBACK_PROCEDURE.md` - Emergency rollback
+- `docs/POST_DEPLOY_CHECKLIST.md` - Verification steps
+
 ### Pre-v0.13.4 (Legacy)
 - ❌ Manual config.js creation required
 - ❌ No validation before deploy
@@ -280,11 +318,25 @@ build/web/
 
 If you encounter issues:
 
-1. Check this guide's troubleshooting section
-2. Review `memory/CRITICAL_PROBLEMS.md` for known issues
-3. Check `.env` file has valid credentials (not placeholders)
-4. Verify `web/config.js` was created successfully
-5. Check build logs for specific error messages
+1. **Check documentation:**
+   - `docs/WEB_CONFIG_MIGRATION.md` - Migration guide
+   - `docs/SECURITY_BEST_PRACTICES.md` - Security guidelines
+   - `docs/ROLLBACK_PROCEDURE.md` - Emergency rollback
+   - `docs/POST_DEPLOY_CHECKLIST.md` - Verification steps
+
+2. **Review known issues:**
+   - `memory/CRITICAL_PROBLEMS.md` - Historical issues
+   - `test/PHASE3_TEST_REPORT.md` - Test results
+
+3. **Common fixes:**
+   - Verify `.env` file has valid credentials (not placeholders)
+   - Check `web/config.js` was created successfully
+   - Verify `config.js` loads in browser (check DevTools)
+   - Check build logs for specific error messages
+
+4. **Emergency rollback:**
+   - Follow `docs/ROLLBACK_PROCEDURE.md`
+   - Restore from `backup/config-modernization-2026-04-02/`
 
 ---
 
