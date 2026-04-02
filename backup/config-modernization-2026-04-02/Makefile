@@ -30,36 +30,24 @@ help:
 # =============================================================================
 # PRE-DEPLOYMENT VALIDATION
 # =============================================================================
-
-# Validate configuration and inject web config
-# For deploy-test: Uses demo config (safe to commit)
-# For deploy-stable: Requires environment variables
 check-env:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Validating Deployment Configuration               ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-
-# For GitHub Pages test deployment - uses demo config
-check-env-test:
-	@echo "🔧 Using demo configuration for GitHub Pages testing"
-	@echo "   (Firebase works, Spotify/Twitter disabled)"
-	@echo ""
-	@cp web/config.demo.js web/config.js
-	@echo "✅ Demo config ready"
-	@echo ""
-
-# For production FTP deployment - requires env vars
-check-env-prod:
-	@echo "🔧 Using environment variables for production deployment"
-	@echo ""
-	@./scripts/generate-web-config.sh
+	@if [ ! -f .env ]; then \
+		echo "❌ ERROR: .env file not found!"; \
+		echo "   Run: cp .env.example .env and edit with your credentials"; \
+		exit 1; \
+	fi
+	@echo "✅ .env file found"
+	@./scripts/inject-web-config.sh
 	@echo ""
 
 # =============================================================================
 # STABLE DEPLOYMENT - FTP (flowgroove.app)
 # =============================================================================
-deploy-stable: check-env-prod build-web
+deploy-stable: check-env build-web
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Deploying to FTP (flowgroove.app)                 ║"
@@ -76,7 +64,7 @@ deploy-stable: check-env-prod build-web
 # =============================================================================
 # TEST DEPLOYMENT - GitHub Pages (second01 branch, /docs folder)
 # =============================================================================
-deploy-test: check-env-test build-web-github
+deploy-test: check-env build-web-github
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║      Deploying to GitHub Pages (second01 branch)          ║"
@@ -107,8 +95,6 @@ deploy-test: check-env-test build-web-github
 # =============================================================================
 
 # Build for FTP (flowgroove.app) - root domain
-# Uses demo config by default (safe, no credentials needed)
-# For production with Spotify, set env vars: SPOTIFY_CLIENT_ID, etc.
 build-web:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║              Building Web (FTP / Root)                    ║"
@@ -116,9 +102,6 @@ build-web:
 	@echo ""
 	@echo "📝 Updating version.json..."
 	@./scripts/update-version-json.sh
-	@echo ""
-	@echo "📦 Using demo config (Firebase works, Spotify disabled)..."
-	@if [ ! -f web/config.js ]; then cp web/config.demo.js web/config.js; fi
 	@echo ""
 	@echo "🔨 Building web app..."
 	@echo "   Base href: / (FTP - flowgroove.app)"
@@ -154,15 +137,10 @@ build-web-github:
 	@echo ""
 
 # Build for Android APK
-# Uses demo config by default (safe, no credentials needed)
-# For production with Spotify, set env vars before building
 build-android:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║              Building Android APK                         ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
-	@echo ""
-	@echo "📦 Using demo Firebase config (Spotify disabled)..."
-	@if [ ! -f assets/env.json ]; then cp assets/env.demo.json assets/env.json; fi
 	@echo ""
 	@echo "🤖 Building Android APK..."
 	@flutter build apk --release
@@ -175,14 +153,10 @@ build-android:
 	@echo ""
 
 # Build for Android App Bundle (Play Store)
-# Uses demo config by default (safe, no credentials needed)
 build-appbundle:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Building Android App Bundle (AAB)                 ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
-	@echo ""
-	@echo "📦 Using demo Firebase config (Spotify disabled)..."
-	@if [ ! -f assets/env.json ]; then cp assets/env.demo.json assets/env.json; fi
 	@echo ""
 	@echo "🤖 Building Android App Bundle..."
 	@flutter build appbundle --release
@@ -199,12 +173,25 @@ build-appbundle:
 # =============================================================================
 
 # FTP Configuration
-# Used ONLY for make deploy-stable (production FTP deployment)
-# NOT needed for make deploy-test (GitHub Pages) or Android builds
-FTP_HOST := $(FTP_HOST)
-FTP_USER := $(FTP_USER)
-FTP_PASS := $(FTP_PASS)
-FTP_DIR := $(or $(FTP_DIR),flowgroove.app)
+# These should be set via environment variables or .env file
+# DO NOT hardcode credentials here in production!
+# Create a .env file with:
+#   FTP_HOST=your-host
+#   FTP_USER=your-user
+#   FTP_PASS=your-password
+#   FTP_DIR=your-dir
+#
+# Or export them in your shell before running make commands
+FTP_HOST := $(or $(FTP_HOST),$(shell echo $$FTP_HOST),194.39.124.68)
+FTP_USER := $(or $(FTP_USER),$(shell echo $$FTP_USER),sounding)
+FTP_PASS := $(or $(FTP_PASS),$(shell echo $$FTP_PASS))
+FTP_DIR := $(or $(FTP_DIR),$(shell echo $$FTP_DIR),flowgroove.app)
+
+# Warn if FTP_PASS is not set (security best practice)
+ifeq ($(FTP_PASS),)
+$(warning ⚠️  WARNING: FTP_PASS environment variable not set!)
+$(warning ⚠️  Please set FTP_PASS in your .env file or environment)
+endif
 
 # =============================================================================
 # RELEASE - ANDROID APK + GITHUB RELEASE
@@ -284,41 +271,4 @@ clean-exports:
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
 	@./scripts/move-chat-exports.sh
-	@echo ""
-
-# Show environment variable setup instructions
-help-env:
-	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║      Setting Environment Variables for Deployment         ║"
-	@echo "╚═══════════════════════════════════════════════════════════╝"
-	@echo ""
-	@echo "📋 DEFAULT BEHAVIOR (No credentials needed):"
-	@echo ""
-	@echo "  make deploy-test   → GitHub Pages (demo config)"
-	@echo "  make build-android → Android APK (demo config)"
-	@echo "  make build-web     → Web build (demo config)"
-	@echo ""
-	@echo "  ✅ Firebase works (public key)"
-	@echo "  ⚠️  Spotify/Twitter disabled"
-	@echo ""
-	@echo "📝 For PRODUCTION with Spotify/Twitter:"
-	@echo ""
-	@echo "  # Firebase Configuration"
-	@echo "  export FIREBASE_API_KEY=your_firebase_key"
-	@echo ""
-	@echo "  # Spotify API Credentials"
-	@echo "  export SPOTIFY_CLIENT_ID=your_spotify_client_id"
-	@echo "  export SPOTIFY_CLIENT_SECRET=your_spotify_client_secret"
-	@echo ""
-	@echo "  # FTP Deployment (for make deploy-stable)"
-	@echo "  export FTP_HOST=194.39.124.68"
-	@echo "  export FTP_USER=sounding"
-	@echo "  export FTP_PASS=your_ftp_password"
-	@echo "  export FTP_DIR=flowgroove.app"
-	@echo ""
-	@echo "💡 Tip: Add these to your shell profile (~/.zshrc or ~/.bashrc)"
-	@echo "   to avoid setting them every time."
-	@echo ""
-	@echo "🚀 Quick deployment (one-liner):"
-	@echo "   FIREBASE_API_KEY=xxx SPOTIFY_CLIENT_ID=yyy SPOTIFY_CLIENT_SECRET=zzz make deploy-stable"
 	@echo ""

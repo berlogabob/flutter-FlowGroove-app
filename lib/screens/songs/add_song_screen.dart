@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/api_error.dart';
+import '../../models/beat_mode.dart';
 import '../../models/song.dart';
 import '../../models/song_suggestion.dart';
 import '../../providers/data/data_providers.dart';
@@ -364,7 +365,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                 ref.read(songFormStateProvider.notifier).markAsChanged();
               },
               onBeatModeChanged:
-                  (int beatIndex, int subdivisionIndex, dynamic mode) {
+                  (int beatIndex, int subdivisionIndex, BeatMode mode) {
                     ref
                         .read(songFormStateProvider.notifier)
                         .updateBeatMode(beatIndex, subdivisionIndex, mode);

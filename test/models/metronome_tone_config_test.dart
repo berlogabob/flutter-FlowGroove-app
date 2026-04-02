@@ -117,7 +117,7 @@ void main() {
 
     // Test copyWith
     test('copyWith creates modified copy', () {
-      const original = MetronomeToneConfig.classic();
+      final original = MetronomeToneConfig.classic();
       final modified = original.copyWith(mainRegularFreq: 1800.0);
 
       expect(modified.mainRegularFreq, 1800.0);
@@ -127,7 +127,7 @@ void main() {
 
     // Test getFrequency
     test('getFrequency returns correct frequencies', () {
-      const config = MetronomeToneConfig.classic();
+      final config = MetronomeToneConfig.classic();
 
       // Main beat, regular
       expect(config.getFrequency(isMainBeat: true, isSubdivision: false, isAccented: false), 1600.0);

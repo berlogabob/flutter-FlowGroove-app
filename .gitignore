@@ -17,6 +17,7 @@ assets/env.json
 /docs/assets/
 /docs/canvaskit/
 /docs/flutter.js
+/docs/config.js
 
 # Chat exports (automatically moved to docs/archive/)
 chat-export-*.json

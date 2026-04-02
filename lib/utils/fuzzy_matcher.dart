@@ -245,9 +245,9 @@ class FuzzyMatcher {
   /// Simple Soundex implementation
   static String _soundex(String s) {
     if (s.isEmpty) return '';
-    
-    s = s.toUpperCase();
-    final firstLetter = s[0];
+
+    final upper = s.toUpperCase();
+    final firstLetter = upper[0];
     
     // Coding rules
     final codes = {
@@ -261,9 +261,9 @@ class FuzzyMatcher {
     
     var result = firstLetter;
     String? lastCode;
-    
-    for (var i = 1; i < s.length && result.length < 4; i++) {
-      final char = s[i];
+
+    for (var i = 1; i < upper.length && result.length < 4; i++) {
+      final char = upper[i];
       final code = codes[char];
       
       if (code != null && code != lastCode) {
