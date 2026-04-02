@@ -11,14 +11,13 @@ import 'tool_button.dart';
 /// Responsive design adapts layout based on screen breakpoint:
 /// - Mobile (< 600px): Single column, full-width cards
 /// - Tablet (600-1024px): 2-column grid
-/// - Desktop (> 1024px): 3-column grid with welcome widget for empty states
+/// - Desktop (> 1024px): 3-column grid
 ///
 /// Features:
 /// - Responsive grid layout with automatic breakpoint detection
 /// - Stat cards with icons, labels, and values
 /// - Quick action buttons
 /// - Tool buttons with "Soon" badges
-/// - Welcome widget for desktop empty states
 ///
 /// Usage:
 /// ```dart
@@ -34,7 +33,6 @@ import 'tool_button.dart';
 ///   tools: [
 ///     ToolButton(icon: Icons.tune, label: 'Tuner', ...),
 ///   ],
-///   welcomeWidget: DashboardWelcomeWidget.defaultWelcome(userName: 'John'),
 /// )
 /// ```
 class DashboardGrid extends StatelessWidget {
@@ -50,16 +48,12 @@ class DashboardGrid extends StatelessWidget {
   /// List of tool buttons.
   final List<ToolButton> tools;
 
-  /// Welcome widget for desktop empty states (optional).
-  final Widget? welcomeWidget;
-
   const DashboardGrid({
     super.key,
     required this.statistics,
     required this.quickActions,
     required this.tools,
     this.greetingCard,
-    this.welcomeWidget,
   });
 
   @override
@@ -174,27 +168,6 @@ class DashboardGrid extends StatelessWidget {
     // Mobile: 2 columns (Tuner, Metronome side by side)
     // Tablet/Desktop: 2 columns with more tools in 2nd row
     final crossAxisCount = 2;
-
-    // On desktop, show tools grid with welcome widget side-by-side
-    if (breakpoint == ScreenBreakpoint.desktop && welcomeWidget != null) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: _buildFixedGrid(
-              children: tools,
-              crossAxisCount: crossAxisCount,
-            ),
-          ),
-          const SizedBox(width: MonoPulseSpacing.lg),
-          Expanded(
-            flex: 1,
-            child: welcomeWidget!,
-          ),
-        ],
-      );
-    }
 
     return _buildFixedGrid(
       children: tools,
