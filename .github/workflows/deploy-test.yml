@@ -4,10 +4,6 @@
 # This workflow deploys the test build to GitHub Pages on every push to second01 branch
 #
 # NO SECRETS REQUIRED! Uses demo configuration (Firebase works, Spotify disabled)
-#
-# To add Spotify/Twitter credentials later:
-# 1. Set secrets in GitHub Repository Settings > Secrets and variables > Actions
-# 2. Update the "Generate web configuration" step to use generate-web-config.sh
 
 name: Deploy Test (GitHub Pages)
 
@@ -17,7 +13,6 @@ on:
       - second01
   workflow_dispatch:  # Allow manual trigger
 
-# Cancel in-progress runs if new push occurs
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -27,13 +22,13 @@ jobs:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Needed to push to gh-pages branch
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for version info
+          fetch-depth: 0
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -45,16 +40,15 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Use demo configuration (no credentials needed)
+      - name: Use demo configuration
         run: |
-          echo "🔧 Using demo configuration for GitHub Pages"
-          echo "   (Firebase works, Spotify/Twitter disabled)"
+          echo "🔧 Using demo configuration"
           cp web/config.demo.js web/config.js
 
       - name: Build web app
         run: flutter build web --release --base-href "/flutter-FlowGroove-app/"
 
-      - name: Copy config to build
+      - name: Copy config.js to build (force, ignoring .gitignore)
         run: cp web/config.js build/web/config.js
 
       - name: Deploy to GitHub Pages
@@ -62,14 +56,12 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
-          destination_dir: .  # Deploy to root of gh-pages branch
-          keep_files: false   # Clear previous deployment
+          force_orphan: true
+          full_commit_message: 'Deploy test build ${{ github.sha }}'
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Deploy test build ${{ github.sha }}'
 
       - name: Deployment summary
         run: |
           echo "✅ Deployment complete!"
           echo "🌐 Test URL: https://berlogabob.github.io/flutter-FlowGroove-app/"
-          echo "⏱️  GitHub Pages build: 1-2 minutes"
