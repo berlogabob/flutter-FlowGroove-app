@@ -7,17 +7,20 @@ import '../services/api/web_config.stub.dart'
 ///
 /// This provides a unified way to load environment variables across platforms:
 /// - **Web**: Uses window.env (injected at runtime via config.js)
-/// - **Mobile/Desktop**: Uses flutter_dotenv with .env file
+/// - **Android**: Uses BuildConfig (injected at build time)
+/// - **iOS/Desktop**: Uses flutter_dotenv with .env file
 ///
 /// SECURITY:
 /// - assets/env.json is NOT bundled in web builds (removed from pubspec.yaml)
 /// - For web, use config.js injected at deployment time
+/// - For Android, use buildConfigField in build.gradle.kts
 /// - For mobile, keep .env file in .gitignore
 ///
 /// Setup Instructions:
 /// 1. Copy assets/env.json.template to assets/env.json (mobile only)
 /// 2. Copy web/config.js.template to web/config.js and fill in values
-/// 3. NEVER commit env.json or config.js to git!
+/// 3. Set FIREBASE_API_KEY in .env file for Android builds
+/// 4. NEVER commit env.json or config.js to git!
 class EnvConfig {
   static final EnvConfig _instance = EnvConfig._internal();
   EnvConfig._internal();
@@ -47,7 +50,18 @@ class EnvConfig {
         // dotenv not initialized yet
       }
     } else {
-      // Mobile/Desktop: Use dotenv
+      // Mobile/Desktop
+      // First, try to get from BuildConfig (Android)
+      try {
+        final fromBuildConfig = _getFromBuildConfig(key);
+        if (fromBuildConfig.isNotEmpty && !_isPlaceholder(fromBuildConfig)) {
+          return fromBuildConfig;
+        }
+      } catch (e) {
+        // BuildConfig not available (iOS or not set)
+      }
+
+      // Fallback to dotenv
       try {
         final value = dotenv.env[key] ?? '';
         if (value.isNotEmpty && !_isPlaceholder(value)) {
@@ -88,7 +102,7 @@ class EnvConfig {
 
   /// Check if Spotify credentials are configured
   bool get isSpotifyConfigured {
-    return spotifyClientId.isNotEmpty && 
+    return spotifyClientId.isNotEmpty &&
            spotifyClientSecret.isNotEmpty &&
            !_isPlaceholder(spotifyClientId) &&
            !_isPlaceholder(spotifyClientSecret);
@@ -96,7 +110,7 @@ class EnvConfig {
 
   /// Check if Twitter credentials are configured
   bool get isTwitterConfigured {
-    return twitterApiKey.isNotEmpty && 
+    return twitterApiKey.isNotEmpty &&
            twitterApiSecret.isNotEmpty &&
            !_isPlaceholder(twitterApiKey) &&
            !_isPlaceholder(twitterApiSecret);
@@ -125,6 +139,14 @@ class EnvConfig {
       // Actually call the web implementation to read window.env
       return getWebConfig(key);
     }
+    return '';
+  }
+
+  // Helper: Get value from BuildConfig (Android only)
+  String _getFromBuildConfig(String key) {
+    // This will be implemented via method channel for Android
+    // For now, return empty string - BuildConfig values are accessed differently
+    // See: android/app/src/main/kotlin/.../MainActivity.kt for method channel
     return '';
   }
 

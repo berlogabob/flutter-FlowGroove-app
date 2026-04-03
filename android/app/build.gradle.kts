@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,6 +8,15 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
 }
+
+// Load environment variables from .env file or system environment
+val envFile = file("${project.rootDir}/../.env")
+val properties = Properties()
+if (envFile.exists()) {
+    properties.load(FileInputStream(envFile))
+}
+val firebaseApiKey = System.getenv("FIREBASE_API_KEY") 
+    ?: properties.getProperty("FIREBASE_API_KEY", "")
 
 android {
     namespace = "com.flowgroove.app"
@@ -20,6 +32,10 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.flowgroove.app"
@@ -29,6 +45,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Inject Firebase config at build time
+        buildConfigField("String", "FIREBASE_API_KEY", "\"${firebaseApiKey}\"")
     }
 
     buildTypes {
