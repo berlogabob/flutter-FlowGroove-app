@@ -25,13 +25,20 @@ void main() async {
   // Initialize Hive for offline caching
   await Hive.initFlutter();
 
-  // Load environment variables (mobile only)
-  try {
-    await dotenv.load(fileName: 'assets/env.json');
-  } catch (e) {
-    debugPrint(
-      'Note: .env file not loaded. Using environment variables if available.',
-    );
+  // Load environment variables
+  // For mobile: load from assets/env.json
+  // For web: loaded via config.js (see web/config.js)
+  if (!kIsWeb) {
+    try {
+      await dotenv.load(fileName: 'assets/env.json');
+      debugPrint('✅ Loaded assets/env.json successfully');
+      debugPrint('   FIREBASE_API_KEY: ${dotenv.env['FIREBASE_API_KEY']?.substring(0, 10)}...');
+    } catch (e) {
+      debugPrint('❌ Failed to load assets/env.json: $e');
+      debugPrint(
+        'Note: .env file not loaded. Using environment variables if available.',
+      );
+    }
   }
 
   // Validate configuration BEFORE Firebase initialization
