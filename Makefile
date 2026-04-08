@@ -1,7 +1,7 @@
 # FlowGroove App - Deployment Makefile
 # =====================================
-# Version: 0.13.5+180
-# Last Updated: April 2, 2026
+# Version: 0.13.4+183
+# Last Updated: April 8, 2026
 #
 # Quick Start:
 #   make deploy-test   → Test on GitHub Pages (no credentials needed)

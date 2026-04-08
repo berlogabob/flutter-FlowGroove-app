@@ -11,11 +11,22 @@
 .env
 .ftp-env
 assets/env.json
+assets/env.json.local
+web/config.js
+web/config.local.js
 
 # Flutter web app build artifacts (in docs/app/)
 docs/app/
 
-# Hugo build output is tracked (in docs/ root), but ignore Flutter subfolder
+# Hugo build output (generated, not tracked)
+site/public/
+
+# Editor temp files (vim, emacs, etc.)
+.*!
+!*~
+\#*\#
+
+# Hugo static assets are tracked; build output is not
 docs/canvaskit/
 docs/flutter.js
 
@@ -139,5 +150,16 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock.docs-archive/
 /flutter_metronome_app/
 
-# Flutter web app (built at deploy time)
-docs/app/
+# End of gitignore
+
+# Root Flutter web build artifacts (should NOT be in repo root)
+main.dart.js
+flutter.js
+flutter_bootstrap.js
+flutter_service_worker.js
+manifest.json
+version.json
+script.html
+canvaskit/
+index.html
+flutter_web_debug.log

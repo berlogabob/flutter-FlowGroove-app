@@ -22,6 +22,43 @@ import 'config/config_validator.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Global error widget for graceful degradation (prevents full red screen)
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    debugPrint('⚠️ Widget error: ${details.exception}');
+    debugPrint('   Stack: ${details.stack}');
+    return Material(
+      color: MonoPulseColors.black,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: MonoPulseColors.error),
+              const SizedBox(height: 12),
+              Text(
+                'Something went wrong',
+                style: MonoPulseTypography.headlineSmall.copyWith(
+                  color: MonoPulseColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                kDebugMode
+                    ? details.exception.toString()
+                    : 'Please restart the app or contact support.',
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  };
+
   // Initialize Hive for offline caching
   await Hive.initFlutter();
 
