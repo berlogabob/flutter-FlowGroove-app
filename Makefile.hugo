@@ -67,7 +67,7 @@ app-build:
 	@if [ ! -f web/config.js ]; then cp web/config.demo.js web/config.js; fi
 	@echo "🔨 Building Flutter web app..."
 	@echo "   Base href: /app/ (subfolder in docs/)"
-	@flutter build web --release --base-href "/app/"
+	@flutter build web --release --base-href "/flutter-FlowGroove-app/app/"
 	@echo ""
 	@echo "📦 Copying to docs/app/..."
 	@mkdir -p docs/app
