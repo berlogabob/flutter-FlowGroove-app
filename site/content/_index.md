@@ -13,7 +13,7 @@ featuredImage: "images/og-cover.svg"
 {{< hero >}}
   {{< hero-title >}}I Built FlowGroove to End My Band's Rehearsal Chaos{{< /hero-title >}}
   {{< hero-subtitle >}}Free real-time setlist sync for cover bands. Auto-detect BPM & key. Built by a solo dev between rehearsals.{{< /hero-subtitle >}}
-  {{< hero-cta-primary href="/app/" text="Open App" >}}
+  {{< hero-cta-primary href="app/" text="Open App" >}}
   {{< hero-cta-secondary href="https://ko-fi.com/flowgroove" text="Support the Dev" >}}
 {{< /hero >}}
 
@@ -72,7 +72,7 @@ No venture capital. No corporate team. Just a developer who plays in a band and 
 
 Now you can use it too. **Free for indie musicians.**
   {{< /story-content >}}
-  {{< cta-link href="/about" text="Read the Full Story →" >}}
+  {{< cta-link href="about/" text="Read the Full Story →" >}}
 {{< /section >}}
 
 <!-- FAQ Section -->

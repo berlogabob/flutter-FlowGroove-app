@@ -111,7 +111,7 @@ I can't promise everything, but I read every request and prioritize what helps t
 - Your setlists and songs
 - Usage analytics (anonymous, via GA4)
 
-I don't sell data. I don't track you across the web. Privacy policy is [here](/privacy).
+I don't sell data. I don't track you across the web. Privacy policy is [here](privacy/).
 
 ### Is my data safe?
 

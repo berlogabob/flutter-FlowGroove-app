@@ -1,12 +1,13 @@
 {{- /* layouts/partials/seo.html - Comprehensive SEO meta tags */ -}}
+{{- /* NOTE: Title tag is handled by PaperMod's head.html — do NOT emit <title> here */ -}}
 {{- $title := .Site.Title -}}
 {{- $description := .Site.Params.description -}}
 {{- $url := .Permalink -}}
 {{- $type := "website" -}}
-{{- $image := printf "%s%s" .Site.BaseURL "images/og-cover.webp" -}}
+{{- $image := printf "%s%s" .Site.BaseURL "images/og-cover.svg" -}}
 
 {{- if .IsHome -}}
-  {{- $title = printf "%s — %s" .Site.Title "Rehearsal Sync for Musicians" -}}
+  {{- $title = .Site.Title -}}
 {{- else -}}
   {{- $title = printf "%s — %s" .Title .Site.Title -}}
 {{- end -}}
@@ -28,7 +29,7 @@
 {{- end -}}
 
 <!-- Primary Meta Tags -->
-<title>{{ $title }}</title>
+<!-- NOTE: <title> handled by PaperMod's head.html -->
 <meta name="title" content="{{ $title }}">
 <meta name="description" content="{{ $description }}">
 <meta name="keywords" content="{{ with .Params.tags }}{{ delimit . ", " }}{{ else }}{{ delimit .Site.Params.keywords ", " }}{{ end }}">
@@ -53,14 +54,12 @@
 {{- end -}}
 
 <!-- Twitter -->
+<!-- NOTE: twitter:site handled by PaperMod's twitter_cards.html -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="{{ $url }}">
 <meta name="twitter:title" content="{{ $title }}">
 <meta name="twitter:description" content="{{ $description }}">
 <meta name="twitter:image" content="{{ $image }}">
-{{- with .Site.Params.social.twitter -}}
-<meta name="twitter:site" content="@flowgroove_app">
-{{- end -}}
 
 <!-- Schema.org Structured Data -->
 <script type="application/ld+json">
