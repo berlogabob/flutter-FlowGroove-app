@@ -1,0 +1,14 @@
+{{/* layouts/shortcodes/video-embed.html */}}
+<div class="video-container">
+  <iframe 
+    src="{{ .Get "src" }}" 
+    title="{{ .Get "title" | default "Video Demo" }}"
+    frameborder="0" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+    allowfullscreen
+    loading="lazy">
+  </iframe>
+  {{ with .Get "caption" }}
+  <p class="video-caption">{{ . | markdownify }}</p>
+  {{ end }}
+</div>

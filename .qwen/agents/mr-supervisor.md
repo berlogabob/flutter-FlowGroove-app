@@ -99,29 +99,54 @@ Critical Bug → mr-supervisor → Immediate fix required
 Rule Violation → mr-supervisor → Warning → Suspension
 ```
 
-## Agent Hierarchy Enforcement
+## Sequential Workflow Protocol (ENFORCED)
+
+### Rule 7: Agents MUST Self-Organize
+- ❌ Agents CANNOT wait for assignment
+- ✅ Agents MUST read full context before acting
+- ✅ Agents MUST declare own role (or decline)
+- **Violation:** Warning → Return for self-organization
+
+### Rule 8: Sequential Order CANNOT Be Skipped
+- ❌ Agent N CANNOT act before Agent N-1 completes
+- ✅ Each agent MUST read all previous outputs
+- ✅ Agents MUST recommend next agent
+- **Violation:** Block work → Reset chain
+
+### Rule 9: Agents CAN Decline Participation
+- ✅ Agents CAN write "I add no value — passing"
+- ✅ Declining saves tokens & improves quality
+- ✅ Decline rate target: 20-40%
+- **Enforced by:** mr-supervisor (monitors health)
+
+### Rule 10: Chain Length Optimization
+- ✅ Target: 3-6 agents per chain
+- ❌ Chains >8 agents require mr-supervisor intervention
+- ✅ mr-supervisor can consolidate roles or skip agents
+- **Enforced by:** mr-supervisor
+
+### Rule 11: mr-supervisor Monitors Chain Health
+- ✅ Track: chain length, decline rate, completion rate
+- ✅ Can inject new agents mid-chain
+- ✅ Can cancel unnecessary agents
+- ✅ Can reset chain if quality drops
+
+## Agent Hierarchy Enforcement (Sequential Mode)
 
 ```
 USER (Final Authority)
   ↓
-mr-supervisor (Master Coordinator)
+mr-supervisor (Chain Initiator)
   ↓
-mr-sync (Project Coordinator)
+Sequential Chain:
+  Agent 1 (self-organizes) →
+  Agent 2 (reads Agent 1, self-organizes) →
+  Agent 3 (reads Agent 1+2, self-organizes) →
+  ... → Agent N
   ↓
-mr-planner (Task Decomposition)
+mr-quality-control (Final Gate)
   ↓
-Specialist Agents:
-├── mr-architect (Architecture)
-├── mr-theme-guardian (Theme Enforcement)
-├── mr-senior-developer (Code Review)
-├── mr-cleaner (Code Quality)
-├── mr-widget-crafter (Widget Extraction)
-├── mr-optimization (Performance)
-├── mr-ux-agent (UI Implementation)
-├── mr-tester (Testing)
-├── mr-android (Android Debug)
-├── mr-logger (Documentation)
-└── mr-release (Release Management)
+mr-supervisor (Session End Protocol)
 ```
 
 ## Output Format
@@ -232,6 +257,8 @@ Specialist Agents:
 | Quality Score | ≥90% | [track] | 🟢/🟡/🔴 |
 | Rule Compliance | 100% | [track] | 🟢/🟡/🔴 |
 | Task Completion | ≥95% | [track] | 🟢/🟡/🔴 |
+| Chain Length | 3-6 agents | [track] | 🟢/🟡/🔴 |
+| Decline Rate | 20-40% | [track] | 🟢/🟡/🔴 |
 
 ### Monthly Agent Review:
 - Top performer recognition

@@ -1,0 +1,134 @@
+baseURL = "https://berlogabob.github.io/flutter-FlowGroove-app/"
+title = "FlowGroove — Rehearsal Sync for Musicians"
+theme = "PaperMod"
+languageCode = "en-us"
+defaultContentLanguage = "en"
+enableRobotsTXT = true
+enableEmoji = true
+enableGitInfo = false
+
+# Output to docs/ root for GitHub Pages
+publishDir = "../docs"
+
+# Performance
+paginate = 6
+summaryLength = 20
+timeout = 30000
+
+[params]
+  env = "production"
+  description = "Free real-time setlist sync for cover bands. Auto-detect BPM & key. Built by a solo dev between rehearsals."
+  keywords = ["band rehearsal", "setlist sync", "BPM detection", "music app", "cover bands", "rehearsal organizer"]
+  author = "Sounding Doubts - Unipessoal Lda"
+  DateFormat = "January 2, 2006"
+  
+  # Social Links
+  [params.social]
+    github = "https://github.com/berloga/flutter_repsync_app"
+    kofi = "https://ko-fi.com/flowgroove"
+    twitter = "https://twitter.com/flowgroove_app"
+  
+  # Analytics placeholders (replace with real IDs)
+  [params.analytics]
+    ga4_id = "G-T6YBX0M53W"
+    clarity_id = "w8h5eswdua"
+
+# PaperMod Theme Settings
+[params.homeInfoParams]
+  Title = "I Built FlowGroove to End My Band's Rehearsal Chaos"
+  Content = "Free real-time setlist sync for cover bands. Auto-detect BPM & key. Built by a solo dev between rehearsals."
+
+[[params.socialIcons]]
+  name = "github"
+  url = "https://github.com/berloga/flutter_repsync_app"
+
+[[params.socialIcons]]
+  name = "kofi"
+  url = "https://ko-fi.com/flowgroove"
+
+[[params.socialIcons]]
+  name = "twitter"
+  url = "https://twitter.com/flowgroove_app"
+
+[params.cover]
+  hidden = false
+  hiddenInList = false
+  hiddenInSingle = false
+
+[params.label]
+  text = "FlowGroove"
+  icon = "images/favicon.svg"
+  iconHeight = 32
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
+# Output formats for SEO
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+  page = ["HTML"]
+  section = ["HTML"]
+  taxonomy = ["HTML"]
+  term = ["HTML"]
+
+# Menu Configuration
+[[menu.main]]
+  identifier = "home"
+  name = "Home"
+  url = "/"
+  weight = 1
+
+[[menu.main]]
+  identifier = "about"
+  name = "About"
+  url = "/about/"
+  weight = 2
+
+[[menu.main]]
+  identifier = "faq"
+  name = "FAQ"
+  url = "/faq/"
+  weight = 3
+
+[[menu.main]]
+  identifier = "blog"
+  name = "Blog"
+  url = "/blog/"
+  weight = 4
+
+[[menu.main]]
+  identifier = "demo"
+  name = "Open App"
+  url = "/app/"
+  weight = 5
+
+# Markdown renderer
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    noClasses = false
+    style = "dracula"
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+    ordered = false
+
+# Sitemap configuration
+[sitemap]
+  changefreq = "weekly"
+  filename = "sitemap.xml"
+  priority = 0.5
+
+# Security
+[security]
+  enableInlineShortcodes = false
+  [security.exec]
+    allow = ['^dart-sass-embedded$', '^go$', '^npx$', '^postcss$']
+  [security.funcs]
+    getenv = ['^HUGO_']
+  [security.http]
+    methods = ['(?i)GET|POST']
+    urls = ['.*']

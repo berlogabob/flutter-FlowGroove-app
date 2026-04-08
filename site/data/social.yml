@@ -1,0 +1,16 @@
+# Social Links for FlowGroove
+github:
+  url: "https://github.com/berloga/flutter_repsync_app"
+  label: "GitHub"
+  
+kofi:
+  url: "https://ko-fi.com/flowgroove"
+  label: "Support on Ko-fi"
+  
+twitter:
+  url: "https://twitter.com/flowgroove_app"
+  label: "Follow on X/Twitter"
+  
+tinylaunch:
+  url: "https://tinylaunch.com"
+  label: "Launching on TinyLaunch"

@@ -2,42 +2,45 @@
 
 Autonomous AI agents that drive development, testing, and release of the FlowGroove Flutter app.
 
-## Hierarchy
+## Hierarchy (Sequential Workflow Mode)
 ```
 USER (Final Authority)
   ↓
-mr-supervisor (Master Coordinator) ⭐ NEW
+mr-supervisor (Chain Initiator & Master Coordinator)
   ↓
-mr-compliance (Rules Enforcer) ⭐ NEW
+mr-compliance (Rules Enforcer)
   ↓
-mr-quality-control (Quality Gate) ⭐ NEW
+mr-quality-control (Quality Gate)
   ↓
-mr-sync (Project Coordinator)
+Sequential Chain:
+  Agent 1 → Agent 2 → Agent 3 → ... → Agent N
+  (Agents self-organize per task)
   ↓
-mr-planner (Task Decomposition)
-  ├── mr-architect (Design validation)
-  ├── creative-director (UX flow)
-  ├── mr-theme-guardian (Theme enforcement)
-  ├── mr-optimization (Performance)
-  ├── mr-widget-crafter (Widget extraction)
-  ├── mr-senior-developer (Code review)
-  ├── mr-cleaner (Refactor & optimization)
-  ├── mr-tester (Testing)
-  ├── mr-logger (Documentation)
-  ├── mr-ux-agent (UI implementation)
-  ├── mr-android (Mobile debug)
-  ├── mr-android-debug (Android specialist)
-  ├── mr-stupid-user (User simulation)
-  ├── mr-repetitive (Pattern detection)
-  └── mr-release (Release orchestration)
+mr-quality-control (Final Gate)
+  ↓
+mr-supervisor (Session End Protocol)
 ```
+
+## Sequential Workflow Protocol
+Agents do NOT have permanent roles. Each agent:
+1. Reads full context (user request + all previous outputs)
+2. Self-organizes (invents role or declines)
+3. Executes work (GOST format)
+4. Recommends next agent
+
+**See:** `sequential-workflow.md` for full protocol documentation.
 
 ## Agent Categories
 
-### 👑 Master Agents (New)
-- **mr-supervisor**: Master coordinator, oversees all agents, resolves conflicts
+### 👑 Master Agents
+- **mr-supervisor**: Master coordinator, oversees all agents, resolves conflicts, initiates sequential chains
 - **mr-compliance**: Rules enforcer, monitors compliance with project politics
 - **mr-quality-control**: Final quality gate, blocks releases with issues
+
+### 🌐 Web & Landing Page
+- **mr-hugo** ⭐: Hugo static site specialist, landing page architect
+- **mr-seo** ⭐: SEO & analytics specialist, search visibility optimizer
+- **mr-content** ⭐: Content & copy specialist, conversion copywriter
 
 ### 📋 Coordination & Planning
 - **mr-sync**: Overall coordination, conflict resolution
@@ -106,13 +109,11 @@ mr-planner (Task Decomposition)
 - ✅ All violations MUST be reported
 - **Enforced by:** mr-compliance
 
-### Rule 6: Agent Hierarchy
-```
-User → mr-supervisor → mr-compliance → mr-quality-control → 
-mr-sync → mr-planner → Specialist Agents
-```
-- ✅ Chain of command MUST be respected
-- ❌ Agents CANNOT bypass hierarchy
+### Rule 6: Sequential Workflow
+- ✅ Agents MUST self-organize (see `sequential-workflow.md`)
+- ✅ Agents MUST read full context before acting
+- ✅ Agents CAN decline participation (with reason)
+- ✅ Sequential order CANNOT be skipped
 - **Enforced by:** mr-supervisor
 
 ## Quality Gates
@@ -136,19 +137,22 @@ mr-sync → mr-planner → Specialist Agents
 
 ## Agent Performance Metrics
 
-| Agent | Response Time | Quality Score | Compliance | Status |
-|-------|--------------|---------------|------------|--------|
-| mr-supervisor | <30min | ≥95% | 100% | 🟢 Active |
-| mr-compliance | <1h | ≥95% | 100% | 🟢 Active |
-| mr-quality-control | <1h | ≥98% | 100% | 🟢 Active |
-| mr-sync | <1h | ≥90% | ≥95% | 🟢 Active |
-| mr-planner | <2h | ≥90% | ≥95% | 🟢 Active |
-| mr-architect | <4h | ≥90% | ≥95% | 🟢 Active |
-| mr-theme-guardian | <2h | ≥95% | 100% | 🟢 Active |
-| mr-senior-developer | <4h | ≥90% | ≥95% | 🟢 Active |
-| mr-cleaner | <2h | ≥90% | ≥95% | 🟢 Active |
-| mr-tester | <4h | ≥90% | ≥95% | 🟢 Active |
-| mr-release | <1h | ≥95% | 100% | 🟢 Active |
+| Agent | Response Time | Quality Score | Decline Rate | Status |
+|-------|--------------|---------------|--------------|--------|
+| mr-supervisor | <30min | ≥95% | N/A | 🟢 Active |
+| mr-compliance | <1h | ≥95% | 20-40% | 🟢 Active |
+| mr-quality-control | <1h | ≥98% | N/A | 🟢 Active |
+| mr-hugo | <2h | ≥90% | 20-40% | 🟢 Active |
+| mr-seo | <2h | ≥90% | 20-40% | 🟢 Active |
+| mr-content | <2h | ≥90% | 20-40% | 🟢 Active |
+| mr-sync | <1h | ≥90% | 20-40% | 🟢 Active |
+| mr-planner | <2h | ≥90% | 20-40% | 🟢 Active |
+| mr-architect | <4h | ≥90% | 20-40% | 🟢 Active |
+| mr-theme-guardian | <2h | ≥95% | 20-40% | 🟢 Active |
+| mr-senior-developer | <4h | ≥90% | 20-40% | 🟢 Active |
+| mr-cleaner | <2h | ≥90% | 20-40% | 🟢 Active |
+| mr-tester | <4h | ≥90% | 20-40% | 🟢 Active |
+| mr-release | <1h | ≥95% | 20-40% | 🟢 Active |
 
 ## Escalation Protocol
 
@@ -189,6 +193,9 @@ Quality Escape → mr-quality-control (investigate) → Retrospective → Proces
 - **Performance**: Cache Theme.of(), MediaQuery.of(), add const everywhere
 - **Zero Defects**: No bugs allowed to production (mr-quality-control enforces)
 - **Documentation**: If it's not documented, it didn't happen
+- **Sequential Workflow**: Agents self-organize per task (see `sequential-workflow.md`)
+- **Dynamic Roles**: No permanent specialization — roles shift per task
+- **Voluntary Participation**: Agents can decline if they add no value
 
 ## New Agent Powers (Master Agents)
 
@@ -215,3 +222,5 @@ Quality Escape → mr-quality-control (investigate) → Retrospective → Proces
 
 > Built with ❤️ for musicians and cover bands
 > **Master Agents Added:** March 11, 2026 - Enhanced oversight and quality control
+> **Sequential Workflow Added:** April 8, 2026 - Self-organizing agents
+> **Web Agents Added:** April 8, 2026 - mr-hugo, mr-seo, mr-content for landing page

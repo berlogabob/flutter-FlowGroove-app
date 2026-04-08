@@ -1,0 +1,50 @@
+{{- /* layouts/partials/analytics.html - GA4 and Microsoft Clarity */ -}}
+
+<!-- Google Analytics 4 -->
+{{- with .Site.Params.analytics.ga4_id -}}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ . }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ . }}', {
+    'send_page_view': true,
+    'anonymize_ip': true
+  });
+  
+  // Custom event: Ko-fi button click
+  function trackKofiClick() {
+    gtag('event', 'kofi_click', {
+      'event_category': 'engagement',
+      'event_label': 'support_dev'
+    });
+  }
+  
+  // Custom event: Demo trial
+  function trackDemoClick() {
+    gtag('event', 'demo_trial', {
+      'event_category': 'conversion',
+      'event_label': 'try_demo'
+    });
+  }
+  
+  // Custom event: FAQ expand
+  function trackFAQClick(question) {
+    gtag('event', 'faq_expand', {
+      'event_category': 'engagement',
+      'event_label': question
+    });
+  }
+</script>
+{{- end -}}
+
+<!-- Microsoft Clarity -->
+{{- with .Site.Params.analytics.clarity_id -}}
+<script type="text/javascript">
+  (function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+  })(window, document, "clarity", "script", '{{ . }}');
+</script>
+{{- end -}}
