@@ -26,7 +26,7 @@ timeout = 30000
   [params.social]
     github = "https://github.com/berloga/flutter_repsync_app"
     kofi = "https://ko-fi.com/flowgroove"
-    twitter = "https://twitter.com/flowgroove_app"
+    twitter = "flowgroove_app"
   
   # Analytics placeholders (replace with real IDs)
   [params.analytics]

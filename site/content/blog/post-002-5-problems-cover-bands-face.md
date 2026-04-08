@@ -110,7 +110,7 @@ No corporate team. No venture capital. Just a musician who got tired of the chao
 
 ## Try It
 
-[Try the FlowGroove Demo](/web) — no registration required.
+[Try the FlowGroove Demo](app/) — no registration required.
 
 If it helps your band, consider [supporting development on Ko-fi](https://ko-fi.com/flowgroove). Every donation keeps the servers running and the coffee flowing.
 

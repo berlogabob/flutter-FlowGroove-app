@@ -3,7 +3,8 @@
     "allow": [
       "Bash(flutter *)",
       "Bash(adb *)",
-      "Bash(tee *)"
+      "Bash(tee *)",
+      "Bash(mkdir *)"
     ]
   },
   "$version": 3
