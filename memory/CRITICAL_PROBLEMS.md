@@ -1,9 +1,9 @@
 # 🔴 CRITICAL PROBLEMS - NEVER AGAIN
 
 **Rule:** Read before ANY code change!
-**Last Updated:** April 2, 2026
+**Last Updated:** April 8, 2026
 **Branch:** second01
-**Version:** 0.13.5+180
+**Version:** 0.13.4+183
 
 ---
 
@@ -219,6 +219,74 @@ web/config.js
 
 ---
 
+## 6. No Global Error Widget Handler (RESOLVED)
+
+**Date:** 2026-04-08
+**Severity:** 🟡 MEDIUM
+**Status:** ✅ FIXED
+
+### The Problem
+QWEN.md documented "Add `ErrorWidget.builder` for graceful degradation" as a key learning, but `main.dart` never set a global error widget builder. Unhandled widget errors showed full Flutter red screen instead of graceful fallback.
+
+### The Fix
+- Added `ErrorWidget.builder` in `main.dart` during initialization
+- Shows themed error message with icon and details (debug mode shows full exception)
+- Uses MonoPulseTheme colors for consistency
+- Logs errors to debug console for development
+
+### Prevention
+- [ ] Never remove `ErrorWidget.builder` from `main.dart`
+- [ ] All widget errors should be graceful, not crash the app
+- [ ] Test error scenarios: malformed data, missing assets, network failures
+
+---
+
+## 7. Memory Bank 75% Missing (RESOLVED)
+
+**Date:** 2026-04-08
+**Severity:** 🟡 MEDIUM
+**Status:** ✅ FIXED
+
+### The Problem
+`memory/README.md` referenced 4 memory files but only `CRITICAL_PROBLEMS.md` existed. Three critical files were missing:
+- `SECURITY_ISSUES.md`
+- `BUILD_DEPLOYMENT_ISSUES.md`
+- `DEPENDENCY_ISSUES.md`
+
+### The Fix
+- Created all 3 missing memory files with documented issues
+- Populated with relevant historical issues from project history
+- Added prevention checklists to each file
+
+### Prevention
+- [ ] Memory bank files must exist before agents reference them
+- [ ] Run periodic audit: check all referenced memory files exist
+- [ ] New issues should be documented immediately, not "later"
+
+---
+
+## 8. Editor Temp Files in Source Directory (RESOLVED)
+
+**Date:** 2026-04-08
+**Severity:** 🟢 LOW
+**Status:** ✅ FIXED
+
+### The Problem
+Editor auto-save file `.!15526!analytics_debug.dart` found in `lib/utils/`. These files can confuse code analysis tools and may be accidentally committed.
+
+### The Fix
+- Deleted all temp files from source directories
+- Added editor temp file patterns to `.gitignore`
+- Added `site/public/` (Hugo build output) to `.gitignore`
+- Added `web/config.js` (generated file) to `.gitignore`
+
+### Prevention
+- [ ] Configure editor to save temp files outside project directory
+- [ ] Run `git status` before committing to catch stray files
+- [ ] `.gitignore` patterns: `.*!`, `!*~`, `\#*\#`
+
+---
+
 ## Summary: Current Working Configuration
 
 ### ✅ What Works Now
@@ -257,6 +325,6 @@ make release
 
 ---
 
-**Last Verified:** April 2, 2026  
-**Version:** 0.13.5+180  
+**Last Verified:** April 8, 2026
+**Version:** 0.13.4+183
 **Status:** ✅ ALL SYSTEMS WORKING

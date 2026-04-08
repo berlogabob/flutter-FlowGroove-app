@@ -136,9 +136,8 @@ service cloud.firestore {
         }
       }
 
-      // Setlists subcollection - TEMPORARILY RELAXED for data migration
-      // Allow any authenticated user to read/write their own setlists
-      // No validation on data format (allows invalid dates temporarily)
+      // Setlists subcollection - owner-only access
+      // Owner can manage their own setlists freely
       match /setlists/{setlistId} {
         allow read, write, delete: if isAuthenticated() && isOwner(userId);
       }
