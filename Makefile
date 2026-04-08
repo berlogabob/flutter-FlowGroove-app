@@ -69,6 +69,15 @@ check-env-prod:
 deploy-test: check-env-test build-web-github
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║  ⚠️  WARNING: This destroys the Hugo landing page!        ║"
+	@echo "║  This target is for Flutter-only deploy.                  ║"
+	@echo "║  For Hugo + Flutter dual-deploy, use:                     ║"
+	@echo "║    make -f Makefile.hugo deploy-all                       ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ] || (echo "Aborted."; exit 1)
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║      Deploying to GitHub Pages (second01 branch)          ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
