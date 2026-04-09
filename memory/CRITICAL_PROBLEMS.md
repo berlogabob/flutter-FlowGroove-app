@@ -1,9 +1,51 @@
 # 🔴 CRITICAL PROBLEMS - NEVER AGAIN
 
 **Rule:** Read before ANY code change!
-**Last Updated:** April 8, 2026
+**Last Updated:** April 9, 2026
 **Branch:** second01
 **Version:** 0.13.4+183
+
+---
+
+## 27. Missing foundation.dart Import Causes Metronome Crash
+
+**Date:** 2026-04-09
+**Severity:** 🔴 **CRITICAL**
+**Status:** ✅ FIXED
+
+### The Problem
+When adding wakelock integration to `metronome_provider.dart`, the code uses `debugPrint()` from `package:flutter/foundation.dart` — but the import wasn't added. On emulator build (fresh compile), this caused a crash when tapping metronome Play:
+```
+NoSuchMethodError: The getter 'kDebugMode' was called on null
+```
+
+### Why It Happened
+- File previously had no `foundation.dart` dependencies
+- Adding `WakelockController` (which calls `debugPrint`) introduced `kDebugMode` usage
+- Host Dart analyzer had cached imports, so it didn't catch the missing import
+- Only failed on fresh emulator build
+
+### The Fix
+```dart
+import 'package:flutter/foundation.dart'; // MUST be present when using debugPrint, kDebugMode, compute
+```
+
+### Rule: ALWAYS check imports when adding debugPrint/kDebugMode
+When editing ANY file that uses these APIs, verify the import exists:
+- `debugPrint()` → needs `package:flutter/foundation.dart`
+- `kDebugMode` → needs `package:flutter/foundation.dart`
+- `compute()` → needs `package:flutter/foundation.dart`
+
+**Quick check after edits:**
+```bash
+flutter analyze lib/providers/data/metronome_provider.dart
+# Must show 0 errors
+```
+
+### Prevention
+- After adding new service imports (like wakelock_controller.dart), re-run `flutter analyze` on the modified file
+- Don't trust cached analyzer results — always do a fresh check
+- Test on emulator after significant changes, not just host machine
 
 ---
 
