@@ -255,6 +255,7 @@ class _ActionButtonState extends State<_ActionButton> {
         duration: MonoPulseAnimation.durationShort,
         curve: MonoPulseAnimation.curveCustom,
         child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
           // Minimum 48px touch zone
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.lg,

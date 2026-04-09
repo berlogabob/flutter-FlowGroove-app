@@ -141,6 +141,13 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
               email: user.email,
               displayName: user.displayName,
               photoURL: user.photoURL,
+              accessRole: (userDoc.data()?['accessRole'] as String?) ?? 'member',
+              musicRoles: List<String>.from(
+                (userDoc.data()?['musicRoles'] as List?) ?? [],
+              ),
+              systemTags: List<String>.from(
+                (userDoc.data()?['systemTags'] as List?) ?? [],
+              ),
               bandIds: List.generate(bandCount, (i) => 'band_$i'),
               createdAt: DateTime.now(),
             );
@@ -287,19 +294,17 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
-  /// Signs in with Twitter.
-  ///
-  /// Updates the user's base tags (role tags like guitarist, vocalist, etc.)
+  /// Updates the user's music roles.
   ///
   /// Throws [ApiError] if update fails.
-  Future<void> updateBaseTags(List<String> tags) async {
+  Future<void> updateMusicRoles(List<String> roles) async {
     final currentUser = state.value;
     if (currentUser == null) {
       throw ApiError.auth(message: 'No user logged in');
     }
 
     try {
-      final updatedUser = currentUser.copyWith(baseTags: tags);
+      final updatedUser = currentUser.copyWith(musicRoles: roles);
       final firestore = FirestoreService();
       await firestore.saveUser(updatedUser);
       state = AsyncValue.data(updatedUser);

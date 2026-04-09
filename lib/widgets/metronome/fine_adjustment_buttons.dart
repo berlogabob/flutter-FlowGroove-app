@@ -95,11 +95,12 @@ class _AdjustButton extends StatelessWidget {
       child: Material(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: () => _onTap(context),
-          child: Padding(
-            padding: const EdgeInsets.all(8),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => _onTap(context),
             child: Icon(
               icon,
               color: color,

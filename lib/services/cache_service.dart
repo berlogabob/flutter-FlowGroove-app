@@ -5,12 +5,15 @@ import '../models/setlist.dart';
 
 /// CacheService provides offline-first data persistence using Hive.
 ///
-/// Implements a cache-first strategy:
-/// 1. Return cached data immediately
-/// 2. Fetch from network in background
-/// 3. Update cache and notify listeners
+/// Implements a cache-first strategy with TTL:
+/// 1. Return cached data immediately (even if stale)
+/// 2. Caller checks isCacheStale() to decide on background refresh
+/// 3. Fetch from network in background
+/// 4. Update cache and notify listeners
 ///
-/// Refactored to reduce code duplication using generic helper methods.
+/// Default TTLs:
+/// - Songs/Bands/Setlists: 24 hours
+/// - Band songs: 12 hours (shared data changes more frequently)
 class CacheService {
   static const String _songsBoxPrefix = 'songs_';
   static const String _bandsBoxPrefix = 'bands_';
@@ -18,6 +21,26 @@ class CacheService {
   static const String _bandSongsBoxPrefix = 'band_songs_';
   static const String _cacheTimestampKey = 'cache_timestamp';
   static const String _cacheDataKey = 'data';
+
+  /// Default cache TTLs
+  static const defaultTtl = Duration(hours: 24);
+  static const bandSongsTtl = Duration(hours: 12);
+
+  /// Check if cache is stale for a given box.
+  Future<bool> isCacheStale(String boxName, {Duration? ttl}) async {
+    try {
+      final box = await _openBox(boxName);
+      final timestamp = box.get(_cacheTimestampKey);
+      if (timestamp == null) return true; // No timestamp = stale
+
+      final cachedAt = DateTime.parse(timestamp as String);
+      final age = DateTime.now().difference(cachedAt);
+      final effectiveTtl = ttl ?? defaultTtl;
+      return age > effectiveTtl;
+    } catch (e) {
+      return true; // Error = treat as stale
+    }
+  }
 
   /// Opens a Hive box with the given name.
   Future<Box> _openBox(String name) async {

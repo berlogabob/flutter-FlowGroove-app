@@ -43,6 +43,7 @@ class SuggestionCard extends StatelessWidget {
       hoverColor: colorScheme.primary.withValues(alpha: 0.04),
       highlightColor: colorScheme.primary.withValues(alpha: 0.08),
       child: Container(
+        constraints: const BoxConstraints(minHeight: 48),
         padding: const EdgeInsets.all(MonoPulseSpacing.md),
         decoration: BoxDecoration(
           color: isSelected

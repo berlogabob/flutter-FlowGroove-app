@@ -425,7 +425,7 @@ class _BeatCircleWithMode extends StatelessWidget {
   Widget build(BuildContext context) {
     // Smaller circles on small screens: 16px instead of 20px
     final circleSize = isSmallScreen ? 16.0 : 20.0;
-    final containerSize = isSmallScreen ? 40.0 : 48.0;
+    final containerSize = isSmallScreen ? 48.0 : 52.0;
 
     return GestureDetector(
       onTap: onTap,
@@ -536,7 +536,7 @@ class _SubdivisionCircleWithMode extends StatelessWidget {
   Widget build(BuildContext context) {
     // Smaller circles on small screens: 16px instead of 20px
     final circleSize = isSmallScreen ? 16.0 : 20.0;
-    final containerSize = isSmallScreen ? 40.0 : 48.0;
+    final containerSize = isSmallScreen ? 48.0 : 52.0;
 
     return GestureDetector(
       onTap: onTap,

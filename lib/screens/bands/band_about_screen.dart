@@ -5,6 +5,7 @@ import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/music_role_icon.dart';
 import '../../widgets/custom_app_bar.dart';
 
 class BandAboutScreen extends ConsumerStatefulWidget {
@@ -414,9 +415,38 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
           fontWeight: FontWeight.w500,
         ),
       ),
-      subtitle: Text(
-        _formatRole(member.role),
-        style: const TextStyle(color: MonoPulseColors.textSecondary),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _formatRole(member.role),
+            style: const TextStyle(color: MonoPulseColors.textSecondary),
+          ),
+          if (member.musicRoles.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: member.musicRoles.map((role) {
+                final icon = MusicRoleIcon.getIcon(role);
+                final displayName = MusicRoleIcon.getDisplayName(role);
+                return Chip(
+                  label: Text(
+                    icon != null ? '$icon $displayName' : displayName,
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                  padding: EdgeInsets.zero,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                  backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                  labelStyle: const TextStyle(
+                    color: MonoPulseColors.accentOrange,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
       ),
       trailing: member.role == BandMember.roleAdmin
           ? const Icon(

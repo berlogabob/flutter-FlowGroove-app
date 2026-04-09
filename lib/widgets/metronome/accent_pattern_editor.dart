@@ -172,6 +172,7 @@ class _BeatModeGrid extends StatelessWidget {
         crossAxisCount: regularBeats,
         mainAxisSpacing: 4,
         crossAxisSpacing: 4,
+        childAspectRatio: 1.0,
       ),
       itemCount: beatModes.length * (beatModes.isNotEmpty ? beatModes[0].length : 0),
       itemBuilder: (context, index) {

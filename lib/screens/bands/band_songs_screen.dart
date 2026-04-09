@@ -7,10 +7,12 @@ import '../../../models/band.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../utils/music_role_icon.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/confirmation_dialog.dart';
 import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/error_banner.dart';
+import '../../../widgets/role_picker_widget.dart';
 import '../../../widgets/unified_item/unified_item_list.dart';
 import '../../../widgets/unified_item/unified_item_model.dart';
 import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
@@ -689,8 +691,13 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                 spacing: 4,
                 runSpacing: 4,
                 children: member.musicRoles.map((role) {
+                  final icon = MusicRoleIcon.getIcon(role);
+                  final displayName = MusicRoleIcon.getDisplayName(role);
                   return Chip(
-                    label: Text(role, style: const TextStyle(fontSize: 10)),
+                    label: Text(
+                      icon != null ? '$icon $displayName' : displayName,
+                      style: const TextStyle(fontSize: 10),
+                    ),
                     padding: EdgeInsets.zero,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
@@ -863,41 +870,6 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
   late List<String> _selectedMusicRoles;
   late String _selectedPermission;
 
-  static const List<String> musicRoles = [
-    'Vocal',
-    'Guitar',
-    'Bass',
-    'Drums',
-    'Keyboard',
-    'Piano',
-    'Saxophone',
-    'Trumpet',
-    'Violin',
-    'Cello',
-    'DJ',
-    'Harmonica',
-    'Banjo',
-    'Ukulele',
-    'Percussion',
-    'Backing Vocal',
-    'Loop Station',
-  ];
-
-  static const List<String> workingRoles = [
-    'Band Manager',
-    'Sound Engineer',
-    'Lighting',
-    'Booking Agent',
-    'Producer',
-    'Songwriter',
-    'Arranger',
-    'Booking',
-    'Merch',
-    'Social Media',
-    'Photographer',
-    'Videographer',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -932,6 +904,7 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                   ),
                 ],
               ),
@@ -965,70 +938,55 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
               ),
               const SizedBox(height: 24),
 
-              // Music roles section
-              const Text(
-                'Music Roles',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: MonoPulseColors.textPrimary,
-                ),
+              // Music roles section — using RolePickerWidget
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Roles in Band',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: MonoPulseColors.textPrimary,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: _editRoles,
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: const Text('Edit'),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: musicRoles.map((role) {
-                  final isSelected = _selectedMusicRoles.contains(role);
-                  return FilterChip(
-                    label: Text(role),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _selectedMusicRoles.add(role);
-                        } else {
-                          _selectedMusicRoles.remove(role);
-                        }
-                      });
-                    },
-                    selectedColor: MonoPulseColors.accentOrangeSubtle,
-                    checkmarkColor: MonoPulseColors.accentOrange,
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-
-              // Working roles section
-              const Text(
-                'Working Roles',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: MonoPulseColors.textPrimary,
+              if (_selectedMusicRoles.isEmpty)
+                Text(
+                  'Tap edit to add roles (instruments, tech, etc.)',
+                  style: TextStyle(color: MonoPulseColors.textTertiary),
+                )
+              else
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: _selectedMusicRoles.map((role) {
+                    final icon = MusicRoleIcon.getIcon(role);
+                    final displayName = MusicRoleIcon.getDisplayName(role);
+                    return InputChip(
+                      label: Text(
+                        icon != null ? '$icon $displayName' : displayName,
+                      ),
+                      deleteIcon: const Icon(Icons.close, size: 16),
+                      onDeleted: () {
+                        setState(() => _selectedMusicRoles.remove(role));
+                      },
+                      selected: true,
+                      onSelected: (_) =>
+                          setState(() => _selectedMusicRoles.remove(role)),
+                      backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                      selectedColor: MonoPulseColors.accentOrangeSubtle,
+                      padding: EdgeInsets.zero,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    );
+                  }).toList(),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: workingRoles.map((role) {
-                  final isSelected = _selectedMusicRoles.contains(role);
-                  return FilterChip(
-                    label: Text(role),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _selectedMusicRoles.add(role);
-                        } else {
-                          _selectedMusicRoles.remove(role);
-                        }
-                      });
-                    },
-                    selectedColor: MonoPulseColors.accentOrangeSubtle,
-                    checkmarkColor: MonoPulseColors.accentOrange,
-                  );
-                }).toList(),
-              ),
               const SizedBox(height: 32),
 
               // Save button
@@ -1053,6 +1011,17 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
         );
       },
     );
+  }
+
+  void _editRoles() async {
+    final result = await showRolePicker(
+      context: context,
+      currentRoles: _selectedMusicRoles,
+      title: 'Roles in "${widget.band.name}"',
+    );
+    if (result != null) {
+      setState(() => _selectedMusicRoles = result);
+    }
   }
 
   Widget _buildPermissionChip(String value, String label, Color color) {

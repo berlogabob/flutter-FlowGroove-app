@@ -2997,6 +2997,14 @@ class MockCacheService extends _i1.Mock implements _i22.CacheService {
   }
 
   @override
+  _i7.Future<bool> isCacheStale(String? boxName, {Duration? ttl}) =>
+      (super.noSuchMethod(
+            Invocation.method(#isCacheStale, [boxName], {#ttl: ttl}),
+            returnValue: _i7.Future<bool>.value(false),
+          )
+          as _i7.Future<bool>);
+
+  @override
   _i7.Future<void> cacheSongs(String? uid, List<_i18.Song>? songs) =>
       (super.noSuchMethod(
             Invocation.method(#cacheSongs, [uid, songs]),

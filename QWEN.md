@@ -1,4 +1,20 @@
 ## Qwen Added Memories
+### SESSION COMPLETE: Phase 2 Architecture + Full Audit (2026-04-08) ✅
+**Export Location:** `.qwen/SESSION_STATE.md`
+
+**Key Learnings Established:**
+1. **Sequential Workflow Activated** — mr-supervisor → mr-architect chain completed, Phase 2 architecture designed
+2. **Phase 2: 7 Features** — Touch Targets, Wakelock, BPM API, Autocomplete, Sync Opt, Anonymous Auth, Demo Seeder
+3. **Only 1 new package** — `wakelock_plus: ^1.3.0`, everything else uses existing infrastructure
+4. **Hugo Landing Page Live** — GitHub Pages, MonoPulse theme, Flutter app at /app/
+5. **Full Audit Done** — 45 files cleaned, root directory clean, memory bank 100%, git clean
+6. **Deploy Pipeline** — `scripts/deploy-hugo.sh` + `Makefile.hugo deploy-all`
+7. **Protected Files** — NEVER modify: `.qwen/` (agent config), `memory/`, `QWEN.md` with `tags: [user]`
+
+**Architecture:** Hugo landing page (`site/`) → Flutter web app (`docs/app/`) → Firebase backend
+**Branch:** second01 | **Version:** 0.13.4+183 | **Last Commit:** c3053f3
+
+---
 ### SESSION COMPLETE: Responsive Widgets Redesign (2026-04-01) ✅
 **Export Location:** `chat-exports-collection/2026-04-01_responsive-widgets-redesign.md`
 

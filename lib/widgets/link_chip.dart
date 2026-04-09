@@ -50,7 +50,10 @@ class LinkChip extends StatelessWidget {
       return InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-        child: chip,
+        child: SizedBox(
+          height: 48,
+          child: chip,
+        ),
       );
     }
 

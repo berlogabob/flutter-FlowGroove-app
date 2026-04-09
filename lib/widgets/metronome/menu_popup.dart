@@ -450,6 +450,7 @@ class _MenuItemState extends State<_MenuItem> {
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
         child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.lg,
             vertical: MonoPulseSpacing.md,

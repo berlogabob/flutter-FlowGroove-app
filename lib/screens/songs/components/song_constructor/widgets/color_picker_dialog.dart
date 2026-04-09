@@ -305,26 +305,30 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
       runSpacing: 6,
       children: [
         for (int i = 0; i < SectionColorPalette.sectionColors.length; i++)
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedColor = SectionColorPalette.sectionColors[i];
-                _hexController.text = SectionColorPalette.colorToHex(
-                  _selectedColor,
-                );
-              });
-            },
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: SectionColorPalette.sectionColors[i],
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _selectedColor == SectionColorPalette.sectionColors[i]
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.transparent,
-                  width: 2,
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedColor = SectionColorPalette.sectionColors[i];
+                  _hexController.text = SectionColorPalette.colorToHex(
+                    _selectedColor,
+                  );
+                });
+              },
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: SectionColorPalette.sectionColors[i],
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _selectedColor == SectionColorPalette.sectionColors[i]
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.transparent,
+                    width: 2,
+                  ),
                 ),
               ),
             ),

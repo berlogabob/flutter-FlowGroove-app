@@ -8,6 +8,7 @@ import '../../models/setlist.dart';
 import '../../models/beat_mode.dart';
 import '../../services/audio/audio_engine_export.dart';
 import '../../services/analytics_service.dart';
+import '../../services/wakelock_controller.dart';
 
 /// Metronome Notifier class
 ///
@@ -16,6 +17,7 @@ import '../../services/analytics_service.dart';
 class MetronomeNotifier extends Notifier<MetronomeState> {
   Timer? _timer;
   final AudioEngine _audioEngine = AudioEngine();
+  final WakelockController _wakelock = WakelockController();
 
   /// Default constructor
   MetronomeNotifier();
@@ -59,6 +61,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     );
 
     _startTimer();
+
+    // Enable wakelock to keep screen on during practice
+    _wakelock.enable();
   }
 
   /// Stop the metronome
@@ -69,6 +74,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     _timer = null;
 
     state = state.copyWith(isPlaying: false, currentBeat: 0);
+
+    // Disable wakelock when metronome stops
+    _wakelock.disable();
   }
 
   /// Update BPM while playing
@@ -455,6 +463,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void dispose() {
     _timer?.cancel();
     _audioEngine.dispose();
+    _wakelock.dispose();
   }
 }
 

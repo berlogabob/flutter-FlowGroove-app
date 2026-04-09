@@ -1,29 +1,17 @@
-import 'package:flutter/material.dart';
-// ignore: unnecessary_import
-import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:async';
-
-import '../models/song_suggestion.dart';
-import '../services/song_suggestion_service.dart';
-import '../services/musicbrainz_service.dart';
-import '../repositories/firestore_song_repository.dart';
-import 'suggestion_card.dart';
-
 /// Autocomplete TypeAhead field for song search
-/// 
+///
 /// Provides real-time song suggestions as user types, combining:
 /// - Personal library
 /// - Group libraries
 /// - MusicBrainz API
-/// 
+///
 /// Features:
 /// - Debounced search (300ms delay)
 /// - Overlay dropdown with suggestions
 /// - Loading indicator
 /// - Keyboard navigation
-/// - Touch-friendly cards
-/// 
+/// - Touch-friendly cards (≥48dp)
+///
 /// Usage:
 /// ```dart
 /// AutocompleteTypeAhead(
@@ -33,7 +21,18 @@ import 'suggestion_card.dart';
 ///   bandId: currentBandId, // Optional
 /// )
 /// ```
-class AutocompleteTypeAhead extends StatefulWidget {
+library;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/song_suggestion.dart';
+import '../providers/song_autocomplete_provider.dart';
+import 'suggestion_card.dart';
+
+/// Autocomplete TypeAhead widget for song search.
+class AutocompleteTypeAhead extends ConsumerStatefulWidget {
   /// Callback when user selects a suggestion
   final ValueChanged<SongSuggestion> onSuggestionSelected;
 
@@ -67,45 +66,33 @@ class AutocompleteTypeAhead extends StatefulWidget {
   });
 
   @override
-  State<AutocompleteTypeAhead> createState() => _AutocompleteTypeAheadState();
+  ConsumerState<AutocompleteTypeAhead> createState() =>
+      _AutocompleteTypeAheadState();
 }
 
-class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
+class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final LayerLink _layerLink = LayerLink();
-  
+
   OverlayEntry? _overlayEntry;
-  List<SongSuggestion> _suggestions = [];
-  bool _isLoading = false;
-  String? _error;
-  Timer? _debounceTimer;
-  
-  int _selectedIndex = -1;
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(_onFocusChange);
     _controller.addListener(_onTextChanged);
-  }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _initService();
-  }
-
-  void _initService() {
-    // TODO: Get from provider when integrated
-    // For now, service will be created on-demand
+    // Initialize provider with context after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(autocompleteSearchProvider.notifier).init(bandId: widget.bandId);
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
-    _debounceTimer?.cancel();
     _hideOverlay();
     super.dispose();
   }
@@ -113,10 +100,11 @@ class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
   void _onFocusChange() {
     if (_focusNode.hasFocus) {
       if (_controller.text.length >= widget.minLength) {
-        _fetchSuggestions(_controller.text);
+        ref
+            .read(autocompleteSearchProvider.notifier)
+            .updateQuery(_controller.text, debounceMs: widget.debounceMs);
       }
     } else {
-      // Delay hiding to allow tap on suggestion
       Future.delayed(const Duration(milliseconds: 200), () {
         _hideOverlay();
       });
@@ -124,89 +112,44 @@ class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
   }
 
   void _onTextChanged() {
-    _debounceTimer?.cancel();
-    
-    if (_controller.text.length < widget.minLength) {
-      _hideOverlay();
-      return;
-    }
-
-    _debounceTimer = Timer(Duration(milliseconds: widget.debounceMs), () {
-      _fetchSuggestions(_controller.text);
-    });
-  }
-
-  Future<void> _fetchSuggestions(String query) async {
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      final service = SongSuggestionService(
-        songRepo: FirestoreSongRepository(),
-        musicBrainz: MusicBrainzService(),
-        userId: user?.uid ?? '',
-        bandId: widget.bandId,
-      );
-
-      final suggestions = await service.getSuggestions(
-        query: query,
-        limit: widget.maxSuggestions,
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _suggestions = suggestions;
-        _isLoading = false;
-        _selectedIndex = -1;
-      });
-
-      _showOverlay();
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
+    ref
+        .read(autocompleteSearchProvider.notifier)
+        .updateQuery(_controller.text, debounceMs: widget.debounceMs);
   }
 
   void _showOverlay() {
     if (_overlayEntry != null) return;
 
     _overlayEntry = OverlayEntry(
-      builder: (context) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: _hideOverlay,
-        child: Container(
-          color: Colors.transparent,
-          child: SafeArea(
-            child: UnconstrainedBox(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width - 32,
-                child: CompositedTransformFollower(
-                  link: _layerLink,
-                  offset: const Offset(0, 4),
-                  child: _SuggestionDropdown(
-                    suggestions: _suggestions,
-                    isLoading: _isLoading,
-                    error: _error,
-                    selectedIndex: _selectedIndex,
-                    onSuggestionSelected: _selectSuggestion,
-                    onNavigate: _handleKeyboardNavigation,
+      builder: (context) {
+        final searchState = ref.read(autocompleteSearchProvider);
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: _hideOverlay,
+          child: Container(
+            color: Colors.transparent,
+            child: SafeArea(
+              child: UnconstrainedBox(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 32,
+                  child: CompositedTransformFollower(
+                    link: _layerLink,
+                    offset: const Offset(0, 4),
+                    child: _SuggestionDropdown(
+                      suggestions: searchState.suggestions,
+                      isLoading: searchState.isLoading,
+                      error: searchState.error,
+                      selectedIndex: searchState.selectedIndex,
+                      onSuggestionSelected: _selectSuggestion,
+                      onNavigate: _handleKeyboardNavigation,
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
 
     Overlay.of(context).insert(_overlayEntry!);
@@ -215,22 +158,30 @@ class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
   void _hideOverlay() {
     _overlayEntry?.remove();
     _overlayEntry = null;
-    _selectedIndex = -1;
   }
 
   void _selectSuggestion(SongSuggestion suggestion) {
+    ref.read(autocompleteSearchProvider.notifier).selectSuggestion(suggestion);
     widget.onSuggestionSelected(suggestion);
     _hideOverlay();
   }
 
-  void _handleKeyboardNavigation(int newIndex) {
-    setState(() {
-      _selectedIndex = newIndex;
-    });
+  void _handleKeyboardNavigation(int direction) {
+    ref.read(autocompleteSearchProvider.notifier).navigate(direction);
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch provider for loading state (suffix icon) and suggestions count
+    final searchState = ref.watch(autocompleteSearchProvider);
+
+    // Show/hide overlay based on state
+    if (searchState.suggestions.isNotEmpty || searchState.isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showOverlay());
+    } else {
+      _hideOverlay();
+    }
+
     return CompositedTransformTarget(
       link: _layerLink,
       child: TextField(
@@ -239,7 +190,7 @@ class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
         decoration: InputDecoration(
           hintText: widget.hint,
           prefixIcon: Icon(widget.icon),
-          suffixIcon: _buildSuffixIcon(),
+          suffixIcon: _buildSuffixIcon(searchState.isLoading),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -250,17 +201,19 @@ class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
         ),
         textInputAction: TextInputAction.search,
         onSubmitted: (_) {
-          // Handle enter key
-          if (_suggestions.isNotEmpty && _selectedIndex >= 0) {
-            _selectSuggestion(_suggestions[_selectedIndex]);
+          if (searchState.suggestions.isNotEmpty &&
+              searchState.selectedIndex >= 0) {
+            _selectSuggestion(
+              searchState.suggestions[searchState.selectedIndex],
+            );
           }
         },
       ),
     );
   }
 
-  Widget? _buildSuffixIcon() {
-    if (_isLoading) {
+  Widget? _buildSuffixIcon(bool isLoading) {
+    if (isLoading) {
       return const Padding(
         padding: EdgeInsets.all(12),
         child: SizedBox(
@@ -277,8 +230,10 @@ class _AutocompleteTypeAheadState extends State<AutocompleteTypeAhead> {
         onPressed: () {
           _controller.clear();
           _hideOverlay();
+          ref.read(autocompleteSearchProvider.notifier).clear();
           _focusNode.requestFocus();
         },
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
       );
     }
 
@@ -330,15 +285,12 @@ class _SuggestionDropdown extends StatelessWidget {
     if (error != null) {
       return _buildErrorState(context);
     }
-
     if (isLoading) {
       return _buildLoadingState();
     }
-
     if (suggestions.isEmpty) {
       return _buildEmptyState(context);
     }
-
     return _buildSuggestionsList(context);
   }
 

@@ -114,6 +114,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  /// Quick-login for demo account (read-only).
+  Future<void> _loginDemo() async {
+    // Demo credentials — update these when test accounts are created
+    const demoEmail = 'demo@flowgroove.app';
+    const demoPassword = 'demo1234';
+
+    setState(() {
+      _isLoading = true;
+      _currentError = null;
+    });
+
+    try {
+      final authNotifier = ref.read(appUserProvider.notifier);
+      await authNotifier.signInWithEmailAndPassword(
+        email: demoEmail,
+        password: demoPassword,
+      );
+
+      FirebaseAnalytics.instance.logLogin(loginMethod: 'demo');
+      FirebaseAnalytics.instance.logEvent(
+        name: 'login_demo',
+        parameters: {'method': 'demo'},
+      );
+
+      if (mounted) {
+        context.go('/main/home');
+      }
+    } on ApiError catch (e) {
+      _handleError(e);
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleError(error);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -217,6 +258,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: const Text('Sign Up'),
                   ),
                 ],
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              Text(
+                'Just looking around?',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _isLoading ? null : _loginDemo,
+                icon: const Icon(Icons.visibility_outlined),
+                label: const Text('Try Demo Account'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  foregroundColor: MonoPulseColors.accentOrange,
+                  side: const BorderSide(
+                    color: MonoPulseColors.accentOrange,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Read-only access to explore all features',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: MonoPulseColors.textTertiary,
+                  fontSize: 11,
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

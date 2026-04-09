@@ -12,6 +12,22 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    // Helper function to get user doc and check access role
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.accessRole;
+    }
+
+    // Helper function to check if user is NOT a demo account
+    function isNotDemo(userId) {
+      return getUserRole(userId) != 'demo';
+    }
+
+    // Helper function to check if user is admin or owner
+    function isAdminOrOwner(userId) {
+      let role = getUserRole(userId);
+      return role == 'admin' || role == 'owner';
+    }
+
     // Helper function to get band data from global collection
     function getGlobalBand(bandId) {
       return get(/databases/$(database)/documents/bands/$(bandId)).data;
@@ -40,9 +56,9 @@ service cloud.firestore {
     // NOTE: Handles missing/null fields by checking existence first
     function isGlobalBandEditorOrAdmin(bandId) {
       let band = getGlobalBand(bandId);
-      let isAdmin = band != null && band.adminUids != null && 
+      let isAdmin = band != null && band.adminUids != null &&
                     band.adminUids.hasAny([request.auth.uid]);
-      let isEditor = band != null && band.editorUids != null && 
+      let isEditor = band != null && band.editorUids != null &&
                      band.editorUids.hasAny([request.auth.uid]);
       return isAdmin || isEditor;
     }
@@ -76,19 +92,21 @@ service cloud.firestore {
       // Any authenticated user can read bands (needed for join by code)
       allow read: if isAuthenticated();
 
-      // Create: Any authenticated user can create a band (must be in members list)
+      // Create: Only non-demo authenticated users can create a band
       allow create: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
         isCreatorInMembers(request.resource.data.memberUids);
 
       // Update: Only band admins can update band details
       // OR user can add themselves to members (join band flow)
-      allow update: if isAuthenticated() && (
-        isGlobalBandAdmin(bandId) || 
+      // Demo users cannot update bands
+      allow update: if isAuthenticated() && isNotDemo(request.auth.uid) && (
+        isGlobalBandAdmin(bandId) ||
         isSelfJoinOnly(bandId)
       );
 
-      // Delete: Only band admins can delete a band
-      allow delete: if isAuthenticated() && isGlobalBandAdmin(bandId);
+      // Delete: Only band admins can delete a band (non-demo)
+      allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);
     }
 
     // ============================================================
@@ -99,47 +117,54 @@ service cloud.firestore {
       // Band members can read
       allow read: if isAuthenticated() && isGlobalBandMember(bandId);
 
-      // Band editors/admins can create
-      allow create: if isAuthenticated() && isGlobalBandEditorOrAdmin(bandId);
+      // Band editors/admins can create (non-demo only)
+      allow create: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandEditorOrAdmin(bandId);
 
-      // Band editors/admins can update
-      allow update: if isAuthenticated() && isGlobalBandEditorOrAdmin(bandId);
+      // Band editors/admins can update (non-demo only)
+      allow update: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandEditorOrAdmin(bandId);
 
-      // Band admins can delete
-      allow delete: if isAuthenticated() && isGlobalBandAdmin(bandId);
+      // Band admins can delete (non-demo only)
+      allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);
     }
 
     // ============================================================
     // Users Collection - each user has their own subcollections
     // ============================================================
     match /users/{userId} {
-      // Allow users to read/write their own user document
-      allow read, write: if isAuthenticated() && isOwner(userId);
+      // Users can read their own user document; admins can read any user
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
 
-      // Songs subcollection - only owner can read/write
+      // Users can update their own document (name, photo, musicRoles), but NOT accessRole
+      allow update: if isAuthenticated() && isOwner(userId) &&
+        // Prevent users from escalating their own accessRole
+        (request.resource.data.accessRole == resource.data.accessRole ||
+         request.resource.data.accessRole == 'member');
+
+      // Songs subcollection — owner can manage; demo users read-only
       match /songs/{songId} {
-        allow read, write: if isAuthenticated() && isOwner(userId);
+        allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
+        allow write: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
       }
 
       // Bands subcollection - stores references to global bands
-      // Band members can read, owner can write
+      // Band members can read, owner can write (non-demo)
       match /bands/{bandId} {
         allow read: if isAuthenticated() && (isOwner(userId) || isGlobalBandMember(bandId));
-        allow write: if isAuthenticated() && isOwner(userId);
-        allow create: if isAuthenticated() && isOwner(userId);
-        allow delete: if isAuthenticated() && isOwner(userId);
+        allow write: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+        allow create: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+        allow delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
 
         // Band members subcollection (legacy, kept for compatibility)
         match /members/{memberId} {
           allow read: if isAuthenticated() && (isOwner(userId) || isGlobalBandMember(bandId));
-          allow write: if isAuthenticated() && isOwner(userId);
+          allow write: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
         }
       }
 
-      // Setlists subcollection - owner-only access
-      // Owner can manage their own setlists freely
+      // Setlists subcollection — owner can manage (non-demo)
       match /setlists/{setlistId} {
-        allow read, write, delete: if isAuthenticated() && isOwner(userId);
+        allow read: if isAuthenticated() && isOwner(userId);
+        allow write, delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
       }
     }
 

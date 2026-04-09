@@ -9,6 +9,7 @@
 
 # Environment variables (contains secrets)
 .env
+.env.*
 .ftp-env
 assets/env.json
 assets/env.json.local
