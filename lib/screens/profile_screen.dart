@@ -11,7 +11,9 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/music_role_icon.dart';
 import '../../utils/web_version_loader_export.dart';
+import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/loading_indicator.dart';
 
@@ -620,51 +622,95 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return userAsync.when(
       data: (user) {
-        final tags = user?.baseTags ?? [];
-
-        if (tags.isEmpty) {
-          return const Padding(
-            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-            child: Text(
-              'No tags yet. Add your instruments and roles in band assignments.',
-              style: TextStyle(color: MonoPulseColors.textTertiary),
-            ),
-          );
-        }
+        final roles = user?.musicRoles ?? [];
 
         return Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: tags.map((tag) {
-              return Chip(
-                label: Text(
-                  tag,
-                  style: MonoPulseTypography.bodySmall.copyWith(
-                    color: MonoPulseColors.textPrimary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'My Roles',
+                    style: MonoPulseTypography.labelMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  TextButton.icon(
+                    onPressed: () => _editRoles(roles),
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: const Text('Edit'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (roles.isEmpty)
+                Text(
+                  'Tap edit to add your instruments and roles.',
+                  style: TextStyle(color: MonoPulseColors.textTertiary),
+                )
+              else
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: roles.map((role) {
+                    final icon = MusicRoleIcon.getIcon(role);
+                    final displayName = MusicRoleIcon.getDisplayName(role);
+                    return Chip(
+                      label: Text(
+                        icon != null ? '$icon $displayName' : displayName,
+                        style: MonoPulseTypography.bodySmall.copyWith(
+                          color: MonoPulseColors.textPrimary,
+                        ),
+                      ),
+                      backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                      padding: EdgeInsets.zero,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    );
+                  }).toList(),
                 ),
-                backgroundColor: MonoPulseColors.accentOrange,
-                padding: EdgeInsets.zero,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              );
-            }).toList(),
+            ],
           ),
         );
       },
       loading: () => const Padding(
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        padding: EdgeInsets.all(MonoPulseSpacing.lg),
         child: CircularProgressIndicator(),
       ),
       error: (_, __) => const Padding(
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        padding: EdgeInsets.all(MonoPulseSpacing.lg),
         child: Text(
-          'Error loading tags',
+          'Error loading roles',
           style: TextStyle(color: MonoPulseColors.error),
         ),
       ),
     );
+  }
+
+  Future<void> _editRoles(List<String> currentRoles) async {
+    final result = await showRolePicker(
+      context: context,
+      currentRoles: currentRoles,
+      title: 'My Roles',
+    );
+    if (result != null) {
+      try {
+        await ref.read(appUserProvider.notifier).updateMusicRoles(result);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Roles updated')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error updating roles: $e')));
+        }
+      }
+    }
   }
 
   Widget _buildMenuItem({

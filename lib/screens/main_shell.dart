@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/mono_pulse_theme.dart';
+import '../widgets/demo_mode_banner.dart';
 
 /// Main application shell with bottom navigation.
 /// Works with StatefulShellRoute.indexedStack for proper tab switching.
@@ -25,7 +26,7 @@ class _MainShellState extends ConsumerState<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: widget.navigationShell,
+      body: DemoModeBanner(child: widget.navigationShell),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: MonoPulseColors.black,

@@ -18,10 +18,25 @@ class AppUser {
   final String? displayName;
   final String? email;
   final String? photoURL;
+
+  /// Access role for the app: 'owner', 'admin', 'member', 'demo'.
+  /// Controls what the user can do app-wide.
+  @JsonKey(defaultValue: 'member')
+  final String accessRole;
+
+  /// Music roles: what this person does musically.
+  /// e.g., ['vocalist', 'guitarist', 'sound_engineer'].
+  /// Shown on personal page and as default when joining bands.
+  @JsonKey(defaultValue: [])
+  final List<String> musicRoles;
+
+  /// System tags: internal labels not shown to users.
+  /// e.g., ['demo', 'test', 'early_adopter'].
+  @JsonKey(defaultValue: [])
+  final List<String> systemTags;
+
   @JsonKey(defaultValue: [])
   final List<String> bandIds;
-  @JsonKey(defaultValue: [])
-  final List<String> baseTags; // Role tags: guitarist, vocalist, drummer, etc.
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
 
@@ -30,8 +45,10 @@ class AppUser {
     this.displayName,
     this.email,
     this.photoURL,
+    this.accessRole = 'member',
+    this.musicRoles = const [],
+    this.systemTags = const [],
     this.bandIds = const [],
-    this.baseTags = const [],
     required this.createdAt,
   });
 
@@ -40,8 +57,10 @@ class AppUser {
     Object? displayName = _sentinel,
     Object? email = _sentinel,
     Object? photoURL = _sentinel,
+    String? accessRole,
+    List<String>? musicRoles,
+    List<String>? systemTags,
     List<String>? bandIds,
-    List<String>? baseTags,
     DateTime? createdAt,
   }) {
     return AppUser(
@@ -51,8 +70,10 @@ class AppUser {
           : displayName as String?,
       email: email == _sentinel ? this.email : email as String?,
       photoURL: photoURL == _sentinel ? this.photoURL : photoURL as String?,
+      accessRole: accessRole ?? this.accessRole,
+      musicRoles: musicRoles ?? this.musicRoles,
+      systemTags: systemTags ?? this.systemTags,
       bandIds: bandIds ?? this.bandIds,
-      baseTags: baseTags ?? this.baseTags,
       createdAt: createdAt ?? this.createdAt,
     );
   }

@@ -11,11 +11,19 @@ AppUser _$AppUserFromJson(Map<String, dynamic> json) => AppUser(
   displayName: json['displayName'] as String?,
   email: json['email'] as String?,
   photoURL: json['photoURL'] as String?,
+  accessRole: json['accessRole'] as String? ?? 'member',
+  musicRoles:
+      (json['musicRoles'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      [],
+  systemTags:
+      (json['systemTags'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      [],
   bandIds:
       (json['bandIds'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-      [],
-  baseTags:
-      (json['baseTags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       [],
   createdAt: _parseDateTime(json['createdAt']),
 );
@@ -25,7 +33,9 @@ Map<String, dynamic> _$AppUserToJson(AppUser instance) => <String, dynamic>{
   'displayName': instance.displayName,
   'email': instance.email,
   'photoURL': instance.photoURL,
+  'accessRole': instance.accessRole,
+  'musicRoles': instance.musicRoles,
+  'systemTags': instance.systemTags,
   'bandIds': instance.bandIds,
-  'baseTags': instance.baseTags,
   'createdAt': _dateTimeToJson(instance.createdAt),
 };

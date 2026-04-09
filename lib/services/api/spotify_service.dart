@@ -198,6 +198,15 @@ class SpotifyService {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
   }
+
+  /// Convenience method to get BPM (tempo) for a Spotify track.
+  ///
+  /// Returns the BPM as an integer, or `null` if not available.
+  /// Wraps [getAudioFeatures] for the common use case of just needing tempo.
+  static Future<int?> getBpmForTrack(String trackId) async {
+    final features = await getAudioFeatures(trackId);
+    return features?.bpm;
+  }
 }
 
 class SpotifyTrack {

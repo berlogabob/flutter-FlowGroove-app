@@ -141,8 +141,13 @@ class _TagInputDialogState extends State<TagInputDialog> {
               children: widget.suggestions!
                   .where((s) => !_tags.contains(s.toLowerCase()))
                   .map(
-                    (s) =>
-                        ActionChip(label: Text(s), onPressed: () => _addTag(s)),
+                    (s) => SizedBox(
+                      height: 48,
+                      child: ActionChip(
+                        label: Text(s),
+                        onPressed: () => _addTag(s),
+                      ),
+                    ),
                   )
                   .toList(),
             ),
