@@ -25,6 +25,12 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    // Clamp selectedIndex to prevent assertion errors when router has more
+    // branches than bottom nav destinations (e.g., Tools branch).
+    final currentIndex = widget.navigationShell.currentIndex;
+    final safeIndex =
+        currentIndex >= 0 && currentIndex < 5 ? currentIndex : 0;
+
     return Scaffold(
       body: DemoModeBanner(child: widget.navigationShell),
       bottomNavigationBar: Container(
@@ -37,7 +43,7 @@ class _MainShellState extends ConsumerState<MainShell> {
         child: NavigationBar(
           backgroundColor: MonoPulseColors.black,
           indicatorColor: MonoPulseColors.accentOrangeSubtle,
-          selectedIndex: widget.navigationShell.currentIndex,
+          selectedIndex: safeIndex,
           onDestinationSelected: (index) => _onTap(context, index),
           labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
           destinations: const [
