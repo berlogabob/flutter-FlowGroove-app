@@ -1,3 +1,30 @@
+# robots.txt for FlowGroove
+# https://berlogabob.github.io/flutter-FlowGroove-app/
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap
 Sitemap: https://berlogabob.github.io/flutter-FlowGroove-app/sitemap.xml
+
+# Disallow admin/private areas (if any)
+Disallow: /admin/
+Disallow: /private/
+
+# Allow all major search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /images/
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Prevent scraping of sensitive paths
+Disallow: /api/
+Disallow: /web/
+Disallow: /cdn-cgi/

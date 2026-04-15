@@ -43,9 +43,9 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
     enabled = true
     title = "FlowGroove"
     subtitle = "Real-time setlist sync for cover bands. Built by a musician, for musicians."
-    imageUrl = "images/favicon.svg"
-    imageWidth = 80
-    imageHeight = 80
+    imageUrl = "images/logo_clean.png"
+    imageWidth = 120
+    imageHeight = 120
 
     [[params.profileMode.buttons]]
       name = "Open App"
@@ -66,7 +66,7 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
 
   [[params.socialIcons]]
     name = "x"
-    url = "https://twitter.com/flowgroove_app"
+    url = "https://x.com/berlogabob"
 
   # Analytics
   [params.analytics]
