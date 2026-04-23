@@ -4,9 +4,9 @@
 # Last Updated: April 15, 2026
 #
 # Quick Start:
-#   make deploy-test   → Test on GitHub Pages (no credentials needed)
-#   make release       → Build Android APK + GitHub Release
-#   make deploy-stable → Production FTP deploy (Hugo + Flutter)
+#   make -f Makefile.hugo deploy-all → Safe GitHub Pages preview (Hugo + Flutter)
+#   make release                     → Build Android APK + GitHub Release
+#   make deploy-stable               → Production FTP deploy (Hugo + Flutter)
 #
 # Demo Configuration:
 #   - Firebase works out of the box (public key included)
@@ -26,13 +26,13 @@ help:
 	@echo ""
 	@echo "🚀 Quick Start:"
 	@echo ""
-	@echo "  make deploy-test     # Test on GitHub Pages (recommended)"
+	@echo "  make -f Makefile.hugo deploy-all  # Safe GitHub Pages preview"
 	@echo "  make release         # Build Android APK + GitHub Release"
 	@echo "  make deploy-stable   # Production FTP (Hugo + Flutter)"
 	@echo ""
 	@echo "📋 All Commands:"
 	@echo ""
-	@echo "  make deploy-test     - Deploy to GitHub Pages (test)"
+	@echo "  make deploy-test     - Deploy Flutter-only build to GitHub Pages"
 	@echo "  make deploy-stable   - Deploy Hugo + Flutter to FTP (flowgroove.app)"
 	@echo "  make release         - Build Android APK + AAB + GitHub Release"
 	@echo "  make build-android   - Build Android APK only"
@@ -42,9 +42,10 @@ help:
 	@echo ""
 	@echo "📝 Documentation:"
 	@echo ""
-	@echo "  docs/MODERNIZATION_COMPLETE.md  - Full modernization report"
-	@echo "  docs/MAKEFILE_MODERNIZATION_COMPLETE.md - Makefile guide"
+	@echo "  README.md                       - Project overview"
+	@echo "  ARCHITECTURE.md                 - Current architecture"
 	@echo "  DEPLOYMENT_GUIDE.md             - Deployment instructions"
+	@echo "  docs/project-audit-2026-04-24.md - Current audit report"
 	@echo ""
 
 # =============================================================================
@@ -459,9 +460,10 @@ help-env:
 	@echo "║      Setting Environment Variables for Deployment         ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "📋 DEFAULT (No credentials needed):"
+	@echo "📋 PREVIEW / DEFAULT:"
 	@echo ""
-	@echo "  make deploy-test   → GitHub Pages (demo config)"
+	@echo "  make -f Makefile.hugo deploy-all → GitHub Pages preview (safe)"
+	@echo "  make deploy-test   → GitHub Pages Flutter-only publish"
 	@echo "  make build-android → Android APK (demo config)"
 	@echo "  make build-web     → Web build (demo config)"
 	@echo ""

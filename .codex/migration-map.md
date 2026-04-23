@@ -32,3 +32,16 @@ This file records how the live Qwen structure was mirrored into `.codex/`.
 - Non-destructive: source files remain where they were.
 - Copy-first: `.codex/` is a mirror, not a replacement.
 - Normalized only where useful: top-level docs and a few active agent prompts were updated to reference `.codex/` paths.
+
+## Codex-Native Additions
+
+After the initial mirror was created, `.codex/` was extended with a local control plane for strict sequential self-guided work:
+
+- `.codex/AGENTS.md`
+- `.codex/MEMORY.md`
+- `.codex/PLANS.md`
+- `.codex/STATUS.md`
+- `.codex/HANDOFF.md`
+- `.codex/DECISIONS.md`
+
+These files are Codex-native additions rather than migrated Qwen source files.
