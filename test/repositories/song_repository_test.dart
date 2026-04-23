@@ -142,7 +142,8 @@ void main() {
         );
 
         // Assert
-        expect(repository.getBandSongs('band-id').length, 1);
+        final bandSongs = await repository.getBandSongs('band-id');
+        expect(bandSongs.length, 1);
       });
 
       test('should add song to band by ID', () async {
@@ -160,7 +161,8 @@ void main() {
         await repository.addSongToBandById('test-id', 'band-id');
 
         // Assert
-        expect(repository.getBandSongs('band-id').length, 1);
+        final bandSongs = await repository.getBandSongs('band-id');
+        expect(bandSongs.length, 1);
       });
 
       test('should delete song from band', () async {
@@ -178,7 +180,8 @@ void main() {
         await repository.deleteBandSong('band-id', 'test-id');
 
         // Assert
-        expect(repository.getBandSongs('band-id').isEmpty, true);
+        final bandSongs = await repository.getBandSongs('band-id');
+        expect(bandSongs.isEmpty, true);
       });
 
       test('should update song in band', () async {
@@ -197,7 +200,8 @@ void main() {
         await repository.updateBandSong(updatedSong, 'band-id');
 
         // Assert
-        expect(repository.getBandSongs('band-id').first.title, 'Updated Title');
+        final bandSongs = await repository.getBandSongs('band-id');
+        expect(bandSongs.first.title, 'Updated Title');
       });
 
       test('should watch band songs', () async {

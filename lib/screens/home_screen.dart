@@ -1,4 +1,5 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,17 +22,26 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Log screen view for analytics
-    AnalyticsDebug.logScreenView(
-      screenName: 'HomeScreen',
-      screenClass: 'HomeScreen',
-    );
+    // Log screen view for analytics (safe for tests)
+    try {
+      AnalyticsDebug.logScreenView(
+        screenName: 'HomeScreen',
+        screenClass: 'HomeScreen',
+      );
+    } catch (_) {}
 
-    // Also log with Firebase Analytics directly
-    FirebaseAnalytics.instance.logScreenView(
-      screenName: 'HomeScreen',
-      screenClass: 'HomeScreen',
-    );
+    // Also log with Firebase Analytics directly (safe for tests)
+    try {
+      final apps = Firebase.apps;
+      if (apps.isNotEmpty) {
+        FirebaseAnalytics.instance.logScreenView(
+          screenName: 'HomeScreen',
+          screenClass: 'HomeScreen',
+        );
+      }
+    } catch (_) {
+      // Ignore in test environment when Firebase is not initialized
+    }
 
     return StandardScreenScaffold(
       title: 'Home',

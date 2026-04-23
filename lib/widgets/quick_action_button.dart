@@ -75,12 +75,7 @@ class QuickActionButton extends StatelessWidget {
             border: Border.all(color: MonoPulseColors.borderDefault),
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
-          constraints: BoxConstraints(
-            minWidth: minSize,
-            minHeight: minSize,
-          ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
@@ -88,18 +83,21 @@ class QuickActionButton extends StatelessWidget {
                 color: MonoPulseColors.accentOrange,
                 size: iconSize,
               ),
-              const Spacer(),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.w600,
-                  fontSize: fontSize,
-                  height: 1.2,
+              SizedBox(height: isCompact ? 4 : 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: MonoPulseColors.accentOrange,
+                    fontWeight: FontWeight.w600,
+                    fontSize: fontSize,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

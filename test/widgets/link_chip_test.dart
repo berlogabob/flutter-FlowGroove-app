@@ -125,7 +125,14 @@ void main() {
 
       await pumpAppWidget(tester, LinkChip(link: link, showDelete: true));
 
-      expect(findIcon(Icons.close), findsOneWidget);
+      // Find the delete icon - Chip may wrap it differently
+      final iconFinder = find.descendant(
+        of: find.byType(Chip),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Icon && widget.icon == Icons.close,
+        ),
+      );
+      expect(iconFinder, findsOneWidget);
     });
 
     testWidgets('does not render delete icon when showDelete is false', (
@@ -229,7 +236,7 @@ void main() {
       await pumpAppWidget(tester, LinkChipRow(links: links));
 
       expect(find.text('spotify'), findsOneWidget);
-      expect(find.text('youtube_original'), findsOneWidget);
+      expect(find.text('youtube original'), findsOneWidget);
       expect(find.text('tabs'), findsOneWidget);
     });
 

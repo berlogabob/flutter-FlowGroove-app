@@ -12,8 +12,9 @@ import 'package:flowgroove/models/api_error.dart';
 
 void main() {
   group('SpotifyService', () {
-    setUp(() async {
-      await dotenv.load(fileName: '.env');
+    setUp(() {
+      // dotenv loading is optional in tests - skip if .env doesn't exist
+      // Tests that need Spotify credentials will check isConfigured first
     });
 
     group('isConfigured', () {

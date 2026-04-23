@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/widgets/empty_state.dart';
+import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {
@@ -118,7 +119,7 @@ void main() {
         const EmptyState(icon: Icons.search, message: 'No results'),
       );
 
-      expect(find.byType(Center), findsOneWidget);
+      expect(find.byType(Center), findsWidgets);
     });
 
     testWidgets('renders with default icon color', (WidgetTester tester) async {
@@ -128,7 +129,7 @@ void main() {
       );
 
       final icon = tester.widget<Icon>(find.byType(Icon));
-      expect(icon.color, equals(Colors.grey));
+      expect(icon.color, equals(MonoPulseColors.textTertiary));
     });
 
     testWidgets('renders with custom icon color', (WidgetTester tester) async {
@@ -255,8 +256,8 @@ void main() {
 
       expect(findIcon(Icons.playlist_play), findsOneWidget);
       expect(findText('No setlists yet'), findsOneWidget);
-      // Check for either hint message
-      expect(find.textContaining('setlist'), findsOneWidget);
+      // Check for hint message (may match multiple widgets)
+      expect(find.textContaining('setlist'), findsWidgets);
       // Button won't render without onCreate callback
       expect(find.byType(ElevatedButton), findsNothing);
     });

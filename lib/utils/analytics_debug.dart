@@ -5,8 +5,17 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 
 class AnalyticsDebug {
-  static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  static FirebaseAnalytics? _analyticsInstance;
   static bool _debugMode = true;
+
+  static FirebaseAnalytics? get _analytics {
+    try {
+      _analyticsInstance ??= FirebaseAnalytics.instance;
+      return _analyticsInstance;
+    } catch (_) {
+      return null; // Firebase not initialized (test environment)
+    }
+  }
 
   /// Enable debug mode - logs all events to console
   static void enableDebugMode() {
@@ -24,23 +33,29 @@ class AnalyticsDebug {
     debugPrint('🔍 Testing Firebase Analytics Connection...');
 
     try {
+      final analytics = _analytics;
+      if (analytics == null) {
+        debugPrint('❌ Analytics not initialized');
+        return;
+      }
+
       // Check if analytics is initialized
       debugPrint('✅ Analytics instance created');
 
       // Enable collection
-      await _analytics.setAnalyticsCollectionEnabled(true);
+      await analytics.setAnalyticsCollectionEnabled(true);
       debugPrint('✅ Analytics collection enabled');
 
       // Set debug mode (not supported on Web)
       if (!kIsWeb) {
-        await _analytics.setSessionTimeoutDuration(const Duration(seconds: 30));
+        await analytics.setSessionTimeoutDuration(const Duration(seconds: 30));
         debugPrint('✅ Session timeout set to 30 seconds');
       } else {
         debugPrint('🌐 Web platform - session timeout not available');
       }
 
       // Log test event
-      await _analytics.logEvent(
+      await analytics.logEvent(
         name: 'analytics_test',
         parameters: {
           'timestamp': DateTime.now().toIso8601String(),
@@ -52,7 +67,7 @@ class AnalyticsDebug {
 
       // Get app instance ID (not available on Web)
       if (!kIsWeb) {
-        final appId = await _analytics.appInstanceId;
+        final appId = await analytics.appInstanceId;
         debugPrint('📱 App Instance ID: $appId');
       }
 
@@ -80,11 +95,14 @@ class AnalyticsDebug {
     required String screenName,
     String? screenClass,
   }) async {
-    await _analytics.logScreenView(
+    final analytics = _analytics;
+    if (analytics == null) return;
+
+    await analytics.logScreenView(
       screenName: screenName,
       screenClass: screenClass ?? screenName,
     );
-    
+
     if (_debugMode) {
       debugPrint('📊 Screen View: $screenName (${screenClass ?? "unknown"})');
     }
@@ -95,11 +113,14 @@ class AnalyticsDebug {
     required String name,
     Map<String, dynamic>? parameters,
   }) async {
-    await _analytics.logEvent(
+    final analytics = _analytics;
+    if (analytics == null) return;
+
+    await analytics.logEvent(
       name: name,
       parameters: parameters?.cast<String, Object>(),
     );
-    
+
     if (_debugMode) {
       debugPrint('📊 Event: $name');
       if (parameters != null && parameters.isNotEmpty) {
@@ -112,8 +133,11 @@ class AnalyticsDebug {
   static Future<void> logLogin({
     String? loginMethod,
   }) async {
-    await _analytics.logLogin(loginMethod: loginMethod ?? 'unknown');
-    
+    final analytics = _analytics;
+    if (analytics == null) return;
+
+    await analytics.logLogin(loginMethod: loginMethod ?? 'unknown');
+
     if (_debugMode) {
       debugPrint('📊 Login: $loginMethod');
     }
@@ -121,8 +145,11 @@ class AnalyticsDebug {
 
   /// Log app open
   static Future<void> logAppOpen() async {
-    await _analytics.logAppOpen();
-    
+    final analytics = _analytics;
+    if (analytics == null) return;
+
+    await analytics.logAppOpen();
+
     if (_debugMode) {
       debugPrint('📊 App Open');
     }

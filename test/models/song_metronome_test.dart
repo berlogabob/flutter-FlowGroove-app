@@ -245,12 +245,11 @@ void main() {
 
         expect(json['accentBeats'], 4);
         expect(json['regularBeats'], 2);
-        expect(json['beatModes'], isA<List>());
-        expect(json['beatModes'].length, 2);
-        expect(json['beatModes'][0][0], 'accent');
-        expect(json['beatModes'][0][1], 'normal');
-        expect(json['beatModes'][1][0], 'silent');
-        expect(json['beatModes'][1][1], 'accent');
+        expect(json['beatModes'], isA<Map>());
+        expect(json['beatModes']['0-0'], 'accent');
+        expect(json['beatModes']['0-1'], 'normal');
+        expect(json['beatModes']['1-0'], 'silent');
+        expect(json['beatModes']['1-1'], 'accent');
       });
 
       test('serializes default metronome settings', () {
@@ -266,8 +265,8 @@ void main() {
 
         expect(json['accentBeats'], 4);
         expect(json['regularBeats'], 1);
-        expect(json['beatModes'], isA<List>());
-        expect(json['beatModes'].length, 0);
+        expect(json['beatModes'], isA<Map>());
+        expect((json['beatModes'] as Map).isEmpty, isTrue);
       });
 
       test('toJson and fromJson are inverses for metronome settings', () {
@@ -657,9 +656,10 @@ void main() {
 
         expect(json['accentBeats'], 5);
         expect(json['regularBeats'], 3);
-        expect(json['beatModes'].length, 5);
-        expect(json['beatModes'][0][0], 'accent');
-        expect(json['beatModes'][4][1], 'silent');
+        expect(json['beatModes'], isA<Map>());
+        expect((json['beatModes'] as Map).length, 15); // 5 rows x 3 cols
+        expect(json['beatModes']['0-0'], 'accent');
+        expect(json['beatModes']['4-1'], 'silent');
       });
     });
   });

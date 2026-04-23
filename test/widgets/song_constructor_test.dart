@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/song_constructor.dart';
+import 'package:flowgroove/screens/songs/components/song_constructor/widgets/pill_view.dart';
 
 void main() {
   group('SongConstructor', () {
@@ -19,7 +20,7 @@ void main() {
 
       expect(find.text('Song Structure'), findsOneWidget);
       // In collapsed state, sections are shown as pills
-      expect(find.byType(Card), findsOneWidget);
+      expect(find.byType(PillView), findsOneWidget);
     });
 
     testWidgets('displays title and expand button', (tester) async {
@@ -30,7 +31,8 @@ void main() {
       );
 
       expect(find.text('Song Structure'), findsOneWidget);
-      expect(find.byIcon(Icons.expand_less), findsOneWidget);
+      // Initially collapsed: arrow rotated -90deg (uses keyboard_arrow_down)
+      expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
     });
 
     testWidgets('expand button toggles expanded state', (tester) async {
@@ -40,15 +42,15 @@ void main() {
         ),
       );
 
-      // Initially collapsed
-      expect(find.byIcon(Icons.expand_less), findsOneWidget);
+      // Initially collapsed - arrow points right (rotated -90deg)
+      expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
 
       // Tap to expand
-      await tester.tap(find.byIcon(Icons.expand_less));
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
       await tester.pump();
 
-      // Now expanded
-      expect(find.byIcon(Icons.expand_more), findsOneWidget);
+      // Now expanded - arrow points down (same icon, different rotation)
+      expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
       expect(find.text('Add Section'), findsOneWidget);
     });
 
@@ -62,7 +64,7 @@ void main() {
       );
 
       // Expand to see empty state
-      await tester.tap(find.byIcon(Icons.expand_less));
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
       await tester.pump();
 
       expect(find.text('No sections yet'), findsOneWidget);
@@ -82,7 +84,7 @@ void main() {
       );
 
       // Expand
-      await tester.tap(find.byIcon(Icons.expand_less));
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
       await tester.pump();
 
       expect(find.text('Intro'), findsOneWidget);
@@ -105,15 +107,19 @@ void main() {
       );
 
       // Expand
-      await tester.tap(find.byIcon(Icons.expand_less));
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
       await tester.pump();
 
-      // Tap Add Section
+      // Tap Add Section - opens dialog
       await tester.tap(find.text('Add Section'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
-      // Select a template
-      await tester.tap(find.text('Verse'));
+      // Find the Verse template in the GridView (look in dialog)
+      final verseFinder = find.descendant(
+        of: find.byType(Dialog),
+        matching: find.text('Verse'),
+      );
+      await tester.tap(verseFinder.first);
       await tester.pumpAndSettle();
 
       expect(capturedSections, isNotNull);
@@ -140,7 +146,7 @@ void main() {
       );
 
       // Expand
-      await tester.tap(find.byIcon(Icons.expand_less));
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
       await tester.pump();
 
       // Tap on section to edit
@@ -177,7 +183,7 @@ void main() {
       );
 
       // Expand
-      await tester.tap(find.byIcon(Icons.expand_less));
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
       await tester.pump();
 
       // Tap delete button
@@ -209,7 +215,7 @@ void main() {
       );
 
       // Expand to show auto-generate button
-      await tester.tap(find.byIcon(Icons.expand_less));
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
       await tester.pump();
 
       // Tap Auto-Generate

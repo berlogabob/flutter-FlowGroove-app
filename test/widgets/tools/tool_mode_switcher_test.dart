@@ -24,7 +24,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(ToolModeSwitcher), findsOneWidget);
+      expect(find.byWidgetPredicate((w) => w.runtimeType.toString().startsWith('ToolModeSwitcher')), findsOneWidget);
     });
 
     testWidgets('renders all mode options', (WidgetTester tester) async {

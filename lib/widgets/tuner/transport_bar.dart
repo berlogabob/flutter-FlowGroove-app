@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/music_mode.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 
@@ -9,8 +10,8 @@ import '../../theme/mono_pulse_theme.dart';
 /// Horizontal row at bottom (64-80px height):
 /// - Center: Large oval Play/Stop button (radius 32px vertical, background #FF5E00)
 ///   - White icon 48px (▶ / ■)
-/// - Left: Volume icon with slider
-/// - Right: Settings icon (placeholder)
+/// - Left: Volume icon with 3-state cycle (0% → 50% → 100%)
+/// - Right: Music Mode cycle button (cycles through scales: Chromatic, Ionian, Dorian, etc.)
 ///
 /// INTERACTIVE (Stage 2):
 /// - Generate Mode: Play/Stop button controls tone generation
@@ -35,7 +36,7 @@ class TransportBar extends ConsumerWidget {
           // Volume icon with slider (left)
           _VolumeControl(
             volume: state.volume,
-            onVolumeChanged: (vol) => notifier.setVolume(vol),
+            onVolumeChanged: notifier.setVolume,
           ),
           const SizedBox(width: MonoPulseSpacing.xxl),
 
@@ -57,12 +58,29 @@ class TransportBar extends ConsumerWidget {
 
           const SizedBox(width: MonoPulseSpacing.xxl),
 
-          // Settings icon (right, placeholder)
-          _IconButton(
-            icon: Icons.tune_outlined,
+          // Music Mode cycle button (right)
+          _ModeCycleButton(
+            modeIndex: state.musicModeIndex,
             onTap: () {
-              HapticFeedback.lightImpact();
-              // Placeholder for settings
+              // Cycle to next mode
+              notifier.cycleMusicMode();
+              HapticFeedback.mediumImpact();
+              
+              // Show NEW mode name after cycling
+              final nextIndex = (state.musicModeIndex + 1) % allMusicModes.length;
+              final newMode = allMusicModes[nextIndex];
+              
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '🎵 ${newMode.name}',
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                  duration: const Duration(milliseconds: 800),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: Colors.orange.withValues(alpha: 0.8),
+                ),
+              );
             },
           ),
         ],
@@ -137,7 +155,7 @@ class _MainActionButton extends StatelessWidget {
 
 class _VolumeControl extends StatefulWidget {
   final double volume;
-  final Function(double) onVolumeChanged;
+  final void Function(double) onVolumeChanged;
 
   const _VolumeControl({required this.volume, required this.onVolumeChanged});
 
@@ -146,17 +164,24 @@ class _VolumeControl extends StatefulWidget {
 }
 
 class _VolumeControlState extends State<_VolumeControl> {
-  bool _isSliderVisible = false;
+  /// Cycle through 3 volume states: 0% → 50% → 100% → 0%
+  void _cycleVolume() {
+    double newVolume;
+    if (widget.volume == 0) {
+      newVolume = 0.5;
+    } else if (widget.volume < 1.0) {
+      newVolume = 1.0;
+    } else {
+      newVolume = 0;
+    }
+    widget.onVolumeChanged(newVolume);
+    HapticFeedback.lightImpact();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isSliderVisible = !_isSliderVisible;
-        });
-        HapticFeedback.lightImpact();
-      },
+      onTap: _cycleVolume,
       behavior: HitTestBehavior.opaque,
       child: Container(
         width: 56,
@@ -170,19 +195,32 @@ class _VolumeControlState extends State<_VolumeControl> {
           children: [
             Icon(
               _getVolumeIcon(),
-              color: MonoPulseColors.textSecondary,
+              color: widget.volume == 0
+                  ? MonoPulseColors.textTertiary
+                  : MonoPulseColors.textSecondary,
               size: 28,
             ),
-            // Volume level indicator
+            // Volume level indicator bar
             if (widget.volume > 0)
               Positioned(
-                bottom: 4,
+                bottom: 6,
                 child: Container(
                   width: 20,
                   height: 3,
                   decoration: BoxDecoration(
                     color: MonoPulseColors.accentOrange,
                     borderRadius: BorderRadius.circular(1.5),
+                  ),
+                ),
+              ),
+            // Mute indicator X overlay
+            if (widget.volume == 0)
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: MonoPulseColors.textTertiary.withValues(alpha: 0.3),
+                    width: 2,
                   ),
                 ),
               ),
@@ -195,7 +233,7 @@ class _VolumeControlState extends State<_VolumeControl> {
   IconData _getVolumeIcon() {
     if (widget.volume == 0) {
       return Icons.volume_off_outlined;
-    } else if (widget.volume < 0.5) {
+    } else if (widget.volume < 1.0) {
       return Icons.volume_down_outlined;
     } else {
       return Icons.volume_up_outlined;
@@ -203,14 +241,21 @@ class _VolumeControlState extends State<_VolumeControl> {
   }
 }
 
-class _IconButton extends StatelessWidget {
-  final IconData icon;
+/// Music Mode Cycle Button - Right side of transport bar
+/// Cycles through musical scales (Chromatic, Ionian, Dorian, etc.)
+class _ModeCycleButton extends StatelessWidget {
+  final int modeIndex;
   final VoidCallback onTap;
 
-  const _IconButton({required this.icon, required this.onTap});
+  const _ModeCycleButton({
+    required this.modeIndex,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final currentMode = allMusicModes[modeIndex];
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -221,7 +266,29 @@ class _IconButton extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: MonoPulseColors.borderSubtle, width: 1.5),
         ),
-        child: Icon(icon, color: MonoPulseColors.textSecondary, size: 28),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Mode icon
+            Icon(
+              currentMode.icon,
+              color: MonoPulseColors.accentOrange,
+              size: 26,
+            ),
+            // Mode short name below icon
+            Positioned(
+              bottom: 4,
+              child: Text(
+                currentMode.shortName,
+                style: MonoPulseTypography.labelSmall.copyWith(
+                  color: MonoPulseColors.accentOrange,
+                  fontSize: 8,
+                  fontWeight: MonoPulseTypography.medium,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

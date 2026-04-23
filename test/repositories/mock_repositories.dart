@@ -84,8 +84,18 @@ class MockSongRepository implements SongRepository {
   List<Song> get songs => _songs.values.toList();
 
   /// Helper method to get band songs for testing.
-  List<Song> getBandSongs(String bandId) =>
+  List<Song> _getBandSongsSync(String bandId) =>
       _bandSongs[bandId]?.values.toList() ?? [];
+
+  @override
+  Future<List<Song>> getSongs(String uid) async {
+    return _songs.values.toList();
+  }
+
+  @override
+  Future<List<Song>> getBandSongs(String bandId) async {
+    return _bandSongs[bandId]?.values.toList() ?? [];
+  }
 }
 
 /// Mock BandRepository for testing.

@@ -1,9 +1,9 @@
 # FlowGroove Deployment Guide
 
-**Last Updated:** April 2, 2026  
-**Version:** 0.13.5+180  
-**Configuration System:** Modern Environment Variable Injection ✅  
-**Status:** ✅ PRODUCTION READY
+**Last Updated:** April 15, 2026
+**Version:** 0.13.4+183
+**Configuration System:** Modern Environment Variable Injection ✅
+**Status:** ✅ PRODUCTION READY (Hugo + Flutter)
 
 ---
 
@@ -128,14 +128,17 @@ make deploy-stable
 
 **What this does:**
 1. ✅ Validates `.env` file exists
-2. ✅ Injects credentials into `web/config.js`
-3. ✅ Updates `version.json` with current version
-4. ✅ Builds web app with `flutter build web --release`
-5. ✅ Copies `config.js` to `build/web/`
-6. ✅ Uploads to FTP server (flowgroove.app)
+2. ✅ Builds Hugo landing page with `hugo --baseURL "https://flowgroove.app/"`
+3. ✅ Injects credentials into `web/config.js`
+4. ✅ Updates `version.json` with current version
+5. ✅ Builds Flutter web app with `flutter build web --release --base-href "/app/"`
+6. ✅ Copies `config.js` to `build/web/`
+7. ✅ Uploads Hugo to FTP root (`flowgroove.app/`)
+8. ✅ Uploads Flutter to FTP `/app/` (`flowgroove.app/app/`)
 
-**Expected duration:** 3-5 minutes  
-**Live URL:** https://flowgroove.app/  
+**Expected duration:** 5-8 minutes
+**Landing URL:** https://flowgroove.app/
+**App URL:** https://flowgroove.app/app/
 **SSL propagation:** 1-5 minutes
 
 ---
@@ -254,6 +257,18 @@ make deploy-test
 
 ### What Gets Built
 
+**Hugo:**
+```
+site/public/
+├── index.html              # Hugo landing page
+├── about/                  # About page
+├── faq/                    # FAQ page
+├── blog/                   # Blog posts
+├── images/                 # Images & favicon
+└── assets/                 # CSS, JS
+```
+
+**Flutter:**
 ```
 build/web/
 ├── index.html              # Main HTML file
@@ -268,17 +283,35 @@ build/web/
 ### What Gets Deployed
 
 **Production (FTP):**
-- Everything in `build/web/` uploaded to FTP root
+- `site/public/*` → FTP root (`flowgroove.app/`) — Hugo landing page
+- `build/web/*` → FTP `/app/` (`flowgroove.app/app/`) — Flutter app
+- `config.js` → `/app/config.js` (for Flutter)
 
 **Test (GitHub Pages):**
-- Everything in `build/web/` copied to `docs/` folder
+- Hugo + Flutter → `docs/` folder on `second01` branch
+- Hugo: `docs/` (root)
+- Flutter: `docs/app/` (subdirectory)
 - `docs/config.js` preserved between deployments
 
 ---
 
 ## 🔄 Version History
 
-### v0.13.4+179 (Current)
+### v0.13.4+183 (Current — April 15, 2026)
+- ✅ Hugo landing page now included in production FTP deploy
+- ✅ `make deploy-stable` deploys Hugo (`flowgroove.app/`) + Flutter (`flowgroove.app/app/`)
+- ✅ Health check validates both landing page and app URLs
+- ✅ Post-MVP tuner features (regional instruments, custom tuning editor)
+- ✅ Auto/manual note detection
+- ✅ Stage mode with auto-hide UI
+- ✅ Haptic feedback system
+- ✅ Wakelock support
+- ✅ Song autocomplete provider
+- ✅ Test suite: 1718 passing, 50 failing, 291 skipped
+- ✅ 11 new tuner widgets
+- ✅ Instrument/tuning definitions (assets/data/tunings.json)
+
+### v0.13.4+179
 - ✅ Automated config injection at build time
 - ✅ Pre-deployment validation
 - ✅ Preserved docs/config.js during test deployments
@@ -346,11 +379,11 @@ If you encounter issues:
 
 | Command | Purpose | Target |
 |---------|---------|--------|
-| `make deploy-stable` | Production deploy | flowgroove.app |
-| `make deploy-test` | Test deploy | GitHub Pages |
+| `make deploy-stable` | Production (Hugo + Flutter) | `flowgroove.app/` + `/app/` |
+| `make deploy-test` | Test deploy (Hugo + Flutter) | GitHub Pages |
 | `make release` | Android + GitHub Release | APK + Release |
 | `./scripts/inject-web-config.sh` | Validate & inject config | Local only |
 
 ---
 
-**Remember:** Always test with `make deploy-test` before `make deploy-stable`!
+**Remember:** Always test with `make -f Makefile.hugo deploy-all` before `make deploy-stable`!

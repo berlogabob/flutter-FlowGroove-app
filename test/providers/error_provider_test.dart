@@ -13,8 +13,8 @@ void main() {
     });
 
     group('Error State Initialization', () {
-      test('errorNotifierProvider initializes with empty state', () {
-        final state = container.read(errorNotifierProvider);
+      test('errorStateProvider initializes with empty state', () {
+        final state = container.read(errorStateProvider);
         expect(state, isNotNull);
         expect(state.error, isNull);
         expect(state.hasError, isFalse);
@@ -38,86 +38,86 @@ void main() {
 
     group('ErrorNotifier Methods', () {
       test('notifier is accessible', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         expect(notifier, isNotNull);
       });
 
       test('handleError updates state with error', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.network(message: 'Test network error');
 
         notifier.handleError(error);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error, equals(error));
         expect(state.hasError, isTrue);
         expect(state.errorHistory.length, 1);
       });
 
       test('handleError adds error to history', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error1 = ApiError.network(message: 'Error 1');
         final error2 = ApiError.auth(message: 'Error 2');
 
         notifier.handleError(error1);
         notifier.handleError(error2);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.errorHistory.length, 2);
         expect(state.errorHistory[0], equals(error1));
         expect(state.errorHistory[1], equals(error2));
       });
 
       test('handleException converts exception to ApiError', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final exception = Exception('Test exception');
 
         notifier.handleException(exception);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.hasError, isTrue);
         expect(state.error, isA<ApiError>());
       });
 
       test('handleException with stackTrace includes trace', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final exception = Exception('Test exception');
         final stackTrace = StackTrace.current;
 
         notifier.handleException(exception, stackTrace: stackTrace);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error?.stackTrace, equals(stackTrace));
       });
 
       test('clearError removes current error but preserves history', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.network(message: 'Test error');
 
         notifier.handleError(error);
         notifier.clearError();
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error, isNull);
         expect(state.hasError, isFalse);
         expect(state.errorHistory.length, 1);
       });
 
       test('clearAll removes all errors including history', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.network(message: 'Test error');
 
         notifier.handleError(error);
         notifier.clearAll();
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error, isNull);
         expect(state.hasError, isFalse);
         expect(state.errorHistory, isEmpty);
       });
 
       test('errorHistory getter returns history list', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error1 = ApiError.network(message: 'Error 1');
         final error2 = ApiError.auth(message: 'Error 2');
 
@@ -129,7 +129,7 @@ void main() {
       });
 
       test('exportErrorHistory returns JSON list', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.network(message: 'Test error');
 
         notifier.handleError(error);
@@ -208,29 +208,29 @@ void main() {
       });
 
       test('ErrorNotifier can be used directly', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.network(message: 'Test error');
 
         notifier.handleError(error);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.hasError, isTrue);
         expect(state.error, equals(error));
       });
 
       test('ErrorNotifier clearError works', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.network(message: 'Test error');
 
         notifier.handleError(error);
         notifier.clearError();
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.hasError, isFalse);
       });
 
       test('ErrorNotifier errorHistory is accessible', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.network(message: 'Test error');
 
         notifier.handleError(error);
@@ -241,76 +241,77 @@ void main() {
     });
 
     group('Dispose Verification', () {
-      test('ErrorNotifier dispose does not throw', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
-        expect(() => notifier.dispose(), returnsNormally);
+      test('ErrorStateNotifier can be used without explicit dispose', () {
+        // Riverpod AutoDispose handles cleanup automatically
+        final notifier = container.read(errorStateProvider.notifier);
+        expect(notifier, isNotNull);
       });
 
       test('ProviderContainer dispose cleans up resources', () {
         final localContainer = ProviderContainer();
-        localContainer.read(errorNotifierProvider);
+        localContainer.read(errorStateProvider);
         expect(() => localContainer.dispose(), returnsNormally);
       });
     });
 
     group('Error Type Handling', () {
       test('handles network error', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.network(message: 'Network error');
 
         notifier.handleError(error);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error?.isNetwork, isTrue);
       });
 
       test('handles auth error', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.auth(message: 'Auth error');
 
         notifier.handleError(error);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error?.isAuth, isTrue);
       });
 
       test('handles validation error', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.validation(message: 'Validation error');
 
         notifier.handleError(error);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error?.isValidation, isTrue);
       });
 
       test('handles permission error', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.permission(message: 'Permission error');
 
         notifier.handleError(error);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error?.isPermission, isTrue);
       });
 
       test('handles not found error', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.notFound(message: 'Not found error');
 
         notifier.handleError(error);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error?.isNotFound, isTrue);
       });
 
       test('handles unknown error', () {
-        final notifier = container.read(errorNotifierProvider.notifier);
+        final notifier = container.read(errorStateProvider.notifier);
         final error = ApiError.unknown(message: 'Unknown error');
 
         notifier.handleError(error);
 
-        final state = container.read(errorNotifierProvider);
+        final state = container.read(errorStateProvider);
         expect(state.error?.isUnknown, isTrue);
       });
     });

@@ -50,7 +50,14 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   @override
   void initState() {
     super.initState();
-    // Delay initialization until after the first frame to avoid modifying providers during build
+    // Initialize controllers immediately to avoid LateInitializationError in build
+    _titleController = TextEditingController();
+    _artistController = TextEditingController();
+    _originalBpmController = TextEditingController();
+    _ourBpmController = TextEditingController();
+    _notesController = TextEditingController();
+
+    // Delay provider initialization until after the first frame to avoid modifying providers during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _initControllers();
@@ -114,11 +121,12 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
 
     final formData = ref.read(songFormStateProvider).formData;
 
-    _titleController = TextEditingController(text: formData.title);
-    _artistController = TextEditingController(text: formData.artist);
-    _originalBpmController = TextEditingController(text: formData.originalBpm);
-    _ourBpmController = TextEditingController(text: formData.ourBpm);
-    _notesController = TextEditingController(text: formData.notes);
+    // Set controller text (controllers already created in initState)
+    _titleController.text = formData.title;
+    _artistController.text = formData.artist;
+    _originalBpmController.text = formData.originalBpm;
+    _ourBpmController.text = formData.ourBpm;
+    _notesController.text = formData.notes;
 
     // Add listeners to sync controller changes to form data
     _titleController.addListener(() {
