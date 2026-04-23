@@ -1,389 +1,188 @@
 # FlowGroove Deployment Guide
 
-**Last Updated:** April 15, 2026
+**Last Updated:** April 24, 2026  
 **Version:** 0.13.4+183
-**Configuration System:** Modern Environment Variable Injection ✅
-**Status:** ✅ PRODUCTION READY (Hugo + Flutter)
 
----
+## Deployment Modes
 
-## 🚀 Quick Start
+There are three distinct deployment paths in this repo.
 
-### Production Deployment (FTP - flowgroove.app)
+### 1. GitHub Pages Preview: Hugo + Flutter
 
-**Option 1: Local Development (using .env file)**
-```bash
-# 1. First time setup (only once)
-cp .env.example .env
-# Edit .env with your credentials
-
-# 2. Deploy
-make deploy-stable
-```
-
-**Option 2: CI/CD (using GitHub Actions)**
-```bash
-# 1. Set secrets in GitHub Repository Settings
-# Go to: Settings → Secrets and variables → Actions
-
-# 2. Push to second01 branch (automated deployment)
-git push origin second01
-
-# Or trigger manually: Actions → "Deploy Test" → Run workflow
-```
-
-### Test Deployment (GitHub Pages)
+Safe preview path:
 
 ```bash
-# 1. No setup required - uses demo config
-make deploy-test
-
-# 2. Test in 2 minutes at:
-# https://berlogabob.github.io/flutter-FlowGroove-app/
+make -f Makefile.hugo deploy-all
 ```
 
-**Note:** Demo config includes valid Firebase key. Spotify/Twitter disabled but app fully functional.
+Publishes:
 
----
+- Hugo landing page to `docs/`
+- Flutter web app to `docs/app/`
 
-## 📋 Pre-Deployment Checklist
+URLs:
 
-### Required Credentials
+- `https://berlogabob.github.io/flutter-FlowGroove-app/`
+- `https://berlogabob.github.io/flutter-FlowGroove-app/app/`
 
-Before deploying, ensure you have:
-
-1. **Firebase API Key**
-   - Get from: https://console.firebase.google.com
-   - Project Settings → Your apps → Web app
-
-2. **Spotify API Credentials**
-   - Get from: https://developer.spotify.com/dashboard
-   - Create an app to get Client ID and Client Secret
-   - **PRODUCTION:** Use backend proxy (see `docs/SECURITY_BEST_PRACTICES.md`)
-
-3. **Twitter/X API Credentials** (optional)
-   - Get from: https://developer.twitter.com/en/portal/dashboard
-
-4. **Track Analysis API Key** (optional)
-   - Get from: https://rapidapi.com/soundnet-soundnet-default/api/track-analysis
-   - Free tier: 100 requests/month
-
-5. **FTP Credentials** (for production only)
-   - FTP_HOST, FTP_USER, FTP_PASS, FTP_DIR
-   - Provided by your hosting provider
-
----
-
-## 🔧 Setup Instructions
-
-### Step 1: Create .env File
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` file with your credentials:
-
-```bash
-# Firebase Configuration
-FIREBASE_API_KEY=your_actual_firebase_key_here
-
-# Spotify API Credentials
-SPOTIFY_CLIENT_ID=your_spotify_client_id
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-
-# Twitter/X API Credentials (optional)
-TWITTER_API_KEY=your_twitter_api_key
-TWITTER_API_SECRET=your_twitter_api_secret
-
-# Track Analysis API (optional)
-TRACK_ANALYSIS_API_KEY=your_rapidapi_key
-
-# Backend proxy URL (production recommended)
-# SPOTIFY_PROXY_URL=https://your-backend.com/api/spotify
-```
-
-### Step 2: Verify Configuration
-
-```bash
-# This will validate your .env and create web/config.js
-./scripts/inject-web-config.sh
-```
-
-Expected output:
-```
-✅ .env file found
-✅ web/config.js created successfully
-```
-
----
-
-## 📦 Deployment Commands
-
-### Production: FTP Deployment
-
-```bash
-make deploy-stable
-```
-
-**What this does:**
-1. ✅ Validates `.env` file exists
-2. ✅ Builds Hugo landing page with `hugo --baseURL "https://flowgroove.app/"`
-3. ✅ Injects credentials into `web/config.js`
-4. ✅ Updates `version.json` with current version
-5. ✅ Builds Flutter web app with `flutter build web --release --base-href "/app/"`
-6. ✅ Copies `config.js` to `build/web/`
-7. ✅ Uploads Hugo to FTP root (`flowgroove.app/`)
-8. ✅ Uploads Flutter to FTP `/app/` (`flowgroove.app/app/`)
-
-**Expected duration:** 5-8 minutes
-**Landing URL:** https://flowgroove.app/
-**App URL:** https://flowgroove.app/app/
-**SSL propagation:** 1-5 minutes
-
----
-
-### Test: GitHub Pages Deployment
+### 2. GitHub Pages Flutter-Only Publish
 
 ```bash
 make deploy-test
 ```
 
-**What this does:**
-1. ✅ Validates `.env` file exists
-2. ✅ Injects credentials into `web/config.js`
-3. ✅ Updates `version.json` with current version
-4. ✅ Builds web app with subdirectory base-href
-5. ✅ Copies `config.js` to `build/web/`
-6. ✅ Copies build to `docs/` folder
-7. ✅ Preserves existing `docs/config.js` (doesn't delete secrets)
-8. ✅ Commits and pushes to `second01` branch
+This publishes only the Flutter web app and overwrites `docs/` root output. Use it only when that destructive behavior is intentional.
 
-**Expected duration:** 2-3 minutes  
-**Test URL:** https://berlogabob.github.io/flutter-FlowGroove-app/  
-**GitHub Pages build:** 1-2 minutes
+### 3. Production FTP Deploy
 
----
-
-## 🔒 Security Best Practices
-
-### ✅ DO:
-- Keep `.env` file in `.gitignore` (already configured)
-- Keep `web/config.js` in `.gitignore` (already configured)
-- Keep `docs/config.js` in `.gitignore` (already configured)
-- Use environment variables for credentials
-- Use `SPOTIFY_PROXY_URL` for production (recommended)
-
-### ❌ NEVER:
-- Commit `.env` file to git
-- Commit `config.js` files to git
-- Share your credentials publicly
-- Use production credentials in test deployments
-- Add `.env` to `pubspec.yaml` assets
-
----
-
-## 🛠️ Troubleshooting
-
-### Problem: "❌ ERROR: .env file not found!"
-
-**Solution:**
 ```bash
-cp .env.example .env
-# Edit .env with your credentials
 make deploy-stable
 ```
 
----
+Publishes:
 
-### Problem: "⚠️ WARNING: The following required variables are missing"
+- Hugo landing page to `https://flowgroove.app/`
+- Flutter web app to `https://flowgroove.app/app/`
 
-**Solution:**
-1. Open `.env` file
-2. Replace `REPLACE_ME_*` placeholders with actual values
-3. Save and run deployment again
+## Configuration Sources
 
----
+### Demo Config
 
-### Problem: "White screen after deployment"
+Used by default for preview-oriented builds:
 
-**Possible causes:**
-1. `config.js` not in `build/web/` folder
-2. Credentials are placeholders (REPLACE_ME_*)
-3. Firebase not initialized properly
+- `web/config.demo.js`
+- `assets/env.demo.json`
 
-**Solution:**
+### Generated Runtime Config
+
+Production config is generated from environment variables.
+
+Relevant files:
+
+- `web/config.template.js`
+- `scripts/generate-web-config.sh`
+- `scripts/inject-web-config.sh`
+
+## Recommended Workflows
+
+### Local Hugo Development
+
 ```bash
-# Verify config.js exists
-ls -la build/web/config.js
+make -f Makefile.hugo serve
+```
 
-# Check credentials are set (not placeholders)
-cat web/config.js | grep -E "FIREBASE|SPOTIFY"
+### Safe GitHub Pages Preview
 
-# Rebuild and redeploy
+```bash
+make -f Makefile.hugo deploy-all
+```
+
+### Production FTP Publish
+
+Required environment variables include:
+
+- `FTP_HOST`
+- `FTP_USER`
+- `FTP_PASS`
+- `FTP_DIR` (optional; defaults in Makefile)
+
+Then run:
+
+```bash
 make deploy-stable
 ```
 
----
+### Android Release
 
-### Problem: "FTP upload fails"
-
-**Check:**
-1. FTP credentials in `.env` are correct
-2. FTP server is accessible
-3. FTP directory path is correct
-
-**Test FTP connection:**
 ```bash
-lftp -c "open -u 'YOUR_USER','YOUR_PASS' YOUR_HOST"
+make release
 ```
 
----
+This builds APK + AAB and attempts the tagged GitHub release flow.
 
-### Problem: "GitHub Pages shows old version"
+## What The Main Targets Do
 
-**Solution:**
+### `make -f Makefile.hugo deploy-all`
+
+1. Builds Hugo to `docs/`
+2. Builds Flutter web with `/flutter-FlowGroove-app/app/` base href
+3. Copies Flutter output into `docs/app/`
+4. Commits and pushes `docs/`
+
+### `make deploy-test`
+
+1. Copies demo web config
+2. Builds Flutter web for `/flutter-FlowGroove-app/`
+3. Removes existing `docs/*`
+4. Copies Flutter output into `docs/`
+5. Commits and pushes the Flutter-only result
+
+### `make deploy-stable`
+
+1. Generates production web config
+2. Builds Hugo with production base URL
+3. Builds Flutter web with `/app/` base href
+4. Backs up current FTP production state
+5. Uploads Hugo to FTP root
+6. Uploads Flutter to FTP `/app/`
+7. Runs health checks and auto-rollback on failure
+
+## Security Notes
+
+Current repo caveats from the April 24, 2026 audit:
+
+- `web/config.js` is currently tracked in git
+- the security audit script fails because of that tracked file
+- demo Firebase keys are present in tracked demo config files
+- `test/security/git_audit_test.sh` expects `web/config.js.template`, while the repo currently uses `web/config.template.js`
+
+Treat generated config files as sensitive regardless of whether the current values are demo or production.
+
+## Validation Commands
+
+### Analyzer
+
 ```bash
-# Force rebuild
-rm -rf build/web
-make deploy-test
-
-# Hard refresh browser: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
+flutter analyze
+flutter analyze lib test
 ```
 
----
+### Tests
 
-## 📊 Build Artifacts
-
-### What Gets Built
-
-**Hugo:**
-```
-site/public/
-├── index.html              # Hugo landing page
-├── about/                  # About page
-├── faq/                    # FAQ page
-├── blog/                   # Blog posts
-├── images/                 # Images & favicon
-└── assets/                 # CSS, JS
+```bash
+flutter test
+flutter test test/config/
 ```
 
-**Flutter:**
-```
-build/web/
-├── index.html              # Main HTML file
-├── flutter_bootstrap.js    # Flutter loader
-├── main.dart.js            # Compiled Flutter app (~5MB)
-├── config.js               # ⚠️ Contains secrets - NOT in git
-├── manifest.json           # PWA manifest
-├── assets/                 # App assets
-└── canvaskit/              # Graphics library
+### Security Audit
+
+```bash
+bash test/security/git_audit_test.sh
 ```
 
-### What Gets Deployed
+## Known Deployment Risks
 
-**Production (FTP):**
-- `site/public/*` → FTP root (`flowgroove.app/`) — Hugo landing page
-- `build/web/*` → FTP `/app/` (`flowgroove.app/app/`) — Flutter app
-- `config.js` → `/app/config.js` (for Flutter)
+### Risk 1: Wrong GitHub Pages Command
 
-**Test (GitHub Pages):**
-- Hugo + Flutter → `docs/` folder on `second01` branch
-- Hugo: `docs/` (root)
-- Flutter: `docs/app/` (subdirectory)
-- `docs/config.js` preserved between deployments
+- Safe dual deploy: `make -f Makefile.hugo deploy-all`
+- Destructive Flutter-only deploy: `make deploy-test`
 
----
+### Risk 2: Tracked Config Artifact
 
-## 🔄 Version History
+The repo currently tracks `web/config.js`. That means generated config handling is not yet fully aligned with the intended security model.
 
-### v0.13.4+183 (Current — April 15, 2026)
-- ✅ Hugo landing page now included in production FTP deploy
-- ✅ `make deploy-stable` deploys Hugo (`flowgroove.app/`) + Flutter (`flowgroove.app/app/`)
-- ✅ Health check validates both landing page and app URLs
-- ✅ Post-MVP tuner features (regional instruments, custom tuning editor)
-- ✅ Auto/manual note detection
-- ✅ Stage mode with auto-hide UI
-- ✅ Haptic feedback system
-- ✅ Wakelock support
-- ✅ Song autocomplete provider
-- ✅ Test suite: 1718 passing, 50 failing, 291 skipped
-- ✅ 11 new tuner widgets
-- ✅ Instrument/tuning definitions (assets/data/tunings.json)
+### Risk 3: Backup Snapshot In Analyzer Scope
 
-### v0.13.4+179
-- ✅ Automated config injection at build time
-- ✅ Pre-deployment validation
-- ✅ Preserved docs/config.js during test deployments
-- ✅ Fixed recurring credential deployment issues
+Repo-wide analysis currently reports hard errors from:
 
-### v0.13.5+180 (April 2, 2026) - Configuration Modernization ✅
+- `backup/config-modernization-2026-04-02/`
 
-**Major Changes:**
-- ✅ Modern environment variable injection system
-- ✅ CI/CD support via GitHub Actions
-- ✅ Runtime config validation
-- ✅ User-friendly error screens
-- ✅ Proper sed escaping for special characters
-- ✅ No hardcoded credentials
-- ✅ Dual-mode deployment (local .env + CI/CD env vars)
+That folder is historical, but it still affects whole-repo analysis.
 
-**New Files:**
-- `web/config.template.js` - Modern template with `${VAR}` placeholders
-- `scripts/generate-web-config.sh` - CI/CD config generation
-- `.github/workflows/deploy-test.yml` - GitHub Actions workflow
-- `lib/config/config_validator.dart` - Runtime validation
-- `lib/widgets/config_error_widget.dart` - Error UI
+## Documentation
 
-**Documentation:**
-- `docs/WEB_CONFIG_MIGRATION.md` - Migration guide
-- `docs/SECURITY_BEST_PRACTICES.md` - Security guidelines
-- `docs/ROLLBACK_PROCEDURE.md` - Emergency rollback
-- `docs/POST_DEPLOY_CHECKLIST.md` - Verification steps
-
-### Pre-v0.13.4 (Legacy)
-- ❌ Manual config.js creation required
-- ❌ No validation before deploy
-- ❌ docs/config.js deleted on every rebuild
-- ❌ Credentials sometimes exposed in git
-
----
-
-## 📞 Support
-
-If you encounter issues:
-
-1. **Check documentation:**
-   - `docs/WEB_CONFIG_MIGRATION.md` - Migration guide
-   - `docs/SECURITY_BEST_PRACTICES.md` - Security guidelines
-   - `docs/ROLLBACK_PROCEDURE.md` - Emergency rollback
-   - `docs/POST_DEPLOY_CHECKLIST.md` - Verification steps
-
-2. **Review known issues:**
-   - `memory/CRITICAL_PROBLEMS.md` - Historical issues
-   - `test/PHASE3_TEST_REPORT.md` - Test results
-
-3. **Common fixes:**
-   - Verify `.env` file has valid credentials (not placeholders)
-   - Check `web/config.js` was created successfully
-   - Verify `config.js` loads in browser (check DevTools)
-   - Check build logs for specific error messages
-
-4. **Emergency rollback:**
-   - Follow `docs/ROLLBACK_PROCEDURE.md`
-   - Restore from `backup/config-modernization-2026-04-02/`
-
----
-
-## 🎯 Quick Reference
-
-| Command | Purpose | Target |
-|---------|---------|--------|
-| `make deploy-stable` | Production (Hugo + Flutter) | `flowgroove.app/` + `/app/` |
-| `make deploy-test` | Test deploy (Hugo + Flutter) | GitHub Pages |
-| `make release` | Android + GitHub Release | APK + Release |
-| `./scripts/inject-web-config.sh` | Validate & inject config | Local only |
-
----
-
-**Remember:** Always test with `make -f Makefile.hugo deploy-all` before `make deploy-stable`!
+- [README.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/README.md)
+- [ARCHITECTURE.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/ARCHITECTURE.md)
+- [docs/README.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/README.md)
+- [site/README.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/site/README.md)
+- [docs/project-audit-2026-04-24.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/project-audit-2026-04-24.md)
