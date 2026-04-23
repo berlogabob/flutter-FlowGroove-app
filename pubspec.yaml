@@ -101,5 +101,6 @@ flutter:
 
   assets:
     - assets/sounds/
+    - assets/data/
     - assets/logo_clean.png
     - assets/env.json

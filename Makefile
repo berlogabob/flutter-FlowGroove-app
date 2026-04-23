@@ -1,19 +1,19 @@
 # FlowGroove App - Deployment Makefile
 # =====================================
 # Version: 0.13.4+183
-# Last Updated: April 8, 2026
+# Last Updated: April 15, 2026
 #
 # Quick Start:
 #   make deploy-test   → Test on GitHub Pages (no credentials needed)
 #   make release       → Build Android APK + GitHub Release
-#   make deploy-stable → Production FTP deploy (requires credentials)
+#   make deploy-stable → Production FTP deploy (Hugo + Flutter)
 #
 # Demo Configuration:
 #   - Firebase works out of the box (public key included)
 #   - Spotify/Twitter disabled (add credentials later if needed)
 #   - No .env file required for testing
 
-.PHONY: help deploy-stable deploy-test release build-web build-web-github build-android check-env check-env-test check-env-prod help-env clean-exports
+.PHONY: help deploy-stable deploy-test release build-web build-web-prod build-web-github build-android hugo-build-prod check-env check-env-test check-env-prod help-env clean-exports
 
 # =============================================================================
 # HELP
@@ -28,12 +28,12 @@ help:
 	@echo ""
 	@echo "  make deploy-test     # Test on GitHub Pages (recommended)"
 	@echo "  make release         # Build Android APK + GitHub Release"
-	@echo "  make deploy-stable   # Production FTP deployment"
+	@echo "  make deploy-stable   # Production FTP (Hugo + Flutter)"
 	@echo ""
 	@echo "📋 All Commands:"
 	@echo ""
 	@echo "  make deploy-test     - Deploy to GitHub Pages (test)"
-	@echo "  make deploy-stable   - Deploy to FTP (flowgroove.app)"
+	@echo "  make deploy-stable   - Deploy Hugo + Flutter to FTP (flowgroove.app)"
 	@echo "  make release         - Build Android APK + AAB + GitHub Release"
 	@echo "  make build-android   - Build Android APK only"
 	@echo "  make build-web       - Build web app (production)"
@@ -101,16 +101,30 @@ deploy-test: check-env-test build-web-github
 	@echo ""
 
 # =============================================================================
+# PRODUCTION HUGO BUILD
+# =============================================================================
+
+hugo-build-prod:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Building Hugo (Production / flowgroove.app)       ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@cd site && hugo --minify --baseURL "https://flowgroove.app/"
+	@echo "✅ Hugo production build complete"
+	@echo ""
+
+# =============================================================================
 # STABLE DEPLOYMENT - FTP (flowgroove.app)
 # =============================================================================
 
-deploy-stable: check-env-prod build-web backup-production ftp-upload health-check-prod
+deploy-stable: check-env-prod hugo-build-prod build-web-prod backup-production ftp-upload health-check-prod
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         ✅ FTP Deployment Complete!                       ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "🌐 Live URL: https://flowgroove.app/"
+	@echo "🌐 App URL:  https://flowgroove.app/app/"
 	@echo "⏱️  SSL/CDN propagation: 1-5 minutes"
 	@echo ""
 	@echo "💾 Backup saved to: backup/production-$(shell date +%Y%m%d-%H%M%S)/"
@@ -143,8 +157,10 @@ ftp-upload:
 	@echo "║         Uploading to FTP (flowgroove.app)                 ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "📤 Uploading files..."
-	@lftp -c "set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse --delete build/web .; bye"
+	@echo "📤 Uploading Hugo (site/public/) → / (root)..."
+	@lftp -c "set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse --delete site/public/ .; bye"
+	@echo "📤 Uploading Flutter (build/web/) → /app/..."
+	@lftp -c "set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse --delete build/web app/; bye"
 	@echo "✅ Upload complete"
 	@echo ""
 
@@ -157,17 +173,26 @@ health-check-prod:
 	@echo ""
 	@echo "🔍 Checking production site..."
 	@sleep 5  # Wait for CDN propagation
-	@echo "📊 Checking site accessibility..."
+	@echo "📊 Checking Hugo landing page..."
 	@if curl -f -s https://flowgroove.app/ > /dev/null; then \
-		echo "✅ Site is accessible"; \
+		echo "✅ Hugo landing page is accessible"; \
 	else \
-		echo "❌ ERROR: Site is not accessible!"; \
+		echo "❌ ERROR: Hugo landing page is not accessible!"; \
+		echo "🚨 Auto-rollback initiated..."; \
+		$(MAKE) auto-rollback; \
+		exit 1; \
+	fi
+	@echo "📊 Checking Flutter app..."
+	@if curl -f -s https://flowgroove.app/app/ > /dev/null; then \
+		echo "✅ Flutter app is accessible"; \
+	else \
+		echo "❌ ERROR: Flutter app is not accessible!"; \
 		echo "🚨 Auto-rollback initiated..."; \
 		$(MAKE) auto-rollback; \
 		exit 1; \
 	fi
 	@echo "📊 Checking config.js..."
-	@if curl -f -s https://flowgroove.app/config.js | grep -q "FIREBASE_API_KEY"; then \
+	@if curl -f -s https://flowgroove.app/app/config.js | grep -q "FIREBASE_API_KEY"; then \
 		echo "✅ config.js is present and valid"; \
 	else \
 		echo "❌ ERROR: config.js missing or invalid!"; \
@@ -224,6 +249,25 @@ build-web:
 	@echo "🔨 Building web app..."
 	@echo "   Base href: / (FTP - flowgroove.app)"
 	@flutter build web --release
+	@echo ""
+	@cp web/config.js build/web/config.js
+	@echo "✅ Build complete!"
+	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
+	@echo ""
+
+# Build for web (production FTP with Hugo) - uses /app/ subdirectory
+build-web-prod:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Building Web (FTP / Hugo + Flutter / /app/)       ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📝 Updating version.json..."
+	@./scripts/update-version-json.sh
+	@echo ""
+	@if [ ! -f web/config.js ]; then cp web/config.demo.js web/config.js; fi
+	@echo "🔨 Building web app..."
+	@echo "   Base href: /app/ (FTP - flowgroove.app/app/)"
+	@flutter build web --release --base-href "/app/"
 	@echo ""
 	@cp web/config.js build/web/config.js
 	@echo "✅ Build complete!"

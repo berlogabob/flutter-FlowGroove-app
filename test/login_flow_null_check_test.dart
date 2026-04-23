@@ -14,21 +14,19 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('Login Flow Null Check Investigation', () {
-    test('LOGIN-001: Identifies currentUserProvider returns User? (BUG)', () {
-      // This test demonstrates the BUG:
-      // currentUserProvider currently returns User? instead of AsyncValue<User?>
-      // This causes null check errors when auth state is loading/error
+    test('LOGIN-001: currentUserProvider returns AsyncValue (BUG FIXED)', () {
+      // This test verifies the BUG is FIXED:
+      // currentUserProvider now returns AsyncValue<User?> instead of User?
+      // This properly handles loading/error states without null check errors
 
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      // Read currentUserProvider - currently returns User? (BUG)
-      // After fix, this should return AsyncValue<User?>
-      final user = container.read(currentUserProvider);
+      // Read currentUserProvider - after fix, returns AsyncValue<User?>
+      final userAsync = container.read(currentUserProvider);
 
-      // BUG: user is User? which is null when auth is loading
-      // This causes downstream providers to crash when accessing user.uid
-      expect(user, isNull); // Currently null because no auth state yet
+      // FIXED: userAsync is AsyncValue<User?> which handles null properly
+      expect(userAsync, isA<AsyncValue<User?>>());
     });
 
     test('LOGIN-002: Verifies songsProvider handles null user gracefully', () {

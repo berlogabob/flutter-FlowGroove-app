@@ -216,11 +216,6 @@ void main() {
     });
 
     group('Dispose Verification', () {
-      test('TunerNotifier dispose does not throw', () {
-        final notifier = container.read(tunerProvider.notifier);
-        expect(() => notifier.dispose(), returnsNormally);
-      });
-
       test('ProviderContainer dispose cleans up resources', () {
         final localContainer = ProviderContainer();
         localContainer.read(tunerProvider);

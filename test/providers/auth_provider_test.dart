@@ -110,8 +110,10 @@ void main() {
         ).thenAnswer((_) => Stream.value(null));
         when(mockFirebaseAuth.currentUser).thenReturn(null);
 
-        final currentUser = container.read(currentUserProvider);
-        expect(currentUser, isNull);
+        final currentUserAsync = container.read(currentUserProvider);
+        // AsyncLoading state - check that value is null when resolved
+        expect(currentUserAsync, isA<AsyncValue<User?>>());
+        expect(currentUserAsync.maybeWhen(data: (d) => d, orElse: () => null), isNull);
       });
 
       test('currentUserProvider is accessible', () {

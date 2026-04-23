@@ -80,28 +80,32 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
                   rotationOffset: _rotationOffset,
                 ),
                 child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        state.bpm.toString(),
-                        style: TextStyle(
-                          fontSize: 64,
-                          fontWeight: FontWeight.w700,
-                          color: state.isPlaying
-                              ? MonoPulseColors.accentOrange
-                              : MonoPulseColors.textPrimary,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          state.bpm.toString(),
+                          style: TextStyle(
+                            fontSize: 64,
+                            fontWeight: FontWeight.w700,
+                            color: state.isPlaying
+                                ? MonoPulseColors.accentOrange
+                                : MonoPulseColors.textPrimary,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'BPM',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: MonoPulseColors.textSecondary
-                              .withValues(alpha: 0.7),
+                        Text(
+                          'BPM',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: MonoPulseColors.textSecondary
+                                .withValues(alpha: 0.7),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

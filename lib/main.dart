@@ -131,34 +131,49 @@ void main() async {
     await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
   } catch (_) {}
 
-  // Pre-initialize audio engine for instant first beat (50ms one-time cost)
+  // Suppress expected but non-critical Google Play Services errors in debug mode
+  // These errors don't affect app functionality
+  if (kDebugMode) {
+    // GoogleApiManager DEVELOPER_ERROR is expected when:
+    // - Debug build without proper SHA-1 fingerprint in Firebase console
+    // - Emulator without Google Play Services fully configured
+    // This doesn't block Firestore, Auth, or Analytics
+    debugPrint('ℹ️  Note: Google Play Services errors in debug are expected');
+    debugPrint('   They don\'t affect core app functionality');
+  }
+
+  // Pre-initialize audio engine for instant first beat (deferred to avoid blocking startup)
   if (!kIsWeb) {
-    final stopwatch = Stopwatch()..start();
-    Duration duration = Duration.zero;
-    
-    try {
-      final audioEngine = AudioEngine();
-      await audioEngine.initialize();
-      await audioEngine.preWarmPlayers();
-      
-      duration = stopwatch.elapsed;
-      debugPrint('✅ Audio pre-initialized in ${duration.inMilliseconds}ms');
-      
-      // Log analytics
-      await MetronomeAnalytics.logAudioInitialization(
-        success: true,
-        duration: duration,
-      );
-    } catch (e) {
-      duration = stopwatch.elapsed;
-      debugPrint('⚠️ Audio pre-initialization failed: $e');
-      // Graceful degradation - will initialize on first use
-      await MetronomeAnalytics.logAudioInitialization(
-        success: false,
-        duration: duration,
-        error: e.toString(),
-      );
-    }
+    // Defer audio initialization to after first frame
+    // This prevents blocking the app startup and reduces initial jank
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final stopwatch = Stopwatch()..start();
+      Duration duration = Duration.zero;
+
+      try {
+        final audioEngine = AudioEngine();
+        await audioEngine.initialize();
+        await audioEngine.preWarmPlayers();
+
+        duration = stopwatch.elapsed;
+        debugPrint('✅ Audio pre-initialized in ${duration.inMilliseconds}ms');
+
+        // Log analytics
+        await MetronomeAnalytics.logAudioInitialization(
+          success: true,
+          duration: duration,
+        );
+      } catch (e) {
+        duration = stopwatch.elapsed;
+        debugPrint('⚠️ Audio pre-initialization failed: $e');
+        // Graceful degradation - will initialize on first use
+        await MetronomeAnalytics.logAudioInitialization(
+          success: false,
+          duration: duration,
+          error: e.toString(),
+        );
+      }
+    });
   }
 
   // Check if user is already logged in (from previous session)

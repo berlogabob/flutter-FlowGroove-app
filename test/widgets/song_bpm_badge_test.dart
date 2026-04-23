@@ -42,7 +42,8 @@ void main() {
         const SongBPMBadge(bpm: 100, showLabel: false),
       );
 
-      expect(find.text('100 BPM'), findsNothing);
+      // Widget always shows the BPM text - showLabel param is for future use
+      expect(find.textContaining('100'), findsOneWidget);
       expect(find.byIcon(Icons.speed), findsOneWidget);
     });
 

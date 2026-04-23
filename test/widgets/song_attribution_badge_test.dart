@@ -24,10 +24,13 @@ void main() {
     testWidgets('renders copy badge when isCopy is true', (
       WidgetTester tester,
     ) async {
-      await pumpAppWidget(tester, const SongAttributionBadge(isCopy: true));
+      await pumpAppWidget(
+        tester,
+        const SongAttributionBadge(isCopy: true, size: BadgeSize.medium),
+      );
 
       expect(find.byIcon(Icons.content_copy), findsOneWidget);
-      expect(find.text('Shared'), findsWidgets);
+      expect(find.text('Shared'), findsOneWidget);
     });
 
     testWidgets('does not render copy badge when isCopy is false', (
@@ -44,11 +47,12 @@ void main() {
         const SongAttributionBadge(
           originalOwnerName: 'John Doe',
           showOriginalOwner: true,
+          size: BadgeSize.medium,
         ),
       );
 
       expect(find.byIcon(Icons.person), findsOneWidget);
-      expect(find.textContaining('by John Doe'), findsWidgets);
+      expect(find.textContaining('by John Doe'), findsOneWidget);
     });
 
     testWidgets('does not render original owner when name is null', (
@@ -71,11 +75,12 @@ void main() {
           contributorName: 'Jane Doe',
           isCopy: true,
           showContributor: true,
+          size: BadgeSize.medium,
         ),
       );
 
       expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
-      expect(find.textContaining('added by Jane Doe'), findsWidgets);
+      expect(find.textContaining('added by Jane Doe'), findsOneWidget);
     });
 
     testWidgets('does not render contributor when isCopy is false', (

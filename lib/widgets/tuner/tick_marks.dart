@@ -49,29 +49,26 @@ class _TickMarksPainter extends CustomPainter {
 
     // Static tick marks data (12 positions around the circle)
     // Each position has: angle (degrees), label (empty string = no label), subLabel
-    const tickData = [
-      {'angle': -90.0, 'label': 'A4', 'subLabel': '440'}, // Top (12 o'clock)
-      {'angle': -60.0, 'label': '', 'subLabel': ''},
-      {'angle': -30.0, 'label': '', 'subLabel': ''},
-      {'angle': 0.0, 'label': '', 'subLabel': ''}, // 3 o'clock
-      {'angle': 30.0, 'label': '', 'subLabel': ''},
-      {'angle': 60.0, 'label': '', 'subLabel': ''},
-      {'angle': 90.0, 'label': 'E4', 'subLabel': '330'}, // Bottom (6 o'clock)
-      {'angle': 120.0, 'label': '', 'subLabel': ''},
-      {'angle': 150.0, 'label': '', 'subLabel': ''},
-      {'angle': 180.0, 'label': '', 'subLabel': ''}, // 9 o'clock
-      {'angle': 210.0, 'label': '', 'subLabel': ''},
-      {'angle': 240.0, 'label': 'D4', 'subLabel': '294'},
+    const tickData = <_TickData>[
+      _TickData(angle: -90.0, label: 'A4', subLabel: '440'), // Top (12 o'clock)
+      _TickData(angle: -60.0),
+      _TickData(angle: -30.0),
+      _TickData(angle: 0.0), // 3 o'clock
+      _TickData(angle: 30.0),
+      _TickData(angle: 60.0),
+      _TickData(angle: 90.0, label: 'E4', subLabel: '330'), // Bottom (6 o'clock)
+      _TickData(angle: 120.0),
+      _TickData(angle: 150.0),
+      _TickData(angle: 180.0), // 9 o'clock
+      _TickData(angle: 210.0),
+      _TickData(angle: 240.0, label: 'D4', subLabel: '294'),
     ];
 
     for (final tick in tickData) {
-      final angleDeg = tick['angle'] as double;
-      final label = tick['label'] as String;
-      final subLabel = tick['subLabel'] as String;
-      final angleRad = angleDeg * (math.pi / 180);
+      final angleRad = tick.angle * (math.pi / 180);
 
       // Determine if this is a major tick (has non-empty label)
-      final isMajor = label.isNotEmpty;
+      final isMajor = tick.label.isNotEmpty;
 
       // Tick mark dimensions
       final tickLength = isMajor ? size * 0.035 : size * 0.025;
@@ -101,7 +98,7 @@ class _TickMarksPainter extends CustomPainter {
 
         // Draw main label (e.g., "A4") - 14px Regular per brandbook
         labelPaint.text = TextSpan(
-          text: label,
+          text: tick.label,
           style: MonoPulseTypography.bodyMedium,
         );
         labelPaint.layout();
@@ -111,13 +108,13 @@ class _TickMarksPainter extends CustomPainter {
         );
 
         // Draw sub-label (e.g., "440") below main label if present - 14px Regular
-        if (subLabel.isNotEmpty) {
+        if (tick.subLabel.isNotEmpty) {
           final subLabelRadius = radius - size * 0.14;
           final subLabelX = center.dx + subLabelRadius * math.cos(angleRad);
           final subLabelY = center.dy + subLabelRadius * math.sin(angleRad);
 
           labelPaint.text = TextSpan(
-            text: subLabel,
+            text: tick.subLabel,
             style: MonoPulseTypography.bodyMedium,
           );
           labelPaint.layout();
@@ -135,4 +132,17 @@ class _TickMarksPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Typed data class for tick mark data (avoids dynamic Map casts).
+class _TickData {
+  final double angle;
+  final String label;
+  final String subLabel;
+
+  const _TickData({
+    required this.angle,
+    this.label = '',
+    this.subLabel = '',
+  });
 }

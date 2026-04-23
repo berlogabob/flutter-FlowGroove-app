@@ -1,6 +1,6 @@
 # 🏗️ FLOWGROOVE PROJECT ARCHITECTURE
 
-**Last Updated:** April 8, 2026  
+**Last Updated:** April 9, 2026
 **Version:** 0.13.4+183
 
 ---
@@ -98,17 +98,46 @@ make -f Makefile.hugo deploy
 flutter_repsync_app/
 ├── lib/              # Dart source code
 │   ├── main.dart     # App entry point
-│   ├── screens/      # UI screens (login, songs, setlists)
+│   ├── screens/      # UI screens (login, songs, setlists, tools)
+│   │   ├── auth/     # Login, register screens
+│   │   ├── bands/    # Band management screens
+│   │   ├── setlists/ # Setlist screens
+│   │   ├── songs/    # Song management screens
+│   │   └── tools/    # Tool-specific screens (metronome, tuner)
 │   ├── providers/    # Riverpod state management
-│   ├── models/       # Data models
-│   ├── services/     # Business logic
+│   │   ├── auth/     # Auth providers
+│   │   ├── data/     # Data providers (songs, bands, setlists)
+│   │   ├── sync/     # Sync status providers
+│   │   ├── tuner_provider.dart      # Tuner state (Post-MVP)
+│   │   ├── metronome_selective_providers.dart
+│   │   ├── wakelock_provider.dart
+│   │   ├── song_autocomplete_provider.dart
+│   │   └── global_tone_config_provider.dart
+│   ├── models/       # Data models (Song, Band, Setlist, Instrument, etc.)
+│   ├── services/     # Business logic (Firebase, audio, analytics)
+│   │   ├── audio/    # PitchDetector, ToneGenerator
+│   │   └── ...
 │   ├── widgets/      # Reusable UI components
-│   └── theme/        # MonoPulse theme
+│   │   ├── tuner/    # Tuner widgets (11 files, Post-MVP)
+│   │   ├── metronome/
+│   │   ├── tools/    # Shared tool scaffolding
+│   │   └── responsive/
+│   ├── theme/        # MonoPulse theme
+│   ├── router/       # GoRouter configuration
+│   ├── repositories/ # Data access layer
+│   ├── config/       # Config validation, web config
+│   ├── utils/        # Utilities
+│   └── analytics/    # Analytics helpers
 ├── web/              # Web-specific files
 │   ├── index.html    # Web entry point
 │   └── config.js     # Runtime config (generated)
 ├── android/          # Android native code
 ├── ios/              # iOS native code
+├── assets/
+│   ├── data/
+│   │   └── tunings.json  # Instrument/tuning definitions (Post-MVP)
+│   └── sounds/       # Audio samples
+├── test/             # Test suite (1718 passing, 50 failing, 291 skipped)
 ├── pubspec.yaml      # Dependencies
 └── Makefile          # Build commands
 ```
@@ -133,6 +162,57 @@ flutter_repsync_app/
 - ✅ Riverpod state management
 - ✅ Hive offline caching
 
+### Tuner System (Post-MVP)
+
+The tuner is the most complex tool in the app, with a complete Post-MVP implementation:
+
+```
+TunerScreen (lib/screens/tuner_screen.dart)
+├── ToolScreenScaffold (shared tool wrapper)
+│   ├── ToolModeSwitcher (Generate Tone / Listen & Tune)
+│   ├── InstrumentPicker (bottom sheet, 5 instruments)
+│   ├── DetectionModeToggle (Auto / Manual)
+│   ├── StringSelector (manual mode string picker)
+│   ├── CentralDial (frequency display + tick marks)
+│   ├── NoteScaleRuler (visual cents deviation)
+│   ├── TransportBar (play/stop + settings)
+│   └── StageModeOverlay (auto-hide UI after inactivity)
+│
+TunerProvider (lib/providers/tuner_provider.dart)
+├── TunerNotifier (main state manager)
+│   ├── ToneGenerator (sine wave tone generation)
+│   ├── PitchDetector (YIN algorithm, real-time PCM)
+│   ├── Instrument loading (assets/data/tunings.json)
+│   ├── Haptic feedback (±1 cent, ±5 cents cues)
+│   └── Stage mode management
+│
+├── Derived Providers
+│   ├── tunerModeProvider, tunerFrequencyProvider
+│   ├── tunerNoteProvider, tunerCentsProvider
+│   ├── tunerIsPlayingProvider, tunerIsListeningProvider
+│   ├── selectedInstrumentProvider, selectedTuningProvider
+│   ├── detectionModeProvider, manualTargetStringIndexProvider
+│   ├── customTuningsProvider
+│   └── stageModeActiveProvider, stageModeEnabledProvider
+│
+└── Models
+    ├── Instrument (id, name, subtitle, origin, icon, tunings)
+    ├── Tuning (id, name, notes[])
+    └── DetectionMode (auto, manual)
+```
+
+**Tuner Features:**
+- **Generate Mode:** Sine wave tone at configurable frequency (20-2000 Hz)
+- **Listen Mode:** Real-time pitch detection via YIN algorithm from microphone
+- **Regional Instruments:** Guitar (6-string), Cavaquinho (Brazil), Balalaika (Russia), Ukulele (Hawaii), Sitar (India)
+- **Multiple Tunings per Instrument:** Standard, Drop D, Open G, Open D, DADGAD, Half Step Down, and more
+- **Custom Tuning Editor:** Create/save custom tunings (in-memory, session-scoped)
+- **Auto/Manual Detection:** Auto-detect any note or target a specific string
+- **Stage Mode:** Auto-hide UI after inactivity, large note display for on-stage use
+- **Haptic Feedback:** Precision-based cues (±1 cent = medium impact, ±5 cents = light impact)
+- **A4 Calibration:** Configurable reference A4 (432-445 Hz)
+- **Volume Control:** Adjustable output volume (0.0-1.0)
+
 ### Build & Deploy
 
 **Web (Testing on GitHub Pages):**
@@ -155,9 +235,11 @@ make release
 **Production (FTP - flowgroove.app):**
 ```bash
 make deploy-stable
-# Builds Flutter web app with base-href /
-# Uploads to flowgroove.app via FTP
-# URL: https://flowgroove.app/
+# Builds Hugo landing page (site/public/)
+# Builds Flutter web app with base-href /app/
+# Uploads Hugo → / (root), Flutter → /app/
+# URL: https://flowgroove.app/ (landing)
+# URL: https://flowgroove.app/app/ (app)
 ```
 
 ### Analytics
@@ -214,10 +296,9 @@ Uses FlowGroove app (songs, setlists, sync)
 
 | Component | Deploy Command | URL |
 |-----------|---------------|-----|
-| **Flutter Web App** | `make deploy-stable` | `https://flowgroove.app/` |
+| **Hugo Landing** | `make deploy-stable` | `https://flowgroove.app/` |
+| **Flutter Web App** | `make deploy-stable` | `https://flowgroove.app/app/` |
 | **Android App** | `make release` | Google Play / GitHub Releases |
-
-**Note:** Hugo landing page is GitHub Pages only. Production FTP serves Flutter app directly.
 
 ---
 
@@ -232,11 +313,22 @@ Uses FlowGroove app (songs, setlists, sync)
 
 ### Flutter App
 - **Flutter** 3.x - Cross-platform framework
-- **Dart** - Language
-- **Firebase** - Auth, Firestore, Analytics
-- **Riverpod** - State management
+- **Dart** 3.11+ - Language
+- **Firebase** - Auth, Firestore, Storage, Analytics
+- **Riverpod** 3.x - State management (Notifiers + Providers)
 - **Hive** - Offline caching
-- **Material Design** - UI framework (MonoPulse theme)
+- **GoRouter** - Navigation
+- **Material Design** - UI framework (MonoPulse dark theme)
+- **pitch_detector_dart** - YIN algorithm pitch detection
+- **pcm_stream_recorder** - Real-time PCM audio capture
+- **audioplayers** - Tone generation
+- **wakelock_plus** - Screen wake lock prevention
+- **dio + http** - HTTP clients
+- **pdf + printing** - PDF export
+- **csv** - CSV processing
+- **flutter_sound** - Audio recording
+- **formz** - Form validation
+- **equatable** - Value equality
 
 ---
 
@@ -324,9 +416,27 @@ docs/                          ← GitHub Pages source (second01 branch)
 ### Flutter App
 - [ ] iOS app
 - [ ] Spotify integration
-- [ ] Audio playback (metronome, reference tracks)
-- [ ] Band collaboration features
-- [ ] Advanced setlist features (transposition, capo)
+- [ ] Calendar date picker integration
+- [ ] User profile base tags system
+- [ ] Enhanced role-based permissions
+- [ ] Song tag cloud visualization
+- [ ] In-app collaboration tools
+
+### Completed Recently ✅
+- [x] Tuner: Regional instruments (Guitar, Cavaquinho, Balalaika, Ukulele, Sitar)
+- [x] Tuner: Auto/manual note detection
+- [x] Tuner: Custom tuning editor
+- [x] Tuner: Stage mode
+- [x] Tuner: Haptic feedback
+- [x] Tuner: Note scale ruler
+- [x] Wakelock support
+- [x] Song autocomplete
+- [x] Anonymous auth support
+- [x] Metronome: Custom time signatures, accent patterns, presets
+- [x] Metronome: Song library integration
+- [x] Responsive widget system
+- [x] Environment variable injection system
+- [x] Hugo landing page + deployment pipeline
 
 ---
 

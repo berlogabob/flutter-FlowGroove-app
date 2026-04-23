@@ -35,20 +35,34 @@ export FTP_PASS=your_password
 make deploy-stable
 ```
 
+Deploys Hugo landing page (`flowgroove.app/`) + Flutter app (`flowgroove.app/app/`).
+
 ---
 
 ## ✅ Features
 
+### Core
 - ✅ Song management with structure editor
 - ✅ Band management with invite codes
 - ✅ Setlist creation with drag-and-drop ordering
 - ✅ Offline-first architecture with Hive
 - ✅ Real-time sync via Firebase
-- ✅ Metronome and tuner tools
 - ✅ CSV import/export
 - ✅ PDF export for setlists
 - ✅ Responsive design (mobile/tablet/desktop)
 - ✅ Dark theme (MonoPulse)
+
+### Tools
+- ✅ **Metronome** — Custom time signatures, accent patterns, pattern presets, frequency controls, song library integration
+- ✅ **Tuner** — Generate tone & listen modes, pitch detection (YIN algorithm), volume control, A4 calibration (432–445 Hz)
+- ✅ **Tuner: Regional Instruments** — Guitar (6-string), Cavaquinho (Brazil), Balalaika (Russia), Ukulele (Hawaii), Sitar (India)
+- ✅ **Tuner: Multiple Tunings** — Standard, Drop D, Open G, Open D, DADGAD, Half Step Down, and more per instrument
+- ✅ **Tuner: Custom Tuning Editor** — Create and save custom tunings in-session
+- ✅ **Tuner: Auto/Manual Detection** — Auto-detect any note or target a specific string
+- ✅ **Tuner: Stage Mode** — Auto-hide UI for on-stage use, large note display
+- ✅ **Tuner: Haptic Feedback** — Precision-based haptic cues (±1 cent, ±5 cents)
+- ✅ **Tuner: Note Scale Ruler** — Visual cents deviation display
+- ✅ **Wakelock** — Screen stays on during tool use
 
 ---
 
@@ -81,7 +95,7 @@ make deploy-stable
 | Command | Description | Credentials |
 |---------|-------------|-------------|
 | `make deploy-test` | GitHub Pages deployment | ❌ No |
-| `make deploy-stable` | Production FTP deployment | ⚠️ FTP only |
+| `make deploy-stable` | Production FTP (Hugo + Flutter) | ⚠️ FTP only |
 | `make release` | Android APK + GitHub Release | ❌ No |
 | `make build-android` | Build Android APK | ❌ No |
 | `make build-web` | Build web app | ❌ No |
@@ -105,25 +119,47 @@ make deploy-stable
 ## 🏗️ Architecture
 
 - **Frontend:** Flutter 3.41 + Dart 3.11
-- **State Management:** Riverpod 3.x
+- **State Management:** Riverpod 3.x (Notifiers + Providers)
 - **Backend:** Firebase (Auth, Firestore, Storage)
 - **Offline:** Hive (local database)
 - **Navigation:** GoRouter
 - **Theme:** MonoPulse (dark theme)
 - **Web Config:** `window.env` via `dart:js`
+- **Audio:** audioplayers (tone generation), pcm_stream_recorder + pitch_detector_dart (pitch detection)
+- **Dual System:** Hugo landing page (`site/`) → Flutter web app (`docs/app/`) → Firebase backend
+
+### Key Providers
+- **Auth:** `authServiceProvider`, `currentUserProvider`
+- **Data:** `songsProvider`, `bandsProvider`, `setlistsProvider` (Firestore + Hive cache)
+- **Sync:** `syncStatusProvider`, `conflictProvider`
+- **Tools:** `metronomeProvider`, `tunerProvider` (with Post-MVP instrument/tuning support)
+- **Forms:** `songFormProvider`, `bandFormProvider`
+- **Utilities:** `wakelockProvider`, `permissionsProvider`, `songAutocompleteProvider`
 
 ---
 
 ## 📅 Roadmap
 
+### Completed
+- [x] Metronome with custom time signatures and patterns
+- [x] Tuner with pitch detection and tone generation
+- [x] Regional instruments (Guitar, Cavaquinho, Balalaika, Ukulele, Sitar)
+- [x] Custom tuning editor
+- [x] Auto/manual note detection
+- [x] Stage mode for on-stage use
+- [x] Haptic feedback system
+- [x] Wakelock support
+- [x] Song autocomplete
+- [x] Anonymous auth support
+
+### Upcoming
 - [ ] Calendar date picker integration
 - [ ] User profile base tags system
 - [ ] Enhanced role-based permissions
 - [ ] Song tag cloud visualization
 - [ ] iOS support
-- [ ] AI-powered features (BPM/key detection)
-- [ ] In-app collaboration tools
 - [ ] Spotify integration (when needed)
+- [ ] In-app collaboration tools
 
 ---
 
@@ -152,7 +188,7 @@ flutter test test/config/
 bash test/security/git_audit_test.sh
 ```
 
-**Test Coverage:** 117 tests, >90% coverage
+**Test Coverage:** 1718 passing, 50 failing, 291 skipped (~950 test files across models, providers, services, screens, widgets, integration)
 
 ---
 
@@ -211,6 +247,6 @@ make deploy-stable
 
 ---
 
-**Version:** 0.13.5+180  
-**Last Updated:** April 2, 2026  
+**Version:** 0.13.4+183
+**Last Updated:** April 9, 2026
 **Status:** ✅ Production Ready

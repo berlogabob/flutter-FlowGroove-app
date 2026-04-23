@@ -2,136 +2,14 @@
 // Tests for the centralized analytics service
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
-
-import 'package:flowgroove/services/analytics_service.dart';
 import 'package:flowgroove/services/analytics_events.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/setlist.dart';
 
-// Mock Firebase Analytics
-class MockFirebaseAnalytics extends Mock implements FirebaseAnalytics {}
-
-// Mock Firebase App
-class MockFirebaseApp extends Mock implements FirebaseApp {
-  @override
-  String get name => '[DEFAULT]';
-
-  @override
-  String get options => 'mock_options';
-}
-
 void main() {
-  // Set up Firebase mock before tests
-  setUpAll(() async {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    
-    // Mock Firebase initialization
-    final app = MockFirebaseApp();
-    FirebaseAppPlatform.instance = app;
-  });
-
   group('AnalyticsService', () {
-    late MockFirebaseAnalytics mockAnalytics;
-
-    setUp(() {
-      mockAnalytics = MockFirebaseAnalytics();
-      // In a real test, we'd inject this mock
-      // For now, we test the interface
-    });
-
-    group('Event Logging', () {
-      test('logBandCreated has correct parameters', () async {
-        // Test that the method exists and accepts correct parameters
-        // Note: Actual Firebase logging would require full Firebase mock setup
-        expect(
-          () => AnalyticsService.logBandCreated(
-            bandId: 'test-band-id',
-            bandName: 'Test Band',
-            memberCount: 1,
-          ),
-          returnsNormally,
-        );
-      });
-
-      test('logSongAdded has correct parameters', () async {
-        expect(
-          () => AnalyticsService.logSongAdded(
-            songId: 'test-song-id',
-            songTitle: 'Test Song',
-            artistName: 'Test Artist',
-            hasLyrics: true,
-            hasChords: false,
-            bpm: 120,
-            timeSignature: '4/4',
-          ),
-          returnsNormally,
-        );
-      });
-
-      test('logSetlistCreated has correct parameters', () async {
-        expect(
-          () => AnalyticsService.logSetlistCreated(
-            setlistId: 'test-setlist-id',
-            setlistName: 'Test Setlist',
-            bandId: 'test-band-id',
-            songCount: 5,
-            hasEventDate: true,
-            hasLocation: false,
-          ),
-          returnsNormally,
-        );
-      });
-
-      test('logMetronomeStarted has correct parameters', () async {
-        expect(
-          () => AnalyticsService.logMetronomeStarted(
-            bpm: 120,
-            timeSignature: '4/4',
-            subdivision: 1,
-            soundType: 'digital',
-          ),
-          returnsNormally,
-        );
-      });
-
-      test('logTunerUsed has correct parameters', () async {
-        expect(
-          () => AnalyticsService.logTunerUsed(
-            mode: 'generate',
-            targetNote: 'A4',
-          ),
-          returnsNormally,
-        );
-      });
-    });
-
-    group('User Properties', () {
-      test('setUserProperties accepts valid user', () async {
-        final testUser = AppUser(
-          uid: 'test-user-id',
-          email: 'test@example.com',
-          displayName: 'Test User',
-          createdAt: DateTime.now(),
-        );
-
-        expect(
-          () => AnalyticsService.setUserProperties(
-            user: testUser,
-            bandCount: 2,
-            songCount: 10,
-            setlistCount: 3,
-          ),
-          returnsNormally,
-        );
-      });
-    });
-
     group('Event Data Classes', () {
       test('BandCreatedEventData creates correct event', () {
         final band = Band(

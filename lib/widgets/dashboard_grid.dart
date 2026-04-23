@@ -200,7 +200,10 @@ class DashboardGrid extends StatelessWidget {
             childAspectRatio: gridAspectRatio,
           ),
           itemCount: children.length,
-          itemBuilder: (context, index) => children[index],
+          itemBuilder: (context, index) => FittedBox(
+            fit: BoxFit.contain,
+            child: children[index],
+          ),
         );
       },
     );

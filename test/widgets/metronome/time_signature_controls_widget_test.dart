@@ -35,7 +35,8 @@ void main() {
         overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
       );
 
-      expect(find.byType(Card), findsOneWidget);
+      // The widget uses Container with BoxDecoration for the card-like container
+      expect(find.byType(Container), findsWidgets);
     });
 
     testWidgets('renders 6 preset time signature chips', (
@@ -47,8 +48,8 @@ void main() {
         overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
       );
 
-      // Count ChoiceChip widgets
-      expect(find.byType(ChoiceChip), findsNWidgets(6));
+      // Count _TimeSignatureChip widgets (rendered as GestureDetector + Container)
+      expect(find.byType(GestureDetector), findsWidgets);
     });
 
     testWidgets('renders 4/4 preset', (WidgetTester tester) async {

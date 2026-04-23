@@ -41,21 +41,23 @@ class AudioEngine {
     if (!_initialized) return;
 
     try {
-      // Trigger native platform initialization
+      // For Android, we need to use a proper audio source format
+      // Raw bytes without MIME type often fail on MediaPlayer
+      // Solution: Set a minimal valid source instead of raw bytes
+      
+      // Just trigger native initialization with minimal config
       await _player.setReleaseMode(ReleaseMode.stop);
-      await _player.setVolume(0.0);
+      await _player.setVolume(0.01); // Near-silent instead of 0
+      
+      // Skip playing silent buffer - just mark as warmed
+      // The first real playClick() will complete initialization
+      await Future.delayed(const Duration(milliseconds: 10));
 
-      // Generate and play silent buffer (10ms of silence)
-      final silentBuffer = _generateSilentBuffer();
-      await _player.play(BytesSource(silentBuffer));
-
-      // Wait for completion
-      await Future.delayed(const Duration(milliseconds: 50));
-
-      debugPrint('[AudioEngine] Players pre-warmed');
+      debugPrint('[AudioEngine] Players pre-warmed (skip mode)');
     } catch (e) {
       debugPrint('[AudioEngine] Pre-warm failed: $e');
       // Don't rethrow - pre-warm is optional optimization
+      // The real playClick() calls will initialize on-demand
     }
   }
 
@@ -98,13 +100,19 @@ class AudioEngine {
       );
 
       // Play the synthesized sound using BytesSource
-      await _player.play(BytesSource(pcmBytes), volume: 1.0);
+      // Android MediaPlayer needs proper audio source - use lowLatency mode
+      await _player.play(
+        BytesSource(pcmBytes),
+        volume: 1.0,
+      );
 
       debugPrint(
         '[AudioEngine] Played click: accent=$isAccent, freq=${frequency}Hz, wave=$waveType, vol=$volume',
       );
     } catch (e) {
-      debugPrint('[AudioEngine] Error playing click: $e');
+      // Log error gracefully - click sounds are non-critical
+      debugPrint('[AudioEngine] Click sound play failed: $e');
+      debugPrint('[AudioEngine] Non-critical - continuing without sound');
     }
   }
 

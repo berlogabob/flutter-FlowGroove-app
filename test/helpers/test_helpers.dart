@@ -2,8 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:mockito/mockito.dart';
 import 'mocks.mocks.dart';
+
+// Initialize Firebase for tests (only once)
+bool _firebaseInitialized = false;
+
+Future<void> initializeFirebaseForTests() async {
+  if (!_firebaseInitialized) {
+    try {
+      await Firebase.initializeApp();
+      _firebaseInitialized = true;
+    } catch (e) {
+      // Firebase may already be initialized
+      _firebaseInitialized = true;
+    }
+  }
+}
 
 /// Creates a [ProviderContainer] for testing
 ProviderContainer createProviderContainer() {
@@ -100,6 +116,7 @@ Future<void> pumpAppWidget(
   );
 
   await tester.pump();
+  await tester.pump(); // Second pump for addPostFrameCallback initialization
 }
 
 /// Find widget by text content
