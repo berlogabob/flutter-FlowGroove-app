@@ -1,6 +1,6 @@
 # Memory Index
 
-This folder combines the original memory bank with the learnings that were previously stored in `QWEN.md`.
+This folder combines the protected root memory bank with the learnings that were previously stored in the archived `QWEN.md`.
 
 ## Files
 
@@ -9,7 +9,7 @@ This folder combines the original memory bank with the learnings that were previ
 - `SECURITY_ISSUES.md` — security incidents and fixes
 - `BUILD_DEPLOYMENT_ISSUES.md` — build and deploy incidents
 - `DEPENDENCY_ISSUES.md` — dependency conflicts and upgrade notes
-- `project-learnings.md` — migrated copy of `QWEN.md`
+- `project-learnings.md` — migrated copy of the archived `QWEN.md`
 
 ## Usage
 

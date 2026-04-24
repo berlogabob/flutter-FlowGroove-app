@@ -1,190 +1,119 @@
 #!/bin/bash
 # Session Start Script - FlowGroove Project
 # Usage: ./scripts/session-start.sh "Session goal"
-#
-# This script:
-# 1. Reads NEXT_SESSION.md from previous session
-# 2. Loads QWEN.md context
-# 3. Initializes agent team if needed
-# 4. Creates fresh todo list
-# 5. Sets up session tracking
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-QWEN_DIR="$PROJECT_ROOT/.qwen"
-QWEN_MD="$PROJECT_ROOT/QWEN.md"
-MEMORY_DIR="$PROJECT_ROOT/memory"
+CODEX_DIR="$PROJECT_ROOT/.codex"
+SESSION_DIR="$CODEX_DIR/sessions"
+HANDOFF_FILE="$CODEX_DIR/HANDOFF.md"
+STATUS_FILE="$CODEX_DIR/STATUS.md"
+MEMORY_FILE="$CODEX_DIR/MEMORY.md"
+AGENTS_DIR="$CODEX_DIR/agents"
 
-# Get session goal from argument
+mkdir -p "$SESSION_DIR"
+
 SESSION_GOAL="${1:-}"
 
 echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║           Starting New Qwen Session                       ║"
+echo "║           Starting New Codex Session                      ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 echo "📅 Date: $(date +%Y-%m-%d)"
 echo "🕐 Time: $(date +%H:%M:%S)"
 echo ""
 
-# Step 1: Check for previous session context
-echo "📋 Step 1: Checking previous session context..."
-NEXT_SESSION_FILE="$QWEN_DIR/NEXT_SESSION.md"
-SESSION_STATE_FILE="$QWEN_DIR/SESSION_STATE.md"
-
-if [ -f "$NEXT_SESSION_FILE" ]; then
-    echo "   ✅ Found NEXT_SESSION.md from previous session"
-    echo ""
-    echo "   ┌─────────────────────────────────────────────────────"
-    echo "   │ Previous Session Context:"
-    echo "   └─────────────────────────────────────────────────────"
-    head -20 "$NEXT_SESSION_FILE" | grep -v "^---" | grep -v "^*Generated"
-    echo "   ─────────────────────────────────────────────────────"
-    echo ""
-    
-    # Ask if user wants to review full context
-    read -p "📖 Review full NEXT_SESSION.md? (y/N): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        cat "$NEXT_SESSION_FILE"
-        echo ""
-    fi
+echo "📋 Step 1: Checking handoff and status..."
+if [ -f "$HANDOFF_FILE" ]; then
+    echo "   ✅ Found HANDOFF.md"
+    echo "   Preview:"
+    head -20 "$HANDOFF_FILE" | grep -v "^$" | sed 's/^/   /'
 else
-    echo "   ℹ️  No previous session context found (first session?)"
+    echo "   ℹ️  No HANDOFF.md found"
+fi
+
+if [ -f "$STATUS_FILE" ]; then
+    echo "   ✅ Found STATUS.md"
+else
+    echo "   ℹ️  No STATUS.md found"
 fi
 echo ""
 
-# Step 2: Load QWEN.md context
-echo "📚 Step 2: Loading QWEN.md context..."
-if [ -f "$QWEN_MD" ]; then
-    echo "   ✅ QWEN.md found"
-    echo ""
-    echo "   Recent patterns from QWEN.md:"
-    echo "   ┌─────────────────────────────────────────────────────"
-    grep -A 2 "### SESSION COMPLETE" "$QWEN_MD" | head -10
-    echo "   ─────────────────────────────────────────────────────"
+echo "📚 Step 2: Reviewing durable memory..."
+if [ -f "$MEMORY_FILE" ]; then
+    echo "   ✅ Found MEMORY.md"
+    echo "   Key sections:"
+    grep '^## ' "$MEMORY_FILE" | sed 's/^/   /'
 else
-    echo "   ⚠️  QWEN.md not found - creating template..."
-    cat > "$QWEN_MD" << 'EOF'
-## Qwen Added Memories
-
-### Active Session
-**Started:** YYYY-MM-DD
-**Goal:** 
-
-**Key Decisions:**
-- 
-
-**Files Modified:**
-- 
-
----
-
-### Past Sessions
-<!-- Completed sessions will be archived here -->
-
-EOF
-    echo "   ✅ Created QWEN.md template"
+    echo "   ⚠️  MEMORY.md not found"
 fi
 echo ""
 
-# Step 3: Check session state
-echo "📊 Step 3: Checking session state..."
-if [ -f "$SESSION_STATE_FILE" ]; then
-    echo "   ✅ Found SESSION_STATE.md"
-    LAST_SESSION=$(grep "**Session Ended:**" "$SESSION_STATE_FILE" 2>/dev/null | head -1 || echo "Unknown")
-    echo "   Last session: $LAST_SESSION"
-else
-    echo "   ℹ️  No previous session state found"
-fi
-echo ""
-
-# Step 4: Git status check
-echo "🔀 Step 4: Checking git status..."
+echo "🔀 Step 3: Checking git status..."
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "Unknown")
 echo "   Current branch: $CURRENT_BRANCH"
 
 UNCOMMITTED=$(git status --short 2>/dev/null | wc -l | tr -d ' ')
 if [ "$UNCOMMITTED" -gt 0 ]; then
     echo "   ⚠️  You have $UNCOMMITTED uncommitted changes"
-    echo ""
-    echo "   Uncommitted files:"
-    git status --short 2>/dev/null | head -10
-    echo ""
-    read -p "🔧 Commit these before starting new session? (y/N): " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        git add -A
-        git commit -m "chore: Pre-session cleanup $(date +%Y-%m-%d)"
-        echo "   ✅ Changes committed"
-    fi
+    git status --short 2>/dev/null | head -10 | sed 's/^/   /'
 else
     echo "   ✅ Working tree clean"
 fi
 echo ""
 
-# Step 5: Set session goal
-echo "🎯 Step 5: Session goal..."
+echo "🎯 Step 4: Session goal..."
 if [ -z "$SESSION_GOAL" ]; then
-    echo "   Enter the main goal for this session:"
-    echo "   (e.g., 'Fix theme compliance', 'Add new feature', 'Refactor auth')"
-    read -p "   Goal: " SESSION_GOAL
+    read -r -p "   Goal: " SESSION_GOAL
 fi
 
-if [ -n "$SESSION_GOAL" ]; then
-    echo "   ✅ Session goal: $SESSION_GOAL"
-else
+if [ -z "$SESSION_GOAL" ]; then
     SESSION_GOAL="General development"
-    echo "   ℹ️  Using default goal: $SESSION_GOAL"
 fi
+echo "   ✅ Session goal: $SESSION_GOAL"
 echo ""
 
-# Step 6: Initialize agent team (if needed)
-echo "🤖 Step 6: Agent team status..."
-if [ -d "$QWEN_DIR/agents" ]; then
-    AGENT_COUNT=$(ls -1 "$QWEN_DIR/agents"/*.md 2>/dev/null | wc -l | tr -d ' ')
+echo "🤖 Step 5: Agent inventory..."
+if [ -d "$AGENTS_DIR" ]; then
+    AGENT_COUNT=$(find "$AGENTS_DIR" -maxdepth 1 -type f -name '*.md' ! -name 'README.md' | wc -l | tr -d ' ')
     echo "   ✅ $AGENT_COUNT specialist agents available"
-    echo ""
-    echo "   Available agents:"
-    ls -1 "$QWEN_DIR/agents"/*.md 2>/dev/null | xargs -I {} basename {} .md | sed 's/^/   - /'
+    find "$AGENTS_DIR" -maxdepth 1 -type f -name '*.md' ! -name 'README.md' | sort | xargs -I {} basename {} .md | sed 's/^/   - /'
 else
-    echo "   ℹ️  No specialist agents configured"
-    echo "   Agents will be activated on-demand"
+    echo "   ℹ️  No agent directory found"
 fi
 echo ""
 
-# Step 7: Create session tracking file
-echo "📝 Step 7: Creating session tracking..."
-SESSION_TRACKING="$QWEN_DIR/ACTIVE_SESSION.md"
+echo "📝 Step 6: Creating session tracking snapshot..."
+SESSION_TRACKING="$SESSION_DIR/ACTIVE_SESSION.md"
 
 cat > "$SESSION_TRACKING" << EOF
 # Active Session - $(date +%Y-%m-%d)
 
 **Started:** $(date +"%Y-%m-%d %H:%M:%S")
 **Goal:** $SESSION_GOAL
+**Branch:** $CURRENT_BRANCH
+
+## Control Plane
+- Read first: .codex/AGENTS.md
+- Durable memory: .codex/MEMORY.md
+- Current state: .codex/STATUS.md
+- Baton pass: .codex/HANDOFF.md
 
 ## Current Focus
 - $SESSION_GOAL
 
 ## Tasks
-<!-- Add tasks as they come up -->
 - [ ] 
 
 ## Files Modified
-<!-- Track files changed this session -->
-- 
-
-## Agents Used
-<!-- Track which agents were activated -->
 - 
 
 ## Decisions Made
-<!-- Record important decisions -->
 - 
 
 ## Notes
-<!-- Session notes and observations -->
 
 ---
 *Created by session-start.sh*
@@ -193,7 +122,6 @@ EOF
 echo "   ✅ Session tracking created: $SESSION_TRACKING"
 echo ""
 
-# Step 8: Show summary
 echo "╔═══════════════════════════════════════════════════════════╗"
 echo "║           ✅ Session Started Successfully                 ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
@@ -204,21 +132,13 @@ echo "   Branch: $CURRENT_BRANCH"
 echo "   Time: $(date +"%H:%M:%S")"
 echo ""
 echo "📁 Session Files:"
-echo "   - $SESSION_TRACKING (active tracking)"
-echo "   - $QWEN_MD (project memory)"
-if [ -f "$NEXT_SESSION_FILE" ]; then
-    echo "   - $NEXT_SESSION_FILE (previous context)"
-fi
+echo "   - $SESSION_TRACKING"
+echo "   - $MEMORY_FILE"
+echo "   - $STATUS_FILE"
+echo "   - $HANDOFF_FILE"
 echo ""
 echo "🎯 Quick Start:"
-echo "   1. Review your goal: $SESSION_GOAL"
-echo "   2. Check ACTIVE_SESSION.md for task tracking"
-echo "   3. Start working! Agents will activate on-demand"
-echo ""
-echo "💡 Tips:"
-echo "   - Use 'todo_write' tool to track tasks"
-echo "   - Delegate to specialist agents when needed"
-echo "   - Run ./scripts/session-end.sh when done"
-echo ""
-echo "🚀 Ready to start!"
+echo "   1. Review .codex/AGENTS.md"
+echo "   2. Execute one bounded milestone"
+echo "   3. Update STATUS.md and HANDOFF.md before stopping"
 echo ""

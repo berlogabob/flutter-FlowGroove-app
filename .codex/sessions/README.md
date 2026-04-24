@@ -1,6 +1,6 @@
 # Sessions
 
-This folder contains copied Qwen session/runtime artifacts.
+This folder contains copied Qwen session/runtime artifacts plus current Codex session snapshots.
 
 ## Included
 
@@ -12,7 +12,7 @@ This folder contains copied Qwen session/runtime artifacts.
 
 ## Important
 
-- These files were copied as historical records.
+- The historical source came from the archived Qwen context under `oldarchive/qwen/.qwen/`.
 - They were not fully rewritten to the `.codex/` path scheme.
 - Expect references to original `.qwen/` files and `QWEN.md` inside them.
 

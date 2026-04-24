@@ -1,50 +1,40 @@
 #!/bin/bash
 # Session End Script - FlowGroove Project
 # Usage: ./scripts/session-end.sh "Session description"
-#
-# This script:
-# 1. Exports chat conversation to chat-exports-collection/
-# 2. Saves current state to .qwen/SESSION_STATE.md
-# 3. Creates NEXT_SESSION.md with context for next session
-# 4. Cleans up temporary files
-# 5. Commits session artifacts
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-QWEN_DIR="$PROJECT_ROOT/.qwen"
-EXPORTS_DIR="$PROJECT_ROOT/chat-exports-collection"
+CODEX_DIR="$PROJECT_ROOT/.codex"
+SESSION_DIR="$CODEX_DIR/sessions"
+EXPORTS_DIR="$SESSION_DIR/exports"
+STATUS_FILE="$CODEX_DIR/STATUS.md"
+HANDOFF_FILE="$CODEX_DIR/HANDOFF.md"
+DECISIONS_FILE="$CODEX_DIR/DECISIONS.md"
 DATE_STAMP=$(date +%Y-%m-%d)
 TIMESTAMP=$(date +%Y-%m-%dT%H-%M-%S)
 
-# Get session description from argument or use default
+mkdir -p "$SESSION_DIR" "$EXPORTS_DIR"
+
 SESSION_DESC="${1:-Session $(date +%Y-%m-%d)}"
 
 echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║              Ending Qwen Session                          ║"
+echo "║              Ending Codex Session                         ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 echo "📝 Session: $SESSION_DESC"
 echo "📅 Date: $DATE_STAMP"
 echo ""
 
-# Step 1: Export chat conversation
-echo "📤 Step 1: Exporting chat conversation..."
-if [ -d "$EXPORTS_DIR" ]; then
-    EXPORT_FILE="$EXPORTS_DIR/${DATE_STAMP}_session-${TIMESTAMP}.md"
-    echo "   Export location: $EXPORT_FILE"
-    echo "   ⚠️  Manual step: Use Qwen's export feature to save conversation"
-    echo "   (Automatic export requires Qwen API access)"
-else
-    echo "   ⚠️  Creating exports directory..."
-    mkdir -p "$EXPORTS_DIR"
-fi
+echo "📤 Step 1: Reserving export location..."
+EXPORT_FILE="$EXPORTS_DIR/${DATE_STAMP}_session-${TIMESTAMP}.md"
+echo "   Export location: $EXPORT_FILE"
+echo "   ℹ️  Manual step: save any chat export here if you need a durable transcript"
 echo ""
 
-# Step 2: Save current session state
 echo "📝 Step 2: Saving session state..."
-STATE_FILE="$QWEN_DIR/SESSION_STATE.md"
+STATE_FILE="$SESSION_DIR/SESSION_STATE.md"
 
 cat > "$STATE_FILE" << EOF
 # Session State - $DATE_STAMP
@@ -58,15 +48,13 @@ $(git branch --show-current 2>/dev/null || echo "Unknown")
 ## Recent Commits
 $(git log --oneline -5 2>/dev/null || echo "Unable to get git log")
 
-## Open Tasks (if any)
-- [ ] TODO: Add any incomplete tasks here
-
 ## Files Modified This Session
 $(git status --short 2>/dev/null | head -20 || echo "Unable to get git status")
 
-## Agent Status
-- All agents: STANDBY
-- Active tasks: NONE
+## Active Control Plane
+- Status file: .codex/STATUS.md
+- Handoff file: .codex/HANDOFF.md
+- Decisions file: .codex/DECISIONS.md
 
 ## Notes
 Add any important context for the next session here.
@@ -78,9 +66,8 @@ EOF
 echo "   ✅ Session state saved to: $STATE_FILE"
 echo ""
 
-# Step 3: Create next session context
-echo "📋 Step 3: Creating next session context..."
-NEXT_SESSION_FILE="$QWEN_DIR/NEXT_SESSION.md"
+echo "📋 Step 3: Creating next session snapshot..."
+NEXT_SESSION_FILE="$SESSION_DIR/NEXT_SESSION.md"
 
 cat > "$NEXT_SESSION_FILE" << EOF
 # Next Session Context
@@ -89,33 +76,30 @@ cat > "$NEXT_SESSION_FILE" << EOF
 **Previous Session Description:** $SESSION_DESC
 
 ## Carry-Over Tasks
-<!-- List any incomplete tasks from previous session -->
 - [ ] 
 
 ## Current Focus
-<!-- What should the next session focus on? -->
 - 
 
 ## Important Context
-<!-- Any critical information the next session needs -->
-- 
+- Review .codex/STATUS.md
+- Review .codex/HANDOFF.md
+- Review .codex/DECISIONS.md if decisions changed
 
 ## Branch Status
 Current branch: $(git branch --show-current 2>/dev/null || echo "Unknown")
 Last commit: $(git log -1 --oneline 2>/dev/null || echo "Unknown")
 
 ## Files to Review
-<!-- List any files that need attention -->
-- 
+- .codex/STATUS.md
+- .codex/HANDOFF.md
+- .codex/MEMORY.md
 
-## Agents to Wake
-<!-- Which specialist agents will be needed? -->
-- [ ] mr-senior-developer (code review)
-- [ ] mr-tester (testing)
-- [ ] mr-theme-guardian (theme compliance)
-- [ ] mr-widget-crafter (widget creation)
-- [ ] mr-cleaner (code cleanup)
-- [ ] mr-architect (architecture review)
+## Agents to Consider
+- [ ] mr-senior-developer
+- [ ] mr-tester
+- [ ] mr-cleaner
+- [ ] mr-architect
 - [ ] Other: 
 
 ---
@@ -125,37 +109,19 @@ EOF
 echo "   ✅ Next session context saved to: $NEXT_SESSION_FILE"
 echo ""
 
-# Step 4: Clean up temporary files
-echo "🧹 Step 4: Cleaning up temporary files..."
+echo "🧹 Step 4: Cleaning temporary files..."
 CLEANED=0
-
-# Clean build artifacts (optional - uncomment if needed)
-# if [ -d "$PROJECT_ROOT/build" ]; then
-#     echo "   Removing build artifacts..."
-#     rm -rf "$PROJECT_ROOT/build"
-#     CLEANED=1
-# fi
-
-# Clean .dart_tool (optional - uncomment if needed)
-# if [ -d "$PROJECT_ROOT/.dart_tool" ]; then
-#     echo "   Removing .dart_tool..."
-#     rm -rf "$PROJECT_ROOT/.dart_tool"
-#     CLEANED=1
-# fi
-
-# Clean temporary files
 find "$PROJECT_ROOT" -name "*.bak" -type f -delete 2>/dev/null && CLEANED=1
 find "$PROJECT_ROOT" -name "*.tmp" -type f -delete 2>/dev/null && CLEANED=1
 find "$PROJECT_ROOT" -name ".DS_Store" -type f -delete 2>/dev/null && CLEANED=1
 
-if [ $CLEANED -eq 1 ]; then
+if [ "$CLEANED" -eq 1 ]; then
     echo "   ✅ Temporary files cleaned"
 else
     echo "   ℹ️  No temporary files to clean"
 fi
 echo ""
 
-# Step 5: Show summary
 echo "╔═══════════════════════════════════════════════════════════╗"
 echo "║              ✅ Session Ended Successfully                ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
@@ -169,17 +135,14 @@ echo "📁 Generated Files:"
 echo "   - $STATE_FILE"
 echo "   - $NEXT_SESSION_FILE"
 echo ""
-echo "📝 Next Steps:"
-echo "   1. Review $NEXT_SESSION_FILE"
-echo "   2. Add any incomplete tasks"
-echo "   3. Commit session artifacts (if desired)"
+echo "📝 Before you stop:"
+echo "   1. Update $STATUS_FILE"
+echo "   2. Update $HANDOFF_FILE"
+echo "   3. Update $DECISIONS_FILE if a durable decision was made"
 echo "   4. Start next session with: ./scripts/session-start.sh"
 echo ""
-echo "💡 Tip: Review QWEN.md before starting next session"
-echo ""
 
-# Optional: Auto-commit session artifacts
-read -p "🔧 Commit session artifacts now? (y/N): " -n 1 -r
+read -r -p "🔧 Commit session artifacts now? (y/N): " -n 1 -r
 echo ""
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "📝 Committing session artifacts..."
@@ -187,7 +150,4 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     git commit -m "chore: End session - $SESSION_DESC" || echo "   ℹ️  No changes to commit"
     echo "   ✅ Session artifacts committed"
 fi
-echo ""
-
-echo "👋 Session ended. See you next time!"
 echo ""

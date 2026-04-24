@@ -8,7 +8,9 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 
 - The repo contains a Flutter app, Hugo site, Telegram bot, Firebase Functions, and imported AI workspace context.
 - `.codex/` is the normalized active reference tree.
-- `.qwen/` and `memory/` remain preserved source context.
+- `memory/` remains the protected root memory bank.
+- Archived Qwen source context lives under `oldarchive/qwen/`.
+- `oldarchive/` is the single archive zone for legacy context, exports, backups, and local generated state.
 - Safe GitHub Pages preview command is `make -f Makefile.hugo deploy-all`.
 - `make deploy-test` is Flutter-only and overwrites `docs/` root output.
 - Production deploy command is `make deploy-stable`.
@@ -16,8 +18,9 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 ## Current Operational Risks
 
 - `web/config.js` is tracked in git and currently causes the security audit to fail.
-- Repo-wide `flutter analyze` is polluted by hard errors in `backup/config-modernization-2026-04-02/`.
+- Archived code is excluded under `oldarchive/**`, but the live repo still has a large lint backlog.
 - Live app and test code still carry a large lint backlog.
+- Archived exports, backup snapshots, and legacy session files must stay out of commits because even deletion diffs can surface old credential material.
 
 ## Durable Working Rules
 
@@ -26,6 +29,7 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - One milestone at a time.
 - Validation before advancement.
 - Memory, status, and handoff must be updated before the next milestone.
+- Before committing, scan staged diffs for credential-bearing paths like `backup/`, `chat-exports-collection/`, `.env*`, and legacy exports.
 
 ## Reference Bank
 

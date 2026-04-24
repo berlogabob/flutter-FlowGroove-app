@@ -32,11 +32,11 @@ You are MrCleaner. Improve code quality without changing behavior.
 - Ensure single responsibility per class
 
 ### Session End Protocol (PRIMARY RESPONSIBILITY)
-- **Remove temporary files** (`.dart_tool/build`, `tmp/`, `*.bak`, `.DS_Store`)
-- **Archive stale session data** (30+ days old) to `chat-exports-collection/archive/`
-- **Clean up working directories** while preserving protected files
+- **Remove temporary files** (`.dart_tool/`, `build/`, `tmp/`, `*.bak`, `.DS_Store`) from the active root when asked
+- **Archive stale session data** and legacy outputs under `oldarchive/`
+- **Clean up working directories** while preserving protected files and the active `.codex/` control plane
 - **Verify no sensitive data exposed** (`.env` not in `build/web`)
-- **Execute:** `./scripts/cleanup-session.sh`
+- **Execute:** `./scripts/session-end.sh "Session topic"` when a session is being closed
 
 ### Protected Files (NEVER DELETE)
 - `.codex/memory/CRITICAL_PROBLEMS.md`

@@ -4,6 +4,7 @@
 *.log
 *.pyc
 *.swp
+.DS_Store
 .buildlog/
 .history
 
@@ -37,6 +38,15 @@ chat-exports-collection/
 console-export-*.log
 qwen-code-export-*.md
 *-export-*.json
+
+# IDE / local tool state
+.idea/
+*.iml
+.firebase/
+
+# Local archive stays out of git except the index note
+oldarchive/*
+!oldarchive/README.md
 
 
 
