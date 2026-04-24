@@ -2,7 +2,7 @@
 
 ## Current Goal
 
-Operationalize `.codex/` as a strict sequential self-guided control plane.
+Consolidate the imported Qwen workflow into `.codex/`, clean the root, and archive non-working-root materials under `oldarchive/`.
 
 ## Mode
 
@@ -12,16 +12,19 @@ Operationalize `.codex/` as a strict sequential self-guided control plane.
 
 ## Validation
 
-- verify control-plane files exist and are internally consistent
-- verify `.codex/README.md` and `.codex/rules/operating-rules.md` reference the new control plane
+- verify `.codex/` still contains the full imported agent/rule/task/session/config set
+- verify missing design artifacts are now preserved under `.codex/design/`
+- verify active docs and session scripts reference `.codex/` and `oldarchive/`
+- verify the repo root contains only active working areas plus `oldarchive/`
 
 ## Milestones
 
 | ID | Milestone | Status | Validation |
 |---|---|---|---|
-| M1 | Create root control-plane files in `.codex/` | complete | files present |
-| M2 | Encode sequential protocol and memory rules | complete | AGENTS/MEMORY/STATUS/HANDOFF/DECISIONS coherent |
-| M3 | Update `.codex` index and rules docs | complete | README and operating-rules updated |
+| M1 | Verify `.qwen` to `.codex` migration completeness and import missing design material | complete | agent/task/session/config/design parity confirmed |
+| M2 | Update active docs, rules, and session scripts to the `.codex/` + `oldarchive/` scheme | complete | stale live references removed from active docs/scripts |
+| M3 | Move legacy root artifacts, exports, backups, and temp state into `oldarchive/` | complete | root cleaned and archive structure created |
+| M4 | Update memory, status, handoff, and decisions after cleanup | complete | control-plane files reflect the new canonical layout |
 
 ## Next Plan Template
 

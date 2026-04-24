@@ -1,12 +1,13 @@
 # Codex Workspace Mirror
 
-This directory is a non-destructive mirror of the live Qwen project context that was found in:
+This directory is the active Codex workspace for the imported project context.
 
-- `.qwen/`
+Its source material came from the legacy Qwen layout and the protected root memory bank:
+
+- `oldarchive/qwen/`
 - `memory/`
-- `QWEN.md`
 
-The original source files remain untouched. `.codex/` is the normalized layout for working with the same material in a cleaner structure.
+`.codex/` is now the canonical working layout for the imported agent, rule, memory, and session material.
 
 It now also contains an active sequential self-guided control plane for ongoing work.
 
@@ -20,7 +21,8 @@ It now also contains an active sequential self-guided control plane for ongoing 
 - `DECISIONS.md` — durable architectural and workflow decisions
 - `agents/` — imported agent definitions. The specialist agent files are the effective subagents.
 - `rules/` — protected-file policy, sequential workflow protocol, and a normalized operating-rules summary.
-- `memory/` — memory bank plus migrated project learnings from `QWEN.md`.
+- `memory/` — memory bank plus migrated project learnings from the archived `QWEN.md`.
+- `design/` — imported design notes and implementation proposals that did not fit the agent/rule/memory split.
 - `sessions/` — copied session/runtime snapshots from the Qwen workflow.
 - `tasks/` — copied task briefs and sprint assignments.
 - `config/` — imported Qwen settings snapshots.

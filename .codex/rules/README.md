@@ -1,6 +1,6 @@
 # Rules
 
-This folder holds the policy layer that was previously spread across `.qwen/agents/README.md`, `.qwen/agents/sequential-workflow.md`, `.qwen/agents/PROTECTED_FILES_RULE.md`, and rule-heavy sections of `QWEN.md`.
+This folder holds the policy layer that was previously spread across the legacy `.qwen/agents/README.md`, `.qwen/agents/sequential-workflow.md`, `.qwen/agents/PROTECTED_FILES_RULE.md`, and rule-heavy sections of the archived `QWEN.md`.
 
 ## Files
 

@@ -11,7 +11,7 @@ This repository contains five meaningful systems:
 2. Hugo marketing site
 3. Telegram support bot
 4. Firebase Functions workspace
-5. Imported AI workspace context (`.qwen/`, `memory/`, `.codex/`)
+5. Imported AI workspace context (`memory/`, `.codex/`)
 
 The operational product is split across the Flutter app and the Hugo site. The other areas support deployment, support operations, and continuity.
 
@@ -26,9 +26,9 @@ flutter_repsync_app/
 ├── telegram_bot/       # Telegram support bot
 ├── functions/          # Firebase Functions
 ├── scripts/            # build, deploy, session, and maintenance scripts
-├── memory/             # original Qwen memory bank
-├── .qwen/              # original Qwen agent/task context
-└── .codex/             # normalized Codex mirror of imported Qwen context
+├── memory/             # protected project memory bank
+├── .codex/             # active Codex control plane and imported workspace context
+└── oldarchive/         # archived Qwen context, exports, backups, and legacy support files
 ```
 
 ## Runtime Systems
@@ -104,11 +104,11 @@ The directory is present and versioned, but it was not deeply validated during t
 
 ### 5. AI Workspace Context
 
-The repo contains both the original Qwen workspace context and the normalized Codex mirror:
+The repo keeps a protected memory bank and a normalized Codex control plane:
 
-- `.qwen/` - original imported agent/task/session files
-- `memory/` - original memory bank
-- `.codex/` - preferred normalized structure for that imported material
+- `memory/` - protected root memory bank
+- `.codex/` - preferred active structure for agents, rules, tasks, sessions, and durable workflow state
+- `oldarchive/` - archived Qwen source context and related historical outputs
 
 This context is operational documentation, not app runtime code.
 
@@ -207,8 +207,9 @@ Result:
 ### Generated And Historical Areas
 
 - `docs/` mixes generated site output and human-written reports
-- `backup/` contains historical snapshots and currently introduces analyzer errors when the entire repo is analyzed
-- `chat-exports-collection/`, `git-history-analysis/`, and `screenshots/` are archival/supporting areas
+- `oldarchive/` contains archived Qwen context, exports, legacy scripts, local state, and historical snapshots
+- `oldarchive/**` is excluded from analyzer scope so archived code does not pollute live repo checks
+- `screenshots/` remains a documentation-support asset directory used by current reports
 
 ### Validation Snapshot
 
@@ -217,6 +218,6 @@ As of April 24, 2026:
 - scoped config tests pass
 - repo-wide security audit fails
 - repo-wide analyzer output is dominated by lint backlog
-- explicit hard analyzer errors were observed in `backup/config-modernization-2026-04-02/`
+- the April 24 audit captured explicit hard analyzer errors from the pre-archive `backup/config-modernization-2026-04-02/` snapshot
 
 See `docs/project-audit-2026-04-24.md` for the full audit.

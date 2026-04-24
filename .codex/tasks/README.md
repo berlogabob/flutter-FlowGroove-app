@@ -1,6 +1,6 @@
 # Tasks
 
-This folder contains copied task briefs from `.qwen/tasks/`.
+This folder contains copied task briefs from the archived `.qwen/tasks/` source.
 
 ## What They Are
 

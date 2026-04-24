@@ -19,19 +19,26 @@ This file records how the live Qwen structure was mirrored into `.codex/`.
 | `.qwen/CHAIN_LOG.md` | `.codex/sessions/CHAIN_LOG.md` | Historical copy. |
 | `.qwen/tasks/*.md` | `.codex/tasks/*.md` | Historical task briefs. |
 | `.qwen/settings.json*` | `.codex/config/imported-qwen-settings*.json` | Imported provenance snapshots. |
+| `.qwen/tuner_improvements_design.md` | `.codex/design/tuner-improvements-design.md` | Imported design note preserved as reference. |
 
-## Intentionally Excluded
+## Archived Legacy Paths
 
-- `docs/archive/` — historical reports, outside the live agent/rules/memory system
-- `git-history-analysis/` — analysis output, not active runtime configuration
-- `qwen-code-export-*.md` — raw exports, large archival artifacts
-- `scripts/session-start.sh`, `scripts/session-end.sh`, `scripts/README.session-management.md` — workflow tooling was scanned for context but not migrated in this pass
+The original source material and related historical outputs are preserved under `oldarchive/`:
+
+- `.qwen/` → `oldarchive/qwen/.qwen/`
+- `QWEN.md` → `oldarchive/qwen/QWEN.md`
+- `backup/` → `oldarchive/backup/backup/`
+- `chat-exports-collection/` → `oldarchive/exports/chat-exports-collection/`
+- `git-history-analysis/` → `oldarchive/analysis/git-history-analysis/`
+- `qwen-code-export-*.md` → `oldarchive/exports/`
+- legacy export-analysis scripts → `oldarchive/legacy-scripts/`
 
 ## Migration Style
 
-- Non-destructive: source files remain where they were.
-- Copy-first: `.codex/` is a mirror, not a replacement.
-- Normalized only where useful: top-level docs and a few active agent prompts were updated to reference `.codex/` paths.
+- Copy-first migration established `.codex/` from the imported Qwen source.
+- Cleanup then archived the original Qwen root artifacts under `oldarchive/`.
+- `.codex/` is now the active canonical tree for the imported workflow material.
+- Normalization was applied where active docs and agent prompts needed current paths.
 
 ## Codex-Native Additions
 

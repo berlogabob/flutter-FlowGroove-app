@@ -282,8 +282,8 @@ git submodule update --init --recursive
 - Email: hello@flowgroove.app
 
 **Agent System:**
-- Sequential workflow: `.qwen/agents/sequential-workflow.md`
-- Agent directory: `.qwen/agents/`
+- Sequential workflow: `.codex/rules/sequential-workflow.md`
+- Agent directory: `.codex/agents/`
 
 ---
 

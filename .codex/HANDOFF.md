@@ -4,7 +4,7 @@
 
 ## Current Checkpoint
 
-The `.codex/` workspace is initialized for strict sequential self-guided work.
+The root cleanup and Qwen-to-Codex consolidation pass is complete.
 
 ## Must Read First
 
@@ -16,8 +16,9 @@ The `.codex/` workspace is initialized for strict sequential self-guided work.
 
 ## Current Situation
 
-- No unfinished implementation checkpoint is open
-- The next task can start from a clean sequential protocol
+- `.codex/` is the active internal control plane
+- `memory/` remains the protected root memory bank
+- Legacy context now lives under `oldarchive/`
 - Historical session context remains under `.codex/sessions/`
 
 ## Next Agent Instructions
@@ -29,5 +30,5 @@ The `.codex/` workspace is initialized for strict sequential self-guided work.
 ## Suggested Next Tasks
 
 - resolve security audit failure around `web/config.js`
-- reduce analyzer noise from archived backup code
-- adopt this control plane on the next code change
+- reduce live analyzer noise in `lib/` and `test/`
+- keep new work out of `oldarchive/` and use `.codex/` as the only active workflow layer

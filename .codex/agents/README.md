@@ -4,7 +4,7 @@ This folder contains the imported Qwen agent catalog in a flatter, Codex-friendl
 
 ## What Was Moved
 
-- 24 agent definition files were copied from `.qwen/agents/`.
+- 24 agent definition files were copied from the original `.qwen/agents/` source and are now maintained here.
 - There was no separate `subagents/` directory in the source tree.
 - In practice, the specialist agent prompt files are the subagent layer.
 

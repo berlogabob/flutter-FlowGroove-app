@@ -171,13 +171,9 @@ bash test/security/git_audit_test.sh
 
 The repo currently tracks `web/config.js`. That means generated config handling is not yet fully aligned with the intended security model.
 
-### Risk 3: Backup Snapshot In Analyzer Scope
+### Risk 3: Live Analyzer Backlog
 
-Repo-wide analysis currently reports hard errors from:
-
-- `backup/config-modernization-2026-04-02/`
-
-That folder is historical, but it still affects whole-repo analysis.
+Historical snapshots are archived under `oldarchive/` and excluded from analyzer scope, but the live repo still carries a large lint backlog in app and test code.
 
 ## Documentation
 

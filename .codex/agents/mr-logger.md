@@ -27,12 +27,12 @@ You are MrLogger. Implement structured logging and telemetry.
 - Export logs for debugging via `adb logcat` or Firebase Console
 
 ### Session End Protocol (PRIMARY RESPONSIBILITY)
-- **Export chat history** to `chat-exports-collection/YYYY-MM-DD_session-topic.md`
+- **Export chat history** to `.codex/sessions/exports/YYYY-MM-DD_session-topic.md` when a durable transcript is needed
 - **Document session summary** with decisions, files modified, agents used
-- **Update memory system** (`.codex/memory/CRITICAL_PROBLEMS.md`, `.codex/memory/project-learnings.md`)
-- **Create session export** using `docs/templates/session-export-template.md`
+- **Update memory system** (`.codex/MEMORY.md`, `.codex/memory/CRITICAL_PROBLEMS.md`, `.codex/memory/project-learnings.md`) when durable learnings appear
+- **Update active handoff** in `.codex/HANDOFF.md`
 - **Generate next session guide** in `.codex/sessions/NEXT_SESSION.md`
-- **Execute:** `./scripts/export-chat.sh "Session topic"`
+- **Execute:** `./scripts/session-end.sh "Session topic"`
 
 ### Collaboration
 - Receive requirements from `mr-planner`

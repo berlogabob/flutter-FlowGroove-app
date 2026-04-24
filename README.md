@@ -4,7 +4,7 @@
 [![Dart Version](https://img.shields.io/badge/Dart-3.11+-blue.svg)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-FlowGroove is a Flutter app for managing band repertoires, setlists, and shared song databases for cover bands. This repository also contains the Hugo marketing site, a Telegram support bot, Firebase functions, and the imported Qwen-to-Codex workspace mirror.
+FlowGroove is a Flutter app for managing band repertoires, setlists, and shared song databases for cover bands. This repository also contains the Hugo marketing site, a Telegram support bot, Firebase functions, the active `.codex/` internal workspace, and an `oldarchive/` area for legacy materials.
 
 ## Quick Start
 
@@ -88,8 +88,9 @@ Deploys Hugo to `https://flowgroove.app/` and Flutter web to `https://flowgroove
 - `docs/` - generated GitHub Pages output plus project reports
 - `telegram_bot/` - Telegram support bot
 - `functions/` - Firebase Functions source
-- `.codex/` - normalized mirror of imported Qwen agents, rules, memory, and task context
-- `.qwen/` and `memory/` - original imported Qwen project context retained in place
+- `.codex/` - active internal workspace for agents, rules, memory, tasks, and session control
+- `memory/` - protected project memory bank retained at the repo root
+- `oldarchive/` - archived Qwen context, exports, reports, snapshots, and legacy support files
 
 ### Current File Counts
 
@@ -144,10 +145,10 @@ Audit date: April 24, 2026
 
 - `flutter test test/config/`: 62 passed
 - `bash test/security/git_audit_test.sh`: failed
-- `flutter analyze`: 4411 issues across the whole repo, with explicit hard errors observed in `backup/config-modernization-2026-04-02/`
+- `flutter analyze`: 4411 issues across the whole repo before archival cleanup
 - `flutter analyze lib test`: 3996 issues across live app/test code, dominated by lint backlog
 
-See the dated audit report for details and prioritized findings.
+See the dated audit report for details and prioritized findings. Legacy archived material now lives under `oldarchive/` and is excluded from analyzer scope.
 
 ## Security Notes
 
@@ -160,4 +161,4 @@ See the dated audit report for details and prioritized findings.
 
 - Version: `0.13.4+183`
 - Last updated: April 24, 2026
-- Current project state: active development with significant documentation cleanup completed in this pass
+- Current project state: active development with `.codex/` as the canonical internal layer and `oldarchive/` for legacy context

@@ -32,7 +32,7 @@
 
 ### Data Flow
 
-```
+```text
 User gestures (drag dial) → GestureDetector → Notifier.updateFrequency()
   → State update (frequency, note, cents) → CentralDial rebuild
   → TickMarks + NoteScaleRuler read from state → repaint
@@ -94,7 +94,7 @@ User taps Settings → TransportBar → showBottomSheet(TunerSettingsSheet)
 - Use existing `tune_outlined` icon or switch to `settings_outlined`
 
 **File:** `lib/widgets/tuner/tuner_settings_sheet.dart` (NEW)
-```
+```text
 TunerSettingsSheet (StatelessWidget)
 ├── Section: Calibration
 │   └── Slider: 432 Hz — 440 Hz — 445 Hz
@@ -139,7 +139,7 @@ Chromatic note labels around the dial perimeter:
   - **B:** Remove volume icon, control volume via settings sheet
   - **C:** Replace with simple mute toggle (tap = mute/unmute)
 
-**Recommendation:** Option C — simplest, aligns with user feedback that mute duplicates play/stop. 
+**Recommendation:** Option C — simplest, aligns with user feedback that mute duplicates play/stop.
   - When playing: volume icon shows current level
   - Tap volume: cycles through 0% → 50% → 100% (3 states with haptic)
   - Visual feedback: icon changes (volume_off / volume_down / volume_up)
@@ -158,7 +158,7 @@ Chromatic note labels around the dial perimeter:
 #### 5. Update Frequency-Note Calculation (P1)
 **File:** `lib/providers/tuner_provider.dart`
 
-Current calculation uses hardcoded `referenceFrequency = 440.0`. 
+Current calculation uses hardcoded `referenceFrequency = 440.0`.
 Update to use `state.referenceA4`:
 
 ```dart
@@ -180,30 +180,30 @@ This allows users to tune to A=432 Hz (esoteric/classical music) or A=442 Hz (or
 ### Fail-Safe
 - **Cache fallback:** Settings default to 440 Hz reference, haptic enabled
 - **Permission handling:** Microphone permission denied → show snackbar, disable Listen mode
-- **Null safety:** ✅ Ensured — all state fields have defaults, frequency clamped 20-2000 Hz
+- **Null safety:** Ensured — all state fields have defaults, frequency clamped 20-2000 Hz
 - **Audio errors:** Tone generation failures caught and logged, UI reverts to stopped state
 
 ### Validation Notes
-- ✅ Aligns with market research (minimalism, offline-first, pro features)
-- ✅ Follows existing architecture (Riverpod Notifier pattern, MonoPulse theme)
-- ✅ No new dependencies required (uses existing Hive, Flutter material)
-- ⚠️ Deviation: Volume control simplified to 3-state cycle instead of slider (user feedback alignment)
-- ⚠️ Note scale ruler is user-requested feature not in ToDo_tuner.md — designed to complement existing tick marks
-- ❌ Critical: Instrument library (JSON) deferred to post-MVP — requires data layer, persistence, UI for selection
+- Aligns with market research (minimalism, offline-first, pro features)
+- Follows existing architecture (Riverpod Notifier pattern, MonoPulse theme)
+- No new dependencies required (uses existing Hive, Flutter material)
+- Deviation: Volume control simplified to 3-state cycle instead of slider (user feedback alignment)
+- Note scale ruler is user-requested feature not in `ToDo_tuner.md` and complements the existing tick marks
+- Instrument library (JSON) deferred to post-MVP because it requires a broader data layer
 
 ### Files To Modify
 
 | File | Action | Priority |
 |---|---|---|
 | `lib/widgets/tuner/transport_bar.dart` | Fix settings button, simplify volume | P0 |
-| `lib/widgets/tuner/tuner_settings_sheet.dart` | **CREATE** — settings bottom sheet | P0 |
-| `lib/widgets/tuner/note_scale_ruler.dart` | **CREATE** — chromatic note labels | P0 |
-| `lib/widgets/tuner/central_dial.dart` | Integrate note scale ruler in Stack | P0 |
-| `lib/providers/tuner_provider.dart` | Add referenceA4, hapticEnabled, persistence | P1 |
-| `lib/widgets/tuner/tick_marks.dart` | (Optional) Adjust tick density | P2 |
+| `lib/widgets/tuner/tuner_settings_sheet.dart` | Create settings bottom sheet | P0 |
+| `lib/widgets/tuner/note_scale_ruler.dart` | Create chromatic note labels | P0 |
+| `lib/widgets/tuner/central_dial.dart` | Integrate note scale ruler in `Stack` | P0 |
+| `lib/providers/tuner_provider.dart` | Add `referenceA4`, `hapticEnabled`, persistence | P1 |
+| `lib/widgets/tuner/tick_marks.dart` | Optional tick-density adjustment | P2 |
 
 ### Estimated Effort
-- P0 items: 2-3 hours (settings sheet + note ruler + transport bar fixes)
-- P1 items: 1-2 hours (provider updates + persistence)
-- P2 items: 30 min (volume control simplification)
+- P0 items: 2-3 hours
+- P1 items: 1-2 hours
+- P2 items: 30 min
 - **Total: 4-5.5 hours**

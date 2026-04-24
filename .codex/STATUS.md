@@ -4,15 +4,18 @@
 
 ## Current State
 
-- `.codex/` is now more than a mirror; it has an active sequential control plane.
-- Root operational files are initialized:
+- `.codex/` is the canonical internal workspace for the imported agent and memory system.
+- `oldarchive/` now contains archived Qwen source context, exports, backups, legacy scripts, reports, and local generated state.
+- Root operational files are active:
   `AGENTS.md`, `MEMORY.md`, `PLANS.md`, `STATUS.md`, `HANDOFF.md`, `DECISIONS.md`
 
 ## Completed
 
 - Imported Qwen context was normalized into `.codex/`
-- Sequential self-guided concepts were embedded into the `.codex/` workflow
-- `.codex/README.md` and `.codex/rules/operating-rules.md` were aligned with the new control plane
+- Missing design note `tuner_improvements_design.md` was preserved under `.codex/design/`
+- Active docs and session scripts were updated to the `.codex/` + `oldarchive/` layout
+- Legacy root artifacts were moved into `oldarchive/`
+- `analysis_options.yaml` now excludes `oldarchive/**`
 
 ## In Progress
 
@@ -21,10 +24,10 @@
 ## Known Open Risks
 
 - Security audit still fails because `web/config.js` is tracked
-- Analyzer noise is high, including historical backup code
+- Analyzer noise is still high in live app and test code even after archival cleanup
 
 ## Recommended Next Actions
 
 1. Decide how to handle tracked `web/config.js`
-2. Exclude or relocate backup snapshot code from repo-wide analyzer scope
-3. Use this control plane for the next real implementation task
+2. Triage live analyzer backlog in `lib/` and `test/`
+3. Use `.codex/` and `memory/` as the only active internal workflow surfaces

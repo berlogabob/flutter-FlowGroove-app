@@ -74,5 +74,5 @@ Without explicit user request, stay in a single sequential session.
 
 - User request required
 - Protected markdown with `tags: [user]` stays read-only
-- Prefer `.codex/` as the active reference tree over `.qwen/`
+- Prefer `.codex/` as the active reference tree; archived Qwen source lives under `oldarchive/qwen/`
 - Historical files under `.codex/sessions/` remain reference material, not the active control plane
