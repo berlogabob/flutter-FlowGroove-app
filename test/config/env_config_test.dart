@@ -1,7 +1,7 @@
 /// Comprehensive Unit Tests for EnvConfig Class
 /// 
 /// Tests cover:
-/// - Normal config loading from .env
+/// - Normal config loading from compile-time defaults
 /// - Web config loading from window.env
 /// - Fallback behavior when config missing
 /// - Placeholder detection
@@ -24,11 +24,6 @@ void main() {
 
     setUp(() {
       envConfig = EnvConfig();
-      // Note: dotenv state is managed externally, tests work with default state
-    });
-
-    tearDown(() {
-      // No cleanup needed - dotenv state is isolated per test run
     });
 
     group('Constructor & Singleton', () {
@@ -55,12 +50,8 @@ void main() {
       });
 
       test('should return value for existing key', () {
-        // Manually set value in dotenv.env (using reflection for test)
-        // Note: In real usage, dotenv.load() would populate this
         final testValue = 'test_value_123';
-        // Simulate dotenv having the value
         final result = envConfig.get('TEST_KEY', defaultValue: testValue);
-        // Since dotenv is empty, should return default
         expect(result, equals(testValue));
       });
     });
@@ -102,8 +93,6 @@ void main() {
       test('should accept valid API key format', () {
         // Valid API keys should not be treated as placeholders
         final validKey = 'AIzaSyD1234567890abcdefghijklmnop';
-        // When dotenv has valid value, it should be returned
-        // For this test, we verify the default is returned when not set
         final config = EnvConfig();
         final result = config.get('VALID_KEY', defaultValue: validKey);
         expect(result, equals(validKey));
@@ -187,6 +176,7 @@ void main() {
       test('should return trackAnalysisApiKey from getter', () {
         final config = EnvConfig();
         expect(() => config.trackAnalysisApiKey, returnsNormally);
+        expect(config.trackAnalysisApiKey, isEmpty);
       });
     });
 
@@ -345,15 +335,13 @@ void main() {
     });
 
     group('Fallback Behavior', () {
-      test('should return default when dotenv not initialized', () {
-        // dotenv.clear() called in setUp simulates not initialized state
+      test('should return default when config is not initialized', () {
         final config = EnvConfig();
         final result = config.get('UNINITIALIZED_KEY', defaultValue: 'fallback');
         expect(result, equals('fallback'));
       });
 
-      test('should handle dotenv exceptions gracefully', () {
-        // After clear(), accessing dotenv.env should be safe
+      test('should handle missing config gracefully', () {
         final config = EnvConfig();
         expect(() => config.get('ANY_KEY', defaultValue: 'safe'), returnsNormally);
       });

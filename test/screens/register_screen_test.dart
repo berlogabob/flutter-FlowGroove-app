@@ -8,7 +8,7 @@ import '../helpers/test_helpers.dart';
 import '../helpers/mocks.mocks.dart';
 
 void main() {
-  group('RegisterScreen', skip: 'Requires Firebase auth mocking - TODO: implement proper test harness', () {
+  group('RegisterScreen', skip: 'Requires router/Firebase test harness refresh after auth flow changes', () {
     late MockFirebaseAuth mockAuth;
 
     setUp(() {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../services/api/spotify_proxy_service.dart';
 import '../../../services/api/spotify_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/loading_indicator.dart';
@@ -44,9 +45,9 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
 
   Future<List<SpotifyTrack>> _loadResults() async {
     try {
-      final tracks = await SpotifyService.search(widget.query);
+      final tracks = await SpotifyProxyService.search(widget.query);
       for (final track in tracks) {
-        final features = await SpotifyService.getAudioFeatures(track.id);
+        final features = await SpotifyProxyService.getAudioFeatures(track.id);
         if (features != null) {
           _audioFeatures[track.id] = features;
         }

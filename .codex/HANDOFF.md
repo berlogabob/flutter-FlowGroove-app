@@ -4,7 +4,7 @@
 
 ## Current Checkpoint
 
-The root cleanup and Qwen-to-Codex consolidation pass is complete.
+The main audit remediation slice is implemented. The active follow-up is now test-quarantine reduction and broader lint debt cleanup.
 
 ## Must Read First
 
@@ -20,6 +20,16 @@ The root cleanup and Qwen-to-Codex consolidation pass is complete.
 - `memory/` remains the protected root memory bank
 - Legacy context now lives under `oldarchive/`
 - Historical session context remains under `.codex/sessions/`
+- Detailed remediation roadmap: `docs/project-remediation-plan-2026-04-24.md`
+- Implemented code changes:
+  - public-only web runtime config
+  - Spotify web proxy-only path
+  - client Telegram Bot API disabled
+  - client RapidAPI track analysis removed
+  - non-web compile-time define path replaces bundled env assets
+  - `Makefile` FTP path corrections
+  - auth/provider testability improvements
+  - `functions/` dependency hardening with safe overrides
 
 ## Next Agent Instructions
 
@@ -29,6 +39,6 @@ The root cleanup and Qwen-to-Codex consolidation pass is complete.
 
 ## Suggested Next Tasks
 
-- resolve security audit failure around `web/config.js`
-- reduce live analyzer noise in `lib/` and `test/`
-- keep new work out of `oldarchive/` and use `.codex/` as the only active workflow layer
+- reduce the quarantined test surface documented in `docs/test-quarantine-2026-04-24.md`
+- continue lint-noise reduction in edited subsystems
+- keep `functions/` vulnerability debt under watch for future upstream improvements

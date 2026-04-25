@@ -75,6 +75,8 @@ class MetronomePatternEditor extends StatelessWidget {
                   min: 1,
                   max: 16,
                   onChanged: onAccentBeatsChanged,
+                  decreaseButtonKey: const ValueKey('accent-beats-decrease'),
+                  increaseButtonKey: const ValueKey('accent-beats-increase'),
                 ),
               ),
               const SizedBox(width: MonoPulseSpacing.lg),
@@ -86,6 +88,8 @@ class MetronomePatternEditor extends StatelessWidget {
                   min: 1,
                   max: 8,
                   onChanged: onRegularBeatsChanged,
+                  decreaseButtonKey: const ValueKey('regular-beats-decrease'),
+                  increaseButtonKey: const ValueKey('regular-beats-increase'),
                 ),
               ),
             ],
@@ -108,6 +112,8 @@ class MetronomePatternEditor extends StatelessWidget {
     required int min,
     required int max,
     ValueChanged<int>? onChanged,
+    required Key decreaseButtonKey,
+    required Key increaseButtonKey,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,6 +129,7 @@ class MetronomePatternEditor extends StatelessWidget {
           children: [
             // Decrease button
             _buildCircleButton(
+              key: decreaseButtonKey,
               icon: Icons.remove,
               onPressed: value > min ? () => onChanged?.call(value - 1) : null,
             ),
@@ -148,6 +155,7 @@ class MetronomePatternEditor extends StatelessWidget {
             const SizedBox(width: MonoPulseSpacing.md),
             // Increase button
             _buildCircleButton(
+              key: increaseButtonKey,
               icon: Icons.add,
               onPressed: value < max ? () => onChanged?.call(value + 1) : null,
             ),
@@ -158,7 +166,11 @@ class MetronomePatternEditor extends StatelessWidget {
   }
 
   /// Build a circular button for increment/decrement.
-  Widget _buildCircleButton({required IconData icon, VoidCallback? onPressed}) {
+  Widget _buildCircleButton({
+    required Key key,
+    required IconData icon,
+    VoidCallback? onPressed,
+  }) {
     return SizedBox(
       width: 48,
       height: 48,
@@ -167,10 +179,10 @@ class MetronomePatternEditor extends StatelessWidget {
             ? MonoPulseColors.surfaceRaised
             : MonoPulseColors.accentOrange,
         borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
-          onTap: onPressed,
-          child: Icon(
+        child: IconButton(
+          key: key,
+          onPressed: onPressed,
+          icon: Icon(
             icon,
             color: onPressed == null
                 ? MonoPulseColors.textDisabled
@@ -298,6 +310,7 @@ class MetronomePatternEditor extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1,
       child: GestureDetector(
+        key: ValueKey('beat-mode-$beatIndex-$subdivisionIndex'),
         onTap: () => onBeatModeChanged(
           beatIndex,
           subdivisionIndex,

@@ -41,3 +41,27 @@
 **Decision:** `scripts/session-start.sh` and `scripts/session-end.sh` now operate against `.codex/` rather than the legacy `.qwen/`/`QWEN.md` surface.
 
 **Why:** Session tooling should match the current control plane so new work does not keep regenerating the retired layout.
+
+## D-2026-04-24-08
+
+**Decision:** Web runtime config is public-only. Privileged third-party secrets must not be emitted into `web/config.js` or `window.env`.
+
+**Why:** The audit confirmed that secret-bearing client config remains the highest-risk surface. Web clients must use proxy/backend paths for privileged integrations.
+
+## D-2026-04-24-09
+
+**Decision:** Non-web builds use compile-time dart-defines instead of bundled `assets/env.json`, and client-side RapidAPI track analysis remains disabled until it has a backend path.
+
+**Why:** Bundled env assets and direct client RapidAPI usage both keep privileged values in app-distributed artifacts. The safer default is generated public web config plus compile-time non-web inputs, with backend-only privileged integrations as the target state.
+
+## D-2026-04-24-10
+
+**Decision:** `functions/` may use narrowly scoped npm `overrides` for transitive security fixes when they stay within safe semver-compatible ranges.
+
+**Why:** The direct dependency graph was already at current minor Firebase SDK versions, but critical/high audit findings remained in transitive packages. Safe overrides materially reduced risk without forcing unstable major dependency surgery.
+
+## D-2026-04-24-11
+
+**Decision:** Remaining skipped test suites stay quarantined until dedicated harnesses exist, and the quarantine inventory lives in `docs/test-quarantine-2026-04-24.md`.
+
+**Why:** Attempting to unskip them immediately produced real failures tied to router/Firebase, connectivity method channels, and live audio/wakelock services. Keeping them documented and bounded is safer than pretending they are ready for CI.

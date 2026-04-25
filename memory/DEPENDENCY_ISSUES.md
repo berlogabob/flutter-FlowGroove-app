@@ -1,7 +1,7 @@
 # 📦 DEPENDENCY ISSUES
 
 **Purpose:** Track dependency conflicts, upgrades, and solutions
-**Last Updated:** April 8, 2026
+**Last Updated:** April 24, 2026
 **Version:** 0.13.4+183
 
 ---
@@ -118,6 +118,38 @@ Flutter deprecated `Color.withOpacity()` in favor of `Color.withValues()`.
 ### Prevention
 - [ ] Run `flutter analyze` after Flutter SDK updates
 - [ ] Watch for deprecation warnings in CI
+
+---
+
+## 6. `functions/` Install Baseline vs. Vulnerability Debt (MONITORING)
+
+**Date:** 2026-04-24
+**Severity:** 🟡 MEDIUM
+**Status:** ⚠️ MONITORING
+
+### Current State
+- `npm ci` works in `functions/` when using a clean npm cache
+- `npm ls --depth=0` resolves correctly after install
+- direct `functions/` dependencies are now:
+  - `firebase-admin@13.8.0`
+  - `firebase-functions@7.2.5`
+  - `telegraf@4.16.3`
+- safe transitive overrides are pinned for:
+  - `brace-expansion`
+  - `fast-xml-parser`
+  - `path-to-regexp`
+  - `protobufjs`
+- local default `~/.npm` cache on this machine may be broken due to ownership/history issues
+- `npm audit --omit=dev` now reports 11 production vulnerabilities:
+  - 2 low
+  - 9 moderate
+  - 0 high
+  - 0 critical
+
+### Durable Rule
+- Separate install reproducibility problems from dependency vulnerability problems
+- Use a clean cache or CI environment before concluding that `functions/` is broken
+- Treat remaining Firebase Admin / Google GAX / storage transitive issues as open supply-chain debt until upstream dependency trees move further
 
 ---
 

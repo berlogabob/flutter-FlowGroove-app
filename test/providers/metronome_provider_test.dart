@@ -7,7 +7,7 @@ import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/models/time_signature.dart';
 
 void main() {
-  group('MetronomeNotifier - Metronome Integration', skip: 'Requires AudioEngine mocking', () {
+  group('MetronomeNotifier - Metronome Integration', skip: 'Requires injectable audio/wakelock test doubles instead of live platform services', () {
     group('loadSongTempo', () {
       test('loads BPM from song (ourBPM preferred)', () {
         final container = ProviderContainer();

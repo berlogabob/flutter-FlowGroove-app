@@ -64,7 +64,7 @@ app-build:
 	@echo "📝 Updating version.json..."
 	@./scripts/update-version-json.sh
 	@echo ""
-	@if [ ! -f web/config.js ]; then cp web/config.demo.js web/config.js; fi
+	@cp web/config.demo.js web/config.js
 	@echo "🔨 Building Flutter web app..."
 	@echo "   Base href: /app/ (subfolder in docs/)"
 	@flutter build web --release --base-href "/flutter-FlowGroove-app/app/"

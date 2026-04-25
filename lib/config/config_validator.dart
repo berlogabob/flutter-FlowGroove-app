@@ -51,8 +51,8 @@ class ConfigValidator {
       errors.add('Firebase App ID format is invalid');
     }
 
-    // Check Spotify configuration (optional, but warn if missing)
-    if (!env.isSpotifyConfigured) {
+    // Check Spotify configuration (optional, but warn if missing on non-web)
+    if (!kIsWeb && !env.isSpotifyConfigured) {
       if (env.spotifyClientId.isEmpty || _isPlaceholder(env.spotifyClientId)) {
         warnings.add('Spotify Client ID is not configured - Spotify features will be disabled');
       }
@@ -70,16 +70,8 @@ class ConfigValidator {
     }
 
     // Check Twitter configuration (optional)
-    if (!env.isTwitterConfigured) {
+    if (!kIsWeb && !env.isTwitterConfigured) {
       warnings.add('Twitter/X credentials are not configured - Twitter features will be disabled');
-    }
-
-    // Check Track Analysis API (optional)
-    if (env.trackAnalysisApiKey.isEmpty || _isPlaceholder(env.trackAnalysisApiKey)) {
-      warnings.add(
-        'Track Analysis API key is not configured - '
-        'BPM and key analysis will use fallback methods',
-      );
     }
 
     return ConfigValidationResult(
