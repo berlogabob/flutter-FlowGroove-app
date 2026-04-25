@@ -8,15 +8,6 @@ window.env = {
   // Firebase Configuration (public project identifiers)
   FIREBASE_API_KEY: 'AIzaSyAxQ53DQzyEkKXjo3Ry2B9pcTMvcyk4d5o',
   
-  // Spotify - Demo mode (features disabled but app works)
-  SPOTIFY_CLIENT_ID: '',
-  SPOTIFY_CLIENT_SECRET: '',
+  // Spotify proxy is optional; demo mode leaves it disabled
   SPOTIFY_PROXY_URL: '',
-  
-  // Twitter - Not configured (optional feature)
-  TWITTER_API_KEY: '',
-  TWITTER_API_SECRET: '',
-  
-  // Track Analysis - Not configured (optional feature)
-  TRACK_ANALYSIS_API_KEY: ''
 };

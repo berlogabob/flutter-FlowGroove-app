@@ -7,28 +7,18 @@ import 'dart:js' as js;
 /// Get a value from window.env object
 String getWebConfig(String key) {
   try {
-    // Access window.env using dart:js
     final windowObj = js.context;
-    
     final env = windowObj['env'];
     if (env == null) {
-      print('❌ window.env is null');
       return '';
     }
-    
+
     final value = env[key];
     if (value == null) {
-      print('⚠️  window.env.$key is null');
       return '';
     }
-    
-    final result = value.toString();
-    if (result.isNotEmpty) {
-      print('✅ getWebConfig($key) = ${result.substring(0, 10)}...');
-    }
-    return result;
+    return value.toString();
   } catch (e) {
-    print('❌ Error reading window.env.$key: $e');
     return '';
   }
 }
@@ -48,7 +38,7 @@ bool hasWebConfigKey(String key) {
   try {
     final env = js.context['env'];
     if (env == null) return false;
-    
+
     final value = env[key];
     return value != null && value.toString().isNotEmpty;
   } catch (e) {

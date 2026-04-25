@@ -25,12 +25,8 @@ import 'spotify_service.dart';
 /// SECURITY: Uses EnvConfig for secure environment variable access.
 class SpotifyProxyService {
   /// Backend proxy URL (optional)
-  /// If not set, falls back to direct Spotify API calls
-  /// Note: Backend proxy not supported on web yet
-  static String? get _proxyUrl {
-    if (kIsWeb) return null;
-    return env.spotifyProxyUrl;
-  }
+  /// If not set, non-web builds may fall back to direct Spotify API calls.
+  static String? get _proxyUrl => env.spotifyProxyUrl;
 
   /// Check if backend proxy is configured
   static bool get isProxyConfigured =>
@@ -39,7 +35,7 @@ class SpotifyProxyService {
   /// Search for tracks using proxy or direct API.
   ///
   /// If backend proxy is configured, routes request through proxy.
-  /// Otherwise, falls back to direct SpotifyService call.
+  /// Otherwise, non-web builds fall back to direct SpotifyService call.
   static Future<List<SpotifyTrack>> search(String query) async {
     // Validate input
     if (query.isEmpty || query.length > 200) {
@@ -59,6 +55,14 @@ class SpotifyProxyService {
     try {
       if (isProxyConfigured) {
         return await _searchViaProxy(sanitizedQuery);
+      }
+
+      if (kIsWeb) {
+        throw ApiError.permission(
+          message:
+              'Spotify web search requires SPOTIFY_PROXY_URL. '
+              'Direct Spotify client credentials are disabled on web.',
+        );
       } else {
         // Fallback to direct API (development mode)
         debugPrint(
@@ -86,6 +90,14 @@ class SpotifyProxyService {
     try {
       if (isProxyConfigured) {
         return await _getAudioFeaturesViaProxy(sanitizedId);
+      }
+
+      if (kIsWeb) {
+        throw ApiError.permission(
+          message:
+              'Spotify audio features on web require SPOTIFY_PROXY_URL. '
+              'Direct Spotify client credentials are disabled on web.',
+        );
       } else {
         // Fallback to direct API (development mode)
         return await SpotifyService.getAudioFeatures(sanitizedId);
@@ -185,7 +197,12 @@ class SpotifyProxyService {
     }
   }
 
+  static Future<int?> getBpmForTrack(String trackId) async {
+    final features = await getAudioFeatures(trackId);
+    return features?.bpm;
+  }
+
   /// Check if Spotify is configured (proxy or direct).
   static bool get isConfigured =>
-      isProxyConfigured || SpotifyService.isConfigured;
+      isProxyConfigured || (!kIsWeb && SpotifyService.isConfigured);
 }

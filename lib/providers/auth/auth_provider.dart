@@ -14,6 +14,32 @@ final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
   return FirebaseAuth.instance;
 });
 
+/// Provider for the FirebaseFirestore instance.
+final firebaseFirestoreProvider = Provider<FirebaseFirestore>((ref) {
+  return FirebaseFirestore.instance;
+});
+
+/// Lightweight adapter used to override analytics calls in tests.
+class AnalyticsClient {
+  Future<void> setUserProperties({
+    required AppUser user,
+    required int bandCount,
+    required int songCount,
+    required int setlistCount,
+  }) {
+    return AnalyticsService.setUserProperties(
+      user: user,
+      bandCount: bandCount,
+      songCount: songCount,
+      setlistCount: setlistCount,
+    );
+  }
+}
+
+final analyticsClientProvider = Provider<AnalyticsClient>((ref) {
+  return AnalyticsClient();
+});
+
 /// Provider for the CacheService.
 /// Exported from data_providers but also available here for auth operations.
 final cacheServiceProvider = Provider<CacheService>((ref) {
@@ -25,7 +51,15 @@ final cacheServiceProvider = Provider<CacheService>((ref) {
 /// Returns a stream of User? that emits the current user
 /// whenever the auth state changes.
 final authStateProvider = StreamProvider<User?>((ref) {
-  return ref.watch(firebaseAuthProvider).authStateChanges();
+  try {
+    return ref.watch(firebaseAuthProvider).authStateChanges();
+  } catch (e) {
+    debugPrint(
+      'FirebaseAuth is unavailable for authStateProvider; '
+      'falling back to signed-out state.',
+    );
+    return Stream.value(null);
+  }
 });
 
 /// Provider that returns the current Firebase user as an AsyncValue.
@@ -55,6 +89,14 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   AsyncValue<AppUser?> build() {
     final authState = ref.watch(authStateProvider);
 
+    authState.whenOrNull(
+      data: (user) {
+        if (user != null) {
+          _syncAnalyticsIfPossible(user);
+        }
+      },
+    );
+
     return authState.when(
       data: (user) {
         if (user != null) {
@@ -67,31 +109,28 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
             displayName = emailPrefix.isNotEmpty ? emailPrefix : 'User';
           }
 
-          // Load Telegram photo if consent given
-          _loadTelegramProfile(user.uid).then((
-            Map<String, dynamic>? telegramData,
-          ) {
-            if (telegramData != null) {
-              // Use Telegram name if no Firebase name
-              if (displayName == 'User' &&
-                  telegramData['telegramUsername'] != null) {
-                displayName = telegramData['telegramUsername'] as String;
-              }
-              // Use Telegram photo if available
-              photoURL = telegramData['telegramPhotoURL'] as String?;
+          if (_canAccessFirestore()) {
+            // Load Telegram photo if consent given.
+            _loadTelegramProfile(user.uid).then((Map<String, dynamic>? telegramData) {
+              if (telegramData != null) {
+                if (displayName == 'User' &&
+                    telegramData['telegramUsername'] != null) {
+                  displayName = telegramData['telegramUsername'] as String;
+                }
+                photoURL = telegramData['telegramPhotoURL'] as String?;
 
-              // Update state with Telegram data
-              state = AsyncValue.data(
-                AppUser(
-                  uid: user.uid,
-                  email: user.email,
-                  displayName: displayName,
-                  photoURL: photoURL,
-                  createdAt: DateTime.now(),
-                ),
-              );
-            }
-          });
+                state = AsyncValue.data(
+                  AppUser(
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: displayName,
+                    photoURL: photoURL,
+                    createdAt: DateTime.now(),
+                  ),
+                );
+              }
+            });
+          }
 
           return AsyncValue.data(
             AppUser(
@@ -112,65 +151,63 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         return AsyncValue.error(apiError, stack);
       },
     );
-    
-    // Set user properties when user data is available
-    authState.whenOrNull(
-      data: (user) async {
-        if (user != null) {
-          // Load user data from Firestore to get counts
-          try {
-            final firestore = FirebaseFirestore.instance;
-            final userDoc = await firestore.collection('users').doc(user.uid).get();
-            
-            int bandCount = 0;
-            int songCount = 0;
-            int setlistCount = 0;
-            
-            if (userDoc.exists) {
-              final data = userDoc.data();
-              if (data != null) {
-                bandCount = (data['bandIds'] as List?)?.length ?? 0;
-                // Note: Song and setlist counts would require additional queries
-                // For now, we track bands and can expand later
-              }
-            }
-            
-            // Create AppUser for analytics
-            final appUser = AppUser(
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-              photoURL: user.photoURL,
-              accessRole: (userDoc.data()?['accessRole'] as String?) ?? 'member',
-              musicRoles: List<String>.from(
-                (userDoc.data()?['musicRoles'] as List?) ?? [],
-              ),
-              systemTags: List<String>.from(
-                (userDoc.data()?['systemTags'] as List?) ?? [],
-              ),
-              bandIds: List.generate(bandCount, (i) => 'band_$i'),
-              createdAt: DateTime.now(),
-            );
-            
-            // Set user properties for analytics segmentation
-            await AnalyticsService.setUserProperties(
-              user: appUser,
-              bandCount: bandCount,
-              songCount: songCount,
-              setlistCount: setlistCount,
-            );
-          } catch (e) {
-            debugPrint('Error setting user properties: $e');
-          }
+  }
+
+  Future<void> _syncAnalyticsIfPossible(User user) async {
+    final firestore = _readFirestoreIfAvailable();
+    if (firestore == null) {
+      return;
+    }
+
+    try {
+      final userDoc = await firestore.collection('users').doc(user.uid).get();
+
+      int bandCount = 0;
+      int songCount = 0;
+      int setlistCount = 0;
+
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        if (data != null) {
+          bandCount = (data['bandIds'] as List?)?.length ?? 0;
         }
-      },
-    );
+      }
+
+      final appUser = AppUser(
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        accessRole: (userDoc.data()?['accessRole'] as String?) ?? 'member',
+        musicRoles: List<String>.from((userDoc.data()?['musicRoles'] as List?) ?? []),
+        systemTags: List<String>.from((userDoc.data()?['systemTags'] as List?) ?? []),
+        bandIds: List.generate(bandCount, (i) => 'band_$i'),
+        createdAt: DateTime.now(),
+      );
+
+      await ref.read(analyticsClientProvider).setUserProperties(
+        user: appUser,
+        bandCount: bandCount,
+        songCount: songCount,
+        setlistCount: setlistCount,
+      );
+    } catch (e) {
+      debugPrint('Error setting user properties: $e');
+    }
+  }
+
+  bool _canAccessFirestore() {
+    return _readFirestoreIfAvailable() != null;
   }
 
   /// Load Telegram profile data if user gave consent
   Future<Map<String, dynamic>?> _loadTelegramProfile(String uid) async {
+    final firestore = _readFirestoreIfAvailable();
+    if (firestore == null) {
+      return null;
+    }
+
     try {
-      final firestore = FirebaseFirestore.instance;
       final userDoc = await firestore.collection('users').doc(uid).get();
 
       if (userDoc.exists) {
@@ -184,8 +221,30 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       }
       return null;
     } catch (e) {
-      print('Error loading Telegram profile: $e');
+      debugPrint('Error loading Telegram profile: $e');
       return null;
+    }
+  }
+
+  FirebaseFirestore? _readFirestoreIfAvailable() {
+    try {
+      return ref.read(firebaseFirestoreProvider);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  FirebaseAuth _readFirebaseAuthOrThrow() {
+    try {
+      return ref.read(firebaseAuthProvider);
+    } catch (e, stackTrace) {
+      final apiError = ApiError.auth(
+        message: 'Firebase Auth is not initialized.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+      state = AsyncValue.error(apiError, stackTrace);
+      throw apiError;
     }
   }
 
@@ -200,15 +259,16 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   /// Throws [ApiError] if sign out fails.
   Future<void> signOut() async {
     try {
+      final auth = _readFirebaseAuthOrThrow();
       // Get current user UID before signing out
-      final user = ref.read(firebaseAuthProvider).currentUser;
+      final user = auth.currentUser;
       if (user != null) {
         // Clear cache for this user
         final cache = ref.read(cacheServiceProvider);
         await cache.clearAllUserCache(user.uid);
       }
 
-      await ref.read(firebaseAuthProvider).signOut();
+      await auth.signOut();
       state = const AsyncValue.data(null);
     } on FirebaseAuthException catch (e, stackTrace) {
       final apiError = _mapFirebaseAuthException(e);
@@ -229,8 +289,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     required String password,
   }) async {
     try {
-      final credential = await ref
-          .read(firebaseAuthProvider)
+      final credential = await _readFirebaseAuthOrThrow()
           .signInWithEmailAndPassword(email: email, password: password);
       return credential;
     } on FirebaseAuthException catch (e, stackTrace) {
@@ -264,8 +323,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     required String password,
   }) async {
     try {
-      final credential = await ref
-          .read(firebaseAuthProvider)
+      final credential = await _readFirebaseAuthOrThrow()
           .createUserWithEmailAndPassword(email: email, password: password);
       return credential;
     } on FirebaseAuthException catch (e, stackTrace) {
@@ -284,7 +342,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   /// Throws [ApiError] if the request fails.
   Future<void> sendPasswordResetEmail(String email) async {
     try {
-      await ref.read(firebaseAuthProvider).sendPasswordResetEmail(email: email);
+      await _readFirebaseAuthOrThrow().sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
       final apiError = _mapFirebaseAuthException(e);
       throw apiError;
@@ -376,7 +434,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
 
     try {
       // Update Firebase Auth
-      final firebaseUser = ref.read(firebaseAuthProvider).currentUser;
+      final firebaseUser = _readFirebaseAuthOrThrow().currentUser;
       if (firebaseUser != null) {
         await firebaseUser.updateDisplayName(newName);
       }

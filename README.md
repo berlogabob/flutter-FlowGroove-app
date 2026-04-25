@@ -41,11 +41,26 @@ Builds APK + AAB, tags the current version, and attempts to create a GitHub Rele
 
 ### Production FTP Deploy
 
+1. Prepare local non-tracked env sources:
+
+```bash
+cp .env.example .env
+cp .ftp-env.example .ftp-env  # optional FTP-only override
+```
+
+2. Replace all `REPLACE_ME_*` placeholders with real local values.
+3. Run the production deploy:
+
 ```bash
 make deploy-stable
 ```
 
-Deploys Hugo to `https://flowgroove.app/` and Flutter web to `https://flowgroove.app/app/`.
+`make deploy-stable` now runs a preflight gate before any backup or upload. It validates local env files, blocks tracked `web/config.js`, and refuses deploys when secret-bearing archive/backup paths are staged.
+
+Deploy target:
+
+- Hugo to `https://flowgroove.app/`
+- Flutter web to `https://flowgroove.app/app/`
 
 ## Features
 
@@ -111,7 +126,7 @@ Deploys Hugo to `https://flowgroove.app/` and Flutter web to `https://flowgroove
 | `make build-android` | Build APK | Demo config by default |
 | `make release` | Build APK + AAB + release flow | Uses current git branch/tag |
 | `flutter test` | Run the full Flutter suite | Not run in full during this audit pass |
-| `bash test/security/git_audit_test.sh` | Security audit | Currently fails; see audit report |
+| `bash test/security/git_audit_test.sh` | Security audit | Passes with warnings; history still needs periodic review |
 
 ## Documentation
 
@@ -141,10 +156,10 @@ Deploys Hugo to `https://flowgroove.app/` and Flutter web to `https://flowgroove
 
 ## Validation Snapshot
 
-Audit date: April 24, 2026
+Historical audit snapshot before the April 24, 2026 FTP hardening pass:
 
 - `flutter test test/config/`: 62 passed
-- `bash test/security/git_audit_test.sh`: failed
+- `bash test/security/git_audit_test.sh`: failed at that time on tracked `web/config.js`
 - `flutter analyze`: 4411 issues across the whole repo before archival cleanup
 - `flutter analyze lib test`: 3996 issues across live app/test code, dominated by lint backlog
 
@@ -152,10 +167,16 @@ See the dated audit report for details and prioritized findings. Legacy archived
 
 ## Security Notes
 
-- Firebase configuration is runtime-injected for web and asset-loaded for mobile
-- The security audit currently flags tracked `web/config.js`
+- Firebase configuration is runtime-injected for web and passed via compile-time defines for non-web builds
+- Web runtime config is public-only: generated `web/config.js` should contain only `FIREBASE_API_KEY` and optional proxy URLs
+- Spotify web access must go through `SPOTIFY_PROXY_URL`; direct client-credential mode is intentionally disabled on web
+- Client-side Telegram Bot API methods are disabled; privileged Telegram actions belong in `functions/` or other backend paths
+- Non-web builds no longer read `assets/env.json`; use compile-time `--dart-define` inputs instead
+- Client-side RapidAPI track analysis is disabled until it moves behind a backend proxy
+- `web/config.js` is a generated artifact and should stay untracked
 - Demo Firebase keys are present in tracked demo config files
-- Treat generated config artifacts as sensitive even when using demo credentials
+- Android/AAB build targets source demo or local `.env` values through [scripts/build-mobile-with-env.sh](/Users/berloga/Documents/GitHub/flutter_repsync_app/scripts/build-mobile-with-env.sh)
+- If FTP credentials were ever stored in tracked files, rotate them before the next real production deploy
 
 ## Status
 

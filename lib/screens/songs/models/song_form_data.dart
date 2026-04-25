@@ -146,11 +146,6 @@ class SongFormData {
     data._parseKey(song.originalKey, isOriginal: true);
     data._parseKey(song.ourKey, isOriginal: false);
 
-    // Initialize beat modes if empty (for backward compatibility)
-    if (data.beatModes.isEmpty) {
-      data.initializeBeatModes();
-    }
-
     return data;
   }
 
@@ -226,9 +221,6 @@ class SongFormData {
     bool isCopy = false,
     DateTime? contributedAt,
   }) {
-    // Ensure beatModes is properly structured before creating Song
-    final normalizedBeatModes = _normalizeBeatModes();
-
     return Song(
       id: id,
       title: title.trim(),
@@ -250,40 +242,16 @@ class SongFormData {
       contributedAt: contributedAt,
       accentBeats: accentBeats,
       regularBeats: regularBeats,
-      beatModes: normalizedBeatModes,
+      beatModes: _copyBeatModes(),
       sections: sections,
     );
   }
 
-  /// Normalize beat modes to ensure proper structure.
-  List<List<BeatMode>> _normalizeBeatModes() {
-    // If beatModes is empty, return empty list
-    if (beatModes.isEmpty) {
-      return [];
-    }
-
-    // Create a clean copy with proper dimensions
-    final result = <List<BeatMode>>[];
-    for (int i = 0; i < accentBeats && i < beatModes.length; i++) {
-      final row = <BeatMode>[];
-      for (int j = 0; j < regularBeats && j < beatModes[i].length; j++) {
-        row.add(beatModes[i][j]);
-      }
-      // Fill remaining with normal if needed
-      while (row.length < regularBeats) {
-        row.add(BeatMode.normal);
-      }
-      result.add(row);
-    }
-    // Fill remaining rows if needed
-    while (result.length < accentBeats) {
-      final row = <BeatMode>[];
-      for (int j = 0; j < regularBeats; j++) {
-        row.add(BeatMode.normal);
-      }
-      result.add(row);
-    }
-    return result;
+  /// Create a detached copy of the current beat modes grid.
+  List<List<BeatMode>> _copyBeatModes() {
+    return beatModes
+        .map((row) => row.map((mode) => mode).toList())
+        .toList();
   }
 
   /// Parse BPM string to int, returns null if empty or invalid.
@@ -343,28 +311,6 @@ class SongFormData {
       beatModes[beatIndex].add(BeatMode.normal);
     }
     beatModes[beatIndex][subdivisionIndex] = mode;
-
-    // Trim excess rows and columns to match current accentBeats and regularBeats
-    _trimBeatModes();
-  }
-
-  /// Trim beat modes to match current accentBeats and regularBeats.
-  void _trimBeatModes() {
-    // Remove excess rows
-    while (beatModes.length > accentBeats) {
-      beatModes.removeLast();
-    }
-
-    // Remove excess columns in each row
-    for (int i = 0; i < beatModes.length; i++) {
-      while (beatModes[i].length > regularBeats) {
-        beatModes[i].removeLast();
-      }
-      // Ensure each row has at least regularBeats elements
-      while (beatModes[i].length < regularBeats) {
-        beatModes[i].add(BeatMode.normal);
-      }
-    }
   }
 
   /// Initialize beat modes grid with default values.

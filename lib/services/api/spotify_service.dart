@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../config/env_config.dart';
 import '../../models/api_error.dart';
-import 'web_config.stub.dart' if (dart.library.html) 'web_config.web.dart';
 
 /// Spotify Service for searching songs and getting audio features (BPM, key).
 ///
@@ -14,7 +14,7 @@ import 'web_config.stub.dart' if (dart.library.html) 'web_config.web.dart';
 ///
 /// SECURITY: Credentials are loaded securely via EnvConfig
 /// - Mobile: From .env file (must be in .gitignore)
-/// - Web: From window.env (injected at runtime via config.js)
+/// - Web: direct client credentials are intentionally disabled
 /// - NEVER commit credentials to git!
 ///
 /// All methods throw [ApiError] exceptions for proper error handling.
@@ -30,13 +30,25 @@ class SpotifyService {
   static const String _baseUrl = 'https://api.spotify.com/v1';
 
   /// Check if Spotify API is configured
-  static bool get isConfigured => env.isSpotifyConfigured;
+  static bool get isConfigured => !kIsWeb && env.isSpotifyConfigured;
 
   static String? _accessToken;
   static DateTime? _tokenExpiry;
   static final Dio _dio = Dio();
 
+  static void _assertDirectClientModeAllowed() {
+    if (kIsWeb) {
+      throw ApiError.permission(
+        message:
+            'Direct Spotify client credentials are disabled on web. '
+            'Configure SPOTIFY_PROXY_URL and use SpotifyProxyService.',
+      );
+    }
+  }
+
   static Future<bool> _authenticate() async {
+    _assertDirectClientModeAllowed();
+
     if (_accessToken != null &&
         _tokenExpiry != null &&
         DateTime.now().isBefore(_tokenExpiry!)) {
@@ -88,6 +100,7 @@ class SpotifyService {
   /// Returns a list of [SpotifyTrack] matching the query.
   /// Throws [ApiError] if the search fails.
   static Future<List<SpotifyTrack>> search(String query) async {
+    _assertDirectClientModeAllowed();
     if (!await _authenticate()) {
       throw ApiError.auth(
         message:
@@ -152,6 +165,7 @@ class SpotifyService {
   /// Returns `null` if features are not available.
   /// Throws [ApiError] if the request fails.
   static Future<SpotifyAudioFeatures?> getAudioFeatures(String trackId) async {
+    _assertDirectClientModeAllowed();
     if (!await _authenticate()) {
       throw ApiError.auth(
         message:

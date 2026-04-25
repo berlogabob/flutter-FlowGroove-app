@@ -1,20 +1,7 @@
 #!/bin/bash
-# Generate Web Configuration for CI/CD
+# shellcheck shell=bash
+# Generate runtime web configuration from exported vars and local non-tracked env files.
 # Usage: ./scripts/generate-web-config.sh
-#
-# This script is designed for CI/CD pipelines (GitHub Actions, GitLab CI, etc.)
-# It reads environment variables and generates web/config.js directly
-#
-# Required Environment Variables:
-#   FIREBASE_API_KEY
-#   SPOTIFY_CLIENT_ID
-#   SPOTIFY_CLIENT_SECRET
-#
-# Optional Environment Variables:
-#   TWITTER_API_KEY
-#   TWITTER_API_SECRET
-#   TRACK_ANALYSIS_API_KEY
-#   SPOTIFY_PROXY_URL
 
 set -e
 
@@ -24,18 +11,13 @@ TEMPLATE_FILE="$PROJECT_ROOT/web/config.template.js"
 OUTPUT_FILE="$PROJECT_ROOT/web/config.js"
 BUILD_OUTPUT="$PROJECT_ROOT/build/web/config.js"
 
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/load-deploy-env.sh"
+
 echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║      Generating Web Configuration (CI/CD Mode)            ║"
+echo "║      Generating Web Configuration                         ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
-
-# Check if running in CI/CD environment
-if [ -z "$CI" ] && [ -t 0 ]; then
-    echo "⚠️  WARNING: Not running in CI/CD environment"
-    echo "   This script is designed for automated pipelines"
-    echo "   For local development, use: ./scripts/inject-web-config.sh"
-    echo ""
-fi
 
 # Check if template exists
 if [ ! -f "$TEMPLATE_FILE" ]; then
@@ -43,51 +25,39 @@ if [ ! -f "$TEMPLATE_FILE" ]; then
     exit 1
 fi
 
-# Validate required environment variables
-REQUIRED_VARS=("FIREBASE_API_KEY" "SPOTIFY_CLIENT_ID" "SPOTIFY_CLIENT_SECRET")
-MISSING_VARS=()
-
-for var in "${REQUIRED_VARS[@]}"; do
-    if [ -z "${!var}" ]; then
-        MISSING_VARS+=("$var")
-    fi
-done
-
-if [ ${#MISSING_VARS[@]} -gt 0 ]; then
-    echo "❌ ERROR: Missing required environment variables:"
-    for var in "${MISSING_VARS[@]}"; do
-        echo "   - $var"
-    done
-    echo ""
-    echo "   Set these in your CI/CD secrets or environment before running"
-    exit 1
-fi
-
-echo "📄 Using environment variables for configuration..."
+flowgroove_print_loaded_sources
 echo ""
 
-# Copy template to output
-cp "$TEMPLATE_FILE" "$OUTPUT_FILE"
+# Export public runtime values explicitly so envsubst always produces a full file.
+export FIREBASE_API_KEY="${FIREBASE_API_KEY:-}"
+export SPOTIFY_PROXY_URL="${SPOTIFY_PROXY_URL:-}"
+
+# Validate required environment variables
+flowgroove_require_vars FIREBASE_API_KEY
+
+echo "📄 Building runtime config from local env sources and exported variables..."
+echo ""
+
+SUBSTITUTION_VARS='${FIREBASE_API_KEY} ${SPOTIFY_PROXY_URL}'
 
 # Replace placeholders using envsubst for safe variable substitution
 # This handles special characters automatically
 if command -v envsubst >/dev/null 2>&1; then
     echo "🔄 Using envsubst for safe variable substitution..."
-    envsubst < "$OUTPUT_FILE" > "${OUTPUT_FILE}.tmp"
+    envsubst "$SUBSTITUTION_VARS" < "$TEMPLATE_FILE" > "${OUTPUT_FILE}.tmp"
     mv "${OUTPUT_FILE}.tmp" "$OUTPUT_FILE"
 else
     echo "⚠️  envsubst not found, falling back to sed (less safe)"
     echo "   Install gettext package for better support"
     echo ""
-    
+
+    cp "$TEMPLATE_FILE" "$OUTPUT_FILE"
+
     # Fallback to sed with proper escaping
-    for var in "${REQUIRED_VARS[@]}" TWITTER_API_KEY TWITTER_API_SECRET TRACK_ANALYSIS_API_KEY SPOTIFY_PROXY_URL; do
+    for var in FIREBASE_API_KEY SPOTIFY_PROXY_URL; do
         value="${!var}"
-        if [ -n "$value" ]; then
-            # Escape special characters for sed
-            escaped=$(printf '%s\n' "$value" | sed 's/[&/\[\]^$.*+?{}()|\\]/\\&/g')
-            sed -i.bak "s|\${${var}}|${escaped}|g" "$OUTPUT_FILE"
-        fi
+        escaped=$(printf '%s\n' "$value" | sed 's/[&/\[\]^$.*+?{}()|\\]/\\&/g')
+        sed -i.bak "s|\${${var}}|${escaped}|g" "$OUTPUT_FILE"
     done
     rm -f "$OUTPUT_FILE.bak"
 fi
@@ -125,7 +95,7 @@ else
 fi
 echo ""
 echo "⚠️  SECURITY REMINDER:"
-echo "   - web/config.js contains secrets - DO NOT COMMIT"
+echo "   - web/config.js is a generated runtime artifact - DO NOT COMMIT"
 echo "   - This file should be in .gitignore"
-echo "   - Never share your config.js file"
+echo "   - Web runtime config must stay public-only; keep privileged API secrets off the client"
 echo ""

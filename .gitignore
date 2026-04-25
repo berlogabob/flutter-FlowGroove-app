@@ -48,6 +48,9 @@ qwen-code-export-*.md
 oldarchive/*
 !oldarchive/README.md
 
+# Local production/deploy snapshots
+backup/production-*/
+
 
 
 # Flutter repo-specific

@@ -2,10 +2,10 @@
 // Generated at build time - DO NOT EDIT MANUALLY
 // This file is loaded at runtime and should NEVER be committed to git
 //
-// SECURITY: This file contains sensitive credentials
-// - For production: Use environment variables in CI/CD pipeline
-// - For development: Use .env file with inject-web-config.sh script
-// - Never commit this file with real credentials!
+// SECURITY: Web runtime config must contain only public or low-risk values.
+// - Privileged third-party secrets stay in non-tracked local env or backend config
+// - Web clients must use backend proxy endpoints for privileged API access
+// - Never commit generated web/config.js
 
 window.env = {
   // =============================================================================
@@ -15,33 +15,11 @@ window.env = {
   FIREBASE_API_KEY: '${FIREBASE_API_KEY}',
 
   // =============================================================================
-  // SPOTIFY API CREDENTIALS
-  // Get from: https://developer.spotify.com/dashboard
-  // PRODUCTION: Use SPOTIFY_PROXY_URL instead of direct credentials
-  // =============================================================================
-  SPOTIFY_CLIENT_ID: '${SPOTIFY_CLIENT_ID}',
-  SPOTIFY_CLIENT_SECRET: '${SPOTIFY_CLIENT_SECRET}',
-
-  // =============================================================================
   // SPOTIFY PROXY (Recommended for Production)
   // When set, all Spotify API calls route through your secure backend
   // See: docs/SPOTIFY_PROXY_SETUP.md
   // =============================================================================
-  SPOTIFY_PROXY_URL: '${SPOTIFY_PROXY_URL}',
-
-  // =============================================================================
-  // TWITTER/X API CREDENTIALS
-  // Get from: https://developer.twitter.com/en/portal/dashboard
-  // =============================================================================
-  TWITTER_API_KEY: '${TWITTER_API_KEY}',
-  TWITTER_API_SECRET: '${TWITTER_API_SECRET}',
-
-  // =============================================================================
-  // TRACK ANALYSIS API (RapidAPI)
-  // Get from: https://rapidapi.com/soundnet-soundnet-default/api/track-analysis
-  // Free tier: 100 requests/month
-  // =============================================================================
-  TRACK_ANALYSIS_API_KEY: '${TRACK_ANALYSIS_API_KEY}'
+  SPOTIFY_PROXY_URL: '${SPOTIFY_PROXY_URL}'
 };
 
 // =============================================================================

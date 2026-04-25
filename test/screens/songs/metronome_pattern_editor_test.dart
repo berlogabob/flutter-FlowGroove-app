@@ -179,9 +179,10 @@ void main() {
           ),
         );
 
-        // Grid should have 2x2 = 4 buttons
-        final buttons = find.byType(GestureDetector);
-        expect(buttons, findsNWidgets(4));
+        expect(find.byKey(const ValueKey('beat-mode-0-0')), findsOneWidget);
+        expect(find.byKey(const ValueKey('beat-mode-0-1')), findsOneWidget);
+        expect(find.byKey(const ValueKey('beat-mode-1-0')), findsOneWidget);
+        expect(find.byKey(const ValueKey('beat-mode-1-1')), findsOneWidget);
       });
     });
 
@@ -228,8 +229,13 @@ void main() {
           ),
         );
 
-        // Accent mode shows star icon
-        expect(find.byIcon(Icons.star), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byKey(const ValueKey('beat-mode-0-0')),
+            matching: find.byIcon(Icons.star),
+          ),
+          findsOneWidget,
+        );
       });
 
       testWidgets('renders silent mode with volume_off icon', (
@@ -252,8 +258,13 @@ void main() {
           ),
         );
 
-        // Silent mode shows volume_off icon
-        expect(find.byIcon(Icons.volume_off), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byKey(const ValueKey('beat-mode-0-0')),
+            matching: find.byIcon(Icons.volume_off),
+          ),
+          findsOneWidget,
+        );
       });
     });
 
@@ -279,13 +290,7 @@ void main() {
           ),
         );
 
-        // Find and tap the increase button for accentBeats
-        final increaseButtons = tester.widgetList<IconButton>(
-          find.byIcon(Icons.add),
-        );
-        expect(increaseButtons.length, 2); // Two selectors have add buttons
-
-        await tester.tap(find.byIcon(Icons.add).first);
+        await tester.tap(find.byKey(const ValueKey('accent-beats-increase')));
         await tester.pump();
 
         expect(newAccentBeats, 5);
@@ -312,8 +317,7 @@ void main() {
           ),
         );
 
-        // Find and tap the decrease button for accentBeats
-        await tester.tap(find.byIcon(Icons.remove).first);
+        await tester.tap(find.byKey(const ValueKey('accent-beats-decrease')));
         await tester.pump();
 
         expect(newAccentBeats, 3);
@@ -336,13 +340,9 @@ void main() {
           ),
         );
 
-        // The remove button should be disabled (find IconButton containing the Icon)
-        final removeButtonFinder = find.ancestor(
-          of: find.byIcon(Icons.remove),
-          matching: find.byType(IconButton),
+        final removeButton = tester.widget<IconButton>(
+          find.byKey(const ValueKey('accent-beats-decrease')),
         );
-        expect(removeButtonFinder, findsOneWidget);
-        final removeButton = tester.widget<IconButton>(removeButtonFinder);
         expect(removeButton.onPressed, isNull);
       });
 
@@ -363,12 +363,9 @@ void main() {
           ),
         );
 
-        final addButtonFinder = find.ancestor(
-          of: find.byIcon(Icons.add),
-          matching: find.byType(IconButton),
+        final addButton = tester.widget<IconButton>(
+          find.byKey(const ValueKey('accent-beats-increase')),
         );
-        expect(addButtonFinder, findsOneWidget);
-        final addButton = tester.widget<IconButton>(addButtonFinder);
         expect(addButton.onPressed, isNull);
       });
 
@@ -393,9 +390,7 @@ void main() {
           ),
         );
 
-        // Find and tap the increase button for regularBeats (second one)
-        final increaseButtons = find.byIcon(Icons.add);
-        await tester.tap(increaseButtons.last);
+        await tester.tap(find.byKey(const ValueKey('regular-beats-increase')));
         await tester.pump();
 
         expect(newRegularBeats, 2);
@@ -422,7 +417,7 @@ void main() {
           ),
         );
 
-        await tester.tap(find.byIcon(Icons.remove).last);
+        await tester.tap(find.byKey(const ValueKey('regular-beats-decrease')));
         await tester.pump();
 
         expect(newRegularBeats, 1);
@@ -453,7 +448,7 @@ void main() {
         );
 
         // Tap the beat mode button
-        await tester.tap(find.byType(GestureDetector).first);
+        await tester.tap(find.byKey(const ValueKey('beat-mode-0-0')));
         await tester.pump();
 
         expect(lastMode, BeatMode.accent);
@@ -481,7 +476,7 @@ void main() {
           ),
         );
 
-        await tester.tap(find.byType(GestureDetector).first);
+        await tester.tap(find.byKey(const ValueKey('beat-mode-0-0')));
         await tester.pump();
 
         expect(lastMode, BeatMode.silent);
@@ -509,7 +504,7 @@ void main() {
           ),
         );
 
-        await tester.tap(find.byType(GestureDetector).first);
+        await tester.tap(find.byKey(const ValueKey('beat-mode-0-0')));
         await tester.pump();
 
         expect(lastMode, BeatMode.normal);
@@ -543,8 +538,7 @@ void main() {
         );
 
         // Tap first button (beat 0, subdivision 0)
-        final buttons = find.byType(GestureDetector);
-        await tester.tap(buttons.first);
+        await tester.tap(find.byKey(const ValueKey('beat-mode-0-0')));
         await tester.pump();
 
         expect(lastBeatIndex, 0);
@@ -582,7 +576,7 @@ void main() {
         expect(find.text('4'), findsWidgets);
 
         // Increase to 5
-        await tester.tap(find.byIcon(Icons.add).first);
+        await tester.tap(find.byKey(const ValueKey('accent-beats-increase')));
         await tester.pump();
 
         expect(currentAccentBeats, 5);
@@ -614,7 +608,7 @@ void main() {
         );
 
         // Increase subdivisions
-        await tester.tap(find.byIcon(Icons.add).last);
+        await tester.tap(find.byKey(const ValueKey('regular-beats-increase')));
         await tester.pump();
 
         expect(currentRegularBeats, 2);

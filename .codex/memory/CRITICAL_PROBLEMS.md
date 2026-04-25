@@ -1,7 +1,7 @@
 # 🔴 CRITICAL PROBLEMS - NEVER AGAIN
 
 **Rule:** Read before ANY code change!
-**Last Updated:** April 9, 2026
+**Last Updated:** April 24, 2026
 **Branch:** second01
 **Version:** 0.13.4+183
 
@@ -46,6 +46,38 @@ flutter analyze lib/providers/data/metronome_provider.dart
 - After adding new service imports (like wakelock_controller.dart), re-run `flutter analyze` on the modified file
 - Don't trust cached analyzer results — always do a fresh check
 - Test on emulator after significant changes, not just host machine
+
+---
+
+## 28. Privileged Secrets Must Not Flow Through Web Runtime Config
+
+**Date:** 2026-04-24
+**Severity:** 🔴 **CRITICAL**
+**Status:** ✅ HARDENED
+
+### The Problem
+Web runtime config and client services drifted toward carrying privileged integration values:
+
+- direct Spotify client credentials
+- Telegram bot token usage patterns
+- RapidAPI / Twitter-style secret-bearing keys
+
+That turns `window.env` and browser bundles into a secret distribution channel.
+
+### The Fix
+- `web/config.template.js` was reduced to public-only runtime values
+- Spotify web access now requires `SPOTIFY_PROXY_URL`
+- client Telegram Bot API methods were disabled; only bot deep-linking remains client-side
+- non-web builds now use compile-time defines instead of bundled `assets/env.json`
+- client-side RapidAPI track analysis was removed pending a backend replacement
+
+### Durable Rule
+- `web/config.js` may contain public runtime values only
+- privileged integrations belong in `functions/` or another backend/proxy layer
+- any new direct secret-bearing client config is a regression
+
+### Follow-Up
+- remaining hardening work is to remove any need for privileged client-side non-web secrets at all
 
 ---
 

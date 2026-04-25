@@ -164,13 +164,16 @@ for pattern in "${PATTERNS[@]}"; do
     MATCHES=$(git grep -E "$pattern" -- \
         ':!*.example' \
         ':!*.template' \
+        ':!*.demo.js' \
         ':!test/**' \
         ':!*.md' \
+        ':!**/env.demo.json' \
         ':!**/google-services.json' \
         ':!**/GoogleService-Info.plist' \
         ':!**/main.dart.js' \
         ':!**/docs_build/**' \
         ':!**/docs/**' \
+        ':!docs/app/config.js' \
         ':!**/node_modules/**' \
         ':!**/build/**' \
         2>/dev/null || true)
@@ -201,13 +204,13 @@ else
 fi
 echo ""
 
-# Test 8: Verify config.js.template exists (best practice)
-echo "📋 Test 8: Checking for web/config.js.template..."
-if [ -f "web/config.js.template" ]; then
-    echo -e "${GREEN}✅ PASS${NC}: web/config.js.template exists"
+# Test 8: Verify config template exists (best practice)
+echo "📋 Test 8: Checking for web config template..."
+if [ -f "web/config.template.js" ] || [ -f "web/config.js.template" ]; then
+    echo -e "${GREEN}✅ PASS${NC}: web config template exists"
     ((PASS_COUNT++))
 else
-    echo -e "${YELLOW}⚠️  WARNING${NC}: web/config.js.template not found (recommended for documentation)"
+    echo -e "${YELLOW}⚠️  WARNING${NC}: no web config template found (recommended for documentation)"
     ((WARN_COUNT++))
 fi
 echo ""

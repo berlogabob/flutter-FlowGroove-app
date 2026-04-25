@@ -1,7 +1,7 @@
 # FlowGroove App - Deployment Makefile
 # =====================================
 # Version: 0.13.4+183
-# Last Updated: April 15, 2026
+# Last Updated: April 24, 2026
 #
 # Quick Start:
 #   make -f Makefile.hugo deploy-all → Safe GitHub Pages preview (Hugo + Flutter)
@@ -13,7 +13,14 @@
 #   - Spotify/Twitter disabled (add credentials later if needed)
 #   - No .env file required for testing
 
-.PHONY: help deploy-stable deploy-test release build-web build-web-prod build-web-github build-android hugo-build-prod check-env check-env-test check-env-prod help-env clean-exports
+SHELL := /bin/bash
+
+.PHONY: help deploy-stable deploy-test release build-web build-web-prod build-web-github build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+
+DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
+BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
+BACKUP_INFO_FILE := /tmp/flowgroove-latest-backup.txt
+FTP_DIR_DEFAULT := flowgroove.app
 
 # =============================================================================
 # HELP
@@ -60,7 +67,10 @@ check-env-test:
 	@cp web/config.demo.js web/config.js
 
 # For production FTP deployment - requires environment variables
-check-env-prod:
+preflight-prod:
+	@./scripts/preflight-ftp-deploy.sh
+
+check-env-prod: preflight-prod
 	@./scripts/generate-web-config.sh
 
 # =============================================================================
@@ -128,7 +138,7 @@ deploy-stable: check-env-prod hugo-build-prod build-web-prod backup-production f
 	@echo "🌐 App URL:  https://flowgroove.app/app/"
 	@echo "⏱️  SSL/CDN propagation: 1-5 minutes"
 	@echo ""
-	@echo "💾 Backup saved to: backup/production-$(shell date +%Y%m%d-%H%M%S)/"
+	@echo "💾 Backup saved to: $(BACKUP_DIR)/"
 	@echo ""
 	@echo "📝 To rollback if needed:"
 	@echo "   make rollback-production"
@@ -141,14 +151,15 @@ backup-production:
 	@echo "║         Creating Production Backup                        ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@mkdir -p backup/production-$(shell date +%Y%m%d-%H%M%S)
+	@mkdir -p $(BACKUP_DIR)
 	@echo "📦 Downloading current production files..."
-	@lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror backup/production-$(shell date +%Y%m%d-%H%M%S)/" || echo "⚠️  Backup skipped (FTP credentials may be missing)"
-	@echo "✅ Backup created"
+	@source ./scripts/load-deploy-env.sh && \
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; lcd $(BACKUP_DIR); mirror . .; bye"
+	@echo "✅ Backup created at $(BACKUP_DIR)/"
 	@echo ""
 	@# Save latest backup path for auto-rollback
-	@echo "backup/production-$(shell date +%Y%m%d-%H%M%S)" > /tmp/flowgroove-latest-backup.txt
-	@echo "💾 Latest backup: backup/production-$(shell date +%Y%m%d-%H%M%S)/"
+	@echo "$(BACKUP_DIR)" > $(BACKUP_INFO_FILE)
+	@echo "💾 Latest backup: $(BACKUP_DIR)/"
 	@echo ""
 
 # Upload to FTP with SSL support
@@ -159,9 +170,11 @@ ftp-upload:
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
 	@echo "📤 Uploading Hugo (site/public/) → / (root)..."
-	@lftp -c "set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse --delete site/public/ .; bye"
+	@source ./scripts/load-deploy-env.sh && \
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse --delete --exclude-glob .well-known/** --exclude-glob app/** site/public/ .; bye"
 	@echo "📤 Uploading Flutter (build/web/) → /app/..."
-	@lftp -c "set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse --delete build/web app/; bye"
+	@source ./scripts/load-deploy-env.sh && \
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p app; cd app; mirror --reverse --delete build/web/ .; bye"
 	@echo "✅ Upload complete"
 	@echo ""
 
@@ -201,10 +214,20 @@ health-check-prod:
 		$(MAKE) auto-rollback; \
 		exit 1; \
 	fi
+	@echo "📊 Checking sensitive files..."
+	@if curl -f -s https://flowgroove.app/.env > /dev/null; then \
+		echo "❌ ERROR: Sensitive .env is publicly accessible!"; \
+		echo "🚨 Auto-rollback initiated..."; \
+		$(MAKE) auto-rollback; \
+		exit 1; \
+	else \
+		echo "✅ Sensitive .env is not publicly accessible"; \
+	fi
 	@echo "✅ Health check passed"
 	@echo ""
-	@echo "💾 Backup retained at: $(shell cat /tmp/flowgroove-latest-backup.txt 2>/dev/null || echo 'N/A')"
-	@echo "   (for manual rollback if issues discovered later)"
+	@BACKUP_DIR="$$(cat $(BACKUP_INFO_FILE) 2>/dev/null || echo 'N/A')" && \
+		echo "💾 Backup retained at: $$BACKUP_DIR" && \
+		echo "   (for manual rollback if issues discovered later)"
 	@echo ""
 
 # Automatic rollback (called by health-check-prod on failure)
@@ -214,11 +237,12 @@ auto-rollback:
 	@echo "║         🚨 AUTO-ROLLBACK INITIATED                        ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@if [ -f /tmp/flowgroove-latest-backup.txt ]; then \
-		BACKUP_DIR=$$(cat /tmp/flowgroove-latest-backup.txt); \
+	@if [ -f $(BACKUP_INFO_FILE) ]; then \
+		BACKUP_DIR=$$(cat $(BACKUP_INFO_FILE)); \
 		if [ -d "$$BACKUP_DIR" ]; then \
 			echo "📦 Restoring from: $$BACKUP_DIR"; \
-			lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse $$BACKUP_DIR/ .; bye"; \
+			source ./scripts/load-deploy-env.sh && \
+			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; lcd $$BACKUP_DIR; mirror --reverse --delete . .; bye"; \
 			echo "✅ Auto-rollback complete!"; \
 			echo "🌐 Production restored to previous version"; \
 		else \
@@ -246,7 +270,7 @@ build-web:
 	@echo "📝 Updating version.json..."
 	@./scripts/update-version-json.sh
 	@echo ""
-	@if [ ! -f web/config.js ]; then cp web/config.demo.js web/config.js; fi
+	@cp web/config.demo.js web/config.js
 	@echo "🔨 Building web app..."
 	@echo "   Base href: / (FTP - flowgroove.app)"
 	@flutter build web --release
@@ -265,7 +289,14 @@ build-web-prod:
 	@echo "📝 Updating version.json..."
 	@./scripts/update-version-json.sh
 	@echo ""
-	@if [ ! -f web/config.js ]; then cp web/config.demo.js web/config.js; fi
+	@if [ ! -f web/config.js ]; then \
+		echo "❌ ERROR: web/config.js is missing. Run make check-env-prod first."; \
+		exit 1; \
+	fi
+	@if ! grep -q "Generated at build time" web/config.js; then \
+		echo "❌ ERROR: web/config.js must be generated by scripts/generate-web-config.sh for production builds."; \
+		exit 1; \
+	fi
 	@echo "🔨 Building web app..."
 	@echo "   Base href: /app/ (FTP - flowgroove.app/app/)"
 	@flutter build web --release --base-href "/app/"
@@ -284,6 +315,7 @@ build-web-github:
 	@echo "📝 Updating version.json..."
 	@./scripts/update-version-json.sh
 	@echo ""
+	@cp web/config.demo.js web/config.js
 	@echo "🔨 Building web app..."
 	@echo "   Base href: /flutter-FlowGroove-app/ (GitHub Pages)"
 	@flutter build web --release --base-href "/flutter-FlowGroove-app/"
@@ -299,9 +331,8 @@ build-android:
 	@echo "║              Building Android APK                         ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@if [ ! -f assets/env.json ]; then cp assets/env.demo.json assets/env.json; fi
 	@echo "🤖 Building Android APK..."
-	@flutter build apk --release
+	@./scripts/build-mobile-with-env.sh apk
 	@echo ""
 	@echo "✅ Android build complete!"
 	@echo "📱 APK: build/app/outputs/flutter-apk/app-release.apk"
@@ -313,9 +344,8 @@ build-appbundle:
 	@echo "║         Building Android App Bundle (AAB)                 ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@if [ ! -f assets/env.json ]; then cp assets/env.demo.json assets/env.json; fi
 	@echo "🤖 Building Android App Bundle..."
-	@flutter build appbundle --release
+	@./scripts/build-mobile-with-env.sh appbundle
 	@echo ""
 	@echo "✅ AAB build complete!"
 	@echo "📦 AAB: build/app/outputs/bundle/release/app-release.aab"
@@ -325,11 +355,7 @@ build-appbundle:
 # CONFIGURATION
 # =============================================================================
 
-# FTP Configuration (only needed for make deploy-stable)
-FTP_HOST := $(FTP_HOST)
-FTP_USER := $(FTP_USER)
-FTP_PASS := $(FTP_PASS)
-FTP_DIR := $(or $(FTP_DIR),flowgroove.app)
+# FTP Configuration (loaded by scripts/load-deploy-env.sh)
 
 # =============================================================================
 # RELEASE - ANDROID APK + GITHUB RELEASE
@@ -409,8 +435,8 @@ rollback-production:
 	@echo "║         Rolling Back Production Deployment                ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@if [ -f /tmp/flowgroove-latest-backup.txt ]; then \
-		BACKUP_DIR=$$(cat /tmp/flowgroove-latest-backup.txt); \
+	@if [ -f $(BACKUP_INFO_FILE) ]; then \
+		BACKUP_DIR=$$(cat $(BACKUP_INFO_FILE)); \
 		echo "📦 Latest backup: $$BACKUP_DIR"; \
 		echo ""; \
 		read -p "Use this backup for rollback? (y/N): " -n 1 -r; \
@@ -418,7 +444,8 @@ rollback-production:
 		if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
 			if [ -d "$$BACKUP_DIR" ]; then \
 				echo "📤 Restoring from $$BACKUP_DIR..."; \
-				lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse $$BACKUP_DIR/ .; bye"; \
+				source ./scripts/load-deploy-env.sh && \
+				lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse $$BACKUP_DIR/ .; bye"; \
 				echo "✅ Rollback complete!"; \
 				echo "🌐 Production restored to previous version"; \
 			else \
@@ -432,7 +459,8 @@ rollback-production:
 			read -p "Enter backup directory to restore: " BACKUP_DIR; \
 			if [ -d "$$BACKUP_DIR" ]; then \
 				echo "📤 Restoring from $$BACKUP_DIR..."; \
-				lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse $$BACKUP_DIR/ .; bye"; \
+				source ./scripts/load-deploy-env.sh && \
+				lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse $$BACKUP_DIR/ .; bye"; \
 				echo "✅ Rollback complete!"; \
 			else \
 				echo "❌ ERROR: Backup directory not found: $$BACKUP_DIR"; \
@@ -446,7 +474,8 @@ rollback-production:
 		read -p "Enter backup directory to restore: " BACKUP_DIR; \
 		if [ -d "$$BACKUP_DIR" ]; then \
 			echo "📤 Restoring from $$BACKUP_DIR..."; \
-			lftp -c "open -u '$(FTP_USER)','$(FTP_PASS)' $(FTP_HOST); cd $(FTP_DIR); mirror --reverse $$BACKUP_DIR/ .; bye"; \
+			source ./scripts/load-deploy-env.sh && \
+			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse $$BACKUP_DIR/ .; bye"; \
 			echo "✅ Rollback complete!"; \
 		else \
 			echo "❌ ERROR: Backup directory not found: $$BACKUP_DIR"; \
@@ -470,12 +499,17 @@ help-env:
 	@echo "  ✅ Firebase works (public key included)"
 	@echo "  ⚠️  Spotify/Twitter disabled"
 	@echo ""
-	@echo "📝 For PRODUCTION (with Spotify/Twitter):"
+	@echo "📝 For PRODUCTION (Hugo root + Flutter /app/ on FTP):"
 	@echo ""
-	@echo "  export FIREBASE_API_KEY=your_key"
-	@echo "  export SPOTIFY_CLIENT_ID=your_id"
-	@echo "  export SPOTIFY_CLIENT_SECRET=your_secret"
-	@echo "  export FTP_PASS=your_password"
+	@echo "  cp .env.example .env"
+	@echo "  cp .ftp-env.example .ftp-env   # optional override for FTP-only values"
+	@echo "  edit placeholders in .env / .ftp-env"
+	@echo "  optional: export FTP_SSL_VERIFY=no   # when direct-IP FTPS fallback is required"
 	@echo ""
 	@echo "  Then: make deploy-stable"
+	@echo ""
+	@echo "  deploy-stable runs a preflight gate:"
+	@echo "    - validates local non-tracked env sources"
+	@echo "    - blocks tracked web/config.js"
+	@echo "    - blocks staged backup/archive/secret-bearing paths"
 	@echo ""

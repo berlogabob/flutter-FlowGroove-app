@@ -7,7 +7,7 @@ library;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../services/api/spotify_service.dart';
+import '../../services/api/spotify_proxy_service.dart';
 
 /// BPM fetch result with source tracking.
 class BpmResult {
@@ -91,7 +91,7 @@ class BpmStateNotifier extends Notifier<BpmResult> {
     state = const BpmResult.loading();
 
     try {
-      final bpm = await SpotifyService.getBpmForTrack(spotifyId);
+      final bpm = await SpotifyProxyService.getBpmForTrack(spotifyId);
 
       if (bpm != null) {
         final prefs = await _prefs;

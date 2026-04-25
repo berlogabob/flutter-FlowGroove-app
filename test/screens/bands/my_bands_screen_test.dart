@@ -21,7 +21,7 @@ class TestAppUserNotifier extends AppUserNotifier {
 }
 
 void main() {
-  group('MyBandsScreen', skip: 'Requires Firebase/Riverpod setup - TODO: implement proper test harness', () {
+  group('MyBandsScreen', skip: 'Requires updated Riverpod/Firebase widget harness for current screen contract', () {
     late MockFirebaseAuth mockAuth;
 
     setUp(() {

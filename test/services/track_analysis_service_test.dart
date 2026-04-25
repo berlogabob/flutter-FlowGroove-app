@@ -1,19 +1,11 @@
-// Track Analysis Service Tests - Comprehensive Test Coverage
-// Tests cover: core analysis flow, caching behavior, error handling
-// Uses mock HTTP client to avoid real API calls
-
-import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:flowgroove/services/api/track_analysis_service.dart';
 
 void main() {
   group('TrackAnalysisService', () {
     group('isConfigured', () {
-      test('returns true when API key is configured', () {
-        // The service uses 'demo' as default key which is not 'YOUR_RAPIDAPI_KEY'
-        expect(TrackAnalysisService.isConfigured, isTrue);
+      test('returns false because client-side RapidAPI is disabled', () {
+        expect(TrackAnalysisService.isConfigured, isFalse);
       });
     });
 
@@ -45,10 +37,11 @@ void main() {
       });
 
       test('accepts valid title and artist', () async {
-        // This would make a real API call, so we test the validation path only
-        // In production, mock the HTTP client
-        final result = await TrackAnalysisService.analyzeTrack('', 'Artist');
-        expect(result, isNull); // Returns null for empty title
+        final result = await TrackAnalysisService.analyzeTrack(
+          'Song Title',
+          'Artist',
+        );
+        expect(result, isNull);
       });
 
       test('handles null artist gracefully', () async {
@@ -56,146 +49,12 @@ void main() {
           'Song Title',
           '',
         );
-        // Should attempt search with just title
-        // Returns null when API call fails or empty response
         expect(result, isNull);
       });
 
       test('handles both title and artist empty', () async {
         final result = await TrackAnalysisService.analyzeTrack('', '');
         expect(result, isNull);
-      });
-    });
-
-    group('analyzeTrack() with Mock HTTP Client', () {
-      late MockClient mockClient;
-
-      tearDown(() {
-        mockClient.close();
-      });
-
-      test('returns TrackAnalysis on successful API response', () async {
-        mockClient = MockClient((request) async {
-          return http.Response(
-            json.encode({
-              'success': true,
-              'result': {
-                'track': 'Test Song',
-                'artist': 'Test Artist',
-                'key': 'C',
-                'mode': 'major',
-                'bpm': 120,
-                'energy': 0.75,
-                'danceability': 0.65,
-              },
-            }),
-            200,
-            headers: {'Content-Type': 'application/json'},
-          );
-        });
-
-        // Test structure for successful analysis
-        // Note: Static method limits mock injection
-      });
-
-      test('returns null when success is false', () async {
-        mockClient = MockClient((request) async {
-          return http.Response(
-            json.encode({'success': false, 'error': 'Track not found'}),
-            200,
-            headers: {'Content-Type': 'application/json'},
-          );
-        });
-
-        // Test structure for failed analysis
-      });
-
-      test('returns null when result is null', () async {
-        mockClient = MockClient((request) async {
-          return http.Response(
-            json.encode({'success': true, 'result': null}),
-            200,
-            headers: {'Content-Type': 'application/json'},
-          );
-        });
-
-        // Test structure for null result
-      });
-
-      test('handles 404 not found', () async {
-        mockClient = MockClient((request) async {
-          return http.Response('Not Found', 404);
-        });
-
-        // Test structure for 404 handling
-      });
-
-      test('handles 401 unauthorized', () async {
-        mockClient = MockClient((request) async {
-          return http.Response('Unauthorized', 401);
-        });
-
-        // Test structure for 401 handling
-      });
-
-      test('handles 429 rate limit', () async {
-        mockClient = MockClient((request) async {
-          return http.Response('Rate Limited', 429);
-        });
-
-        // Test structure for 429 handling
-      });
-
-      test('handles 500 server error', () async {
-        mockClient = MockClient((request) async {
-          return http.Response('Internal Server Error', 500);
-        });
-
-        // Test structure for 500 handling
-      });
-
-      test('handles network timeout', () async {
-        mockClient = MockClient((request) async {
-          await Future.delayed(const Duration(seconds: 10));
-          return http.Response('Timeout', 500);
-        });
-
-        // Test structure for timeout handling
-      });
-
-      test('handles malformed JSON response', () async {
-        mockClient = MockClient((request) async {
-          return http.Response(
-            'invalid json {',
-            200,
-            headers: {'Content-Type': 'application/json'},
-          );
-        });
-
-        // Test structure for malformed JSON
-      });
-
-      test('sends correct API headers', () async {
-        mockClient = MockClient((request) async {
-          return http.Response(
-            json.encode({'success': true, 'result': null}),
-            200,
-          );
-        });
-
-        // Test structure for header verification
-        // Verify X-RapidAPI-Key and X-RapidAPI-Host headers
-      });
-
-      test('encodes track query correctly', () async {
-        mockClient = MockClient((request) async {
-          return http.Response(
-            json.encode({'success': true, 'result': null}),
-            200,
-          );
-        });
-
-        // Test structure for query encoding verification
       });
     });
 

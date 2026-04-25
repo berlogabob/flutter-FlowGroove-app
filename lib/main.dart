@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -61,22 +60,6 @@ void main() async {
 
   // Initialize Hive for offline caching
   await Hive.initFlutter();
-
-  // Load environment variables
-  // For mobile: load from assets/env.json
-  // For web: loaded via config.js (see web/config.js)
-  if (!kIsWeb) {
-    try {
-      await dotenv.load(fileName: 'assets/env.json');
-      debugPrint('✅ Loaded assets/env.json successfully');
-      debugPrint('   FIREBASE_API_KEY: ${dotenv.env['FIREBASE_API_KEY']?.substring(0, 10)}...');
-    } catch (e) {
-      debugPrint('❌ Failed to load assets/env.json: $e');
-      debugPrint(
-        'Note: .env file not loaded. Using environment variables if available.',
-      );
-    }
-  }
 
   // Validate configuration BEFORE Firebase initialization
   // This ensures we have valid credentials before proceeding

@@ -4,7 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flowgroove/services/connectivity_service.dart';
 
 void main() {
-  group('ConnectivityService', skip: 'Requires ConnectivityPlus mocking - TODO: implement mocks', () {
+  group('ConnectivityService', skip: 'Requires connectivity method-channel harness or injectable plugin wrapper', () {
     group('connectivityProvider', () {
       test('connectivityProvider is defined', () {
         expect(connectivityProvider, isNotNull);

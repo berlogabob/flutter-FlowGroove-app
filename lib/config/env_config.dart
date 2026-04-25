@@ -1,26 +1,22 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../services/api/web_config.stub.dart'
   if (dart.library.html) '../services/api/web_config.web.dart';
 
 /// Secure Environment Config Loader
 ///
 /// This provides a unified way to load environment variables across platforms:
-/// - **Web**: Uses window.env (injected at runtime via config.js)
-/// - **Android**: Uses BuildConfig (injected at build time)
-/// - **iOS/Desktop**: Uses flutter_dotenv with .env file
+/// - **Web**: Uses public-only window.env (injected at runtime via config.js)
+/// - **Android/iOS/Desktop**: Uses compile-time dart-defines
 ///
 /// SECURITY:
-/// - assets/env.json is NOT bundled in web builds (removed from pubspec.yaml)
+/// - assets/env.json is retired as an app runtime source
 /// - For web, use config.js injected at deployment time
-/// - For Android, use buildConfigField in build.gradle.kts
-/// - For mobile, keep .env file in .gitignore
+/// - For non-web, pass values via flutter --dart-define / --dart-define-from-file
 ///
 /// Setup Instructions:
-/// 1. Copy assets/env.json.template to assets/env.json (mobile only)
-/// 2. Copy web/config.js.template to web/config.js and fill in values
-/// 3. Set FIREBASE_API_KEY in .env file for Android builds
-/// 4. NEVER commit env.json or config.js to git!
+/// 1. Generate web/config.js from web/config.template.js for web deploys
+/// 2. Pass FIREBASE_API_KEY via dart-defines for non-web builds
+/// 3. NEVER commit generated config.js or secret-bearing local env files
 class EnvConfig {
   static final EnvConfig _instance = EnvConfig._internal();
   EnvConfig._internal();
@@ -37,39 +33,12 @@ class EnvConfig {
           return fromWeb;
         }
       } catch (e) {
-        // Web config not available, continue to fallback
-      }
-
-      // Fallback to dotenv (if somehow loaded)
-      try {
-        final fromDotenv = dotenv.env[key] ?? '';
-        if (fromDotenv.isNotEmpty && !_isPlaceholder(fromDotenv)) {
-          return fromDotenv;
-        }
-      } catch (e) {
-        // dotenv not initialized yet
+        // Web config not available
       }
     } else {
-      // Mobile/Desktop
-      // First, try to get from BuildConfig (Android)
-      try {
-        final fromBuildConfig = _getFromBuildConfig(key);
-        if (fromBuildConfig.isNotEmpty && !_isPlaceholder(fromBuildConfig)) {
-          return fromBuildConfig;
-        }
-      } catch (e) {
-        // BuildConfig not available (iOS or not set)
-      }
-
-      // Fallback to dotenv
-      try {
-        final value = dotenv.env[key] ?? '';
-        if (value.isNotEmpty && !_isPlaceholder(value)) {
-          return value;
-        }
-      } catch (e) {
-        // dotenv not initialized yet - this happens during Firebase initialization
-        // Return default value to prevent crash
+      final fromDartDefine = _getFromDartDefine(key);
+      if (fromDartDefine.isNotEmpty && !_isPlaceholder(fromDartDefine)) {
+        return fromDartDefine;
       }
     }
 
@@ -79,29 +48,32 @@ class EnvConfig {
   /// Get Firebase API Key
   String get firebaseApiKey => get('FIREBASE_API_KEY');
 
-  /// Get Spotify Client ID
-  String get spotifyClientId => get('SPOTIFY_CLIENT_ID');
+  /// Get Spotify Client ID for direct non-web calls only.
+  String get spotifyClientId => _getClientSecret('SPOTIFY_CLIENT_ID');
 
-  /// Get Spotify Client Secret
-  String get spotifyClientSecret => get('SPOTIFY_CLIENT_SECRET');
+  /// Get Spotify Client Secret for direct non-web calls only.
+  String get spotifyClientSecret => _getClientSecret('SPOTIFY_CLIENT_SECRET');
 
-  /// Get Twitter API Key
-  String get twitterApiKey => get('TWITTER_API_KEY');
+  /// Get Twitter API Key for non-web use only.
+  String get twitterApiKey => _getClientSecret('TWITTER_API_KEY');
 
-  /// Get Twitter API Secret
-  String get twitterApiSecret => get('TWITTER_API_SECRET');
+  /// Get Twitter API Secret for non-web use only.
+  String get twitterApiSecret => _getClientSecret('TWITTER_API_SECRET');
 
-  /// Get Track Analysis API Key (RapidAPI)
-  String get trackAnalysisApiKey => get('TRACK_ANALYSIS_API_KEY');
+  /// Track analysis is disabled on the client until it moves behind a backend.
+  String get trackAnalysisApiKey => '';
 
-  /// Get Telegram Bot Token
-  String get telegramBotToken => get('TELEGRAM_BOT_TOKEN');
+  /// Get Telegram Bot Token for non-web/backend migration only.
+  String get telegramBotToken => _getClientSecret('TELEGRAM_BOT_TOKEN');
 
   /// Get Spotify Proxy URL
   String get spotifyProxyUrlConfig => get('SPOTIFY_PROXY_URL');
 
   /// Check if Spotify credentials are configured
   bool get isSpotifyConfigured {
+    if (kIsWeb) {
+      return useSpotifyProxy;
+    }
     return spotifyClientId.isNotEmpty &&
            spotifyClientSecret.isNotEmpty &&
            !_isPlaceholder(spotifyClientId) &&
@@ -110,6 +82,9 @@ class EnvConfig {
 
   /// Check if Twitter credentials are configured
   bool get isTwitterConfigured {
+    if (kIsWeb) {
+      return false;
+    }
     return twitterApiKey.isNotEmpty &&
            twitterApiSecret.isNotEmpty &&
            !_isPlaceholder(twitterApiKey) &&
@@ -142,12 +117,34 @@ class EnvConfig {
     return '';
   }
 
-  // Helper: Get value from BuildConfig (Android only)
-  String _getFromBuildConfig(String key) {
-    // This will be implemented via method channel for Android
-    // For now, return empty string - BuildConfig values are accessed differently
-    // See: android/app/src/main/kotlin/.../MainActivity.kt for method channel
-    return '';
+  // Helper: Get value from compile-time dart-defines (non-web only).
+  String _getFromDartDefine(String key) {
+    switch (key) {
+      case 'FIREBASE_API_KEY':
+        return const String.fromEnvironment('FIREBASE_API_KEY');
+      case 'SPOTIFY_CLIENT_ID':
+        return const String.fromEnvironment('SPOTIFY_CLIENT_ID');
+      case 'SPOTIFY_CLIENT_SECRET':
+        return const String.fromEnvironment('SPOTIFY_CLIENT_SECRET');
+      case 'TWITTER_API_KEY':
+        return const String.fromEnvironment('TWITTER_API_KEY');
+      case 'TWITTER_API_SECRET':
+        return const String.fromEnvironment('TWITTER_API_SECRET');
+      case 'TELEGRAM_BOT_TOKEN':
+        return const String.fromEnvironment('TELEGRAM_BOT_TOKEN');
+      case 'SPOTIFY_PROXY_URL':
+        return const String.fromEnvironment('SPOTIFY_PROXY_URL');
+      default:
+        return '';
+    }
+  }
+
+  // Helper: client secrets must never come from the web runtime config.
+  String _getClientSecret(String key) {
+    if (kIsWeb) {
+      return '';
+    }
+    return get(key);
   }
 
   // Helper: Check if value is a placeholder

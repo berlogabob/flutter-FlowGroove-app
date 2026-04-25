@@ -14,13 +14,18 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - Safe GitHub Pages preview command is `make -f Makefile.hugo deploy-all`.
 - `make deploy-test` is Flutter-only and overwrites `docs/` root output.
 - Production deploy command is `make deploy-stable`.
+- `docs/project-remediation-plan-2026-04-24.md` is the active roadmap for post-audit stabilization.
 
 ## Current Operational Risks
 
-- `web/config.js` is tracked in git and currently causes the security audit to fail.
 - Archived code is excluded under `oldarchive/**`, but the live repo still has a large lint backlog.
 - Live app and test code still carry a large lint backlog.
 - Archived exports, backup snapshots, and legacy session files must stay out of commits because even deletion diffs can surface old credential material.
+- Production FTP deploys are intentionally blocked until local `.env` / `.ftp-env` values are present and placeholder-only tracked examples stay clean.
+- Web runtime config must stay public-only. Privileged Spotify, Telegram, Twitter, and RapidAPI secrets do not belong in `window.env`.
+- Spotify web access must go through `SPOTIFY_PROXY_URL`; direct client-credential mode is non-web only during migration.
+- Client-side RapidAPI track analysis is retired until a backend replacement exists.
+- Remaining skipped suites are tracked in `docs/test-quarantine-2026-04-24.md`; do not silently unskip them without adding the missing harnesses.
 
 ## Durable Working Rules
 
@@ -30,6 +35,8 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - Validation before advancement.
 - Memory, status, and handoff must be updated before the next milestone.
 - Before committing, scan staged diffs for credential-bearing paths like `backup/`, `chat-exports-collection/`, `.env*`, and legacy exports.
+- Before any FTP deploy, run the canonical `make deploy-stable` path so preflight checks enforce env loading, placeholder-only examples, and untracked `web/config.js`.
+- When touching integrations, prefer backend/functions for privileged API flows and treat any client-side fallback as migration debt, not a target state.
 
 ## Reference Bank
 

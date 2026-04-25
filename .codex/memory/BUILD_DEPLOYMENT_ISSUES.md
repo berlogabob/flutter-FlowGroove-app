@@ -1,7 +1,7 @@
 # 🏗️ BUILD & DEPLOYMENT ISSUES
 
 **Purpose:** Track build and deployment problems and their resolutions
-**Last Updated:** April 15, 2026
+**Last Updated:** April 24, 2026
 **Version:** 0.13.4+183
 
 ---
@@ -153,6 +153,82 @@ Both environments have identical structure — only baseURL differs.
 
 ---
 
+## 7. Production FTP `/app/` Broke Again + FTP Example Leaked Credentials (RESOLVED)
+
+**Date:** 2026-04-24
+**Severity:** 🔴 CRITICAL
+**Status:** ✅ FIXED
+
+### The Problem
+- `https://flowgroove.app/` returned `200`, but `https://flowgroove.app/app/` returned `404`
+- production deploy still depended on ambient exported env vars instead of a canonical local source
+- `build-web-prod` could silently fall back to `web/config.demo.js`
+- backup/rollback used multiple timestamps per run, so the recorded backup path could drift
+- `.ftp-env.example` contained real FTP credential material in tracked repo content
+- `web/config.js` was still tracked in git, so the security audit failed
+
+### The Fix
+- Added `scripts/load-deploy-env.sh` as the shared loader for `.env` and optional `.ftp-env`
+- Added `scripts/preflight-ftp-deploy.sh` and made `make deploy-stable` fail fast before upload when:
+  - required local FTP/runtime vars are missing
+  - tracked examples contain non-placeholder FTP values
+  - `web/config.js` is tracked
+  - blocked archive/backup/secret-bearing paths are staged
+- Updated `scripts/generate-web-config.sh` to use the shared env loader and require only `FIREBASE_API_KEY`
+- Updated `scripts/inject-web-config.sh` to delegate to the same canonical generator
+- Removed the silent demo fallback from `build-web-prod`
+- Forced demo config for GitHub/preview builds so leftover prod config cannot leak into preview output
+- Fixed backup path handling to use one deploy timestamp per run
+- Added a post-deploy check that `https://flowgroove.app/.env` is not publicly accessible
+- Replaced `.ftp-env.example` and `.env.example` FTP values with placeholders only
+- Removed tracked `web/config.js` from git index
+
+### Acceptance Criteria
+```
+Production (flowgroove.app):
+  Hugo    → / (root)   → https://flowgroove.app/
+  Flutter → /app/      → https://flowgroove.app/app/
+
+Required verification:
+  - / returns 200
+  - /app/ returns 200
+  - /app/config.js returns valid runtime config
+  - /.env is NOT publicly accessible
+```
+
+### Prevention
+- [ ] Always run `make deploy-stable`, not ad-hoc FTP commands
+- [ ] Keep FTP credentials only in `.env`, `.ftp-env`, or exported shell vars
+- [ ] Keep `.env.example` and `.ftp-env.example` placeholder-only
+- [ ] Do not re-add `web/config.js` to git
+- [ ] Treat GitHub Pages layout parity as a release requirement for FTP production
+
+---
+
+## 8. Canonical FTP Target Drifted From The Actually Working `lftp` Commands (RESOLVED)
+
+**Date:** 2026-04-24
+**Severity:** 🔴 CRITICAL
+**Status:** ✅ FIXED
+
+### The Problem
+Even after the live site was recovered, the checked-in `Makefile` still did not match the commands that actually worked:
+
+- backup used `mirror $(BACKUP_DIR)/`, which is interpreted as a remote path
+- Flutter upload used `mirror --reverse --delete build/web app/`, which created `app/web/` instead of uploading bundle contents into `/app/`
+- rollback did not explicitly restore from the saved local backup directory
+
+### The Fix
+- backup now uses `lcd $(BACKUP_DIR); mirror . .`
+- Flutter upload now uses `cd app; mirror --reverse --delete build/web/ .`
+- rollback now uses `lcd $$BACKUP_DIR; mirror --reverse --delete . .`
+
+### Durable Rule
+- when `lftp` mirrors local and remote trees, always make the local/remote working directory explicit with `lcd` and `cd`
+- validate `make -n deploy-stable` after any deploy-script edit; do not trust “looks right” path strings
+
+---
+
 ## Deployment Commands Reference
 
 ```bash
@@ -168,5 +244,5 @@ make release
 
 ---
 
-**Last Verified:** April 15, 2026
+**Last Verified:** April 24, 2026
 **Version:** 0.13.4+183

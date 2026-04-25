@@ -1,0 +1,83 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - second01
+      - 'codex/**'
+
+jobs:
+  flutter-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Analyze (non-fatal infos/warnings)
+        run: flutter analyze lib test --no-fatal-infos --no-fatal-warnings
+
+      - name: Targeted regression tests
+        run: |
+          flutter test \
+            test/config/env_config_test.dart \
+            test/config/web_config_test.dart \
+            test/services/spotify_service_test.dart \
+            test/services/track_analysis_service_test.dart \
+            test/login_flow_null_check_test.dart \
+            test/screens/songs/song_form_data_test.dart \
+            test/screens/songs/metronome_pattern_editor_test.dart \
+            test/widgets/metronome/song_library_block_test.dart \
+            test/providers/auth_provider_test.dart
+
+      - name: Security audit
+        run: bash test/security/git_audit_test.sh
+
+      - name: Shell script syntax
+        run: |
+          bash -n scripts/build-mobile-with-env.sh \
+            scripts/generate-web-config.sh \
+            scripts/inject-web-config.sh \
+            scripts/load-deploy-env.sh \
+            scripts/preflight-ftp-deploy.sh
+
+      - name: Production deploy dry run
+        run: make -n deploy-stable
+
+  functions-checks:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: functions
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install functions dependencies
+        run: npm ci
+
+      - name: Verify installed dependency graph
+        run: npm ls --depth=0
+
+      - name: Audit functions dependencies (high+)
+        run: npm audit --omit=dev --audit-level=high

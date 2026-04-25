@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../models/api_error.dart';
 import '../../../providers/auth/error_provider.dart';
-import '../../../services/api/spotify_service.dart';
+import '../../../services/api/spotify_proxy_service.dart';
 import '../../../services/api/track_analysis_service.dart';
 import '../components/spotify_search_section.dart';
 import '../components/musicbrainz_search_section.dart';
@@ -53,6 +53,14 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
   Future<void> fetchTrackAnalysis() async {
     if (formData.title.trim().isEmpty) {
       showMessage('Enter a song title');
+      return;
+    }
+
+    if (!TrackAnalysisService.isConfigured) {
+      showMessage(
+        'Direct track analysis is disabled. Use Spotify search or backend analysis instead.',
+        duration: const Duration(seconds: 4),
+      );
       return;
     }
 
@@ -140,9 +148,10 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
 
   /// Show Spotify search bottom sheet.
   void showSpotifySearch() {
-    if (!SpotifyService.isConfigured) {
+    if (!SpotifyProxyService.isConfigured) {
       showMessage(
-        'Spotify API not configured. Edit lib/services/spotify_service.dart',
+        'Spotify search is not configured. '
+        'Use SPOTIFY_PROXY_URL for web or direct credentials for non-web dev builds.',
         duration: const Duration(seconds: 4),
       );
       return;
