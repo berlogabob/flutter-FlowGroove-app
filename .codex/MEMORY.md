@@ -1,6 +1,6 @@
 # MEMORY
 
-**Last Updated:** 2026-04-24
+**Last Updated:** 2026-04-29
 
 This is the distilled memory bank for active sequential work. Use it before `PLANS.md` execution and update it after durable discoveries.
 
@@ -26,6 +26,8 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - Spotify web access must go through `SPOTIFY_PROXY_URL`; direct client-credential mode is non-web only during migration.
 - Client-side RapidAPI track analysis is retired until a backend replacement exists.
 - Remaining skipped suites are tracked in `docs/test-quarantine-2026-04-24.md`; do not silently unskip them without adding the missing harnesses.
+- `ConnectivityService` no longer owns a hard dependency on `Connectivity()`. Use `connectivityClientProvider` overrides with a local fake client in tests.
+- `OfflineIndicator` only renders when `offlineProvider == true`; widget tests must override provider state explicitly instead of assuming an offline default.
 
 ## Durable Working Rules
 
