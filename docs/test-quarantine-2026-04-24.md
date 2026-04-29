@@ -11,8 +11,6 @@ Document the remaining intentionally skipped test suites so they stay visible an
 
 Group-level skips:
 
-- `test/services/connectivity_service_test.dart`
-  Reason: requires a connectivity method-channel harness or an injectable plugin wrapper.
 - `test/services/metronome_service_test.dart`
   Reason: requires injectable audio/wakelock test doubles instead of live platform services.
 - `test/providers/metronome_provider_test.dart`
@@ -39,6 +37,8 @@ Individual skipped tests:
 
 ## What Was Tried In This Pass
 
+- Refactored `ConnectivityService` behind an injectable client boundary.
+- Restored `test/services/connectivity_service_test.dart` into the active test path.
 - Unskipped the login/register/my-bands widget suites.
 - Unskipped connectivity and metronome unit/provider suites.
 - Verified they still fail for real harness reasons rather than stale skip flags.
@@ -46,8 +46,8 @@ Individual skipped tests:
 ## Result
 
 - The main targeted regression path remains green.
+- `ConnectivityService` is no longer quarantined.
 - Remaining skips are now explicitly documented instead of being treated as invisible backlog.
 - The next reduction step is architectural, not editorial:
   - inject audio and wakelock dependencies into `metronome_provider.dart`
-  - add a connectivity abstraction or mock method-channel harness
   - refresh auth/router screen harnesses for login/register/my-bands
