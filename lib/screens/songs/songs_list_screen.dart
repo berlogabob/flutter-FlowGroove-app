@@ -604,6 +604,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: UnifiedFilterSortWidget(
             currentSort: state.sortOption,
+            hintText: 'Search songs...',
             onSortChanged: (option) {
               if (option != null) {
                 ref
@@ -631,7 +632,9 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         // Filter indicators
         if (state.keyFilter != null || state.bpmFilter != null)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MonoPulseSpacing.lg,
+            ),
             child: Row(
               children: [
                 if (state.keyFilter != null)
@@ -670,13 +673,19 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         // Tag cloud filter
         if (songs.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MonoPulseSpacing.lg,
+              vertical: 8,
+            ),
             child: _buildTagCloud(songs),
           ),
 
         // Filter button
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg, vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.lg,
+            vertical: 8,
+          ),
           child: Row(
             children: [
               const Text(

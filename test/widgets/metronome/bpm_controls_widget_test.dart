@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/widgets/metronome/bpm_controls_widget.dart';
-import 'package:flowgroove/providers/data/metronome_provider.dart';
 
+import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/test_helpers.dart';
 
 void main() {
   group('BpmControlsWidget', () {
+    List<dynamic> metronomeOverrides() {
+      return buildMetronomeTestOverrides(overrideMetronomeProvider: true);
+    }
+
     testWidgets('renders BPM label', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       expect(find.text('BPM'), findsWidgets);
@@ -21,7 +25,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       expect(find.byType(Slider), findsOneWidget);
@@ -31,7 +35,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       // Default BPM is 120 - use textContaining to match both Text and TextField
@@ -42,7 +46,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       expect(find.byType(TextField), findsOneWidget);
@@ -52,7 +56,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       expect(find.byIcon(Icons.remove), findsOneWidget);
@@ -62,7 +66,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       expect(find.byIcon(Icons.add), findsOneWidget);
@@ -72,7 +76,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       expect(find.byIcon(Icons.help_outline), findsOneWidget);
@@ -84,7 +88,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       // Tap minus button
@@ -101,7 +105,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       // Tap plus button
@@ -118,7 +122,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       // Find slider and drag it
@@ -136,7 +140,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       // Find input field and enter new BPM
@@ -154,7 +158,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       // Enter BPM below minimum
@@ -172,7 +176,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       // Enter BPM above maximum
@@ -184,27 +188,27 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('slider has correct range 1-300', (WidgetTester tester) async {
+    testWidgets('slider has correct range 10-260', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       final slider = tester.widget<Slider>(find.byType(Slider));
-      expect(slider.min, equals(1));
-      expect(slider.max, equals(300));
+      expect(slider.min, equals(10));
+      expect(slider.max, equals(260));
     });
 
-    testWidgets('slider has 299 divisions', (WidgetTester tester) async {
+    testWidgets('slider has 250 divisions', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       final slider = tester.widget<Slider>(find.byType(Slider));
-      expect(slider.divisions, equals(299));
+      expect(slider.divisions, equals(250));
     });
 
     testWidgets('handles invalid input gracefully', (
@@ -213,7 +217,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       // Enter invalid text

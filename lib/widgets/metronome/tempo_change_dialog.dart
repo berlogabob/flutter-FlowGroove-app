@@ -99,7 +99,7 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
                   color: MonoPulseColors.textHighEmphasis,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Values from 1 to 600',
+                  hintText: 'Values from 10 to 260',
                   hintStyle: MonoPulseTypography.bodyMedium.copyWith(
                     color: MonoPulseColors.textTertiary,
                   ),
@@ -129,14 +129,14 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
                 onChanged: (value) {
                   final bpm = int.tryParse(value);
                   setState(() {
-                    _isValid = bpm != null && bpm >= 1 && bpm <= 300;
+                    _isValid = bpm != null && bpm >= 10 && bpm <= 260;
                   });
                 },
               ),
               if (!_isValid) ...[
                 const SizedBox(height: MonoPulseSpacing.sm),
                 Text(
-                  'Please enter a value between 1 and 600',
+                  'Please enter a value between 10 and 260',
                   style: MonoPulseTypography.labelSmall.copyWith(
                     color: MonoPulseColors.error,
                   ),

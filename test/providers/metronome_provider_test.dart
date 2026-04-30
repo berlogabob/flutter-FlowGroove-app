@@ -6,12 +6,23 @@ import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/models/time_signature.dart';
 
+import '../helpers/metronome_test_runtime.dart';
+
 void main() {
-  group('MetronomeNotifier - Metronome Integration', skip: 'Requires injectable audio/wakelock test doubles instead of live platform services', () {
+  group('MetronomeNotifier - Metronome Integration', () {
+    ProviderContainer createContainer({MetronomeTestRuntime? runtime}) {
+      final testRuntime = runtime ?? MetronomeTestRuntime();
+      final container = ProviderContainer(overrides: testRuntime.overrides);
+      addTearDown(() async {
+        container.dispose();
+        await testRuntime.dispose();
+      });
+      return container;
+    }
+
     group('loadSongTempo', () {
       test('loads BPM from song (ourBPM preferred)', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final song = Song(
           id: 'song-1',
@@ -32,8 +43,7 @@ void main() {
       });
 
       test('loads BPM from song (falls back to originalBPM)', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final song = Song(
           id: 'song-2',
@@ -52,8 +62,7 @@ void main() {
       });
 
       test('clamps BPM to valid range (10-260)', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final song = Song(
           id: 'song-3',
@@ -72,8 +81,7 @@ void main() {
       });
 
       test('loads metronome settings from song', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final beatModes = [
           [BeatMode.accent, BeatMode.normal],
@@ -104,8 +112,7 @@ void main() {
       });
 
       test('updates time signature to match loaded accentBeats', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final song = Song(
           id: 'song-5',
@@ -125,8 +132,7 @@ void main() {
       });
 
       test('preserves existing beatModes when song has empty beatModes', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         // First set some beatModes
         final metronome = container.read(metronomeProvider.notifier);
@@ -149,8 +155,7 @@ void main() {
       });
 
       test('loads song without BPM does not change current BPM', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final initialBpm = container.read(metronomeProvider).bpm;
 
@@ -173,8 +178,7 @@ void main() {
 
     group('saveMetronomeToSong', () {
       test('returns null when no song is loaded', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         final result = metronome.saveMetronomeToSong();
@@ -183,8 +187,7 @@ void main() {
       });
 
       test('saves current metronome settings to loaded song', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final song = Song(
           id: 'song-1',
@@ -214,8 +217,7 @@ void main() {
       });
 
       test('updates loadedSong in state after saving', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final song = Song(
           id: 'song-2',
@@ -236,8 +238,7 @@ void main() {
       });
 
       test('updates updatedAt timestamp when saving', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final originalDate = DateTime(2024, 1, 1);
         final song = Song(
@@ -260,8 +261,7 @@ void main() {
 
     group('loadSongTempo and saveMetronomeToSong integration', () {
       test('round-trip: load settings, modify, save preserves changes', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final originalBeatModes = [
           [BeatMode.accent, BeatMode.normal],
@@ -305,8 +305,7 @@ void main() {
 
     group('loadSetlistQueue', () {
       test('loads setlist into state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final setlist = Setlist(
           id: 'setlist-1',
@@ -326,8 +325,7 @@ void main() {
       });
 
       test('clears loadedSong when loading setlist', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final song = Song(
           id: 'song-1',
@@ -359,8 +357,7 @@ void main() {
 
     group('Setlist navigation', () {
       test('nextSetlistSong increments index', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final setlist = Setlist(
           id: 'setlist-1',
@@ -381,8 +378,7 @@ void main() {
       });
 
       test('nextSetlistSong does not exceed song count', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final setlist = Setlist(
           id: 'setlist-1',
@@ -405,8 +401,7 @@ void main() {
       });
 
       test('previousSetlistSong decrements index', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final setlist = Setlist(
           id: 'setlist-1',
@@ -429,8 +424,7 @@ void main() {
       });
 
       test('previousSetlistSong does not go below zero', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final setlist = Setlist(
           id: 'setlist-1',
@@ -454,8 +448,7 @@ void main() {
 
     group('clearLoadedContent', () {
       test('clears loaded song', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final song = Song(
           id: 'song-1',
@@ -474,8 +467,7 @@ void main() {
       });
 
       test('clears loaded setlist', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final setlist = Setlist(
           id: 'setlist-1',
@@ -495,8 +487,7 @@ void main() {
       });
 
       test('resets currentSetlistIndex', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final setlist = Setlist(
           id: 'setlist-1',
@@ -520,8 +511,7 @@ void main() {
 
     group('setAccentBeats', () {
       test('sets accentBeats value', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setAccentBeats(6);
@@ -531,8 +521,7 @@ void main() {
       });
 
       test('clamps accentBeats to valid range (1-12)', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setAccentBeats(20); // Too high
@@ -542,8 +531,7 @@ void main() {
       });
 
       test('clamps accentBeats minimum to 1', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setAccentBeats(0); // Too low
@@ -555,8 +543,7 @@ void main() {
 
     group('setRegularBeats', () {
       test('sets regularBeats value', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setRegularBeats(4);
@@ -566,8 +553,7 @@ void main() {
       });
 
       test('clamps regularBeats to valid range (1-12)', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setRegularBeats(20); // Too high
@@ -579,8 +565,7 @@ void main() {
 
     group('setBeatMode', () {
       test('sets beat mode at specified position', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBeatMode(0, 0, BeatMode.accent);
@@ -591,8 +576,7 @@ void main() {
       });
 
       test('expands beatModes grid when needed', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBeatMode(3, 2, BeatMode.silent);
@@ -604,8 +588,7 @@ void main() {
       });
 
       test('can set multiple beat modes', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBeatMode(0, 0, BeatMode.accent);
@@ -622,8 +605,7 @@ void main() {
 
     group('Edge cases', () {
       test('loadSongTempo with null BPM does not crash', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final song = Song(
           id: 'song-1',
@@ -638,8 +620,7 @@ void main() {
       });
 
       test('saveMetronomeToSong without loaded song returns null', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         final result = metronome.saveMetronomeToSong();
@@ -648,8 +629,7 @@ void main() {
       });
 
       test('setlist navigation without loaded setlist does not crash', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         expect(() => metronome.nextSetlistSong(), returnsNormally);
@@ -659,24 +639,21 @@ void main() {
 
     group('Metronome State Initialization', () {
       test('initial state has correct default BPM', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final state = container.read(metronomeProvider);
         expect(state.bpm, 120);
       });
 
       test('initial state is not playing', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final state = container.read(metronomeProvider);
         expect(state.isPlaying, isFalse);
       });
 
       test('initial state has correct time signature', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final state = container.read(metronomeProvider);
         expect(state.timeSignature.numerator, 4);
@@ -684,40 +661,35 @@ void main() {
       });
 
       test('initial state has correct volume', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final state = container.read(metronomeProvider);
         expect(state.volume, 0.5);
       });
 
       test('initial state has correct wave type', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final state = container.read(metronomeProvider);
         expect(state.waveType, 'sine');
       });
 
       test('initial state has correct accentBeats', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final state = container.read(metronomeProvider);
         expect(state.accentBeats, 4);
       });
 
       test('initial state has correct regularBeats', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final state = container.read(metronomeProvider);
         expect(state.regularBeats, 1);
       });
 
       test('state copyWith creates new instance', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final originalState = container.read(metronomeProvider);
         final newState = originalState.copyWith(bpm: 140);
@@ -728,8 +700,7 @@ void main() {
       });
 
       test('state copyWith preserves unchanged values', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final originalState = container.read(metronomeProvider);
         final newState = originalState.copyWith(bpm: 140);
@@ -742,8 +713,7 @@ void main() {
 
     group('BPM Controls', () {
       test('setBpm updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBpm(140);
@@ -752,31 +722,28 @@ void main() {
         expect(state.bpm, 140);
       });
 
-      test('setBpm clamps to minimum 40', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+      test('setBpm clamps to minimum 10', () {
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBpm(0);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 40);
+        expect(state.bpm, 10);
       });
 
-      test('setBpm clamps to maximum 220', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+      test('setBpm clamps to maximum 260', () {
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBpm(500);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 220);
+        expect(state.bpm, 260);
       });
 
       test('adjustTempoFine increases BPM', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.adjustTempoFine(10);
@@ -786,8 +753,7 @@ void main() {
       });
 
       test('adjustTempoFine decreases BPM', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.adjustTempoFine(-10);
@@ -797,8 +763,7 @@ void main() {
       });
 
       test('adjustTempoFine clamps at maximum', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         // Use setTempoDirectly to set to max (260)
@@ -806,12 +771,11 @@ void main() {
         metronome.adjustTempoFine(40);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 300); // adjustTempoFine clamps to 1-300
+        expect(state.bpm, 260);
       });
 
       test('adjustTempoFine clamps at minimum', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         // Use setTempoDirectly to set to min (10)
@@ -819,12 +783,11 @@ void main() {
         metronome.adjustTempoFine(-20);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 1); // adjustTempoFine clamps to 1-300
+        expect(state.bpm, 10);
       });
 
       test('rotateTempo updates BPM', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.rotateTempo(288); // Should increase by 1
@@ -834,8 +797,7 @@ void main() {
       });
 
       test('rotateTempo negative decreases BPM', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.rotateTempo(-288); // Should decrease by 1
@@ -847,8 +809,7 @@ void main() {
 
     group('Note Value Controls', () {
       test('setAccentBeats updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setAccentBeats(6);
@@ -858,8 +819,7 @@ void main() {
       });
 
       test('setAccentBeats clamps to range 1-12', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setAccentBeats(20);
@@ -869,8 +829,7 @@ void main() {
       });
 
       test('setRegularBeats updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setRegularBeats(4);
@@ -880,8 +839,7 @@ void main() {
       });
 
       test('setRegularBeats clamps to range 1-12', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setRegularBeats(20);
@@ -891,8 +849,7 @@ void main() {
       });
 
       test('setBeatMode sets mode at position', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBeatMode(0, 0, BeatMode.accent);
@@ -903,8 +860,7 @@ void main() {
       });
 
       test('setBeatMode expands grid when needed', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBeatMode(3, 2, BeatMode.silent);
@@ -916,8 +872,7 @@ void main() {
       });
 
       test('setTimeSignature updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         final timeSignature = TimeSignature(numerator: 3, denominator: 4);
@@ -929,8 +884,7 @@ void main() {
       });
 
       test('setTimeSignature handles 6/8 special case', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         final timeSignature = TimeSignature(numerator: 6, denominator: 8);
@@ -943,8 +897,7 @@ void main() {
 
     group('Playback Controls', () {
       test('togglePlayback starts when stopped', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.toggle();
@@ -954,8 +907,7 @@ void main() {
       });
 
       test('togglePlayback stops when playing', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.start(120, 4);
@@ -966,8 +918,7 @@ void main() {
       });
 
       test('start sets isPlaying to true', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.start(120, 4);
@@ -976,9 +927,20 @@ void main() {
         expect(state.isPlaying, isTrue);
       });
 
+      test('start initializes audio and enables wakelock', () async {
+        final runtime = MetronomeTestRuntime();
+        final container = createContainer(runtime: runtime);
+
+        container.read(metronomeProvider.notifier).start(120, 4);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(runtime.audio.initializeCalls, 1);
+        expect(runtime.wakelock.enableCalls, 1);
+        expect(runtime.wakelock.isEnabled, isTrue);
+      });
+
       test('start does nothing if already playing', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.start(120, 4);
@@ -990,8 +952,7 @@ void main() {
       });
 
       test('stop sets isPlaying to false', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.start(120, 4);
@@ -1001,17 +962,30 @@ void main() {
         expect(state.isPlaying, isFalse);
       });
 
+      test('stop disables wakelock cleanly', () async {
+        final runtime = MetronomeTestRuntime();
+        final container = createContainer(runtime: runtime);
+
+        final metronome = container.read(metronomeProvider.notifier);
+        metronome.start(120, 4);
+        await Future<void>.delayed(Duration.zero);
+
+        metronome.stop();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(runtime.wakelock.disableCalls, greaterThanOrEqualTo(1));
+        expect(runtime.wakelock.isEnabled, isFalse);
+      });
+
       test('stop does nothing if already stopped', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         expect(() => metronome.stop(), returnsNormally);
       });
 
       test('setVolume updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setVolume(0.8);
@@ -1021,8 +995,7 @@ void main() {
       });
 
       test('setVolume clamps to 0.0-1.0', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setVolume(1.5);
@@ -1032,8 +1005,7 @@ void main() {
       });
 
       test('setWaveType updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setWaveType('square');
@@ -1043,8 +1015,7 @@ void main() {
       });
 
       test('toggleAccent toggles accent enabled', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.toggleAccent();
@@ -1054,8 +1025,7 @@ void main() {
       });
 
       test('setAccentEnabled updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setAccentEnabled(false);
@@ -1065,8 +1035,7 @@ void main() {
       });
 
       test('setAccentFrequency updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setAccentFrequency(2000.0);
@@ -1076,8 +1045,7 @@ void main() {
       });
 
       test('setBeatFrequency updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBeatFrequency(1000.0);
@@ -1087,8 +1055,7 @@ void main() {
       });
 
       test('setAccentPattern updates state', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setAccentPattern([true, true, false, false]);
@@ -1098,20 +1065,36 @@ void main() {
         expect(state.accentPattern[0], isTrue);
         expect(state.accentPattern[2], isFalse);
       });
+
+      test(
+        'timer tick uses fake audio and haptics without platform plugins',
+        () async {
+          final runtime = MetronomeTestRuntime();
+          final container = createContainer(runtime: runtime);
+
+          container.read(metronomeProvider.notifier).start(120, 4);
+          await Future<void>.delayed(const Duration(milliseconds: 520));
+
+          expect(runtime.audio.playClickCalls, greaterThanOrEqualTo(1));
+          expect(runtime.haptics.lightImpactCalls, greaterThanOrEqualTo(1));
+          expect(
+            container.read(metronomeProvider).currentBeat,
+            greaterThanOrEqualTo(0),
+          );
+        },
+      );
     });
 
     group('Preset Management', () {
       test('playTest method exists', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         expect(metronome.playTest, isNotNull);
       });
 
       test('updateAccentPatternFromTimeSignature updates pattern', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setTimeSignature(TimeSignature(numerator: 3, denominator: 4));
@@ -1123,8 +1106,7 @@ void main() {
       });
 
       test('setBeatsPerMeasure updates time signature', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBeatsPerMeasure(3);
@@ -1136,8 +1118,7 @@ void main() {
 
     group('Dispose Verification', () {
       test('dispose stops timer and audio', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.start(120, 4);
@@ -1146,8 +1127,7 @@ void main() {
       });
 
       test('dispose can be called multiple times', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
 
@@ -1156,7 +1136,7 @@ void main() {
       });
 
       test('ProviderContainer dispose cleans up resources', () {
-        final localContainer = ProviderContainer();
+        final localContainer = createContainer();
 
         localContainer.read(metronomeProvider);
 
@@ -1166,16 +1146,14 @@ void main() {
 
     group('Loaded Content Management', () {
       test('clearLoadedContent method exists', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         expect(metronome.clearLoadedContent, isNotNull);
       });
 
       test('clearLoadedContent resets currentSetlistIndex', () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+        final container = createContainer();
 
         final setlist = Setlist(
           id: 'setlist-1',

@@ -90,6 +90,22 @@ class AnalyticsService {
     }
   }
 
+  /// Log successful demo login.
+  static Future<void> logDemoLogin() async {
+    try {
+      await _analytics.logLogin(loginMethod: 'demo');
+      await _analytics.logEvent(
+        name: 'login_demo',
+        parameters: {'method': 'demo'},
+      );
+      if (_debugMode) {
+        debugPrint('📊 Event: login_demo (method: demo)');
+      }
+    } catch (e) {
+      _logError('logDemoLogin', e);
+    }
+  }
+
   /// Log user logout
   static Future<void> logLogout() async {
     try {
@@ -234,7 +250,9 @@ class AnalyticsService {
         },
       );
       if (_debugMode) {
-        debugPrint('📊 Event: band_updated (fields: ${fieldsChanged.join(', ')})');
+        debugPrint(
+          '📊 Event: band_updated (fields: ${fieldsChanged.join(', ')})',
+        );
       }
     } catch (e) {
       _logError('logBandUpdated', e);
@@ -624,7 +642,9 @@ class AnalyticsService {
         parameters: {'duration_seconds': durationSeconds},
       );
       if (_debugMode) {
-        debugPrint('📊 Event: metronome_stopped (duration: ${durationSeconds}s)');
+        debugPrint(
+          '📊 Event: metronome_stopped (duration: ${durationSeconds}s)',
+        );
       }
     } catch (e) {
       _logError('logMetronomeStopped', e);
@@ -639,9 +659,7 @@ class AnalyticsService {
     int? cents,
   }) async {
     try {
-      final params = <String, Object>{
-        AnalyticsParams.mode: mode,
-      };
+      final params = <String, Object>{AnalyticsParams.mode: mode};
 
       if (targetNote != null) params[AnalyticsParams.targetNote] = targetNote;
       if (detectedNote != null) {
@@ -713,7 +731,9 @@ class AnalyticsService {
         },
       );
       if (_debugMode) {
-        debugPrint('📊 Event: pdf_exported (type: $itemType, count: $itemCount)');
+        debugPrint(
+          '📊 Event: pdf_exported (type: $itemType, count: $itemCount)',
+        );
       }
     } catch (e) {
       _logError('logPdfExported', e);
@@ -734,7 +754,9 @@ class AnalyticsService {
         },
       );
       if (_debugMode) {
-        debugPrint('📊 Event: csv_exported (type: $itemType, count: $itemCount)');
+        debugPrint(
+          '📊 Event: csv_exported (type: $itemType, count: $itemCount)',
+        );
       }
     } catch (e) {
       _logError('logCsvExported', e);
@@ -858,13 +880,13 @@ class AnalyticsService {
   }
 
   /// Enable analytics collection
-  static Future<void> setAnalyticsCollectionEnabled(
-    bool enabled,
-  ) async {
+  static Future<void> setAnalyticsCollectionEnabled(bool enabled) async {
     try {
       await _analytics.setAnalyticsCollectionEnabled(enabled);
       if (_debugMode) {
-        debugPrint('📊 Analytics collection ${enabled ? 'enabled' : 'disabled'}');
+        debugPrint(
+          '📊 Analytics collection ${enabled ? 'enabled' : 'disabled'}',
+        );
       }
     } catch (e) {
       _logError('setAnalyticsCollectionEnabled', e);

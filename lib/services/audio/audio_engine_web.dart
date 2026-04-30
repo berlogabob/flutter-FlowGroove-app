@@ -24,6 +24,9 @@ class AudioEngine {
     }
   }
 
+  /// Web uses lazy AudioContext initialization, so pre-warm is a no-op.
+  Future<void> preWarmPlayers() async {}
+
   /// Play a click sound
   /// [isAccent] - true for accented beat (higher pitch)
   /// [waveType] - 'sine', 'square', 'triangle', or 'sawtooth'

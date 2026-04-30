@@ -1,6 +1,6 @@
 # MEMORY
 
-**Last Updated:** 2026-04-29
+**Last Updated:** 2026-04-30
 
 This is the distilled memory bank for active sequential work. Use it before `PLANS.md` execution and update it after durable discoveries.
 
@@ -26,8 +26,13 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - Spotify web access must go through `SPOTIFY_PROXY_URL`; direct client-credential mode is non-web only during migration.
 - Client-side RapidAPI track analysis is retired until a backend replacement exists.
 - Remaining skipped suites are tracked in `docs/test-quarantine-2026-04-24.md`; do not silently unskip them without adding the missing harnesses.
+- Fast auth/list screen tests use `test/helpers/routed_test_harness.dart`; do not test `context.goNamed` flows with plain `MaterialApp` or `NavigatorObserver`.
+- Login side effects are provider-backed through `analyticsClientProvider` and `pendingJoinCodeStoreProvider`; do not reintroduce direct `FirebaseAnalytics.instance` or static secure-storage reads in `LoginScreen`.
 - `ConnectivityService` no longer owns a hard dependency on `Connectivity()`. Use `connectivityClientProvider` overrides with a local fake client in tests.
 - `OfflineIndicator` only renders when `offlineProvider == true`; widget tests must override provider state explicitly instead of assuming an offline default.
+- `MetronomeNotifier` no longer constructs audio, haptics, or wakelock services directly. Use `metronomeAudioClientProvider`, `metronomeHapticsProvider`, and `wakelockProvider` overrides in fast tests.
+- Canonical metronome BPM contract is `10-260` across notifier logic and user-facing metronome inputs.
+- `MetronomeState.copyWith` now supports explicit `null` clearing for `loadedSong` and `loadedSetlist`; use that path instead of assuming nullable fields can be cleared with the old `??` semantics.
 
 ## Durable Working Rules
 

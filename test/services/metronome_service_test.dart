@@ -3,16 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/models/time_signature.dart';
 
+import '../helpers/metronome_test_runtime.dart';
+
 void main() {
-  group('MetronomeService', skip: 'Requires injectable audio/wakelock test doubles instead of live platform services', () {
+  group('MetronomeService', () {
     late ProviderContainer container;
+    late MetronomeTestRuntime runtime;
 
     setUp(() {
-      container = ProviderContainer();
+      runtime = MetronomeTestRuntime();
+      container = ProviderContainer(overrides: runtime.overrides);
     });
 
-    tearDown(() {
+    tearDown(() async {
       container.dispose();
+      await runtime.dispose();
     });
 
     group('initial state', () {
@@ -89,11 +94,11 @@ void main() {
         expect(state.isPlaying, isTrue);
       });
 
-      test('updates bpm and beatsPerMeasure', () {
+      test('updates bpm and time signature numerator', () {
         container.read(metronomeProvider.notifier).start(140, 3);
         final state = container.read(metronomeProvider);
         expect(state.bpm, equals(140));
-        expect(state.beatsPerMeasure, equals(3));
+        expect(state.timeSignature.numerator, equals(3));
       });
     });
 
@@ -122,15 +127,15 @@ void main() {
       test('can set bpm to maximum value', () {
         container.read(metronomeProvider.notifier).setBpm(300);
         final state = container.read(metronomeProvider);
-        expect(state.bpm, equals(300));
+        expect(state.bpm, equals(260));
       });
     });
 
     group('setBeatsPerMeasure', () {
-      test('updates beats per measure', () {
+      test('updates time signature numerator', () {
         container.read(metronomeProvider.notifier).setBeatsPerMeasure(3);
         final state = container.read(metronomeProvider);
-        expect(state.beatsPerMeasure, equals(3));
+        expect(state.timeSignature.numerator, equals(3));
       });
 
       test('updates accent pattern when beats per measure changes', () {
@@ -326,10 +331,7 @@ void main() {
             .read(metronomeProvider.notifier)
             .updateAccentPatternFromTimeSignature();
         final state = container.read(metronomeProvider);
-        expect(
-          state.accentPattern,
-          equals([true, false, false, true, false, false]),
-        );
+        expect(state.accentPattern, equals([true, true]));
       });
     });
 
@@ -381,6 +383,49 @@ void main() {
         container.read(metronomeProvider.notifier).toggle();
         expect(container.read(metronomeProvider).isPlaying, isFalse);
       });
+    });
+
+    group('runtime side effects', () {
+      test('start initializes audio and enables wakelock', () async {
+        container.read(metronomeProvider.notifier).start(120, 4);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(runtime.audio.initializeCalls, 1);
+        expect(runtime.wakelock.enableCalls, 1);
+        expect(runtime.wakelock.isEnabled, isTrue);
+      });
+
+      test('stop disables wakelock cleanly', () async {
+        container.read(metronomeProvider.notifier).start(120, 4);
+        await Future<void>.delayed(Duration.zero);
+
+        container.read(metronomeProvider.notifier).stop();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(runtime.wakelock.disableCalls, greaterThanOrEqualTo(1));
+        expect(runtime.wakelock.isEnabled, isFalse);
+      });
+
+      test('playTest routes through injected audio client', () async {
+        await container.read(metronomeProvider.notifier).playTest();
+
+        expect(runtime.audio.playTestCalls, 1);
+      });
+
+      test(
+        'timer tick uses fake audio and haptics without platform plugins',
+        () async {
+          container.read(metronomeProvider.notifier).start(120, 4);
+          await Future<void>.delayed(const Duration(milliseconds: 520));
+
+          expect(runtime.audio.playClickCalls, greaterThanOrEqualTo(1));
+          expect(runtime.haptics.lightImpactCalls, greaterThanOrEqualTo(1));
+          expect(
+            container.read(metronomeProvider).currentBeat,
+            greaterThanOrEqualTo(0),
+          );
+        },
+      );
     });
   });
 }

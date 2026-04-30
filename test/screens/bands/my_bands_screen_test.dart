@@ -1,439 +1,197 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flowgroove/screens/bands/my_bands_screen.dart';
-import 'package:flowgroove/providers/data/data_providers.dart';
-import 'package:flowgroove/providers/auth/auth_provider.dart';
+
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/user.dart';
-import '../../helpers/test_helpers.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+
 import '../../helpers/mocks.dart';
-import '../../helpers/mocks.mocks.dart';
-
-// Test notifier that returns a specific value
-class TestAppUserNotifier extends AppUserNotifier {
-  final AppUser? mockUser;
-
-  TestAppUserNotifier(this.mockUser);
-
-  @override
-  AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
-}
+import '../../helpers/routed_test_harness.dart';
 
 void main() {
-  group('MyBandsScreen', skip: 'Requires updated Riverpod/Firebase widget harness for current screen contract', () {
-    late MockFirebaseAuth mockAuth;
+  group('MyBandsScreen', () {
+    late AppUser mockUser;
+
+    List<dynamic> overridesFor(Stream<List<Band>> bands) => [
+      appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+      bandsProvider.overrideWith((ref) => bands),
+    ];
 
     setUp(() {
-      mockAuth = MockFirebaseAuth();
+      mockUser = MockDataHelper.createMockAppUser();
     });
 
-    testWidgets('renders my bands screen with title', (
-      WidgetTester tester,
+    testWidgets('renders my bands screen with title and search', (
+      tester,
     ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([])),
-        ],
+        initialLocation: '/main/bands',
+        overrides: overridesFor(Stream<List<Band>>.value([])),
       );
 
-      // Verify screen title
-      expect(findText('My Bands'), findsOneWidget);
+      expect(find.text('Search bands...'), findsOneWidget);
+      expect(find.byIcon(Icons.sort), findsOneWidget);
     });
 
-    testWidgets('displays search field', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-      );
-
-      // Verify search field
-      expect(findText('Search bands...'), findsOneWidget);
-      expect(findIcon(Icons.search), findsWidgets);
-    });
-
-    testWidgets('displays floating action buttons', (
-      WidgetTester tester,
+    testWidgets('displays create and join floating action buttons', (
+      tester,
     ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([])),
-        ],
+        initialLocation: '/main/bands',
+        overrides: overridesFor(Stream<List<Band>>.value([])),
       );
 
-      // Verify FABs
-      final fabs = find.byType(FloatingActionButton);
-      expect(fabs, findsNWidgets(2));
+      expect(find.byTooltip('Create'), findsOneWidget);
+      expect(find.byTooltip('Join'), findsOneWidget);
+      expect(find.byIcon(Icons.add), findsWidgets);
+      expect(find.byIcon(Icons.group_add), findsOneWidget);
     });
 
-    testWidgets('displays empty state when no bands', (
-      WidgetTester tester,
+    testWidgets('displays empty state when no bands exist', (tester) async {
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/bands',
+        overrides: overridesFor(Stream<List<Band>>.value([])),
+      );
+
+      expect(find.text('No bands yet'), findsOneWidget);
+      expect(find.text('Create a band to get started'), findsOneWidget);
+      expect(find.text('Create Band'), findsOneWidget);
+    });
+
+    testWidgets('displays list of bands with descriptions and member counts', (
+      tester,
     ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-      );
-
-      // Verify empty state
-      expect(findText('No bands yet'), findsOneWidget);
-      expect(findText('Create a band to get started'), findsOneWidget);
-      expect(findText('Create Band'), findsOneWidget);
-    });
-
-    testWidgets('displays list of bands', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
       final bands = [
         MockDataHelper.createMockBand(
           id: '1',
-          name: 'Band One',
-          members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
+          name: 'Jazz Quartet',
+          description: 'Smooth jazz ensemble',
+          members: [
+            BandMember(uid: 'u1', role: BandMember.roleAdmin),
+            BandMember(uid: 'u2', role: BandMember.roleViewer),
+          ],
         ),
         MockDataHelper.createMockBand(
           id: '2',
-          name: 'Band Two',
-          members: [
-            BandMember(uid: '1', role: BandMember.roleAdmin),
-            BandMember(uid: '2', role: BandMember.roleEditor),
-          ],
-        ),
-        MockDataHelper.createMockBand(
-          id: '3',
-          name: 'Band Three',
-          members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
+          name: 'Rock Band',
+          description: 'Classic rock covers',
+          members: [BandMember(uid: 'u1', role: BandMember.roleAdmin)],
         ),
       ];
 
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value(bands)),
-        ],
+        initialLocation: '/main/bands',
+        overrides: overridesFor(Stream<List<Band>>.value(bands)),
       );
 
-      // Verify bands are displayed
-      expect(find.text('Band One'), findsOneWidget);
-      expect(find.text('Band Two'), findsOneWidget);
-      expect(find.text('Band Three'), findsOneWidget);
-    });
-
-    testWidgets('displays member count for each band', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      final bands = [
-        MockDataHelper.createMockBand(
-          id: '1',
-          name: 'Solo Band',
-          members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
-        ),
-        MockDataHelper.createMockBand(
-          id: '2',
-          name: 'Duo Band',
-          members: [
-            BandMember(uid: '1', role: BandMember.roleAdmin),
-            BandMember(uid: '2', role: BandMember.roleEditor),
-          ],
-        ),
-        MockDataHelper.createMockBand(
-          id: '3',
-          name: 'Trio Band',
-          members: [
-            BandMember(uid: '1', role: BandMember.roleAdmin),
-            BandMember(uid: '2', role: BandMember.roleEditor),
-            BandMember(uid: '3', role: BandMember.roleViewer),
-          ],
-        ),
-      ];
-
-      await pumpAppWidget(
-        tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value(bands)),
-        ],
-      );
-
-      // Verify member counts
-      expect(find.text('1 member'), findsOneWidget);
-      expect(find.text('2 members'), findsOneWidget);
-      expect(find.text('3 members'), findsOneWidget);
-    });
-
-    testWidgets('filters bands by name', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      final bands = [
-        MockDataHelper.createMockBand(id: '1', name: 'Rock Band', members: []),
-        MockDataHelper.createMockBand(id: '2', name: 'Jazz Band', members: []),
-        MockDataHelper.createMockBand(id: '3', name: 'Pop Band', members: []),
-      ];
-
-      await pumpAppWidget(
-        tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value(bands)),
-        ],
-      );
-
-      // Enter search query
-      final searchField = find.byType(TextField);
-      await tester.enterText(searchField, 'Rock');
-      await tester.pumpAndSettle();
-
-      // Verify only matching band is displayed
+      expect(find.text('Jazz Quartet'), findsOneWidget);
       expect(find.text('Rock Band'), findsOneWidget);
-      expect(find.text('Jazz Band'), findsNothing);
-      expect(find.text('Pop Band'), findsNothing);
+      expect(find.text('Smooth jazz ensemble'), findsOneWidget);
+      expect(find.text('Classic rock covers'), findsOneWidget);
+      expect(find.text('2 members'), findsOneWidget);
+      expect(find.text('1 member'), findsOneWidget);
+      expect(find.byIcon(Icons.groups), findsWidgets);
     });
 
-    testWidgets('displays search empty state when no results', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
+    testWidgets('filters bands by name', (tester) async {
       final bands = [
-        MockDataHelper.createMockBand(id: '1', name: 'Rock Band', members: []),
+        MockDataHelper.createMockBand(id: '1', name: 'Jazz Quartet'),
+        MockDataHelper.createMockBand(id: '2', name: 'Rock Band'),
       ];
 
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value(bands)),
-        ],
+        initialLocation: '/main/bands',
+        overrides: overridesFor(Stream<List<Band>>.value(bands)),
       );
 
-      // Enter search query with no results
-      final searchField = find.byType(TextField);
-      await tester.enterText(searchField, 'nonexistent');
+      await tester.enterText(find.byType(TextField), 'Jazz');
+      await tester.pump();
+
+      expect(find.text('Jazz Quartet'), findsOneWidget);
+      expect(find.text('Rock Band'), findsNothing);
+    });
+
+    testWidgets('displays search empty state when no results match', (
+      tester,
+    ) async {
+      final bands = [
+        MockDataHelper.createMockBand(id: '1', name: 'Jazz Quartet'),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/bands',
+        overrides: overridesFor(Stream<List<Band>>.value(bands)),
+      );
+
+      await tester.enterText(find.byType(TextField), 'metal');
+      await tester.pump();
+
+      expect(find.text('No results found'), findsOneWidget);
+      expect(find.text('Try searching for "metal"'), findsOneWidget);
+    });
+
+    testWidgets('navigates to create band from create FAB', (tester) async {
+      final router = await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/bands',
+        overrides: overridesFor(Stream<List<Band>>.value([])),
+      );
+
+      await tester.tap(find.byTooltip('Create'));
       await tester.pumpAndSettle();
 
-      // Verify search empty state
-      expect(findText('No results found'), findsOneWidget);
+      expect(currentRouterUri(router).path, '/main/bands/create');
+      expect(find.text('route:create-band'), findsOneWidget);
     });
 
-    testWidgets('navigates to create band screen when tapping create FAB', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      bool didNavigateToCreate = false;
-
-      await pumpAppWidget(
+    testWidgets('navigates to join band from join FAB', (tester) async {
+      final router = await pumpRoutedTestApp(
         tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-        navigatorObservers: [
-          MockNavigatorObserver(
-            onPush: (route) {
-              if (route.settings.name == '/create-band') {
-                didNavigateToCreate = true;
-              }
-            },
-          ),
-        ],
+        initialLocation: '/main/bands',
+        overrides: overridesFor(Stream<List<Band>>.value([])),
       );
 
-      // Tap create FAB (first one)
-      final fabs = find.byType(FloatingActionButton);
-      await tester.tap(fabs.first);
-      await tester.pump();
+      await tester.tap(find.byTooltip('Join'));
+      await tester.pumpAndSettle();
 
-      expect(didNavigateToCreate, isTrue);
+      expect(currentRouterUri(router).path, '/main/join-band');
+      expect(find.text('route:join-band'), findsOneWidget);
     });
 
-    testWidgets('navigates to join band screen when tapping join FAB', (
-      WidgetTester tester,
+    testWidgets('navigates to create band from empty state CTA', (
+      tester,
     ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      bool didNavigateToJoin = false;
-
-      await pumpAppWidget(
+      final router = await pumpRoutedTestApp(
         tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-        navigatorObservers: [
-          MockNavigatorObserver(
-            onPush: (route) {
-              if (route.settings.name == '/join-band') {
-                didNavigateToJoin = true;
-              }
-            },
-          ),
-        ],
+        initialLocation: '/main/bands',
+        overrides: overridesFor(Stream<List<Band>>.value([])),
       );
 
-      // Tap join FAB (second one)
-      final fabs = find.byType(FloatingActionButton);
-      await tester.tap(fabs.last);
-      await tester.pump();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Band'));
+      await tester.pumpAndSettle();
 
-      expect(didNavigateToJoin, isTrue);
+      expect(currentRouterUri(router).path, '/main/bands/create');
+      expect(find.text('route:create-band'), findsOneWidget);
     });
 
-    testWidgets(
-      'navigates to create band screen when tapping Create Band button',
-      (WidgetTester tester) async {
-        final mockUser = MockDataHelper.createMockAppUser();
-        bool didNavigate = false;
-
-        await pumpAppWidget(
-          tester,
-          const MyBandsScreen(),
-          overrides: [
-            firebaseAuthProvider.overrideWith((ref) => mockAuth),
-            appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-            bandsProvider.overrideWith((ref) => Stream.value([])),
-          ],
-          navigatorObservers: [
-            MockNavigatorObserver(
-              onPush: (route) {
-                if (route.settings.name == '/create-band') {
-                  didNavigate = true;
-                }
-              },
-            ),
-          ],
-        );
-
-        // Tap Create Band button
-        await tester.tap(findText('Create Band'));
-        await tester.pump();
-
-        expect(didNavigate, isTrue);
-      },
-    );
-
-    testWidgets('shows loading indicator when loading bands', (
-      WidgetTester tester,
+    testWidgets('shows loading indicator while bands are loading', (
+      tester,
     ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([])),
-        ],
+        initialLocation: '/main/bands',
+        overrides: overridesFor(const Stream<List<Band>>.empty()),
       );
 
-      // Verify screen renders
-      expect(find.byType(Scaffold), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('displays error message when error occurs', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith(
-            (ref) => Stream.error(Exception('Failed to load bands')),
-          ),
-        ],
-      );
-
-      // Verify error message
-      expect(find.textContaining('Failed to load bands'), findsOneWidget);
-    });
-
-    testWidgets('displays band description when available', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      final band = MockDataHelper.createMockBand(
-        id: '1',
-        name: 'Test Band',
-        description: 'A rock band from NYC',
-        members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
-      );
-
-      await pumpAppWidget(
-        tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([band])),
-        ],
-      );
-
-      // Verify description is displayed
-      expect(find.text('A rock band from NYC'), findsOneWidget);
-    });
-
-    testWidgets('displays band cards with correct icons', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      final band = MockDataHelper.createMockBand(
-        id: '1',
-        name: 'Test Band',
-        members: [BandMember(uid: '1', role: BandMember.roleAdmin)],
-      );
-
-      await pumpAppWidget(
-        tester,
-        const MyBandsScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          bandsProvider.overrideWith((ref) => Stream.value([band])),
-        ],
-      );
-
-      // Verify icons
-      expect(findIcon(Icons.groups), findsWidgets);
-      expect(findIcon(Icons.edit), findsOneWidget);
-      expect(findIcon(Icons.delete), findsOneWidget);
-    });
   });
 }

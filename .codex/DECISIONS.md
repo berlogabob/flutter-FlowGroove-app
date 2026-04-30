@@ -65,3 +65,9 @@
 **Decision:** Remaining skipped test suites stay quarantined until dedicated harnesses exist, and the quarantine inventory lives in `docs/test-quarantine-2026-04-24.md`.
 
 **Why:** Attempting to unskip them immediately produced real failures tied to router/Firebase, connectivity method channels, and live audio/wakelock services. Keeping them documented and bounded is safer than pretending they are ready for CI.
+
+## D-2026-04-29-12
+
+**Decision:** Metronome runtime side effects must sit behind provider-backed boundaries, and the canonical metronome BPM contract is `10-260` across notifier logic and user-facing controls.
+
+**Why:** The metronome fast path was not hermetic while `MetronomeNotifier` directly constructed platform services, and the old mixed BPM limits (`1-300`, `40-220`, `10-260`) created avoidable drift between provider logic, UI, and tests. One injectable runtime boundary plus one BPM contract makes the metronome stack testable and consistent.

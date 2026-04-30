@@ -13,8 +13,8 @@ import 'models/user.dart';
 import 'widgets/loading_indicator.dart';
 import 'widgets/config_error_widget.dart';
 import 'utils/analytics_debug.dart';
+import 'providers/metronome_runtime_providers.dart';
 import 'services/analytics_service.dart';
-import 'services/audio/audio_engine_mobile.dart';
 import 'analytics/metronome_analytics.dart';
 import 'config/config_validator.dart';
 
@@ -33,7 +33,11 @@ void main() async {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: MonoPulseColors.error),
+              const Icon(
+                Icons.error_outline,
+                size: 48,
+                color: MonoPulseColors.error,
+              ),
               const SizedBox(height: 12),
               Text(
                 'Something went wrong',
@@ -75,7 +79,9 @@ void main() async {
 
   // Initialize Firebase with validated config
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     debugPrint('✅ Firebase initialized');
   } catch (e) {
     debugPrint('❌ Firebase initialization failed: $e');
@@ -125,6 +131,8 @@ void main() async {
     debugPrint('   They don\'t affect core app functionality');
   }
 
+  final rootContainer = ProviderContainer();
+
   // Pre-initialize audio engine for instant first beat (deferred to avoid blocking startup)
   if (!kIsWeb) {
     // Defer audio initialization to after first frame
@@ -134,9 +142,9 @@ void main() async {
       Duration duration = Duration.zero;
 
       try {
-        final audioEngine = AudioEngine();
-        await audioEngine.initialize();
-        await audioEngine.preWarmPlayers();
+        final audioClient = rootContainer.read(metronomeAudioClientProvider);
+        await audioClient.initialize();
+        await audioClient.preWarmPlayers();
 
         duration = stopwatch.elapsed;
         debugPrint('✅ Audio pre-initialized in ${duration.inMilliseconds}ms');
@@ -167,14 +175,19 @@ void main() async {
     );
     debugPrint('   UID: ${currentUser.uid}');
     debugPrint('   Email verified: ${currentUser.emailVerified}');
-    
+
     // Log login event for existing user
     analytics?.logLogin(loginMethod: 'auto');
   } else {
     debugPrint('🔑 NO USER: No user found from previous session');
   }
 
-  runApp(ProviderScope(child: FlowGrooveApp(analytics: analytics)));
+  runApp(
+    UncontrolledProviderScope(
+      container: rootContainer,
+      child: FlowGrooveApp(analytics: analytics),
+    ),
+  );
 }
 
 class FlowGrooveApp extends ConsumerWidget {
@@ -293,8 +306,8 @@ class FirebaseErrorApp extends StatelessWidget {
                   Text(
                     'Firebase Initialization Error',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),

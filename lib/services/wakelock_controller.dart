@@ -98,7 +98,9 @@ class WakelockController {
   /// Dispose the controller and release the wakelock.
   Future<void> dispose() async {
     if (_isDisposed) return;
-    await disable();
+    if (_isEnabled) {
+      await disable();
+    }
     _isDisposed = true;
     debugPrint('[Wakelock] Controller disposed');
   }

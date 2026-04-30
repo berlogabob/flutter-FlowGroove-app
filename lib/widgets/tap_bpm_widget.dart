@@ -78,7 +78,7 @@ class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
         final bpm = (60000 / avgInterval).round();
 
         // Validate BPM range
-        if (bpm >= 40 && bpm <= 220) {
+        if (bpm >= 10 && bpm <= 260) {
           _calculatedBPM = bpm;
         }
       }

@@ -4,7 +4,7 @@
 /// Features:
 /// - Drag up/down to adjust BPM
 /// - Always-visible BPM handle
-/// - Tick marks with labels (60, 120, 180, 240, 300)
+/// - Tick marks with labels spanning the 10-260 BPM dial
 /// - Pulse animation on beats
 /// - Constant sensitivity (3° = 1 BPM)
 /// - Adaptive sizing
@@ -100,8 +100,9 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
                           'BPM',
                           style: TextStyle(
                             fontSize: 16,
-                            color: MonoPulseColors.textSecondary
-                                .withValues(alpha: 0.7),
+                            color: MonoPulseColors.textSecondary.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                         ),
                       ],
@@ -220,8 +221,8 @@ class TempoDialPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
 
-    // Major ticks at 60, 120, 180, 240, 300
-    final majorTicks = [60, 120, 180, 240, 300];
+    // Major ticks across the supported 10-260 BPM range
+    final majorTicks = [10, 60, 120, 180, 260];
 
     for (final tick in majorTicks) {
       final angle = _bpmToAngle(tick.toDouble()) + rotationOffset - math.pi / 2;
@@ -246,6 +247,14 @@ class TempoDialPainter extends CustomPainter {
           fontWeight: FontWeight.w700,
         ),
       );
+      labelPaint.layout();
+      labelPaint.paint(
+        canvas,
+        Offset(
+          labelPos.dx - labelPaint.width / 2,
+          labelPos.dy - labelPaint.height / 2,
+        ),
+      );
     }
   }
 
@@ -256,7 +265,9 @@ class TempoDialPainter extends CustomPainter {
 
     // Draw handle circle
     final handlePaint = Paint()
-      ..color = isPlaying ? MonoPulseColors.accentOrange : MonoPulseColors.textTertiary
+      ..color = isPlaying
+          ? MonoPulseColors.accentOrange
+          : MonoPulseColors.textTertiary
       ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(handleX, handleY), 8, handlePaint);
 

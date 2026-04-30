@@ -6,6 +6,8 @@ import '../models/setlist.dart';
 
 part 'metronome_state.g.dart';
 
+const Object _metronomeStateNoChange = Object();
+
 /// Immutable state class for MetronomeNotifier
 @JsonSerializable()
 class MetronomeState {
@@ -96,8 +98,8 @@ class MetronomeState {
     int? accentBeats,
     int? regularBeats,
     List<List<BeatMode>>? beatModes,
-    Song? loadedSong,
-    Setlist? loadedSetlist,
+    Object? loadedSong = _metronomeStateNoChange,
+    Object? loadedSetlist = _metronomeStateNoChange,
     int? currentSetlistIndex,
   }) {
     return MetronomeState(
@@ -114,8 +116,12 @@ class MetronomeState {
       accentBeats: accentBeats ?? this.accentBeats,
       regularBeats: regularBeats ?? this.regularBeats,
       beatModes: beatModes ?? this.beatModes,
-      loadedSong: loadedSong ?? this.loadedSong,
-      loadedSetlist: loadedSetlist ?? this.loadedSetlist,
+      loadedSong: identical(loadedSong, _metronomeStateNoChange)
+          ? this.loadedSong
+          : loadedSong as Song?,
+      loadedSetlist: identical(loadedSetlist, _metronomeStateNoChange)
+          ? this.loadedSetlist
+          : loadedSetlist as Setlist?,
       currentSetlistIndex: currentSetlistIndex ?? this.currentSetlistIndex,
     );
   }
