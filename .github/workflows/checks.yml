@@ -48,6 +48,7 @@ jobs:
         run: |
           bash -n scripts/build-mobile-with-env.sh \
             scripts/generate-web-config.sh \
+            scripts/health-check-prod.sh \
             scripts/inject-web-config.sh \
             scripts/load-deploy-env.sh \
             scripts/preflight-ftp-deploy.sh
