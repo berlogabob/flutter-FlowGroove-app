@@ -249,6 +249,39 @@ void main() {
         expect(copied.bpm, 100);
         expect(copied.loadedSong, equals(song));
       });
+
+      test('allows clearing loaded content with explicit null', () {
+        final song = Song(
+          id: 'song-1',
+          title: 'Test Song',
+          artist: 'Test Artist',
+          createdAt: DateTime(2024, 1, 1),
+          updatedAt: DateTime(2024, 1, 1),
+        );
+        final setlist = Setlist(
+          id: 'setlist-1',
+          bandId: 'band-1',
+          name: 'Test Setlist',
+          songIds: ['song-1'],
+          createdAt: DateTime(2024, 1, 1),
+          updatedAt: DateTime(2024, 1, 1),
+        );
+        final original = MetronomeState.initial().copyWith(
+          loadedSong: song,
+          loadedSetlist: setlist,
+          currentSetlistIndex: 2,
+        );
+
+        final cleared = original.copyWith(
+          loadedSong: null,
+          loadedSetlist: null,
+          currentSetlistIndex: 0,
+        );
+
+        expect(cleared.loadedSong, isNull);
+        expect(cleared.loadedSetlist, isNull);
+        expect(cleared.currentSetlistIndex, 0);
+      });
     });
 
     group('fromJson', () {

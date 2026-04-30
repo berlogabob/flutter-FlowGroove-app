@@ -26,7 +26,7 @@ void main() {
 
         final songBpm = song.ourBPM ?? song.originalBPM;
         if (songBpm != null) {
-          state = state.copyWith(bpm: songBpm.clamp(1, 300));
+          state = state.copyWith(bpm: songBpm.clamp(10, 260));
         }
 
         state = state.copyWith(
@@ -55,7 +55,7 @@ void main() {
 
         final songBpm = song.ourBPM ?? song.originalBPM;
         if (songBpm != null) {
-          state = state.copyWith(bpm: songBpm.clamp(1, 300));
+          state = state.copyWith(bpm: songBpm.clamp(10, 260));
         }
 
         expect(state.bpm, 100);
@@ -76,10 +76,10 @@ void main() {
 
         final songBpm = song.ourBPM ?? song.originalBPM;
         if (songBpm != null) {
-          state = state.copyWith(bpm: songBpm.clamp(1, 300));
+          state = state.copyWith(bpm: songBpm.clamp(10, 260));
         }
 
-        expect(state.bpm, 300); // Clamped
+        expect(state.bpm, 260); // Clamped
       });
     });
 

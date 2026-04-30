@@ -18,6 +18,7 @@ class UnifiedFilterSortWidget extends StatefulWidget {
   final ValueChanged<SortOption?> onSortChanged;
   final String? filterText;
   final ValueChanged<String?> onFilterChanged;
+  final String hintText;
 
   const UnifiedFilterSortWidget({
     super.key,
@@ -25,6 +26,7 @@ class UnifiedFilterSortWidget extends StatefulWidget {
     required this.onSortChanged,
     this.filterText,
     required this.onFilterChanged,
+    this.hintText = 'Search...',
   });
 
   @override
@@ -63,10 +65,10 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
           // Filter input
           Expanded(
             child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Search...',
+              decoration: InputDecoration(
+                hintText: widget.hintText,
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
                 ),

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import '../../router/app_router.dart';
+
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
-import '../widgets/error_banner.dart';
 import '../theme/mono_pulse_theme.dart';
+import '../widgets/error_banner.dart';
 import 'songs/models/inputs/email_input.dart';
 import 'songs/models/inputs/password_input.dart';
 import 'auth/forgot_password_screen.dart';
@@ -64,6 +63,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _login() async {
+    setState(() {
+      _email = Email.dirty(_emailController.text.trim());
+      _password = Password.dirty(_passwordController.text);
+    });
+
     // Validate using Formz
     if (!_email.isValid || !_password.isValid) return;
 
@@ -80,25 +84,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
 
       // Log successful login
-      FirebaseAnalytics.instance.logLogin(loginMethod: 'email');
-      FirebaseAnalytics.instance.logEvent(
-        name: 'login_success',
-        parameters: {'method': 'email'},
-      );
+      final analytics = ref.read(analyticsClientProvider);
+      await analytics.logLogin(loginMethod: 'email');
+      await analytics.logLoginSuccess(loginMethod: 'email');
 
-      if (mounted) {
-        // Check if there's a pending join code from before login
-        final pendingJoinCode =
-            await AppUserNotifier.getAndClearPendingJoinCode();
-        if (pendingJoinCode != null) {
-          // Redirect to join-band screen with the code as query parameter
-          context.goNamed(
-            'join-band',
-            queryParameters: {'code': pendingJoinCode},
-          );
-        } else {
-          context.go('/main/home');
-        }
+      // Check if there's a pending join code from before login.
+      final pendingJoinCode = await ref
+          .read(pendingJoinCodeStoreProvider)
+          .getAndClearPendingJoinCode();
+      if (!mounted) return;
+
+      if (pendingJoinCode != null) {
+        context.goNamed(
+          'join-band',
+          queryParameters: {'code': pendingJoinCode},
+        );
+      } else {
+        context.go('/main/home');
       }
     } on ApiError catch (e) {
       _handleError(e);
@@ -132,11 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         password: demoPassword,
       );
 
-      FirebaseAnalytics.instance.logLogin(loginMethod: 'demo');
-      FirebaseAnalytics.instance.logEvent(
-        name: 'login_demo',
-        parameters: {'method': 'demo'},
-      );
+      await ref.read(analyticsClientProvider).logDemoLogin();
 
       if (mounted) {
         context.go('/main/home');
@@ -222,9 +220,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // Use Navigator to push the route with email
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => ForgotPasswordScreen(
-                          initialEmail: _email.value,
-                        ),
+                        builder: (context) =>
+                            ForgotPasswordScreen(initialEmail: _email.value),
                       ),
                     );
                   },
@@ -254,7 +251,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: () => appRouter.goNamed('register'),
+                    onPressed: () => context.goNamed('register'),
                     child: const Text('Sign Up'),
                   ),
                 ],
@@ -277,9 +274,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   foregroundColor: MonoPulseColors.accentOrange,
-                  side: const BorderSide(
-                    color: MonoPulseColors.accentOrange,
-                  ),
+                  side: const BorderSide(color: MonoPulseColors.accentOrange),
                 ),
               ),
               const SizedBox(height: 8),

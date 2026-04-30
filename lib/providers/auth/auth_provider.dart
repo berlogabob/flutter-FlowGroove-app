@@ -21,6 +21,18 @@ final firebaseFirestoreProvider = Provider<FirebaseFirestore>((ref) {
 
 /// Lightweight adapter used to override analytics calls in tests.
 class AnalyticsClient {
+  Future<void> logLogin({required String loginMethod}) {
+    return AnalyticsService.logLogin(loginMethod: loginMethod);
+  }
+
+  Future<void> logLoginSuccess({required String loginMethod}) {
+    return AnalyticsService.logLoginSuccess(loginMethod: loginMethod);
+  }
+
+  Future<void> logDemoLogin() {
+    return AnalyticsService.logDemoLogin();
+  }
+
   Future<void> setUserProperties({
     required AppUser user,
     required int bandCount,
@@ -38,6 +50,21 @@ class AnalyticsClient {
 
 final analyticsClientProvider = Provider<AnalyticsClient>((ref) {
   return AnalyticsClient();
+});
+
+/// Storage boundary for pending invite codes captured before auth.
+class PendingJoinCodeStore {
+  Future<String?> getAndClearPendingJoinCode() async {
+    final code = await secureStorage.read(key: 'pending_join_code');
+    if (code != null) {
+      await secureStorage.delete(key: 'pending_join_code');
+    }
+    return code;
+  }
+}
+
+final pendingJoinCodeStoreProvider = Provider<PendingJoinCodeStore>((ref) {
+  return PendingJoinCodeStore();
 });
 
 /// Provider for the CacheService.
@@ -111,7 +138,9 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
 
           if (_canAccessFirestore()) {
             // Load Telegram photo if consent given.
-            _loadTelegramProfile(user.uid).then((Map<String, dynamic>? telegramData) {
+            _loadTelegramProfile(user.uid).then((
+              Map<String, dynamic>? telegramData,
+            ) {
               if (telegramData != null) {
                 if (displayName == 'User' &&
                     telegramData['telegramUsername'] != null) {
@@ -179,18 +208,24 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         displayName: user.displayName,
         photoURL: user.photoURL,
         accessRole: (userDoc.data()?['accessRole'] as String?) ?? 'member',
-        musicRoles: List<String>.from((userDoc.data()?['musicRoles'] as List?) ?? []),
-        systemTags: List<String>.from((userDoc.data()?['systemTags'] as List?) ?? []),
+        musicRoles: List<String>.from(
+          (userDoc.data()?['musicRoles'] as List?) ?? [],
+        ),
+        systemTags: List<String>.from(
+          (userDoc.data()?['systemTags'] as List?) ?? [],
+        ),
         bandIds: List.generate(bandCount, (i) => 'band_$i'),
         createdAt: DateTime.now(),
       );
 
-      await ref.read(analyticsClientProvider).setUserProperties(
-        user: appUser,
-        bandCount: bandCount,
-        songCount: songCount,
-        setlistCount: setlistCount,
-      );
+      await ref
+          .read(analyticsClientProvider)
+          .setUserProperties(
+            user: appUser,
+            bandCount: bandCount,
+            songCount: songCount,
+            setlistCount: setlistCount,
+          );
     } catch (e) {
       debugPrint('Error setting user properties: $e');
     }
@@ -443,7 +478,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       final updatedUser = currentUser.copyWith(displayName: newName);
       final firestore = FirestoreService();
       await firestore.saveUser(updatedUser);
-      
+
       // Update local state to trigger UI refresh
       state = AsyncValue.data(updatedUser);
     } catch (e, stackTrace) {

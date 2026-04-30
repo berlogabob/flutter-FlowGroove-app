@@ -74,34 +74,34 @@ void main() {
         WidgetTester tester,
       ) async {
         // Arrange & Act: Test valid BPM values
-        final validBpmValues = [40, 60, 80, 120, 160, 200, 220];
+        final validBpmValues = [10, 40, 60, 80, 120, 160, 200, 260];
 
         for (final bpm in validBpmValues) {
           // Assert: All valid BPM values accepted
-          expect(bpm, inInclusiveRange(40, 220));
+          expect(bpm, inInclusiveRange(10, 260));
         }
       });
 
-      testWidgets('INT-METRONOME-01.3: Manual BPM clamps to minimum (40)', (
+      testWidgets('INT-METRONOME-01.3: Manual BPM clamps to minimum (10)', (
         WidgetTester tester,
       ) async {
         // Arrange
-        final inputBpm = 20;
-        final clampedBpm = inputBpm.clamp(40, 220);
+        final inputBpm = 1;
+        final clampedBpm = inputBpm.clamp(10, 260);
 
         // Assert
-        expect(clampedBpm, equals(40));
+        expect(clampedBpm, equals(10));
       });
 
-      testWidgets('INT-METRONOME-01.4: Manual BPM clamps to maximum (220)', (
+      testWidgets('INT-METRONOME-01.4: Manual BPM clamps to maximum (260)', (
         WidgetTester tester,
       ) async {
         // Arrange
         final inputBpm = 300;
-        final clampedBpm = inputBpm.clamp(40, 220);
+        final clampedBpm = inputBpm.clamp(10, 260);
 
         // Assert
-        expect(clampedBpm, equals(220));
+        expect(clampedBpm, equals(260));
       });
 
       testWidgets('INT-METRONOME-01.5: Manual BPM with invalid input handled', (
@@ -344,11 +344,11 @@ void main() {
         final avgInterval =
             tapIntervals.reduce((a, b) => a + b) / tapIntervals.length;
         final rawBpm = (60000 / avgInterval).round();
-        final clampedBpm = rawBpm.clamp(40, 220);
+        final clampedBpm = rawBpm.clamp(10, 260);
 
         // Assert
         expect(rawBpm, equals(600));
-        expect(clampedBpm, equals(220));
+        expect(clampedBpm, equals(260));
       });
     });
 
@@ -857,8 +857,8 @@ void main() {
         container.read(metronomeProvider.notifier).adjustTempoFine(-10);
         final state = container.read(metronomeProvider);
 
-        // Assert: Clamped to 1
-        expect(state.bpm, equals(1));
+        // Assert: Clamped to 10
+        expect(state.bpm, equals(10));
       });
 
       testWidgets('INT-METRONOME-01.44: Tempo at maximum boundary', (
@@ -874,8 +874,8 @@ void main() {
         container.read(metronomeProvider.notifier).adjustTempoFine(10);
         final state = container.read(metronomeProvider);
 
-        // Assert: Clamped to 300
-        expect(state.bpm, equals(300));
+        // Assert: Clamped to 260
+        expect(state.bpm, equals(260));
       });
 
       testWidgets('INT-METRONOME-01.45: Beat mode serialization', (

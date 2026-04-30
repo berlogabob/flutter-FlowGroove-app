@@ -1,13 +1,15 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/metronome_state.dart';
 import '../../models/time_signature.dart';
 import '../../models/song.dart';
 import '../../models/setlist.dart';
 import '../../models/beat_mode.dart';
-import '../../services/audio/audio_engine_export.dart';
+import '../../providers/metronome_runtime_providers.dart';
+import '../../providers/wakelock_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../services/wakelock_controller.dart';
 
@@ -17,14 +19,20 @@ import '../../services/wakelock_controller.dart';
 /// Uses Riverpod Notifier pattern for state management.
 class MetronomeNotifier extends Notifier<MetronomeState> {
   Timer? _timer;
-  final AudioEngine _audioEngine = AudioEngine();
-  final WakelockController _wakelock = WakelockController();
+  late MetronomeAudioClient _audioClient;
+  late MetronomeHapticsClient _haptics;
+  late WakelockController _wakelock;
 
   /// Default constructor
   MetronomeNotifier();
 
   @override
   MetronomeState build() {
+    _audioClient = ref.read(metronomeAudioClientProvider);
+    _haptics = ref.read(metronomeHapticsProvider);
+    _wakelock = ref.read(wakelockProvider);
+    ref.onDispose(_cleanup);
+
     return MetronomeState.initial();
   }
 
@@ -32,8 +40,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void start(int bpm, int beatsPerMeasure) {
     if (state.isPlaying) return;
 
-    // NEW: BPM range restricted to industry standard (10-260 BPM)
-    final clampedBpm = bpm.clamp(10, 260);
+    final clampedBpm = _clampBpm(bpm);
     final timeSignature = TimeSignature(
       numerator: beatsPerMeasure,
       denominator: state.timeSignature.denominator,
@@ -51,7 +58,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     }
 
     // Initialize audio on first start (requires user interaction)
-    _audioEngine.initialize();
+    unawaited(_initializeAudioSafely());
 
     state = state.copyWith(
       isPlaying: true,
@@ -64,7 +71,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     _startTimer();
 
     // Enable wakelock to keep screen on during practice
-    _wakelock.enable();
+    unawaited(_wakelock.enable());
   }
 
   /// Stop the metronome
@@ -77,12 +84,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     state = state.copyWith(isPlaying: false, currentBeat: 0);
 
     // Disable wakelock when metronome stops
-    _wakelock.disable();
+    unawaited(_wakelock.disable());
   }
 
   /// Update BPM while playing
   void setBpm(int bpm) {
-    final clampedBpm = bpm.clamp(40, 220);
+    final clampedBpm = _clampBpm(bpm);
     state = state.copyWith(bpm: clampedBpm);
 
     if (state.isPlaying) {
@@ -137,10 +144,10 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void rotateTempo(double degrees) {
     final bpmChange = (degrees / 288)
         .round(); // 288 degrees = 1 BPM (4x slower than 72)
-    final newBpm = (state.bpm + bpmChange).clamp(1, 300);
+    final newBpm = _clampBpm(state.bpm + bpmChange);
 
     // Stop at limits - don't wrap around
-    if (newBpm == state.bpm && (state.bpm == 1 || state.bpm == 300)) {
+    if (newBpm == state.bpm && (state.bpm == 10 || state.bpm == 260)) {
       return; // At limit, don't update
     }
 
@@ -154,7 +161,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Fine adjustment for tempo (+1, +5, +10 buttons)
   void adjustTempoFine(int delta) {
-    final newBpm = (state.bpm + delta).clamp(1, 300);
+    final newBpm = _clampBpm(state.bpm + delta);
     state = state.copyWith(bpm: newBpm);
 
     if (state.isPlaying) {
@@ -171,7 +178,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     // Load BPM from song (prefer ourBPM, fallback to originalBPM)
     final songBpm = song.ourBPM ?? song.originalBPM;
     if (songBpm != null) {
-      final clampedBpm = songBpm.clamp(1, 300);
+      final clampedBpm = _clampBpm(songBpm);
       state = state.copyWith(bpm: clampedBpm);
     }
 
@@ -256,8 +263,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Set tempo directly
   void setTempoDirectly(int bpm) {
-    // NEW: BPM range restricted to industry standard (10-260 BPM)
-    final clampedBpm = bpm.clamp(10, 260);
+    final clampedBpm = _clampBpm(bpm);
     state = state.copyWith(bpm: clampedBpm);
 
     if (state.isPlaying) {
@@ -370,7 +376,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Play test sound
   Future<void> playTest() async {
-    await _audioEngine.playTest();
+    await _audioClient.playTest();
   }
 
   /// Toggle play/stop
@@ -379,11 +385,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       stop();
     } else {
       start(state.bpm, state.timeSignature.numerator);
-      
+
       // Log analytics event when starting metronome
       AnalyticsService.logMetronomeStarted(
         bpm: state.bpm,
-        timeSignature: '${state.timeSignature.numerator}/${state.timeSignature.denominator}',
+        timeSignature:
+            '${state.timeSignature.numerator}/${state.timeSignature.denominator}',
         subdivision: state.regularBeats,
         soundType: 'digital',
       );
@@ -446,14 +453,16 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     if (shouldPlay) {
       // Vibration FIRST for perfect sync (triggers immediately)
       // Then audio (slightly delayed, but syncs better perceptually)
-      HapticFeedback.lightImpact();
-      
-      _audioEngine.playClick(
-        isAccent: isMainBeat,
-        waveType: state.waveType,
-        volume: state.volume,
-        accentFrequency: frequency,
-        beatFrequency: frequency,
+      _haptics.lightImpact();
+
+      unawaited(
+        _playClickSafely(
+          isAccent: isMainBeat,
+          waveType: state.waveType,
+          volume: state.volume,
+          accentFrequency: frequency,
+          beatFrequency: frequency,
+        ),
       );
     }
 
@@ -462,9 +471,47 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Dispose resources when the provider is destroyed
   void dispose() {
+    _cleanup();
+  }
+
+  int _clampBpm(int bpm) {
+    return bpm.clamp(10, 260);
+  }
+
+  Future<void> _initializeAudioSafely() async {
+    try {
+      await _audioClient.initialize();
+    } catch (error) {
+      debugPrint('[MetronomeNotifier] Audio initialization failed: $error');
+    }
+  }
+
+  Future<void> _playClickSafely({
+    required bool isAccent,
+    required String waveType,
+    required double volume,
+    required double accentFrequency,
+    required double beatFrequency,
+  }) async {
+    try {
+      await _audioClient.playClick(
+        isAccent: isAccent,
+        waveType: waveType,
+        volume: volume,
+        accentFrequency: accentFrequency,
+        beatFrequency: beatFrequency,
+      );
+    } catch (error) {
+      debugPrint('[MetronomeNotifier] Play click failed: $error');
+    }
+  }
+
+  void _cleanup() {
     _timer?.cancel();
-    _audioEngine.dispose();
-    _wakelock.dispose();
+    _timer = null;
+    if (!_wakelock.isDisposed && _wakelock.isEnabled) {
+      unawaited(_wakelock.disable());
+    }
   }
 }
 

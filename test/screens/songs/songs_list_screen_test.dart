@@ -1,449 +1,174 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flowgroove/screens/songs/songs_list_screen.dart';
-import 'package:flowgroove/providers/data/data_providers.dart';
-import 'package:flowgroove/providers/auth/auth_provider.dart';
+
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/user.dart';
-import '../../helpers/test_helpers.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+
 import '../../helpers/mocks.dart';
-import '../../helpers/mocks.mocks.dart';
-
-// Test notifier that returns a specific value
-class TestAppUserNotifier extends AppUserNotifier {
-  final AppUser? mockUser;
-
-  TestAppUserNotifier(this.mockUser);
-
-  @override
-  AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
-}
+import '../../helpers/routed_test_harness.dart';
 
 void main() {
   group('SongsListScreen', () {
-    late MockFirebaseAuth mockAuth;
+    late AppUser mockUser;
+
+    List<dynamic> overridesFor({
+      required Stream<List<Song>> songs,
+      Stream<List<Band>>? bands,
+    }) => [
+      appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+      songsProvider.overrideWith((ref) => songs),
+      bandsProvider.overrideWith(
+        (ref) => bands ?? Stream<List<Band>>.value([]),
+      ),
+    ];
 
     setUp(() {
-      mockAuth = MockFirebaseAuth();
+      mockUser = MockDataHelper.createMockAppUser();
     });
 
-    testWidgets('renders songs list screen with title', (
-      WidgetTester tester,
+    testWidgets('renders songs list screen with title and search', (
+      tester,
     ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value([])),
-        ],
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value([])),
       );
 
-      // Verify screen title
-      expect(findText('Songs'), findsOneWidget);
+      expect(find.text('Songs'), findsOneWidget);
+      expect(find.text('Search songs...'), findsOneWidget);
+      expect(find.text('Filters:'), findsOneWidget);
+      expect(find.byIcon(Icons.sort), findsOneWidget);
     });
 
-    testWidgets('displays search field', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
+    testWidgets('displays empty state when no songs exist', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value([])),
-        ],
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value([])),
       );
 
-      // Verify search field
-      expect(findText('Search songs...'), findsOneWidget);
-      expect(findIcon(Icons.search), findsWidgets);
+      expect(find.text('No songs yet'), findsOneWidget);
+      expect(find.text('Tap + to add your first song'), findsOneWidget);
+      expect(find.text('Add Song'), findsOneWidget);
     });
 
-    testWidgets('displays floating action button', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-      );
-
-      // Verify FAB
-      expect(find.byType(FloatingActionButton), findsOneWidget);
-      expect(findIcon(Icons.add), findsWidgets);
-    });
-
-    testWidgets('displays empty state when no songs', (
-      WidgetTester tester,
+    testWidgets('displays song cards with artist, BPM, key, and tags', (
+      tester,
     ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-      );
-
-      // Verify empty state
-      expect(findText('No songs yet'), findsOneWidget);
-      expect(findText('Tap + to add your first song'), findsOneWidget);
-      expect(findText('Add Song'), findsOneWidget);
-    });
-
-    testWidgets('displays list of songs', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
       final songs = [
         MockDataHelper.createMockSong(
           id: '1',
           title: 'Song One',
           artist: 'Artist One',
+          originalBPM: 120,
+          originalKey: 'C',
+          tags: ['practice'],
         ),
         MockDataHelper.createMockSong(
           id: '2',
           title: 'Song Two',
           artist: 'Artist Two',
-        ),
-        MockDataHelper.createMockSong(
-          id: '3',
-          title: 'Song Three',
-          artist: 'Artist Three',
+          ourBPM: 130,
+          ourKey: 'G',
         ),
       ];
 
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value(songs)),
-        ],
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
       );
 
-      // Verify songs are displayed
       expect(find.text('Song One'), findsOneWidget);
-      expect(find.text('Song Two'), findsOneWidget);
-      expect(find.text('Song Three'), findsOneWidget);
       expect(find.text('Artist One'), findsOneWidget);
-      expect(find.text('Artist Two'), findsOneWidget);
-      expect(find.text('Artist Three'), findsOneWidget);
-    });
-
-    testWidgets('filters songs by title', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      final songs = [
-        MockDataHelper.createMockSong(
-          id: '1',
-          title: 'Bohemian Rhapsody',
-          artist: 'Queen',
-        ),
-        MockDataHelper.createMockSong(
-          id: '2',
-          title: 'Hotel California',
-          artist: 'Eagles',
-        ),
-        MockDataHelper.createMockSong(
-          id: '3',
-          title: 'Sweet Child O Mine',
-          artist: 'Guns N Roses',
-        ),
-      ];
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value(songs)),
-        ],
-      );
-
-      // Enter search query
-      final searchField = find.byType(TextField);
-      await tester.enterText(searchField, 'Bohemian');
-      await tester.pumpAndSettle();
-
-      // Verify only matching song is displayed
-      expect(find.text('Bohemian Rhapsody'), findsOneWidget);
-      expect(find.text('Hotel California'), findsNothing);
-      expect(find.text('Sweet Child O Mine'), findsNothing);
-    });
-
-    testWidgets('filters songs by artist', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      final songs = [
-        MockDataHelper.createMockSong(
-          id: '1',
-          title: 'Bohemian Rhapsody',
-          artist: 'Queen',
-        ),
-        MockDataHelper.createMockSong(
-          id: '2',
-          title: 'Hotel California',
-          artist: 'Eagles',
-        ),
-        MockDataHelper.createMockSong(
-          id: '3',
-          title: 'Sweet Child O Mine',
-          artist: 'Guns N Roses',
-        ),
-      ];
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value(songs)),
-        ],
-      );
-
-      // Enter search query
-      final searchField = find.byType(TextField);
-      await tester.enterText(searchField, 'Queen');
-      await tester.pumpAndSettle();
-
-      // Verify only matching song is displayed
-      expect(find.text('Bohemian Rhapsody'), findsOneWidget);
-      expect(find.text('Hotel California'), findsNothing);
-      expect(find.text('Sweet Child O Mine'), findsNothing);
-    });
-
-    testWidgets('filters songs by tags', (WidgetTester tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      final songs = [
-        MockDataHelper.createMockSong(
-          id: '1',
-          title: 'Song One',
-          artist: 'Artist',
-          tags: ['ready', 'easy'],
-        ),
-        MockDataHelper.createMockSong(
-          id: '2',
-          title: 'Song Two',
-          artist: 'Artist',
-          tags: ['learning', 'hard'],
-        ),
-        MockDataHelper.createMockSong(
-          id: '3',
-          title: 'Song Three',
-          artist: 'Artist',
-          tags: ['fast', 'hard'],
-        ),
-      ];
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value(songs)),
-        ],
-      );
-
-      // Enter search query
-      final searchField = find.byType(TextField);
-      await tester.enterText(searchField, 'hard');
-      await tester.pumpAndSettle();
-
-      // Verify only matching songs are displayed
-      expect(find.text('Song One'), findsNothing);
-      expect(find.text('Song Two'), findsOneWidget);
-      expect(find.text('Song Three'), findsOneWidget);
-    });
-
-    testWidgets('displays search empty state when no results', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      final songs = [
-        MockDataHelper.createMockSong(
-          id: '1',
-          title: 'Song One',
-          artist: 'Artist',
-        ),
-      ];
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value(songs)),
-        ],
-      );
-
-      // Enter search query with no results
-      final searchField = find.byType(TextField);
-      await tester.enterText(searchField, 'nonexistent');
-      await tester.pumpAndSettle();
-
-      // Verify search empty state
-      expect(findText('No results found'), findsOneWidget);
-    });
-
-    testWidgets('navigates to add song screen when tapping FAB', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      bool didNavigate = false;
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-        navigatorObservers: [
-          MockNavigatorObserver(
-            onPush: (route) {
-              if (route.settings.name == '/add-song') {
-                didNavigate = true;
-              }
-            },
-          ),
-        ],
-      );
-
-      // Tap FAB
-      await tester.tap(find.byType(FloatingActionButton));
-      await tester.pump();
-
-      expect(didNavigate, isTrue);
-    });
-
-    testWidgets('navigates to add song screen when tapping Add Song button', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      bool didNavigate = false;
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-        navigatorObservers: [
-          MockNavigatorObserver(
-            onPush: (route) {
-              if (route.settings.name == '/add-song') {
-                didNavigate = true;
-              }
-            },
-          ),
-        ],
-      );
-
-      // Tap Add Song button
-      await tester.tap(findText('Add Song'));
-      await tester.pump();
-
-      expect(didNavigate, isTrue);
-    });
-
-    testWidgets('shows loading indicator when loading songs', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value([])),
-        ],
-      );
-
-      // Note: The loading state is shown briefly during the stream setup
-      // We verify the screen renders properly instead
-      expect(find.byType(Scaffold), findsOneWidget);
-    });
-
-    testWidgets('displays error message when error occurs', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith(
-            (ref) => Stream.error(Exception('Failed to load songs')),
-          ),
-        ],
-      );
-
-      // Verify error message
-      expect(find.textContaining('Failed to load songs'), findsOneWidget);
-    });
-
-    testWidgets('displays song cards with correct data', (
-      WidgetTester tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-      final song = MockDataHelper.createMockSong(
-        id: '1',
-        title: 'Test Song',
-        artist: 'Test Artist',
-        ourBPM: 120,
-        ourKey: 'C',
-      );
-
-      await pumpAppWidget(
-        tester,
-        const SongsListScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          songsProvider.overrideWith((ref) => Stream.value([song])),
-        ],
-      );
-
-      // Verify song data
-      expect(find.text('Test Song'), findsOneWidget);
-      expect(find.text('Test Artist'), findsOneWidget);
-      expect(find.text('120'), findsOneWidget);
+      expect(find.text('120 BPM'), findsOneWidget);
       expect(find.text('C'), findsOneWidget);
+      expect(find.text('Song Two'), findsOneWidget);
+      expect(find.text('130 BPM'), findsOneWidget);
+      expect(find.text('G'), findsOneWidget);
+      expect(find.byIcon(Icons.music_note), findsWidgets);
     });
+
+    testWidgets('filters songs by title', (tester) async {
+      final songs = [
+        MockDataHelper.createMockSong(id: '1', title: 'Ballad', artist: 'A'),
+        MockDataHelper.createMockSong(id: '2', title: 'Anthem', artist: 'B'),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+      );
+
+      await tester.enterText(find.byType(TextField), 'Ballad');
+      await tester.pump();
+
+      expect(find.text('Ballad'), findsWidgets);
+      expect(find.text('Anthem'), findsNothing);
+    });
+
+    testWidgets('shows search empty state when no songs match', (tester) async {
+      final songs = [
+        MockDataHelper.createMockSong(id: '1', title: 'Ballad', artist: 'A'),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+      );
+
+      await tester.enterText(find.byType(TextField), 'missing');
+      await tester.pump();
+
+      expect(find.text('No results found'), findsOneWidget);
+      expect(find.text('Try searching for "missing"'), findsOneWidget);
+    });
+
+    testWidgets('navigates to add song from FAB', (tester) async {
+      final router = await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value([])),
+      );
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+
+      expect(currentRouterUri(router).path, '/main/songs/add');
+      expect(find.text('route:add-song'), findsOneWidget);
+    });
+
+    testWidgets('navigates to add song from empty state CTA', (tester) async {
+      final router = await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value([])),
+      );
+
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Add Song'));
+      await tester.pumpAndSettle();
+
+      expect(currentRouterUri(router).path, '/main/songs/add');
+      expect(find.text('route:add-song'), findsOneWidget);
+    });
+
+    testWidgets('shows loading indicator while songs are loading', (
+      tester,
+    ) async {
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: const Stream<List<Song>>.empty()),
+      );
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
   });
 }

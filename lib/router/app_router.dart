@@ -1,29 +1,52 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:async';
+
+import '../models/band.dart';
 import '../models/song.dart';
 import '../models/setlist.dart';
-import '../models/band.dart';
-import '../screens/login_screen.dart';
-import '../screens/auth/register_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
-import '../screens/home_screen.dart';
-import '../screens/main_shell.dart';
-import '../screens/songs/songs_list_screen.dart';
-import '../screens/songs/add_song_screen.dart';
+import '../screens/auth/register_screen.dart';
 import '../screens/bands/my_bands_screen.dart';
+import '../screens/bands/band_about_screen.dart';
+import '../screens/bands/band_songs_screen.dart';
 import '../screens/bands/create_band_screen.dart';
 import '../screens/bands/join_band_screen.dart';
-import '../screens/bands/band_songs_screen.dart';
-import '../screens/bands/band_about_screen.dart';
 import '../screens/bands/the_band_screen.dart';
-import '../screens/setlists/setlists_list_screen.dart';
-import '../screens/setlists/create_setlist_screen.dart';
-import '../screens/profile_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/login_screen.dart';
+import '../screens/main_shell.dart';
 import '../screens/metronome_screen.dart';
+import '../screens/profile_screen.dart';
+import '../screens/setlists/create_setlist_screen.dart';
+import '../screens/setlists/setlists_list_screen.dart';
+import '../screens/songs/add_song_screen.dart';
+import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
 import '../widgets/desktop_shell.dart';
+
+/// Minimal auth surface needed by the app router.
+abstract class AuthRouterClient {
+  Stream<User?> authStateChanges();
+
+  User? get currentUser;
+}
+
+/// Production auth adapter for GoRouter redirects.
+class FirebaseAuthRouterClient implements AuthRouterClient {
+  FirebaseAuthRouterClient([FirebaseAuth? auth])
+    : _auth = auth ?? FirebaseAuth.instance;
+
+  final FirebaseAuth _auth;
+
+  @override
+  Stream<User?> authStateChanges() => _auth.authStateChanges();
+
+  @override
+  User? get currentUser => _auth.currentUser;
+}
 
 /// Stream that notifies listeners when auth state changes.
 /// Used to refresh GoRouter redirect logic.
@@ -47,7 +70,55 @@ class GoRouterRefreshStream extends ChangeNotifier {
 /// Root navigator key for GoRouter.
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-/// GoRouter configuration for FlowGroove.
+/// Production GoRouter configuration for FlowGroove.
+final GoRouter appRouter = createAppRouter();
+
+/// Creates a GoRouter with injectable auth and route configuration.
+GoRouter createAppRouter({
+  AuthRouterClient? authClient,
+  String initialLocation = '/login',
+  GlobalKey<NavigatorState>? navigatorKey,
+  List<RouteBase>? routes,
+  bool enableAuthRedirect = true,
+}) {
+  final resolvedAuthClient = authClient ?? FirebaseAuthRouterClient();
+
+  return GoRouter(
+    navigatorKey: navigatorKey ?? _rootNavigatorKey,
+    initialLocation: initialLocation,
+    refreshListenable: enableAuthRedirect
+        ? GoRouterRefreshStream(resolvedAuthClient.authStateChanges())
+        : null,
+    redirect: enableAuthRedirect
+        ? (context, state) {
+            final isLoggedIn = resolvedAuthClient.currentUser != null;
+            final isLoggingIn = state.matchedLocation == '/login';
+            final isRegistering = state.matchedLocation == '/register';
+            final isOnMain = state.matchedLocation.startsWith('/main');
+
+            // Not logged in and not on auth pages -> go to login
+            if (!isLoggedIn && !isLoggingIn && !isRegistering) {
+              return '/login';
+            }
+
+            // Logged in and on auth pages -> go to main
+            if (isLoggedIn && (isLoggingIn || isRegistering)) {
+              return '/main/home';
+            }
+
+            // Logged in but on /main without child route -> go to home
+            if (isLoggedIn && isOnMain && state.matchedLocation == '/main') {
+              return '/main/home';
+            }
+
+            return null;
+          }
+        : null,
+    routes: routes ?? _buildAppRoutes(),
+  );
+}
+
+/// GoRouter routes for FlowGroove.
 ///
 /// Features:
 /// - Type-safe navigation with path parameters
@@ -61,36 +132,8 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 /// context.goSongs();
 /// context.goEditSong(song);
 /// ```
-final GoRouter appRouter = GoRouter(
-  navigatorKey: _rootNavigatorKey,
-  initialLocation: '/login',
-  refreshListenable: GoRouterRefreshStream(
-    FirebaseAuth.instance.authStateChanges(),
-  ),
-  redirect: (context, state) {
-    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
-    final isLoggingIn = state.matchedLocation == '/login';
-    final isRegistering = state.matchedLocation == '/register';
-    final isOnMain = state.matchedLocation.startsWith('/main');
-
-    // Not logged in and not on auth pages -> go to login
-    if (!isLoggedIn && !isLoggingIn && !isRegistering) {
-      return '/login';
-    }
-
-    // Logged in and on auth pages -> go to main
-    if (isLoggedIn && (isLoggingIn || isRegistering)) {
-      return '/main/home';
-    }
-
-    // Logged in but on /main without child route -> go to home
-    if (isLoggedIn && isOnMain && state.matchedLocation == '/main') {
-      return '/main/home';
-    }
-
-    return null;
-  },
-  routes: [
+List<RouteBase> _buildAppRoutes() {
+  return [
     // Auth routes (public)
     GoRoute(
       path: '/login',
@@ -111,9 +154,7 @@ final GoRouter appRouter = GoRouter(
     // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return DesktopShell(
-          child: MainShell(navigationShell: navigationShell),
-        );
+        return DesktopShell(child: MainShell(navigationShell: navigationShell));
       },
       branches: [
         // Home branch
@@ -327,8 +368,8 @@ final GoRouter appRouter = GoRouter(
         ),
       ],
     ),
-  ],
-);
+  ];
+}
 
 /// Extension on BuildContext for type-safe navigation.
 ///

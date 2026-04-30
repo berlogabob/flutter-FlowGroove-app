@@ -195,11 +195,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (bands == null || index >= bands.length) return;
 
     final band = bands[index];
-    context.goNamed(
-      'the-band',
-      pathParameters: {'id': band.id},
-      extra: band,
-    );
+    context.goNamed('the-band', pathParameters: {'id': band.id}, extra: band);
   }
 
   @override
@@ -300,6 +296,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: UnifiedFilterSortWidget(
             currentSort: _sortOption,
+            hintText: 'Search bands...',
             onSortChanged: (option) {
               if (option != null) {
                 setState(() => _sortOption = option);

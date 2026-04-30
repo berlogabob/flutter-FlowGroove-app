@@ -1,17 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/widgets/tap_bpm_widget.dart';
-import 'package:flowgroove/providers/data/metronome_provider.dart';
 
+import '../helpers/metronome_test_runtime.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('TapBPMWidget', () {
+    List<dynamic> metronomeOverrides() {
+      return buildMetronomeTestOverrides(overrideMetronomeProvider: true);
+    }
+
+    Future<void> tapAtInterval(
+      WidgetTester tester,
+      Finder tapButton, {
+      int count = 2,
+      Duration interval = const Duration(milliseconds: 250),
+    }) async {
+      for (int index = 0; index < count; index++) {
+        await tester.tap(tapButton);
+        await tester.pump();
+        if (index < count - 1) {
+          await tester.runAsync(() => Future<void>.delayed(interval));
+          await tester.pump();
+        }
+      }
+    }
+
     testWidgets('renders tap button', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       expect(find.byIcon(Icons.touch_app), findsOneWidget);
@@ -24,7 +44,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       expect(find.text('Tap to calculate tempo'), findsOneWidget);
@@ -34,19 +54,14 @@ void main() {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       final containers = tester.widgetList<Container>(find.byType(Container));
-      // Find the circular container (120x120)
-      final circularContainer = containers.firstWhere(
-        (c) =>
-            c.constraints != null &&
-            c.constraints is BoxConstraints &&
-            (c.constraints as BoxConstraints).maxWidth == 120,
-        orElse: () => Container(),
+      final hasCircularContainer = containers.any(
+        (container) => container.constraints?.maxWidth == 120,
       );
-      expect(circularContainer, isNotNull);
+      expect(hasCircularContainer, isTrue);
     });
 
     testWidgets('displays calculated BPM after multiple taps', (
@@ -55,21 +70,14 @@ void main() {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
-      // Tap multiple times
       final tapButton = find.byIcon(Icons.touch_app);
-      await tester.tap(tapButton);
-      await tester.pump();
-      await tester.tap(tapButton);
-      await tester.pump();
-      await tester.tap(tapButton);
-      await tester.pump();
+      await tapAtInterval(tester, tapButton, count: 3);
 
-      // Should show BPM display after 2+ taps
       expect(find.textContaining('BPM'), findsOneWidget);
-      expect(find.textContaining('taps'), findsOneWidget);
+      expect(find.text('3 taps'), findsOneWidget);
     });
 
     testWidgets('shows Apply and Reset buttons after BPM calculation', (
@@ -78,17 +86,12 @@ void main() {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
-      // Tap multiple times to calculate BPM
       final tapButton = find.byIcon(Icons.touch_app);
-      await tester.tap(tapButton);
-      await tester.pump();
-      await tester.tap(tapButton);
-      await tester.pump();
+      await tapAtInterval(tester, tapButton, count: 2);
 
-      // Should show action buttons
       expect(find.text('Apply'), findsOneWidget);
       expect(find.text('Reset'), findsOneWidget);
     });
@@ -97,21 +100,15 @@ void main() {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
-      // Tap multiple times
       final tapButton = find.byIcon(Icons.touch_app);
-      await tester.tap(tapButton);
-      await tester.pump();
-      await tester.tap(tapButton);
-      await tester.pump();
+      await tapAtInterval(tester, tapButton, count: 2);
 
-      // Tap Reset
       await tester.tap(find.text('Reset'));
       await tester.pump();
 
-      // Should show helper text again
       expect(find.text('Tap to calculate tempo'), findsOneWidget);
     });
 
@@ -119,27 +116,20 @@ void main() {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
-      // Tap multiple times
       final tapButton = find.byIcon(Icons.touch_app);
-      await tester.tap(tapButton);
-      await tester.pump();
-      await tester.tap(tapButton);
-      await tester.pump();
-      await tester.tap(tapButton);
-      await tester.pump();
+      await tapAtInterval(tester, tapButton, count: 3);
 
-      // Should show tap count
-      expect(find.textContaining('taps'), findsOneWidget);
+      expect(find.text('3 taps'), findsOneWidget);
     });
 
     testWidgets('has correct container styling', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       expect(find.byType(Container), findsWidgets);
@@ -149,7 +139,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: metronomeOverrides(),
       );
 
       final tapButton = find.byIcon(Icons.touch_app);

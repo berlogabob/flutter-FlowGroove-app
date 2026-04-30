@@ -189,6 +189,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: UnifiedFilterSortWidget(
             currentSort: _sortOption,
+            hintText: 'Search setlists...',
             onSortChanged: (option) {
               if (option != null) setState(() => _sortOption = option);
             },

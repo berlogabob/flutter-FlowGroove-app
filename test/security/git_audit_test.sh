@@ -42,19 +42,19 @@ ENV_FILES=$(git ls-files --others --exclude-standard | grep -E "^\.env$|^\.env\.
 if [ -n "$ENV_FILES" ]; then
     echo -e "${RED}❌ FAIL${NC}: Found .env files in working tree (not gitignored):"
     echo "$ENV_FILES"
-    ((FAIL_COUNT++))
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 elif [ -f ".env" ]; then
     # Check if .env is properly gitignored
     if git check-ignore -q .env; then
         echo -e "${GREEN}✅ PASS${NC}: .env file exists but is properly gitignored"
-        ((PASS_COUNT++))
+        PASS_COUNT=$((PASS_COUNT + 1))
     else
         echo -e "${RED}❌ FAIL${NC}: .env file exists and is NOT gitignored!"
-        ((FAIL_COUNT++))
+        FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 else
     echo -e "${GREEN}✅ PASS${NC}: No sensitive .env files in working tree"
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 fi
 echo ""
 
@@ -68,10 +68,10 @@ if [ -n "$ENV_HISTORY" ]; then
     echo "   This may indicate accidental commits. Consider:"
     echo "   - Running git filter-branch or BFG Repo-Cleaner"
     echo "   - Rotating any exposed credentials"
-    ((WARN_COUNT++))
+    WARN_COUNT=$((WARN_COUNT + 1))
 else
     echo -e "${GREEN}✅ PASS${NC}: No .env files in git history"
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 fi
 echo ""
 
@@ -81,14 +81,14 @@ if [ -f "web/config.js" ]; then
     echo -e "${YELLOW}⚠️  WARNING${NC}: web/config.js exists (should be generated, not tracked)"
     if git ls-files web/config.js | grep -q "web/config.js"; then
         echo -e "${RED}❌ FAIL${NC}: web/config.js is tracked in git!"
-        ((FAIL_COUNT++))
+        FAIL_COUNT=$((FAIL_COUNT + 1))
     else
         echo -e "${GREEN}✅ PASS${NC}: web/config.js is NOT tracked in git"
-        ((PASS_COUNT++))
+        PASS_COUNT=$((PASS_COUNT + 1))
     fi
 else
     echo -e "${GREEN}✅ PASS${NC}: web/config.js does not exist (will be generated at build/deploy)"
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 fi
 echo ""
 
@@ -102,10 +102,10 @@ if [ -n "$CONFIGJS_HISTORY" ]; then
     echo "   If these contained secrets, consider:"
     echo "   - Running git filter-branch or BFG Repo-Cleaner"
     echo "   - Rotating any exposed credentials"
-    ((WARN_COUNT++))
+    WARN_COUNT=$((WARN_COUNT + 1))
 else
     echo -e "${GREEN}✅ PASS${NC}: No config.js files in git history"
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 fi
 echo ""
 
@@ -129,18 +129,18 @@ if [ -f ".gitignore" ]; then
     # Check if assets/env.json is in .gitignore
     if ! grep -q "assets/env.json" .gitignore && ! grep -q "env.json" .gitignore; then
         echo -e "${YELLOW}⚠️  WARNING${NC}: assets/env.json may not be in .gitignore"
-        ((WARN_COUNT++))
+        WARN_COUNT=$((WARN_COUNT + 1))
     fi
     
     if [ $GITIGNORE_MISSING -eq 0 ]; then
         echo -e "${GREEN}✅ PASS${NC}: .gitignore has proper coverage for sensitive files"
-        ((PASS_COUNT++))
+        PASS_COUNT=$((PASS_COUNT + 1))
     else
-        ((FAIL_COUNT++))
+        FAIL_COUNT=$((FAIL_COUNT + 1))
     fi
 else
     echo -e "${RED}❌ FAIL${NC}: .gitignore file not found!"
-    ((FAIL_COUNT++))
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 fi
 echo ""
 
@@ -186,10 +186,10 @@ done
 
 if [ $SECRET_PATTERNS_FOUND -eq 0 ]; then
     echo -e "${GREEN}✅ PASS${NC}: No obvious secret patterns in tracked files"
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 else
     echo -e "${YELLOW}⚠️  WARNING${NC}: Review potential secrets above"
-    ((WARN_COUNT++))
+    WARN_COUNT=$((WARN_COUNT + 1))
 fi
 echo ""
 
@@ -197,10 +197,10 @@ echo ""
 echo "📋 Test 7: Checking for .env.example template..."
 if [ -f ".env.example" ]; then
     echo -e "${GREEN}✅ PASS${NC}: .env.example template exists"
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 else
     echo -e "${YELLOW}⚠️  WARNING${NC}: .env.example not found (recommended for documentation)"
-    ((WARN_COUNT++))
+    WARN_COUNT=$((WARN_COUNT + 1))
 fi
 echo ""
 
@@ -208,10 +208,10 @@ echo ""
 echo "📋 Test 8: Checking for web config template..."
 if [ -f "web/config.template.js" ] || [ -f "web/config.js.template" ]; then
     echo -e "${GREEN}✅ PASS${NC}: web config template exists"
-    ((PASS_COUNT++))
+    PASS_COUNT=$((PASS_COUNT + 1))
 else
     echo -e "${YELLOW}⚠️  WARNING${NC}: no web config template found (recommended for documentation)"
-    ((WARN_COUNT++))
+    WARN_COUNT=$((WARN_COUNT + 1))
 fi
 echo ""
 

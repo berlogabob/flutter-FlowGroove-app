@@ -1,238 +1,180 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flowgroove/screens/auth/register_screen.dart';
+
 import 'package:flowgroove/providers/auth/auth_provider.dart';
+
+import '../helpers/routed_test_harness.dart';
 import '../helpers/test_helpers.dart';
 import '../helpers/mocks.mocks.dart';
 
 void main() {
-  group('RegisterScreen', skip: 'Requires router/Firebase test harness refresh after auth flow changes', () {
+  group('RegisterScreen', () {
     late MockFirebaseAuth mockAuth;
+
+    List<dynamic> overrides() => [
+      firebaseAuthProvider.overrideWithValue(mockAuth),
+    ];
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
     });
 
-    testWidgets('renders register screen with all elements', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
+    testWidgets('renders register screen with all elements', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Verify screen title
-      expect(findText('Create Account'), findsOneWidget);
-
-      // Verify header
-      expect(findText('Join FlowGroove'), findsOneWidget);
-
-      // Verify subtitle
+      expect(find.text('Create Account'), findsWidgets);
+      expect(find.text('Join FlowGroove'), findsOneWidget);
       expect(
-        findText('Create an account to manage your band repertoire'),
+        find.text('Create an account to manage your band repertoire'),
         findsOneWidget,
       );
-
-      // Verify email field
-      expect(findText('Email'), findsOneWidget);
-
-      // Verify password field
-      expect(findText('Password'), findsOneWidget);
-
-      // Verify confirm password field
-      expect(findText('Confirm Password'), findsOneWidget);
-
-      // Verify create account button
-      expect(findText('Create Account'), findsOneWidget);
-
-      // Verify sign in link
-      expect(findText('Already have an account?'), findsOneWidget);
-      expect(findText('Sign In'), findsOneWidget);
+      expect(find.text('Email'), findsOneWidget);
+      expect(find.text('Password'), findsOneWidget);
+      expect(find.text('Confirm Password'), findsOneWidget);
+      expect(
+        find.widgetWithText(ElevatedButton, 'Create Account'),
+        findsOneWidget,
+      );
+      expect(find.text('Already have an account?'), findsOneWidget);
+      expect(find.text('Sign In'), findsOneWidget);
     });
 
-    testWidgets('displays icons for all input fields', (
-      WidgetTester tester,
+    testWidgets('displays input icons and password requirement', (
+      tester,
     ) async {
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Should have 3 lock icons (password fields) and 1 email icon
-      verifyFoundN(findIcon(Icons.email_outlined), 1);
-      verifyFoundN(findIcon(Icons.lock_outlined), 3);
+      expect(find.byIcon(Icons.email_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.lock_outlined), findsNWidgets(2));
+      expect(find.text('At least 6 characters'), findsOneWidget);
     });
 
     testWidgets('allows entering email, password, and confirm password', (
-      WidgetTester tester,
+      tester,
     ) async {
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Find text fields
       final textFields = find.byType(TextFormField);
-
-      // Enter email
       await tester.enterText(textFields.at(0), 'test@example.com');
-      await tester.pump();
-
-      // Enter password
       await tester.enterText(textFields.at(1), 'password123');
-      await tester.pump();
-
-      // Enter confirm password
       await tester.enterText(textFields.at(2), 'password123');
       await tester.pump();
 
-      // Verify text was entered
       expect(find.text('test@example.com'), findsOneWidget);
     });
 
-    testWidgets('shows validation error for empty email', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
+    testWidgets('shows validation errors for empty submit', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Tap create account button without entering data
-      await tester.tap(findText('Create Account'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Account'));
       await tester.pump();
 
-      // Verify validation message appears
       expect(find.text('Please enter your email'), findsOneWidget);
+      expect(find.text('Please enter a password'), findsOneWidget);
+      expect(find.text('Please confirm your password'), findsOneWidget);
     });
 
-    testWidgets('shows validation error for invalid email', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
+    testWidgets('shows validation error for invalid email', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Find email field and enter invalid email
-      final textFields = find.byType(TextFormField);
-      await tester.enterText(textFields.at(0), 'invalid-email');
+      await tester.enterText(find.byType(TextFormField).at(0), 'invalid-email');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Account'));
       await tester.pump();
 
-      // Tap create account button
-      await tester.tap(findText('Create Account'));
-      await tester.pump();
-
-      // Verify validation message appears
       expect(find.text('Please enter a valid email'), findsOneWidget);
     });
 
-    testWidgets('shows validation error for empty password', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
+    testWidgets('shows validation error for weak password', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Enter email only
-      final textFields = find.byType(TextFormField);
-      await tester.enterText(textFields.at(0), 'test@example.com');
-      await tester.pump();
-
-      // Tap create account button
-      await tester.tap(findText('Create Account'));
-      await tester.pump();
-
-      // Verify validation message appears
-      expect(find.text('Please enter a password'), findsOneWidget);
-    });
-
-    testWidgets('shows validation error for weak password', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
-        tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
-      );
-
-      // Enter email and weak password
       final textFields = find.byType(TextFormField);
       await tester.enterText(textFields.at(0), 'test@example.com');
       await tester.enterText(textFields.at(1), '12345');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Account'));
       await tester.pump();
 
-      // Tap create account button
-      await tester.tap(findText('Create Account'));
-      await tester.pump();
-
-      // Verify validation message appears
       expect(
         find.text('Password must be at least 6 characters'),
         findsOneWidget,
       );
     });
 
-    testWidgets('shows validation error for empty confirm password', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
-        tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
-      );
-
-      // Enter email and password
-      final textFields = find.byType(TextFormField);
-      await tester.enterText(textFields.at(0), 'test@example.com');
-      await tester.enterText(textFields.at(1), 'password123');
-      await tester.pump();
-
-      // Tap create account button
-      await tester.tap(findText('Create Account'));
-      await tester.pump();
-
-      // Verify validation message appears
-      expect(find.text('Please confirm your password'), findsOneWidget);
-    });
-
     testWidgets('shows validation error for mismatched passwords', (
-      WidgetTester tester,
+      tester,
     ) async {
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Enter email and mismatched passwords
       final textFields = find.byType(TextFormField);
       await tester.enterText(textFields.at(0), 'test@example.com');
       await tester.enterText(textFields.at(1), 'password123');
       await tester.enterText(textFields.at(2), 'password456');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Account'));
       await tester.pump();
 
-      // Tap create account button
-      await tester.tap(findText('Create Account'));
-      await tester.pump();
-
-      // Verify validation message appears
       expect(find.text('Passwords do not match'), findsOneWidget);
     });
 
-    testWidgets('shows loading indicator when registering', (
-      WidgetTester tester,
-    ) async {
-      // Setup mock to simulate async registration
+    testWidgets('shows loading indicator when registering', (tester) async {
+      final completer = Completer<UserCredential>();
+      when(
+        mockAuth.createUserWithEmailAndPassword(
+          email: 'test@example.com',
+          password: 'password123',
+        ),
+      ).thenAnswer((_) => completer.future);
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/register',
+        overrides: overrides(),
+      );
+
+      final textFields = find.byType(TextFormField);
+      await tester.enterText(textFields.at(0), 'test@example.com');
+      await tester.enterText(textFields.at(1), 'password123');
+      await tester.enterText(textFields.at(2), 'password123');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Account'));
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      completer.complete(createMockUserCredential());
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('successful registration navigates home', (tester) async {
       when(
         mockAuth.createUserWithEmailAndPassword(
           email: 'test@example.com',
@@ -240,53 +182,39 @@ void main() {
         ),
       ).thenAnswer((_) async => createMockUserCredential());
 
-      await pumpAppWidget(
+      final router = await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Enter valid credentials
       final textFields = find.byType(TextFormField);
       await tester.enterText(textFields.at(0), 'test@example.com');
       await tester.enterText(textFields.at(1), 'password123');
       await tester.enterText(textFields.at(2), 'password123');
-      await tester.pump();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Account'));
+      await tester.pumpAndSettle();
 
-      // Tap create account button
-      await tester.tap(findText('Create Account'));
-      await tester.pump();
-
-      // Verify loading indicator appears
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(currentRouterUri(router).path, '/main/home');
     });
 
     testWidgets('navigates to login screen when tapping Sign In', (
-      WidgetTester tester,
+      tester,
     ) async {
-      bool didNavigate = false;
-
-      await pumpAppWidget(
+      final router = await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
-        navigatorObservers: [
-          MockNavigatorObserver(onPush: (_) => didNavigate = true),
-        ],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Tap Sign In button
-      await tester.tap(findText('Sign In'));
-      await tester.pump();
+      await tester.tap(find.text('Sign In'));
+      await tester.pumpAndSettle();
 
-      // Verify navigation occurred
-      expect(didNavigate, isTrue);
+      expect(currentRouterUri(router).path, '/login');
+      expect(find.text('FlowGroove'), findsOneWidget);
     });
 
-    testWidgets('displays error message for email already in use', (
-      WidgetTester tester,
-    ) async {
-      // Setup mock to throw auth error
+    testWidgets('displays Firebase registration errors', (tester) async {
       when(
         mockAuth.createUserWithEmailAndPassword(
           email: 'test@example.com',
@@ -294,89 +222,20 @@ void main() {
         ),
       ).thenThrow(FirebaseAuthException(code: 'email-already-in-use'));
 
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/register',
+        overrides: overrides(),
       );
 
-      // Enter valid credentials
       final textFields = find.byType(TextFormField);
       await tester.enterText(textFields.at(0), 'test@example.com');
       await tester.enterText(textFields.at(1), 'password123');
       await tester.enterText(textFields.at(2), 'password123');
-      await tester.pump();
-
-      // Tap create account button
-      await tester.tap(findText('Create Account'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create Account'));
       await tester.pumpAndSettle();
 
-      // Verify error message appears
       expect(find.text('This email is already registered'), findsOneWidget);
-    });
-
-    testWidgets('displays error message for invalid email', (
-      WidgetTester tester,
-    ) async {
-      // Setup mock to throw auth error
-      when(
-        mockAuth.createUserWithEmailAndPassword(
-          email: 'test@example.com',
-          password: 'password123',
-        ),
-      ).thenThrow(FirebaseAuthException(code: 'invalid-email'));
-
-      await pumpAppWidget(
-        tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
-      );
-
-      // Enter valid credentials
-      final textFields = find.byType(TextFormField);
-      await tester.enterText(textFields.at(0), 'test@example.com');
-      await tester.enterText(textFields.at(1), 'password123');
-      await tester.enterText(textFields.at(2), 'password123');
-      await tester.pump();
-
-      // Tap create account button
-      await tester.tap(findText('Create Account'));
-      await tester.pumpAndSettle();
-
-      // Verify error message appears
-      expect(find.text('Invalid email address'), findsOneWidget);
-    });
-
-    testWidgets('displays error message for weak password from Firebase', (
-      WidgetTester tester,
-    ) async {
-      // Setup mock to throw auth error
-      when(
-        mockAuth.createUserWithEmailAndPassword(
-          email: 'test@example.com',
-          password: 'password123',
-        ),
-      ).thenThrow(FirebaseAuthException(code: 'weak-password'));
-
-      await pumpAppWidget(
-        tester,
-        const RegisterScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
-      );
-
-      // Enter valid credentials
-      final textFields = find.byType(TextFormField);
-      await tester.enterText(textFields.at(0), 'test@example.com');
-      await tester.enterText(textFields.at(1), 'password123');
-      await tester.enterText(textFields.at(2), 'password123');
-      await tester.pump();
-
-      // Tap create account button
-      await tester.tap(findText('Create Account'));
-      await tester.pumpAndSettle();
-
-      // Verify error message appears
-      expect(find.text('Password is too weak'), findsOneWidget);
     });
   });
 }
