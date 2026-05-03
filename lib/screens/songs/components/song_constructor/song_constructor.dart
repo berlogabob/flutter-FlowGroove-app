@@ -161,6 +161,7 @@ class _SongConstructorState extends State<SongConstructor> {
         children: [
           // Header
           InkWell(
+            key: const Key('song_constructor_toggle'),
             onTap: _toggleExpanded,
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             child: Container(
@@ -198,6 +199,7 @@ class _SongConstructorState extends State<SongConstructor> {
                         opacity: _expanded ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 200),
                         child: TextButton.icon(
+                          key: const Key('song_constructor_auto_generate'),
                           onPressed: _autoGenerate,
                           icon: const Icon(Icons.auto_awesome, size: 16),
                           label: const Text(
@@ -242,7 +244,10 @@ class _SongConstructorState extends State<SongConstructor> {
           // Pill view when collapsed
           if (!_expanded)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
+                vertical: 8,
+              ),
               child: SizedBox(height: 36, child: PillView(sections: _sections)),
             ),
         ],
@@ -275,7 +280,10 @@ class _SongConstructorState extends State<SongConstructor> {
                         color: MonoPulseColors.accentOrange,
                         child: const Row(
                           children: [
-                            Icon(Icons.edit, color: MonoPulseColors.textPrimary),
+                            Icon(
+                              Icons.edit,
+                              color: MonoPulseColors.textPrimary,
+                            ),
                             SizedBox(width: 8),
                             Text(
                               'Edit',
@@ -302,7 +310,10 @@ class _SongConstructorState extends State<SongConstructor> {
                               ),
                             ),
                             SizedBox(width: 8),
-                            Icon(Icons.delete, color: MonoPulseColors.textPrimary),
+                            Icon(
+                              Icons.delete,
+                              color: MonoPulseColors.textPrimary,
+                            ),
                           ],
                         ),
                       ),
@@ -351,6 +362,7 @@ class _SongConstructorState extends State<SongConstructor> {
         // Add button
         const SizedBox(height: 8),
         ElevatedButton.icon(
+          key: const Key('song_constructor_add_section'),
           onPressed: _showSectionPicker,
           icon: const Icon(Icons.add),
           label: const Text('Add Section'),

@@ -143,7 +143,10 @@ class _SectionPickerState extends State<SectionPicker>
             }
           },
           style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxl, vertical: 16),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MonoPulseSpacing.xxl,
+              vertical: 16,
+            ),
           ),
           child: const Text('Add', style: TextStyle(fontSize: 15)),
         ),
@@ -162,7 +165,7 @@ class _SectionPickerState extends State<SectionPicker>
       itemCount: Section.templates.length,
       itemBuilder: (context, index) {
         final template = Section.templates[index];
-        return _buildSectionButton(context, template, null);
+        return _buildSectionButton(context, template, null, keySuffix: 'parts');
       },
     );
   }
@@ -179,7 +182,12 @@ class _SectionPickerState extends State<SectionPicker>
       itemBuilder: (context, index) {
         final template = Section.templates[index];
         final color = _colorManager.getColorForName(template);
-        return _buildSectionButton(context, template, color);
+        return _buildSectionButton(
+          context,
+          template,
+          color,
+          keySuffix: 'colors',
+        );
       },
     );
   }
@@ -187,9 +195,11 @@ class _SectionPickerState extends State<SectionPicker>
   Widget _buildSectionButton(
     BuildContext context,
     String template,
-    Color? color,
-  ) {
+    Color? color, {
+    required String keySuffix,
+  }) {
     return GestureDetector(
+      key: Key('section_picker_${keySuffix}_$template'),
       onTap: () {
         if (color != null) {
           _showColorPicker(context, template, color);
@@ -211,7 +221,10 @@ class _SectionPickerState extends State<SectionPicker>
         ),
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MonoPulseSpacing.sm,
+              vertical: 12,
+            ),
             child: Text(
               template,
               maxLines: 2,

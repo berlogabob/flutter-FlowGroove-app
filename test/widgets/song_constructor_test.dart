@@ -46,8 +46,7 @@ void main() {
       expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
 
       // Tap to expand
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-      await tester.pump();
+      await expandSongConstructor(tester);
 
       // Now expanded - arrow points down (same icon, different rotation)
       expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
@@ -64,8 +63,7 @@ void main() {
       );
 
       // Expand to see empty state
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-      await tester.pump();
+      await expandSongConstructor(tester);
 
       expect(find.text('No sections yet'), findsOneWidget);
     });
@@ -84,8 +82,7 @@ void main() {
       );
 
       // Expand
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-      await tester.pump();
+      await expandSongConstructor(tester);
 
       expect(find.text('Intro'), findsOneWidget);
       expect(find.text('Verse'), findsOneWidget);
@@ -107,19 +104,17 @@ void main() {
       );
 
       // Expand
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-      await tester.pump();
+      await expandSongConstructor(tester);
 
       // Tap Add Section - opens dialog
-      await tester.tap(find.text('Add Section'));
+      await tester.tap(
+        find.byKey(const Key('song_constructor_add_section')).hitTestable(),
+      );
       await tester.pumpAndSettle();
 
-      // Find the Verse template in the GridView (look in dialog)
-      final verseFinder = find.descendant(
-        of: find.byType(Dialog),
-        matching: find.text('Verse'),
+      await tester.tap(
+        find.byKey(const Key('section_picker_parts_Verse')).hitTestable(),
       );
-      await tester.tap(verseFinder.first);
       await tester.pumpAndSettle();
 
       expect(capturedSections, isNotNull);
@@ -146,11 +141,10 @@ void main() {
       );
 
       // Expand
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-      await tester.pump();
+      await expandSongConstructor(tester);
 
-      // Tap on section to edit
-      await tester.tap(find.text('Intro'));
+      // Tap on section card to edit
+      await tester.tap(find.text('Intro').hitTestable());
       await tester.pumpAndSettle();
 
       // Find and enter new name in the dialog
@@ -183,16 +177,15 @@ void main() {
       );
 
       // Expand
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-      await tester.pump();
+      await expandSongConstructor(tester);
 
       // Tap delete button
-      await tester.tap(find.byIcon(Icons.delete_outline));
-      await tester.pump();
+      await tester.tap(find.byKey(const Key('section_delete_1')).hitTestable());
+      await tester.pumpAndSettle();
 
       // Confirm deletion
-      await tester.tap(find.text('Delete'));
-      await tester.pump();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
+      await tester.pumpAndSettle();
 
       expect(capturedSections, isNotNull);
       expect(capturedSections!.isEmpty, isTrue);
@@ -215,11 +208,12 @@ void main() {
       );
 
       // Expand to show auto-generate button
-      await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-      await tester.pump();
+      await expandSongConstructor(tester);
 
       // Tap Auto-Generate
-      await tester.tap(find.text('Auto-Generate'));
+      await tester.tap(
+        find.byKey(const Key('song_constructor_auto_generate')).hitTestable(),
+      );
       await tester.pump();
 
       expect(capturedSections, isNotNull);
@@ -259,4 +253,10 @@ void main() {
       expect(sections[1].name, equals('Verse'));
     });
   });
+}
+
+Future<void> expandSongConstructor(WidgetTester tester) async {
+  await tester.tap(find.byIcon(Icons.keyboard_arrow_down).hitTestable());
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 250));
 }

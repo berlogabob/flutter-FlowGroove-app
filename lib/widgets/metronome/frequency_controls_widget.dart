@@ -78,6 +78,7 @@ class _FrequencyControlsWidgetState
           children: [
             // Collapsible Advanced Settings Header
             InkWell(
+              key: const Key('frequency_controls_header'),
               onTap: () {
                 HapticFeedback.lightImpact();
                 setState(() {

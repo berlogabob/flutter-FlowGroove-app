@@ -1006,23 +1006,25 @@ void main() {
             data: const MediaQueryData(size: Size(800, 600)),
             child: Builder(
               builder: (context) {
-                return ListView(
-                  children: [
-                    ListTile(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: ToolSpacing.lg(context),
-                        vertical: ToolSpacing.sm(context),
+                return Scaffold(
+                  body: ListView(
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: ToolSpacing.lg(context),
+                          vertical: ToolSpacing.sm(context),
+                        ),
+                        title: const Text('Item 1'),
                       ),
-                      title: const Text('Item 1'),
-                    ),
-                    ListTile(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: ToolSpacing.lg(context),
-                        vertical: ToolSpacing.sm(context),
+                      ListTile(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: ToolSpacing.lg(context),
+                          vertical: ToolSpacing.sm(context),
+                        ),
+                        title: const Text('Item 2'),
                       ),
-                      title: const Text('Item 2'),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               },
             ),
