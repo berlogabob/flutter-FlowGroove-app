@@ -25,7 +25,7 @@ Execute the remediation roadmap for the April 24 audit: security hardening first
 | M1 | Prepare the detailed remediation plan and align `.codex` state | complete | plan stored in docs and `.codex/` |
 | M2 | Security stage 1: remove secret-bearing web config paths and disable client Telegram privileged API usage | complete | targeted tests and docs confirm public-only client config |
 | M3 | Fix canonical FTP backup/upload/rollback paths in `Makefile` | complete | `make -n deploy-stable` shows correct lftp layout |
-| M4 | Recover test baseline, provider testability, and CI after security/deploy stabilization | in progress | targeted regression path is green; connectivity, metronome, and auth/router screen quarantine are cleared; remaining non-hermetic suites are documented |
+| M4 | Recover test baseline, provider testability, and CI after security/deploy stabilization | complete | full `flutter test` and GitHub Actions Checks are green; remaining skips are Firebase-emulator integration groups only |
 
 ## Next Plan Template
 

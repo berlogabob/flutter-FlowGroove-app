@@ -1,6 +1,6 @@
 # MEMORY
 
-**Last Updated:** 2026-04-30
+**Last Updated:** 2026-05-03
 
 This is the distilled memory bank for active sequential work. Use it before `PLANS.md` execution and update it after durable discoveries.
 
@@ -25,7 +25,8 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - Web runtime config must stay public-only. Privileged Spotify, Telegram, Twitter, and RapidAPI secrets do not belong in `window.env`.
 - Spotify web access must go through `SPOTIFY_PROXY_URL`; direct client-credential mode is non-web only during migration.
 - Client-side RapidAPI track analysis is retired until a backend replacement exists.
-- Remaining skipped suites are tracked in `docs/test-quarantine-2026-04-24.md`; do not silently unskip them without adding the missing harnesses.
+- Remaining skipped suites are tracked in `docs/test-quarantine-2026-04-24.md`; as of 2026-05-03 they are Firebase-emulator integration groups only.
+- Skip-only placeholder tests should be retired or converted into real static/unit tests; do not preserve placeholder files just to represent debt.
 - Fast auth/list screen tests use `test/helpers/routed_test_harness.dart`; do not test `context.goNamed` flows with plain `MaterialApp` or `NavigatorObserver`.
 - Login side effects are provider-backed through `analyticsClientProvider` and `pendingJoinCodeStoreProvider`; do not reintroduce direct `FirebaseAnalytics.instance` or static secure-storage reads in `LoginScreen`.
 - `ConnectivityService` no longer owns a hard dependency on `Connectivity()`. Use `connectivityClientProvider` overrides with a local fake client in tests.

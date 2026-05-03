@@ -66,7 +66,7 @@ Move the repo from "operational but fragile" to a predictable state where:
 | T1 | Fix compile break in `test/login_flow_null_check_test.dart` | complete | file compiles under `flutter test` |
 | T2 | Resolve `SongFormData` beat-grid contract drift | complete | `song_form_data_test.dart` passes |
 | T3 | Align metronome editor widget expectations with intended UI contract | complete | affected metronome widget tests pass |
-| T4 | Reduce runtime skips and isolate non-hermetic suites | in progress | quarantine inventory stored in `docs/test-quarantine-2026-04-24.md` |
+| T4 | Reduce runtime skips and isolate non-hermetic suites | complete | full `flutter test` is green; remaining skips are Firebase-emulator integration groups documented in `docs/test-quarantine-2026-04-24.md` |
 
 ### 4. Architecture Hardening
 
@@ -96,7 +96,7 @@ Move the repo from "operational but fragile" to a predictable state where:
 |---|---|---|---|
 | C1 | Repair `functions/` dependency installation baseline | complete | `npm ls --depth=0` succeeds in `functions/` after clean install |
 | C2 | Update vulnerable Firebase/function dependencies | complete | `npm audit --omit=dev` reduced to 11 issues with 0 high / 0 critical |
-| C3 | Add CI workflows for Flutter analyze/test and security audit | complete | workflow files exist and run on PRs |
+| C3 | Add CI workflows for Flutter analyze/test and security audit | complete | GitHub Actions `Checks` runs targeted regressions plus full `flutter test` |
 | C4 | Add deploy dry-run or preflight job | complete | CI verifies `make -n deploy-stable` and script checks |
 
 ## Execution Order
@@ -124,6 +124,9 @@ Started in this pass:
 - `functions/` clean install and `npm ls` confirmed with a clean npm cache
 - `functions/` direct dependencies updated to current minor versions and safe transitive overrides removed all high/critical audit findings
 - remaining skipped suites were inventoried in `docs/test-quarantine-2026-04-24.md`
+- full `flutter test` was restored and added to GitHub Actions
+- skip-only FirestoreService placeholder was retired
+- static Android/web config isolation tests were restored to the active fast suite
 
 ## Acceptance Gates
 

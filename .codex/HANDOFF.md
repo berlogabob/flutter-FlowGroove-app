@@ -1,10 +1,10 @@
 # HANDOFF
 
-**Last Updated:** 2026-04-30
+**Last Updated:** 2026-05-03
 
 ## Current Checkpoint
 
-The main audit remediation slice is implemented. Connectivity, metronome, and auth/router screen testability are now recovered; the active follow-up is Firestore/emulator quarantine cleanup and broader lint debt reduction.
+The main audit remediation slice is implemented. Connectivity, metronome, auth/router screen testability, full Flutter test gating, and static build-config test recovery are complete; the active follow-up is Firebase-emulator harness work and broader lint debt reduction.
 
 ## Must Read First
 
@@ -33,6 +33,8 @@ The main audit remediation slice is implemented. Connectivity, metronome, and au
   - canonical metronome BPM normalization to `10-260`
   - routed widget-test harness for login/register/bands/songs/setlists screen tests
   - `functions/` dependency hardening with safe overrides
+  - full `flutter test` GitHub Actions gate
+  - active `test/build/android_config_isolation_test.dart` coverage
 
 ## Next Agent Instructions
 
@@ -42,6 +44,6 @@ The main audit remediation slice is implemented. Connectivity, metronome, and au
 
 ## Suggested Next Tasks
 
-- reduce the remaining Firestore/emulator quarantine surface documented in `docs/test-quarantine-2026-04-24.md`
+- build a Firebase emulator harness for the remaining integration quarantine documented in `docs/test-quarantine-2026-04-24.md`
 - continue lint-noise reduction in edited subsystems
 - keep `functions/` vulnerability debt under watch for future upstream improvements
