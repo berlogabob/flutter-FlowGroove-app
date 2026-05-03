@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/widgets/metronome/frequency_controls_widget.dart';
-import 'package:flowgroove/providers/data/metronome_provider.dart';
 
+import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/test_helpers.dart';
 
 void main() {
@@ -13,7 +13,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       expect(find.text('Advanced Settings'), findsOneWidget);
@@ -25,7 +25,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Widget uses Container with BoxDecoration, not Card
@@ -36,7 +36,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       expect(find.byIcon(Icons.tune), findsOneWidget);
@@ -46,7 +46,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Initially collapsed, should show expand_more
@@ -57,24 +57,24 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
-      // Volume slider should not be visible when collapsed
-      expect(find.byType(Slider), findsNothing);
-      // Advanced content should not be visible
-      expect(find.text('Tone: '), findsNothing);
+      final crossFade = tester.widget<AnimatedCrossFade>(
+        find.byType(AnimatedCrossFade),
+      );
+      expect(crossFade.crossFadeState, CrossFadeState.showFirst);
     });
 
     testWidgets('expands when header is tapped', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Tap the header to expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       // Now should show expand_less
@@ -87,11 +87,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       // Volume slider should be visible
@@ -104,11 +104,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       // Tone label should be visible
@@ -121,11 +121,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       // Wave type dropdown should be visible with current selection
@@ -138,11 +138,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.volume_up), findsOneWidget);
@@ -154,11 +154,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       expect(find.text('Accent on beat 1'), findsOneWidget);
@@ -170,11 +170,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       expect(find.text('Frequencies (Hz)'), findsOneWidget);
@@ -186,11 +186,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       expect(find.byType(Divider), findsWidgets);
@@ -202,15 +202,15 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       // Collapse
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       // Should show expand_more again
@@ -223,11 +223,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       // Default wave type is sine (Smooth) shown in dropdown
@@ -239,11 +239,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       expect(find.text('Higher pitch on first beat'), findsOneWidget);
@@ -253,11 +253,11 @@ void main() {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Expand
-      await tester.tap(find.text('Advanced Settings'));
+      await tester.tap(find.byKey(const Key('frequency_controls_header')));
       await tester.pumpAndSettle();
 
       final slider = tester.widget<Slider>(find.byType(Slider));

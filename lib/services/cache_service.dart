@@ -215,12 +215,19 @@ class CacheService {
   /// Checks if cache exists for a user.
   Future<bool> hasCache(String uid) async {
     try {
-      if (await Hive.boxExists('$_songsBoxPrefix$uid')) return true;
-      if (await Hive.boxExists('$_bandsBoxPrefix$uid')) return true;
-      if (await Hive.boxExists('$_setlistsBoxPrefix$uid')) return true;
+      if (await _boxHasCache('$_songsBoxPrefix$uid')) return true;
+      if (await _boxHasCache('$_bandsBoxPrefix$uid')) return true;
+      if (await _boxHasCache('$_setlistsBoxPrefix$uid')) return true;
       return false;
     } catch (e) {
       return false;
     }
+  }
+
+  Future<bool> _boxHasCache(String boxName) async {
+    if (!await Hive.boxExists(boxName)) return false;
+    final box = await _openBox(boxName);
+    return box.containsKey(_cacheDataKey) ||
+        box.containsKey(_cacheTimestampKey);
   }
 }

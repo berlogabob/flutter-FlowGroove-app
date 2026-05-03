@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/widgets/metronome/accent_pattern_editor_widget.dart';
-import 'package:flowgroove/providers/data/metronome_provider.dart';
 
+import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/test_helpers.dart';
 
 void main() {
@@ -11,7 +11,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       expect(find.text('Accent Pattern'), findsOneWidget);
@@ -21,7 +21,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // The widget uses Container with BoxDecoration for the card-like container
@@ -32,7 +32,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       expect(find.byIcon(Icons.refresh), findsOneWidget);
@@ -42,7 +42,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       expect(
@@ -59,7 +59,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Should have 4 beat buttons for 4/4 time (using GestureDetector)
@@ -73,7 +73,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       expect(find.text('1'), findsWidgets);
@@ -86,7 +86,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // First beat should be accented by default
@@ -101,7 +101,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Find star icons (accent indicator)
@@ -114,7 +114,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Should have 3 circle_outlined icons for beats 2, 3, 4
@@ -127,24 +127,18 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
       await tester.pumpAndSettle();
 
       // Initial state: 1 star (first beat)
       expect(find.byIcon(Icons.star), findsOneWidget);
 
-      // Find and tap the second beat button
-      final beatButtons = find.byWidgetPredicate(
-        (widget) => widget is GestureDetector && widget.child is Container,
-      );
-      await tester.tap(beatButtons.at(1));
+      await tester.tap(find.byKey(const Key('accent_toggle_button_2')));
       await tester.pumpAndSettle();
 
-      // Verify state changed - either stars increased or text changed
-      final accentText = find.text('Accent');
-      final regularText = find.text('Regular');
-      expect(accentText.evaluate().length + regularText.evaluate().length, greaterThan(0));
+      expect(find.byIcon(Icons.star), findsNWidgets(2));
+      expect(find.text('Accent'), findsNWidgets(2));
     });
 
     testWidgets('adapts to different time signatures', (
@@ -154,7 +148,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Should have 4 beat buttons for default 4/4 time (using GestureDetector)
@@ -170,7 +164,7 @@ void main() {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
-        overrides: [metronomeProvider.overrideWith(() => MetronomeNotifier())],
+        overrides: buildMetronomeTestOverrides(overrideMetronomeProvider: true),
       );
 
       // Verify labels are present

@@ -26,10 +26,16 @@ class SectionCard extends StatelessWidget {
 
     return Card(
       elevation: 1,
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: MonoPulseSpacing.sm),
+      margin: const EdgeInsets.symmetric(
+        vertical: 4,
+        horizontal: MonoPulseSpacing.sm,
+      ),
       child: ListTile(
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.lg,
+          vertical: 8,
+        ),
         leading: _buildColorIndicator(color),
         title: _buildTitle(context),
         subtitle: _buildSubtitle(context),
@@ -105,6 +111,7 @@ class SectionCard extends StatelessWidget {
           ),
         if (!enableDrag) ...[
           IconButton(
+            key: Key('section_delete_${section.id}'),
             icon: const Icon(Icons.delete_outline, size: 20),
             onPressed: onDelete,
             color: Theme.of(context).colorScheme.error,

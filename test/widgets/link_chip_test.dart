@@ -123,16 +123,12 @@ void main() {
         url: 'https://open.spotify.com/track/test',
       );
 
-      await pumpAppWidget(tester, LinkChip(link: link, showDelete: true));
-
-      // Find the delete icon - Chip may wrap it differently
-      final iconFinder = find.descendant(
-        of: find.byType(Chip),
-        matching: find.byWidgetPredicate(
-          (widget) => widget is Icon && widget.icon == Icons.close,
-        ),
+      await pumpAppWidget(
+        tester,
+        LinkChip(link: link, showDelete: true, onDelete: () {}),
       );
-      expect(iconFinder, findsOneWidget);
+
+      expect(findIcon(Icons.close), findsOneWidget);
     });
 
     testWidgets('does not render delete icon when showDelete is false', (
