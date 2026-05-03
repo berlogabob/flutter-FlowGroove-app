@@ -1,6 +1,6 @@
 # STATUS
 
-**Last Updated:** 2026-04-30
+**Last Updated:** 2026-05-03
 
 ## Current State
 
@@ -30,14 +30,17 @@
 - Auth/list screen tests now use a routed widget harness instead of plain `MaterialApp`
 - `test/screens/login_screen_test.dart`, `test/screens/register_screen_test.dart`, and `test/screens/bands/my_bands_screen_test.dart` are restored from quarantine
 - `test/screens/songs/songs_list_screen_test.dart`, `test/screens/setlists/setlists_list_screen_test.dart`, and full `flutter test test/screens` are green against the current unified-list contract
-- `.github/workflows/checks.yml` now covers Flutter checks, security audit, deploy dry-run, `functions/` install verification, and the track-analysis regression test
+- `.github/workflows/checks.yml` now covers Flutter checks, the full `flutter test` suite, security audit, deploy dry-run, `functions/` install verification, and the track-analysis regression test
 - `functions/` installs cleanly, uses current minor Firebase SDKs, and now has 0 high / 0 critical production audit findings
+- `flutter test` is green end-to-end in the fast suite; remaining skips are only Firebase-emulator integration groups
+- `test/build/android_config_isolation_test.dart` is active again and green
+- The skip-only `test/services/firestore_service_test.dart` placeholder was retired
 
 ## In Progress
 
 - Test quarantine cleanup:
   - remaining non-hermetic suites are inventoried in `docs/test-quarantine-2026-04-24.md`
-  - fast auth/router/list screen quarantine is cleared
+  - fast auth/router/list/build config quarantine is cleared
 - Repo-wide lint backlog reduction:
   - critical edited paths are stable enough for regression gating
   - full `flutter analyze lib test` still reports broad legacy lint debt
@@ -45,12 +48,11 @@
 ## Known Open Risks
 
 - Some non-web privileged flows still exist as migration debt through dart-defines; backend-only remains the target state
-- Full repo test suite is still not green end-to-end outside the targeted regression slice
-- `functions/` still carries 11 production vulnerabilities, but only low/moderate Firebase-tree debt remains
-- Remaining skipped suites are Firebase-emulator integration flows plus the FirestoreService placeholder
+- `functions/` still carries low/moderate Firebase-tree dependency debt, but no high/critical production audit findings in CI
+- Remaining skipped suites are Firebase-emulator integration flows only
 
 ## Recommended Next Actions
 
-1. Decide the FirestoreService/repository testability slice: injectable Firebase clients vs emulator-backed integration harness.
+1. Build a dedicated Firebase emulator integration harness for auth, setlist, and quick-action flows.
 2. Continue reducing repo-wide lint backlog in touched subsystems until targeted analyze output is mostly silent.
 3. Keep Firebase-emulator integration suites explicitly separated from the fast regression path.

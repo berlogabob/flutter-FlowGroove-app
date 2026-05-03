@@ -84,7 +84,7 @@ analysis_benchmark.json
 .packages
 .pub-preload-cache/
 .pub/
-build/
+/build/
 # Flutter screenshots in root (use screenshots/ directory instead)
 flutter_*.png
 linked_*.ds
