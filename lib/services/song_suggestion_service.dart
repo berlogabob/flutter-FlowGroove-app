@@ -1,5 +1,5 @@
 import '../models/song_suggestion.dart';
-import '../repositories/firestore_song_repository.dart';
+import '../repositories/song_repository.dart';
 import 'musicbrainz_service.dart';
 import 'matching/fuzzy_matcher.dart';
 
@@ -25,13 +25,13 @@ import 'matching/fuzzy_matcher.dart';
 /// );
 /// ```
 class SongSuggestionService {
-  final FirestoreSongRepository _songRepo;
+  final SongRepository _songRepo;
   final MusicBrainzService _musicBrainz;
   final String _userId;
   final String? _bandId;
 
   SongSuggestionService({
-    required FirestoreSongRepository songRepo,
+    required SongRepository songRepo,
     required MusicBrainzService musicBrainz,
     required String userId,
     String? bandId,

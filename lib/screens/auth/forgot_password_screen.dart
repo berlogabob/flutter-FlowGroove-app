@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../models/api_error.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 /// Forgot Password Screen - Firebase password reset
@@ -49,9 +50,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     });
 
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: _emailController.text.trim(),
-      );
+      await ref
+          .read(appUserProvider.notifier)
+          .sendPasswordResetEmail(_emailController.text.trim());
 
       if (mounted) {
         setState(() {
@@ -61,10 +62,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           _isLoading = false;
         });
       }
-    } on FirebaseAuthException catch (e) {
-      final error = ApiError.auth(
-        message: 'Failed to send reset email: ${e.message}',
-      );
+    } on ApiError catch (error) {
       if (mounted) {
         setState(() {
           _errorMessage = error.message;

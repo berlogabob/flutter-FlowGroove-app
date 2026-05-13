@@ -6,11 +6,12 @@ library;
 
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import '../providers/auth/auth_provider.dart';
+import '../providers/data/data_providers.dart';
 import '../models/song_suggestion.dart';
 import '../services/song_suggestion_service.dart';
 import '../services/musicbrainz_service.dart';
-import '../repositories/firestore_song_repository.dart';
 
 /// State for autocomplete search.
 class AutocompleteSearchState {
@@ -61,7 +62,7 @@ class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
 
   SongSuggestionService get _suggestionService {
     _service ??= SongSuggestionService(
-      songRepo: FirestoreSongRepository(),
+      songRepo: ref.read(songRepositoryProvider),
       musicBrainz: MusicBrainzService(),
       userId: _userId ?? '',
       bandId: _bandId,
@@ -71,12 +72,16 @@ class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
 
   /// Initialize with user/band context.
   void init({String? userId, String? bandId}) {
-    _userId = userId ?? FirebaseAuth.instance.currentUser?.uid;
+    _userId = userId ?? ref.read(currentUserProvider).value?.uid;
     _bandId = bandId;
+    _service = null;
   }
 
   @override
   AutocompleteSearchState build() {
+    ref.onDispose(() {
+      _debounceTimer?.cancel();
+    });
     return const AutocompleteSearchState.initial();
   }
 
@@ -142,7 +147,6 @@ class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
     state = const AutocompleteSearchState.initial();
   }
 
-  @override
   void dispose() {
     _debounceTimer?.cancel();
   }

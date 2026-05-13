@@ -15,12 +15,13 @@
 
 SHELL := /bin/bash
 
-.PHONY: help deploy-stable deploy-test release build-web build-web-prod build-web-github build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+.PHONY: help test-fast test-firebase-emulator deploy-stable deploy-test release build-web build-web-prod build-web-github build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
 BACKUP_INFO_FILE := /tmp/flowgroove-latest-backup.txt
 FTP_DIR_DEFAULT := flowgroove.app
+FIREBASE_EMULATOR_TEST_FILES := test/integration/auth_flow_test.dart test/integration/setlist_management_test.dart
 
 # =============================================================================
 # HELP
@@ -36,6 +37,8 @@ help:
 	@echo "  make -f Makefile.hugo deploy-all  # Safe GitHub Pages preview"
 	@echo "  make release         # Build Android APK + GitHub Release"
 	@echo "  make deploy-stable   # Production FTP (Hugo + Flutter)"
+	@echo "  make test-fast       # Full fast Flutter suite"
+	@echo "  make test-firebase-emulator  # Auth/Firestore emulator acceptance suite"
 	@echo ""
 	@echo "📋 All Commands:"
 	@echo ""
@@ -44,6 +47,8 @@ help:
 	@echo "  make release         - Build Android APK + AAB + GitHub Release"
 	@echo "  make build-android   - Build Android APK only"
 	@echo "  make build-web       - Build web app (production)"
+	@echo "  make test-fast       - Run the canonical fast local Flutter suite"
+	@echo "  make test-firebase-emulator - Run emulator-backed auth/setlist acceptance tests"
 	@echo "  make clean-exports   - Archive chat exports"
 	@echo "  make help-env        - Show environment variable setup"
 	@echo ""
@@ -58,6 +63,14 @@ help:
 # =============================================================================
 # PRE-DEPLOYMENT VALIDATION
 # =============================================================================
+
+test-fast:
+	@flutter test --exclude-tags firebase-emulator
+
+test-firebase-emulator:
+	@command -v firebase >/dev/null || (echo "❌ Firebase CLI not found. Install firebase-tools first."; exit 1)
+	@java -version >/dev/null 2>&1 || (echo "❌ Java runtime not found. Install Java to run Firebase emulators."; exit 1)
+	@firebase emulators:exec --project repsync-app-8685c --only auth,firestore "flutter test --tags firebase-emulator $(FIREBASE_EMULATOR_TEST_FILES)"
 
 check-env:
 	@echo "Validating configuration..."

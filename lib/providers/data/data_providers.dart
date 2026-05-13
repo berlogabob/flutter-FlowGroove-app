@@ -28,7 +28,10 @@ final firestoreProvider = Provider<FirestoreService>((ref) {
 /// await songRepo.saveSong(song, uid);
 /// ```
 final songRepositoryProvider = Provider<SongRepository>((ref) {
-  return FirestoreSongRepository();
+  return FirestoreSongRepository(
+    firestore: ref.watch(firebaseFirestoreProvider),
+    auth: ref.watch(firebaseAuthProvider),
+  );
 });
 
 /// Provider for the BandRepository.
@@ -39,7 +42,10 @@ final songRepositoryProvider = Provider<SongRepository>((ref) {
 /// await bandRepo.saveBand(band, uid);
 /// ```
 final bandRepositoryProvider = Provider<BandRepository>((ref) {
-  return FirestoreBandRepository();
+  return FirestoreBandRepository(
+    firestore: ref.watch(firebaseFirestoreProvider),
+    auth: ref.watch(firebaseAuthProvider),
+  );
 });
 
 /// Provider for the SetlistRepository.
@@ -50,7 +56,10 @@ final bandRepositoryProvider = Provider<BandRepository>((ref) {
 /// await setlistRepo.saveSetlist(setlist, uid);
 /// ```
 final setlistRepositoryProvider = Provider<SetlistRepository>((ref) {
-  return FirestoreSetlistRepository();
+  return FirestoreSetlistRepository(
+    firestore: ref.watch(firebaseFirestoreProvider),
+    auth: ref.watch(firebaseAuthProvider),
+  );
 });
 
 /// Provider for the CacheService.

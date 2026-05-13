@@ -1,6 +1,6 @@
 # MEMORY
 
-**Last Updated:** 2026-05-03
+**Last Updated:** 2026-05-13
 
 This is the distilled memory bank for active sequential work. Use it before `PLANS.md` execution and update it after durable discoveries.
 
@@ -25,10 +25,15 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - Web runtime config must stay public-only. Privileged Spotify, Telegram, Twitter, and RapidAPI secrets do not belong in `window.env`.
 - Spotify web access must go through `SPOTIFY_PROXY_URL`; direct client-credential mode is non-web only during migration.
 - Client-side RapidAPI track analysis is retired until a backend replacement exists.
-- Remaining skipped suites are tracked in `docs/test-quarantine-2026-04-24.md`; as of 2026-05-03 they are Firebase-emulator integration groups only.
+- `test/integration/**` is reserved for emulator-backed acceptance flows only. Routed widget/navigation coverage belongs under `test/screens/**` or `test/widgets/**`.
+- Emulator-backed acceptance suites must be tagged `firebase-emulator` so `make test-fast` and the fast CI lane can exclude them cleanly.
+- Firebase emulator acceptance uses `test/helpers/firebase_emulator_harness.dart` plus provider overrides for `firebaseAuthProvider` and `firebaseFirestoreProvider`.
+- Local emulator acceptance requires Java + Firebase CLI. CI enforces the emulator suite in a dedicated job.
 - Skip-only placeholder tests should be retired or converted into real static/unit tests; do not preserve placeholder files just to represent debt.
 - Fast auth/list screen tests use `test/helpers/routed_test_harness.dart`; do not test `context.goNamed` flows with plain `MaterialApp` or `NavigatorObserver`.
+- Quick-action navigation coverage is screen-layer routed coverage, not integration coverage.
 - Login side effects are provider-backed through `analyticsClientProvider` and `pendingJoinCodeStoreProvider`; do not reintroduce direct `FirebaseAnalytics.instance` or static secure-storage reads in `LoginScreen`.
+- Forgot-password flows should use provider-backed auth access in test-sensitive paths; do not reintroduce direct `FirebaseAuth.instance` there.
 - `ConnectivityService` no longer owns a hard dependency on `Connectivity()`. Use `connectivityClientProvider` overrides with a local fake client in tests.
 - `OfflineIndicator` only renders when `offlineProvider == true`; widget tests must override provider state explicitly instead of assuming an offline default.
 - `MetronomeNotifier` no longer constructs audio, haptics, or wakelock services directly. Use `metronomeAudioClientProvider`, `metronomeHapticsProvider`, and `wakelockProvider` overrides in fast tests.
@@ -44,6 +49,7 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - Memory, status, and handoff must be updated before the next milestone.
 - Before committing, scan staged diffs for credential-bearing paths like `backup/`, `chat-exports-collection/`, `.env*`, and legacy exports.
 - Before any FTP deploy, run the canonical `make deploy-stable` path so preflight checks enforce env loading, placeholder-only examples, and untracked `web/config.js`.
+- Before changing test location, classify by runtime dependency first: pure model/unit, routed widget, fast provider, or emulator-backed acceptance.
 - When touching integrations, prefer backend/functions for privileged API flows and treat any client-side fallback as migration debt, not a target state.
 
 ## Reference Bank

@@ -97,13 +97,17 @@ class TestRouteMarker extends StatelessWidget {
   }
 }
 
-GoRouter createRoutedTestRouter({String initialLocation = '/login'}) {
+GoRouter createRoutedTestRouter({
+  String initialLocation = '/login',
+  List<RouteBase>? routes,
+}) {
   return createAppRouter(
     authClient: TestAuthRouterClient(),
     initialLocation: initialLocation,
     navigatorKey: GlobalKey<NavigatorState>(),
     enableAuthRedirect: false,
-    routes: [
+    routes: routes ??
+        [
       GoRoute(
         path: '/login',
         name: 'login',
@@ -194,9 +198,13 @@ Future<GoRouter> pumpRoutedTestApp(
   WidgetTester tester, {
   required String initialLocation,
   List<dynamic> overrides = const [],
+  List<RouteBase>? routes,
 }) async {
   final container = ProviderContainer(overrides: overrides.cast());
-  final router = createRoutedTestRouter(initialLocation: initialLocation);
+  final router = createRoutedTestRouter(
+    initialLocation: initialLocation,
+    routes: routes,
+  );
 
   addTearDown(container.dispose);
   addTearDown(router.dispose);

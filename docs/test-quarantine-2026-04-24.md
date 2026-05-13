@@ -1,24 +1,17 @@
 # Test Quarantine Report
 
-**Date:** May 3, 2026
-**Status:** Active quarantine inventory after full Flutter test recovery
+**Date:** May 13, 2026
+**Status:** Quarantine closed for Firebase auth/setlist/quick-action coverage
 
 ## Purpose
 
-Document the remaining intentionally skipped test suites so they stay visible and bounded.
+Document intentionally skipped or isolated suites so test layering stays explicit and bounded.
 
 ## Current Quarantine
 
-Group-level skips:
+Group-level skips: none in the fast or emulator-backed acceptance path.
 
-- `test/integration/auth_flow_test.dart`
-  Reason: requires Firebase emulator or equivalent integration harness.
-- `test/integration/setlist_management_test.dart`
-  Reason: requires Firebase emulator or equivalent integration harness.
-- `test/integration/song_quick_action_test.dart`
-  Reason: requires Firebase emulator or equivalent integration harness.
-
-Individual skipped tests: none.
+Individual skipped tests: none in the remediated auth/setlist/quick-action slice.
 
 ## What Was Tried In This Pass
 
@@ -33,11 +26,15 @@ Individual skipped tests: none.
 - Retired the skip-only `test/services/firestore_service_test.dart` placeholder instead of keeping a non-test in the fast suite.
 - Restored `test/build/android_config_isolation_test.dart` by updating it to the current config paths and turning placeholder assertions into static checks.
 - Added the full `flutter test` suite to the GitHub Actions `Checks` workflow after the targeted regression step.
+- Added a reusable Firebase emulator harness for Flutter acceptance tests.
+- Reclassified `song_quick_action` from legacy integration placement into routed screen coverage.
+- Reduced `auth_flow` and `setlist_management` to true emulator-backed acceptance flows.
+- Added a dedicated GitHub Actions emulator gate instead of keeping Firebase acceptance work behind skips.
 
 ## Result
 
 - The main targeted regression path remains green.
-- Full `flutter test` is green with only Firebase-emulator integration groups skipped.
+- Full `flutter test` remains green.
 - `ConnectivityService` is no longer quarantined.
 - `MetronomeNotifier` no longer constructs platform services directly and its unit/provider/widget path is green.
 - `test/services/metronome_service_test.dart` and `test/providers/metronome_provider_test.dart` are no longer quarantined.
@@ -46,7 +43,8 @@ Individual skipped tests: none.
 - Login/register/my-bands are no longer quarantined.
 - `flutter test test/screens` is green.
 - `test/build/android_config_isolation_test.dart` is no longer quarantined.
-- Remaining skips are now explicitly documented instead of being treated as invisible backlog.
-- The next reduction step is architectural, not editorial:
-  - build a Firebase emulator harness for the remaining integration flows
-  - keep Firebase-emulator-backed integration suites isolated from the fast unit path until that harness is CI-ready
+- `test/integration/auth_flow_test.dart` and `test/integration/setlist_management_test.dart` are active emulator-backed suites.
+- `test/screens/home_quick_actions_test.dart` now covers the former quick-action navigation case in the correct layer.
+- `test/integration` is now reserved for emulator-backed acceptance coverage, not general widget or model tests.
+- Firebase acceptance runs in a separate CI gate from the fast suite.
+- The canonical fast local command is `make test-fast`, which excludes `firebase-emulator` tagged suites by design.
