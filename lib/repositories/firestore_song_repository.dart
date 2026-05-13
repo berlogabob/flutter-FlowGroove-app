@@ -14,8 +14,12 @@ const _firestoreTimeout = Duration(seconds: 10);
 /// Handles all song-related data operations with Firestore,
 /// including personal songs and band songs.
 class FirestoreSongRepository implements SongRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  FirestoreSongRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
 
   /// Helper method to check if user is authenticated.
   void _requireAuth() {
@@ -340,7 +344,7 @@ class FirestoreSongRepository implements SongRepository {
   @override
   Stream<List<Song>> watchBandSongs(String bandId) {
     try {
-      return FirebaseFirestore.instance
+      return _firestore
           .collection('bands')
           .doc(bandId)
           .collection('songs')

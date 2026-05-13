@@ -26,6 +26,7 @@ Execute the remediation roadmap for the April 24 audit: security hardening first
 | M2 | Security stage 1: remove secret-bearing web config paths and disable client Telegram privileged API usage | complete | targeted tests and docs confirm public-only client config |
 | M3 | Fix canonical FTP backup/upload/rollback paths in `Makefile` | complete | `make -n deploy-stable` shows correct lftp layout |
 | M4 | Recover test baseline, provider testability, and CI after security/deploy stabilization | complete | full `flutter test` and GitHub Actions Checks are green; remaining skips are Firebase-emulator integration groups only |
+| M5 | Recover Firebase emulator acceptance coverage and reclassify legacy integration tests | complete | fast suite is green, emulator suite has dedicated harness/CI path, and quick-action coverage lives in the screen layer |
 
 ## Next Plan Template
 

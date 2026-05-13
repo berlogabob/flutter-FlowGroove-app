@@ -42,7 +42,7 @@ jobs:
             test/providers/auth_provider_test.dart
 
       - name: Full Flutter test suite
-        run: flutter test
+        run: flutter test --exclude-tags firebase-emulator
 
       - name: Security audit
         run: bash test/security/git_audit_test.sh
@@ -58,6 +58,38 @@ jobs:
 
       - name: Production deploy dry run
         run: make -n deploy-stable
+
+  firebase-emulator-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Firebase emulator integration suite
+        run: make test-firebase-emulator
 
   functions-checks:
     runs-on: ubuntu-latest
