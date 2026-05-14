@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../providers/data/data_providers.dart';
-import '../../providers/auth/auth_provider.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../models/setlist.dart';
 import '../../models/song.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../providers/data/data_providers.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
 
 class CreateSetlistScreen extends ConsumerStatefulWidget {
-  final Setlist? setlist;
+  const CreateSetlistScreen({super.key, this.setlist, this.bandId});
 
-  const CreateSetlistScreen({super.key, this.setlist});
+  final Setlist? setlist;
+  final String? bandId;
 
   @override
   ConsumerState<CreateSetlistScreen> createState() =>
@@ -30,6 +32,26 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   bool _hasUnsavedChanges = false;
 
   bool get _isEditing => widget.setlist != null;
+
+  String? get _effectiveBandId {
+    final rawBandId = _isEditing ? widget.setlist!.bandId : widget.bandId;
+    final bandId = rawBandId?.trim();
+    return bandId == null || bandId.isEmpty ? null : bandId;
+  }
+
+  AsyncValue<List<Song>> _watchAvailableSongs() {
+    final bandId = _effectiveBandId;
+    return bandId == null
+        ? ref.watch(songsProvider)
+        : ref.watch(bandSongsProvider(bandId));
+  }
+
+  AsyncValue<List<Song>> _readAvailableSongs() {
+    final bandId = _effectiveBandId;
+    return bandId == null
+        ? ref.read(songsProvider)
+        : ref.read(bandSongsProvider(bandId));
+  }
 
   void _markAsChanged() {
     if (!_hasUnsavedChanges) {
@@ -52,8 +74,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
 
   void _loadSongsForEditing(List<String> songIds) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final songsAsync = ref.read(songsProvider);
+      final songsAsync = _readAvailableSongs();
       final allSongs = songsAsync.value ?? [];
+      if (!mounted) return;
       setState(() {
         _selectedSongs = allSongs.where((s) => songIds.contains(s.id)).toList();
       });
@@ -80,7 +103,6 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
             colorScheme: const ColorScheme.dark(
               primary: MonoPulseColors.accentOrange,
               onPrimary: Colors.white,
-              surface: MonoPulseColors.surface,
               onSurface: MonoPulseColors.textPrimary,
             ),
           ),
@@ -103,8 +125,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     });
   }
 
-  void _showSongPicker() async {
-    final songsAsync = ref.read(songsProvider);
+  Future<void> _showSongPicker() async {
+    final songsAsync = _readAvailableSongs();
     final songs = songsAsync.value ?? [];
 
     final result = await showModalBottomSheet<List<Song>>(
@@ -147,7 +169,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
 
     final setlist = Setlist(
       id: _isEditing ? widget.setlist!.id : const Uuid().v4(),
-      bandId: _isEditing ? widget.setlist!.bandId : '',
+      bandId: _effectiveBandId ?? '',
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
@@ -162,10 +184,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     );
 
     await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
-    
+
     // Log analytics event
     await AnalyticsService.logSetlistCreatedFromSetlist(setlist);
-    
+
     if (mounted) {
       // Invalidate the setlists provider to ensure UI refresh
       ref.invalidate(setlistsProvider);
@@ -183,7 +205,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       setState(() => _hasUnsavedChanges = false);
 
       // Small delay to allow provider to refresh before navigating back
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future<void>.delayed(const Duration(milliseconds: 300));
 
       if (mounted) {
         Navigator.pop(context);
@@ -216,6 +238,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final availableSongsAsync = _watchAvailableSongs();
+
     return PopScope(
       canPop: !_hasUnsavedChanges,
       onPopInvokedWithResult: (didPop, result) async {
@@ -331,7 +355,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   TextButton.icon(
-                    onPressed: _showSongPicker,
+                    onPressed: availableSongsAsync.isLoading
+                        ? null
+                        : _showSongPicker,
                     icon: const Icon(Icons.add),
                     label: const Text('Add'),
                   ),
@@ -472,17 +498,17 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
 }
 
 class _SongPickerSheet extends StatefulWidget {
-  final List<Song> songs;
-  final List<Song> selectedSongs;
-  final ScrollController scrollController;
-  final Function(List<Song>) onConfirm;
-
   const _SongPickerSheet({
     required this.songs,
     required this.selectedSongs,
     required this.scrollController,
     required this.onConfirm,
   });
+
+  final List<Song> songs;
+  final List<Song> selectedSongs;
+  final ScrollController scrollController;
+  final ValueChanged<List<Song>> onConfirm;
 
   @override
   State<_SongPickerSheet> createState() => _SongPickerSheetState();

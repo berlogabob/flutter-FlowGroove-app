@@ -5,15 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/band.dart';
-import '../models/song.dart';
 import '../models/setlist.dart';
+import '../models/song.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
-import '../screens/bands/my_bands_screen.dart';
 import '../screens/bands/band_about_screen.dart';
 import '../screens/bands/band_songs_screen.dart';
 import '../screens/bands/create_band_screen.dart';
 import '../screens/bands/join_band_screen.dart';
+import '../screens/bands/my_bands_screen.dart';
 import '../screens/bands/the_band_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
@@ -327,7 +327,10 @@ List<RouteBase> _buildAppRoutes() {
                 GoRoute(
                   path: 'create',
                   name: 'create-setlist',
-                  builder: (context, state) => const CreateSetlistScreen(),
+                  builder: (context, state) {
+                    final bandId = state.uri.queryParameters['bandId'];
+                    return CreateSetlistScreen(bandId: bandId);
+                  },
                 ),
                 GoRoute(
                   path: ':id/edit',
@@ -423,7 +426,12 @@ extension GoRouterExtension on BuildContext {
   void goSetlists() => goNamed('setlists');
 
   /// Navigate to create setlist screen.
-  void goCreateSetlist() => goNamed('create-setlist');
+  void goCreateSetlist({String? bandId}) {
+    final Map<String, dynamic> params = bandId != null
+        ? {'bandId': bandId}
+        : {};
+    goNamed('create-setlist', queryParameters: params);
+  }
 
   /// Navigate to edit setlist screen.
   void goEditSetlist(Setlist setlist) => goNamed(
