@@ -1,4 +1,5 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,9 +13,9 @@ import '../../utils/analytics_debug.dart';
 import '../../widgets/dashboard_grid.dart';
 import '../../widgets/greeting_card.dart';
 import '../../widgets/quick_action_button.dart';
+import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/tool_button.dart';
-import '../../widgets/standard_screen_scaffold.dart';
 
 /// The Band Screen - displays band dashboard similar to personal page.
 ///
@@ -43,7 +44,9 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.band.name);
-    _descriptionController = TextEditingController(text: widget.band.description ?? '');
+    _descriptionController = TextEditingController(
+      text: widget.band.description ?? '',
+    );
   }
 
   @override
@@ -69,21 +72,24 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Log screen view for analytics
-    AnalyticsDebug.logScreenView(
-      screenName: 'TheBandScreen',
-      screenClass: 'TheBandScreen',
-    );
+    try {
+      AnalyticsDebug.logScreenView(
+        screenName: 'TheBandScreen',
+        screenClass: 'TheBandScreen',
+      );
+    } catch (_) {}
 
-    FirebaseAnalytics.instance.logScreenView(
-      screenName: 'TheBandScreen',
-      screenClass: 'TheBandScreen',
-    );
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        FirebaseAnalytics.instance.logScreenView(
+          screenName: 'TheBandScreen',
+          screenClass: 'TheBandScreen',
+        );
+      }
+    } catch (_) {}
 
     return StandardScreenScaffold(
       title: widget.band.name,
-      showBackButton: true,
-      showOfflineIndicator: true,
       body: _buildBandDashboard(),
       menuItems: _buildMenuItems(),
     );
@@ -95,7 +101,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       // Edit Band Name
       PopupMenuItem<void>(
         enabled: _canEdit,
-        onTap: _canEdit ? _showEditNameDialog : null,
+        onTap: _canEdit ? () => _runAfterMenuCloses(_showEditNameDialog) : null,
         child: Row(
           children: [
             const Icon(Icons.edit, size: 20),
@@ -115,7 +121,9 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       // Edit Description
       PopupMenuItem<void>(
         enabled: _canEdit,
-        onTap: _canEdit ? _showEditDescriptionDialog : null,
+        onTap: _canEdit
+            ? () => _runAfterMenuCloses(_showEditDescriptionDialog)
+            : null,
         child: Row(
           children: [
             const Icon(Icons.description, size: 20),
@@ -136,7 +144,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
       // Add Song
       PopupMenuItem<void>(
-        onTap: _handleAddSong,
+        onTap: () => _runAfterMenuCloses(_handleAddSong),
         child: const Row(
           children: [
             Icon(Icons.add, size: 20),
@@ -148,7 +156,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
       // Add Setlist
       PopupMenuItem<void>(
-        onTap: _handleAddSetlist,
+        onTap: () => _runAfterMenuCloses(_handleAddSetlist),
         child: const Row(
           children: [
             Icon(Icons.playlist_add, size: 20),
@@ -163,7 +171,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       // Edit Tags
       PopupMenuItem<void>(
         enabled: _canEdit,
-        onTap: _canEdit ? _handleEditTags : null,
+        onTap: _canEdit ? () => _runAfterMenuCloses(_handleEditTags) : null,
         child: Row(
           children: [
             const Icon(Icons.label_outline, size: 20),
@@ -183,7 +191,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       // Edit Members
       PopupMenuItem<void>(
         enabled: _canEdit,
-        onTap: _canEdit ? _handleEditMembers : null,
+        onTap: _canEdit ? () => _runAfterMenuCloses(_handleEditMembers) : null,
         child: Row(
           children: [
             const Icon(Icons.people, size: 20),
@@ -210,11 +218,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
     return DashboardGrid(
       greetingCard: _buildBandGreetingCard(),
-      statistics: _buildStatistics(
-        userAsync,
-        songCountAsync,
-        setlistCount,
-      ),
+      statistics: _buildStatistics(userAsync, songCountAsync, setlistCount),
       quickActions: _buildQuickActions(),
       tools: _buildTools(),
     );
@@ -266,11 +270,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   /// Build quick action buttons for band dashboard
   List<QuickActionButton> _buildQuickActions() {
     return [
-      QuickActionButton(
-        icon: Icons.add,
-        label: 'Song',
-        onTap: _handleAddSong,
-      ),
+      QuickActionButton(icon: Icons.add, label: 'Song', onTap: _handleAddSong),
       QuickActionButton(
         icon: Icons.person_add,
         label: 'Member',
@@ -312,11 +312,17 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     return GreetingCard(
       userName: widget.band.name,
       subtitle: description ?? 'Ready to rock?',
-      avatarPath: null, // No photo - will show initial
     );
   }
 
   // ==================== Menu Actions ====================
+
+  void _runAfterMenuCloses(VoidCallback action) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      action();
+    });
+  }
 
   /// Show dialog to edit band name
   Future<void> _showEditNameDialog() async {
@@ -381,9 +387,9 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating band name: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating band name: $e')));
       }
     } finally {
       if (mounted) {
@@ -472,15 +478,15 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   /// Handle add song - navigate to add song screen with bandId
   void _handleAddSong() {
-    context.goNamed(
-      'add-song',
-      queryParameters: {'bandId': widget.band.id},
-    );
+    context.goNamed('add-song', queryParameters: {'bandId': widget.band.id});
   }
 
   /// Handle add setlist - navigate to create setlist screen
   void _handleAddSetlist() {
-    context.goNamed('create-setlist');
+    context.goNamed(
+      'create-setlist',
+      queryParameters: {'bandId': widget.band.id},
+    );
   }
 
   /// Handle edit tags - navigate to band about screen

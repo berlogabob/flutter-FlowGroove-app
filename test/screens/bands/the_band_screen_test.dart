@@ -1,0 +1,72 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/screens/bands/the_band_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mockito/mockito.dart';
+
+import '../../helpers/mocks.dart';
+import '../../helpers/mocks.mocks.dart';
+import '../../helpers/routed_test_harness.dart';
+
+void main() {
+  group('TheBandScreen', () {
+    testWidgets('Setlist action opens create route with bandId', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1000, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final band = MockDataHelper.createMockBand(
+        id: 'band-123',
+        name: 'Band 123',
+      );
+      final firebaseUser = MockUser();
+      when(firebaseUser.uid).thenReturn('test-user-id');
+
+      final router = await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/bands/band-123',
+        routes: [
+          GoRoute(
+            path: '/main/bands/:id',
+            name: 'the-band',
+            builder: (context, state) => TheBandScreen(band: band),
+          ),
+          GoRoute(
+            path: '/main/setlists/create',
+            name: 'create-setlist',
+            builder: (context, state) =>
+                const TestRouteMarker('create-setlist'),
+          ),
+        ],
+        overrides: [
+          currentUserProvider.overrideWithValue(
+            AsyncValue<User?>.data(firebaseUser),
+          ),
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+          ),
+          bandSongsProvider.overrideWith(
+            (ref, bandId) => Stream<List<Song>>.value([]),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Setlist'));
+      await tester.pumpAndSettle();
+
+      final uri = currentRouterUri(router);
+      expect(uri.path, '/main/setlists/create');
+      expect(uri.queryParameters['bandId'], 'band-123');
+      expect(find.text('route:create-setlist'), findsOneWidget);
+    });
+  });
+}
