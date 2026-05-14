@@ -99,6 +99,10 @@ class Song {
   /// Link to canonical song (global song database)
   final String? canonicalSongId;
 
+  /// V2 library metadata used to detect stale linked-song writes.
+  final int? libraryBaseRevision;
+  final String? latestCommitId;
+
   /// Whether this song data came from MusicBrainz
   @JsonKey(defaultValue: false)
   final bool isFromMusicBrainz;
@@ -140,6 +144,8 @@ class Song {
     this.variantType,
     this.variantOf,
     this.canonicalSongId,
+    this.libraryBaseRevision,
+    this.latestCommitId,
     this.isFromMusicBrainz = false,
   });
 
@@ -180,6 +186,8 @@ class Song {
     Object? variantType = _sentinel,
     Object? variantOf = _sentinel,
     Object? canonicalSongId = _sentinel,
+    Object? libraryBaseRevision = _sentinel,
+    Object? latestCommitId = _sentinel,
     Object? isFromMusicBrainz = _sentinel,
   }) {
     return Song(
@@ -249,6 +257,12 @@ class Song {
       canonicalSongId: canonicalSongId == _sentinel
           ? this.canonicalSongId
           : canonicalSongId as String?,
+      libraryBaseRevision: libraryBaseRevision == _sentinel
+          ? this.libraryBaseRevision
+          : libraryBaseRevision as int?,
+      latestCommitId: latestCommitId == _sentinel
+          ? this.latestCommitId
+          : latestCommitId as String?,
       isFromMusicBrainz: isFromMusicBrainz == _sentinel
           ? this.isFromMusicBrainz
           : isFromMusicBrainz as bool,

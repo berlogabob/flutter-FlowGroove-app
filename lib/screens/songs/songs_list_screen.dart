@@ -7,7 +7,6 @@ import '../../models/band.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
-import '../../services/firestore_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/empty_state.dart';
@@ -174,14 +173,15 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         return;
       }
 
-      // Save each song to Firestore
-      final firestore = FirestoreService();
+      // Save each song through the repository so linked canonical songs use
+      // the v2 LibrarySong write path.
+      final songRepo = ref.read(songRepositoryProvider);
       int savedCount = 0;
       int failedCount = 0;
 
       for (final song in result) {
         try {
-          await firestore.saveSong(song, uid: user.uid);
+          await songRepo.saveSong(song, uid: user.uid);
           savedCount++;
         } catch (e) {
           debugPrint('Failed to save song "${song.title}": $e');
@@ -240,7 +240,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       return;
     }
 
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder: (_) => SongExportDialog(songs: songs),
     );
@@ -350,7 +350,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
   /// Show filter options bottom sheet.
   void _showFilterOptions() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) {

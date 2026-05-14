@@ -31,13 +31,13 @@ enum SuggestionType {
 }
 
 /// Represents a song suggestion in autocomplete results
-/// 
+///
 /// This is a unified model that combines results from:
 /// - User's personal song library
 /// - Band/group song libraries
 /// - MusicBrainz API
 /// - Local canonical song database
-/// 
+///
 /// Each suggestion includes metadata about the source and match quality
 /// to help users make informed decisions.
 @JsonSerializable()
@@ -128,6 +128,7 @@ class SongSuggestion extends Equatable {
     String? bpm,
     String? key,
     String? canonicalSongId,
+    String? musicBrainzId,
   }) {
     return SongSuggestion(
       id: id,
@@ -139,6 +140,7 @@ class SongSuggestion extends Equatable {
       bpm: bpm != null ? int.tryParse(bpm) : null,
       key: key,
       canonicalSongId: canonicalSongId,
+      musicBrainzId: musicBrainzId,
       isForkable: false,
       matchReasons: ['In your library'],
     );
@@ -154,6 +156,7 @@ class SongSuggestion extends Equatable {
     String? bpm,
     String? key,
     String? canonicalSongId,
+    String? musicBrainzId,
     bool isForkable = true,
   }) {
     return SongSuggestion(
@@ -168,6 +171,7 @@ class SongSuggestion extends Equatable {
       bpm: bpm != null ? int.tryParse(bpm) : null,
       key: key,
       canonicalSongId: canonicalSongId,
+      musicBrainzId: musicBrainzId,
       isForkable: isForkable,
       matchReasons: ['In $bandName'],
     );
@@ -205,6 +209,10 @@ class SongSuggestion extends Equatable {
     required String title,
     required String artist,
     String? canonicalSongId,
+    int? bpm,
+    String? key,
+    int? durationMs,
+    String? musicBrainzId,
     int? releaseYear,
     String? album,
     double matchScore = 0.9,
@@ -217,6 +225,10 @@ class SongSuggestion extends Equatable {
       type: matchScore >= 0.95 ? SuggestionType.exact : SuggestionType.similar,
       matchScore: matchScore,
       canonicalSongId: canonicalSongId ?? id,
+      bpm: bpm,
+      key: key,
+      durationMs: durationMs,
+      musicBrainzId: musicBrainzId,
       releaseYear: releaseYear,
       album: album,
       isForkable: false,
@@ -340,12 +352,12 @@ class SongSuggestion extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        artist,
-        source,
-        canonicalSongId,
-        bandId,
-        musicBrainzId,
-      ];
+    id,
+    title,
+    artist,
+    source,
+    canonicalSongId,
+    bandId,
+    musicBrainzId,
+  ];
 }

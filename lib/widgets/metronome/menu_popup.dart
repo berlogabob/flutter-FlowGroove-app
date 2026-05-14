@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../models/song.dart';
 import '../../models/metronome_state.dart';
-import '../../services/firestore_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// Three Dots Menu Popup - Mono Pulse design (Sprint Fix)
@@ -151,9 +151,9 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
         return;
       }
 
-      // Save to Firestore
-      final firestore = FirestoreService();
-      await firestore.updateSong(updatedSong, uid: user.uid);
+      await ref
+          .read(songRepositoryProvider)
+          .updateSong(updatedSong, uid: user.uid);
 
       if (!context.mounted) return;
       _showSuccessSnackBar(
@@ -229,7 +229,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
   }
 
   void _showUpdateConfirmDialog(BuildContext context, Song song) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: MonoPulseColors.surface,
@@ -298,7 +298,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
     final setlist = state.loadedSetlist;
     if (setlist == null) return;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: MonoPulseColors.surface,
@@ -378,7 +378,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
       ),
     ];
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: MonoPulseColors.surface,

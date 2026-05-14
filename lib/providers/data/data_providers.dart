@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/song.dart';
 import '../../models/band.dart';
 import '../../models/setlist.dart';
+import '../../models/canonical_song.dart';
 import '../../services/cache_service.dart';
 import '../../services/firestore_service.dart';
 import '../../repositories/repositories.dart';
@@ -61,6 +62,28 @@ final setlistRepositoryProvider = Provider<SetlistRepository>((ref) {
     auth: ref.watch(firebaseAuthProvider),
   );
 });
+
+/// Provider for the CanonicalSongRepository.
+///
+/// Canonical songs are global, read-only catalog records used to deduplicate
+/// user and band library entries.
+final canonicalSongRepositoryProvider = Provider<CanonicalSongRepository>((
+  ref,
+) {
+  return FirestoreCanonicalSongRepository(
+    firestore: ref.watch(firebaseFirestoreProvider),
+  );
+});
+
+/// Searches the canonical song catalog by title/artist query.
+final canonicalSongSearchProvider =
+    FutureProvider.family<List<CanonicalSong>, String>((ref, query) async {
+      final normalizedQuery = query.trim();
+      if (normalizedQuery.length < 2) return const [];
+
+      final repo = ref.watch(canonicalSongRepositoryProvider);
+      return repo.search(query: normalizedQuery);
+    });
 
 /// Provider for the CacheService.
 ///
