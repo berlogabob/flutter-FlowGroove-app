@@ -14,115 +14,115 @@ Current repo fit:
 
 ### Phase 1: Domain Contracts
 Part 1.1: Canonical base
-- Step: Extend `CanonicalSong`.
+- [x] Step: Extend `CanonicalSong`.
 - Microsteps/tasks:
-  - Add canonical performance defaults: `baseKey`, `baseBpm`, `baseSections`, `baseAccentBeats`, `baseRegularBeats`, `baseBeatModes`, `baseLinks`.
-  - Add catalog metadata: `schemaVersion`, `canonicalRevision`, `source`, `status`, `createdBy`.
-  - Keep external IDs: MusicBrainz, ISRC, Spotify, normalized title/artist.
+  - [x] Add canonical performance defaults: `baseKey`, `baseBpm`, `baseSections`, `baseAccentBeats`, `baseRegularBeats`, `baseBeatModes`, `baseLinks`.
+  - [x] Add catalog metadata: `schemaVersion`, `canonicalRevision`, `source`, `status`, `createdBy`.
+  - [x] Keep external IDs: MusicBrainz, ISRC, Spotify, normalized title/artist.
 
 Part 1.2: Delta model
-- Step: Add `SongDelta`.
+- [x] Step: Add `SongDelta`.
 - Microsteps/tasks:
-  - Store only owner-specific fields: `ourKey`, `ourBPM`, `notes`, `tags`, `links`, `sections`, metronome settings, optional arrangement name/type.
-  - Use a typed domain delta, not generic JSON Patch for v1.
-  - Add `computeDelta(canonical, song)` and `applyDelta(canonical, delta)`.
+  - [x] Store only owner-specific fields: `ourKey`, `ourBPM`, `notes`, `tags`, `links`, `sections`, metronome settings, optional arrangement name/type.
+  - [x] Use a typed domain delta, not generic JSON Patch for v1.
+  - [x] Add `computeDelta(canonical, song)` and `applyDelta(canonical, delta)`.
 
 Part 1.3: Library document model
-- Step: Add `LibrarySong`.
+- [x] Step: Add `LibrarySong`.
 - Microsteps/tasks:
-  - Store raw Firestore v2 docs under existing paths:
+  - [x] Store raw Firestore v2 docs under existing paths:
     - `users/{uid}/songs/{librarySongId}`
     - `bands/{bandId}/songs/{librarySongId}`
-  - Fields: `schemaVersion: 2`, `canonicalSongId`, `ownerType`, `ownerId`, `baseRevision`, `delta`, `materialized`, `latestCommitId`, `createdAt`, `updatedAt`, `deletedAt`.
-  - Keep `materialized` as a read fallback and rollback safety layer.
-  - Keep legacy docs readable when `schemaVersion` is missing.
+  - [x] Fields: `schemaVersion: 2`, `canonicalSongId`, `ownerType`, `ownerId`, `baseRevision`, `delta`, `materialized`, `latestCommitId`, `createdAt`, `updatedAt`, `deletedAt`.
+  - [x] Keep `materialized` as a read fallback and rollback safety layer.
+  - [x] Keep legacy docs readable when `schemaVersion` is missing.
 
 Part 1.4: History model
-- Step: Add linear commit history.
+- [x] Step: Add linear commit history.
 - Microsteps/tasks:
-  - Add `commits/{commitId}` below each v2 library song.
-  - Fields: `parentCommitId`, `canonicalSongId`, `baseRevision`, `delta`, `operation`, `authorId`, `message`, `createdAt`, `clientMutationId`.
-  - Implement create/update/delete/revert as commits.
-  - Defer branching/DAG UI to a later phase.
+  - [x] Add `commits/{commitId}` below each v2 library song.
+  - [x] Fields: `parentCommitId`, `canonicalSongId`, `baseRevision`, `delta`, `operation`, `authorId`, `message`, `createdAt`, `clientMutationId`.
+  - [ ] Implement create/update/delete/revert as commits. (create/update/delete done; revert pending)
+  - [x] Defer branching/DAG UI to a later phase.
 
 ## Implementation Plan
 
 ### Phase 0: Baseline And Safety
 Part 0.1: Stabilize current canonical code
-- Step: Make existing canonical files compile and export cleanly.
+- [x] Step: Make existing canonical files compile and export cleanly.
 - Microsteps/tasks:
-  - Fix repository imports for `CanonicalSongRepository`.
-  - Export canonical repositories from `repositories.dart`.
-  - Add provider entries for canonical repository and canonical search.
-  - Add tests for current `CanonicalSong` serialization.
+  - [x] Fix repository imports for `CanonicalSongRepository`.
+  - [x] Export canonical repositories from `repositories.dart`.
+  - [x] Add provider entries for canonical repository and canonical search.
+  - [x] Add tests for current `CanonicalSong` serialization.
 
 Part 0.2: Protect current behavior
-- Step: Create regression coverage before changing storage.
+- [ ] Step: Create regression coverage before changing storage.
 - Microsteps/tasks:
-  - Cover legacy `Song.fromJson`, save/update/delete, band songs, setlists by `songIds`, metronome settings, CSV import/export.
-  - Confirm existing full-song docs still render after v2 code lands.
+  - [ ] Cover legacy `Song.fromJson`, save/update/delete, band songs, setlists by `songIds`, metronome settings, CSV import/export. (`Song.fromJson`, metronome settings, and CSV import covered; repository integration coverage still pending)
+  - [x] Confirm existing full-song docs still render after v2 code lands.
 
 ### Phase 2: Merge Engine
 Part 2.1: Canonical-to-song mapper
-- Step: Build a single merge service.
+- [x] Step: Build a single merge service.
 - Microsteps/tasks:
-  - Input: `CanonicalSong?`, `LibrarySong?`, or legacy `Song`.
-  - Output: existing `Song`.
-  - Rules:
-    - Legacy doc returns directly.
-    - V2 linked doc returns canonical base plus delta.
-    - If canonical is unavailable offline, use `materialized`.
-    - Preserve `id` as the library song doc id so setlists remain stable.
+  - [x] Input: `CanonicalSong?`, `LibrarySong?`, or legacy `Song`.
+  - [x] Output: existing `Song`.
+  - [x] Rules:
+    - [x] Legacy doc returns directly.
+    - [x] V2 linked doc returns canonical base plus delta.
+    - [x] If canonical is unavailable offline, use `materialized`.
+    - [x] Preserve `id` as the library song doc id so setlists remain stable.
 
 Part 2.2: Delta builder
-- Step: Build save-time delta conversion.
+- [x] Step: Build save-time delta conversion.
 - Microsteps/tasks:
-  - When a linked song is saved, compare form output to canonical base.
-  - Store only changed owner fields in `delta`.
-  - Update `materialized` with the full merged song.
-  - Preserve old full-song writes for standalone/private songs.
+  - [x] When a linked song is saved, compare form output to canonical base.
+  - [x] Store only changed owner fields in `delta`.
+  - [x] Update `materialized` with the full merged song.
+  - [x] Preserve old full-song writes for standalone/private songs.
 
 Part 2.3: Commit writer
-- Step: Use Firestore transactions for linked song updates.
+- [x] Step: Use Firestore transactions for linked song updates.
 - Microsteps/tasks:
-  - Read current library song.
-  - Create commit with `parentCommitId = latestCommitId`.
-  - Update library song `delta`, `materialized`, `latestCommitId`, `updatedAt`.
-  - Reject stale writes by checking latest commit/base revision inside the transaction.
+  - [x] Read current library song.
+  - [x] Create commit with `parentCommitId = latestCommitId`.
+  - [x] Update library song `delta`, `materialized`, `latestCommitId`, `updatedAt`.
+  - [x] Reject stale writes by checking latest commit/base revision inside the transaction.
 
 ### Phase 3: Repository Rewrite
 Part 3.1: Personal songs
-- Step: Update `FirestoreSongRepository`.
+- [x] Step: Update `FirestoreSongRepository`.
 - Microsteps/tasks:
-  - `watchSongs(uid)` reads legacy and v2 docs.
-  - Batch-fetch needed canonical docs.
-  - Merge and emit `List<Song>` to keep UI unchanged.
-  - `saveSong` creates legacy standalone doc unless a canonical link exists.
-  - `updateSong` updates v2 delta when `canonicalSongId` exists; otherwise legacy update.
+  - [x] `watchSongs(uid)` reads legacy and v2 docs.
+  - [x] Batch-fetch needed canonical docs.
+  - [x] Merge and emit `List<Song>` to keep UI unchanged.
+  - [x] `saveSong` creates legacy standalone doc unless a canonical link exists.
+  - [x] `updateSong` updates v2 delta when `canonicalSongId` exists; otherwise legacy update.
 
 Part 3.2: Band songs
-- Step: Apply the same v2 logic to `bands/{bandId}/songs`.
+- [x] Step: Apply the same v2 logic to `bands/{bandId}/songs`.
 - Microsteps/tasks:
-  - Keep band song ids stable.
-  - Use band permissions already present in rules.
-  - Preserve contributor fields in `materialized`.
-  - Keep setlists referencing library song ids, not canonical ids.
+  - [x] Keep band song ids stable.
+  - [x] Use band permissions already present in rules.
+  - [x] Preserve contributor fields in `materialized`.
+  - [x] Keep setlists referencing library song ids, not canonical ids.
 
 Part 3.3: Remove direct Firestore bypasses
-- Step: Route app writes through repositories.
+- [x] Step: Route app writes through repositories.
 - Microsteps/tasks:
-  - Replace direct `FirestoreService.saveSong/updateSong/saveBandSong/updateBandSong` call sites in screens/widgets with `SongRepository`.
-  - Keep `FirestoreService` as a compatibility wrapper or deprecate it after call sites move.
-  - Update CSV import to use repository save flow so imported songs can be canonical-linked later.
+  - [x] Replace direct `FirestoreService.saveSong/updateSong/saveBandSong/updateBandSong` call sites in screens/widgets with `SongRepository`.
+  - [x] Keep `FirestoreService` as a compatibility wrapper or deprecate it after call sites move.
+  - [x] Update CSV import to use repository save flow so imported songs can be canonical-linked later.
 
 ### Phase 4: Canonical Creation And Search
 Part 4.1: Canonical search
-- Step: Wire canonical suggestions into autocomplete.
+- [x] Step: Wire canonical suggestions into autocomplete.
 - Microsteps/tasks:
-  - Extend `SongSuggestionService` to search `canonical_songs`.
-  - Merge sources in priority order: personal, band, canonical, MusicBrainz.
-  - Deduplicate by external ID first, then normalized title/artist.
-  - Show source badges using existing `SongSuggestion`.
+  - [x] Extend `SongSuggestionService` to search `canonical_songs`.
+  - [x] Merge sources in priority order: personal, band, canonical, MusicBrainz.
+  - [x] Deduplicate by external ID first, then normalized title/artist.
+  - [x] Show source badges using existing `SongSuggestion`.
 
 Part 4.2: Canonical ensure function
 - Step: Add Firebase callable function `ensureCanonicalSong`.
@@ -265,4 +265,3 @@ Part 6.4: Rollout switch
 - Existing setlists keep storing library song ids.
 - Canonical writes happen only through Firebase Functions/Admin SDK.
 - Migration is additive and reversible; no destructive cleanup in the first deployment.
-

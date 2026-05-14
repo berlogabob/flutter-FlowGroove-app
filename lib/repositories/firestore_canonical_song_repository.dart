@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../models/canonical_song.dart';
+import '../models/canonical_song.dart';
 import 'canonical_song_repository.dart';
 
 /// Firestore implementation of [CanonicalSongRepository]
-/// 
+///
 /// Provides Firestore-based data access for canonical songs.
 /// Includes query optimization, error handling, and data validation.
 class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
@@ -11,7 +11,7 @@ class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
   final String _collectionName = 'canonical_songs';
 
   FirestoreCanonicalSongRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get _collection =>
       _firestore.collection(_collectionName);
@@ -20,9 +20,9 @@ class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
   Future<CanonicalSong?> getById(String id) async {
     try {
       final doc = await _collection.doc(id).get();
-      
+
       if (!doc.exists) return null;
-      
+
       return CanonicalSong.fromJson(doc.data()!);
     } catch (e) {
       throw RepositoryException(
@@ -78,11 +78,14 @@ class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
     try {
       // Normalize query
       final normalizedQuery = query.toLowerCase().trim();
-      
+
       // Use prefix search on normalized title
       final snapshot = await _collection
           .where('normalizedTitle', isGreaterThanOrEqualTo: normalizedQuery)
-          .where('normalizedTitle', isLessThanOrEqualTo: '$normalizedQuery\uf8ff')
+          .where(
+            'normalizedTitle',
+            isLessThanOrEqualTo: '$normalizedQuery\uf8ff',
+          )
           .limit(limit)
           .get();
 
@@ -104,10 +107,13 @@ class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
   }) async {
     try {
       final normalizedPrefix = titlePrefix.toLowerCase().trim();
-      
+
       final snapshot = await _collection
           .where('normalizedTitle', isGreaterThanOrEqualTo: normalizedPrefix)
-          .where('normalizedTitle', isLessThanOrEqualTo: '$normalizedPrefix\uf8ff')
+          .where(
+            'normalizedTitle',
+            isLessThanOrEqualTo: '$normalizedPrefix\uf8ff',
+          )
           .limit(limit)
           .get();
 
@@ -126,7 +132,7 @@ class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
   Future<CanonicalSong> create(CanonicalSong song) async {
     try {
       final docRef = await _collection.add(song.toJson());
-      
+
       return song.copyWith(id: docRef.id);
     } catch (e) {
       throw RepositoryException(
@@ -192,7 +198,7 @@ class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
   }
 
   /// Cache a song from MusicBrainz
-  /// 
+  ///
   /// Checks if song exists by MusicBrainz ID first.
   /// If exists, returns existing song.
   /// If not, creates new song.
@@ -208,7 +214,7 @@ class FirestoreCanonicalSongRepository implements CanonicalSongRepository {
   }
 
   /// Batch create/update multiple songs
-  /// 
+  ///
   /// More efficient than individual operations.
   Future<void> batchCreate(List<CanonicalSong> songs) async {
     try {
@@ -235,10 +241,7 @@ class RepositoryException implements Exception {
   final String message;
   final dynamic originalError;
 
-  const RepositoryException(
-    this.message, {
-    this.originalError,
-  });
+  const RepositoryException(this.message, {this.originalError});
 
   @override
   String toString() {

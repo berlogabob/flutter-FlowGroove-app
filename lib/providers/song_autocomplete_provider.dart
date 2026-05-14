@@ -30,11 +30,11 @@ class AutocompleteSearchState {
   });
 
   const AutocompleteSearchState.initial()
-      : query = '',
-        suggestions = const [],
-        isLoading = false,
-        error = null,
-        selectedIndex = -1;
+    : query = '',
+      suggestions = const [],
+      isLoading = false,
+      error = null,
+      selectedIndex = -1;
 
   AutocompleteSearchState copyWith({
     String? query,
@@ -63,6 +63,7 @@ class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
   SongSuggestionService get _suggestionService {
     _service ??= SongSuggestionService(
       songRepo: ref.read(songRepositoryProvider),
+      canonicalRepo: ref.read(canonicalSongRepositoryProvider),
       musicBrainz: MusicBrainzService(),
       userId: _userId ?? '',
       bandId: _bandId,
@@ -155,5 +156,5 @@ class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
 /// Provider for autocomplete search.
 final autocompleteSearchProvider =
     NotifierProvider<AutocompleteSearchNotifier, AutocompleteSearchState>(
-  AutocompleteSearchNotifier.new,
-);
+      AutocompleteSearchNotifier.new,
+    );

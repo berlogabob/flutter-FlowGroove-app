@@ -10,8 +10,8 @@ import '../widgets/metronome/song_library_block.dart';
 import '../widgets/metronome/bottom_transport_bar.dart';
 import '../../models/song.dart';
 import '../../models/metronome_state.dart';
-import '../../services/firestore_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 
 /// Metronome Screen - ToolScreenScaffold Migration (Sprint 5)
@@ -210,9 +210,9 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
         return;
       }
 
-      // Save to Firestore
-      final firestore = FirestoreService();
-      await firestore.updateSong(updatedSong, uid: user.uid);
+      await ref
+          .read(songRepositoryProvider)
+          .updateSong(updatedSong, uid: user.uid);
 
       if (!context.mounted) return;
       _showSuccessSnackBar(
@@ -287,7 +287,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
   }
 
   void _showUpdateConfirmDialog(BuildContext context, Song song) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: MonoPulseColors.surface,
@@ -356,7 +356,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
     final setlist = state.loadedSetlist;
     if (setlist == null) return;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: MonoPulseColors.surface,
@@ -436,7 +436,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
       ),
     ];
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: MonoPulseColors.surface,

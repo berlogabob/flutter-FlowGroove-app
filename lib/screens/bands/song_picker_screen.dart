@@ -101,14 +101,14 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
     );
 
     try {
-      final firestore = ref.read(firestoreProvider);
+      final songRepo = ref.read(songRepositoryProvider);
       int successCount = 0;
       int failCount = 0;
 
       // Add each selected song to band
       for (final songId in _selectedSongIds) {
         try {
-          await firestore.addSongToBandById(songId, widget.band.id);
+          await songRepo.addSongToBandById(songId, widget.band.id);
           successCount++;
         } catch (e) {
           failCount++;
@@ -126,7 +126,9 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
                   ? 'Added $successCount song(s). $failCount failed.'
                   : 'Successfully added $successCount song(s) to ${widget.band.name}!',
             ),
-            backgroundColor: failCount > 0 ? MonoPulseColors.warning : MonoPulseColors.successGreen,
+            backgroundColor: failCount > 0
+                ? MonoPulseColors.warning
+                : MonoPulseColors.successGreen,
             duration: const Duration(seconds: 3),
           ),
         );

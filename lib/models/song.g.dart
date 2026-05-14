@@ -46,6 +46,8 @@ Song _$SongFromJson(Map<String, dynamic> json) => Song(
   variantType: json['variantType'] as String?,
   variantOf: json['variantOf'] as String?,
   canonicalSongId: json['canonicalSongId'] as String?,
+  libraryBaseRevision: (json['libraryBaseRevision'] as num?)?.toInt(),
+  latestCommitId: json['latestCommitId'] as String?,
   isFromMusicBrainz: json['isFromMusicBrainz'] as bool? ?? false,
 );
 
@@ -86,5 +88,7 @@ Map<String, dynamic> _$SongToJson(Song instance) => <String, dynamic>{
   'variantType': instance.variantType,
   'variantOf': instance.variantOf,
   'canonicalSongId': instance.canonicalSongId,
+  'libraryBaseRevision': instance.libraryBaseRevision,
+  'latestCommitId': instance.latestCommitId,
   'isFromMusicBrainz': instance.isFromMusicBrainz,
 };
