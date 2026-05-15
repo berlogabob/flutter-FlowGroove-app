@@ -1,0 +1,1 @@
+Task: Write a file named simple_output.txt with content 'simple test'. Then read it back and print the content.

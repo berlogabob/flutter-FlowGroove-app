@@ -1,0 +1,1 @@
+Test prompt: read the file /Users/berloga/Documents/GitHub/flutter_repsync_app/README.md if exists, and summarize in one sentence.
