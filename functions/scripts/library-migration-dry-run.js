@@ -49,6 +49,22 @@ const CSV_EXPORTS = [
     ],
   ],
   [
+    "normalized-review-candidates.csv",
+    "normalizedReviewCandidates",
+    [
+      "path",
+      "ownerType",
+      "ownerId",
+      "songId",
+      "title",
+      "artist",
+      "normalizedTitle",
+      "normalizedArtist",
+      "canonicalSongId",
+      "canonicalRevision",
+    ],
+  ],
+  [
     "standalone-no-external-id.csv",
     "standaloneNoExternalId",
     ["path", "ownerType", "ownerId", "songId", "title", "artist"],
@@ -119,15 +135,6 @@ async function inspectSongDoc({ db, doc, report }) {
   report.counts.totalLegacySongsScanned += 1;
   const owner = ownerFromPath(doc.ref.path);
   const externalIds = externalIdsFromSong(data);
-  if (externalIds.length === 0) {
-    report.counts.standaloneNoExternalId += 1;
-    pushSample(
-      report,
-      report.standaloneNoExternalId,
-      sampleSong(doc, data, owner),
-    );
-    return;
-  }
 
   for (const externalId of externalIds) {
     const matches = await findCanonicalMatches(db, externalId);
@@ -155,6 +162,40 @@ async function inspectSongDoc({ db, doc, report }) {
     }
   }
 
+  const normalizedMatch = await findNormalizedMatches(db, data);
+  if (normalizedMatch.matches.length === 1) {
+    report.counts.normalizedReviewCandidates += 1;
+    pushSample(report, report.normalizedReviewCandidates, {
+      ...sampleSong(doc, data, owner),
+      normalizedTitle: normalizedMatch.normalizedTitle,
+      normalizedArtist: normalizedMatch.normalizedArtist,
+      canonicalSongId: normalizedMatch.matches[0].id,
+      canonicalRevision: normalizedMatch.matches[0].canonicalRevision,
+    });
+    return;
+  }
+
+  if (normalizedMatch.matches.length > 1) {
+    report.counts.ambiguousMatches += 1;
+    pushSample(report, report.ambiguousMatches, {
+      ...sampleSong(doc, data, owner),
+      matchedBy: "normalizedTitleArtist",
+      matchedValue: `${normalizedMatch.normalizedTitle}|${normalizedMatch.normalizedArtist}`,
+      canonicalSongIds: normalizedMatch.matches.map((match) => match.id),
+    });
+    return;
+  }
+
+  if (externalIds.length === 0) {
+    report.counts.standaloneNoExternalId += 1;
+    pushSample(
+      report,
+      report.standaloneNoExternalId,
+      sampleSong(doc, data, owner),
+    );
+    return;
+  }
+
   report.counts.unmatchedExternalId += 1;
   pushSample(report, report.unmatchedExternalId, {
     ...sampleSong(doc, data, owner),
@@ -179,6 +220,7 @@ function newReport(sampleLimit) {
       totalSongsScanned: 0,
       totalLegacySongsScanned: 0,
       exactExternalIdLinkedCandidates: 0,
+      normalizedReviewCandidates: 0,
       alreadyV2Skipped: 0,
       standaloneNoExternalId: 0,
       ambiguousMatches: 0,
@@ -186,6 +228,7 @@ function newReport(sampleLimit) {
       failedReadsOrParses: 0,
     },
     exactExternalIdLinkedCandidates: [],
+    normalizedReviewCandidates: [],
     alreadyV2Skipped: [],
     standaloneNoExternalId: [],
     ambiguousMatches: [],
@@ -221,6 +264,32 @@ async function findCanonicalMatches(db, externalId) {
     id: doc.id,
     canonicalRevision: doc.data().canonicalRevision || 1,
   }));
+}
+
+async function findNormalizedMatches(db, data) {
+  const normalizedTitle = cleanString(data.normalizedTitle) ||
+    normalizeForReview(data.title);
+  const normalizedArtist = cleanString(data.normalizedArtist) ||
+    normalizeForReview(data.artist);
+
+  if (!normalizedTitle || !normalizedArtist) {
+    return { normalizedTitle, normalizedArtist, matches: [] };
+  }
+
+  const snapshot = await db
+    .collection("canonical_songs")
+    .where("normalizedTitle", "==", normalizedTitle)
+    .where("normalizedArtist", "==", normalizedArtist)
+    .get();
+
+  return {
+    normalizedTitle,
+    normalizedArtist,
+    matches: snapshot.docs.map((doc) => ({
+      id: doc.id,
+      canonicalRevision: doc.data().canonicalRevision || 1,
+    })),
+  };
 }
 
 function ownerFromPath(path) {
@@ -263,6 +332,14 @@ function cleanString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function normalizeForReview(value) {
+  return cleanString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 if (require.main === module) {
   const options = parseArgs(process.argv.slice(2));
   runDryRun({
@@ -294,6 +371,7 @@ module.exports = {
   toCsv,
   writeReportFiles,
   externalIdsFromSong,
+  findNormalizedMatches,
   isV2LinkedSong,
   ownerFromPath,
 };
