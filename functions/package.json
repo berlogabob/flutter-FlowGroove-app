@@ -6,7 +6,9 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "test:rules": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:rules:run\"",
+    "test:rules:run": "mocha \"test/firestore-rules-*.test.js\""
   },
   "engines": {
     "node": "24"
@@ -24,7 +26,9 @@
     "protobufjs": "^7.5.5"
   },
   "devDependencies": {
-    "firebase-functions-test": "^3.4.1"
+    "@firebase/rules-unit-testing": "^5.0.1",
+    "firebase-functions-test": "^3.4.1",
+    "mocha": "^11.7.5"
   },
   "private": true
 }
