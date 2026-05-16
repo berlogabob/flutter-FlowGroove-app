@@ -7,9 +7,12 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "test": "npm run test:callables && npm run test:rules",
+    "migration:dry-run": "node scripts/library-migration-dry-run.js",
+    "test": "npm run test:callables && npm run test:rules && npm run test:migration:dry-run",
     "test:callables": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:callables:run\"",
     "test:callables:run": "mocha \"test/callable-*.test.js\"",
+    "test:migration:dry-run": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:migration:dry-run:run\"",
+    "test:migration:dry-run:run": "mocha \"test/migration-dry-run.test.js\"",
     "test:rules": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:rules:run\"",
     "test:rules:run": "mocha \"test/firestore-rules-*.test.js\""
   },

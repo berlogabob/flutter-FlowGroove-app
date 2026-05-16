@@ -178,13 +178,14 @@ Part 6.1: Read compatibility first
   - Standalone songs remain valid.
 
 Part 6.2: Backfill dry run
-- Step: Build migration script/function with dry-run output.
+- [x] Step: Build migration script/function with dry-run output.
 - Microsteps/tasks:
-  - For each legacy song, try external IDs first.
-  - If no external ID, use normalized fuzzy match.
-  - Only auto-link high-confidence matches.
-  - Mark uncertain matches for review, do not mutate them.
-  - Produce counts: linked, standalone, needs review, failed.
+  - [x] For each legacy song, try external IDs first.
+  - [ ] Add normalized/fuzzy review pass later; no fuzzy auto-link in current dry run.
+  - [x] Report exact external-id link candidates only.
+  - [x] Mark uncertain/unmatched songs for review, do not mutate them.
+  - [x] Produce counts: exact candidates, v2 skipped, standalone/no-id, ambiguous, unmatched, failed.
+  - [x] Add local emulator smoke test before wiring the npm script.
 
 Part 6.3: Backfill write run
 - Step: Convert safe matches.
