@@ -1,6 +1,13 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs/promises");
+const os = require("node:os");
+const path = require("node:path");
 const admin = require("firebase-admin");
-const { runDryRun } = require("../scripts/library-migration-dry-run");
+const {
+  parseArgs,
+  runDryRun,
+  writeReportFiles,
+} = require("../scripts/library-migration-dry-run");
 
 const projectId = "repsync-app-migration-test";
 process.env.GCLOUD_PROJECT = process.env.GCLOUD_PROJECT || projectId;
@@ -106,6 +113,80 @@ describe("library migration dry run", function () {
         },
       ],
     );
+  });
+
+  it("writes JSON and review CSV artifacts", async () => {
+    await seedCanonical("canonical-mb", { musicBrainzId: "mb-1" });
+    await seedCanonical("canonical-ambiguous-a", { isrc: "isrc-ambiguous" });
+    await seedCanonical("canonical-ambiguous-b", { isrc: "isrc-ambiguous" });
+    await seedUserSong("user-1", "legacy-mb", {
+      title: "MusicBrainz Song",
+      artist: "Artist",
+      musicbrainzId: "mb-1",
+    });
+    await seedUserSong("user-1", "ambiguous", {
+      title: "Ambiguous Song",
+      artist: "Artist",
+      isrc: "isrc-ambiguous",
+    });
+    await seedUserSong("user-1", "standalone", {
+      title: "Private, Quoted Song",
+      artist: "Me",
+    });
+
+    const outputDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "library-migration-dry-run-"),
+    );
+    const out = path.join(outputDir, "report.json");
+    const csvDir = path.join(outputDir, "csv");
+    const report = await runDryRun({ db, sampleLimit: 50 });
+
+    await writeReportFiles({ report, out, csvDir });
+
+    const writtenReport = JSON.parse(await fs.readFile(out, "utf8"));
+    const exactCsv = await fs.readFile(
+      path.join(csvDir, "exact-candidates.csv"),
+      "utf8",
+    );
+    const ambiguousCsv = await fs.readFile(
+      path.join(csvDir, "ambiguous-matches.csv"),
+      "utf8",
+    );
+    const standaloneCsv = await fs.readFile(
+      path.join(csvDir, "standalone-no-external-id.csv"),
+      "utf8",
+    );
+
+    assert.equal(writtenReport.writesEnabled, false);
+    assert.equal(writtenReport.counts.exactExternalIdLinkedCandidates, 1);
+    assert.match(exactCsv, /path,ownerType,ownerId,songId,title,artist/);
+    assert.match(exactCsv, /users\/user-1\/songs\/legacy-mb/);
+    assert.match(ambiguousCsv, /canonical-ambiguous-a/);
+    assert.match(ambiguousCsv, /canonical-ambiguous-b/);
+    assert.match(standaloneCsv, /"Private, Quoted Song"/);
+  });
+
+  it("parses dry-run CLI options", () => {
+    assert.deepEqual(
+      parseArgs([
+        "--out",
+        "report.json",
+        "--csv-dir",
+        "review",
+        "--sample-limit",
+        "100",
+      ]),
+      {
+        out: "report.json",
+        csvDir: "review",
+        sampleLimit: 100,
+      },
+    );
+    assert.throws(
+      () => parseArgs(["--sample-limit", "-1"]),
+      /non-negative integer/,
+    );
+    assert.throws(() => parseArgs(["--out"]), /requires a value/);
   });
 });
 
