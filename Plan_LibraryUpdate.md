@@ -135,6 +135,7 @@ Part 4.2: Canonical ensure function
   - [x] Then search normalized title/artist.
   - [x] Create canonical song only through Admin SDK.
   - [x] Return canonical id and revision.
+  - [x] Add callable emulator tests for auth, demo, external-id lookup, normalized lookup, and create path.
 
 Part 4.3: Add-song flow
 - [x] Step: Link from suggestions.
