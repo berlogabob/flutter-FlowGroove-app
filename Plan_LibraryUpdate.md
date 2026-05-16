@@ -181,7 +181,7 @@ Part 6.2: Backfill dry run
 - [x] Step: Build migration script/function with dry-run output.
 - Microsteps/tasks:
   - [x] For each legacy song, try external IDs first.
-  - [ ] Add normalized/fuzzy review pass later; no fuzzy auto-link in current dry run.
+  - [x] Add normalized title/artist review pass; no fuzzy auto-link in current dry run.
   - [x] Report exact external-id link candidates only.
   - [x] Mark uncertain/unmatched songs for review, do not mutate them.
   - [x] Produce counts: exact candidates, v2 skipped, standalone/no-id, ambiguous, unmatched, failed.

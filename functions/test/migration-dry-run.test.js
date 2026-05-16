@@ -36,6 +36,12 @@ describe("library migration dry run", function () {
     await seedCanonical("canonical-spotify", { spotifyId: "spotify-1" });
     await seedCanonical("canonical-ambiguous-a", { isrc: "isrc-ambiguous" });
     await seedCanonical("canonical-ambiguous-b", { isrc: "isrc-ambiguous" });
+    await seedCanonical("canonical-normalized", {
+      title: "Normalized Song",
+      artist: "Review Artist",
+      normalizedTitle: "normalized song",
+      normalizedArtist: "review artist",
+    });
 
     await seedUserSong("user-1", "legacy-mb", {
       title: "MusicBrainz Song",
@@ -50,6 +56,10 @@ describe("library migration dry run", function () {
     await seedUserSong("user-1", "standalone", {
       title: "Private Song",
       artist: "Me",
+    });
+    await seedUserSong("user-1", "normalized-review", {
+      title: "Normalized Song!",
+      artist: "Review Artist",
     });
     await seedUserSong("user-1", "ambiguous", {
       title: "Ambiguous Song",
@@ -84,9 +94,10 @@ describe("library migration dry run", function () {
     assert.equal(afterDocs.size, beforeDocs.size);
     assert.equal(commits.size, 0);
     assert.deepEqual(report.counts, {
-      totalSongsScanned: 6,
-      totalLegacySongsScanned: 5,
+      totalSongsScanned: 7,
+      totalLegacySongsScanned: 6,
       exactExternalIdLinkedCandidates: 2,
+      normalizedReviewCandidates: 1,
       alreadyV2Skipped: 1,
       standaloneNoExternalId: 1,
       ambiguousMatches: 1,
@@ -119,6 +130,12 @@ describe("library migration dry run", function () {
     await seedCanonical("canonical-mb", { musicBrainzId: "mb-1" });
     await seedCanonical("canonical-ambiguous-a", { isrc: "isrc-ambiguous" });
     await seedCanonical("canonical-ambiguous-b", { isrc: "isrc-ambiguous" });
+    await seedCanonical("canonical-normalized", {
+      title: "Private, Quoted Song",
+      artist: "Me",
+      normalizedTitle: "private quoted song",
+      normalizedArtist: "me",
+    });
     await seedUserSong("user-1", "legacy-mb", {
       title: "MusicBrainz Song",
       artist: "Artist",
@@ -152,6 +169,10 @@ describe("library migration dry run", function () {
       path.join(csvDir, "ambiguous-matches.csv"),
       "utf8",
     );
+    const normalizedCsv = await fs.readFile(
+      path.join(csvDir, "normalized-review-candidates.csv"),
+      "utf8",
+    );
     const standaloneCsv = await fs.readFile(
       path.join(csvDir, "standalone-no-external-id.csv"),
       "utf8",
@@ -163,7 +184,9 @@ describe("library migration dry run", function () {
     assert.match(exactCsv, /users\/user-1\/songs\/legacy-mb/);
     assert.match(ambiguousCsv, /canonical-ambiguous-a/);
     assert.match(ambiguousCsv, /canonical-ambiguous-b/);
-    assert.match(standaloneCsv, /"Private, Quoted Song"/);
+    assert.match(normalizedCsv, /"Private, Quoted Song"/);
+    assert.match(normalizedCsv, /canonical-normalized/);
+    assert.match(standaloneCsv, /^path,ownerType,ownerId/m);
   });
 
   it("parses dry-run CLI options", () => {
@@ -193,10 +216,10 @@ describe("library migration dry run", function () {
 async function seedCanonical(id, values) {
   await db.collection("canonical_songs").doc(id).set({
     id,
-    title: id,
-    artist: "Artist",
-    normalizedTitle: id,
-    normalizedArtist: "artist",
+    title: values.title || id,
+    artist: values.artist || "Artist",
+    normalizedTitle: values.normalizedTitle || id,
+    normalizedArtist: values.normalizedArtist || "artist",
     schemaVersion: 1,
     canonicalRevision: 1,
     source: "manual",
