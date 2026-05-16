@@ -7,6 +7,9 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
+    "test": "npm run test:callables && npm run test:rules",
+    "test:callables": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:callables:run\"",
+    "test:callables:run": "mocha \"test/callable-*.test.js\"",
     "test:rules": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:rules:run\"",
     "test:rules:run": "mocha \"test/firestore-rules-*.test.js\""
   },
