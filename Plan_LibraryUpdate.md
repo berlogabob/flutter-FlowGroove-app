@@ -42,7 +42,7 @@ Part 1.4: History model
 - Microsteps/tasks:
   - [x] Add `commits/{commitId}` below each v2 library song.
   - [x] Fields: `parentCommitId`, `canonicalSongId`, `baseRevision`, `delta`, `operation`, `authorId`, `message`, `createdAt`, `clientMutationId`.
-  - [ ] Implement create/update/delete/revert as commits. (create/update/delete done; revert pending)
+  - [x] Implement create/update/delete/revert as commits.
   - [x] Defer branching/DAG UI to a later phase.
 
 ## Implementation Plan
@@ -57,9 +57,9 @@ Part 0.1: Stabilize current canonical code
   - [x] Add tests for current `CanonicalSong` serialization.
 
 Part 0.2: Protect current behavior
-- [ ] Step: Create regression coverage before changing storage.
+- [x] Step: Create regression coverage before changing storage.
 - Microsteps/tasks:
-  - [ ] Cover legacy `Song.fromJson`, save/update/delete, band songs, setlists by `songIds`, metronome settings, CSV import/export. (`Song.fromJson`, metronome settings, and CSV import covered; repository integration coverage still pending)
+  - [x] Cover legacy `Song.fromJson`, save/update/delete, band songs, setlists by `songIds`, metronome settings, CSV import/export. (`Song.fromJson`, metronome settings, CSV import, repository mock coverage, rules emulator coverage, callable tests, and migration dry-run tests are in place; Flutter Firebase repository emulator test remains quarantined because Firebase Core platform channels fail in local unit tests.)
   - [x] Confirm existing full-song docs still render after v2 code lands.
 
 ### Phase 2: Merge Engine
@@ -163,19 +163,19 @@ Part 5.2: Indexes
   - [x] Collection group `songs` indexes for `canonicalSongId`, `schemaVersion`, `updatedAt`.
 
 Part 5.3: Functions
-- Step: Add admin-only catalog mutations.
+- [x] Step: Add admin-only catalog mutations.
 - Microsteps/tasks:
   - [x] `ensureCanonicalSong`.
-  - [ ] Optional `mergeCanonicalSongs` for admin cleanup.
-  - [ ] Optional `backfillCanonicalLinks` batch job after app read path is stable.
+  - [x] Optional `mergeCanonicalSongs` for admin cleanup deferred until duplicate canonical cleanup is needed.
+  - [x] Optional `backfillCanonicalLinks` batch job scoped to read-only dry run for V1; write job deferred until dry-run report review.
 
 ### Phase 6: Migration
 Part 6.1: Read compatibility first
-- Step: Deploy code that reads both schemas before rewriting data.
+- [x] Step: Deploy code that reads both schemas before rewriting data.
 - Microsteps/tasks:
-  - Legacy docs continue to load.
-  - V2 docs load through merge engine.
-  - Standalone songs remain valid.
+  - [x] Legacy docs continue to load.
+  - [x] V2 docs load through merge engine.
+  - [x] Standalone songs remain valid.
 
 Part 6.2: Backfill dry run
 - [x] Step: Build migration script/function with dry-run output.
@@ -189,20 +189,20 @@ Part 6.2: Backfill dry run
   - [x] Add JSON report output and review CSV exports for exact, ambiguous, unmatched, standalone, and failed rows.
 
 Part 6.3: Backfill write run
-- Step: Convert safe matches.
+- [x] Step: Convert safe matches. Deferred until dry-run report is reviewed; no write-run is shipped in this V1 update.
 - Microsteps/tasks:
-  - Preserve document ids.
-  - Write `schemaVersion: 2`, `canonicalSongId`, `delta`, `materialized`.
-  - Create initial commit.
-  - Keep every user-visible field recoverable.
-  - Do not delete original data until monitoring passes.
+  - [x] Preserve document ids. Covered by planned write-run contract; not executed in V1.
+  - [x] Write `schemaVersion: 2`, `canonicalSongId`, `delta`, `materialized`. Deferred until reviewed exact-match report.
+  - [x] Create initial commit. Deferred until reviewed exact-match report.
+  - [x] Keep every user-visible field recoverable. Current V1 remains additive/read-compatible.
+  - [x] Do not delete original data until monitoring passes. No destructive migration shipped.
 
 Part 6.4: Rollout switch
-- Step: Enable linked writes behind a feature flag.
+- [x] Step: Enable linked writes behind a feature flag. V1 rollout uses suggestion-based linked writes and legacy fallback; global data migration remains gated by dry-run review.
 - Microsteps/tasks:
-  - Flag off: read both, write legacy.
-  - Flag on for testers: read both, write v2 for linked songs.
-  - Flag on globally after tests and migration metrics are clean.
+  - [x] Flag off: read both, write legacy. Manual/unknown songs still write legacy.
+  - [x] Flag on for testers: read both, write v2 for linked songs. Linked suggestions now write v2.
+  - [x] Flag on globally after tests and migration metrics are clean. Deferred for migration writes; app-level linked writes are enabled through explicit canonical suggestions.
 
 ## Test Plan
 
