@@ -125,6 +125,15 @@ service cloud.firestore {
 
       // Band admins can delete (non-demo only)
       allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);
+
+      // v2 linked song commit history is append-only from clients.
+      match /commits/{commitId} {
+        allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+        allow create: if isAuthenticated() &&
+          isNotDemo(request.auth.uid) &&
+          isGlobalBandEditorOrAdmin(bandId);
+        allow update, delete: if false;
+      }
     }
 
     // ============================================================
@@ -144,6 +153,13 @@ service cloud.firestore {
       match /songs/{songId} {
         allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
         allow write: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+
+        // v2 linked song commit history is append-only from clients.
+        match /commits/{commitId} {
+          allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
+          allow create: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+          allow update, delete: if false;
+        }
       }
 
       // Bands subcollection - stores references to global bands

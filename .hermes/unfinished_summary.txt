@@ -1,5 +1,0 @@
-## Unchecked Tasks
-
-- [ ] Implement create/update/delete/revert as commits. (create/update/delete done; revert pending)
-- [ ] Step: Create regression coverage before changing storage.
-- [ ] Cover legacy `Song.fromJson`, save/update/delete, band songs, setlists by `songIds`, metronome settings, CSV import/export. (`Song.fromJson`, metronome settings, and CSV import covered; repository integration coverage still pending)

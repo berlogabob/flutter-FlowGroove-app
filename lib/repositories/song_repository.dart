@@ -19,6 +19,9 @@ abstract class SongRepository {
   /// Updates a song in the user's personal collection.
   Future<void> updateSong(Song song, {String? uid});
 
+  /// Reverts a linked personal v2 song back to its canonical defaults.
+  Future<void> revertSongToCanonical(Song song, {String? uid});
+
   /// Watches songs for a user in real-time.
   Stream<List<Song>> watchSongs(String uid);
 
@@ -44,6 +47,9 @@ abstract class SongRepository {
 
   /// Updates a song in a band's collection.
   Future<void> updateBandSong(Song song, String bandId);
+
+  /// Reverts a linked band v2 song back to its canonical defaults.
+  Future<void> revertBandSongToCanonical(Song song, String bandId);
 
   /// Get all songs for a user
   Future<List<Song>> getSongs(String uid);

@@ -179,6 +179,39 @@ class FirestoreSongRepository implements SongRepository {
   }
 
   @override
+  Future<void> revertSongToCanonical(Song song, {String? uid}) async {
+    try {
+      final userId = uid ?? _currentUserId;
+      await _revertLinkedSongToCanonical(
+        song: song,
+        docRef: _userSongDoc(userId, song.id),
+        authorId: userId,
+      );
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: revertSongToCanonical timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id}',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to revert this song.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  @override
   Stream<List<Song>> watchSongs(String uid) {
     try {
       return _firestore
@@ -455,6 +488,39 @@ class FirestoreSongRepository implements SongRepository {
       if (e.code == 'not-found') {
         throw ApiError.notFound(
           message: 'This song was not found in the band.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  @override
+  Future<void> revertBandSongToCanonical(Song song, String bandId) async {
+    try {
+      _requireAuth();
+      await _revertLinkedSongToCanonical(
+        song: song,
+        docRef: _bandSongDoc(bandId, song.id),
+        authorId: _currentUserId,
+      );
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: revertBandSongToCanonical timed out after ${_firestoreTimeout.inSeconds}s for song ${song.id} in band $bandId',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to revert this song.',
           exception: e,
           stackTrace: stackTrace,
         );
@@ -844,6 +910,101 @@ class FirestoreSongRepository implements SongRepository {
           );
 
           transaction.set(docRef, deletedLibrarySong.toJson());
+          transaction.set(
+            docRef.collection('commits').doc(commitId),
+            commit.toJson(),
+          );
+        })
+        .timeout(_firestoreTimeout);
+  }
+
+  Future<void> _revertLinkedSongToCanonical({
+    required Song song,
+    required DocumentReference<Map<String, dynamic>> docRef,
+    required String authorId,
+  }) async {
+    final canonicalSongId = song.canonicalSongId;
+    if (canonicalSongId == null || canonicalSongId.isEmpty) {
+      throw ApiError.validation(
+        message: 'Cannot revert a song that is not linked to a canonical song.',
+      );
+    }
+
+    final canonical = await _getCanonicalSong(canonicalSongId);
+    if (canonical == null) {
+      throw ApiError.notFound(
+        message: 'Canonical song $canonicalSongId was not found.',
+      );
+    }
+
+    await _firestore
+        .runTransaction((transaction) async {
+          final existingDoc = await transaction.get(docRef);
+          if (!existingDoc.exists) {
+            throw ApiError.notFound(message: 'This song was not found.');
+          }
+
+          final data = existingDoc.data();
+          if (data == null || !_isLinkedSongData(data)) {
+            throw ApiError.validation(
+              message: 'Only linked v2 songs can be reverted to canonical.',
+            );
+          }
+
+          data['id'] ??= existingDoc.id;
+          final existing = LibrarySong.fromJson(data);
+          if (song.latestCommitId != null &&
+              existing.latestCommitId != song.latestCommitId) {
+            throw ApiError.validation(
+              message:
+                  'This song changed in another session. Reload it before reverting.',
+            );
+          }
+
+          final emptyDelta = SongDelta();
+          final commitId = docRef.collection('commits').doc().id;
+          final now = DateTime.now();
+          final materialized = emptyDelta.applyTo(
+            canonical: canonical,
+            librarySongId: existing.id.isNotEmpty
+                ? existing.id
+                : existingDoc.id,
+            bandId: existing.materialized.bandId,
+            createdAt: existing.createdAt,
+            updatedAt: now,
+            originalOwnerId: existing.materialized.originalOwnerId,
+            originalSongId: existing.materialized.originalSongId,
+            contributedBy: existing.materialized.contributedBy,
+            isCopy: existing.materialized.isCopy,
+            contributedAt: existing.materialized.contributedAt,
+          );
+          final revertedLibrarySong = LibrarySong(
+            id: existing.id.isNotEmpty ? existing.id : existingDoc.id,
+            schemaVersion: existing.schemaVersion,
+            canonicalSongId: canonical.id,
+            ownerType: existing.ownerType,
+            ownerId: existing.ownerId,
+            baseRevision: canonical.canonicalRevision,
+            delta: emptyDelta,
+            materialized: materialized,
+            latestCommitId: commitId,
+            createdAt: existing.createdAt,
+            updatedAt: now,
+          );
+          final commit = SongCommit(
+            id: commitId,
+            parentCommitId: existing.latestCommitId,
+            canonicalSongId: canonical.id,
+            baseRevision: canonical.canonicalRevision,
+            delta: emptyDelta,
+            operation: 'revert',
+            authorId: authorId,
+            message: 'Revert linked song to canonical',
+            clientMutationId: _uuid.v4(),
+            createdAt: now,
+          );
+
+          transaction.set(docRef, revertedLibrarySong.toJson());
           transaction.set(
             docRef.collection('commits').doc(commitId),
             commit.toJson(),

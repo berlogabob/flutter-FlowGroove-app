@@ -6,6 +6,7 @@ import '../../models/band.dart';
 import '../../models/setlist.dart';
 import '../../models/canonical_song.dart';
 import '../../services/cache_service.dart';
+import '../../services/canonical_song_function_service.dart';
 import '../../services/firestore_service.dart';
 import '../../repositories/repositories.dart';
 import '../auth/auth_provider.dart';
@@ -74,6 +75,12 @@ final canonicalSongRepositoryProvider = Provider<CanonicalSongRepository>((
     firestore: ref.watch(firebaseFirestoreProvider),
   );
 });
+
+/// Callable Cloud Function wrapper for creating/finding canonical songs.
+final canonicalSongFunctionServiceProvider =
+    Provider<CanonicalSongFunctionService>((ref) {
+      return CanonicalSongFunctionService();
+    });
 
 /// Searches the canonical song catalog by title/artist query.
 final canonicalSongSearchProvider =
