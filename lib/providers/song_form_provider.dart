@@ -11,6 +11,7 @@ import '../repositories/song_repository.dart';
 import '../services/analytics_service.dart';
 import '../services/matching/fuzzy_matcher.dart';
 import '../screens/songs/models/song_form_data.dart';
+import 'data/data_providers.dart';
 
 /// Provider for managing song form state.
 ///
@@ -30,7 +31,7 @@ class SongFormState {
   final bool isAutoSaving;
   final bool isSaving;
   final bool isLoading;
-  
+
   // Autocomplete fields
   final SongSuggestion? selectedSuggestion;
   final bool isUsingSuggestion;
@@ -68,8 +69,7 @@ class SongFormState {
     );
   }
 
-  factory SongFormState.initial() =>
-      SongFormState(formData: SongFormData());
+  factory SongFormState.initial() => SongFormState(formData: SongFormData());
 
   factory SongFormState.fromSong(Song song) =>
       SongFormState(formData: SongFormData.fromSong(song));
@@ -283,12 +283,14 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
             : DateTime.now(),
         bandId: bandId,
       );
-      
+
+      final canonicalSongId = await _canonicalSongIdForSelectedSuggestion();
+
       // Update song with canonical linking if suggestion was used
       final songWithCanonical = song.copyWith(
-        canonicalSongId: state.selectedSuggestion?.canonicalSongId,
-        isFromMusicBrainz: state.selectedSuggestion?.source ==
-            SuggestionSource.musicbrainz,
+        canonicalSongId: canonicalSongId,
+        isFromMusicBrainz:
+            state.selectedSuggestion?.source == SuggestionSource.musicbrainz,
       );
 
       if (bandId != null) {
@@ -304,7 +306,10 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
         // Log song edit with changed fields
         await AnalyticsService.logSongEdited(
           songId: song.id,
-          fieldsChanged: ['title', 'artist'], // Would need to track actual changes
+          fieldsChanged: [
+            'title',
+            'artist',
+          ], // Would need to track actual changes
         );
       }
 
@@ -392,10 +397,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
   /// Clear selected suggestion and allow manual editing.
   void clearSuggestion() {
-    state = state.copyWith(
-      selectedSuggestion: null,
-      isUsingSuggestion: false,
-    );
+    state = state.copyWith(selectedSuggestion: null, isUsingSuggestion: false);
   }
 
   /// Apply suggestion data to form fields.
@@ -409,6 +411,24 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     markAsChanged();
   }
 
+  Future<String?> _canonicalSongIdForSelectedSuggestion() async {
+    final suggestion = state.selectedSuggestion;
+    if (suggestion == null) return null;
+
+    final canonicalSongId = suggestion.canonicalSongId;
+    if (canonicalSongId != null && canonicalSongId.isNotEmpty) {
+      return canonicalSongId;
+    }
+
+    if (suggestion.source == SuggestionSource.musicbrainz) {
+      final service = ref.read(canonicalSongFunctionServiceProvider);
+      final result = await service.ensureFromSuggestion(suggestion);
+      return result.canonicalSongId;
+    }
+
+    return null;
+  }
+
   /// Check for potential duplicates before save.
   /// Returns the duplicate song if found (for warning dialog).
   Future<Song?> checkForDuplicates({
@@ -418,7 +438,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
   }) async {
     final title = state.formData.title.trim();
     final artist = state.formData.artist.trim();
-    
+
     if (title.isEmpty || artist.isEmpty) {
       return null;
     }
@@ -437,7 +457,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     // Check each song for similarity
     for (final song in songsToCheck) {
       // Skip if this is the same song (editing)
-      if (state.selectedSuggestion != null && 
+      if (state.selectedSuggestion != null &&
           state.selectedSuggestion!.id == song.id) {
         continue;
       }

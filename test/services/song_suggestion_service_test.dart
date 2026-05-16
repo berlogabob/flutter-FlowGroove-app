@@ -121,6 +121,12 @@ class _FakeSongRepository implements SongRepository {
   Future<void> updateSong(Song song, {String? uid}) async {}
 
   @override
+  Future<void> revertBandSongToCanonical(Song song, String bandId) async {}
+
+  @override
+  Future<void> revertSongToCanonical(Song song, {String? uid}) async {}
+
+  @override
   Stream<List<Song>> watchBandSongs(String bandId) => const Stream.empty();
 
   @override

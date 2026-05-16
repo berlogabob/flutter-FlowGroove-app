@@ -99,6 +99,7 @@ Part 3.1: Personal songs
   - [x] Merge and emit `List<Song>` to keep UI unchanged.
   - [x] `saveSong` creates legacy standalone doc unless a canonical link exists.
   - [x] `updateSong` updates v2 delta when `canonicalSongId` exists; otherwise legacy update.
+  - [x] `revertSongToCanonical` restores canonical defaults and writes a `revert` commit after tests pass.
 
 Part 3.2: Band songs
 - [x] Step: Apply the same v2 logic to `bands/{bandId}/songs`.
@@ -107,6 +108,7 @@ Part 3.2: Band songs
   - [x] Use band permissions already present in rules.
   - [x] Preserve contributor fields in `materialized`.
   - [x] Keep setlists referencing library song ids, not canonical ids.
+  - [x] `revertBandSongToCanonical` restores canonical defaults and writes a `revert` commit after tests pass.
 
 Part 3.3: Remove direct Firestore bypasses
 - [x] Step: Route app writes through repositories.
@@ -125,46 +127,46 @@ Part 4.1: Canonical search
   - [x] Show source badges using existing `SongSuggestion`.
 
 Part 4.2: Canonical ensure function
-- Step: Add Firebase callable function `ensureCanonicalSong`.
+- [x] Step: Add Firebase callable function `ensureCanonicalSong`.
 - Microsteps/tasks:
-  - Auth required; demo users rejected.
-  - Input accepts MusicBrainz/ISRC/Spotify/manual metadata.
-  - First search exact external IDs.
-  - Then search normalized title/artist.
-  - Create canonical song only through Admin SDK.
-  - Return canonical id and revision.
+  - [x] Auth required; demo users rejected.
+  - [x] Input accepts MusicBrainz/ISRC/Spotify/manual metadata.
+  - [x] First search exact external IDs.
+  - [x] Then search normalized title/artist.
+  - [x] Create canonical song only through Admin SDK.
+  - [x] Return canonical id and revision.
 
 Part 4.3: Add-song flow
-- Step: Link from suggestions.
+- [x] Step: Link from suggestions.
 - Microsteps/tasks:
-  - Canonical suggestion selected: create v2 library song.
-  - MusicBrainz suggestion selected: call `ensureCanonicalSong`, then create v2 library song.
-  - Manual unknown/private song: keep standalone legacy-compatible song with `canonicalSongId = null`.
-  - Existing personal/band suggestion: fork/copy by creating a new v2 library song when canonical id exists; otherwise copy legacy as today.
+  - [x] Canonical suggestion selected: create v2 library song.
+  - [x] MusicBrainz suggestion selected: call `ensureCanonicalSong`, then create v2 library song.
+  - [x] Manual unknown/private song: keep standalone legacy-compatible song with `canonicalSongId = null`.
+  - [x] Existing personal/band suggestion: fork/copy by creating a new v2 library song when canonical id exists; otherwise copy legacy as today.
 
 ### Phase 5: Firestore Rules, Indexes, And Functions
 Part 5.1: Rules
-- Step: Keep canonical catalog server-owned.
+- [x] Step: Keep canonical catalog server-owned.
 - Microsteps/tasks:
-  - `canonical_songs`: authenticated read, client write denied.
-  - `users/{uid}/songs/{songId}`: owner writes v2 library docs and commits.
-  - `bands/{bandId}/songs/{songId}`: band editor/admin writes v2 docs and commits; members read.
-  - Validate required v2 keys where rules can safely do it.
+  - [x] `canonical_songs`: authenticated read, client write denied.
+  - [x] `users/{uid}/songs/{songId}`: owner writes v2 library docs and commits.
+  - [x] `bands/{bandId}/songs/{songId}`: band editor/admin writes v2 docs and commits; members read.
+  - [ ] Validate required v2 keys where rules can safely do it.
 
 Part 5.2: Indexes
-- Step: Add indexes for canonical search and linked docs.
+- [x] Step: Add indexes for canonical search and linked docs.
 - Microsteps/tasks:
-  - `canonical_songs.normalizedTitle`.
-  - `canonical_songs.normalizedArtist`.
-  - `canonical_songs.musicBrainzId`, `isrc`, `spotifyId`.
-  - Collection group `songs` indexes for `canonicalSongId`, `schemaVersion`, `updatedAt`.
+  - [x] `canonical_songs.normalizedTitle`.
+  - [x] `canonical_songs.normalizedArtist`.
+  - [x] `canonical_songs.musicBrainzId`, `isrc`, `spotifyId`.
+  - [x] Collection group `songs` indexes for `canonicalSongId`, `schemaVersion`, `updatedAt`.
 
 Part 5.3: Functions
 - Step: Add admin-only catalog mutations.
 - Microsteps/tasks:
-  - `ensureCanonicalSong`.
-  - Optional `mergeCanonicalSongs` for admin cleanup.
-  - Optional `backfillCanonicalLinks` batch job after app read path is stable.
+  - [x] `ensureCanonicalSong`.
+  - [ ] Optional `mergeCanonicalSongs` for admin cleanup.
+  - [ ] Optional `backfillCanonicalLinks` batch job after app read path is stable.
 
 ### Phase 6: Migration
 Part 6.1: Read compatibility first

@@ -31,6 +31,14 @@ class MockSongRepository implements SongRepository {
   }
 
   @override
+  Future<void> revertSongToCanonical(Song song, {String? uid}) async {
+    if (!_songs.containsKey(song.id)) {
+      throw Exception('Song not found');
+    }
+    _songs[song.id] = song;
+  }
+
+  @override
   Stream<List<Song>> watchSongs(String uid) {
     return Stream.value(_songs.values.toList());
   }
@@ -80,13 +88,18 @@ class MockSongRepository implements SongRepository {
     _bandSongs[bandId]![song.id] = song;
   }
 
+  @override
+  Future<void> revertBandSongToCanonical(Song song, String bandId) async {
+    if (_bandSongs[bandId]?[song.id] == null) {
+      throw Exception('Song not found in band');
+    }
+    _bandSongs[bandId]![song.id] = song;
+  }
+
   /// Helper method to get songs for testing.
   List<Song> get songs => _songs.values.toList();
 
   /// Helper method to get band songs for testing.
-  List<Song> _getBandSongsSync(String bandId) =>
-      _bandSongs[bandId]?.values.toList() ?? [];
-
   @override
   Future<List<Song>> getSongs(String uid) async {
     return _songs.values.toList();

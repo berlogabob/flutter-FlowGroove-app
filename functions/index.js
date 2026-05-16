@@ -17,19 +17,15 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const adminDb = admin.firestore();
-const adminFirestore = admin.app().admin; // Firestore Admin SDK for server-side operations
 const { Telegraf } = require("telegraf");
 const { defineString } = require("firebase-functions/params");
-const { v4: uuidv4 } = require("uuid");
 
 admin.initializeApp();
-const db = adminDb;
+const db = admin.firestore();
 
 const TELEGRAM_BOT_TOKEN = defineString("TELEGRAM_BOT_TOKEN");
 const SUPPORT_GROUP_ID_PARAM = defineString("SUPPORT_GROUP_ID");
 const ADMIN_IDS_PARAM = defineString("ADMIN_IDS");
-const ADMIN_SDK = admin.app().admin; // Firestore Admin SDK for server-side operations
 
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN.value());
 
