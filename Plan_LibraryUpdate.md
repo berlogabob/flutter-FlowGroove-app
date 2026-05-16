@@ -186,6 +186,7 @@ Part 6.2: Backfill dry run
   - [x] Mark uncertain/unmatched songs for review, do not mutate them.
   - [x] Produce counts: exact candidates, v2 skipped, standalone/no-id, ambiguous, unmatched, failed.
   - [x] Add local emulator smoke test before wiring the npm script.
+  - [x] Add JSON report output and review CSV exports for exact, ambiguous, unmatched, standalone, and failed rows.
 
 Part 6.3: Backfill write run
 - Step: Convert safe matches.

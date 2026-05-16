@@ -1,6 +1,60 @@
 const admin = require("firebase-admin");
+const fs = require("node:fs/promises");
+const path = require("node:path");
 
 const DEFAULT_SAMPLE_LIMIT = 25;
+const CSV_EXPORTS = [
+  [
+    "exact-candidates.csv",
+    "exactExternalIdLinkedCandidates",
+    [
+      "path",
+      "ownerType",
+      "ownerId",
+      "songId",
+      "title",
+      "artist",
+      "matchedBy",
+      "matchedValue",
+      "canonicalSongId",
+      "canonicalRevision",
+    ],
+  ],
+  [
+    "ambiguous-matches.csv",
+    "ambiguousMatches",
+    [
+      "path",
+      "ownerType",
+      "ownerId",
+      "songId",
+      "title",
+      "artist",
+      "matchedBy",
+      "matchedValue",
+      "canonicalSongIds",
+    ],
+  ],
+  [
+    "unmatched-external-id.csv",
+    "unmatchedExternalId",
+    [
+      "path",
+      "ownerType",
+      "ownerId",
+      "songId",
+      "title",
+      "artist",
+      "externalIds",
+    ],
+  ],
+  [
+    "standalone-no-external-id.csv",
+    "standaloneNoExternalId",
+    ["path", "ownerType", "ownerId", "songId", "title", "artist"],
+  ],
+  ["failed.csv", "failed", ["path", "error"]],
+];
 
 async function runDryRun({
   db,
@@ -31,6 +85,25 @@ async function runDryRun({
   return report;
 }
 
+async function writeReportFiles({ report, out, csvDir }) {
+  if (out) {
+    await fs.mkdir(path.dirname(path.resolve(out)), { recursive: true });
+    await fs.writeFile(out, `${JSON.stringify(report, null, 2)}\n`);
+  }
+
+  if (csvDir) {
+    await fs.mkdir(csvDir, { recursive: true });
+    await Promise.all(
+      CSV_EXPORTS.map(([fileName, key, fields]) => {
+        return fs.writeFile(
+          path.join(csvDir, fileName),
+          toCsv(report[key], fields),
+        );
+      }),
+    );
+  }
+}
+
 async function inspectSongDoc({ db, doc, report }) {
   const data = doc.data();
   if (!data || typeof data !== "object") {
@@ -48,7 +121,11 @@ async function inspectSongDoc({ db, doc, report }) {
   const externalIds = externalIdsFromSong(data);
   if (externalIds.length === 0) {
     report.counts.standaloneNoExternalId += 1;
-    pushSample(report, report.standaloneNoExternalId, sampleSong(doc, data, owner));
+    pushSample(
+      report,
+      report.standaloneNoExternalId,
+      sampleSong(doc, data, owner),
+    );
     return;
   }
 
@@ -148,10 +225,18 @@ async function findCanonicalMatches(db, externalId) {
 
 function ownerFromPath(path) {
   const segments = path.split("/");
-  if (segments.length >= 4 && segments[0] === "users" && segments[2] === "songs") {
+  if (
+    segments.length >= 4 &&
+    segments[0] === "users" &&
+    segments[2] === "songs"
+  ) {
     return { ownerType: "user", ownerId: segments[1] };
   }
-  if (segments.length >= 4 && segments[0] === "bands" && segments[2] === "songs") {
+  if (
+    segments.length >= 4 &&
+    segments[0] === "bands" &&
+    segments[2] === "songs"
+  ) {
     return { ownerType: "band", ownerId: segments[1] };
   }
   return { ownerType: "unknown", ownerId: null };
@@ -179,15 +264,117 @@ function cleanString(value) {
 }
 
 if (require.main === module) {
-  runDryRun({ logger: console.log }).catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+  const options = parseArgs(process.argv.slice(2));
+  runDryRun({
+    sampleLimit: options.sampleLimit,
+    logger: options.out ? null : console.log,
+  })
+    .then(async (report) => {
+      await writeReportFiles({
+        report,
+        out: options.out,
+        csvDir: options.csvDir,
+      });
+      if (options.out) {
+        console.log(`Wrote migration dry-run report to ${options.out}`);
+      }
+      if (options.csvDir) {
+        console.log(`Wrote migration review CSVs to ${options.csvDir}`);
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      process.exitCode = 1;
+    });
 }
 
 module.exports = {
   runDryRun,
+  parseArgs,
+  toCsv,
+  writeReportFiles,
   externalIdsFromSong,
   isV2LinkedSong,
   ownerFromPath,
 };
+
+function parseArgs(args) {
+  const options = {
+    out: null,
+    csvDir: null,
+    sampleLimit: DEFAULT_SAMPLE_LIMIT,
+  };
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    const next = args[i + 1];
+    if (arg === "--out") {
+      options.out = requireValue(arg, next);
+      i += 1;
+    } else if (arg === "--csv-dir") {
+      options.csvDir = requireValue(arg, next);
+      i += 1;
+    } else if (arg === "--sample-limit") {
+      options.sampleLimit = parseSampleLimit(requireValue(arg, next));
+      i += 1;
+    } else if (arg === "--help" || arg === "-h") {
+      printHelp();
+      process.exit(0);
+    } else {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+  }
+
+  return options;
+}
+
+function requireValue(name, value) {
+  if (!value || value.startsWith("--")) {
+    throw new Error(`${name} requires a value.`);
+  }
+  return value;
+}
+
+function parseSampleLimit(value) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error("--sample-limit must be a non-negative integer.");
+  }
+  return parsed;
+}
+
+function printHelp() {
+  console.log(`Usage: node scripts/library-migration-dry-run.js [options]
+
+Options:
+  --out <path>            Write the JSON report to a file instead of stdout.
+  --csv-dir <path>        Write review CSV files into a directory.
+  --sample-limit <count>  Max rows per report category. Default: ${DEFAULT_SAMPLE_LIMIT}.
+  --help                  Show this help.
+`);
+}
+
+function toCsv(rows, fields) {
+  const lines = [fields.join(",")];
+  for (const row of rows) {
+    lines.push(
+      fields.map((field) => csvEscape(csvValue(row[field]))).join(","),
+    );
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function csvValue(value) {
+  if (value == null) return "";
+  if (Array.isArray(value) || typeof value === "object") {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
+function csvEscape(value) {
+  if (/[",\n\r]/.test(value)) {
+    return `"${value.replaceAll('"', '""')}"`;
+  }
+  return value;
+}
