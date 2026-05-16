@@ -151,7 +151,7 @@ Part 5.1: Rules
   - [x] `canonical_songs`: authenticated read, client write denied.
   - [x] `users/{uid}/songs/{songId}`: owner writes v2 library docs and commits.
   - [x] `bands/{bandId}/songs/{songId}`: band editor/admin writes v2 docs and commits; members read.
-  - [ ] Validate required v2 keys where rules can safely do it.
+  - [x] Validate minimal required v2 keys where rules can safely do it.
 
 Part 5.2: Indexes
 - [x] Step: Add indexes for canonical search and linked docs.

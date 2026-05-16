@@ -84,6 +84,39 @@ service cloud.firestore {
         newMemberUids.size() == existingBand.memberUids.size() + 1;
     }
 
+    function hasCanonicalLink() {
+      return request.resource.data.canonicalSongId is string &&
+        request.resource.data.canonicalSongId.size() > 0;
+    }
+
+    function isValidLibrarySongWrite(ownerType, ownerId) {
+      return !hasCanonicalLink() || (
+        request.resource.data.schemaVersion == 2 &&
+        request.resource.data.canonicalSongId is string &&
+        request.resource.data.ownerType == ownerType &&
+        request.resource.data.ownerId == ownerId &&
+        request.resource.data.baseRevision is int &&
+        request.resource.data.delta is map &&
+        request.resource.data.materialized is map &&
+        request.resource.data.latestCommitId is string
+      );
+    }
+
+    function isValidLinkedSongCommit(authorId) {
+      return request.resource.data.canonicalSongId is string &&
+        request.resource.data.canonicalSongId.size() > 0 &&
+        request.resource.data.baseRevision is int &&
+        request.resource.data.delta is map &&
+        request.resource.data.authorId == authorId &&
+        request.resource.data.clientMutationId is string &&
+        (
+          request.resource.data.operation == 'create' ||
+          request.resource.data.operation == 'update' ||
+          request.resource.data.operation == 'delete' ||
+          request.resource.data.operation == 'revert'
+        );
+    }
+
     // ============================================================
     // Global Bands Collection
     // ============================================================
@@ -118,10 +151,16 @@ service cloud.firestore {
       allow read: if isAuthenticated() && isGlobalBandMember(bandId);
 
       // Band editors/admins can create (non-demo only)
-      allow create: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandEditorOrAdmin(bandId);
+      allow create: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandEditorOrAdmin(bandId) &&
+        isValidLibrarySongWrite('band', bandId);
 
       // Band editors/admins can update (non-demo only)
-      allow update: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandEditorOrAdmin(bandId);
+      allow update: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandEditorOrAdmin(bandId) &&
+        isValidLibrarySongWrite('band', bandId);
 
       // Band admins can delete (non-demo only)
       allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);
@@ -131,7 +170,8 @@ service cloud.firestore {
         allow read: if isAuthenticated() && isGlobalBandMember(bandId);
         allow create: if isAuthenticated() &&
           isNotDemo(request.auth.uid) &&
-          isGlobalBandEditorOrAdmin(bandId);
+          isGlobalBandEditorOrAdmin(bandId) &&
+          isValidLinkedSongCommit(request.auth.uid);
         allow update, delete: if false;
       }
     }
@@ -152,12 +192,19 @@ service cloud.firestore {
       // Songs subcollection — owner can manage; demo users read-only
       match /songs/{songId} {
         allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
-        allow write: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+        allow create, update: if isAuthenticated() &&
+          isOwner(userId) &&
+          isNotDemo(userId) &&
+          isValidLibrarySongWrite('user', userId);
+        allow delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
 
         // v2 linked song commit history is append-only from clients.
         match /commits/{commitId} {
           allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
-          allow create: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+          allow create: if isAuthenticated() &&
+            isOwner(userId) &&
+            isNotDemo(userId) &&
+            isValidLinkedSongCommit(userId);
           allow update, delete: if false;
         }
       }
