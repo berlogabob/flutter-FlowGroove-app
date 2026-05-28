@@ -5,6 +5,19 @@ const path = require("node:path");
 const DEFAULT_SAMPLE_LIMIT = 25;
 const CSV_EXPORTS = [
   [
+    "unknown-owner-songs.csv",
+    "unknownOwnerSongs",
+    [
+      "path",
+      "ownerType",
+      "ownerId",
+      "songId",
+      "title",
+      "artist",
+      "externalIds",
+    ],
+  ],
+  [
     "exact-candidates.csv",
     "exactExternalIdLinkedCandidates",
     [
@@ -71,6 +84,26 @@ const CSV_EXPORTS = [
   ],
   ["failed.csv", "failed", ["path", "error"]],
 ];
+const SAMPLE_KEYS = [
+  "exactExternalIdLinkedCandidates",
+  "normalizedReviewCandidates",
+  "alreadyV2Skipped",
+  "standaloneNoExternalId",
+  "unknownOwnerSongs",
+  "ambiguousMatches",
+  "unmatchedExternalId",
+  "failed",
+];
+const COUNT_BY_SAMPLE_KEY = {
+  exactExternalIdLinkedCandidates: "exactExternalIdLinkedCandidates",
+  normalizedReviewCandidates: "normalizedReviewCandidates",
+  alreadyV2Skipped: "alreadyV2Skipped",
+  standaloneNoExternalId: "standaloneNoExternalId",
+  unknownOwnerSongs: "unknownOwnerSongs",
+  ambiguousMatches: "ambiguousMatches",
+  unmatchedExternalId: "unmatchedExternalId",
+  failed: "failedReadsOrParses",
+};
 
 async function runDryRun({
   db,
@@ -87,7 +120,7 @@ async function runDryRun({
       await inspectSongDoc({ db: firestore, doc, report });
     } catch (error) {
       report.counts.failedReadsOrParses += 1;
-      pushSample(report, report.failed, {
+      addReviewRow(report, "failed", {
         path: doc.ref.path,
         error: error.message || String(error),
       });
@@ -95,6 +128,7 @@ async function runDryRun({
   }
 
   report.generatedAt = new Date().toISOString();
+  refreshSampleSummary(report);
   if (logger) {
     logger(JSON.stringify(report, null, 2));
   }
@@ -111,9 +145,10 @@ async function writeReportFiles({ report, out, csvDir }) {
     await fs.mkdir(csvDir, { recursive: true });
     await Promise.all(
       CSV_EXPORTS.map(([fileName, key, fields]) => {
+        const rows = report.fullCsvRows?.[key] || report[key];
         return fs.writeFile(
           path.join(csvDir, fileName),
-          toCsv(report[key], fields),
+          toCsv(rows, fields),
         );
       }),
     );
@@ -135,38 +170,46 @@ async function inspectSongDoc({ db, doc, report }) {
   report.counts.totalLegacySongsScanned += 1;
   const owner = ownerFromPath(doc.ref.path);
   const externalIds = externalIdsFromSong(data);
+  const song = sampleSong(doc, data, owner);
 
-  for (const externalId of externalIds) {
-    const matches = await findCanonicalMatches(db, externalId);
-    if (matches.length === 1) {
-      report.counts.exactExternalIdLinkedCandidates += 1;
-      pushSample(report, report.exactExternalIdLinkedCandidates, {
-        ...sampleSong(doc, data, owner),
-        matchedBy: externalId.field,
-        matchedValue: externalId.value,
-        canonicalSongId: matches[0].id,
-        canonicalRevision: matches[0].canonicalRevision,
-      });
-      return;
-    }
+  if (owner.ownerType === "unknown") {
+    report.counts.unknownOwnerSongs += 1;
+    addReviewRow(report, "unknownOwnerSongs", {
+      ...song,
+      externalIds,
+    });
+    return;
+  }
 
-    if (matches.length > 1) {
-      report.counts.ambiguousMatches += 1;
-      pushSample(report, report.ambiguousMatches, {
-        ...sampleSong(doc, data, owner),
-        matchedBy: externalId.field,
-        matchedValue: externalId.value,
-        canonicalSongIds: matches.map((match) => match.id),
-      });
-      return;
-    }
+  const externalIdMatch = await classifyExternalIdMatches(db, externalIds);
+  if (externalIdMatch.status === "exact") {
+    report.counts.exactExternalIdLinkedCandidates += 1;
+    addReviewRow(report, "exactExternalIdLinkedCandidates", {
+      ...song,
+      matchedBy: externalIdMatch.matchedBy,
+      matchedValue: externalIdMatch.matchedValue,
+      canonicalSongId: externalIdMatch.canonicalSong.id,
+      canonicalRevision: externalIdMatch.canonicalSong.canonicalRevision,
+    });
+    return;
+  }
+
+  if (externalIdMatch.status === "ambiguous") {
+    report.counts.ambiguousMatches += 1;
+    addReviewRow(report, "ambiguousMatches", {
+      ...song,
+      matchedBy: externalIdMatch.matchedBy,
+      matchedValue: externalIdMatch.matchedValue,
+      canonicalSongIds: externalIdMatch.canonicalSongIds,
+    });
+    return;
   }
 
   const normalizedMatch = await findNormalizedMatches(db, data);
   if (normalizedMatch.matches.length === 1) {
     report.counts.normalizedReviewCandidates += 1;
-    pushSample(report, report.normalizedReviewCandidates, {
-      ...sampleSong(doc, data, owner),
+    addReviewRow(report, "normalizedReviewCandidates", {
+      ...song,
       normalizedTitle: normalizedMatch.normalizedTitle,
       normalizedArtist: normalizedMatch.normalizedArtist,
       canonicalSongId: normalizedMatch.matches[0].id,
@@ -177,8 +220,8 @@ async function inspectSongDoc({ db, doc, report }) {
 
   if (normalizedMatch.matches.length > 1) {
     report.counts.ambiguousMatches += 1;
-    pushSample(report, report.ambiguousMatches, {
-      ...sampleSong(doc, data, owner),
+    addReviewRow(report, "ambiguousMatches", {
+      ...song,
       matchedBy: "normalizedTitleArtist",
       matchedValue: `${normalizedMatch.normalizedTitle}|${normalizedMatch.normalizedArtist}`,
       canonicalSongIds: normalizedMatch.matches.map((match) => match.id),
@@ -188,17 +231,13 @@ async function inspectSongDoc({ db, doc, report }) {
 
   if (externalIds.length === 0) {
     report.counts.standaloneNoExternalId += 1;
-    pushSample(
-      report,
-      report.standaloneNoExternalId,
-      sampleSong(doc, data, owner),
-    );
+    addReviewRow(report, "standaloneNoExternalId", song);
     return;
   }
 
   report.counts.unmatchedExternalId += 1;
-  pushSample(report, report.unmatchedExternalId, {
-    ...sampleSong(doc, data, owner),
+  addReviewRow(report, "unmatchedExternalId", {
+    ...song,
     externalIds,
   });
 }
@@ -211,7 +250,7 @@ function getFirestore() {
 }
 
 function newReport(sampleLimit) {
-  return {
+  const report = {
     mode: "dry-run",
     writesEnabled: false,
     sampleLimit,
@@ -223,18 +262,32 @@ function newReport(sampleLimit) {
       normalizedReviewCandidates: 0,
       alreadyV2Skipped: 0,
       standaloneNoExternalId: 0,
+      unknownOwnerSongs: 0,
       ambiguousMatches: 0,
       unmatchedExternalId: 0,
       failedReadsOrParses: 0,
     },
+    csvExports: {
+      rowSource: "full-review-manifest",
+      sampleLimitApplies: false,
+    },
+    sampledRowCounts: {},
+    samplesTruncated: {},
     exactExternalIdLinkedCandidates: [],
     normalizedReviewCandidates: [],
     alreadyV2Skipped: [],
     standaloneNoExternalId: [],
+    unknownOwnerSongs: [],
     ambiguousMatches: [],
     unmatchedExternalId: [],
     failed: [],
   };
+  Object.defineProperty(report, "fullCsvRows", {
+    value: Object.fromEntries(CSV_EXPORTS.map(([, key]) => [key, []])),
+    enumerable: false,
+  });
+  refreshSampleSummary(report);
+  return report;
 }
 
 function isV2LinkedSong(data) {
@@ -247,11 +300,65 @@ function externalIdsFromSong(data) {
   return [
     {
       field: "musicBrainzId",
-      value: cleanString(data.musicbrainzId || data.musicBrainzId),
+      value: normalizeMusicBrainzId(data.musicbrainzId || data.musicBrainzId),
     },
-    { field: "isrc", value: cleanString(data.isrc) },
-    { field: "spotifyId", value: cleanString(data.spotifyId) },
+    { field: "isrc", value: normalizeIsrc(data.isrc) },
+    { field: "spotifyId", value: normalizeSpotifyId(data.spotifyId) },
   ].filter((item) => item.value);
+}
+
+async function classifyExternalIdMatches(db, externalIds) {
+  const results = [];
+
+  for (const externalId of externalIds) {
+    results.push({
+      externalId,
+      matches: await findCanonicalMatches(db, externalId),
+    });
+  }
+
+  const matchedResults = results.filter((result) => result.matches.length > 0);
+  if (matchedResults.length === 0) {
+    return { status: "none" };
+  }
+
+  const duplicateMatch = matchedResults.some((result) => {
+    return result.matches.length > 1;
+  });
+  const canonicalById = new Map();
+  for (const result of matchedResults) {
+    for (const match of result.matches) {
+      canonicalById.set(match.id, match);
+    }
+  }
+
+  if (duplicateMatch || canonicalById.size !== 1) {
+    return {
+      status: "ambiguous",
+      matchedBy: matchedResults
+        .map((result) => result.externalId.field)
+        .join("|"),
+      matchedValue: matchedResults
+        .map((result) => {
+          return `${result.externalId.field}=${result.externalId.value}`;
+        })
+        .join("|"),
+      canonicalSongIds: [...canonicalById.keys()].sort(),
+    };
+  }
+
+  return {
+    status: "exact",
+    matchedBy: matchedResults
+      .map((result) => result.externalId.field)
+      .join("|"),
+    matchedValue: matchedResults
+      .map((result) => {
+        return `${result.externalId.field}=${result.externalId.value}`;
+      })
+      .join("|"),
+    canonicalSong: [...canonicalById.values()][0],
+  };
 }
 
 async function findCanonicalMatches(db, externalId) {
@@ -328,8 +435,57 @@ function pushSample(report, samples, value) {
   }
 }
 
+function addReviewRow(report, key, value) {
+  pushSample(report, report[key], value);
+  if (report.fullCsvRows?.[key]) {
+    report.fullCsvRows[key].push(value);
+  }
+}
+
+function refreshSampleSummary(report) {
+  for (const key of SAMPLE_KEYS) {
+    const countKey = COUNT_BY_SAMPLE_KEY[key];
+    const total = report.counts[countKey] || 0;
+    report.sampledRowCounts[key] = report[key].length;
+    report.samplesTruncated[key] = report[key].length < total;
+  }
+}
+
 function cleanString(value) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeMusicBrainzId(value) {
+  return cleanString(value).toLowerCase();
+}
+
+function normalizeIsrc(value) {
+  return cleanString(value).replace(/[^a-z0-9]/gi, "").toUpperCase();
+}
+
+function normalizeSpotifyId(value) {
+  const cleaned = cleanString(value);
+  if (!cleaned) return "";
+
+  const uriMatch = cleaned.match(/^spotify:track:([^:?/#]+)/i);
+  if (uriMatch) return uriMatch[1].trim();
+
+  if (/^https?:\/\//i.test(cleaned)) {
+    try {
+      const url = new URL(cleaned);
+      const segments = url.pathname.split("/").filter(Boolean);
+      const trackIndex = segments.findIndex((segment) => {
+        return segment.toLowerCase() === "track";
+      });
+      if (trackIndex >= 0 && segments[trackIndex + 1]) {
+        return segments[trackIndex + 1].trim();
+      }
+    } catch {
+      return cleaned;
+    }
+  }
+
+  return cleaned.replace(/[?#].*$/, "").trim();
 }
 
 function normalizeForReview(value) {
@@ -427,7 +583,7 @@ function printHelp() {
 Options:
   --out <path>            Write the JSON report to a file instead of stdout.
   --csv-dir <path>        Write review CSV files into a directory.
-  --sample-limit <count>  Max rows per report category. Default: ${DEFAULT_SAMPLE_LIMIT}.
+  --sample-limit <count>  Max sample rows per JSON report category. CSV exports are full manifests. Default: ${DEFAULT_SAMPLE_LIMIT}.
   --help                  Show this help.
 `);
 }

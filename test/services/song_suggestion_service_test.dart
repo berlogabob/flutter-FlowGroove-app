@@ -11,21 +11,22 @@ import 'package:flowgroove/services/song_suggestion_service.dart';
 void main() {
   group('SongSuggestionService', () {
     test('includes canonical catalog suggestions', () async {
+      final canonicalRepo = _FakeCanonicalSongRepository([
+        CanonicalSong(
+          id: 'canonical-1',
+          title: 'Bohemian Rhapsody',
+          artist: 'Queen',
+          album: 'A Night at the Opera',
+          musicBrainzId: 'mb-1',
+          baseBpm: 72,
+          baseKey: 'Bb',
+          createdAt: DateTime(2026, 5, 11),
+          updatedAt: DateTime(2026, 5, 12),
+        ),
+      ]);
       final service = SongSuggestionService(
         songRepo: _FakeSongRepository(),
-        canonicalRepo: _FakeCanonicalSongRepository([
-          CanonicalSong(
-            id: 'canonical-1',
-            title: 'Bohemian Rhapsody',
-            artist: 'Queen',
-            album: 'A Night at the Opera',
-            musicBrainzId: 'mb-1',
-            baseBpm: 72,
-            baseKey: 'Bb',
-            createdAt: DateTime(2026, 5, 11),
-            updatedAt: DateTime(2026, 5, 12),
-          ),
-        ]),
+        canonicalRepo: canonicalRepo,
         musicBrainz: _FakeMusicBrainzService(),
         userId: 'user-1',
       );
@@ -41,6 +42,7 @@ void main() {
       expect(canonical.musicBrainzId, 'mb-1');
       expect(canonical.bpm, 72);
       expect(canonical.key, 'Bb');
+      expect(canonicalRepo.lastSearchQuery, 'Bohemian Rhapsody');
     });
 
     test('deduplicates canonical and MusicBrainz by external id', () async {
@@ -137,6 +139,7 @@ class _FakeCanonicalSongRepository implements CanonicalSongRepository {
   _FakeCanonicalSongRepository(this.songs);
 
   final List<CanonicalSong> songs;
+  String? lastSearchQuery;
 
   @override
   Future<int> count() async => songs.length;
@@ -167,6 +170,7 @@ class _FakeCanonicalSongRepository implements CanonicalSongRepository {
     required String query,
     int limit = 20,
   }) async {
+    lastSearchQuery = query;
     final normalizedQuery = query.toLowerCase();
     return songs
         .where(

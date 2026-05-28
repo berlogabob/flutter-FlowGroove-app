@@ -17,7 +17,7 @@
     "test:rules:run": "mocha \"test/firestore-rules-*.test.js\""
   },
   "engines": {
-    "node": "24"
+    "node": "22"
   },
   "main": "index.js",
   "dependencies": {

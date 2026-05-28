@@ -95,7 +95,7 @@ class SongSuggestionService {
     if (canonicalRepo == null) return [];
 
     try {
-      final query = artist.isEmpty ? title : '$title $artist';
+      final query = title.isNotEmpty ? title : artist;
       final canonicalSongs = await canonicalRepo.search(query: query, limit: 8);
       final suggestions = <SongSuggestion>[];
 

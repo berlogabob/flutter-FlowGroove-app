@@ -284,19 +284,31 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
         bandId: bandId,
       );
 
-      final canonicalSongId = await _canonicalSongIdForSelectedSuggestion();
+      final canonicalSongId =
+          await _canonicalSongIdForSelectedSuggestion() ??
+          existingSong?.canonicalSongId;
 
-      // Update song with canonical linking if suggestion was used
-      final songWithCanonical = song.copyWith(
-        canonicalSongId: canonicalSongId,
-        isFromMusicBrainz:
-            state.selectedSuggestion?.source == SuggestionSource.musicbrainz,
+      final songWithMetadata = _preserveExistingMetadata(
+        song.copyWith(
+          canonicalSongId: canonicalSongId,
+          isFromMusicBrainz:
+              state.selectedSuggestion?.source == SuggestionSource.musicbrainz,
+        ),
+        existingSong,
       );
 
       if (bandId != null) {
-        await songRepo.saveBandSong(songWithCanonical, bandId);
+        if (isEditing) {
+          await songRepo.updateBandSong(songWithMetadata, bandId);
+        } else {
+          await songRepo.saveBandSong(songWithMetadata, bandId);
+        }
       } else {
-        await songRepo.saveSong(songWithCanonical, uid: uid);
+        if (isEditing) {
+          await songRepo.updateSong(songWithMetadata, uid: uid);
+        } else {
+          await songRepo.saveSong(songWithMetadata, uid: uid);
+        }
       }
 
       // Log analytics event for new song
@@ -352,11 +364,20 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
             : DateTime.now(),
         bandId: bandId,
       );
+      final songWithMetadata = _preserveExistingMetadata(song, existingSong);
 
       if (bandId != null) {
-        await songRepo.saveBandSong(song, bandId);
+        if (isEditing) {
+          await songRepo.updateBandSong(songWithMetadata, bandId);
+        } else {
+          await songRepo.saveBandSong(songWithMetadata, bandId);
+        }
       } else {
-        await songRepo.saveSong(song, uid: uid);
+        if (isEditing) {
+          await songRepo.updateSong(songWithMetadata, uid: uid);
+        } else {
+          await songRepo.saveSong(songWithMetadata, uid: uid);
+        }
       }
 
       clearUnsavedChanges();
@@ -427,6 +448,51 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     }
 
     return null;
+  }
+
+  Song _preserveExistingMetadata(Song song, Song? existingSong) {
+    if (existingSong == null) return song;
+
+    final sameCanonical =
+        existingSong.canonicalSongId != null &&
+        existingSong.canonicalSongId == song.canonicalSongId;
+    final preserveExternalMetadata =
+        song.canonicalSongId == null || sameCanonical;
+
+    return song.copyWith(
+      canonicalSongId: song.canonicalSongId ?? existingSong.canonicalSongId,
+      libraryBaseRevision: sameCanonical
+          ? existingSong.libraryBaseRevision
+          : null,
+      latestCommitId: sameCanonical ? existingSong.latestCommitId : null,
+      originalOwnerId: existingSong.originalOwnerId,
+      originalSongId: existingSong.originalSongId,
+      contributedBy: existingSong.contributedBy,
+      isCopy: existingSong.isCopy,
+      contributedAt: existingSong.contributedAt,
+      spotifyId: preserveExternalMetadata ? existingSong.spotifyId : null,
+      musicbrainzId: preserveExternalMetadata
+          ? existingSong.musicbrainzId
+          : null,
+      isrc: preserveExternalMetadata ? existingSong.isrc : null,
+      deezerId: preserveExternalMetadata ? existingSong.deezerId : null,
+      normalizedTitle: preserveExternalMetadata
+          ? existingSong.normalizedTitle
+          : null,
+      normalizedArtist: preserveExternalMetadata
+          ? existingSong.normalizedArtist
+          : null,
+      titleSoundex: preserveExternalMetadata ? existingSong.titleSoundex : null,
+      artistSoundex: preserveExternalMetadata
+          ? existingSong.artistSoundex
+          : null,
+      durationMs: preserveExternalMetadata ? existingSong.durationMs : null,
+      album: preserveExternalMetadata ? existingSong.album : null,
+      variantType: preserveExternalMetadata ? existingSong.variantType : null,
+      variantOf: preserveExternalMetadata ? existingSong.variantOf : null,
+      isFromMusicBrainz:
+          song.isFromMusicBrainz || existingSong.isFromMusicBrainz,
+    );
   }
 
   /// Check for potential duplicates before save.

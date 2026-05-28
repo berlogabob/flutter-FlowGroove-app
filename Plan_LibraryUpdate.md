@@ -243,6 +243,29 @@ Part 6.4: Rollout switch
 - `npm --prefix functions test` or function smoke tests
 - `flutter analyze` after known lint backlog is separated from new errors
 
+## Post-Close Hardening Pass
+
+### Flutter linking flow
+- [x] Wire add-song autocomplete suggestions into `SongForm` with band context.
+- [x] Keep canonical suggestions and fork actions on the linked-song save path.
+- [x] Preserve linked-song metadata when editing existing v2 songs.
+- [x] Avoid carrying stale canonical metadata when relinking to a different canonical song.
+- [x] Use title-only canonical catalog search input so Firestore title-prefix search can match title+artist queries.
+
+### Callable and runtime safety
+- [x] Use a Firebase-supported Node 22 functions runtime in package metadata and lockfile.
+- [x] Reject demo users by custom claim or Firestore `accessRole`.
+- [x] Reject duplicate canonical external-id and normalized matches instead of returning arbitrary records.
+- [x] Make normalized create path transactional and idempotent.
+
+### Migration dry-run safety
+- [x] Ignore local migration report artifacts.
+- [x] Keep JSON samples bounded while CSV review exports include full manifests.
+- [x] Normalize external IDs before matching.
+- [x] Classify duplicate/conflicting external-id matches as ambiguous.
+- [x] Split unknown owner paths into their own report category.
+- [x] Guard direct migration tests so they only run against the Firestore emulator.
+
 ## Deployment And Rollback
 
 ### Release Order
