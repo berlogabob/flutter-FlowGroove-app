@@ -180,9 +180,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     // Show dialog to user
     final action = await showDialog<SuggestionAction>(
       context: context,
-      builder: (context) => SuggestionSelectionDialog(
-        suggestion: suggestion,
-      ),
+      builder: (context) => SuggestionSelectionDialog(suggestion: suggestion),
     );
 
     if (!mounted || action == null) return;
@@ -194,18 +192,19 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         _titleController.text = suggestion.title;
         _artistController.text = suggestion.artist;
         break;
-        
+
       case SuggestionAction.fork:
-        // Fork to personal - create new song based on existing
+        // Fork to a new editable library song based on the selected source.
         ref.read(songFormStateProvider.notifier).selectSuggestion(suggestion);
         _titleController.text = suggestion.title;
         _artistController.text = suggestion.artist;
-        // TODO: Implement fork logic
         break;
-        
+
       case SuggestionAction.createNew:
         // Create new song - just populate form fields
-        ref.read(songFormStateProvider.notifier).applySuggestionToForm(suggestion);
+        ref
+            .read(songFormStateProvider.notifier)
+            .applySuggestionToForm(suggestion);
         _titleController.text = suggestion.title;
         _artistController.text = suggestion.artist;
         break;
@@ -391,6 +390,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
               regularBeats: formData.regularBeats,
               beatModes: formData.beatModes,
               sections: formData.sections,
+              bandId: widget.bandId,
+              onSuggestionSelected: _handleSuggestionSelected,
             ),
             const SizedBox(height: 24),
             // Search buttons row

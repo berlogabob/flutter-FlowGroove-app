@@ -51,6 +51,10 @@ oldarchive/*
 # Local production/deploy snapshots
 backup/production-*/
 
+# Local migration dry-run reports
+migration-reports/
+functions/migration-reports/
+
 
 
 # Flutter repo-specific

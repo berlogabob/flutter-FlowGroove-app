@@ -13,16 +13,19 @@ const wrappedEnsureCanonicalSong = functionsTest.wrap(
   canonical.ensureCanonicalSong,
 );
 const db = admin.firestore();
+const duplicateCanonicalMessage = "Duplicate canonical song matches found.";
 
 describe("ensureCanonicalSong callable", function () {
   this.timeout(20000);
 
   after(async () => {
+    await clearUsers();
     await clearCanonicalSongs();
     functionsTest.cleanup();
   });
 
   beforeEach(async () => {
+    await clearUsers();
     await clearCanonicalSongs();
   });
 
@@ -38,6 +41,18 @@ describe("ensureCanonicalSong callable", function () {
       () => wrappedEnsureCanonicalSong(
         { title: "Song", artist: "Artist" },
         authContext("demo-user", { demo: true }),
+      ),
+      (error) => error.code === "failed-precondition",
+    );
+  });
+
+  it("rejects users with demo accessRole in Firestore", async () => {
+    await db.collection("users").doc("demo-user").set({ accessRole: "demo" });
+
+    await assert.rejects(
+      () => wrappedEnsureCanonicalSong(
+        { title: "Song", artist: "Artist" },
+        authContext("demo-user"),
       ),
       (error) => error.code === "failed-precondition",
     );
@@ -81,6 +96,20 @@ describe("ensureCanonicalSong callable", function () {
     );
   });
 
+  it("rejects ambiguous external id matches", async () => {
+    await seedCanonicalSong("canonical-mb-1", { musicBrainzId: "mb-dupe" });
+    await seedCanonicalSong("canonical-mb-2", { musicBrainzId: "mb-dupe" });
+
+    await assert.rejects(
+      () => callEnsure({
+        title: "Different",
+        artist: "Different",
+        musicBrainzId: "mb-dupe",
+      }),
+      isDuplicateCanonicalError,
+    );
+  });
+
   it("falls back to normalized title and artist lookup", async () => {
     await seedCanonicalSong("canonical-normalized", {
       title: "Bohemian Rhapsody",
@@ -99,6 +128,51 @@ describe("ensureCanonicalSong callable", function () {
       canonicalSongId: "canonical-normalized",
       canonicalRevision: 8,
     });
+    assert.equal(await canonicalSongCount(), 1);
+  });
+
+  it("rejects ambiguous normalized title and artist matches", async () => {
+    await seedCanonicalSong("canonical-normalized-1", {
+      title: "Song",
+      artist: "Artist",
+      normalizedTitle: "same song",
+      normalizedArtist: "same artist",
+    });
+    await seedCanonicalSong("canonical-normalized-2", {
+      title: "Song",
+      artist: "Artist",
+      normalizedTitle: "same song",
+      normalizedArtist: "same artist",
+    });
+
+    await assert.rejects(
+      () => callEnsure({
+        title: "Same Song",
+        artist: "Same Artist",
+      }),
+      isDuplicateCanonicalError,
+    );
+  });
+
+  it("uses the transaction create path idempotently for normalized matches", async () => {
+    const payload = {
+      title: "  Concurrent Song! ",
+      artist: " Concurrent Artist ",
+      durationMs: 90000,
+    };
+
+    const results = await Promise.all([
+      callEnsure(payload),
+      callEnsure(payload),
+      callEnsure(payload),
+      callEnsure(payload),
+    ]);
+
+    assert.equal(new Set(results.map((result) => result.canonicalSongId)).size, 1);
+    assert.deepEqual(
+      results.map((result) => result.canonicalRevision),
+      [1, 1, 1, 1],
+    );
     assert.equal(await canonicalSongCount(), 1);
   });
 
@@ -162,6 +236,11 @@ function callEnsure(payload) {
   return wrappedEnsureCanonicalSong(payload, authContext("user-1"));
 }
 
+function isDuplicateCanonicalError(error) {
+  return error.code === "failed-precondition" &&
+    error.message === duplicateCanonicalMessage;
+}
+
 async function seedCanonicalSong(id, values = {}) {
   await db.collection("canonical_songs").doc(id).set({
     id,
@@ -194,6 +273,11 @@ async function seedCanonicalSong(id, values = {}) {
 
 async function clearCanonicalSongs() {
   const snapshot = await db.collection("canonical_songs").get();
+  await Promise.all(snapshot.docs.map((doc) => doc.ref.delete()));
+}
+
+async function clearUsers() {
+  const snapshot = await db.collection("users").get();
   await Promise.all(snapshot.docs.map((doc) => doc.ref.delete()));
 }
 
