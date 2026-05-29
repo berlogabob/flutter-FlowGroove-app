@@ -97,6 +97,21 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant AutocompleteTypeAhead oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.bandId != widget.bandId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref
+            .read(autocompleteSearchProvider.notifier)
+            .init(bandId: widget.bandId);
+        ref.read(autocompleteSearchProvider.notifier).clear();
+        _hideOverlay();
+      });
+    }
+  }
+
   void _onFocusChange() {
     if (_focusNode.hasFocus) {
       if (_controller.text.length >= widget.minLength) {
@@ -176,11 +191,18 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
     final searchState = ref.watch(autocompleteSearchProvider);
 
     // Show/hide overlay based on state
-    if (searchState.suggestions.isNotEmpty || searchState.isLoading) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _showOverlay());
-    } else {
-      _hideOverlay();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final shouldShowOverlay =
+          _focusNode.hasFocus &&
+          (searchState.suggestions.isNotEmpty || searchState.isLoading);
+      if (shouldShowOverlay) {
+        _showOverlay();
+        _overlayEntry?.markNeedsBuild();
+      } else {
+        _hideOverlay();
+      }
+    });
 
     return CompositedTransformTarget(
       link: _layerLink,
@@ -191,9 +213,7 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
           hintText: widget.hint,
           prefixIcon: Icon(widget.icon),
           suffixIcon: _buildSuffixIcon(searchState.isLoading),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 12,
@@ -265,10 +285,7 @@ class _SuggestionDropdown extends StatelessWidget {
       elevation: 8,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        constraints: const BoxConstraints(
-          maxHeight: 400,
-          minHeight: 100,
-        ),
+        constraints: const BoxConstraints(maxHeight: 400, minHeight: 100),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
@@ -306,10 +323,7 @@ class _SuggestionDropdown extends StatelessWidget {
             size: 32,
           ),
           const SizedBox(height: 8),
-          Text(
-            'Search failed',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+          Text('Search failed', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 4),
           Text(
             'Please try again',
@@ -323,9 +337,7 @@ class _SuggestionDropdown extends StatelessWidget {
   Widget _buildLoadingState() {
     return const SizedBox(
       height: 100,
-      child: Center(
-        child: CircularProgressIndicator(),
-      ),
+      child: Center(child: CircularProgressIndicator()),
     );
   }
 
@@ -341,10 +353,7 @@ class _SuggestionDropdown extends StatelessWidget {
             size: 32,
           ),
           const SizedBox(height: 8),
-          Text(
-            'No songs found',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+          Text('No songs found', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 4),
           Text(
             'Try a different search',

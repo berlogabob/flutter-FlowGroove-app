@@ -287,12 +287,15 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
       final canonicalSongId =
           await _canonicalSongIdForSelectedSuggestion() ??
           existingSong?.canonicalSongId;
+      final suggestion = state.selectedSuggestion;
 
       final songWithMetadata = _preserveExistingMetadata(
         song.copyWith(
           canonicalSongId: canonicalSongId,
-          isFromMusicBrainz:
-              state.selectedSuggestion?.source == SuggestionSource.musicbrainz,
+          musicbrainzId: suggestion?.musicBrainzId,
+          durationMs: suggestion?.durationMs,
+          album: suggestion?.album,
+          isFromMusicBrainz: suggestion?.source == SuggestionSource.musicbrainz,
         ),
         existingSong,
       );

@@ -14,6 +14,7 @@ void main() {
     group('MusicBrainzRecording JSON parsing', () {
       test('parses recording with all fields correctly', () {
         final recordingJson = {
+          'id': 'mb-recording-1',
           'title': 'Test Song',
           'artist-credit': [
             {
@@ -27,6 +28,7 @@ void main() {
         };
 
         final recording = MusicBrainzRecording.fromJson(recordingJson);
+        expect(recording.id, equals('mb-recording-1'));
         expect(recording.title, equals('Test Song'));
         expect(recording.artist, equals('Test Artist'));
         expect(recording.release, equals('Test Album'));

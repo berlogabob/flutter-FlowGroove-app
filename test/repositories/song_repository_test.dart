@@ -163,6 +163,9 @@ void main() {
         // Assert
         final bandSongs = await repository.getBandSongs('band-id');
         expect(bandSongs.length, 1);
+        expect(bandSongs.single.originalSongId, 'test-id');
+        expect(bandSongs.single.originalOwnerId, 'test-user');
+        expect(bandSongs.single.isCopy, isTrue);
       });
 
       test('should delete song from band', () async {
