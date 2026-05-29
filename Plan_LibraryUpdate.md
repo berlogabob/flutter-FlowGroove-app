@@ -272,6 +272,11 @@ Part 6.4: Rollout switch
 - [x] Split unknown owner paths into their own report category.
 - [x] Guard direct migration tests so they only run against the Firestore emulator.
 
+### Release packaging
+- [x] Add Makefile targets for GitHub Pages web builds and Android APK artifacts.
+- [x] Keep GitHub Pages build non-interactive for CI.
+- [x] Add GitHub Actions workflow that deploys `build/web` to Pages and uploads the release APK artifact.
+
 ## Deployment And Rollback
 
 ### Release Order
