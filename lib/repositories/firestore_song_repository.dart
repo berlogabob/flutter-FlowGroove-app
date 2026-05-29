@@ -247,16 +247,11 @@ class FirestoreSongRepository implements SongRepository {
       final name =
           contributorName ?? user.displayName ?? user.email ?? 'Unknown';
 
-      final bandSong = song.copyWith(
-        id: _firestore.collection('bands').doc().id,
+      final bandSong = _copySongForBand(
+        song: song,
         bandId: bandId,
-        originalOwnerId: song.originalOwnerId ?? uid,
-        originalSongId: song.id, // Track the original song ID for comparison
-        contributedBy: name,
-        isCopy: true,
-        contributedAt: DateTime.now(),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        contributorId: uid,
+        contributorName: name,
       );
 
       await saveBandSong(bandSong, bandId);
@@ -310,18 +305,12 @@ class FirestoreSongRepository implements SongRepository {
         );
       }
 
-      final songData = songDoc.data()!;
-      final song = Song.fromJson(songData);
-
-      final bandSong = song.copyWith(
-        id: _firestore.collection('bands').doc().id,
+      final song = await _songFromUserSongDocument(songDoc);
+      final bandSong = _copySongForBand(
+        song: song,
         bandId: bandId,
-        originalOwnerId: song.originalOwnerId ?? user.uid,
-        contributedBy: user.displayName ?? user.email ?? 'Unknown',
-        isCopy: true,
-        contributedAt: DateTime.now(),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        contributorId: user.uid,
+        contributorName: user.displayName ?? user.email ?? 'Unknown',
       );
 
       await saveBandSong(bandSong, bandId);
@@ -705,6 +694,47 @@ class FirestoreSongRepository implements SongRepository {
     if (data == null) return null;
     data['id'] ??= doc.id;
     return CanonicalSong.fromJson(data);
+  }
+
+  Future<Song> _songFromUserSongDocument(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) async {
+    final data = Map<String, dynamic>.from(doc.data()!);
+    data['id'] ??= doc.id;
+
+    if (!_isLinkedSongData(data)) {
+      return Song.fromJson(data);
+    }
+
+    final librarySong = LibrarySong.fromJson(data);
+    final canonical = await _getCanonicalSong(librarySong.canonicalSongId);
+    return _songFromLibrarySong(
+      docId: doc.id,
+      librarySong: librarySong,
+      canonical: canonical,
+    );
+  }
+
+  Song _copySongForBand({
+    required Song song,
+    required String bandId,
+    required String contributorId,
+    required String contributorName,
+  }) {
+    final now = DateTime.now();
+    return song.copyWith(
+      id: _firestore.collection('bands').doc().id,
+      bandId: bandId,
+      originalOwnerId: song.originalOwnerId ?? contributorId,
+      originalSongId: song.originalSongId ?? song.id,
+      contributedBy: contributorName,
+      isCopy: true,
+      contributedAt: now,
+      createdAt: now,
+      updatedAt: now,
+      libraryBaseRevision: null,
+      latestCommitId: null,
+    );
   }
 
   DocumentReference<Map<String, dynamic>> _userSongDoc(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../models/api_error.dart';
+import '../../../models/song_suggestion.dart';
 import '../../../providers/auth/error_provider.dart';
 import '../../../services/api/spotify_proxy_service.dart';
 import '../../../services/api/track_analysis_service.dart';
@@ -34,6 +35,9 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
 
   /// Reference to WidgetRef for provider access.
   WidgetRef get ref;
+
+  /// Apply a MusicBrainz recording through the canonical suggestion flow.
+  void applyMusicBrainzSuggestion(SongSuggestion suggestion, {int? bpm});
 
   /// BuildContext for the state.
   BuildContext get stateContext => context;
@@ -127,19 +131,33 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
           query: query,
           scrollController: scrollController,
           onSelect: (recording) {
-            setState(() {
-              if (recording.title != null && formData.title.isEmpty) {
-                formData.updateTitle(recording.title!);
-              }
-              if (recording.artist != null && formData.artist.isEmpty) {
-                formData.updateArtist(recording.artist!);
-              }
-              if (recording.bpm != null && formData.originalBpm.isEmpty) {
-                formData.updateOriginalBpm(recording.bpm.toString());
-              }
-            });
+            final title = (recording.title?.trim().isNotEmpty ?? false)
+                ? recording.title!.trim()
+                : formData.title.trim();
+            final artist = (recording.artist?.trim().isNotEmpty ?? false)
+                ? recording.artist!.trim()
+                : formData.artist.trim();
+
+            if (title.isEmpty || artist.isEmpty) {
+              showMessage('MusicBrainz result is missing title or artist');
+              return;
+            }
+
+            final fallbackId = '${title.toLowerCase()}-${artist.toLowerCase()}'
+                .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                .replaceAll(RegExp(r'^-+|-+$'), '');
+            final suggestion = SongSuggestion.fromMusicBrainz(
+              id: recording.id ?? fallbackId,
+              title: title,
+              artist: artist,
+              musicBrainzId: recording.id,
+              durationMs: recording.durationMs,
+              album: recording.release,
+            );
+
+            applyMusicBrainzSuggestion(suggestion, bpm: recording.bpm);
             Navigator.pop(context);
-            showMessage('Added: ${recording.title} - ${recording.artist}');
+            showMessage('Added: $title - $artist');
           },
         ),
       ),

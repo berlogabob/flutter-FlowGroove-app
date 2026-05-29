@@ -251,6 +251,12 @@ Part 6.4: Rollout switch
 - [x] Preserve linked-song metadata when editing existing v2 songs.
 - [x] Avoid carrying stale canonical metadata when relinking to a different canonical song.
 - [x] Use title-only canonical catalog search input so Firestore title-prefix search can match title+artist queries.
+- [x] Route legacy MusicBrainz bottom-sheet selections through `SongSuggestion.fromMusicBrainz`.
+- [x] Preserve MusicBrainz recording id, album, and duration on linked library songs.
+- [x] Validate MusicBrainz linked save flow with provider coverage.
+- [x] Make `addSongToBandById` copy both legacy and v2 linked personal songs through the merged read model.
+- [x] Preserve band-copy attribution metadata, including `originalSongId`, when adding by id.
+- [x] Refresh the typeahead overlay when provider suggestions/loading state changes.
 
 ### Callable and runtime safety
 - [x] Use a Firebase-supported Node 22 functions runtime in package metadata and lockfile.

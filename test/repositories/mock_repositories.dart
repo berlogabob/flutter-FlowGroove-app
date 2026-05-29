@@ -51,7 +51,16 @@ class MockSongRepository implements SongRepository {
     String? contributorName,
   }) async {
     _bandSongs.putIfAbsent(bandId, () => {});
-    _bandSongs[bandId]![song.id] = song;
+    final now = DateTime.now();
+    _bandSongs[bandId]![song.id] = song.copyWith(
+      bandId: bandId,
+      originalOwnerId: song.originalOwnerId ?? contributorId ?? 'test-user',
+      originalSongId: song.originalSongId ?? song.id,
+      contributedBy: contributorName ?? 'Test User',
+      isCopy: true,
+      contributedAt: now,
+      updatedAt: now,
+    );
   }
 
   @override

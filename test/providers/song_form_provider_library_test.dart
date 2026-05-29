@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/song_form_provider.dart';
 import 'package:flowgroove/repositories/song_repository.dart';
+import 'package:flowgroove/services/canonical_song_function_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +45,51 @@ void main() {
       expect(repository.savedSong?.canonicalSongId, 'canonical-1');
       expect(repository.updatedSong, isNull);
     });
+
+    test(
+      'ensures MusicBrainz suggestions before saving linked songs',
+      () async {
+        final canonicalService = _FakeCanonicalSongFunctionService();
+        final scopedContainer = ProviderContainer(
+          overrides: [
+            canonicalSongFunctionServiceProvider.overrideWithValue(
+              canonicalService,
+            ),
+          ],
+        );
+        addTearDown(scopedContainer.dispose);
+
+        final notifier = scopedContainer.read(songFormStateProvider.notifier);
+        notifier.selectSuggestion(
+          SongSuggestion.fromMusicBrainz(
+            id: 'mb-recording-1',
+            title: 'MB Song',
+            artist: 'MB Artist',
+            musicBrainzId: 'mb-recording-1',
+            album: 'MB Album',
+            durationMs: 123000,
+          ),
+        );
+
+        final success = await notifier.saveSong(
+          songRepo: repository,
+          uid: 'user-1',
+        );
+
+        final saved = repository.savedSong;
+        expect(success, isTrue);
+        expect(
+          canonicalService.ensuredSuggestion?.musicBrainzId,
+          'mb-recording-1',
+        );
+        expect(saved, isNotNull);
+        expect(saved!.canonicalSongId, 'canonical-from-musicbrainz');
+        expect(saved.musicbrainzId, 'mb-recording-1');
+        expect(saved.album, 'MB Album');
+        expect(saved.durationMs, 123000);
+        expect(saved.isFromMusicBrainz, isTrue);
+      },
+    );
 
     test('updates existing linked songs without losing v2 metadata', () async {
       final existing = Song(
@@ -134,6 +181,41 @@ void main() {
       },
     );
   });
+}
+
+class _FakeCanonicalSongFunctionService
+    implements CanonicalSongFunctionService {
+  SongSuggestion? ensuredSuggestion;
+
+  @override
+  Future<EnsureCanonicalSongResult> ensureCanonicalSong({
+    required String title,
+    required String artist,
+    String? musicBrainzId,
+    String? isrc,
+    String? spotifyId,
+    String? album,
+    int? durationMs,
+  }) async {
+    return const EnsureCanonicalSongResult(
+      canonicalSongId: 'canonical-from-musicbrainz',
+      canonicalRevision: 1,
+    );
+  }
+
+  @override
+  Future<EnsureCanonicalSongResult> ensureFromSuggestion(
+    SongSuggestion suggestion,
+  ) async {
+    ensuredSuggestion = suggestion;
+    return ensureCanonicalSong(
+      title: suggestion.title,
+      artist: suggestion.artist,
+      musicBrainzId: suggestion.musicBrainzId,
+      album: suggestion.album,
+      durationMs: suggestion.durationMs,
+    );
+  }
 }
 
 class _RecordingSongRepository implements SongRepository {

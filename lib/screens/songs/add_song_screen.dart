@@ -236,6 +236,21 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     ref.read(songFormStateProvider.notifier).setError(value);
   }
 
+  @override
+  void applyMusicBrainzSuggestion(SongSuggestion suggestion, {int? bpm}) {
+    final notifier = ref.read(songFormStateProvider.notifier);
+    final currentBpm = ref.read(songFormStateProvider).formData.originalBpm;
+
+    notifier.selectSuggestion(suggestion);
+    _titleController.text = suggestion.title;
+    _artistController.text = suggestion.artist;
+
+    if (bpm != null && currentBpm.trim().isEmpty) {
+      notifier.updateOriginalBpm(bpm.toString());
+      _originalBpmController.text = bpm.toString();
+    }
+  }
+
   /// Save the song to Firestore with duplicate check.
   Future<void> _saveSong() async {
     final formState = _formKey.currentState;

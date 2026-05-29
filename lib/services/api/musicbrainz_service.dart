@@ -89,6 +89,7 @@ class MusicBrainzService {
 }
 
 class MusicBrainzRecording {
+  final String? id;
   final String? title;
   final String? artist;
   final String? release;
@@ -96,6 +97,7 @@ class MusicBrainzRecording {
   final int? bpm;
 
   MusicBrainzRecording({
+    this.id,
     this.title,
     this.artist,
     this.release,
@@ -139,6 +141,7 @@ class MusicBrainzRecording {
     }
 
     return MusicBrainzRecording(
+      id: json['id'] as String?,
       title: json['title'] as String?,
       artist: artistName,
       release: releaseName,
