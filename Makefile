@@ -15,13 +15,15 @@
 
 SHELL := /bin/bash
 
-.PHONY: help test-fast test-firebase-emulator deploy-stable deploy-test release build-web build-web-prod build-web-github build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+.PHONY: help test-fast test-firebase-emulator deploy-stable deploy-test release build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
 BACKUP_INFO_FILE := /tmp/flowgroove-latest-backup.txt
 FTP_DIR_DEFAULT := flowgroove.app
 FIREBASE_EMULATOR_TEST_FILES := test/integration/auth_flow_test.dart test/integration/setlist_management_test.dart
+GITHUB_PAGES_BASE_HREF ?= /flutter-FlowGroove-app/
+GITHUB_PAGES_DIST ?= docs
 
 # =============================================================================
 # HELP
@@ -36,6 +38,7 @@ help:
 	@echo ""
 	@echo "  make -f Makefile.hugo deploy-all  # Safe GitHub Pages preview"
 	@echo "  make release         # Build Android APK + GitHub Release"
+	@echo "  make build-release-artifacts # Build GitHub Pages web + Android APK"
 	@echo "  make deploy-stable   # Production FTP (Hugo + Flutter)"
 	@echo "  make test-fast       # Full fast Flutter suite"
 	@echo "  make test-firebase-emulator  # Auth/Firestore emulator acceptance suite"
@@ -45,6 +48,8 @@ help:
 	@echo "  make deploy-test     - Deploy Flutter-only build to GitHub Pages"
 	@echo "  make deploy-stable   - Deploy Hugo + Flutter to FTP (flowgroove.app)"
 	@echo "  make release         - Build Android APK + AAB + GitHub Release"
+	@echo "  make build-release-artifacts - Build GitHub Pages web + Android APK"
+	@echo "  make build-github-pages - Build GitHub Pages web artifact only"
 	@echo "  make build-android   - Build Android APK only"
 	@echo "  make build-web       - Build web app (production)"
 	@echo "  make test-fast       - Run the canonical fast local Flutter suite"
@@ -271,7 +276,11 @@ build-web-prod:
 	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
 	@echo ""
 
-# Build for GitHub Pages - with subdirectory
+# Build for GitHub Pages - with subdirectory.
+# Override GITHUB_PAGES_BASE_HREF for forks/repo renames, for example:
+#   make build-github-pages GITHUB_PAGES_BASE_HREF=/my-repo/
+build-github-pages: check-env-test build-web-github
+
 build-web-github:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Building Web (GitHub Pages / Subdirectory)        ║"
@@ -282,12 +291,30 @@ build-web-github:
 	@echo ""
 	@cp web/config.demo.js web/config.js
 	@echo "🔨 Building web app..."
-	@echo "   Base href: /flutter-FlowGroove-app/ (GitHub Pages)"
-	@flutter build web --release --base-href "/flutter-FlowGroove-app/"
+	@echo "   Base href: $(GITHUB_PAGES_BASE_HREF) (GitHub Pages)"
+	@flutter build web --release --base-href "$(GITHUB_PAGES_BASE_HREF)"
 	@echo ""
 	@cp web/config.js build/web/config.js
+	@touch build/web/.nojekyll
 	@echo "✅ Build complete!"
 	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
+	@echo ""
+
+package-github-pages: build-github-pages
+	@echo "📦 Packaging GitHub Pages build into $(GITHUB_PAGES_DIST)/..."
+	@rm -rf "$(GITHUB_PAGES_DIST)"
+	@mkdir -p "$(GITHUB_PAGES_DIST)"
+	@cp -R build/web/. "$(GITHUB_PAGES_DIST)/"
+	@echo "✅ GitHub Pages package ready: $(GITHUB_PAGES_DIST)/"
+	@echo ""
+
+build-release-artifacts: build-github-pages build-android
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Release Artifacts Ready                           ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🌐 GitHub Pages web: build/web/"
+	@echo "📱 Android APK: build/app/outputs/flutter-apk/app-release.apk"
 	@echo ""
 
 # Build for Android APK - uses demo config
