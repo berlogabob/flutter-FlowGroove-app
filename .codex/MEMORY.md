@@ -1,6 +1,6 @@
 # MEMORY
 
-**Last Updated:** 2026-05-13
+**Last Updated:** 2026-06-04
 
 This is the distilled memory bank for active sequential work. Use it before `PLANS.md` execution and update it after durable discoveries.
 
@@ -25,10 +25,11 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - Web runtime config must stay public-only. Privileged Spotify, Telegram, Twitter, and RapidAPI secrets do not belong in `window.env`.
 - Spotify web access must go through `SPOTIFY_PROXY_URL`; direct client-credential mode is non-web only during migration.
 - Client-side RapidAPI track analysis is retired until a backend replacement exists.
-- `test/integration/**` is reserved for emulator-backed acceptance flows only. Routed widget/navigation coverage belongs under `test/screens/**` or `test/widgets/**`.
+- `integration_test/**` is reserved for emulator-backed acceptance flows. Routed widget/navigation coverage belongs under `test/screens/**` or `test/widgets/**`.
 - Emulator-backed acceptance suites must be tagged `firebase-emulator` so `make test-fast` and the fast CI lane can exclude them cleanly.
 - Firebase emulator acceptance uses `test/helpers/firebase_emulator_harness.dart` plus provider overrides for `firebaseAuthProvider` and `firebaseFirestoreProvider`.
-- Local emulator acceptance requires Java + Firebase CLI. CI enforces the emulator suite in a dedicated job.
+- Local emulator acceptance requires Java 21+, Firebase CLI, and an Android emulator/device. `make test-firebase-emulator` defaults to `emulator-5554` and can be overridden with `FIREBASE_EMULATOR_TEST_DEVICE`.
+- CI enforces the Firebase acceptance suite in a dedicated Android emulator job; Flutter web devices do not support integration tests.
 - Skip-only placeholder tests should be retired or converted into real static/unit tests; do not preserve placeholder files just to represent debt.
 - Fast auth/list screen tests use `test/helpers/routed_test_harness.dart`; do not test `context.goNamed` flows with plain `MaterialApp` or `NavigatorObserver`.
 - Quick-action navigation coverage is screen-layer routed coverage, not integration coverage.

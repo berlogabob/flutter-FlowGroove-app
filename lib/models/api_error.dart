@@ -240,6 +240,11 @@ class ApiError implements Exception {
     if (errorString.contains('wrong-password')) {
       return 'Incorrect password. Please try again.';
     }
+    if (errorString.contains('invalid-credential') ||
+        errorString.contains('invalid_login_credentials') ||
+        errorString.contains('invalid login')) {
+      return 'Incorrect password. Please try again.';
+    }
     if (errorString.contains('user-disabled')) {
       return 'This account has been disabled.';
     }

@@ -85,8 +85,8 @@ service cloud.firestore {
     }
 
     function hasCanonicalLink() {
-      return request.resource.data.canonicalSongId is string &&
-        request.resource.data.canonicalSongId.size() > 0;
+      return request.resource.data.get('canonicalSongId', '') is string &&
+        request.resource.data.get('canonicalSongId', '').size() > 0;
     }
 
     function isValidLibrarySongWrite(ownerType, ownerId) {
@@ -115,6 +115,11 @@ service cloud.firestore {
           request.resource.data.operation == 'delete' ||
           request.resource.data.operation == 'revert'
         );
+    }
+
+    function isValidUserProfileCreate(userId) {
+      return request.resource.data.uid == userId &&
+        request.resource.data.accessRole == 'member';
     }
 
     // ============================================================
@@ -182,6 +187,11 @@ service cloud.firestore {
     match /users/{userId} {
       // Users can read their own user document; admins can read any user
       allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
+
+      // Users can create their own initial profile, but cannot grant elevated roles.
+      allow create: if isAuthenticated() &&
+        isOwner(userId) &&
+        isValidUserProfileCreate(userId);
 
       // Users can update their own document (name, photo, musicRoles), but NOT accessRole
       allow update: if isAuthenticated() && isOwner(userId) &&

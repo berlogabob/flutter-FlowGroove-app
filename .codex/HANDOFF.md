@@ -1,10 +1,10 @@
 # HANDOFF
 
-**Last Updated:** 2026-05-13
+**Last Updated:** 2026-06-04
 
 ## Current Checkpoint
 
-The main audit remediation slice is implemented. Connectivity, metronome, auth/router screen testability, full Flutter test gating, static build-config test recovery, and Firebase emulator acceptance recovery are complete. The active follow-up is broader lint debt reduction and remaining singleton cleanup outside the remediated test paths.
+The release-stabilization pass is implemented. Fast Flutter tests, deploy dry-run, and Android-backed Firebase emulator acceptance are green locally; the active follow-up is monitoring CI and continuing lint debt reduction outside the remediated release path.
 
 ## Must Read First
 
@@ -36,7 +36,11 @@ The main audit remediation slice is implemented. Connectivity, metronome, auth/r
   - full `flutter test` GitHub Actions gate
   - active `test/build/android_config_isolation_test.dart` coverage
   - reusable Firebase emulator harness for Flutter auth/setlist acceptance
-  - dedicated `firebase-emulator-checks` CI job
+  - Firebase auth/setlist acceptance moved to `integration_test/**`
+  - dedicated Android emulator-backed `firebase-emulator-checks` CI job
+  - debug-only Android cleartext allowance for local Firebase emulator host mapping
+  - owner-only initial Firestore profile creation and safer canonical-song rule detection
+  - normalized Firebase Auth invalid-login messaging
   - `song_quick_action` reclassified into screen-layer coverage
 
 ## Next Agent Instructions
@@ -47,6 +51,6 @@ The main audit remediation slice is implemented. Connectivity, metronome, auth/r
 
 ## Suggested Next Tasks
 
+- monitor the Android emulator CI gate on the next push/PR
 - continue lint-noise reduction in edited subsystems
 - audit remaining direct Firebase singleton usage in non-remediated UI/services
-- keep `functions/` vulnerability debt under watch for future upstream improvements

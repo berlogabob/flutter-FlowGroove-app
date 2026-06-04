@@ -1,17 +1,19 @@
 @Tags(['firebase-emulator'])
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:flowgroove/models/api_error.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/setlist_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
-import '../helpers/firebase_emulator_harness.dart';
+import '../test/helpers/firebase_emulator_harness.dart';
 
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
   group('Setlist Management Flow Integration Tests - INT-SETLIST-01', () {
     late FirebaseEmulatorHarness harness;
     late ProviderContainer container;
@@ -20,7 +22,9 @@ void main() {
     setUp(() async {
       harness = await FirebaseEmulatorHarness.bootstrap();
       await harness.signOut();
-      container = ProviderContainer(overrides: harness.providerOverrides().cast());
+      container = ProviderContainer(
+        overrides: harness.providerOverrides().cast(),
+      );
       repository = container.read(setlistRepositoryProvider);
     });
 
@@ -82,7 +86,8 @@ void main() {
         name: 'Watch Me',
       );
 
-      final emittedSetlists = repository.watchSetlists(credential.user!.uid)
+      final emittedSetlists = repository
+          .watchSetlists(credential.user!.uid)
           .firstWhere((items) => items.any((item) => item.id == setlist.id));
 
       await repository.saveSetlist(setlist, uid: credential.user!.uid);

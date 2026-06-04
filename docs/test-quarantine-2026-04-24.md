@@ -1,6 +1,6 @@
 # Test Quarantine Report
 
-**Date:** May 13, 2026
+**Date:** June 4, 2026
 **Status:** Quarantine closed for Firebase auth/setlist/quick-action coverage
 
 ## Purpose
@@ -29,7 +29,7 @@ Individual skipped tests: none in the remediated auth/setlist/quick-action slice
 - Added a reusable Firebase emulator harness for Flutter acceptance tests.
 - Reclassified `song_quick_action` from legacy integration placement into routed screen coverage.
 - Reduced `auth_flow` and `setlist_management` to true emulator-backed acceptance flows.
-- Added a dedicated GitHub Actions emulator gate instead of keeping Firebase acceptance work behind skips.
+- Added a dedicated GitHub Actions Android emulator gate instead of keeping Firebase acceptance work behind skips.
 
 ## Result
 
@@ -43,8 +43,9 @@ Individual skipped tests: none in the remediated auth/setlist/quick-action slice
 - Login/register/my-bands are no longer quarantined.
 - `flutter test test/screens` is green.
 - `test/build/android_config_isolation_test.dart` is no longer quarantined.
-- `test/integration/auth_flow_test.dart` and `test/integration/setlist_management_test.dart` are active emulator-backed suites.
+- `integration_test/auth_flow_test.dart` and `integration_test/setlist_management_test.dart` are active emulator-backed suites.
 - `test/screens/home_quick_actions_test.dart` now covers the former quick-action navigation case in the correct layer.
-- `test/integration` is now reserved for emulator-backed acceptance coverage, not general widget or model tests.
-- Firebase acceptance runs in a separate CI gate from the fast suite.
+- `integration_test` is reserved for emulator-backed acceptance coverage; Firebase acceptance no longer lives under `test/integration`.
+- Firebase acceptance runs in a separate Android emulator CI gate from the fast suite.
+- Local Firebase acceptance requires Java 21+, Firebase CLI, and an Android emulator/device.
 - The canonical fast local command is `make test-fast`, which excludes `firebase-emulator` tagged suites by design.

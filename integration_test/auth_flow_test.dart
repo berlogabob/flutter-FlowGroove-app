@@ -1,15 +1,16 @@
 @Tags(['firebase-emulator'])
 library;
 
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/screens/auth/forgot_password_screen.dart';
+import 'package:flowgroove/services/cache_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
-import 'package:flowgroove/providers/auth/auth_provider.dart';
-import 'package:flowgroove/screens/auth/forgot_password_screen.dart';
-
-import '../helpers/firebase_emulator_harness.dart';
-import '../helpers/routed_test_harness.dart';
+import '../test/helpers/firebase_emulator_harness.dart';
+import '../test/helpers/routed_test_harness.dart';
 
 class _AuthStatusText extends ConsumerWidget {
   const _AuthStatusText();
@@ -31,7 +32,14 @@ class _AuthStatusText extends ConsumerWidget {
   }
 }
 
+class _NoopCacheService extends CacheService {
+  @override
+  Future<void> clearAllUserCache(String uid) async {}
+}
+
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
   group('Authentication Flow Integration Tests - INT-AUTH-01', () {
     late FirebaseEmulatorHarness harness;
 
@@ -41,7 +49,7 @@ void main() {
     });
 
     testWidgets('creates a user through the register screen and routes home', (
-      WidgetTester tester,
+      tester,
     ) async {
       final email = harness.uniqueEmail(prefix: 'register');
       const password = 'Password123!';
@@ -71,14 +79,11 @@ void main() {
     });
 
     testWidgets('signs in through the login screen and logs analytics', (
-      WidgetTester tester,
+      tester,
     ) async {
       final email = harness.uniqueEmail(prefix: 'login');
       const password = 'Password123!';
-      final credential = await harness.createAndSeedUser(
-        email: email,
-        password: password,
-      );
+      final credential = await harness.createAndSeedUser(email: email);
       await harness.signOut();
       addTearDown(() async {
         await harness.clearUserData(credential.user!.uid);
@@ -109,14 +114,10 @@ void main() {
     });
 
     testWidgets('surfaces mapped invalid-credential errors on login', (
-      WidgetTester tester,
+      tester,
     ) async {
       final email = harness.uniqueEmail(prefix: 'invalid-login');
-      const password = 'Password123!';
-      final credential = await harness.createAndSeedUser(
-        email: email,
-        password: password,
-      );
+      final credential = await harness.createAndSeedUser(email: email);
       await harness.signOut();
       addTearDown(() async {
         await harness.clearUserData(credential.user!.uid);
@@ -136,47 +137,57 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField).at(0), email);
-      await tester.enterText(find.byType(TextFormField).at(1), 'WrongPassword!');
+      await tester.enterText(
+        find.byType(TextFormField).at(1),
+        'WrongPassword123!',
+      );
       await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Incorrect password. Please try again.'), findsOneWidget);
+      expect(
+        find.text('Incorrect password. Please try again.'),
+        findsOneWidget,
+      );
       expect(harness.auth.currentUser, isNull);
     });
 
-    testWidgets('accepts password reset requests through the forgot-password screen', (
-      WidgetTester tester,
-    ) async {
-      final email = harness.uniqueEmail(prefix: 'reset');
-      final credential = await harness.createAndSeedUser(email: email);
-      await harness.signOut();
-      addTearDown(() async {
-        await harness.clearUserData(credential.user!.uid);
-      });
+    testWidgets(
+      'accepts password reset requests through the forgot-password screen',
+      (tester) async {
+        final email = harness.uniqueEmail(prefix: 'reset');
+        final credential = await harness.createAndSeedUser(email: email);
+        await harness.signOut();
+        addTearDown(() async {
+          await harness.clearUserData(credential.user!.uid);
+        });
 
-      final container = ProviderContainer(
-        overrides: harness.providerOverrides().cast(),
-      );
-      addTearDown(container.dispose);
+        final container = ProviderContainer(
+          overrides: harness.providerOverrides().cast(),
+        );
+        addTearDown(container.dispose);
 
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: MaterialApp(
-            home: ForgotPasswordScreen(initialEmail: email),
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(home: ForgotPasswordScreen(initialEmail: email)),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Send Reset Email'));
-      await tester.pumpAndSettle();
+        await tester.tap(
+          find.widgetWithText(ElevatedButton, 'Send Reset Email'),
+        );
+        await tester.pumpAndSettle();
 
-      expect(find.textContaining('Password reset email sent!'), findsOneWidget);
-    });
+        expect(
+          find.textContaining('Password reset email sent!'),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets('preserves auth state across rebuilds and signs out cleanly', (
-      WidgetTester tester,
+      tester,
     ) async {
       final email = harness.uniqueEmail(prefix: 'session');
       final credential = await harness.createAndSeedUser(email: email);
@@ -185,7 +196,10 @@ void main() {
       });
 
       final container = ProviderContainer(
-        overrides: harness.providerOverrides().cast(),
+        overrides: [
+          ...harness.providerOverrides(),
+          cacheServiceProvider.overrideWithValue(_NoopCacheService()),
+        ].cast(),
       );
       addTearDown(container.dispose);
 

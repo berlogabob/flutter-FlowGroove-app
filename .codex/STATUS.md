@@ -1,6 +1,6 @@
 # STATUS
 
-**Last Updated:** 2026-05-13
+**Last Updated:** 2026-06-04
 
 ## Current State
 
@@ -30,15 +30,18 @@
 - Auth/list screen tests now use a routed widget harness instead of plain `MaterialApp`
 - `test/screens/login_screen_test.dart`, `test/screens/register_screen_test.dart`, and `test/screens/bands/my_bands_screen_test.dart` are restored from quarantine
 - `test/screens/songs/songs_list_screen_test.dart`, `test/screens/setlists/setlists_list_screen_test.dart`, and full `flutter test test/screens` are green against the current unified-list contract
-- `.github/workflows/checks.yml` now covers Flutter checks, the full `flutter test` suite, security audit, deploy dry-run, `functions/` install verification, and the track-analysis regression test
+- `.github/workflows/checks.yml` now covers Flutter checks, the full `flutter test` suite, security audit, deploy dry-run, `functions/` install verification, and Android-backed Firebase emulator acceptance
 - `functions/` installs cleanly, uses current minor Firebase SDKs, and now has 0 high / 0 critical production audit findings
 - `make test-fast` is the canonical full fast-suite command and excludes `firebase-emulator` tagged acceptance tests by design
 - `test/build/android_config_isolation_test.dart` is active again and green
 - The skip-only `test/services/firestore_service_test.dart` placeholder was retired
 - Firebase auth/setlist acceptance now runs through a reusable emulator harness in `test/helpers/firebase_emulator_harness.dart`
-- `test/integration/auth_flow_test.dart` and `test/integration/setlist_management_test.dart` are active emulator-backed acceptance suites
+- `integration_test/auth_flow_test.dart` and `integration_test/setlist_management_test.dart` are active emulator-backed acceptance suites
 - `test/screens/home_quick_actions_test.dart` replaces the old quick-action integration placeholder in the correct screen layer
-- `.github/workflows/checks.yml` now includes a dedicated `firebase-emulator-checks` job alongside the fast suite, and the fast suite excludes `firebase-emulator` tagged tests
+- `.github/workflows/checks.yml` now includes a dedicated Android emulator-backed `firebase-emulator-checks` job alongside the fast suite, and the fast suite excludes `firebase-emulator` tagged tests
+- Firebase rules now allow owner-only initial user profile creation and tolerate legacy song writes without canonical link fields
+- Firebase Auth invalid-login errors are normalized to the user-facing incorrect-password message across the provider and central `ApiError` mapping
+- `make test-firebase-emulator` is locally green with Java 21, Firebase CLI, and an Android emulator
 
 ## In Progress
 
@@ -49,10 +52,10 @@
 
 - Some non-web privileged flows still exist as migration debt through dart-defines; backend-only remains the target state
 - `functions/` still carries low/moderate Firebase-tree dependency debt, but no high/critical production audit findings in CI
-- Local emulator acceptance requires Java + Firebase CLI; CI covers it, but local verification will fail without that toolchain
+- Local emulator acceptance requires Java 21+, Firebase CLI, and an Android emulator/device; CI covers it with an Android emulator, but local verification will fail without that toolchain
 
 ## Recommended Next Actions
 
 1. Continue reducing repo-wide lint backlog in touched subsystems until targeted analyze output is mostly silent.
-2. Keep `test/integration/**` reserved for emulator-backed acceptance flows only.
+2. Keep emulator-backed acceptance flows under `integration_test/**` and keep routed widget/navigation coverage in the fast test tree.
 3. Audit remaining direct Firebase singleton usage outside the remediated test-sensitive paths.

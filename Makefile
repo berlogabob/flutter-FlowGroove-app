@@ -21,7 +21,7 @@ DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
 BACKUP_INFO_FILE := /tmp/flowgroove-latest-backup.txt
 FTP_DIR_DEFAULT := flowgroove.app
-FIREBASE_EMULATOR_TEST_FILES := test/integration/auth_flow_test.dart test/integration/setlist_management_test.dart
+FIREBASE_EMULATOR_TEST_FILES := integration_test/auth_flow_test.dart integration_test/setlist_management_test.dart
 GITHUB_PAGES_BASE_HREF ?= /flutter-FlowGroove-app/
 GITHUB_PAGES_DIST ?= docs
 
@@ -75,7 +75,7 @@ test-fast:
 test-firebase-emulator:
 	@command -v firebase >/dev/null || (echo "❌ Firebase CLI not found. Install firebase-tools first."; exit 1)
 	@java -version >/dev/null 2>&1 || (echo "❌ Java runtime not found. Install Java to run Firebase emulators."; exit 1)
-	@firebase emulators:exec --project repsync-app-8685c --only auth,firestore "flutter test --tags firebase-emulator $(FIREBASE_EMULATOR_TEST_FILES)"
+	@firebase emulators:exec --project repsync-app-8685c --only auth,firestore "flutter test -d $${FIREBASE_EMULATOR_TEST_DEVICE:-emulator-5554} --tags firebase-emulator $(FIREBASE_EMULATOR_TEST_FILES)"
 
 check-env:
 	@echo "Validating configuration..."
