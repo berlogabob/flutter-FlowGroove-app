@@ -1,12 +1,25 @@
 # FlowGroove
 
-[![Flutter Version](https://img.shields.io/badge/Flutter-3.41+-blue.svg)](https://flutter.dev)
-[![Dart Version](https://img.shields.io/badge/Dart-3.11+-blue.svg)](https://dart.dev)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Flutter](https://img.shields.io/badge/Flutter-ready-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.11+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.13.4+183-brightgreen.svg)](https://github.com/berlogabob/flutter-FlowGroove-app/releases)
+[![Live App](https://img.shields.io/badge/Live%20App-flowgroove.app-blue)](https://flowgroove.app)
 
-FlowGroove is a Flutter app for managing band repertoires, setlists, and shared song databases for cover bands. This repository also contains the Hugo marketing site, a Telegram support bot, Firebase functions, the active `.codex/` internal workspace, and an `oldarchive/` area for legacy materials.
+FlowGroove is a real-time repertoire and setlist manager for cover bands and gigging musicians. It gives the band one source of truth for songs, setlists, notes, keys, BPM, and rehearsal-ready tools, with instant sync and offline support.
+
+Try it live: [https://flowgroove.app](https://flowgroove.app)
+
+This repository also contains the Hugo marketing site, a Telegram support bot, Firebase functions, the active `.codex/` internal workspace, and an `oldarchive/` area for legacy materials.
 
 ## Quick Start
+
+### Use The Live App
+
+1. Open [flowgroove.app](https://flowgroove.app)
+2. Sign up with Google or email
+3. Create a band and add your first song
+4. Invite bandmates; updates sync automatically
 
 ### GitHub Pages Preview: Safe Dual Deploy
 
@@ -55,7 +68,7 @@ cp .ftp-env.example .ftp-env  # optional FTP-only override
 make deploy-stable
 ```
 
-`make deploy-stable` now runs a preflight gate before any backup or upload. It validates local env files, blocks tracked `web/config.js`, and refuses deploys when secret-bearing archive/backup paths are staged.
+`make deploy-stable` runs a preflight gate before any backup or upload. It validates local env files, blocks tracked `web/config.js`, and refuses deploys when secret-bearing archive/backup paths are staged.
 
 Deploy target:
 
@@ -66,9 +79,9 @@ Deploy target:
 
 ### Core App
 
-- Song management with metadata, links, and structure editor
+- Shared song library with metadata, links, unique IDs, and structure editing
 - Band management with membership and invite/join flows
-- Setlist creation and organization
+- Drag-and-drop setlists with per-gig overrides for key, BPM, notes, and order
 - Offline-first data flow with Hive-backed local caching
 - Firebase Auth, Firestore, and Storage integration
 - CSV import/export and PDF export
@@ -92,6 +105,16 @@ Deploy target:
 - Role-aware permission helpers
 - Song autocomplete and BPM lookup provider layer
 - Telegram support bot codebase included in `telegram_bot/`
+
+## Tech Stack
+
+- Flutter web with Android/iOS-ready build paths
+- Firebase Auth, Firestore, Storage, and Functions
+- Hive offline storage
+- Riverpod state management
+- go_router navigation
+- PDF and printing support
+- Audio player, metronome, and tuner tooling
 
 ## Repository Layout
 
@@ -132,27 +155,38 @@ Deploy target:
 
 ### Core Docs
 
-- [README.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/README.md)
-- [ARCHITECTURE.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/ARCHITECTURE.md)
-- [DEPLOYMENT_GUIDE.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/DEPLOYMENT_GUIDE.md)
-- [docs/README.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/README.md)
-- [docs/project-audit-2026-04-24.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/project-audit-2026-04-24.md)
+- [README.md](README.md)
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+- [docs/README.md](docs/README.md)
+- [docs/project-audit-2026-04-24.md](docs/project-audit-2026-04-24.md)
+- [docs/PLATFORMS.md](docs/PLATFORMS.md)
+- [MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md)
+- [CHANGELOG.md](CHANGELOG.md)
 
 ### Supporting Docs
 
-- [site/README.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/site/README.md)
-- [telegram_bot/README.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/telegram_bot/README.md)
-- [memory/README.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/memory/README.md)
-- [memory/CRITICAL_PROBLEMS.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/memory/CRITICAL_PROBLEMS.md)
-- [.codex/README.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/.codex/README.md)
+- [site/README.md](site/README.md)
+- [telegram_bot/README.md](telegram_bot/README.md)
+- [memory/README.md](memory/README.md)
+- [memory/CRITICAL_PROBLEMS.md](memory/CRITICAL_PROBLEMS.md)
+- [.codex/README.md](.codex/README.md)
 
 ### Existing Reports
 
-- [docs/fix-verification-report.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/fix-verification-report.md)
-- [docs/performance-fixes-summary.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/performance-fixes-summary.md)
-- [docs/tuner-debug-report.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/tuner-debug-report.md)
-- [docs/tuner-testing-summary.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/tuner-testing-summary.md)
-- [docs/tuner-ux-enhancement-summary.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/tuner-ux-enhancement-summary.md)
+- [docs/fix-verification-report.md](docs/fix-verification-report.md)
+- [docs/performance-fixes-summary.md](docs/performance-fixes-summary.md)
+- [docs/tuner-debug-report.md](docs/tuner-debug-report.md)
+- [docs/tuner-testing-summary.md](docs/tuner-testing-summary.md)
+- [docs/tuner-ux-enhancement-summary.md](docs/tuner-ux-enhancement-summary.md)
+
+## Roadmap
+
+- Spotify integration for automatic BPM and key lookup
+- Smart song auto-fill
+- Premium features
+- Native app store releases
+- Gig calendar integration
 
 ## Validation Snapshot
 
@@ -175,11 +209,21 @@ See the dated audit report for details and prioritized findings. Legacy archived
 - Client-side RapidAPI track analysis is disabled until it moves behind a backend proxy
 - `web/config.js` is a generated artifact and should stay untracked
 - Demo Firebase keys are present in tracked demo config files
-- Android/AAB build targets source demo or local `.env` values through [scripts/build-mobile-with-env.sh](/Users/berloga/Documents/GitHub/flutter_repsync_app/scripts/build-mobile-with-env.sh)
+- Android/AAB build targets source demo or local `.env` values through [scripts/build-mobile-with-env.sh](scripts/build-mobile-with-env.sh)
 - If FTP credentials were ever stored in tracked files, rotate them before the next real production deploy
+
+## Support Development
+
+FlowGroove is in active development. If the app saves your band time, you can support continued work through Ko-fi:
+
+[Buy Me a Coffee on Ko-fi](https://ko-fi.com/flowgrooveapp)
+
+## License
+
+MIT License. See [LICENSE](LICENSE).
 
 ## Status
 
 - Version: `0.13.4+183`
-- Last updated: April 24, 2026
+- Last updated: June 5, 2026
 - Current project state: active development with `.codex/` as the canonical internal layer and `oldarchive/` for legacy context
