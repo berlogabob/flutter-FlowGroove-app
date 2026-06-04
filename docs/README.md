@@ -29,3 +29,4 @@ This overwrites `docs/` root with a Flutter-only build.
 - [ARCHITECTURE.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/ARCHITECTURE.md)
 - [DEPLOYMENT_GUIDE.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/DEPLOYMENT_GUIDE.md)
 - [project-audit-2026-04-24.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/project-audit-2026-04-24.md)
+- [canonical-library-migration-runbook.md](/Users/berloga/Documents/GitHub/flutter_repsync_app/docs/canonical-library-migration-runbook.md)

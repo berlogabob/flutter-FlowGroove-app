@@ -1,6 +1,6 @@
 # MEMORY
 
-**Last Updated:** 2026-06-04
+**Last Updated:** 2026-06-05
 
 This is the distilled memory bank for active sequential work. Use it before `PLANS.md` execution and update it after durable discoveries.
 
@@ -25,6 +25,8 @@ This is the distilled memory bank for active sequential work. Use it before `PLA
 - Web runtime config must stay public-only. Privileged Spotify, Telegram, Twitter, and RapidAPI secrets do not belong in `window.env`.
 - Spotify web access must go through `SPOTIFY_PROXY_URL`; direct client-credential mode is non-web only during migration.
 - Client-side RapidAPI track analysis is retired until a backend replacement exists.
+- Canonical library migration write tooling is exact-ID only. Do not auto-convert normalized title/artist review candidates without a separate reviewed allowlist plan.
+- `functions/scripts/library-migration-write-run.js` requires a fresh, untruncated exact-candidate dry-run JSON report, omits writes unless `--execute` is passed, and requires explicit `--project` for `--execute`.
 - `integration_test/**` is reserved for emulator-backed acceptance flows. Routed widget/navigation coverage belongs under `test/screens/**` or `test/widgets/**`.
 - Emulator-backed acceptance suites must be tagged `firebase-emulator` so `make test-fast` and the fast CI lane can exclude them cleanly.
 - Firebase emulator acceptance uses `test/helpers/firebase_emulator_harness.dart` plus provider overrides for `firebaseAuthProvider` and `firebaseFirestoreProvider`.

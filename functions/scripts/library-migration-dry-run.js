@@ -526,6 +526,7 @@ module.exports = {
   parseArgs,
   toCsv,
   writeReportFiles,
+  classifyExternalIdMatches,
   externalIdsFromSong,
   findNormalizedMatches,
   isV2LinkedSong,

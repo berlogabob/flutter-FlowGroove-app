@@ -1,10 +1,10 @@
 # HANDOFF
 
-**Last Updated:** 2026-06-04
+**Last Updated:** 2026-06-05
 
 ## Current Checkpoint
 
-The release-stabilization pass is implemented. Fast Flutter tests, deploy dry-run, and Android-backed Firebase emulator acceptance are green locally; the active follow-up is monitoring CI and continuing lint debt reduction outside the remediated release path.
+The canonical library migration write-run tooling is implemented for exact external-ID candidates only. Production writes remain deferred; validate with Java 21+, require a fresh untruncated exact-candidate dry-run report, and review a no-write preview before any small explicit-project `--execute` batch.
 
 ## Must Read First
 
@@ -42,15 +42,17 @@ The release-stabilization pass is implemented. Fast Flutter tests, deploy dry-ru
   - owner-only initial Firestore profile creation and safer canonical-song rule detection
   - normalized Firebase Auth invalid-login messaging
   - `song_quick_action` reclassified into screen-layer coverage
+  - canonical library migration write-run tooling with validation preview, untruncated exact-candidate report enforcement, explicit-project guarded `--execute`, deterministic initial commits, and `docs/canonical-library-migration-runbook.md`
 
 ## Next Agent Instructions
 
 - Pick one bounded milestone only
 - Define validation before editing
 - Update `MEMORY.md`, `STATUS.md`, and this file before stopping
+- Local Java is currently 17 in this workspace; Firebase emulator migration tests require Java 21+
 
 ## Suggested Next Tasks
 
-- monitor the Android emulator CI gate on the next push/PR
+- run `npm --prefix functions test` under Java 21+
+- generate and review a fresh untruncated exact-candidate dry-run report before any production migration batch
 - continue lint-noise reduction in edited subsystems
-- audit remaining direct Firebase singleton usage in non-remediated UI/services

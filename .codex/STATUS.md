@@ -1,6 +1,6 @@
 # STATUS
 
-**Last Updated:** 2026-06-04
+**Last Updated:** 2026-06-05
 
 ## Current State
 
@@ -42,6 +42,7 @@
 - Firebase rules now allow owner-only initial user profile creation and tolerate legacy song writes without canonical link fields
 - Firebase Auth invalid-login errors are normalized to the user-facing incorrect-password message across the provider and central `ApiError` mapping
 - `make test-firebase-emulator` is locally green with Java 21, Firebase CLI, and an Android emulator
+- Canonical library migration write-run tooling is implemented for exact external-ID candidates only, with validation-only preview mode, untruncated exact-candidate report enforcement, explicit `--project` required for guarded `--execute` writes, deterministic initial commits, and a runbook in `docs/canonical-library-migration-runbook.md`
 
 ## In Progress
 
@@ -53,9 +54,10 @@
 - Some non-web privileged flows still exist as migration debt through dart-defines; backend-only remains the target state
 - `functions/` still carries low/moderate Firebase-tree dependency debt, but no high/critical production audit findings in CI
 - Local emulator acceptance requires Java 21+, Firebase CLI, and an Android emulator/device; CI covers it with an Android emulator, but local verification will fail without that toolchain
+- Local migration emulator tests also require Java 21+ because Firebase CLI no longer supports Java 17
 
 ## Recommended Next Actions
 
 1. Continue reducing repo-wide lint backlog in touched subsystems until targeted analyze output is mostly silent.
-2. Keep emulator-backed acceptance flows under `integration_test/**` and keep routed widget/navigation coverage in the fast test tree.
-3. Audit remaining direct Firebase singleton usage outside the remediated test-sensitive paths.
+2. Generate a fresh untruncated exact-candidate dry-run report, then run a no-write preview with explicit `--project` before any real canonical library migration batch.
+3. Keep emulator-backed acceptance flows under `integration_test/**` and keep routed widget/navigation coverage in the fast test tree.
