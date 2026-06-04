@@ -490,6 +490,18 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
 
   /// Maps Firebase Auth exceptions to ApiError with user-friendly messages.
   ApiError _mapFirebaseAuthException(FirebaseAuthException e) {
+    final message = '${e.code} ${e.message ?? ''} $e'.toLowerCase();
+    if (e.code == 'invalid-credential' ||
+        e.code == 'invalid-login-credentials' ||
+        message.contains('invalid credential') ||
+        message.contains('invalid login') ||
+        message.contains('invalid_login_credentials')) {
+      return ApiError.auth(
+        message: 'Incorrect password. Please try again.',
+        exception: e,
+      );
+    }
+
     switch (e.code) {
       case 'user-not-found':
         return ApiError.auth(

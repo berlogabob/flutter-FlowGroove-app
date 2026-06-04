@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 class FirebaseEmulatorHarness {
   FirebaseEmulatorHarness._({
@@ -24,30 +23,15 @@ class FirebaseEmulatorHarness {
   static Future<FirebaseEmulatorHarness> bootstrap() async {
     TestWidgetsFlutterBinding.ensureInitialized();
 
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: 'demo-api-key',
-          appId: '1:703941154390:ios:test-harness',
-          messagingSenderId: '703941154390',
-          projectId: 'repsync-app-8685c',
-        ),
-      );
-    }
-
-    final app = Firebase.app();
+    final app = await _defaultApp();
     final auth = FirebaseAuth.instanceFor(app: app);
     final firestore = FirebaseFirestore.instanceFor(app: app);
 
     if (!_configured) {
       await auth.useAuthEmulator('127.0.0.1', 9099);
-      firestore.useFirestoreEmulator(
-        '127.0.0.1',
-        8080,
-        sslEnabled: false,
-        automaticHostMapping: false,
-      );
-      firestore.settings = const Settings(persistenceEnabled: false);
+      firestore
+        ..useFirestoreEmulator('127.0.0.1', 8080)
+        ..settings = const Settings(persistenceEnabled: false);
       _configured = true;
     }
 
@@ -57,6 +41,32 @@ class FirebaseEmulatorHarness {
       firestore: firestore,
       namespace: 'it_${DateTime.now().microsecondsSinceEpoch}',
     );
+  }
+
+  static Future<FirebaseApp> _defaultApp() async {
+    try {
+      return Firebase.app();
+    } on FirebaseException catch (error) {
+      if (error.code != 'no-app') {
+        rethrow;
+      }
+    }
+
+    try {
+      return await Firebase.initializeApp(
+        options: const FirebaseOptions(
+          apiKey: 'demo-api-key',
+          appId: '1:703941154390:ios:test-harness',
+          messagingSenderId: '703941154390',
+          projectId: 'repsync-app-8685c',
+        ),
+      );
+    } on FirebaseException catch (error) {
+      if (error.code == 'duplicate-app') {
+        return Firebase.app();
+      }
+      rethrow;
+    }
   }
 
   List<dynamic> providerOverrides() {
@@ -125,9 +135,15 @@ class FirebaseEmulatorHarness {
   }
 
   Future<void> _deleteSubcollection(String path) async {
-    final snapshot = await firestore.collection(path).get();
+    final QuerySnapshot<Map<String, dynamic>> snapshot;
+    try {
+      snapshot = await firestore.collection(path).get();
+    } catch (_) {
+      return;
+    }
+
     for (final doc in snapshot.docs) {
-      await doc.reference.delete();
+      await doc.reference.delete().catchError((_) {});
     }
   }
 }
