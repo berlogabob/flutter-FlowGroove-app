@@ -1,16 +1,19 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 
 /// Tone Generator service for producing sine wave tones
 ///
-/// Uses audioplayers to generate pure sine wave tones
+/// Uses flutter_soloud to generate pure sine wave tones
 /// with smooth attack/release envelopes to prevent clicks.
 ///
 /// Note: For Stage 2, we generate tones programmatically.
 /// Stage 3 will implement more advanced audio synthesis.
 class ToneGenerator {
-  AudioPlayer? _player;
+  AudioSource? _source;
+  SoundHandle? _handle;
   bool _isInitialized = false;
   double _currentVolume = 0.5;
   bool _isPlaying = false;
@@ -20,12 +23,8 @@ class ToneGenerator {
     if (_isInitialized) return;
 
     try {
-      _player = AudioPlayer();
-
-      // Set up player for low-latency playback
-      if (_player != null) {
-        await _player!.setReleaseMode(ReleaseMode.stop);
-        await _player!.setVolume(_currentVolume);
+      if (!SoLoud.instance.isInitialized) {
+        await SoLoud.instance.init(channels: Channels.mono);
       }
 
       _isInitialized = true;
@@ -48,11 +47,6 @@ class ToneGenerator {
     _isPlaying = true;
 
     try {
-      // Set volume
-      if (_player != null) {
-        await _player!.setVolume(volume);
-      }
-
       // For Stage 2, we'll use a generated tone URL
       // In production, you would generate PCM data or use pre-generated tone files
       // For now, we simulate with a placeholder approach
@@ -68,20 +62,44 @@ class ToneGenerator {
 
   /// Play a generated tone using platform audio
   Future<void> _playGeneratedTone(double frequency) async {
-    if (_player == null) return;
-
     try {
       // For Stage 2, we use a simple approach:
       // Generate WAV bytes with a generated sine wave
       final wavBytes = _generateWavBytes(frequency, duration: 10.0);
+      final sourceName =
+          'tuner_tone_${frequency.round()}_${DateTime.now().microsecondsSinceEpoch}';
 
-      if (_player != null) {
-        await _player!.play(BytesSource(wavBytes), volume: _currentVolume);
-      }
+      _source = await SoLoud.instance.loadMem(sourceName, wavBytes);
+      _handle = await SoLoud.instance.play(
+        _source!,
+        volume: _currentVolume,
+        looping: true,
+      );
     } catch (e) {
       debugPrint('Error playing generated tone: $e');
-      // Fallback: try to play from assets if available
-      // await _player!.play(Source.asset('assets/sounds/tone.wav'));
+      await _disposeSource();
+    }
+  }
+
+  Future<void> _disposeSource() async {
+    final handle = _handle;
+    if (handle != null) {
+      try {
+        await SoLoud.instance.stop(handle);
+      } catch (_) {
+        // Ignore stop failures during cleanup.
+      }
+      _handle = null;
+    }
+
+    final source = _source;
+    if (source != null) {
+      try {
+        await SoLoud.instance.disposeSource(source);
+      } catch (_) {
+        // Ignore dispose failures during cleanup.
+      }
+      _source = null;
     }
   }
 
@@ -170,12 +188,10 @@ class ToneGenerator {
 
   /// Stop playing the tone with smooth release
   Future<void> stopTone() async {
-    if (!_isInitialized || _player == null || !_isPlaying) return;
+    if (!_isInitialized || !_isPlaying) return;
 
     try {
-      if (_player != null) {
-        await _player!.stop();
-      }
+      await _disposeSource();
       _isPlaying = false;
     } catch (e) {
       debugPrint('Error stopping tone: $e');
@@ -185,8 +201,9 @@ class ToneGenerator {
   /// Update volume while playing
   Future<void> setVolume(double volume) async {
     _currentVolume = volume.clamp(0.0, 1.0);
-    if (_player != null && _isInitialized) {
-      await _player!.setVolume(_currentVolume);
+    final handle = _handle;
+    if (handle != null && _isInitialized) {
+      SoLoud.instance.setVolume(handle, _currentVolume);
     }
   }
 
@@ -206,13 +223,7 @@ class ToneGenerator {
   Future<void> dispose() async {
     try {
       await stopTone();
-      if (_player != null) {
-        if (_player != null) {
-          await _player!.dispose();
-          _player = null;
-        }
-        _player = null;
-      }
+      await _disposeSource();
       _isInitialized = false;
       _isPlaying = false;
     } catch (e) {
