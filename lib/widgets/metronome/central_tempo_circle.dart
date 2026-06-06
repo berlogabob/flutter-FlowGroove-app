@@ -132,10 +132,11 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
 
   void _onPanUpdate(DragUpdateDetails details) {
     final notifier = ref.read(metronomeProvider.notifier);
-    final delta = details.delta.dy;
+    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
+    final normalizedDelta = details.delta.dy / pixelRatio;
 
     // Constant sensitivity: 3° = 1 BPM
-    final newBpm = (ref.read(metronomeProvider).bpm - delta).clamp(10, 260);
+    final newBpm = (ref.read(metronomeProvider).bpm - normalizedDelta).clamp(1, 600);
     notifier.setBpm(newBpm.round());
 
     // Update rotation offset for visual feedback
@@ -143,8 +144,8 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
       _rotationOffset = (260 - newBpm) / 250 * 2 * math.pi;
     });
 
-    // Haptic feedback on BPM change
-    HapticFeedback.lightImpact();
+    // Haptic "notch" every 5 BPM
+    if (newBpm % 5 == 0) HapticFeedback.selectionClick();
   }
 
   void _showBpmInput(BuildContext context, MetronomeNotifier notifier) {
@@ -163,7 +164,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
           onSubmitted: (value) {
             final bpm = int.tryParse(value);
             if (bpm != null) {
-              notifier.setBpm(bpm.clamp(10, 260));
+              notifier.setBpm(bpm.clamp(1, 600));
             }
             Navigator.pop(context);
           },
@@ -177,7 +178,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
             onPressed: () {
               final bpm = int.tryParse(controller.text);
               if (bpm != null) {
-                notifier.setBpm(bpm.clamp(10, 260));
+                notifier.setBpm(bpm.clamp(1, 600));
               }
               Navigator.pop(context);
             },

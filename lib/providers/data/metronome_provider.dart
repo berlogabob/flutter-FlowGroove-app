@@ -395,7 +395,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   int _clampBpm(int bpm) {
-    return bpm.clamp(10, 260);
+    return bpm.clamp(1, 600);
   }
 
   Future<void> _startPlaybackSafely({required int initialTick}) async {
