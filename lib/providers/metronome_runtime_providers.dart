@@ -18,6 +18,8 @@ import '../services/audio/wall_clock_scheduler.dart';
 abstract class MetronomeAudioClient {
   Future<void> initialize();
 
+  Future<void> preWarmPlayers();
+
   Future<void> playClick({
     required bool isAccent,
     required String waveType,
@@ -37,6 +39,11 @@ class AudioEngineMetronomeAudioClient implements MetronomeAudioClient {
   @override
   Future<void> initialize() {
     return MetronomeAudioEngine.instance.init();
+  }
+
+  @override
+  Future<void> preWarmPlayers() {
+    return initialize();
   }
 
   @override
@@ -363,7 +370,8 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
           if (subdivisionIndex > 0) {
             _hapticsClient.tick();
           } else {
-            final mode = (beatIndex < config.beatModes.length &&
+            final mode =
+                (beatIndex < config.beatModes.length &&
                     subdivisionIndex < config.beatModes[beatIndex].length)
                 ? config.beatModes[beatIndex][subdivisionIndex]
                 : BeatMode.normal;
@@ -391,7 +399,8 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
           if (subdivisionIndex > 0) {
             _hapticsClient.tick();
           } else {
-            final mode = (beatIndex < config.beatModes.length &&
+            final mode =
+                (beatIndex < config.beatModes.length &&
                     subdivisionIndex < config.beatModes[beatIndex].length)
                 ? config.beatModes[beatIndex][subdivisionIndex]
                 : BeatMode.normal;
@@ -420,7 +429,9 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
       _consecutiveErrors = 0;
     } catch (error, stackTrace) {
       _consecutiveErrors++;
-      debugPrint('[MetronomePlayback] tick error ($_consecutiveErrors consecutive): $error\n$stackTrace');
+      debugPrint(
+        '[MetronomePlayback] tick error ($_consecutiveErrors consecutive): $error\n$stackTrace',
+      );
     }
   }
 }

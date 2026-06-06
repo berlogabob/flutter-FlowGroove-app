@@ -9,6 +9,9 @@ class SilentAudioClient implements MetronomeAudioClient {
   Future<void> initialize() async {}
 
   @override
+  Future<void> preWarmPlayers() async {}
+
+  @override
   Future<void> playClick({
     required bool isAccent,
     required String waveType,
@@ -76,54 +79,68 @@ void main() {
       );
     }
 
-    test('continues ticking when onTick callback throws', () async {
-      final tickIndices = <int>[];
-      var throwCount = 0;
-      final config = _fastConfig();
+    test(
+      'continues ticking when onTick callback throws',
+      () async {
+        final tickIndices = <int>[];
+        var throwCount = 0;
+        final config = _fastConfig();
 
-      await client.start(
-        config,
-        onTick: (tick) {
-          // Throw on the first few ticks to simulate a transient error
-          if (throwCount < 3) {
-            throwCount++;
-            throw StateError('simulated tick processing error');
-          }
-          tickIndices.add(tick.index);
-        },
-      );
+        await client.start(
+          config,
+          onTick: (tick) {
+            // Throw on the first few ticks to simulate a transient error
+            if (throwCount < 3) {
+              throwCount++;
+              throw StateError('simulated tick processing error');
+            }
+            tickIndices.add(tick.index);
+          },
+        );
 
-      // Wait for ticks to fire (600 BPM = 100ms interval)
-      // First ~3 will throw, then should recover
-      await Future<void>.delayed(const Duration(milliseconds: 600));
+        // Wait for ticks to fire (600 BPM = 100ms interval)
+        // First ~3 will throw, then should recover
+        await Future<void>.delayed(const Duration(milliseconds: 600));
 
-      expect(throwCount, greaterThanOrEqualTo(3),
-          reason: 'Should have thrown on first ticks');
-      expect(tickIndices.length, greaterThan(0),
-          reason:
-              'Metronome should continue ticking after onTick throws');
-    },
-        timeout: const Timeout(Duration(seconds: 10)));
+        expect(
+          throwCount,
+          greaterThanOrEqualTo(3),
+          reason: 'Should have thrown on first ticks',
+        );
+        expect(
+          tickIndices.length,
+          greaterThan(0),
+          reason: 'Metronome should continue ticking after onTick throws',
+        );
+      },
+      timeout: const Timeout(Duration(seconds: 10)),
+    );
 
-    test('dispose stops the scheduler and cleans up', () async {
-      final tickIndices = <int>[];
-      final config = _fastConfig();
+    test(
+      'dispose stops the scheduler and cleans up',
+      () async {
+        final tickIndices = <int>[];
+        final config = _fastConfig();
 
-      await client.start(
-        config,
-        onTick: (tick) => tickIndices.add(tick.index),
-      );
+        await client.start(
+          config,
+          onTick: (tick) => tickIndices.add(tick.index),
+        );
 
-      await Future<void>.delayed(const Duration(milliseconds: 350));
-      expect(tickIndices.length, greaterThan(0));
+        await Future<void>.delayed(const Duration(milliseconds: 350));
+        expect(tickIndices.length, greaterThan(0));
 
-      client.dispose();
+        client.dispose();
 
-      final countBeforeDispose = tickIndices.length;
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-      expect(tickIndices.length, countBeforeDispose,
-          reason: 'No more ticks should fire after dispose');
-    },
-        timeout: const Timeout(Duration(seconds: 10)));
+        final countBeforeDispose = tickIndices.length;
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        expect(
+          tickIndices.length,
+          countBeforeDispose,
+          reason: 'No more ticks should fire after dispose',
+        );
+      },
+      timeout: const Timeout(Duration(seconds: 10)),
+    );
   });
 }
