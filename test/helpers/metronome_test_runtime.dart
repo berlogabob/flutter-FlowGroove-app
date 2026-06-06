@@ -55,7 +55,7 @@ class FakeMetronomeAudioClient implements MetronomeAudioClient {
   }
 
   @override
-  void dispose() {
+  Future<void> dispose() async {
     disposeCalls += 1;
     disposed = true;
   }

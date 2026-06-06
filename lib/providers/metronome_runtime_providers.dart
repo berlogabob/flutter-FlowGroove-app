@@ -4,20 +4,19 @@ import 'package:flutter/foundation.dart'
     show
         TargetPlatform,
         VoidCallback,
-        defaultTargetPlatform,
         debugPrint,
+        defaultTargetPlatform,
         kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/beat_mode.dart';
 import '../models/metronome_state.dart';
-import '../services/audio/audio_engine_export.dart';
+import '../services/audio/metronome_audio_engine.dart';
+import '../services/audio/wall_clock_scheduler.dart';
 
 abstract class MetronomeAudioClient {
   Future<void> initialize();
-
-  Future<void> preWarmPlayers();
 
   Future<void> playClick({
     required bool isAccent,
@@ -29,24 +28,15 @@ abstract class MetronomeAudioClient {
 
   Future<void> playTest();
 
-  void dispose();
+  Future<void> dispose();
 }
 
 class AudioEngineMetronomeAudioClient implements MetronomeAudioClient {
-  AudioEngineMetronomeAudioClient({AudioEngine? engine}) : _engine = engine;
-
-  AudioEngine? _engine;
-
-  AudioEngine get _audioEngine => _engine ??= AudioEngine();
+  AudioEngineMetronomeAudioClient();
 
   @override
   Future<void> initialize() {
-    return _audioEngine.initialize();
-  }
-
-  @override
-  Future<void> preWarmPlayers() {
-    return _audioEngine.preWarmPlayers();
+    return MetronomeAudioEngine.instance.init();
   }
 
   @override
@@ -57,24 +47,25 @@ class AudioEngineMetronomeAudioClient implements MetronomeAudioClient {
     double? accentFrequency,
     double? beatFrequency,
   }) {
-    return _audioEngine.playClick(
+    return MetronomeAudioEngine.instance.playClick(
       isAccent: isAccent,
-      waveType: waveType,
       volume: volume,
-      accentFrequency: accentFrequency,
-      beatFrequency: beatFrequency,
+      frequency: accentFrequency ?? beatFrequency,
     );
   }
 
   @override
   Future<void> playTest() {
-    return _audioEngine.playTest();
+    return MetronomeAudioEngine.instance.playClick(
+      isAccent: false,
+      volume: 0.8,
+      frequency: 800,
+    );
   }
 
   @override
-  void dispose() {
-    _engine?.dispose();
-    _engine = null;
+  Future<void> dispose() {
+    return MetronomeAudioEngine.instance.dispose();
   }
 }
 
@@ -168,17 +159,16 @@ class MetronomePlaybackConfig {
   final double beatFrequency;
   final bool hapticsEnabled;
 
-  int get _safeAccentBeats => accentBeats.clamp(1, 12).toInt();
+  int get _safeAccentBeats => accentBeats.clamp(1, 12);
 
-  int get _safeRegularBeats => regularBeats.clamp(1, 12).toInt();
+  int get _safeRegularBeats => regularBeats.clamp(1, 12);
 
   int get totalTicks => _safeAccentBeats * _safeRegularBeats;
 
   Duration get interval {
     final micros = (60000000 / bpm.clamp(10, 260) / _safeRegularBeats)
         .round()
-        .clamp(1000, 1500000)
-        .toInt();
+        .clamp(1000, 1500000);
     return Duration(microseconds: micros);
   }
 
@@ -266,7 +256,7 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
   final MetronomeAudioClient _audioClient;
   final MetronomeHapticsClient _hapticsClient;
 
-  Timer? _timer;
+  final WallClockScheduler _scheduler = WallClockScheduler();
   MetronomePlaybackConfig? _config;
   MetronomePlaybackTickCallback? _onTick;
   int _tickIndex = -1;
@@ -282,67 +272,64 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
     _config = config;
     _onTick = onTick;
     _tickIndex = initialTick;
-    _restartTimer();
+    _scheduler.start(config.interval, _handleTick);
   }
 
   @override
   Future<void> update(MetronomePlaybackConfig config) async {
     _config = config;
-    if (_timer != null) {
-      _restartTimer();
+    if (_onTick != null) {
+      _scheduler.start(config.interval, _handleTick);
     }
   }
 
   @override
   Future<void> stop() async {
-    _timer?.cancel();
-    _timer = null;
+    _scheduler.stop();
     _onTick = null;
   }
 
   @override
   void dispose() {
     unawaited(stop());
-  }
-
-  void _restartTimer() {
-    final config = _config;
-    if (config == null) return;
-    _timer?.cancel();
-    _timer = Timer.periodic(config.interval, (_) => _handleTick());
+    _scheduler.dispose();
   }
 
   void _handleTick() {
-    final config = _config;
-    final onTick = _onTick;
-    if (config == null || onTick == null) return;
+    try {
+      final config = _config;
+      final onTick = _onTick;
+      if (config == null || onTick == null) return;
 
-    _tickIndex = (_tickIndex + 1) % config.totalTicks;
-    final tick = config.tickForIndex(_tickIndex);
+      _tickIndex = (_tickIndex + 1) % config.totalTicks;
+      final tick = config.tickForIndex(_tickIndex);
 
-    if (tick.shouldPlay) {
-      if (config.hapticsEnabled) {
-        _hapticsClient.lightImpact();
+      if (tick.shouldPlay) {
+        if (config.hapticsEnabled) {
+          _hapticsClient.lightImpact();
+        }
+        unawaited(
+          _audioClient.playClick(
+            isAccent: tick.isMainBeat,
+            waveType: config.waveType,
+            volume: config.volume,
+            accentFrequency: tick.frequency,
+            beatFrequency: tick.frequency,
+          ),
+        );
       }
-      unawaited(
-        _audioClient.playClick(
-          isAccent: tick.isMainBeat,
-          waveType: config.waveType,
-          volume: config.volume,
-          accentFrequency: tick.frequency,
-          beatFrequency: tick.frequency,
-        ),
-      );
-    }
 
-    onTick(tick);
+      onTick(tick);
+    } catch (error, stackTrace) {
+      debugPrint('[MetronomePlayback] tick error: $error\n$stackTrace');
+    }
   }
 }
 
 class PlatformMetronomePlaybackClient implements MetronomePlaybackClient {
   PlatformMetronomePlaybackClient({
-    MethodChannel? channel,
     required FlutterMetronomePlaybackClient fallback,
+    MethodChannel? channel,
   }) : _channel = channel ?? const MethodChannel('com.flowgroove/metronome'),
        _fallback = fallback {
     _channel.setMethodCallHandler(_handleNativeCall);
