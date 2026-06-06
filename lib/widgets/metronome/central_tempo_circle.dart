@@ -36,7 +36,6 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
   void initState() {
     super.initState();
     _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
@@ -190,6 +189,12 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
   }
 
   void _triggerPulse() {
+    final state = ref.read(metronomeProvider);
+    final intervalMs = 60000 / state.bpm;
+    final pulseDuration = Duration(
+      milliseconds: math.min(200, (intervalMs * 0.8).round()),
+    );
+    _pulseController.duration = pulseDuration;
     _pulseController.forward(from: 0.0);
   }
 }

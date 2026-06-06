@@ -25,6 +25,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   /// Default constructor
   MetronomeNotifier();
 
+  Timer? _debounceTimer;
+  bool _debouncePending = false;
+
   @override
   MetronomeState build() {
     _audioClient = ref.read(metronomeAudioClientProvider);
@@ -418,7 +421,21 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   void _syncPlaybackConfig() {
     if (!state.isPlaying) return;
-    unawaited(_updatePlaybackSafely());
+    if (_debouncePending) return;
+    _debouncePending = true;
+    _debounceTimer = Timer(const Duration(milliseconds: 50), () {
+      _debouncePending = false;
+      unawaited(_updatePlaybackSafely());
+    });
+    // Also schedule a microtask to flush after the current frame,
+    // so that single calls are processed promptly.
+    Future<void>.microtask(() {
+      if (_debounceTimer?.isActive ?? false) {
+        _debounceTimer?.cancel();
+        _debouncePending = false;
+        unawaited(_updatePlaybackSafely());
+      }
+    });
   }
 
   void _handlePlaybackTick(MetronomePlaybackTick tick) {
@@ -433,6 +450,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   void _cleanup() {
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
     unawaited(_playbackClient.stop());
     if (!_wakelock.isDisposed && _wakelock.isEnabled) {
       unawaited(_wakelock.disable());
