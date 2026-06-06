@@ -11,6 +11,7 @@ import '../../models/beat_mode.dart';
 import '../../providers/metronome_runtime_providers.dart';
 import '../../providers/wakelock_provider.dart';
 import '../../services/analytics_service.dart';
+import '../../services/audio/audio_focus_manager.dart';
 import '../../services/wakelock_controller.dart';
 
 /// Metronome Notifier class
@@ -68,6 +69,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       accentPattern: accentPattern,
     );
 
+    // Request audio focus for metronome playback
+    unawaited(AudioFocusManager().requestFocus());
+
     unawaited(_startPlaybackSafely(initialTick: -1));
 
     // Enable wakelock to keep screen on during practice
@@ -81,6 +85,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     unawaited(_playbackClient.stop());
 
     state = state.copyWith(isPlaying: false, currentBeat: 0);
+
+    // Release audio focus when metronome stops
+    unawaited(AudioFocusManager().releaseFocus());
 
     // Disable wakelock when metronome stops
     unawaited(_wakelock.disable());
@@ -352,6 +359,13 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     state = state.copyWith(accentPattern: List.unmodifiable(pattern));
   }
 
+  /// Set count-in bars (0 = off, 1-4 = number of bars to count in)
+  void setCountInBars(int bars) {
+    final clampedBars = bars.clamp(0, 4).toInt();
+    state = state.copyWith(countInBars: clampedBars);
+    _syncPlaybackConfig();
+  }
+
   /// Update accent pattern from time signature
   void updateAccentPatternFromTimeSignature() {
     final ts = state.timeSignature;
@@ -453,6 +467,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     _debounceTimer?.cancel();
     _debounceTimer = null;
     unawaited(_playbackClient.stop());
+    unawaited(AudioFocusManager().releaseFocus());
     if (!_wakelock.isDisposed && _wakelock.isEnabled) {
       unawaited(_wakelock.disable());
     }

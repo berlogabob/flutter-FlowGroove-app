@@ -47,6 +47,10 @@ class MetronomeState {
   @JsonKey(defaultValue: 0)
   final int currentSetlistIndex;
 
+  // Count-in feature
+  @JsonKey(defaultValue: 0)
+  final int countInBars;
+
   const MetronomeState({
     required this.isPlaying,
     required this.bpm,
@@ -65,6 +69,7 @@ class MetronomeState {
     this.loadedSong,
     this.loadedSetlist,
     this.currentSetlistIndex = 0,
+    this.countInBars = 0,
   });
 
   /// Creates initial metronome state
@@ -84,6 +89,7 @@ class MetronomeState {
       accentBeats: 4,
       regularBeats: 1,
       beatModes: [], // Empty = all normal
+      countInBars: 0,
     );
   }
 
@@ -106,6 +112,7 @@ class MetronomeState {
     Object? loadedSong = _metronomeStateNoChange,
     Object? loadedSetlist = _metronomeStateNoChange,
     int? currentSetlistIndex,
+    int? countInBars,
   }) {
     return MetronomeState(
       isPlaying: isPlaying ?? this.isPlaying,
@@ -129,6 +136,7 @@ class MetronomeState {
           ? this.loadedSetlist
           : loadedSetlist as Setlist?,
       currentSetlistIndex: currentSetlistIndex ?? this.currentSetlistIndex,
+      countInBars: countInBars ?? this.countInBars,
     );
   }
 
