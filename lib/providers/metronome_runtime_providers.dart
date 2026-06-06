@@ -70,10 +70,52 @@ class AudioEngineMetronomeAudioClient implements MetronomeAudioClient {
 }
 
 abstract class MetronomeHapticsClient {
+  void heavyClick();
+  void mediumClick();
+  void tick();
   void lightImpact();
 }
 
 class SystemMetronomeHapticsClient implements MetronomeHapticsClient {
+  @override
+  void heavyClick() {
+    unawaited(_runHeavyClick());
+  }
+
+  Future<void> _runHeavyClick() async {
+    try {
+      await HapticFeedback.heavyImpact();
+    } catch (error) {
+      debugPrint('[MetronomeHaptics] heavyClick failed: $error');
+    }
+  }
+
+  @override
+  void mediumClick() {
+    unawaited(_runMediumClick());
+  }
+
+  Future<void> _runMediumClick() async {
+    try {
+      await HapticFeedback.mediumImpact();
+    } catch (error) {
+      debugPrint('[MetronomeHaptics] mediumClick failed: $error');
+    }
+  }
+
+  @override
+  void tick() {
+    unawaited(_runTick());
+  }
+
+  Future<void> _runTick() async {
+    try {
+      await HapticFeedback.lightImpact();
+    } catch (error) {
+      debugPrint('[MetronomeHaptics] tick failed: $error');
+    }
+  }
+
   @override
   void lightImpact() {
     unawaited(_runLightImpact());
@@ -306,7 +348,25 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
 
       if (tick.shouldPlay) {
         if (config.hapticsEnabled) {
-          _hapticsClient.lightImpact();
+          final beatIndex = tick.beatIndex;
+          final subdivisionIndex = tick.subdivisionIndex;
+          if (subdivisionIndex > 0) {
+            _hapticsClient.tick();
+          } else {
+            final mode = (beatIndex < config.beatModes.length &&
+                    subdivisionIndex < config.beatModes[beatIndex].length)
+                ? config.beatModes[beatIndex][subdivisionIndex]
+                : BeatMode.normal;
+            switch (mode) {
+              case BeatMode.accent:
+                _hapticsClient.heavyClick();
+              case BeatMode.normal:
+                _hapticsClient.mediumClick();
+              case BeatMode.silent:
+                // No haptic for silent beats
+                break;
+            }
+          }
         }
         unawaited(
           _audioClient.playClick(
