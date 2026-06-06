@@ -30,9 +30,9 @@ final metronomeIsPlayingProvider = Provider<bool>((ref) {
   return ref.watch(metronomeProvider).isPlaying;
 });
 
-/// Provider for current beat only (rebuilt every tick - use sparingly!)
+/// Provider for current beat only (rebuilt only when beat value changes)
 final metronomeCurrentBeatProvider = Provider<int>((ref) {
-  return ref.watch(metronomeProvider).currentBeat;
+  return ref.watch(metronomeProvider.select((s) => s.currentBeat));
 });
 
 /// Provider for time signature only
