@@ -306,6 +306,7 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
   MetronomePlaybackTickCallback? _onTick;
   int _tickIndex = -1;
   int _countInTicks = 0;
+  int _consecutiveErrors = 0;
 
   @override
   Future<void> start(
@@ -340,6 +341,7 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
   void dispose() {
     unawaited(stop());
     _scheduler.dispose();
+    _consecutiveErrors = 0;
   }
 
   void _handleTick() {
@@ -377,6 +379,7 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
         }
         _countInTicks++;
         onTick(tick);
+        _consecutiveErrors = 0;
         return;
       }
 
@@ -414,8 +417,10 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
       }
 
       onTick(tick);
+      _consecutiveErrors = 0;
     } catch (error, stackTrace) {
-      debugPrint('[MetronomePlayback] tick error: $error\n$stackTrace');
+      _consecutiveErrors++;
+      debugPrint('[MetronomePlayback] tick error ($_consecutiveErrors consecutive): $error\n$stackTrace');
     }
   }
 }
