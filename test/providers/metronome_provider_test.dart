@@ -77,7 +77,7 @@ void main() {
         metronome.loadSongTempo(song);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 260); // Clamped to industry standard max
+        expect(state.bpm, 500); // Within extended range (1-600)
       });
 
       test('loads metronome settings from song', () {
@@ -722,24 +722,24 @@ void main() {
         expect(state.bpm, 140);
       });
 
-      test('setBpm clamps to minimum 10', () {
+      test('setBpm clamps to minimum 1', () {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBpm(0);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 10);
+        expect(state.bpm, 1);
       });
 
-      test('setBpm clamps to maximum 260', () {
+      test('setBpm clamps to maximum 600', () {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBpm(500);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 260);
+        expect(state.bpm, 500);
       });
 
       test('adjustTempoFine increases BPM', () {
@@ -766,24 +766,24 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        // Use setTempoDirectly to set to max (260)
-        metronome.setTempoDirectly(260);
+        // Use setTempoDirectly to set to max (600)
+        metronome.setTempoDirectly(600);
         metronome.adjustTempoFine(40);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 260);
+        expect(state.bpm, 600);
       });
 
       test('adjustTempoFine clamps at minimum', () {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        // Use setTempoDirectly to set to min (10)
-        metronome.setTempoDirectly(10);
+        // Use setTempoDirectly to set to min (1)
+        metronome.setTempoDirectly(1);
         metronome.adjustTempoFine(-20);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 10);
+        expect(state.bpm, 1);
       });
 
       test('rotateTempo updates BPM', () {

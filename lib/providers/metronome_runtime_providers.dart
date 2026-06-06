@@ -208,9 +208,9 @@ class MetronomePlaybackConfig {
   int get totalTicks => _safeAccentBeats * _safeRegularBeats;
 
   Duration get interval {
-    final micros = (60000000 / bpm.clamp(10, 260) / _safeRegularBeats)
+    final micros = (60000000 / bpm.clamp(1, 600) / _safeRegularBeats)
         .round()
-        .clamp(1000, 1500000);
+        .clamp(500, 1500000);
     return Duration(microseconds: micros);
   }
 
