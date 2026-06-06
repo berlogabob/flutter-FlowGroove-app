@@ -28,6 +28,8 @@ class MetronomeState {
   final double accentFrequency;
   @JsonKey(defaultValue: 800)
   final double beatFrequency;
+  @JsonKey(defaultValue: true)
+  final bool hapticsEnabled;
   @JsonKey(defaultValue: [])
   final List<bool> accentPattern;
 
@@ -55,6 +57,7 @@ class MetronomeState {
     required this.accentEnabled,
     required this.accentFrequency,
     required this.beatFrequency,
+    this.hapticsEnabled = true,
     required this.accentPattern,
     this.accentBeats = 4,
     this.regularBeats = 1,
@@ -76,6 +79,7 @@ class MetronomeState {
       accentEnabled: true,
       accentFrequency: 1600,
       beatFrequency: 800,
+      hapticsEnabled: true,
       accentPattern: [true, false, false, false],
       accentBeats: 4,
       regularBeats: 1,
@@ -94,6 +98,7 @@ class MetronomeState {
     bool? accentEnabled,
     double? accentFrequency,
     double? beatFrequency,
+    bool? hapticsEnabled,
     List<bool>? accentPattern,
     int? accentBeats,
     int? regularBeats,
@@ -112,6 +117,7 @@ class MetronomeState {
       accentEnabled: accentEnabled ?? this.accentEnabled,
       accentFrequency: accentFrequency ?? this.accentFrequency,
       beatFrequency: beatFrequency ?? this.beatFrequency,
+      hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       accentPattern: accentPattern ?? this.accentPattern,
       accentBeats: accentBeats ?? this.accentBeats,
       regularBeats: regularBeats ?? this.regularBeats,

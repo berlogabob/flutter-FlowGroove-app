@@ -26,9 +26,6 @@ class SongLibraryBlock extends ConsumerStatefulWidget {
 }
 
 class _SongLibraryBlockState extends ConsumerState<SongLibraryBlock> {
-  bool _isExpanded = false;
-  bool _showSetlists = false;
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(metronomeProvider);
@@ -37,46 +34,44 @@ class _SongLibraryBlockState extends ConsumerState<SongLibraryBlock> {
     return Column(
       children: [
         // Compact pill button
-        if (!_isExpanded)
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              setState(() => _isExpanded = true);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: MonoPulseSpacing.xl,
-                vertical: MonoPulseSpacing.md,
-              ),
-              decoration: BoxDecoration(
-                color: MonoPulseColors.surface,
-                borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-                border: Border.all(color: MonoPulseColors.borderSubtle),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.music_note_outlined,
-                    color: MonoPulseColors.textSecondary,
-                    size: 20,
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            _openLibrarySheet(context, metronome);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: MonoPulseSpacing.xl,
+              vertical: MonoPulseSpacing.md,
+            ),
+            decoration: BoxDecoration(
+              color: MonoPulseColors.surface,
+              borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
+              border: Border.all(color: MonoPulseColors.borderSubtle),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.music_note_outlined,
+                  color: MonoPulseColors.textSecondary,
+                  size: MonoPulseIcons.sizeMedium,
+                ),
+                const SizedBox(width: MonoPulseSpacing.md),
+                Text(
+                  'Song Library',
+                  style: MonoPulseTypography.bodyLarge.copyWith(
+                    color: MonoPulseColors.textHighEmphasis,
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(width: MonoPulseSpacing.md),
-                  Text(
-                    'Song Library',
-                    style: MonoPulseTypography.bodyLarge.copyWith(
-                      color: MonoPulseColors.textHighEmphasis,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+        ),
 
         // Loaded content indicator
-        if (!_isExpanded &&
-            (state.loadedSong != null || state.loadedSetlist != null))
+        if (state.loadedSong != null || state.loadedSetlist != null)
           Padding(
             padding: const EdgeInsets.only(top: MonoPulseSpacing.md),
             child: Text(
@@ -88,180 +83,171 @@ class _SongLibraryBlockState extends ConsumerState<SongLibraryBlock> {
               ),
             ),
           ),
-
-        // Slide-up panel
-        if (_isExpanded)
-          _SlideUpPanel(
-            showSetlists: _showSetlists,
-            onToggleView: () {
-              HapticFeedback.lightImpact();
-              setState(() => _showSetlists = !_showSetlists);
-            },
-            onClose: () {
-              HapticFeedback.lightImpact();
-              setState(() => _isExpanded = false);
-            },
-            onLoadSong: (song) {
-              HapticFeedback.mediumImpact();
-              metronome.loadSongTempo(song);
-              setState(() => _isExpanded = false);
-            },
-            onLoadSetlist: (setlist) {
-              HapticFeedback.mediumImpact();
-              metronome.loadSetlistQueue(setlist);
-              setState(() => _isExpanded = false);
-            },
-          ),
       ],
+    );
+  }
+
+  void _openLibrarySheet(BuildContext context, MetronomeNotifier metronome) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: MonoPulseColors.transparent,
+      builder: (sheetContext) {
+        return _SongLibrarySheet(
+          onLoadSong: (song) {
+            HapticFeedback.mediumImpact();
+            metronome.loadSongTempo(song);
+            Navigator.of(sheetContext).pop();
+          },
+          onLoadSetlist: (setlist) {
+            HapticFeedback.mediumImpact();
+            metronome.loadSetlistQueue(setlist);
+            Navigator.of(sheetContext).pop();
+          },
+        );
+      },
     );
   }
 }
 
-class _SlideUpPanel extends StatelessWidget {
-  final bool showSetlists;
-  final VoidCallback onToggleView;
-  final VoidCallback onClose;
-  final Function(Song) onLoadSong;
-  final Function(Setlist) onLoadSetlist;
+class _SongLibrarySheet extends StatefulWidget {
+  final void Function(Song) onLoadSong;
+  final void Function(Setlist) onLoadSetlist;
 
-  const _SlideUpPanel({
-    required this.showSetlists,
-    required this.onToggleView,
-    required this.onClose,
+  const _SongLibrarySheet({
     required this.onLoadSong,
     required this.onLoadSetlist,
   });
 
   @override
+  State<_SongLibrarySheet> createState() => _SongLibrarySheetState();
+}
+
+class _SongLibrarySheetState extends State<_SongLibrarySheet> {
+  bool _showSetlists = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Backdrop
-        Positioned.fill(
-          child: GestureDetector(
-            onTap: onClose,
-            child: Container(
-              color: MonoPulseColors.black.withValues(alpha: 0.7),
-            ),
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: AnimatedContainer(
+        duration: MonoPulseAnimation.durationMedium,
+        curve: MonoPulseAnimation.curveCustom,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
+        decoration: const BoxDecoration(
+          color: MonoPulseColors.surfaceRaised,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(MonoPulseRadius.massive),
           ),
         ),
-
-        // Panel
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: AnimatedContainer(
-            duration: MonoPulseAnimation.durationMedium,
-            curve: MonoPulseAnimation.curveCustom,
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.7,
-            ),
-            decoration: const BoxDecoration(
-              color: MonoPulseColors.surfaceRaised,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(MonoPulseRadius.massive),
+        child: Column(
+          children: [
+            // Handle bar
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: MonoPulseSpacing.lg,
+              ),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: MonoPulseColors.borderDefault,
+                  borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                ),
               ),
             ),
-            child: Column(
-              children: [
-                // Handle bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: MonoPulseSpacing.lg,
-                  ),
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: MonoPulseColors.borderDefault,
-                      borderRadius: BorderRadius.circular(
-                        MonoPulseRadius.small,
+
+            // Header with tabs
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.xxl,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Tab toggle
+                  GestureDetector(
+                    onTap: _toggleView,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: MonoPulseSpacing.lg,
+                        vertical: MonoPulseSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: MonoPulseColors.blackElevated,
+                        borderRadius: BorderRadius.circular(
+                          MonoPulseRadius.huge,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _showSetlists
+                                ? Icons.playlist_play
+                                : Icons.music_note,
+                            color: MonoPulseColors.accentOrange,
+                            size: MonoPulseIcons.sizeMedium,
+                          ),
+                          const SizedBox(width: MonoPulseSpacing.sm),
+                          Text(
+                            _showSetlists ? 'Setlists' : 'Songs',
+                            style: MonoPulseTypography.labelLarge.copyWith(
+                              color: MonoPulseColors.accentOrange,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
 
-                // Header with tabs
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: MonoPulseSpacing.xxl,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Tab toggle
-                      GestureDetector(
-                        onTap: onToggleView,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: MonoPulseSpacing.lg,
-                            vertical: MonoPulseSpacing.sm,
-                          ),
-                          decoration: BoxDecoration(
-                            color: MonoPulseColors.blackElevated,
-                            borderRadius: BorderRadius.circular(
-                              MonoPulseRadius.huge,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                showSetlists
-                                    ? Icons.playlist_play
-                                    : Icons.music_note,
-                                color: MonoPulseColors.accentOrange,
-                                size: 18,
-                              ),
-                              const SizedBox(width: MonoPulseSpacing.sm),
-                              Text(
-                                showSetlists ? 'Setlists' : 'Songs',
-                                style: MonoPulseTypography.labelLarge.copyWith(
-                                  color: MonoPulseColors.accentOrange,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                  // Close button
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(MonoPulseSpacing.sm),
+                      decoration: const BoxDecoration(
+                        color: MonoPulseColors.blackElevated,
+                        shape: BoxShape.circle,
                       ),
-
-                      // Close button
-                      GestureDetector(
-                        onTap: onClose,
-                        child: Container(
-                          padding: const EdgeInsets.all(MonoPulseSpacing.sm),
-                          decoration: const BoxDecoration(
-                            color: MonoPulseColors.blackElevated,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            color: MonoPulseColors.textSecondary,
-                            size: 20,
-                          ),
-                        ),
+                      child: const Icon(
+                        Icons.close,
+                        color: MonoPulseColors.textSecondary,
+                        size: MonoPulseIcons.sizeMedium,
                       ),
-                    ],
+                    ),
                   ),
-                ),
-
-                const SizedBox(height: MonoPulseSpacing.lg),
-
-                // Content
-                Expanded(
-                  child: showSetlists
-                      ? _SetlistList(onLoadSetlist: onLoadSetlist)
-                      : _SongList(onLoadSong: onLoadSong),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+
+            const SizedBox(height: MonoPulseSpacing.lg),
+
+            // Content
+            Expanded(
+              child: _showSetlists
+                  ? _SetlistList(onLoadSetlist: widget.onLoadSetlist)
+                  : _SongList(onLoadSong: widget.onLoadSong),
+            ),
+          ],
         ),
-      ],
+      ),
     );
+  }
+
+  void _toggleView() {
+    HapticFeedback.lightImpact();
+    setState(() => _showSetlists = !_showSetlists);
   }
 }
 
 class _SongList extends ConsumerWidget {
-  final Function(Song) onLoadSong;
+  final void Function(Song) onLoadSong;
 
   const _SongList({required this.onLoadSong});
 
@@ -417,7 +403,7 @@ class _SongCard extends StatelessWidget {
 }
 
 class _SetlistList extends ConsumerWidget {
-  final Function(Setlist) onLoadSetlist;
+  final void Function(Setlist) onLoadSetlist;
 
   const _SetlistList({required this.onLoadSetlist});
 

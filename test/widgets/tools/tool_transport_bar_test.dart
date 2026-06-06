@@ -481,7 +481,9 @@ void main() {
       expect(row.mainAxisAlignment, equals(MainAxisAlignment.center));
     });
 
-    testWidgets('play/pause button icon is white', (WidgetTester tester) async {
+    testWidgets('play/pause button icon uses on-accent color', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -489,10 +491,12 @@ void main() {
       );
 
       final playIcon = tester.widget<Icon>(find.byIcon(Icons.play_arrow));
-      expect(playIcon.color, equals(Colors.white));
+      expect(playIcon.color, equals(MonoPulseColors.black));
     });
 
-    testWidgets('pause button icon is white', (WidgetTester tester) async {
+    testWidgets('pause button icon uses on-accent color', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: true, onPlayPause: _noOp),
@@ -500,7 +504,7 @@ void main() {
       );
 
       final pauseIcon = tester.widget<Icon>(find.byIcon(Icons.pause));
-      expect(pauseIcon.color, equals(Colors.white));
+      expect(pauseIcon.color, equals(MonoPulseColors.black));
     });
 
     testWidgets('render multiple buttons together', (
@@ -732,9 +736,9 @@ void main() {
         ),
       );
 
-      // Play icon should be white
+      // Play icon should use the on-accent token
       final playIcon = tester.widget<Icon>(find.byIcon(Icons.play_arrow));
-      expect(playIcon.color, equals(Colors.white));
+      expect(playIcon.color, equals(MonoPulseColors.black));
 
       // Navigation icons should be textSecondary
       final navIcon = tester.widget<Icon>(find.byIcon(Icons.skip_previous));

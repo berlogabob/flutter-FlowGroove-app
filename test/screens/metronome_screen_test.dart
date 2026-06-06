@@ -8,8 +8,8 @@ import 'package:flowgroove/widgets/custom_app_bar.dart';
 import 'package:flowgroove/widgets/metronome/central_tempo_circle.dart';
 import 'package:flowgroove/widgets/metronome/time_signature_block.dart';
 import 'package:flowgroove/widgets/metronome/fine_adjustment_buttons.dart';
-import 'package:flowgroove/widgets/metronome/bottom_transport_bar.dart';
 import 'package:flowgroove/widgets/metronome/song_library_block.dart';
+import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
 
 import '../helpers/test_helpers.dart';
 
@@ -168,7 +168,7 @@ void main() {
       expect(find.byType(FineAdjustmentButtons), findsOneWidget);
     });
 
-    testWidgets('renders BottomTransportBar', (WidgetTester tester) async {
+    testWidgets('renders ToolTransportBar', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -184,7 +184,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(BottomTransportBar), findsOneWidget);
+      expect(find.byType(ToolTransportBar), findsOneWidget);
     });
 
     testWidgets('renders SongLibraryBlock', (WidgetTester tester) async {
@@ -351,8 +351,37 @@ void main() {
       expect(find.byType(TimeSignatureBlock), findsOneWidget);
       expect(find.byType(CentralTempoCircle), findsOneWidget);
       expect(find.byType(FineAdjustmentButtons), findsOneWidget);
-      expect(find.byType(BottomTransportBar), findsOneWidget);
+      expect(find.byType(ToolTransportBar), findsOneWidget);
       expect(find.byType(SongLibraryBlock), findsOneWidget);
+      expect(find.text('Haptics'), findsOneWidget);
+    });
+
+    testWidgets('toggles haptics from performance surface', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(size: Size(400, 800)),
+            child: ProviderScope(
+              overrides: [
+                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+              ],
+              child: const MetronomeScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Haptics'), findsOneWidget);
+      final switchFinder = find.byType(Switch);
+      expect(tester.widget<Switch>(switchFinder).value, isTrue);
+
+      await tester.tap(switchFinder);
+      await tester.pump();
+
+      expect(tester.widget<Switch>(switchFinder).value, isFalse);
     });
 
     testWidgets('has offline indicator', (WidgetTester tester) async {

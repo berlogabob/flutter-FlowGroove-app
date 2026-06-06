@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/tools/tool_scaffold.dart';
+import '../../widgets/tools/tool_transport_bar.dart';
 import '../widgets/metronome/time_signature_block.dart';
 import '../widgets/metronome/central_tempo_circle.dart';
 import '../widgets/metronome/fine_adjustment_buttons.dart';
 import '../widgets/metronome/song_library_block.dart';
-import '../widgets/metronome/bottom_transport_bar.dart';
 import '../../models/song.dart';
 import '../../models/metronome_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -48,53 +48,9 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
       child: ToolScreenScaffold(
         title: 'Metronome',
         menuItems: _buildMenuItems(context, metronome, state),
-        mainWidget: _buildMainContent(context),
-        secondaryWidget: const FineAdjustmentButtons(),
-        bottomWidget: _buildBottomContent(),
+        mainWidget: const _MetronomePerformanceSurface(),
         showOfflineIndicator: true,
       ),
-    );
-  }
-
-  /// Builds the main content area with Time Signature and Central Tempo Circle
-  Widget _buildMainContent(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth < 375;
-
-    return Column(
-      children: [
-        // Air gap after AppBar
-        SizedBox(height: isSmallScreen ? 16 : 24),
-
-        // Time Signature Block
-        const TimeSignatureBlock(),
-
-        // Air gap
-        SizedBox(height: isSmallScreen ? 16 : 24),
-
-        // Central Tempo Circle (takes remaining space)
-        const Expanded(child: CentralTempoCircle()),
-      ],
-    );
-  }
-
-  /// Builds the bottom content with Transport Bar and Song Library
-  Widget _buildBottomContent() {
-    return const Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Bottom Transport Bar
-        BottomTransportBar(),
-
-        // Air gap
-        SizedBox(height: 16),
-
-        // Song Library Block
-        SongLibraryBlock(),
-
-        // Bottom padding for SafeArea
-        SizedBox(height: 24),
-      ],
     );
   }
 
@@ -475,6 +431,208 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
                 },
               );
             },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MetronomePerformanceSurface extends StatelessWidget {
+  const _MetronomePerformanceSurface();
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final useWideLayout = width >= 720;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final content = useWideLayout
+            ? const _WidePerformanceLayout()
+            : _CompactPerformanceLayout(useScroll: constraints.maxHeight < 640);
+
+        return Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: useWideLayout
+                ? MonoPulseSpacing.xxxl
+                : MonoPulseSpacing.lg,
+            vertical: MonoPulseSpacing.md,
+          ),
+          child: content,
+        );
+      },
+    );
+  }
+}
+
+class _CompactPerformanceLayout extends StatelessWidget {
+  const _CompactPerformanceLayout({required this.useScroll});
+
+  final bool useScroll;
+
+  @override
+  Widget build(BuildContext context) {
+    final controls = const [
+      TimeSignatureBlock(),
+      SizedBox(height: MonoPulseSpacing.md),
+      FineAdjustmentButtons(),
+      SizedBox(height: MonoPulseSpacing.md),
+      _HapticsToggle(),
+      SizedBox(height: MonoPulseSpacing.sm),
+      _MetronomeTransport(),
+      SizedBox(height: MonoPulseSpacing.sm),
+      SongLibraryBlock(),
+    ];
+
+    if (useScroll) {
+      return SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: MonoPulseSpacing.xs),
+            const SizedBox(height: 220, child: CentralTempoCircle()),
+            const SizedBox(height: MonoPulseSpacing.md),
+            ...controls,
+            const SizedBox(height: MonoPulseSpacing.lg),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        const TimeSignatureBlock(),
+        const SizedBox(height: MonoPulseSpacing.md),
+        const Expanded(child: CentralTempoCircle()),
+        const SizedBox(height: MonoPulseSpacing.sm),
+        const FineAdjustmentButtons(),
+        const SizedBox(height: MonoPulseSpacing.md),
+        const _HapticsToggle(),
+        const SizedBox(height: MonoPulseSpacing.sm),
+        const _MetronomeTransport(),
+        const SizedBox(height: MonoPulseSpacing.sm),
+        const SongLibraryBlock(),
+      ],
+    );
+  }
+}
+
+class _WidePerformanceLayout extends StatelessWidget {
+  const _WidePerformanceLayout();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(
+          flex: 3,
+          child: Column(
+            children: [
+              TimeSignatureBlock(),
+              SizedBox(height: MonoPulseSpacing.lg),
+              Expanded(child: CentralTempoCircle()),
+            ],
+          ),
+        ),
+        const SizedBox(width: MonoPulseSpacing.xxxl),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 340),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FineAdjustmentButtons(),
+              SizedBox(height: MonoPulseSpacing.xl),
+              _HapticsToggle(),
+              SizedBox(height: MonoPulseSpacing.lg),
+              _MetronomeTransport(),
+              SizedBox(height: MonoPulseSpacing.lg),
+              SongLibraryBlock(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MetronomeTransport extends ConsumerWidget {
+  const _MetronomeTransport();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(metronomeProvider);
+    final metronome = ref.read(metronomeProvider.notifier);
+    final hasSetlist = state.loadedSetlist != null;
+
+    return ToolTransportBar(
+      isPlaying: state.isPlaying,
+      onPlayPause: metronome.toggle,
+      showNavigation: hasSetlist,
+      onPrevious: hasSetlist ? metronome.previousSetlistSong : null,
+      onNext: hasSetlist ? metronome.nextSetlistSong : null,
+      margin: EdgeInsets.zero,
+    );
+  }
+}
+
+class _HapticsToggle extends ConsumerWidget {
+  const _HapticsToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enabled = ref.watch(
+      metronomeProvider.select((state) => state.hapticsEnabled),
+    );
+    final metronome = ref.read(metronomeProvider.notifier);
+
+    return Material(
+      color: MonoPulseColors.surface,
+      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+        onTap: metronome.toggleHaptics,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.lg,
+            vertical: MonoPulseSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+            border: Border.all(color: MonoPulseColors.borderSubtle),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    enabled ? Icons.vibration : Icons.mobile_off,
+                    color: enabled
+                        ? MonoPulseColors.accentOrange
+                        : MonoPulseColors.textTertiary,
+                    size: MonoPulseIcons.sizeMedium,
+                  ),
+                  const SizedBox(width: MonoPulseSpacing.md),
+                  Text(
+                    'Haptics',
+                    style: MonoPulseTypography.labelLarge.copyWith(
+                      color: MonoPulseColors.textHighEmphasis,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              Switch(
+                value: enabled,
+                activeThumbColor: MonoPulseColors.accentOrange,
+                activeTrackColor: MonoPulseColors.accentOrangeSubtle,
+                inactiveThumbColor: MonoPulseColors.textTertiary,
+                inactiveTrackColor: MonoPulseColors.surfaceRaised,
+                onChanged: metronome.setHapticsEnabled,
+              ),
+            ],
           ),
         ),
       ),

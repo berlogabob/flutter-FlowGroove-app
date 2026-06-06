@@ -70,6 +70,63 @@ class FakeMetronomeHapticsClient implements MetronomeHapticsClient {
   }
 }
 
+class FakeMetronomePlaybackClient implements MetronomePlaybackClient {
+  int startCalls = 0;
+  int updateCalls = 0;
+  int stopCalls = 0;
+  int disposeCalls = 0;
+
+  bool isRunning = false;
+  MetronomePlaybackConfig? lastConfig;
+  MetronomePlaybackTickCallback? _onTick;
+  void Function()? _onStopped;
+
+  @override
+  Future<void> start(
+    MetronomePlaybackConfig config, {
+    required MetronomePlaybackTickCallback onTick,
+    void Function()? onStopped,
+    int initialTick = -1,
+  }) async {
+    startCalls += 1;
+    isRunning = true;
+    lastConfig = config;
+    _onTick = onTick;
+    _onStopped = onStopped;
+  }
+
+  @override
+  Future<void> update(MetronomePlaybackConfig config) async {
+    updateCalls += 1;
+    lastConfig = config;
+  }
+
+  @override
+  Future<void> stop() async {
+    stopCalls += 1;
+    isRunning = false;
+    _onTick = null;
+    _onStopped = null;
+  }
+
+  @override
+  void dispose() {
+    disposeCalls += 1;
+    isRunning = false;
+  }
+
+  void emitTick(int index) {
+    final config = lastConfig;
+    final onTick = _onTick;
+    if (config == null || onTick == null) return;
+    onTick(config.tickForIndex(index));
+  }
+
+  void emitStopped() {
+    _onStopped?.call();
+  }
+}
+
 class FakeWakelockController extends WakelockController {
   int enableCalls = 0;
   int disableCalls = 0;
@@ -116,18 +173,22 @@ class MetronomeTestRuntime {
   MetronomeTestRuntime({
     FakeMetronomeAudioClient? audio,
     FakeMetronomeHapticsClient? haptics,
+    FakeMetronomePlaybackClient? playback,
     FakeWakelockController? wakelock,
   }) : audio = audio ?? FakeMetronomeAudioClient(),
        haptics = haptics ?? FakeMetronomeHapticsClient(),
+       playback = playback ?? FakeMetronomePlaybackClient(),
        wakelock = wakelock ?? FakeWakelockController();
 
   final FakeMetronomeAudioClient audio;
   final FakeMetronomeHapticsClient haptics;
+  final FakeMetronomePlaybackClient playback;
   final FakeWakelockController wakelock;
 
   List<Override> get overrides => <Override>[
     metronomeAudioClientProvider.overrideWithValue(audio),
     metronomeHapticsProvider.overrideWithValue(haptics),
+    metronomePlaybackClientProvider.overrideWithValue(playback),
     wakelockProvider.overrideWithValue(wakelock),
   ];
 

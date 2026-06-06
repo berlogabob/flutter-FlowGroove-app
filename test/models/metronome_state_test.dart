@@ -31,6 +31,7 @@ void main() {
         expect(state.accentEnabled, true);
         expect(state.accentFrequency, 1600);
         expect(state.beatFrequency, 800);
+        expect(state.hapticsEnabled, true);
         expect(state.accentPattern, [true, false, false, false]);
       });
 
@@ -122,6 +123,7 @@ void main() {
         expect(state.accentEnabled, true);
         expect(state.accentFrequency, 1600);
         expect(state.beatFrequency, 800);
+        expect(state.hapticsEnabled, true);
         expect(state.accentPattern, [true, false, false, false]);
         expect(state.accentBeats, 4);
         expect(state.regularBeats, 1);
@@ -178,6 +180,14 @@ void main() {
 
         expect(copied.beatModes.length, 1);
         expect(copied.beatModes[0][0], BeatMode.accent);
+      });
+
+      test('updates hapticsEnabled', () {
+        final original = MetronomeState.initial();
+        final copied = original.copyWith(hapticsEnabled: false);
+
+        expect(copied.hapticsEnabled, isFalse);
+        expect(original.hapticsEnabled, isTrue);
       });
 
       test('updates loadedSong', () {
@@ -387,10 +397,11 @@ void main() {
 
         expect(json['accentBeats'], 4);
         expect(json['regularBeats'], 2);
-        expect(json['beatModes'], isA<List>());
-        expect(json['beatModes'].length, 2);
-        expect(json['beatModes'][0][0], 'accent');
-        expect(json['beatModes'][1][0], 'silent');
+        final jsonBeatModes = json['beatModes'] as List<dynamic>;
+        expect(jsonBeatModes, isA<List<dynamic>>());
+        expect(jsonBeatModes.length, 2);
+        expect((jsonBeatModes[0] as List<dynamic>)[0], 'accent');
+        expect((jsonBeatModes[1] as List<dynamic>)[0], 'silent');
       });
 
       test('toJson and fromJson are inverses', () {
@@ -420,12 +431,13 @@ void main() {
         // For this test, we verify the metronome-specific fields
         expect(json['accentBeats'], 6);
         expect(json['regularBeats'], 2);
-        expect(json['beatModes'].length, 2);
+        final jsonBeatModes = json['beatModes'] as List<dynamic>;
+        expect(jsonBeatModes.length, 2);
 
         // Verify beatModes round-trip
-        final restoredBeatModes = (json['beatModes'] as List)
+        final restoredBeatModes = jsonBeatModes
             .map(
-              (row) => (row as List)
+              (row) => (row as List<dynamic>)
                   .map(
                     (mode) => BeatMode.values.firstWhere(
                       (m) => m.name == mode,
