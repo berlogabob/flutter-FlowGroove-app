@@ -47,7 +47,7 @@ dependencies:
   gap: ^3.0.0
 
   # Audio
-  audioplayers: ^6.6.0
+  flutter_soloud: ^3.1.0
 
   # PDF & Export
   pdf: ^3.11.2
