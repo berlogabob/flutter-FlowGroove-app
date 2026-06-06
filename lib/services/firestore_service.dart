@@ -290,7 +290,7 @@ class FirestoreService {
                   id: doc.id,
                   bandId: '',
                   name: 'Error loading setlist',
-                  description: 'Failed to load: ${e.toString()}',
+                  description: 'Failed to load: $e',
                   createdAt: DateTime.now(),
                   updatedAt: DateTime.now(),
                 );
@@ -304,6 +304,115 @@ class FirestoreService {
           });
     } catch (e, stackTrace) {
       debugPrint('Error setting up watchSetlists: $e');
+      debugPrint('Stack trace: $stackTrace');
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Saves a setlist to a band's shared collection.
+  Future<void> saveBandSetlist(Setlist setlist, String bandId) async {
+    try {
+      _requireAuth();
+      await _firestore
+          .collection('bands')
+          .doc(bandId)
+          .collection('setlists')
+          .doc(setlist.id)
+          .set(setlist.copyWith(bandId: bandId).toJson())
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: saveBandSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist ${setlist.id} in band $bandId',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to save this band setlist.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Deletes a setlist from a band's shared collection.
+  Future<void> deleteBandSetlist(String bandId, String setlistId) async {
+    try {
+      _requireAuth();
+      await _firestore
+          .collection('bands')
+          .doc(bandId)
+          .collection('setlists')
+          .doc(setlistId)
+          .delete()
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: deleteBandSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist $setlistId in band $bandId',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to delete this band setlist.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Watches setlists for a band in real-time.
+  Stream<List<Setlist>> watchBandSetlists(String bandId) {
+    try {
+      return _firestore
+          .collection('bands')
+          .doc(bandId)
+          .collection('setlists')
+          .snapshots()
+          .map(
+            (snapshot) => snapshot.docs.map((doc) {
+              try {
+                final data = doc.data();
+                return Setlist.fromJson({...data, 'id': doc.id});
+              } catch (e, stackTrace) {
+                debugPrint('Failed to parse band setlist ${doc.id}: $e');
+                debugPrint('Stack trace: $stackTrace');
+                return Setlist(
+                  id: doc.id,
+                  bandId: bandId,
+                  name: 'Error loading setlist',
+                  description: 'Failed to load: $e',
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                );
+              }
+            }).toList(),
+          )
+          .handleError((Object error, StackTrace stackTrace) {
+            debugPrint('Stream error in watchBandSetlists: $error');
+            debugPrint('Stack trace: $stackTrace');
+            throw ApiError.fromException(error, stackTrace: stackTrace);
+          });
+    } catch (e, stackTrace) {
+      debugPrint('Error setting up watchBandSetlists: $e');
       debugPrint('Stack trace: $stackTrace');
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }

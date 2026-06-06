@@ -10,6 +10,7 @@ import '../models/song.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/bands/band_about_screen.dart';
+import '../screens/bands/band_setlists_screen.dart';
 import '../screens/bands/band_songs_screen.dart';
 import '../screens/bands/create_band_screen.dart';
 import '../screens/bands/join_band_screen.dart';
@@ -278,6 +279,32 @@ List<RouteBase> _buildAppRoutes() {
                   },
                 ),
                 GoRoute(
+                  path: ':id/setlists',
+                  name: 'band-setlists',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    if (band == null) {
+                      return Scaffold(
+                        appBar: AppBar(title: const Text('Error')),
+                        body: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Failed to load band data'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => context.pop(),
+                                child: const Text('Go Back'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return BandSetlistsScreen(band: band);
+                  },
+                ),
+                GoRoute(
                   path: ':id/about',
                   name: 'band-about',
                   builder: (context, state) {
@@ -329,7 +356,15 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'create-setlist',
                   builder: (context, state) {
                     final bandId = state.uri.queryParameters['bandId'];
-                    return CreateSetlistScreen(bandId: bandId);
+                    final scope =
+                        state.uri.queryParameters['scope'] ==
+                            SetlistStorageScope.band.name
+                        ? SetlistStorageScope.band
+                        : SetlistStorageScope.personal;
+                    return CreateSetlistScreen(
+                      bandId: bandId,
+                      storageScope: scope,
+                    );
                   },
                 ),
                 GoRoute(
@@ -337,7 +372,17 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'edit-setlist',
                   builder: (context, state) {
                     final setlist = state.extra as Setlist?;
-                    return CreateSetlistScreen(setlist: setlist);
+                    final scope =
+                        state.uri.queryParameters['scope'] ==
+                            SetlistStorageScope.band.name
+                        ? SetlistStorageScope.band
+                        : SetlistStorageScope.personal;
+                    final bandId = state.uri.queryParameters['bandId'];
+                    return CreateSetlistScreen(
+                      setlist: setlist,
+                      bandId: bandId,
+                      storageScope: scope,
+                    );
                   },
                 ),
               ],
@@ -418,6 +463,10 @@ extension GoRouterExtension on BuildContext {
   void goBandSongs(Band band) =>
       goNamed('band-songs', pathParameters: {'id': band.id}, extra: band);
 
+  /// Navigate to band setlists screen.
+  void goBandSetlists(Band band) =>
+      goNamed('band-setlists', pathParameters: {'id': band.id}, extra: band);
+
   /// Navigate to band about screen.
   void goBandAbout(Band band) =>
       goNamed('band-about', pathParameters: {'id': band.id}, extra: band);
@@ -426,11 +475,21 @@ extension GoRouterExtension on BuildContext {
   void goSetlists() => goNamed('setlists');
 
   /// Navigate to create setlist screen.
-  void goCreateSetlist({String? bandId}) {
-    final Map<String, dynamic> params = bandId != null
-        ? {'bandId': bandId}
-        : {};
+  void goCreateSetlist({
+    String? bandId,
+    SetlistStorageScope storageScope = SetlistStorageScope.personal,
+  }) {
+    final Map<String, dynamic> params = {};
+    if (bandId != null) params['bandId'] = bandId;
+    if (storageScope == SetlistStorageScope.band) {
+      params['scope'] = SetlistStorageScope.band.name;
+    }
     goNamed('create-setlist', queryParameters: params);
+  }
+
+  /// Navigate to create shared band setlist screen.
+  void goCreateBandSetlist(Band band) {
+    goCreateSetlist(bandId: band.id, storageScope: SetlistStorageScope.band);
   }
 
   /// Navigate to edit setlist screen.

@@ -106,91 +106,101 @@ GoRouter createRoutedTestRouter({
     initialLocation: initialLocation,
     navigatorKey: GlobalKey<NavigatorState>(),
     enableAuthRedirect: false,
-    routes: routes ??
+    routes:
+        routes ??
         [
-      GoRoute(
-        path: '/login',
-        name: 'login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/register',
-        name: 'register',
-        builder: (context, state) => const RegisterScreen(),
-      ),
-      GoRoute(
-        path: '/main/home',
-        name: 'home',
-        builder: (context, state) => const TestRouteMarker('home'),
-      ),
-      GoRoute(
-        path: '/main/join-band',
-        name: 'join-band',
-        builder: (context, state) => const TestRouteMarker('join-band'),
-      ),
-      GoRoute(
-        path: '/main/songs',
-        name: 'songs',
-        builder: (context, state) => const SongsListScreen(),
-        routes: [
           GoRoute(
-            path: 'add',
-            name: 'add-song',
-            builder: (context, state) => const TestRouteMarker('add-song'),
+            path: '/login',
+            name: 'login',
+            builder: (context, state) => const LoginScreen(),
           ),
           GoRoute(
-            path: ':id/edit',
-            name: 'edit-song',
-            builder: (context, state) => const TestRouteMarker('edit-song'),
+            path: '/register',
+            name: 'register',
+            builder: (context, state) => const RegisterScreen(),
+          ),
+          GoRoute(
+            path: '/main/home',
+            name: 'home',
+            builder: (context, state) => const TestRouteMarker('home'),
+          ),
+          GoRoute(
+            path: '/main/join-band',
+            name: 'join-band',
+            builder: (context, state) => const TestRouteMarker('join-band'),
+          ),
+          GoRoute(
+            path: '/main/songs',
+            name: 'songs',
+            builder: (context, state) => const SongsListScreen(),
+            routes: [
+              GoRoute(
+                path: 'add',
+                name: 'add-song',
+                builder: (context, state) => const TestRouteMarker('add-song'),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                name: 'edit-song',
+                builder: (context, state) => const TestRouteMarker('edit-song'),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/main/bands',
+            name: 'bands',
+            builder: (context, state) => const MyBandsScreen(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'create-band',
+                builder: (context, state) =>
+                    const TestRouteMarker('create-band'),
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'the-band',
+                builder: (context, state) => const TestRouteMarker('the-band'),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                name: 'edit-band',
+                builder: (context, state) => const TestRouteMarker('edit-band'),
+              ),
+              GoRoute(
+                path: ':id/songs',
+                name: 'band-songs',
+                builder: (context, state) =>
+                    const TestRouteMarker('band-songs'),
+              ),
+              GoRoute(
+                path: ':id/setlists',
+                name: 'band-setlists',
+                builder: (context, state) =>
+                    const TestRouteMarker('band-setlists'),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/main/setlists',
+            name: 'setlists',
+            builder: (context, state) => const SetlistsListScreen(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'create-setlist',
+                builder: (context, state) =>
+                    const TestRouteMarker('create-setlist'),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                name: 'edit-setlist',
+                builder: (context, state) =>
+                    const TestRouteMarker('edit-setlist'),
+              ),
+            ],
           ),
         ],
-      ),
-      GoRoute(
-        path: '/main/bands',
-        name: 'bands',
-        builder: (context, state) => const MyBandsScreen(),
-        routes: [
-          GoRoute(
-            path: 'create',
-            name: 'create-band',
-            builder: (context, state) => const TestRouteMarker('create-band'),
-          ),
-          GoRoute(
-            path: ':id',
-            name: 'the-band',
-            builder: (context, state) => const TestRouteMarker('the-band'),
-          ),
-          GoRoute(
-            path: ':id/edit',
-            name: 'edit-band',
-            builder: (context, state) => const TestRouteMarker('edit-band'),
-          ),
-          GoRoute(
-            path: ':id/songs',
-            name: 'band-songs',
-            builder: (context, state) => const TestRouteMarker('band-songs'),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: '/main/setlists',
-        name: 'setlists',
-        builder: (context, state) => const SetlistsListScreen(),
-        routes: [
-          GoRoute(
-            path: 'create',
-            name: 'create-setlist',
-            builder: (context, state) =>
-                const TestRouteMarker('create-setlist'),
-          ),
-          GoRoute(
-            path: ':id/edit',
-            name: 'edit-setlist',
-            builder: (context, state) => const TestRouteMarker('edit-setlist'),
-          ),
-        ],
-      ),
-    ],
   );
 }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -246,6 +248,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     );
   }
 
+  void _runAfterPopupClose(Future<void> Function() action) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(action());
+    });
+  }
+
   /// Filter and sort songs based on search query, key, BPM, tag, and sort option.
   List<Song> _filterAndSortSongs(List<Song> songs) {
     final state = ref.read(songsFilterSortProvider);
@@ -492,18 +501,23 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   Widget build(BuildContext context) {
     final songsAsync = ref.watch(songsProvider);
     final bandsAsync = ref.watch(bandsProvider);
+    final exportSongs = songsAsync.value;
+    final canExport = exportSongs != null && exportSongs.isNotEmpty;
 
     return StandardScreenScaffold(
       title: 'Songs',
       showBackButton: false, // Hide back button for main tabs
       menuItems: [
         PopupMenuItem<void>(
-          onTap: _handleImport,
+          onTap: () => _runAfterPopupClose(_handleImport),
           child: const Text('Import from CSV'),
         ),
         PopupMenuItem<void>(
-          onTap: songsAsync.value != null && songsAsync.value!.isNotEmpty
-              ? () => _handleExport(songsAsync.value!)
+          enabled: canExport,
+          onTap: canExport
+              ? () => _runAfterPopupClose(
+                  () => _handleExport(List<Song>.from(exportSongs)),
+                )
               : null,
           child: const Text('Export to CSV'),
         ),

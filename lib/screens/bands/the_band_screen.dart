@@ -16,6 +16,7 @@ import '../../widgets/quick_action_button.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/tool_button.dart';
+import '../setlists/create_setlist_screen.dart';
 
 /// The Band Screen - displays band dashboard similar to personal page.
 ///
@@ -213,8 +214,9 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   Widget _buildBandDashboard() {
     final userAsync = ref.watch(appUserProvider);
     final songCountAsync = ref.watch(bandSongsProvider(widget.band.id));
-    // TODO: Add band setlist count provider when implemented
-    const setlistCount = '0'; // Placeholder
+    final setlistCount = ref
+        .watch(bandSetlistCountProvider(widget.band.id))
+        .toString();
 
     return DashboardGrid(
       greetingCard: _buildBandGreetingCard(),
@@ -250,12 +252,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         label: 'Setlists',
         value: setlistCount,
         color: MonoPulseColors.textSecondary,
-        onTap: () {
-          // TODO: Navigate to band setlists when implemented
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Band setlists coming soon!')),
-          );
-        },
+        onTap: () => context.goNamed(
+          'band-setlists',
+          pathParameters: {'id': widget.band.id},
+          extra: widget.band,
+        ),
       ),
       StatCard(
         icon: Icons.people,
@@ -485,7 +486,10 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   void _handleAddSetlist() {
     context.goNamed(
       'create-setlist',
-      queryParameters: {'bandId': widget.band.id},
+      queryParameters: {
+        'bandId': widget.band.id,
+        'scope': SetlistStorageScope.band.name,
+      },
     );
   }
 

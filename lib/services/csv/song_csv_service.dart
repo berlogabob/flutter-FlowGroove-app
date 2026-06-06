@@ -7,10 +7,8 @@
 library;
 
 import 'dart:convert';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../models/song.dart';
 import '../../models/section.dart';
@@ -33,23 +31,21 @@ class SongCsvService {
         type: FileType.custom,
         allowedExtensions: ['csv'],
         allowMultiple: false,
+        withData: true,
       );
 
       if (result == null || result.files.isEmpty) {
         return SongParseResult(successful: [], errors: ['No file selected']);
       }
 
-      final filePath = result.files.single.path;
-      if (filePath == null) {
+      final platformFile = result.files.single;
+      final content = await _readPickedFile(platformFile);
+      if (content == null) {
         return SongParseResult(
           successful: [],
-          errors: ['Could not get file path'],
+          errors: ['Could not read selected CSV file'],
         );
       }
-
-      // Read file content
-      final file = File(filePath);
-      final content = await file.readAsString(encoding: utf8);
 
       // Parse CSV
       return _parser.parse(content);
@@ -59,6 +55,11 @@ class SongCsvService {
         errors: ['Import failed: $e\n$stackTrace'],
       );
     }
+  }
+
+  /// Import songs from CSV bytes returned by a file picker or drag/drop.
+  SongParseResult importFromBytes(Uint8List bytes) {
+    return _parser.parse(utf8.decode(bytes, allowMalformed: true));
   }
 
   /// Import songs from CSV string (e.g., copy-paste from Google Sheets).
@@ -75,28 +76,22 @@ class SongCsvService {
 
   /// Export songs to a CSV file and save to device.
   ///
-  /// Returns the file path if successful, null otherwise.
-  Future<String?> exportToFile(List<Song> songs) async {
+  /// Returns true if the save/download action was started successfully.
+  Future<bool> exportToFile(List<Song> songs) async {
     try {
-      // Serialize to CSV
-      final csvContent = _serializer.serialize(songs);
-
-      // Get directory
-      final directory = await getApplicationDocumentsDirectory();
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final filePath = '${directory.path}/flowgroove_export_$timestamp.csv';
-
-      // Write file with UTF-8 BOM for Excel compatibility
-      final file = File(filePath);
-      await file.writeAsString(
-        '\ufeff$csvContent', // UTF-8 BOM
-        encoding: utf8,
+      final filePath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Export FlowGroove songs',
+        fileName: _createExportFileName(),
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+        bytes: exportToBytes(songs),
       );
 
-      return filePath;
+      // On web, file_picker starts a browser download and returns null.
+      return kIsWeb || filePath != null;
     } catch (e, stackTrace) {
       debugPrint('Export failed: $e\n$stackTrace');
-      return null;
+      return false;
     }
   }
 
@@ -105,18 +100,20 @@ class SongCsvService {
   /// Returns true if sharing was successful.
   Future<bool> exportAndShare(List<Song> songs) async {
     try {
-      // Export to file
-      final filePath = await exportToFile(songs);
-      if (filePath == null) {
-        return false;
-      }
-
-      // Share file
+      final fileName = _createExportFileName();
       await SharePlus.instance.share(
         ShareParams(
-          files: [XFile(filePath)],
+          files: [
+            XFile.fromData(
+              exportToBytes(songs),
+              name: fileName,
+              mimeType: 'text/csv',
+            ),
+          ],
+          fileNameOverrides: [fileName],
           subject: 'FlowGroove Song Export',
           text: 'Exported ${songs.length} songs from FlowGroove',
+          downloadFallbackEnabled: true,
         ),
       );
 
@@ -130,6 +127,11 @@ class SongCsvService {
   /// Export songs to CSV string.
   String exportToString(List<Song> songs) {
     return _serializer.serialize(songs);
+  }
+
+  /// Export songs to UTF-8 CSV bytes.
+  Uint8List exportToBytes(List<Song> songs) {
+    return Uint8List.fromList(utf8.encode(exportToString(songs)));
   }
 
   /// Create a sample CSV template for users to fill in.
@@ -171,5 +173,23 @@ class SongCsvService {
     );
 
     return _serializer.serialize([template]);
+  }
+
+  Future<String?> _readPickedFile(PlatformFile file) async {
+    final bytes = file.bytes;
+    if (bytes != null) {
+      return utf8.decode(bytes, allowMalformed: true);
+    }
+
+    try {
+      return await file.xFile.readAsString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _createExportFileName() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return 'flowgroove_export_$timestamp.csv';
   }
 }

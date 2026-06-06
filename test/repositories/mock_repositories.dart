@@ -188,6 +188,7 @@ class MockBandRepository implements BandRepository {
 /// Mock SetlistRepository for testing.
 class MockSetlistRepository implements SetlistRepository {
   final _setlists = <String, Setlist>{};
+  final _bandSetlists = <String, Map<String, Setlist>>{};
 
   @override
   Future<void> saveSetlist(Setlist setlist, {String? uid}) async {
@@ -204,6 +205,26 @@ class MockSetlistRepository implements SetlistRepository {
     return Stream.value(_setlists.values.toList());
   }
 
+  @override
+  Future<void> saveBandSetlist(Setlist setlist, String bandId) async {
+    _bandSetlists.putIfAbsent(bandId, () => {});
+    _bandSetlists[bandId]![setlist.id] = setlist.copyWith(bandId: bandId);
+  }
+
+  @override
+  Future<void> deleteBandSetlist(String bandId, String setlistId) async {
+    _bandSetlists[bandId]?.remove(setlistId);
+  }
+
+  @override
+  Stream<List<Setlist>> watchBandSetlists(String bandId) {
+    return Stream.value(_bandSetlists[bandId]?.values.toList() ?? []);
+  }
+
   /// Helper method to get setlists for testing.
   List<Setlist> get setlists => _setlists.values.toList();
+
+  /// Helper method to get band setlists for testing.
+  List<Setlist> getBandSetlists(String bandId) =>
+      _bandSetlists[bandId]?.values.toList() ?? [];
 }

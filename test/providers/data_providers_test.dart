@@ -9,6 +9,7 @@ import 'package:flowgroove/repositories/repositories.dart';
 import 'package:flowgroove/services/cache_service.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/canonical_song.dart';
 
 @GenerateMocks([
@@ -42,6 +43,9 @@ void main() {
       ).thenAnswer((_) => Stream.value([]));
       when(
         mockSetlistRepository.watchSetlists(any),
+      ).thenAnswer((_) => Stream.value([]));
+      when(
+        mockSetlistRepository.watchBandSetlists(any),
       ).thenAnswer((_) => Stream.value([]));
       when(mockCacheService.getCachedSongs(any)).thenAnswer((_) async => []);
       when(mockCacheService.getCachedBands(any)).thenAnswer((_) async => []);
@@ -83,6 +87,28 @@ void main() {
       test('setlistRepositoryProvider returns mocked instance', () {
         final repo = container.read(setlistRepositoryProvider);
         expect(repo, equals(mockSetlistRepository));
+      });
+
+      test('bandSetlistsProvider watches shared setlists for a band', () async {
+        final setlist = Setlist(
+          id: 'setlist-1',
+          bandId: 'band-1',
+          name: 'Band Setlist',
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        );
+        when(
+          mockSetlistRepository.watchBandSetlists('band-1'),
+        ).thenAnswer((_) => Stream.value([setlist]));
+
+        final subscription = container.listen(
+          bandSetlistsProvider('band-1'),
+          (_, _) {},
+          fireImmediately: true,
+        );
+        addTearDown(subscription.close);
+
+        verify(mockSetlistRepository.watchBandSetlists('band-1')).called(1);
       });
 
       test('cacheProvider returns mocked instance', () {

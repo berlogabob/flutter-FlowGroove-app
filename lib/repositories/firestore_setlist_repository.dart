@@ -67,15 +67,15 @@ class FirestoreSetlistRepository implements SetlistRepository {
             try {
               return snapshot.docs.map((doc) {
                 try {
-                  return Setlist.fromJson(doc.data() as Map<String, dynamic>);
+                  return Setlist.fromJson(doc.data());
                 } catch (e) {
                   debugPrint('❌ Failed to parse setlist ${doc.id}: $e');
-                  final data = doc.data() as Map<String, dynamic>;
+                  final data = doc.data();
                   return Setlist(
                     id: doc.id,
-                    bandId: doc.id,
+                    bandId: '',
                     name: (data['name'] as String?) ?? 'Unknown',
-                    description: 'Parse error: ${e.toString()}',
+                    description: 'Parse error: $e',
                     createdAt: DateTime.now(),
                     updatedAt: DateTime.now(),
                   );
@@ -92,6 +92,80 @@ class FirestoreSetlistRepository implements SetlistRepository {
           });
     } catch (e, stackTrace) {
       debugPrint('❌ watchSetlists exception: $e');
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  @override
+  Future<void> saveBandSetlist(Setlist setlist, String bandId) async {
+    try {
+      _requireAuth();
+
+      await _firestore
+          .collection('bands')
+          .doc(bandId)
+          .collection('setlists')
+          .doc(setlist.id)
+          .set(setlist.copyWith(bandId: bandId).toJson());
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  @override
+  Future<void> deleteBandSetlist(String bandId, String setlistId) async {
+    try {
+      _requireAuth();
+
+      await _firestore
+          .collection('bands')
+          .doc(bandId)
+          .collection('setlists')
+          .doc(setlistId)
+          .delete();
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  @override
+  Stream<List<Setlist>> watchBandSetlists(String bandId) {
+    try {
+      return _firestore
+          .collection('bands')
+          .doc(bandId)
+          .collection('setlists')
+          .snapshots()
+          .map((snapshot) {
+            try {
+              return snapshot.docs.map((doc) {
+                try {
+                  final data = doc.data();
+                  return Setlist.fromJson({...data, 'id': doc.id});
+                } catch (e) {
+                  debugPrint('❌ Failed to parse band setlist ${doc.id}: $e');
+                  final data = doc.data();
+                  return Setlist(
+                    id: doc.id,
+                    bandId: bandId,
+                    name: (data['name'] as String?) ?? 'Unknown',
+                    description: 'Parse error: $e',
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                  );
+                }
+              }).toList();
+            } catch (e) {
+              debugPrint('❌ Failed to map band setlists snapshot: $e');
+              return <Setlist>[];
+            }
+          })
+          .handleError((Object error, StackTrace stackTrace) {
+            debugPrint('❌ Band setlists stream error: $error');
+            throw ApiError.fromException(error, stackTrace: stackTrace);
+          });
+    } catch (e, stackTrace) {
+      debugPrint('❌ watchBandSetlists exception: $e');
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
   }
