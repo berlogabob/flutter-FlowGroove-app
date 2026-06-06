@@ -36,6 +36,8 @@ describe("library v2 Firestore rules", function () {
       const db = context.firestore();
       await db.collection("users").doc("user-1").set(userDoc("user-1"));
       await db.collection("users").doc("user-2").set(userDoc("user-2"));
+      await db.collection("users").doc("admin-user").set(userDoc("admin-user"));
+      await db.collection("users").doc("outsider").set(userDoc("outsider"));
       await db.collection("users").doc("demo-user").set({
         ...userDoc("demo-user"),
         accessRole: "demo",
@@ -53,10 +55,16 @@ describe("library v2 Firestore rules", function () {
       await db.collection("bands").doc("band-1").set({
         id: "band-1",
         name: "Band",
-        memberUids: ["user-1", "user-2"],
-        editorUids: ["user-1"],
-        adminUids: [],
+        memberUids: ["user-1", "user-2", "admin-user", "demo-user"],
+        editorUids: ["user-1", "demo-user"],
+        adminUids: ["admin-user"],
       });
+      await db
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-1")
+        .set(setlist("band-1", "setlist-1"));
     });
   });
 
@@ -153,6 +161,112 @@ describe("library v2 Firestore rules", function () {
     );
   });
 
+  it("allows band members to read shared band setlists", async () => {
+    const editorDb = authedDb("user-1");
+    const viewerDb = authedDb("user-2");
+    const outsiderDb = authedDb("outsider");
+
+    await assertSucceeds(
+      editorDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-1")
+        .get(),
+    );
+    await assertSucceeds(
+      viewerDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-1")
+        .get(),
+    );
+    await assertFails(
+      outsiderDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-1")
+        .get(),
+    );
+  });
+
+  it("allows band editors and admins to write shared band setlists", async () => {
+    const editorDb = authedDb("user-1");
+    const adminDb = authedDb("admin-user");
+
+    await assertSucceeds(
+      editorDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-2")
+        .set(setlist("band-1", "setlist-2")),
+    );
+    await assertSucceeds(
+      adminDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-1")
+        .update({ name: "Updated Setlist" }),
+    );
+  });
+
+  it("denies shared band setlist writes for viewers, outsiders, and demo users", async () => {
+    const viewerDb = authedDb("user-2");
+    const outsiderDb = authedDb("outsider");
+    const demoDb = authedDb("demo-user");
+    const editorDb = authedDb("user-1");
+
+    await assertFails(
+      viewerDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-2")
+        .set(setlist("band-1", "setlist-2")),
+    );
+    await assertFails(
+      outsiderDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-2")
+        .set(setlist("band-1", "setlist-2")),
+    );
+    await assertFails(
+      demoDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-2")
+        .set(setlist("band-1", "setlist-2")),
+    );
+    await assertFails(
+      editorDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-1")
+        .delete(),
+    );
+  });
+
+  it("allows only band admins to delete shared band setlists", async () => {
+    const adminDb = authedDb("admin-user");
+
+    await assertSucceeds(
+      adminDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-1")
+        .delete(),
+    );
+  });
+
   function authedDb(uid) {
     return testEnv.authenticatedContext(uid).firestore();
   }
@@ -203,5 +317,18 @@ function commit(authorId) {
     message: "Create linked song",
     clientMutationId: "mutation-1",
     createdAt: new Date().toISOString(),
+  };
+}
+
+function setlist(bandId, setlistId) {
+  return {
+    id: setlistId,
+    bandId,
+    name: "Gig Setlist",
+    description: "Shared set",
+    songIds: [],
+    assignments: {},
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 }

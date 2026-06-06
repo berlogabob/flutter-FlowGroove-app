@@ -158,6 +158,51 @@ void main() {
       expect(find.text('route:add-song'), findsOneWidget);
     });
 
+    testWidgets('opens CSV import dialog from app bar menu', (tester) async {
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value([])),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Import from CSV'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Import Songs from CSV'), findsOneWidget);
+      expect(find.text('Select CSV File'), findsOneWidget);
+      expect(find.text('Paste from Clipboard'), findsOneWidget);
+    });
+
+    testWidgets('opens CSV export dialog from app bar menu', (tester) async {
+      final songs = [
+        MockDataHelper.createMockSong(
+          id: '1',
+          title: 'Song One',
+          artist: 'Artist One',
+        ),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Export to CSV'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Export Songs to CSV'), findsOneWidget);
+      expect(find.text('Export 1 song(s) to CSV file:'), findsOneWidget);
+      expect(find.text('Save to Device'), findsOneWidget);
+      expect(find.text('Share'), findsOneWidget);
+    });
+
     testWidgets('shows loading indicator while songs are loading', (
       tester,
     ) async {
@@ -169,6 +214,5 @@ void main() {
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
-
   });
 }

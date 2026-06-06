@@ -1,10 +1,14 @@
 /// Tests for CSV parsing and serialization.
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/link.dart';
 import 'package:flowgroove/services/csv/song_csv_parser.dart';
 import 'package:flowgroove/services/csv/song_csv_serializer.dart';
+import 'package:flowgroove/services/csv/song_csv_service.dart';
 import 'package:flowgroove/services/csv/song_csv_schema.dart';
 
 void main() {
@@ -380,6 +384,56 @@ Song 3,Artist 3
       expect(result.successful[0].title, equals('Song 1'));
       expect(result.successful[1].title, equals('Song 2'));
       expect(result.successful[2].title, equals('Song 3'));
+    });
+  });
+
+  group('SongCsvService', () {
+    test('imports CSV from picked file bytes', () {
+      final service = SongCsvService();
+      final bytes = Uint8List.fromList(
+        utf8.encode('\uFEFFtitle,artist\nByte Song,Byte Artist\n'),
+      );
+
+      final result = service.importFromBytes(bytes);
+
+      expect(result.errors, isEmpty);
+      expect(result.successful, hasLength(1));
+      expect(result.successful.first.title, equals('Byte Song'));
+      expect(result.successful.first.artist, equals('Byte Artist'));
+    });
+
+    test('exports importable CSV bytes without duplicate BOM', () {
+      final service = SongCsvService();
+      final song = Song(
+        id: 'test-service-export',
+        title: 'Service Export',
+        artist: 'Artist',
+        originalKey: 'C',
+        originalBPM: 120,
+        ourKey: 'D',
+        ourBPM: 130,
+        links: [],
+        notes: null,
+        tags: [],
+        bandId: null,
+        spotifyUrl: null,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        accentBeats: 4,
+        regularBeats: 1,
+        beatModes: [],
+        sections: [],
+      );
+
+      final bytes = service.exportToBytes([song]);
+
+      expect(bytes.sublist(0, 3), equals([0xEF, 0xBB, 0xBF]));
+      expect(bytes.sublist(3, 6), isNot(equals([0xEF, 0xBB, 0xBF])));
+
+      final result = service.importFromBytes(bytes);
+      expect(result.errors, isEmpty);
+      expect(result.successful, hasLength(1));
+      expect(result.successful.first.title, equals(song.title));
     });
   });
 

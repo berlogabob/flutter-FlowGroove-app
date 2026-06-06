@@ -161,6 +161,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
   Future<void> _importFromFile() async {
     setState(() => _isLoading = true);
     final result = await _service.importFromFile();
+    if (!mounted) return;
     setState(() {
       _result = result;
       _isLoading = false;
@@ -171,6 +172,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
     setState(() => _isLoading = true);
     try {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (!mounted) return;
       final content = clipboardData?.text ?? '';
       if (content.isEmpty) {
         setState(() {
@@ -183,11 +185,13 @@ class _SongImportDialogState extends State<SongImportDialog> {
         return;
       }
       final result = await _service.importFromString(content);
+      if (!mounted) return;
       setState(() {
         _result = result;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _result = SongParseResult(
           successful: [],

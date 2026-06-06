@@ -139,48 +139,54 @@ class _FakeFuture_16<T1> extends _i1.SmartFake implements _i7.Future<T1> {
     : super(parent, parentInvocation);
 }
 
-class _FakeFirebaseFirestore_17 extends _i1.SmartFake
+class _FakePipelineSource_17 extends _i1.SmartFake
+    implements _i6.PipelineSource {
+  _FakePipelineSource_17(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeFirebaseFirestore_18 extends _i1.SmartFake
     implements _i6.FirebaseFirestore {
-  _FakeFirebaseFirestore_17(Object parent, Invocation parentInvocation)
+  _FakeFirebaseFirestore_18(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeAggregateQuery_18 extends _i1.SmartFake
+class _FakeAggregateQuery_19 extends _i1.SmartFake
     implements _i6.AggregateQuery {
-  _FakeAggregateQuery_18(Object parent, Invocation parentInvocation)
+  _FakeAggregateQuery_19(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeDocumentSnapshot_19<T1 extends Object?> extends _i1.SmartFake
+class _FakeDocumentSnapshot_20<T1 extends Object?> extends _i1.SmartFake
     implements _i6.DocumentSnapshot<T1> {
-  _FakeDocumentSnapshot_19(Object parent, Invocation parentInvocation)
+  _FakeDocumentSnapshot_20(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeSnapshotMetadata_20 extends _i1.SmartFake
+class _FakeSnapshotMetadata_21 extends _i1.SmartFake
     implements _i6.SnapshotMetadata {
-  _FakeSnapshotMetadata_20(Object parent, Invocation parentInvocation)
+  _FakeSnapshotMetadata_21(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeResponse_21 extends _i1.SmartFake implements _i8.Response {
-  _FakeResponse_21(Object parent, Invocation parentInvocation)
+class _FakeResponse_22 extends _i1.SmartFake implements _i8.Response {
+  _FakeResponse_22(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeStreamedResponse_22 extends _i1.SmartFake
+class _FakeStreamedResponse_23 extends _i1.SmartFake
     implements _i8.StreamedResponse {
-  _FakeStreamedResponse_22(Object parent, Invocation parentInvocation)
+  _FakeStreamedResponse_23(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeAudioCache_23 extends _i1.SmartFake implements _i9.AudioCache {
-  _FakeAudioCache_23(Object parent, Invocation parentInvocation)
+class _FakeAudioCache_24 extends _i1.SmartFake implements _i9.AudioCache {
+  _FakeAudioCache_24(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeCompleter_24<T> extends _i1.SmartFake implements _i7.Completer<T> {
-  _FakeCompleter_24(Object parent, Invocation parentInvocation)
+class _FakeCompleter_25<T> extends _i1.SmartFake implements _i7.Completer<T> {
+  _FakeCompleter_25(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -610,6 +616,15 @@ class MockFirebaseAuth extends _i1.Mock implements _i4.FirebaseAuth {
             Invocation.method(#revokeTokenWithAuthorizationCode, [
               authorizationCode,
             ]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> revokeAccessToken(String? accessToken) =>
+      (super.noSuchMethod(
+            Invocation.method(#revokeAccessToken, [accessToken]),
             returnValue: _i7.Future<void>.value(),
             returnValueForMissingStub: _i7.Future<void>.value(),
           )
@@ -1243,6 +1258,17 @@ class MockFirebaseFirestore extends _i1.Mock implements _i6.FirebaseFirestore {
           as _i7.Future<void>);
 
   @override
+  _i6.PipelineSource pipeline() =>
+      (super.noSuchMethod(
+            Invocation.method(#pipeline, []),
+            returnValue: _FakePipelineSource_17(
+              this,
+              Invocation.method(#pipeline, []),
+            ),
+          )
+          as _i6.PipelineSource);
+
+  @override
   _i7.Future<void> setIndexConfigurationFromJSON(String? json) =>
       (super.noSuchMethod(
             Invocation.method(#setIndexConfigurationFromJSON, [json]),
@@ -1285,7 +1311,7 @@ class MockCollectionReference<T extends Object?> extends _i1.Mock
   _i6.FirebaseFirestore get firestore =>
       (super.noSuchMethod(
             Invocation.getter(#firestore),
-            returnValue: _FakeFirebaseFirestore_17(
+            returnValue: _FakeFirebaseFirestore_18(
               this,
               Invocation.getter(#firestore),
             ),
@@ -1558,7 +1584,7 @@ class MockCollectionReference<T extends Object?> extends _i1.Mock
   _i6.AggregateQuery count() =>
       (super.noSuchMethod(
             Invocation.method(#count, []),
-            returnValue: _FakeAggregateQuery_18(
+            returnValue: _FakeAggregateQuery_19(
               this,
               Invocation.method(#count, []),
             ),
@@ -1631,7 +1657,7 @@ class MockCollectionReference<T extends Object?> extends _i1.Mock
               aggregateField29,
               aggregateField30,
             ]),
-            returnValue: _FakeAggregateQuery_18(
+            returnValue: _FakeAggregateQuery_19(
               this,
               Invocation.method(#aggregate, [
                 aggregateField1,
@@ -1684,7 +1710,7 @@ class MockDocumentReference<T extends Object?> extends _i1.Mock
   _i6.FirebaseFirestore get firestore =>
       (super.noSuchMethod(
             Invocation.getter(#firestore),
-            returnValue: _FakeFirebaseFirestore_17(
+            returnValue: _FakeFirebaseFirestore_18(
               this,
               Invocation.getter(#firestore),
             ),
@@ -1757,7 +1783,7 @@ class MockDocumentReference<T extends Object?> extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#get, [options]),
             returnValue: _i7.Future<_i6.DocumentSnapshot<T>>.value(
-              _FakeDocumentSnapshot_19<T>(
+              _FakeDocumentSnapshot_20<T>(
                 this,
                 Invocation.method(#get, [options]),
               ),
@@ -1838,7 +1864,7 @@ class MockQuerySnapshot<T extends Object?> extends _i1.Mock
   _i6.SnapshotMetadata get metadata =>
       (super.noSuchMethod(
             Invocation.getter(#metadata),
-            returnValue: _FakeSnapshotMetadata_20(
+            returnValue: _FakeSnapshotMetadata_21(
               this,
               Invocation.getter(#metadata),
             ),
@@ -1882,7 +1908,7 @@ class MockDocumentSnapshot<T extends Object?> extends _i1.Mock
   _i6.SnapshotMetadata get metadata =>
       (super.noSuchMethod(
             Invocation.getter(#metadata),
-            returnValue: _FakeSnapshotMetadata_20(
+            returnValue: _FakeSnapshotMetadata_21(
               this,
               Invocation.getter(#metadata),
             ),
@@ -1959,7 +1985,7 @@ class MockClient extends _i1.Mock implements _i8.Client {
       (super.noSuchMethod(
             Invocation.method(#head, [url], {#headers: headers}),
             returnValue: _i7.Future<_i8.Response>.value(
-              _FakeResponse_21(
+              _FakeResponse_22(
                 this,
                 Invocation.method(#head, [url], {#headers: headers}),
               ),
@@ -1972,7 +1998,7 @@ class MockClient extends _i1.Mock implements _i8.Client {
       (super.noSuchMethod(
             Invocation.method(#get, [url], {#headers: headers}),
             returnValue: _i7.Future<_i8.Response>.value(
-              _FakeResponse_21(
+              _FakeResponse_22(
                 this,
                 Invocation.method(#get, [url], {#headers: headers}),
               ),
@@ -1994,7 +2020,7 @@ class MockClient extends _i1.Mock implements _i8.Client {
               {#headers: headers, #body: body, #encoding: encoding},
             ),
             returnValue: _i7.Future<_i8.Response>.value(
-              _FakeResponse_21(
+              _FakeResponse_22(
                 this,
                 Invocation.method(
                   #post,
@@ -2020,7 +2046,7 @@ class MockClient extends _i1.Mock implements _i8.Client {
               {#headers: headers, #body: body, #encoding: encoding},
             ),
             returnValue: _i7.Future<_i8.Response>.value(
-              _FakeResponse_21(
+              _FakeResponse_22(
                 this,
                 Invocation.method(
                   #put,
@@ -2046,7 +2072,7 @@ class MockClient extends _i1.Mock implements _i8.Client {
               {#headers: headers, #body: body, #encoding: encoding},
             ),
             returnValue: _i7.Future<_i8.Response>.value(
-              _FakeResponse_21(
+              _FakeResponse_22(
                 this,
                 Invocation.method(
                   #patch,
@@ -2072,7 +2098,7 @@ class MockClient extends _i1.Mock implements _i8.Client {
               {#headers: headers, #body: body, #encoding: encoding},
             ),
             returnValue: _i7.Future<_i8.Response>.value(
-              _FakeResponse_21(
+              _FakeResponse_22(
                 this,
                 Invocation.method(
                   #delete,
@@ -2113,7 +2139,7 @@ class MockClient extends _i1.Mock implements _i8.Client {
       (super.noSuchMethod(
             Invocation.method(#send, [request]),
             returnValue: _i7.Future<_i8.StreamedResponse>.value(
-              _FakeStreamedResponse_22(
+              _FakeStreamedResponse_23(
                 this,
                 Invocation.method(#send, [request]),
               ),
@@ -2378,7 +2404,7 @@ class MockAudioPlayer extends _i1.Mock implements _i9.AudioPlayer {
   _i9.AudioCache get audioCache =>
       (super.noSuchMethod(
             Invocation.getter(#audioCache),
-            returnValue: _FakeAudioCache_23(
+            returnValue: _FakeAudioCache_24(
               this,
               Invocation.getter(#audioCache),
             ),
@@ -2447,7 +2473,7 @@ class MockAudioPlayer extends _i1.Mock implements _i9.AudioPlayer {
   _i7.Completer<void> get creatingCompleter =>
       (super.noSuchMethod(
             Invocation.getter(#creatingCompleter),
-            returnValue: _FakeCompleter_24<void>(
+            returnValue: _FakeCompleter_25<void>(
               this,
               Invocation.getter(#creatingCompleter),
             ),
@@ -2835,6 +2861,32 @@ class MockFirestoreService extends _i1.Mock implements _i17.FirestoreService {
   _i7.Stream<List<_i20.Setlist>> watchSetlists(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#watchSetlists, [uid]),
+            returnValue: _i7.Stream<List<_i20.Setlist>>.empty(),
+          )
+          as _i7.Stream<List<_i20.Setlist>>);
+
+  @override
+  _i7.Future<void> saveBandSetlist(_i20.Setlist? setlist, String? bandId) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveBandSetlist, [setlist, bandId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> deleteBandSetlist(String? bandId, String? setlistId) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteBandSetlist, [bandId, setlistId]),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
+  _i7.Stream<List<_i20.Setlist>> watchBandSetlists(String? bandId) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchBandSetlists, [bandId]),
             returnValue: _i7.Stream<List<_i20.Setlist>>.empty(),
           )
           as _i7.Stream<List<_i20.Setlist>>);

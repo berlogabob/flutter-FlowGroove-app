@@ -270,6 +270,45 @@ void main() {
       });
     });
 
+    group('band setlists', () {
+      test('should save a shared band setlist', () async {
+        final setlist = Setlist(
+          id: 'band-setlist-id',
+          bandId: 'band-id',
+          name: 'Shared Setlist',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await repository.saveBandSetlist(setlist, 'band-id');
+
+        final bandSetlists = await repository
+            .watchBandSetlists('band-id')
+            .first;
+        expect(bandSetlists, hasLength(1));
+        expect(bandSetlists.first.id, 'band-setlist-id');
+        expect(bandSetlists.first.bandId, 'band-id');
+      });
+
+      test('should delete a shared band setlist', () async {
+        final setlist = Setlist(
+          id: 'band-setlist-id',
+          bandId: 'band-id',
+          name: 'Shared Setlist',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await repository.saveBandSetlist(setlist, 'band-id');
+
+        await repository.deleteBandSetlist('band-id', 'band-setlist-id');
+
+        final bandSetlists = await repository
+            .watchBandSetlists('band-id')
+            .first;
+        expect(bandSetlists, isEmpty);
+      });
+    });
+
     group('Setlist model operations', () {
       test('should preserve song IDs through save', () async {
         // Arrange

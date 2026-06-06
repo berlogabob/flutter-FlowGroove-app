@@ -117,6 +117,11 @@ service cloud.firestore {
         );
     }
 
+    function isValidBandSetlistWrite(bandId, setlistId) {
+      return request.resource.data.id == setlistId &&
+        request.resource.data.bandId == bandId;
+    }
+
     function isValidUserProfileCreate(userId) {
       return request.resource.data.uid == userId &&
         request.resource.data.accessRole == 'member';
@@ -179,6 +184,26 @@ service cloud.firestore {
           isValidLinkedSongCommit(request.auth.uid);
         allow update, delete: if false;
       }
+    }
+
+    // ============================================================
+    // Band Setlists Subcollection
+    // ============================================================
+    // Setlists stored under bands for collaborative band planning
+    match /bands/{bandId}/setlists/{setlistId} {
+      // Band members can read
+      allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+
+      // Band editors/admins can create and update (non-demo only)
+      allow create, update: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandEditorOrAdmin(bandId) &&
+        isValidBandSetlistWrite(bandId, setlistId);
+
+      // Band admins can delete (non-demo only)
+      allow delete: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandAdmin(bandId);
     }
 
     // ============================================================

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/mono_pulse_theme.dart';
@@ -52,16 +54,16 @@ class ListScreenContent<T extends UnifiedItemModel>
   final bool enableReorder;
 
   /// Callback when items are reordered.
-  final Function(int, int)? onReorder;
+  final void Function(int, int)? onReorder;
 
   /// Callback when item is deleted.
-  final Function(int)? onDelete;
+  final FutureOr<void> Function(int)? onDelete;
 
   /// Callback when item is edited.
-  final Function(int)? onEdit;
+  final void Function(int)? onEdit;
 
   /// Callback when item is tapped.
-  final Function(int)? onTap;
+  final void Function(int)? onTap;
 
   /// Builder for additional custom actions.
   final List<UnifiedItemAction> Function(int)? additionalActionsBuilder;

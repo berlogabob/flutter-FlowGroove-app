@@ -469,6 +469,15 @@ final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
   );
 });
 
+/// Stream provider that watches shared setlists for a band.
+final bandSetlistsProvider = StreamProvider.family<List<Setlist>, String>((
+  ref,
+  bandId,
+) {
+  final setlistRepo = ref.watch(setlistRepositoryProvider);
+  return setlistRepo.watchBandSetlists(bandId);
+});
+
 /// Stream provider that watches band songs with caching.
 final bandSongsProvider = StreamProvider.family<List<Song>, String>((
   ref,
@@ -534,4 +543,12 @@ final setlistCountProvider = Provider<int>((ref) {
       0;
   debugPrint('🔵 setlistCountProvider: count=$count');
   return count;
+});
+
+/// Provider that returns the count of shared setlists for a band.
+final bandSetlistCountProvider = Provider.family<int, String>((ref, bandId) {
+  return ref
+          .watch(bandSetlistsProvider(bandId))
+          .whenOrNull(data: (setlists) => setlists.length) ??
+      0;
 });

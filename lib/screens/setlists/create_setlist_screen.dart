@@ -11,11 +11,19 @@ import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
 
+enum SetlistStorageScope { personal, band }
+
 class CreateSetlistScreen extends ConsumerStatefulWidget {
-  const CreateSetlistScreen({super.key, this.setlist, this.bandId});
+  const CreateSetlistScreen({
+    super.key,
+    this.setlist,
+    this.bandId,
+    this.storageScope = SetlistStorageScope.personal,
+  });
 
   final Setlist? setlist;
   final String? bandId;
+  final SetlistStorageScope storageScope;
 
   @override
   ConsumerState<CreateSetlistScreen> createState() =>
@@ -32,6 +40,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   bool _hasUnsavedChanges = false;
 
   bool get _isEditing => widget.setlist != null;
+  bool get _isBandScope => widget.storageScope == SetlistStorageScope.band;
 
   String? get _effectiveBandId {
     final rawBandId = _isEditing ? widget.setlist!.bandId : widget.bandId;
@@ -167,9 +176,17 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       return;
     }
 
+    final bandId = _effectiveBandId;
+    if (_isBandScope && bandId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Band is required for shared setlists')),
+      );
+      return;
+    }
+
     final setlist = Setlist(
       id: _isEditing ? widget.setlist!.id : const Uuid().v4(),
-      bandId: _effectiveBandId ?? '',
+      bandId: bandId ?? '',
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
@@ -183,20 +200,28 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       updatedAt: DateTime.now(),
     );
 
-    await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
+    if (_isBandScope) {
+      await ref.read(firestoreProvider).saveBandSetlist(setlist, bandId!);
+    } else {
+      await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
+    }
 
     // Log analytics event
     await AnalyticsService.logSetlistCreatedFromSetlist(setlist);
 
     if (mounted) {
       // Invalidate the setlists provider to ensure UI refresh
-      ref.invalidate(setlistsProvider);
+      if (_isBandScope) {
+        ref.invalidate(bandSetlistsProvider(bandId!));
+      } else {
+        ref.invalidate(setlistsProvider);
+      }
 
       // Show snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Setlist "${setlist.name}" ${_isEditing ? 'updated' : 'created'}',
+            '${_isBandScope ? 'Band setlist' : 'Setlist'} "${setlist.name}" ${_isEditing ? 'updated' : 'created'}',
           ),
         ),
       );
@@ -257,7 +282,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       child: Scaffold(
         appBar: CustomAppBar.build(
           context,
-          title: _isEditing ? 'Edit Setlist' : 'Create Setlist',
+          title: _isEditing
+              ? (_isBandScope ? 'Edit Band Setlist' : 'Edit Setlist')
+              : (_isBandScope ? 'Create Band Setlist' : 'Create Setlist'),
           menuItems: [
             PopupMenuItem<void>(onTap: _saveSetlist, child: const Text('Save')),
           ],

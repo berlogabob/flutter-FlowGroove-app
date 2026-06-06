@@ -122,7 +122,11 @@ class _SongExportDialogState extends State<SongExportDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.check_circle, color: MonoPulseColors.successGreen, size: 64),
+        const Icon(
+          Icons.check_circle,
+          color: MonoPulseColors.successGreen,
+          size: 64,
+        ),
         const SizedBox(height: 16),
         Text(
           'Export Successful!',
@@ -158,9 +162,10 @@ class _SongExportDialogState extends State<SongExportDialog> {
 
   Future<void> _exportToFile() async {
     setState(() => _isLoading = true);
-    final filePath = await _service.exportToFile(widget.songs);
+    final success = await _service.exportToFile(widget.songs);
+    if (!mounted) return;
     setState(() {
-      _exported = filePath != null;
+      _exported = success;
       _isLoading = false;
     });
   }

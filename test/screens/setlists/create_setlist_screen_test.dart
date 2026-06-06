@@ -57,5 +57,57 @@ void main() {
       expect(savedSetlist.name, 'Gig Night');
       expect(savedSetlist.bandId, 'band-123');
     });
+
+    testWidgets('saves a band-scoped setlist to the shared band collection', (
+      tester,
+    ) async {
+      final firebaseUser = MockUser();
+      when(firebaseUser.uid).thenReturn('test-user-id');
+
+      final firestore = MockFirestoreService();
+      when(firestore.saveBandSetlist(any, any)).thenAnswer((_) async {});
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWithValue(
+              AsyncValue<User?>.data(firebaseUser),
+            ),
+            firestoreProvider.overrideWithValue(firestore),
+            bandSongsProvider.overrideWith(
+              (ref, bandId) => Stream<List<Song>>.value([]),
+            ),
+            setlistsProvider.overrideWith(
+              (ref) => Stream<List<Setlist>>.value([]),
+            ),
+            bandSetlistsProvider.overrideWith(
+              (ref, bandId) => Stream<List<Setlist>>.value([]),
+            ),
+          ],
+          child: const MaterialApp(
+            home: CreateSetlistScreen(
+              bandId: 'band-123',
+              storageScope: SetlistStorageScope.band,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, 'Shared Gig');
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 350));
+
+      final verification = verify(
+        firestore.saveBandSetlist(captureAny, 'band-123'),
+      )..called(1);
+      final savedSetlist = verification.captured.single as Setlist;
+      expect(savedSetlist.name, 'Shared Gig');
+      expect(savedSetlist.bandId, 'band-123');
+      verifyNever(firestore.saveSetlist(any, uid: anyNamed('uid')));
+    });
   });
 }

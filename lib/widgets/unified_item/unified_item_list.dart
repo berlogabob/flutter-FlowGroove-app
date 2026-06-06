@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'unified_item_model.dart';
 import 'unified_item_card.dart';
@@ -6,10 +8,10 @@ import 'unified_item_card.dart';
 class UnifiedItemList<T extends UnifiedItemModel> extends StatefulWidget {
   final List<T> items;
   final VoidCallback? onRefresh;
-  final Function(int, int)? onReorder;
-  final Function(int)? onDelete;
-  final Function(int)? onTap;
-  final Function(int)? onEdit;
+  final void Function(int, int)? onReorder;
+  final FutureOr<void> Function(int)? onDelete;
+  final void Function(int)? onTap;
+  final void Function(int)? onEdit;
   final bool showCompact;
   final bool enableReorder;
   final List<UnifiedItemAction> Function(int)? additionalActionsBuilder;
@@ -62,6 +64,7 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
             // Already handled in confirmDismiss - do nothing here
           },
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               if (widget.onTap != null) {
                 widget.onTap!(index);

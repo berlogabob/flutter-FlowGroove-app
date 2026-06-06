@@ -65,6 +65,15 @@ class MockSongRepository extends _i1.Mock implements _i2.SongRepository {
           as _i3.Future<void>);
 
   @override
+  _i3.Future<void> revertSongToCanonical(_i4.Song? song, {String? uid}) =>
+      (super.noSuchMethod(
+            Invocation.method(#revertSongToCanonical, [song], {#uid: uid}),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
   _i3.Stream<List<_i4.Song>> watchSongs(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#watchSongs, [uid]),
@@ -130,6 +139,15 @@ class MockSongRepository extends _i1.Mock implements _i2.SongRepository {
   _i3.Future<void> updateBandSong(_i4.Song? song, String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#updateBandSong, [song, bandId]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> revertBandSongToCanonical(_i4.Song? song, String? bandId) =>
+      (super.noSuchMethod(
+            Invocation.method(#revertBandSongToCanonical, [song, bandId]),
             returnValue: _i3.Future<void>.value(),
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
@@ -260,6 +278,32 @@ class MockSetlistRepository extends _i1.Mock implements _i7.SetlistRepository {
   _i3.Stream<List<_i8.Setlist>> watchSetlists(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#watchSetlists, [uid]),
+            returnValue: _i3.Stream<List<_i8.Setlist>>.empty(),
+          )
+          as _i3.Stream<List<_i8.Setlist>>);
+
+  @override
+  _i3.Future<void> saveBandSetlist(_i8.Setlist? setlist, String? bandId) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveBandSetlist, [setlist, bandId]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> deleteBandSetlist(String? bandId, String? setlistId) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteBandSetlist, [bandId, setlistId]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Stream<List<_i8.Setlist>> watchBandSetlists(String? bandId) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchBandSetlists, [bandId]),
             returnValue: _i3.Stream<List<_i8.Setlist>>.empty(),
           )
           as _i3.Stream<List<_i8.Setlist>>);
