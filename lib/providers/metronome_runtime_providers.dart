@@ -173,6 +173,7 @@ class MetronomePlaybackConfig {
     required this.accentFrequency,
     required this.beatFrequency,
     required this.hapticsEnabled,
+    this.countInBars = 0,
   });
 
   factory MetronomePlaybackConfig.fromState(MetronomeState state) {
@@ -187,6 +188,7 @@ class MetronomePlaybackConfig {
       accentFrequency: state.accentFrequency,
       beatFrequency: state.beatFrequency,
       hapticsEnabled: state.hapticsEnabled,
+      countInBars: state.countInBars,
     );
   }
 
@@ -200,6 +202,7 @@ class MetronomePlaybackConfig {
   final double accentFrequency;
   final double beatFrequency;
   final bool hapticsEnabled;
+  final int countInBars;
 
   int get _safeAccentBeats => accentBeats.clamp(1, 12);
 
@@ -302,6 +305,7 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
   MetronomePlaybackConfig? _config;
   MetronomePlaybackTickCallback? _onTick;
   int _tickIndex = -1;
+  int _countInTicks = 0;
 
   @override
   Future<void> start(
@@ -314,6 +318,7 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
     _config = config;
     _onTick = onTick;
     _tickIndex = initialTick;
+    _countInTicks = 0;
     _scheduler.start(config.interval, _handleTick);
   }
 
@@ -346,6 +351,36 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
       _tickIndex = (_tickIndex + 1) % config.totalTicks;
       final tick = config.tickForIndex(_tickIndex);
 
+      // Count-in logic: skip audio playback during count-in bars
+      final countInTotalTicks = config.countInBars * config.totalTicks;
+      if (_countInTicks < countInTotalTicks) {
+        // During count-in: fire haptics but skip audio
+        if (config.hapticsEnabled && tick.shouldPlay) {
+          final beatIndex = tick.beatIndex;
+          final subdivisionIndex = tick.subdivisionIndex;
+          if (subdivisionIndex > 0) {
+            _hapticsClient.tick();
+          } else {
+            final mode = (beatIndex < config.beatModes.length &&
+                    subdivisionIndex < config.beatModes[beatIndex].length)
+                ? config.beatModes[beatIndex][subdivisionIndex]
+                : BeatMode.normal;
+            switch (mode) {
+              case BeatMode.accent:
+                _hapticsClient.heavyClick();
+              case BeatMode.normal:
+                _hapticsClient.mediumClick();
+              case BeatMode.silent:
+                break;
+            }
+          }
+        }
+        _countInTicks++;
+        onTick(tick);
+        return;
+      }
+
+      // Normal playback (after count-in)
       if (tick.shouldPlay) {
         if (config.hapticsEnabled) {
           final beatIndex = tick.beatIndex;
@@ -363,7 +398,6 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
               case BeatMode.normal:
                 _hapticsClient.mediumClick();
               case BeatMode.silent:
-                // No haptic for silent beats
                 break;
             }
           }

@@ -10,6 +10,7 @@ import '../widgets/metronome/fine_adjustment_buttons.dart';
 import '../widgets/metronome/song_library_block.dart';
 import '../../models/song.dart';
 import '../../models/metronome_state.dart';
+import '../../widgets/tap_bpm_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
@@ -480,9 +481,13 @@ class _CompactPerformanceLayout extends StatelessWidget {
       SizedBox(height: MonoPulseSpacing.md),
       _HapticsToggle(),
       SizedBox(height: MonoPulseSpacing.sm),
+      _CountInSelector(),
+      SizedBox(height: MonoPulseSpacing.sm),
       _MetronomeTransport(),
       SizedBox(height: MonoPulseSpacing.sm),
       SongLibraryBlock(),
+      SizedBox(height: MonoPulseSpacing.sm),
+      TapBPMWidget(),
     ];
 
     if (useScroll) {
@@ -537,19 +542,23 @@ class _WidePerformanceLayout extends StatelessWidget {
         ),
         const SizedBox(width: MonoPulseSpacing.xxxl),
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 340),
-          child: const Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FineAdjustmentButtons(),
-              SizedBox(height: MonoPulseSpacing.xl),
-              _HapticsToggle(),
-              SizedBox(height: MonoPulseSpacing.lg),
-              _MetronomeTransport(),
-              SizedBox(height: MonoPulseSpacing.lg),
-              SongLibraryBlock(),
-            ],
-          ),
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FineAdjustmentButtons(),
+            SizedBox(height: MonoPulseSpacing.xl),
+            _HapticsToggle(),
+            SizedBox(height: MonoPulseSpacing.md),
+            _CountInSelector(),
+            SizedBox(height: MonoPulseSpacing.lg),
+            _MetronomeTransport(),
+            SizedBox(height: MonoPulseSpacing.lg),
+            SongLibraryBlock(),
+            SizedBox(height: MonoPulseSpacing.lg),
+            TapBPMWidget(),
+          ],
+        ),
         ),
       ],
     );
@@ -634,6 +643,92 @@ class _HapticsToggle extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Count-in selector widget - allows choosing 0, 1, 2, or 4 count-in bars
+class _CountInSelector extends ConsumerWidget {
+  const _CountInSelector();
+
+  static const List<int> _options = [0, 1, 2, 4];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final countInBars = ref.watch(
+      metronomeProvider.select((state) => state.countInBars),
+    );
+    final metronome = ref.read(metronomeProvider.notifier);
+
+    return Material(
+      color: MonoPulseColors.surface,
+      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 48),
+        padding: const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.lg,
+          vertical: MonoPulseSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          border: Border.all(color: MonoPulseColors.borderSubtle),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.timer_outlined,
+                  color: countInBars > 0
+                      ? MonoPulseColors.accentOrange
+                      : MonoPulseColors.textTertiary,
+                  size: MonoPulseIcons.sizeMedium,
+                ),
+                const SizedBox(width: MonoPulseSpacing.md),
+                Text(
+                  'Count-in',
+                  style: MonoPulseTypography.labelLarge.copyWith(
+                    color: MonoPulseColors.textHighEmphasis,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: _options.map((value) {
+                final isSelected = countInBars == value;
+                return Padding(
+                  padding: const EdgeInsets.only(left: MonoPulseSpacing.xs),
+                  child: ChoiceChip(
+                    label: Text(
+                      value == 0 ? 'Off' : '$value',
+                      style: MonoPulseTypography.labelMedium.copyWith(
+                        color: isSelected
+                            ? MonoPulseColors.black
+                            : MonoPulseColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    selected: isSelected,
+                    selectedColor: MonoPulseColors.accentOrange,
+                    backgroundColor: MonoPulseColors.surfaceRaised,
+                    side: BorderSide(
+                      color: isSelected
+                          ? MonoPulseColors.accentOrange
+                          : MonoPulseColors.borderSubtle,
+                    ),
+                    onSelected: (_) {
+                      metronome.setCountInBars(value);
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ),
       ),
     );

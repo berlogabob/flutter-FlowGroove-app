@@ -43,6 +43,7 @@ MetronomeState _$MetronomeStateFromJson(Map<String, dynamic> json) =>
           ? null
           : Setlist.fromJson(json['loadedSetlist'] as Map<String, dynamic>),
       currentSetlistIndex: (json['currentSetlistIndex'] as num?)?.toInt() ?? 0,
+      countInBars: (json['countInBars'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$MetronomeStateToJson(MetronomeState instance) =>
@@ -66,6 +67,7 @@ Map<String, dynamic> _$MetronomeStateToJson(MetronomeState instance) =>
       'loadedSong': instance.loadedSong,
       'loadedSetlist': instance.loadedSetlist,
       'currentSetlistIndex': instance.currentSetlistIndex,
+      'countInBars': instance.countInBars,
     };
 
 const _$BeatModeEnumMap = {
