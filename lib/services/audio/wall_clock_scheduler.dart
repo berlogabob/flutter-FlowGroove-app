@@ -1,0 +1,51 @@
+import 'dart:async';
+
+class WallClockScheduler {
+  Timer? _timer;
+  Stopwatch _stopwatch = Stopwatch();
+  Duration _interval = Duration.zero;
+  void Function()? _callback;
+  int _tickCount = 0;
+  int _nextTargetMs = 0;
+
+  int get elapsedMilliseconds => _stopwatch.elapsedMilliseconds;
+  int get tickCount => _tickCount;
+
+  void start(Duration interval, void Function() callback) {
+    stop();
+    _interval = interval;
+    _callback = callback;
+    _tickCount = 0;
+    _nextTargetMs = 0;
+    _stopwatch.reset();
+    _stopwatch.start();
+    _scheduleNext();
+  }
+
+  void _scheduleNext() {
+    if (_callback == null) return;
+    _nextTargetMs += _interval.inMilliseconds;
+    final now = _stopwatch.elapsedMilliseconds;
+    final delayMs = _nextTargetMs - now;
+    final delay = delayMs > 0 ? Duration(milliseconds: delayMs) : Duration.zero;
+    _timer = Timer(delay, _onTick);
+  }
+
+  void _onTick() {
+    if (_callback == null) return;
+    _tickCount++;
+    _callback!();
+    _scheduleNext();
+  }
+
+  void stop() {
+    _timer?.cancel();
+    _timer = null;
+    _stopwatch.stop();
+    _callback = null;
+  }
+
+  void dispose() {
+    stop();
+  }
+}
