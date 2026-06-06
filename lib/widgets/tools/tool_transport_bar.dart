@@ -43,6 +43,9 @@ class ToolTransportBar extends StatelessWidget {
   /// Whether to show settings button.
   final bool showSettings;
 
+  /// Optional outer margin override.
+  final EdgeInsetsGeometry? margin;
+
   const ToolTransportBar({
     super.key,
     required this.isPlaying,
@@ -52,6 +55,7 @@ class ToolTransportBar extends StatelessWidget {
     this.onSettings,
     this.showNavigation = false,
     this.showSettings = false,
+    this.margin,
   });
 
   @override
@@ -60,10 +64,12 @@ class ToolTransportBar extends StatelessWidget {
 
     return Container(
       height: 80,
-      margin: EdgeInsets.symmetric(
-        horizontal: ToolSpacing.xxxl(context),
-        vertical: ToolSpacing.lg(context),
-      ),
+      margin:
+          margin ??
+          EdgeInsets.symmetric(
+            horizontal: ToolSpacing.xxxl(context),
+            vertical: ToolSpacing.lg(context),
+          ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -130,7 +136,7 @@ class _PlayPauseButton extends StatelessWidget {
         ),
         child: Icon(
           isPlaying ? Icons.pause : Icons.play_arrow,
-          color: Colors.white,
+          color: MonoPulseColors.black,
           size: size * 0.5,
         ),
       ),

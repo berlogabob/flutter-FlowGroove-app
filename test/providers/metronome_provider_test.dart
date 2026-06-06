@@ -927,14 +927,16 @@ void main() {
         expect(state.isPlaying, isTrue);
       });
 
-      test('start initializes audio and enables wakelock', () async {
+      test('start starts playback and enables wakelock', () async {
         final runtime = MetronomeTestRuntime();
         final container = createContainer(runtime: runtime);
 
         container.read(metronomeProvider.notifier).start(120, 4);
         await Future<void>.delayed(Duration.zero);
 
-        expect(runtime.audio.initializeCalls, 1);
+        expect(runtime.playback.startCalls, 1);
+        expect(runtime.playback.lastConfig?.bpm, 120);
+        expect(runtime.playback.lastConfig?.accentBeats, 4);
         expect(runtime.wakelock.enableCalls, 1);
         expect(runtime.wakelock.isEnabled, isTrue);
       });
@@ -1034,6 +1036,16 @@ void main() {
         expect(state.accentEnabled, isFalse);
       });
 
+      test('setHapticsEnabled updates state', () {
+        final container = createContainer();
+
+        final metronome = container.read(metronomeProvider.notifier);
+        metronome.setHapticsEnabled(false);
+
+        final state = container.read(metronomeProvider);
+        expect(state.hapticsEnabled, isFalse);
+      });
+
       test('setAccentFrequency updates state', () {
         final container = createContainer();
 
@@ -1067,22 +1079,32 @@ void main() {
       });
 
       test(
-        'timer tick uses fake audio and haptics without platform plugins',
+        'playback tick updates current beat without platform plugins',
         () async {
           final runtime = MetronomeTestRuntime();
           final container = createContainer(runtime: runtime);
 
           container.read(metronomeProvider.notifier).start(120, 4);
-          await Future<void>.delayed(const Duration(milliseconds: 520));
+          await Future<void>.delayed(Duration.zero);
+          runtime.playback.emitTick(2);
 
-          expect(runtime.audio.playClickCalls, greaterThanOrEqualTo(1));
-          expect(runtime.haptics.lightImpactCalls, greaterThanOrEqualTo(1));
-          expect(
-            container.read(metronomeProvider).currentBeat,
-            greaterThanOrEqualTo(0),
-          );
+          expect(container.read(metronomeProvider).currentBeat, 2);
         },
       );
+
+      test('haptics changes update playback config while playing', () async {
+        final runtime = MetronomeTestRuntime();
+        final container = createContainer(runtime: runtime);
+
+        container.read(metronomeProvider.notifier).start(120, 4);
+        await Future<void>.delayed(Duration.zero);
+
+        container.read(metronomeProvider.notifier).setHapticsEnabled(false);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(runtime.playback.updateCalls, greaterThanOrEqualTo(1));
+        expect(runtime.playback.lastConfig?.hapticsEnabled, isFalse);
+      });
     });
 
     group('Preset Management', () {

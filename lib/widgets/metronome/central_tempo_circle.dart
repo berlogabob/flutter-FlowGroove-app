@@ -65,54 +65,68 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
     return GestureDetector(
       onPanUpdate: _onPanUpdate,
       onTap: () => _showBpmInput(context, notifier),
-      child: SizedBox(
-        width: 300,
-        height: 300,
-        child: AnimatedBuilder(
-          animation: _pulseAnimation,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: _pulseAnimation.value,
-              child: CustomPaint(
-                painter: TempoDialPainter(
-                  bpm: state.bpm.toDouble(),
-                  isPlaying: state.isPlaying,
-                  rotationOffset: _rotationOffset,
-                ),
-                child: Center(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          state.bpm.toString(),
-                          style: TextStyle(
-                            fontSize: 64,
-                            fontWeight: FontWeight.w700,
-                            color: state.isPlaying
-                                ? MonoPulseColors.accentOrange
-                                : MonoPulseColors.textPrimary,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxWidth = constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : MediaQuery.of(context).size.width;
+          final maxHeight = constraints.hasBoundedHeight
+              ? constraints.maxHeight
+              : maxWidth;
+          final rawDiameter = math.min(maxWidth, maxHeight);
+          final diameter = rawDiameter.clamp(120.0, 300.0).toDouble();
+
+          return Center(
+            child: SizedBox(
+              width: diameter,
+              height: diameter,
+              child: AnimatedBuilder(
+                animation: _pulseAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _pulseAnimation.value,
+                    child: CustomPaint(
+                      painter: TempoDialPainter(
+                        bpm: state.bpm.toDouble(),
+                        isPlaying: state.isPlaying,
+                        rotationOffset: _rotationOffset,
+                      ),
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                state.bpm.toString(),
+                                style: MonoPulseTypography.displayLarge
+                                    .copyWith(
+                                      fontSize: 64,
+                                      fontWeight: FontWeight.w700,
+                                      color: state.isPlaying
+                                          ? MonoPulseColors.accentOrange
+                                          : MonoPulseColors.textPrimary,
+                                    ),
+                              ),
+                              Text(
+                                'BPM',
+                                style: MonoPulseTypography.bodyLarge.copyWith(
+                                  color: MonoPulseColors.textSecondary
+                                      .withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          'BPM',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: MonoPulseColors.textSecondary.withValues(
-                              alpha: 0.7,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -139,7 +153,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
       text: ref.read(metronomeProvider).bpm.toString(),
     );
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Set BPM'),
@@ -241,9 +255,8 @@ class TempoDialPainter extends CustomPainter {
 
       labelPaint.text = TextSpan(
         text: tick.toString(),
-        style: const TextStyle(
+        style: MonoPulseTypography.bodySmall.copyWith(
           color: MonoPulseColors.textTertiary,
-          fontSize: 12,
           fontWeight: FontWeight.w700,
         ),
       );

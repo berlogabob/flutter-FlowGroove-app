@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 /// Fine adjustment buttons widget
 class FineAdjustmentButtons extends ConsumerWidget {
@@ -24,8 +25,8 @@ class FineAdjustmentButtons extends ConsumerWidget {
     final notifier = ref.read(metronomeProvider.notifier);
 
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: MonoPulseSpacing.sm,
+      runSpacing: MonoPulseSpacing.sm,
       alignment: WrapAlignment.center,
       children: [
         _AdjustButton(
@@ -74,7 +75,7 @@ class _AdjustButton extends StatelessWidget {
   final IconData icon;
   final int delta;
   final String tooltip;
-  final dynamic notifier;
+  final MetronomeNotifier notifier;
 
   const _AdjustButton({
     required this.icon,
@@ -87,24 +88,34 @@ class _AdjustButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isNegative = delta < 0;
     final color = isNegative
-        ? Theme.of(context).colorScheme.error
-        : Theme.of(context).colorScheme.primary;
+        ? MonoPulseColors.textSecondary
+        : MonoPulseColors.accentOrange;
 
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: isNegative
+            ? MonoPulseColors.surfaceRaised
+            : MonoPulseColors.accentOrangeSubtle,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
         child: SizedBox(
           width: 48,
           height: 48,
           child: InkWell(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.small),
             onTap: () => _onTap(context),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: MonoPulseIcons.sizeMedium),
+                Text(
+                  delta.abs().toString(),
+                  style: MonoPulseTypography.labelSmall.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -113,22 +124,9 @@ class _AdjustButton extends StatelessWidget {
   }
 
   void _onTap(BuildContext context) {
-    final currentBpm = notifier.state.bpm;
-    final newBpm = (currentBpm + delta).clamp(10, 260);
-    notifier.setBpm(newBpm);
+    notifier.adjustTempoFine(delta);
 
     // Haptic feedback
     HapticFeedback.lightImpact();
-
-    // Visual feedback
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('BPM: $currentBpm → $newBpm'),
-          duration: const Duration(milliseconds: 800),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
   }
 }

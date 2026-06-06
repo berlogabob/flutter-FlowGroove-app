@@ -18,9 +18,8 @@ import '../../services/wakelock_controller.dart';
 /// Manages metronome state and provides methods to control it.
 /// Uses Riverpod Notifier pattern for state management.
 class MetronomeNotifier extends Notifier<MetronomeState> {
-  Timer? _timer;
   late MetronomeAudioClient _audioClient;
-  late MetronomeHapticsClient _haptics;
+  late MetronomePlaybackClient _playbackClient;
   late WakelockController _wakelock;
 
   /// Default constructor
@@ -29,7 +28,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   @override
   MetronomeState build() {
     _audioClient = ref.read(metronomeAudioClientProvider);
-    _haptics = ref.read(metronomeHapticsProvider);
+    _playbackClient = ref.read(metronomePlaybackClientProvider);
     _wakelock = ref.read(wakelockProvider);
     ref.onDispose(_cleanup);
 
@@ -57,18 +56,16 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       );
     }
 
-    // Initialize audio on first start (requires user interaction)
-    unawaited(_initializeAudioSafely());
-
     state = state.copyWith(
       isPlaying: true,
       bpm: clampedBpm,
       timeSignature: timeSignature,
+      accentBeats: beatsPerMeasure,
       currentBeat: -1, // Will be 0 on first tick
       accentPattern: accentPattern,
     );
 
-    _startTimer();
+    unawaited(_startPlaybackSafely(initialTick: -1));
 
     // Enable wakelock to keep screen on during practice
     unawaited(_wakelock.enable());
@@ -78,8 +75,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void stop() {
     if (!state.isPlaying) return;
 
-    _timer?.cancel();
-    _timer = null;
+    unawaited(_playbackClient.stop());
 
     state = state.copyWith(isPlaying: false, currentBeat: 0);
 
@@ -91,19 +87,16 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void setBpm(int bpm) {
     final clampedBpm = _clampBpm(bpm);
     state = state.copyWith(bpm: clampedBpm);
-
-    if (state.isPlaying) {
-      _timer?.cancel();
-      _startTimer();
-    }
+    _syncPlaybackConfig();
   }
 
   /// Set number of BEATS (top row, first number of time signature)
   /// Examples: 4/4 → 4 beats, 2/2 → 2 beats, 6/8 → 2 beats
   /// INDEPENDENT: Does NOT affect subdivisions count
   void setAccentBeats(int count) {
-    final clampedCount = count.clamp(1, 12);
+    final clampedCount = count.clamp(1, 12).toInt();
     state = state.copyWith(accentBeats: clampedCount);
+    _syncPlaybackConfig();
   }
 
   /// Set number of SUBDIVISIONS per beat (bottom row)
@@ -111,8 +104,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   /// Where H = High pitch (1760 Hz), l = Low pitch (880 Hz)
   /// INDEPENDENT: Does NOT affect beats count
   void setRegularBeats(int count) {
-    final clampedCount = count.clamp(1, 12);
+    final clampedCount = count.clamp(1, 12).toInt();
     state = state.copyWith(regularBeats: clampedCount);
+    _syncPlaybackConfig();
   }
 
   /// Set beat mode for individual beat (normal, accent, silent)
@@ -138,6 +132,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     newBeatModes[beatIndex][subdivisionIndex] = mode;
 
     state = state.copyWith(beatModes: List.unmodifiable(newBeatModes));
+    _syncPlaybackConfig();
   }
 
   /// Rotate tempo using rotary dial gesture
@@ -152,22 +147,14 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     }
 
     state = state.copyWith(bpm: newBpm);
-
-    if (state.isPlaying) {
-      _timer?.cancel();
-      _startTimer();
-    }
+    _syncPlaybackConfig();
   }
 
   /// Fine adjustment for tempo (+1, +5, +10 buttons)
   void adjustTempoFine(int delta) {
     final newBpm = _clampBpm(state.bpm + delta);
     state = state.copyWith(bpm: newBpm);
-
-    if (state.isPlaying) {
-      _timer?.cancel();
-      _startTimer();
-    }
+    _syncPlaybackConfig();
   }
 
   /// Load tempo and metronome settings from a song
@@ -196,11 +183,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     );
     state = state.copyWith(timeSignature: timeSignature);
 
-    // Stop metronome if playing to apply new settings
-    if (state.isPlaying) {
-      _timer?.cancel();
-      _startTimer();
-    }
+    _syncPlaybackConfig();
   }
 
   /// Save current metronome settings to the loaded song
@@ -265,11 +248,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   void setTempoDirectly(int bpm) {
     final clampedBpm = _clampBpm(bpm);
     state = state.copyWith(bpm: clampedBpm);
-
-    if (state.isPlaying) {
-      _timer?.cancel();
-      _startTimer();
-    }
+    _syncPlaybackConfig();
   }
 
   /// Update beats per measure (backward compatibility)
@@ -289,13 +268,10 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
     state = state.copyWith(
       timeSignature: timeSignature,
+      accentBeats: beats,
       accentPattern: accentPattern,
     );
-
-    if (state.isPlaying) {
-      _timer?.cancel();
-      _startTimer();
-    }
+    _syncPlaybackConfig();
   }
 
   /// Set time signature with numerator and denominator
@@ -317,42 +293,55 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       accentBeats: beatCount,
       accentPattern: accentPattern,
     );
-
-    if (state.isPlaying) {
-      _timer?.cancel();
-      _startTimer();
-    }
+    _syncPlaybackConfig();
   }
 
   /// Set wave type
   void setWaveType(String type) {
     state = state.copyWith(waveType: type);
+    _syncPlaybackConfig();
   }
 
   /// Set volume
   void setVolume(double volume) {
-    final clampedVolume = volume.clamp(0.0, 1.0);
+    final clampedVolume = volume.clamp(0.0, 1.0).toDouble();
     state = state.copyWith(volume: clampedVolume);
+    _syncPlaybackConfig();
   }
 
   /// Toggle accent enabled
   void toggleAccent() {
     state = state.copyWith(accentEnabled: !state.accentEnabled);
+    _syncPlaybackConfig();
   }
 
   /// Set accent enabled state
   void setAccentEnabled(bool enabled) {
     state = state.copyWith(accentEnabled: enabled);
+    _syncPlaybackConfig();
   }
 
   /// Set accent frequency
   void setAccentFrequency(double frequency) {
     state = state.copyWith(accentFrequency: frequency);
+    _syncPlaybackConfig();
   }
 
   /// Set beat frequency
   void setBeatFrequency(double frequency) {
     state = state.copyWith(beatFrequency: frequency);
+    _syncPlaybackConfig();
+  }
+
+  /// Toggle synchronized haptic feedback during playback.
+  void toggleHaptics() {
+    setHapticsEnabled(!state.hapticsEnabled);
+  }
+
+  /// Set synchronized haptic feedback during playback.
+  void setHapticsEnabled(bool enabled) {
+    state = state.copyWith(hapticsEnabled: enabled);
+    _syncPlaybackConfig();
   }
 
   /// Set accent pattern
@@ -397,78 +386,6 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     }
   }
 
-  /// Start timer based on current BPM
-  void _startTimer() {
-    final interval = Duration(
-      milliseconds: (60000 ~/ state.bpm).clamp(1, 1500),
-    );
-    _timer = Timer.periodic(interval, _onTick);
-  }
-
-  /// Handle timer tick
-  /// NEW LOGIC: H/l pitch based on subdivision + beat modes
-  /// CRITICAL: Each subdivision has INDEPENDENT mode (not inherited from parent beat)
-  void _onTick(Timer timer) {
-    if (!state.isPlaying) return;
-
-    // Calculate total ticks per measure
-    // accentBeats = BEATS count (top row)
-    // regularBeats = SUBDIVISIONS per beat (bottom row)
-    final totalTicks = state.accentBeats * state.regularBeats;
-    final nextTick = (state.currentBeat + 1) % totalTicks;
-
-    // Determine which beat we're on (0 to accentBeats-1)
-    final currentBeatIndex = nextTick ~/ state.regularBeats;
-
-    // Determine which subdivision within the beat (0 to regularBeats-1)
-    final currentSubdivisionIndex = nextTick % state.regularBeats;
-
-    // Determine if this is a main beat position (first subdivision of the beat)
-    final isMainBeat = currentSubdivisionIndex == 0;
-
-    // Get mode for THIS specific subdivision (INDEPENDENT from parent beat!)
-    final beatMode =
-        currentBeatIndex < state.beatModes.length &&
-            currentSubdivisionIndex < state.beatModes[currentBeatIndex].length
-        ? state.beatModes[currentBeatIndex][currentSubdivisionIndex]
-        : BeatMode.normal;
-
-    // Calculate frequency based on mode (INDEPENDENT subdivision mode)
-    double frequency;
-    bool shouldPlay = true;
-
-    if (beatMode == BeatMode.silent) {
-      // Silent mode: visual only, no sound
-      shouldPlay = false;
-      frequency = isMainBeat ? 1760.0 : 880.0;
-    } else if (beatMode == BeatMode.accent) {
-      // Accent mode: +300 Hz (INDEPENDENT of parent beat)
-      frequency = (isMainBeat ? 1760.0 : 880.0) + 300.0;
-    } else {
-      // Normal mode
-      frequency = isMainBeat ? 1760.0 : 880.0;
-    }
-
-    // Play sound if not silent
-    if (shouldPlay) {
-      // Vibration FIRST for perfect sync (triggers immediately)
-      // Then audio (slightly delayed, but syncs better perceptually)
-      _haptics.lightImpact();
-
-      unawaited(
-        _playClickSafely(
-          isAccent: isMainBeat,
-          waveType: state.waveType,
-          volume: state.volume,
-          accentFrequency: frequency,
-          beatFrequency: frequency,
-        ),
-      );
-    }
-
-    state = state.copyWith(currentBeat: nextTick);
-  }
-
   /// Dispose resources when the provider is destroyed
   void dispose() {
     _cleanup();
@@ -478,37 +395,45 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     return bpm.clamp(10, 260);
   }
 
-  Future<void> _initializeAudioSafely() async {
+  Future<void> _startPlaybackSafely({required int initialTick}) async {
     try {
-      await _audioClient.initialize();
+      await _playbackClient.start(
+        MetronomePlaybackConfig.fromState(state),
+        onTick: _handlePlaybackTick,
+        onStopped: _handlePlaybackStopped,
+        initialTick: initialTick,
+      );
     } catch (error) {
-      debugPrint('[MetronomeNotifier] Audio initialization failed: $error');
+      debugPrint('[MetronomeNotifier] Playback start failed: $error');
     }
   }
 
-  Future<void> _playClickSafely({
-    required bool isAccent,
-    required String waveType,
-    required double volume,
-    required double accentFrequency,
-    required double beatFrequency,
-  }) async {
+  Future<void> _updatePlaybackSafely() async {
     try {
-      await _audioClient.playClick(
-        isAccent: isAccent,
-        waveType: waveType,
-        volume: volume,
-        accentFrequency: accentFrequency,
-        beatFrequency: beatFrequency,
-      );
+      await _playbackClient.update(MetronomePlaybackConfig.fromState(state));
     } catch (error) {
-      debugPrint('[MetronomeNotifier] Play click failed: $error');
+      debugPrint('[MetronomeNotifier] Playback update failed: $error');
     }
+  }
+
+  void _syncPlaybackConfig() {
+    if (!state.isPlaying) return;
+    unawaited(_updatePlaybackSafely());
+  }
+
+  void _handlePlaybackTick(MetronomePlaybackTick tick) {
+    if (!state.isPlaying) return;
+    state = state.copyWith(currentBeat: tick.index);
+  }
+
+  void _handlePlaybackStopped() {
+    if (!state.isPlaying) return;
+    state = state.copyWith(isPlaying: false, currentBeat: 0);
+    unawaited(_wakelock.disable());
   }
 
   void _cleanup() {
-    _timer?.cancel();
-    _timer = null;
+    unawaited(_playbackClient.stop());
     if (!_wakelock.isDisposed && _wakelock.isEnabled) {
       unawaited(_wakelock.disable());
     }
