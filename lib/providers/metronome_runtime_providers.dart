@@ -43,7 +43,7 @@ class AudioEngineMetronomeAudioClient implements MetronomeAudioClient {
 
   @override
   Future<void> preWarmPlayers() {
-    return initialize();
+    return MetronomeAudioEngine.instance.init();
   }
 
   @override
