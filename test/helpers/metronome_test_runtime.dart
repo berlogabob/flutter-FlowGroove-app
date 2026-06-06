@@ -62,7 +62,25 @@ class FakeMetronomeAudioClient implements MetronomeAudioClient {
 }
 
 class FakeMetronomeHapticsClient implements MetronomeHapticsClient {
+  int heavyClickCalls = 0;
+  int mediumClickCalls = 0;
+  int tickCalls = 0;
   int lightImpactCalls = 0;
+
+  @override
+  void heavyClick() {
+    heavyClickCalls += 1;
+  }
+
+  @override
+  void mediumClick() {
+    mediumClickCalls += 1;
+  }
+
+  @override
+  void tick() {
+    tickCalls += 1;
+  }
 
   @override
   void lightImpact() {
