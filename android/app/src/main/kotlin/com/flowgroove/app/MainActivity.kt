@@ -2,7 +2,9 @@ package com.flowgroove.app
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.SoundPool
+import android.media.ToneGenerator
 import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
@@ -137,7 +139,10 @@ private class AndroidMetronomeEngine(
     private val sampleGenerator = ClickSampleGenerator()
 
     private var soundPool: SoundPool? = null
+    private var fallbackTone: ToneGenerator? = null
     private val soundIdsByFrequency = mutableMapOf<Double, Int>()
+    private val frequenciesBySoundId = mutableMapOf<Int, Double>()
+    private val failedFrequencies = mutableSetOf<Double>()
     private var config: NativeMetronomeConfig? = null
     private var tickIndex = -1
     private var nextTickAtNanos = 0L
@@ -227,15 +232,20 @@ private class AndroidMetronomeEngine(
             .setMaxStreams(2)
             .setAudioAttributes(
                 AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build()
             )
             .build()
         soundPool = pool
+        fallbackTone = ToneGenerator(AudioManager.STREAM_MUSIC, (config.volume * 100).toInt())
 
         var pendingLoads = frequencies.size
-        pool.setOnLoadCompleteListener { _, _, _ ->
+        pool.setOnLoadCompleteListener { _, sampleId, status ->
+            val frequency = frequenciesBySoundId[sampleId]
+            if (status != 0 && frequency != null) {
+                failedFrequencies.add(frequency)
+            }
             pendingLoads -= 1
             if (pendingLoads <= 0) {
                 workerHandler.post { onReady() }
@@ -250,13 +260,32 @@ private class AndroidMetronomeEngine(
             sampleFile.writeBytes(sampleGenerator.generateWav(frequency, config.waveType))
             val soundId = pool.load(sampleFile.absolutePath, 1)
             soundIdsByFrequency[frequency] = soundId
+            frequenciesBySoundId[soundId] = frequency
         }
     }
 
     private fun playTick(config: NativeMetronomeConfig, tick: NativeMetronomeTick) {
-        val pool = soundPool ?: return
-        val soundId = soundIdsByFrequency[tick.frequency] ?: return
-        pool.play(soundId, config.volume, config.volume, 1, 0, 1f)
+        val pool = soundPool ?: run {
+            playFallbackTone()
+            return
+        }
+        val soundId = soundIdsByFrequency[tick.frequency] ?: run {
+            playFallbackTone()
+            return
+        }
+        if (failedFrequencies.contains(tick.frequency)) {
+            playFallbackTone()
+            return
+        }
+
+        val streamId = pool.play(soundId, config.volume, config.volume, 1, 0, 1f)
+        if (streamId == 0) {
+            playFallbackTone()
+        }
+    }
+
+    private fun playFallbackTone() {
+        fallbackTone?.startTone(ToneGenerator.TONE_PROP_BEEP, 35)
     }
 
     @Suppress("DEPRECATION")
@@ -284,7 +313,11 @@ private class AndroidMetronomeEngine(
     private fun releaseSoundPool() {
         soundPool?.release()
         soundPool = null
+        fallbackTone?.release()
+        fallbackTone = null
         soundIdsByFrequency.clear()
+        frequenciesBySoundId.clear()
+        failedFrequencies.clear()
     }
 
     private fun Int.floorMod(modulus: Int): Int {
