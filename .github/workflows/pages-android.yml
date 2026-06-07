@@ -42,11 +42,17 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Set up Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: latest
+          extended: true
+
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build GitHub Pages web
-        run: make build-github-pages
+      - name: Build GitHub Pages site
+        run: make -f Makefile.hugo hugo-build app-build
 
       - name: Build Android APK
         run: make build-android
@@ -64,7 +70,7 @@ jobs:
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/web
+          path: docs
 
       - name: Deploy GitHub Pages
         id: deployment
