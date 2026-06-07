@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:mockito/annotations.dart';
 import 'package:hive/hive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:printing/printing.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/models/song.dart';
@@ -26,7 +25,6 @@ import 'package:flowgroove/services/cache_service.dart';
   http.Client,
   Box,
   Connectivity,
-  AudioPlayer,
   Printing,
   FirestoreService,
   CacheService,
