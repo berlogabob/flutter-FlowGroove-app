@@ -87,8 +87,8 @@ deploy-all: hugo-build app-build
 	@echo "║         Deploying to GitHub Pages                         ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "📦 Adding docs/ to git..."
-	@git add docs/
+	@echo "📦 Adding docs/ and version metadata to git..."
+	@git add docs/ web/version.json
 	@git commit -m "deploy: hugo landing + flutter app $$(cat web/version.json 2>/dev/null | head -1)" || echo "No changes to commit"
 	@echo ""
 	@echo "🚀 Pushing to $(CURRENT_BRANCH) branch..."

@@ -1,6 +1,6 @@
 # FlowGroove App - Deployment Makefile
 # =====================================
-# Version: 0.13.4+184
+# Version: 0.13.4+189
 # Last Updated: April 24, 2026
 #
 # Quick Start:
@@ -24,6 +24,7 @@ FTP_DIR_DEFAULT := flowgroove.app
 FIREBASE_EMULATOR_TEST_FILES := integration_test/auth_flow_test.dart integration_test/setlist_management_test.dart
 GITHUB_PAGES_BASE_HREF ?= /flutter-FlowGroove-app/
 GITHUB_PAGES_DIST ?= docs
+RELEASE_GIT_PATHS ?= Makefile Makefile.hugo pubspec.yaml web/version.json lib test
 
 # =============================================================================
 # HELP
@@ -365,8 +366,8 @@ release: build-android build-appbundle
 	$(eval NEW_VERSION := $(shell grep "^version:" pubspec.yaml | sed 's/version: //'))
 	@echo "📦 Version: $(NEW_VERSION)"
 	@echo ""
-	@echo "💾 Committing changes..."
-	@git add -A
+	@echo "💾 Committing release-scoped changes..."
+	@git add $(RELEASE_GIT_PATHS)
 	@git commit -m "Release $(NEW_VERSION)" || echo "No changes to commit"
 	@echo ""
 	@echo "🏷️  Creating git tag..."

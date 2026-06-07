@@ -1,14 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
+import 'package:flowgroove/screens/songs/songs_list_screen.dart';
 
-import '../../helpers/mocks.dart';
+import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/routed_test_harness.dart';
+
+AppUser createTestUser() {
+  return AppUser(
+    uid: 'test-user-id',
+    displayName: 'Test User',
+    email: 'test@example.com',
+    createdAt: DateTime(2024, 1, 1),
+  );
+}
+
+Song createTestSong({
+  String id = 'test-song-id',
+  String title = 'Test Song',
+  String artist = 'Test Artist',
+  int? originalBPM,
+  int? ourBPM,
+  String? originalKey,
+  String? ourKey,
+  List<String> tags = const [],
+}) {
+  return Song(
+    id: id,
+    title: title,
+    artist: artist,
+    originalBPM: originalBPM,
+    ourBPM: ourBPM,
+    originalKey: originalKey,
+    ourKey: ourKey,
+    tags: tags,
+    createdAt: DateTime(2024, 1, 1),
+    updatedAt: DateTime(2024, 1, 1),
+  );
+}
 
 void main() {
   group('SongsListScreen', () {
@@ -26,7 +64,7 @@ void main() {
     ];
 
     setUp(() {
-      mockUser = MockDataHelper.createMockAppUser();
+      mockUser = createTestUser();
     });
 
     testWidgets('renders songs list screen with title and search', (
@@ -60,7 +98,7 @@ void main() {
       tester,
     ) async {
       final songs = [
-        MockDataHelper.createMockSong(
+        createTestSong(
           id: '1',
           title: 'Song One',
           artist: 'Artist One',
@@ -68,7 +106,7 @@ void main() {
           originalKey: 'C',
           tags: ['practice'],
         ),
-        MockDataHelper.createMockSong(
+        createTestSong(
           id: '2',
           title: 'Song Two',
           artist: 'Artist Two',
@@ -93,10 +131,124 @@ void main() {
       expect(find.byIcon(Icons.music_note), findsWidgets);
     });
 
+    testWidgets('shows metronome action for songs with tempo data', (
+      tester,
+    ) async {
+      final songs = [
+        createTestSong(
+          id: 'tempo-song',
+          title: 'Tempo Song',
+          artist: 'Practice Artist',
+          ourBPM: 130,
+        ),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+      );
+
+      expect(find.byTooltip('Open in Metronome'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('open-in-metronome-action')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows metronome action for saved beat pattern settings', (
+      tester,
+    ) async {
+      final songs = [
+        createTestSong(
+          id: 'pattern-song',
+          title: 'Pattern Song',
+          artist: 'Practice Artist',
+        ).copyWith(accentBeats: 5, regularBeats: 2),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+      );
+
+      expect(find.byTooltip('Open in Metronome'), findsOneWidget);
+    });
+
+    testWidgets('opens song settings in metronome without starting playback', (
+      tester,
+    ) async {
+      final song =
+          createTestSong(
+            id: 'metronome-song',
+            title: 'Metronome Song',
+            artist: 'Practice Artist',
+            ourBPM: 142,
+          ).copyWith(
+            accentBeats: 5,
+            regularBeats: 2,
+            beatModes: const [
+              [BeatMode.accent, BeatMode.normal],
+              [BeatMode.normal, BeatMode.silent],
+            ],
+          );
+      final runtime = MetronomeTestRuntime();
+      final container = ProviderContainer(
+        overrides: [
+          ...overridesFor(songs: Stream<List<Song>>.value([song])),
+          ...buildMetronomeTestOverrides(
+            runtime: runtime,
+            overrideMetronomeProvider: true,
+          ),
+        ].cast(),
+      );
+      final router = createRoutedTestRouter(
+        initialLocation: '/main/songs',
+        routes: [
+          GoRoute(
+            path: '/main/songs',
+            name: 'songs',
+            builder: (context, state) => const SongsListScreen(),
+          ),
+          GoRoute(
+            path: '/main/metronome',
+            name: 'metronome',
+            builder: (context, state) => const TestRouteMarker('metronome'),
+          ),
+        ],
+      );
+
+      addTearDown(container.dispose);
+      addTearDown(router.dispose);
+      addTearDown(runtime.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('Open in Metronome'));
+      await tester.pumpAndSettle();
+
+      final metronomeState = container.read(metronomeProvider);
+      expect(currentRouterUri(router).path, '/main/metronome');
+      expect(find.text('route:metronome'), findsOneWidget);
+      expect(metronomeState.loadedSong?.id, 'metronome-song');
+      expect(metronomeState.bpm, 142);
+      expect(metronomeState.accentBeats, 5);
+      expect(metronomeState.regularBeats, 2);
+      expect(metronomeState.beatModes, song.beatModes);
+      expect(metronomeState.isPlaying, isFalse);
+    });
+
     testWidgets('filters songs by title', (tester) async {
       final songs = [
-        MockDataHelper.createMockSong(id: '1', title: 'Ballad', artist: 'A'),
-        MockDataHelper.createMockSong(id: '2', title: 'Anthem', artist: 'B'),
+        createTestSong(id: '1', title: 'Ballad', artist: 'A'),
+        createTestSong(id: '2', title: 'Anthem', artist: 'B'),
       ];
 
       await pumpRoutedTestApp(
@@ -113,9 +265,7 @@ void main() {
     });
 
     testWidgets('shows search empty state when no songs match', (tester) async {
-      final songs = [
-        MockDataHelper.createMockSong(id: '1', title: 'Ballad', artist: 'A'),
-      ];
+      final songs = [createTestSong(id: '1', title: 'Ballad', artist: 'A')];
 
       await pumpRoutedTestApp(
         tester,
@@ -178,11 +328,7 @@ void main() {
 
     testWidgets('opens CSV export dialog from app bar menu', (tester) async {
       final songs = [
-        MockDataHelper.createMockSong(
-          id: '1',
-          title: 'Song One',
-          artist: 'Artist One',
-        ),
+        createTestSong(id: '1', title: 'Song One', artist: 'Artist One'),
       ];
 
       await pumpRoutedTestApp(

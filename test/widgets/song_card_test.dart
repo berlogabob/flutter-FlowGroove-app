@@ -1,16 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/song_card.dart';
 import 'package:flowgroove/models/song.dart';
-import '../helpers/test_helpers.dart';
-import '../helpers/mocks.dart';
+import 'package:flowgroove/widgets/song_card.dart';
+
+Future<void> pumpAppWidget(WidgetTester tester, Widget widget) async {
+  await tester.pumpWidget(MaterialApp(home: Material(child: widget)));
+  await tester.pump();
+  await tester.pump();
+}
+
+Finder findText(String text) => find.text(text);
+
+Finder findIcon(IconData icon) => find.byIcon(icon);
+
+void verifyNotFound(Finder finder) {
+  expect(finder, findsNothing);
+}
+
+Song createMockSong({
+  String id = 'test-song-id',
+  String title = 'Test Song',
+  String artist = 'Test Artist',
+  int? originalBPM,
+  int? ourBPM,
+  String? originalKey,
+  String? ourKey,
+  String? spotifyUrl,
+}) {
+  return Song(
+    id: id,
+    title: title,
+    artist: artist,
+    originalBPM: originalBPM,
+    ourBPM: ourBPM,
+    originalKey: originalKey,
+    ourKey: ourKey,
+    spotifyUrl: spotifyUrl,
+    createdAt: DateTime(2024, 1, 1),
+    updatedAt: DateTime(2024, 1, 1),
+  );
+}
 
 void main() {
   group('SongCard', () {
     late Song mockSong;
 
     setUp(() {
-      mockSong = MockDataHelper.createMockSong(
+      mockSong = createMockSong(
         id: 'test-song',
         title: 'Test Song',
         artist: 'Test Artist',
@@ -117,6 +153,53 @@ void main() {
       expect(wasPlayed, isTrue);
     });
 
+    testWidgets('renders metronome action when song has tempo data', (
+      WidgetTester tester,
+    ) async {
+      await pumpAppWidget(
+        tester,
+        SongCard(song: mockSong, onOpenMetronome: () {}),
+      );
+
+      expect(
+        find.byKey(const ValueKey('song-card-open-metronome')),
+        findsOneWidget,
+      );
+      expect(find.byTooltip('Open in Metronome'), findsOneWidget);
+    });
+
+    testWidgets('does not render metronome action without metronome data', (
+      WidgetTester tester,
+    ) async {
+      final songWithoutTempo = mockSong.copyWith(ourBPM: null);
+
+      await pumpAppWidget(
+        tester,
+        SongCard(song: songWithoutTempo, onOpenMetronome: () {}),
+      );
+
+      expect(
+        find.byKey(const ValueKey('song-card-open-metronome')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('calls onOpenMetronome when metronome action is tapped', (
+      WidgetTester tester,
+    ) async {
+      var openedMetronome = false;
+
+      await pumpAppWidget(
+        tester,
+        SongCard(song: mockSong, onOpenMetronome: () => openedMetronome = true),
+      );
+
+      await tester.tap(find.byKey(const ValueKey('song-card-open-metronome')));
+      await tester.pump();
+
+      expect(openedMetronome, isTrue);
+    });
+
     testWidgets('calls onTap when card is tapped', (WidgetTester tester) async {
       bool wasTapped = false;
 
@@ -170,7 +253,7 @@ void main() {
     late Song mockSong;
 
     setUp(() {
-      mockSong = MockDataHelper.createMockSong(
+      mockSong = createMockSong(
         id: 'test-song',
         title: 'Compact Song',
         artist: 'Compact Artist',
@@ -232,6 +315,41 @@ void main() {
       await tester.pump();
 
       expect(wasTapped, isTrue);
+    });
+
+    testWidgets('renders compact metronome action when song has tempo data', (
+      WidgetTester tester,
+    ) async {
+      await pumpAppWidget(
+        tester,
+        CompactSongCard(song: mockSong, onOpenMetronome: () {}),
+      );
+
+      expect(
+        find.byKey(const ValueKey('compact-song-card-open-metronome')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('calls compact onOpenMetronome when action is tapped', (
+      WidgetTester tester,
+    ) async {
+      var openedMetronome = false;
+
+      await pumpAppWidget(
+        tester,
+        CompactSongCard(
+          song: mockSong,
+          onOpenMetronome: () => openedMetronome = true,
+        ),
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('compact-song-card-open-metronome')),
+      );
+      await tester.pump();
+
+      expect(openedMetronome, isTrue);
     });
 
     testWidgets('renders as Card widget', (WidgetTester tester) async {
