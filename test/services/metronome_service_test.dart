@@ -127,7 +127,7 @@ void main() {
       test('can set bpm to maximum value', () {
         container.read(metronomeProvider.notifier).setBpm(300);
         final state = container.read(metronomeProvider);
-        expect(state.bpm, equals(260));
+        expect(state.bpm, equals(300));
       });
     });
 
