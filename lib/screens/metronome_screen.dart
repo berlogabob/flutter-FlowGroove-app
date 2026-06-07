@@ -56,12 +56,49 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
   }
 
   /// Builds menu items for the three dots menu
-  List<PopupMenuItem<void>> _buildMenuItems(
+  List<PopupMenuEntry<dynamic>> _buildMenuItems(
     BuildContext context,
     MetronomeNotifier metronome,
     MetronomeState state,
   ) {
-    final items = <PopupMenuItem<void>>[];
+    final items = <PopupMenuEntry<dynamic>>[];
+
+    items.add(
+      PopupMenuItem<void>(
+        child: Row(
+          children: [
+            Icon(
+              state.hapticsEnabled ? Icons.vibration : Icons.mobile_off,
+              color: state.hapticsEnabled
+                  ? MonoPulseColors.accentOrange
+                  : MonoPulseColors.textTertiary,
+              size: 20,
+            ),
+            const SizedBox(width: MonoPulseSpacing.md),
+            Expanded(
+              child: Text(
+                'Haptics',
+                style: MonoPulseTypography.bodyMedium.copyWith(
+                  color: MonoPulseColors.textHighEmphasis,
+                ),
+              ),
+            ),
+            Text(
+              state.hapticsEnabled ? 'On' : 'Off',
+              style: MonoPulseTypography.labelMedium.copyWith(
+                color: state.hapticsEnabled
+                    ? MonoPulseColors.accentOrange
+                    : MonoPulseColors.textTertiary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        onTap: metronome.toggleHaptics,
+      ),
+    );
+
+    items.add(const PopupMenuDivider(height: 1));
 
     // Save to Song (only shown when song is loaded)
     if (state.loadedSong != null) {
@@ -479,8 +516,6 @@ class _CompactPerformanceLayout extends StatelessWidget {
       SizedBox(height: MonoPulseSpacing.md),
       FineAdjustmentButtons(),
       SizedBox(height: MonoPulseSpacing.md),
-      _HapticsToggle(),
-      SizedBox(height: MonoPulseSpacing.sm),
       _CountInSelector(),
       SizedBox(height: MonoPulseSpacing.sm),
       _MetronomeTransport(),
@@ -513,8 +548,6 @@ class _CompactPerformanceLayout extends StatelessWidget {
         const SizedBox(height: MonoPulseSpacing.sm),
         const FineAdjustmentButtons(),
         const SizedBox(height: MonoPulseSpacing.md),
-        const _HapticsToggle(),
-        const SizedBox(height: MonoPulseSpacing.sm),
         const _MetronomeTransport(),
         const SizedBox(height: MonoPulseSpacing.sm),
         const SongLibraryBlock(),
@@ -542,23 +575,21 @@ class _WidePerformanceLayout extends StatelessWidget {
         ),
         const SizedBox(width: MonoPulseSpacing.xxxl),
         ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 340),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FineAdjustmentButtons(),
-            SizedBox(height: MonoPulseSpacing.xl),
-            _HapticsToggle(),
-            SizedBox(height: MonoPulseSpacing.md),
-            _CountInSelector(),
-            SizedBox(height: MonoPulseSpacing.lg),
-            _MetronomeTransport(),
-            SizedBox(height: MonoPulseSpacing.lg),
-            SongLibraryBlock(),
-            SizedBox(height: MonoPulseSpacing.lg),
-            TapBPMWidget(),
-          ],
-        ),
+          constraints: const BoxConstraints(maxWidth: 340),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FineAdjustmentButtons(),
+              SizedBox(height: MonoPulseSpacing.xl),
+              _CountInSelector(),
+              SizedBox(height: MonoPulseSpacing.lg),
+              _MetronomeTransport(),
+              SizedBox(height: MonoPulseSpacing.lg),
+              SongLibraryBlock(),
+              SizedBox(height: MonoPulseSpacing.lg),
+              TapBPMWidget(),
+            ],
+          ),
         ),
       ],
     );
@@ -581,70 +612,6 @@ class _MetronomeTransport extends ConsumerWidget {
       onPrevious: hasSetlist ? metronome.previousSetlistSong : null,
       onNext: hasSetlist ? metronome.nextSetlistSong : null,
       margin: EdgeInsets.zero,
-    );
-  }
-}
-
-class _HapticsToggle extends ConsumerWidget {
-  const _HapticsToggle();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final enabled = ref.watch(
-      metronomeProvider.select((state) => state.hapticsEnabled),
-    );
-    final metronome = ref.read(metronomeProvider.notifier);
-
-    return Material(
-      color: MonoPulseColors.surface,
-      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        onTap: metronome.toggleHaptics,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 48),
-          padding: const EdgeInsets.symmetric(
-            horizontal: MonoPulseSpacing.lg,
-            vertical: MonoPulseSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-            border: Border.all(color: MonoPulseColors.borderSubtle),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    enabled ? Icons.vibration : Icons.mobile_off,
-                    color: enabled
-                        ? MonoPulseColors.accentOrange
-                        : MonoPulseColors.textTertiary,
-                    size: MonoPulseIcons.sizeMedium,
-                  ),
-                  const SizedBox(width: MonoPulseSpacing.md),
-                  Text(
-                    'Haptics',
-                    style: MonoPulseTypography.labelLarge.copyWith(
-                      color: MonoPulseColors.textHighEmphasis,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              Switch(
-                value: enabled,
-                activeThumbColor: MonoPulseColors.accentOrange,
-                activeTrackColor: MonoPulseColors.accentOrangeSubtle,
-                inactiveThumbColor: MonoPulseColors.textTertiary,
-                inactiveTrackColor: MonoPulseColors.surfaceRaised,
-                onChanged: metronome.setHapticsEnabled,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

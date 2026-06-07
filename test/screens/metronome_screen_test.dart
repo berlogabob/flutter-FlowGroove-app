@@ -11,8 +11,6 @@ import 'package:flowgroove/widgets/metronome/fine_adjustment_buttons.dart';
 import 'package:flowgroove/widgets/metronome/song_library_block.dart';
 import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
 
-import '../helpers/test_helpers.dart';
-
 void main() {
   group('MetronomeScreen', () {
     testWidgets('renders scaffold', (WidgetTester tester) async {
@@ -353,20 +351,23 @@ void main() {
       expect(find.byType(FineAdjustmentButtons), findsOneWidget);
       expect(find.byType(ToolTransportBar), findsOneWidget);
       expect(find.byType(SongLibraryBlock), findsOneWidget);
-      expect(find.text('Haptics'), findsOneWidget);
+      expect(find.text('Haptics'), findsNothing);
     });
 
-    testWidgets('toggles haptics from performance surface', (
+    testWidgets('toggles haptics from app bar menu', (
       WidgetTester tester,
     ) async {
+      final container = ProviderContainer(
+        overrides: [metronomeProvider.overrideWith(MetronomeNotifier.new)],
+      );
+      addTearDown(container.dispose);
+
       await tester.pumpWidget(
-        MaterialApp(
-          home: MediaQuery(
-            data: const MediaQueryData(size: Size(400, 800)),
-            child: ProviderScope(
-              overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
-              ],
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: MediaQuery(
+              data: const MediaQueryData(size: Size(400, 800)),
               child: const MetronomeScreen(),
             ),
           ),
@@ -374,14 +375,25 @@ void main() {
       );
       await tester.pump();
 
+      expect(find.text('Haptics'), findsNothing);
+      expect(container.read(metronomeProvider).hapticsEnabled, isTrue);
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+
       expect(find.text('Haptics'), findsOneWidget);
-      final switchFinder = find.byType(Switch);
-      expect(tester.widget<Switch>(switchFinder).value, isTrue);
+      expect(find.text('On'), findsOneWidget);
 
-      await tester.tap(switchFinder);
-      await tester.pump();
+      await tester.tap(find.text('Haptics'));
+      await tester.pumpAndSettle();
 
-      expect(tester.widget<Switch>(switchFinder).value, isFalse);
+      expect(container.read(metronomeProvider).hapticsEnabled, isFalse);
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Haptics'), findsOneWidget);
+      expect(find.text('Off'), findsWidgets);
     });
 
     testWidgets('has offline indicator', (WidgetTester tester) async {
@@ -451,7 +463,11 @@ void main() {
         await tester.pump();
 
         // Should render without error on all sizes
-        expect(find.byType(Scaffold), findsOneWidget, reason: 'Failed for size $size');
+        expect(
+          find.byType(Scaffold),
+          findsOneWidget,
+          reason: 'Failed for size $size',
+        );
       }
     });
   });

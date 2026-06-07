@@ -7,6 +7,7 @@ import '../../models/api_error.dart';
 import '../../models/song.dart';
 import '../../models/band.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/data/metronome_provider.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
@@ -799,10 +800,28 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       onReorder: _handleReorder,
       onDelete: (index) => _deleteSongByIndex(index),
       onEdit: (index) => _navigateToEditByIndex(index),
-      additionalActionsBuilder: bands.isNotEmpty
-          ? (index) => [_buildAddToBandAction(songAdapters[index], bands)]
-          : null,
+      additionalActionsBuilder: (index) =>
+          _buildSongActions(songAdapters[index], bands),
     );
+  }
+
+  List<UnifiedItemAction> _buildSongActions(
+    SongItemAdapter adapter,
+    List<Band> bands,
+  ) {
+    return [
+      if (_hasMetronomeData(adapter.song))
+        _OpenInMetronomeAction(onPressed: () => _openInMetronome(adapter.song)),
+      if (bands.isNotEmpty) _buildAddToBandAction(adapter, bands),
+    ];
+  }
+
+  bool _hasMetronomeData(Song song) {
+    return song.ourBPM != null ||
+        song.originalBPM != null ||
+        song.accentBeats != 4 ||
+        song.regularBeats != 1 ||
+        song.beatModes.isNotEmpty;
   }
 
   /// Build "Add to Band" action for the trailing actions.
@@ -817,6 +836,15 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       ref: ref,
       onAddToBand: _addToBand,
     );
+  }
+
+  void _openInMetronome(Song song) {
+    final metronome = ref.read(metronomeProvider.notifier);
+    if (ref.read(metronomeProvider).isPlaying) {
+      metronome.stop();
+    }
+    metronome.loadSongTempo(song);
+    context.goNamed('metronome');
   }
 
   /// Navigate to edit song screen.
@@ -944,6 +972,23 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(error.message)));
     }
+  }
+}
+
+class _OpenInMetronomeAction implements UnifiedItemAction {
+  final VoidCallback onPressed;
+
+  const _OpenInMetronomeAction({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      key: const ValueKey('open-in-metronome-action'),
+      icon: const Icon(Icons.speed, size: 20),
+      color: MonoPulseColors.accentOrange,
+      tooltip: 'Open in Metronome',
+      onPressed: onPressed,
+    );
   }
 }
 

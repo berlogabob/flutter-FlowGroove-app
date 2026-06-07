@@ -20,6 +20,9 @@ class SongCard extends StatelessWidget {
   /// Callback when the Spotify play button is pressed.
   final VoidCallback? onPlaySpotify;
 
+  /// Callback when the metronome action is pressed.
+  final VoidCallback? onOpenMetronome;
+
   /// Whether to show the Spotify play button.
   final bool showSpotifyButton;
 
@@ -29,6 +32,7 @@ class SongCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onPlaySpotify,
+    this.onOpenMetronome,
     this.showSpotifyButton = true,
   });
 
@@ -81,6 +85,17 @@ class SongCard extends StatelessWidget {
             },
             tooltip: 'Play on Spotify',
           ),
+        if (onOpenMetronome != null && _hasMetronomeData)
+          IconButton(
+            key: const ValueKey('song-card-open-metronome'),
+            icon: const Icon(
+              Icons.speed,
+              color: MonoPulseColors.accentOrange,
+              size: 24,
+            ),
+            onPressed: onOpenMetronome,
+            tooltip: 'Open in Metronome',
+          ),
         if (song.ourBPM != null) _buildBpmBadge(),
         if (song.ourKey != null) ...[
           const SizedBox(width: 8),
@@ -97,6 +112,14 @@ class SongCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  bool get _hasMetronomeData {
+    return song.ourBPM != null ||
+        song.originalBPM != null ||
+        song.accentBeats != 4 ||
+        song.regularBeats != 1 ||
+        song.beatModes.isNotEmpty;
   }
 
   Widget _buildBpmBadge() {
@@ -128,7 +151,15 @@ class CompactSongCard extends StatelessWidget {
   /// Callback when the card is tapped.
   final VoidCallback? onTap;
 
-  const CompactSongCard({super.key, required this.song, this.onTap});
+  /// Callback when the metronome action is pressed.
+  final VoidCallback? onOpenMetronome;
+
+  const CompactSongCard({
+    super.key,
+    required this.song,
+    this.onTap,
+    this.onOpenMetronome,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -177,10 +208,28 @@ class CompactSongCard extends StatelessWidget {
                 ),
               ),
             ],
+            if (onOpenMetronome != null && _hasMetronomeData) ...[
+              const SizedBox(width: MonoPulseSpacing.sm),
+              IconButton(
+                key: const ValueKey('compact-song-card-open-metronome'),
+                icon: const Icon(Icons.speed, size: 20),
+                color: MonoPulseColors.accentOrange,
+                tooltip: 'Open in Metronome',
+                onPressed: onOpenMetronome,
+              ),
+            ],
           ],
         ),
         onTap: onTap,
       ),
     );
+  }
+
+  bool get _hasMetronomeData {
+    return song.ourBPM != null ||
+        song.originalBPM != null ||
+        song.accentBeats != 4 ||
+        song.regularBeats != 1 ||
+        song.beatModes.isNotEmpty;
   }
 }
