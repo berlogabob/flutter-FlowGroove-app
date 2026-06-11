@@ -108,6 +108,7 @@ void main() {
 
       final csv = serializer.serialize([song]);
 
+      expect(csv, contains('Song Name,Artist'));
       expect(csv, contains('Test Song'));
       expect(csv, contains('Test Artist'));
       expect(csv, contains('rock,live'));
@@ -287,7 +288,7 @@ title,artist
       expect(result.successful, isEmpty);
     });
 
-    test('returns error for missing required headers', () {
+    test('allows artist to be omitted', () {
       final parser = SongCsvParser();
       final csv = '''
 title
@@ -296,8 +297,23 @@ Test Song
 
       final result = parser.parse(csv);
 
-      expect(result.errors, isNotEmpty);
-      expect(result.errors.first, contains('Missing required header'));
+      expect(result.errors, isEmpty);
+      expect(result.successful.single.artist, isEmpty);
+    });
+
+    test('accepts friendly aliases and warns about unknown columns', () {
+      final parser = SongCsvParser();
+      final csv = '''
+ Song Name ,ARTIST NAME,Personal Rating
+Test Song,Test Artist,5
+''';
+
+      final result = parser.parse(csv);
+
+      expect(result.errors, isEmpty);
+      expect(result.successful.single.title, 'Test Song');
+      expect(result.successful.single.artist, 'Test Artist');
+      expect(result.warnings.single, contains('Personal Rating'));
     });
 
     test('parses CSV with sections', () {

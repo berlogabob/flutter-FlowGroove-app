@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/api_error.dart';
 import '../../models/song.dart';
+import '../../models/song_import_plan.dart';
 import '../../models/band.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
+import '../../services/song_library_merge_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/empty_state.dart';
@@ -135,12 +137,15 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 
   /// Handle CSV import
   Future<void> _handleImport() async {
-    final result = await showDialog<List<Song>>(
+    final currentSongs = ref.read(songsProvider).value ?? const <Song>[];
+    final result = await showDialog<SongImportPlan>(
       context: context,
-      builder: (_) => const SongImportDialog(),
+      builder: (_) => SongImportDialog(librarySongs: currentSongs),
     );
 
-    if (result == null || result.isEmpty || !mounted) {
+    if (result == null ||
+        (result.songsToCreate.isEmpty && result.merges.isEmpty) ||
+        !mounted) {
       return;
     }
 
@@ -182,12 +187,32 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       int savedCount = 0;
       int failedCount = 0;
 
-      for (final song in result) {
+      for (final song in result.songsToCreate) {
         try {
           await songRepo.saveSong(song, uid: user.uid);
           savedCount++;
         } catch (e) {
           debugPrint('Failed to save song "${song.title}": $e');
+          failedCount++;
+        }
+      }
+
+      for (final merge in result.merges) {
+        try {
+          await SongLibraryMergeService(
+            firestore: ref.read(firebaseFirestoreProvider),
+          ).merge(
+            uid: user.uid,
+            keeperBefore: merge.keeper,
+            duplicate: merge.duplicate,
+            merged: merge.merged,
+            setlists: ref.read(setlistsProvider).value ?? [],
+            songRepository: songRepo,
+            setlistRepository: ref.read(setlistRepositoryProvider),
+          );
+          savedCount++;
+        } catch (e) {
+          debugPrint('Failed to merge imported song: $e');
           failedCount++;
         }
       }
@@ -509,6 +534,15 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       title: 'Songs',
       showBackButton: false, // Hide back button for main tabs
       menuItems: [
+        PopupMenuItem<void>(
+          enabled: canExport,
+          onTap: canExport
+              ? () => _runAfterPopupClose(
+                  () async => context.pushNamed('song-duplicates'),
+                )
+              : null,
+          child: const Text('Find duplicates'),
+        ),
         PopupMenuItem<void>(
           onTap: () => _runAfterPopupClose(_handleImport),
           child: const Text('Import from CSV'),

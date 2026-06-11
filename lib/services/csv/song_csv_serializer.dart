@@ -19,7 +19,7 @@ class SongCsvSerializer {
 
     // Add headers
     final headers = SongCsvSchema.getAllHeaders();
-    csvRows.add(headers);
+    csvRows.add(headers.map(SongCsvSchema.getExportHeader).toList());
 
     // Add rows for each song
     for (final song in songs) {

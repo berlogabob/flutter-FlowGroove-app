@@ -38,6 +38,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   final _eventLocationController = TextEditingController();
   List<Song> _selectedSongs = [];
   bool _hasUnsavedChanges = false;
+  bool _isSaving = false;
 
   bool get _isEditing => widget.setlist != null;
   bool get _isBandScope => widget.storageScope == SetlistStorageScope.band;
@@ -164,6 +165,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   }
 
   Future<void> _saveSetlist() async {
+    if (_isSaving) return;
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
@@ -200,16 +202,17 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       updatedAt: DateTime.now(),
     );
 
-    if (_isBandScope) {
-      await ref.read(firestoreProvider).saveBandSetlist(setlist, bandId!);
-    } else {
-      await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
-    }
+    setState(() => _isSaving = true);
+    try {
+      if (_isBandScope) {
+        await ref.read(firestoreProvider).saveBandSetlist(setlist, bandId!);
+      } else {
+        await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
+      }
 
-    // Log analytics event
-    await AnalyticsService.logSetlistCreatedFromSetlist(setlist);
+      await AnalyticsService.logSetlistCreatedFromSetlist(setlist);
 
-    if (mounted) {
+      if (!mounted) return;
       // Invalidate the setlists provider to ensure UI refresh
       if (_isBandScope) {
         ref.invalidate(bandSetlistsProvider(bandId!));
@@ -235,6 +238,19 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       if (mounted) {
         Navigator.pop(context);
       }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isBandScope
+                ? 'Could not save the shared setlist. Check your band permissions and try again.'
+                : 'Could not save the setlist. Please try again.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -286,7 +302,11 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
               ? (_isBandScope ? 'Edit Band Setlist' : 'Edit Setlist')
               : (_isBandScope ? 'Create Band Setlist' : 'Create Setlist'),
           menuItems: [
-            PopupMenuItem<void>(onTap: _saveSetlist, child: const Text('Save')),
+            PopupMenuItem<void>(
+              enabled: !_isSaving,
+              onTap: _isSaving ? null : _saveSetlist,
+              child: Text(_isSaving ? 'Saving...' : 'Save'),
+            ),
           ],
         ),
         body: Form(
@@ -391,6 +411,24 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 ],
               ),
               const SizedBox(height: 8),
+              if (availableSongsAsync.hasError) ...[
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Band songs could not be loaded.',
+                        style: TextStyle(color: MonoPulseColors.error),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          ref.invalidate(bandSongsProvider(_effectiveBandId!)),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
               if (_selectedSongs.isEmpty)
                 Container(
                   padding: const EdgeInsets.all(MonoPulseSpacing.xxxl),

@@ -8,6 +8,7 @@ import '../../models/band.dart';
 import '../../models/user.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
 import '../../widgets/dashboard_grid.dart';
@@ -59,6 +60,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   /// Check if user can edit the band (admin or editor only)
   bool get _canEdit {
+    if (ref.read(isDemoUserProvider)) return false;
     final userAsync = ref.read(currentUserProvider);
     final user = userAsync.value;
     if (user == null) return false;
@@ -157,7 +159,8 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
       // Add Setlist
       PopupMenuItem<void>(
-        onTap: () => _runAfterMenuCloses(_handleAddSetlist),
+        enabled: _canEdit,
+        onTap: _canEdit ? () => _runAfterMenuCloses(_handleAddSetlist) : null,
         child: const Row(
           children: [
             Icon(Icons.playlist_add, size: 20),
@@ -277,11 +280,12 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         label: 'Member',
         onTap: _handleAddMember,
       ),
-      QuickActionButton(
-        icon: Icons.playlist_add,
-        label: 'Setlist',
-        onTap: _handleAddSetlist,
-      ),
+      if (_canEdit)
+        QuickActionButton(
+          icon: Icons.playlist_add,
+          label: 'Setlist',
+          onTap: _handleAddSetlist,
+        ),
       QuickActionButton(
         icon: Icons.library_music,
         label: 'Bank',

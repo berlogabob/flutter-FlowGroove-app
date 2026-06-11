@@ -8,6 +8,7 @@ import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/empty_state.dart';
@@ -36,6 +37,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   List<Setlist>? _manualOrder;
 
   bool get _canEdit {
+    if (ref.read(isDemoUserProvider)) return false;
     final user = ref.read(currentUserProvider).value;
     if (user == null) return false;
     final member = widget.band.members.firstWhere(
@@ -47,6 +49,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   bool get _canDelete {
+    if (ref.read(isDemoUserProvider)) return false;
     final user = ref.read(currentUserProvider).value;
     if (user == null) return false;
     final member = widget.band.members.firstWhere(

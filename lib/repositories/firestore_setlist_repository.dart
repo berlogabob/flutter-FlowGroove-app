@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -6,12 +8,14 @@ import '../models/setlist.dart';
 import 'setlist_repository.dart';
 
 class FirestoreSetlistRepository implements SetlistRepository {
-  final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
-
   FirestoreSetlistRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestore = firestore ?? FirebaseFirestore.instance,
       _auth = auth ?? FirebaseAuth.instance;
+
+  static const _initialLoadTimeout = Duration(seconds: 15);
+
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
 
   String? get _currentUserId => _auth.currentUser?.uid;
 
@@ -131,7 +135,7 @@ class FirestoreSetlistRepository implements SetlistRepository {
   @override
   Stream<List<Setlist>> watchBandSetlists(String bandId) {
     try {
-      return _firestore
+      final stream = _firestore
           .collection('bands')
           .doc(bandId)
           .collection('setlists')
@@ -164,9 +168,54 @@ class FirestoreSetlistRepository implements SetlistRepository {
             debugPrint('❌ Band setlists stream error: $error');
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });
+      return _withInitialTimeout(stream);
     } catch (e, stackTrace) {
       debugPrint('❌ watchBandSetlists exception: $e');
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
+  }
+
+  Stream<List<Setlist>> _withInitialTimeout(Stream<List<Setlist>> source) {
+    late StreamController<List<Setlist>> controller;
+    StreamSubscription<List<Setlist>>? subscription;
+    Timer? timer;
+    var receivedFirstValue = false;
+
+    controller = StreamController<List<Setlist>>(
+      onListen: () {
+        timer = Timer(_initialLoadTimeout, () {
+          if (receivedFirstValue || controller.isClosed) return;
+          controller.addError(
+            ApiError.network(
+              message: 'Shared setlists took too long to load. Please retry.',
+            ),
+          );
+          subscription?.cancel();
+        });
+        subscription = source.listen(
+          (setlists) {
+            receivedFirstValue = true;
+            timer?.cancel();
+            controller.add(setlists);
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            timer?.cancel();
+            controller.addError(error, stackTrace);
+          },
+          onDone: () {
+            timer?.cancel();
+            controller.close();
+          },
+        );
+      },
+      onPause: () => subscription?.pause(),
+      onResume: () => subscription?.resume(),
+      onCancel: () async {
+        timer?.cancel();
+        await subscription?.cancel();
+      },
+    );
+
+    return controller.stream;
   }
 }
