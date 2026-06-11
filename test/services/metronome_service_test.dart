@@ -89,22 +89,25 @@ void main() {
 
     group('start', () {
       test('sets isPlaying to true', () {
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         final state = container.read(metronomeProvider);
         expect(state.isPlaying, isTrue);
       });
 
-      test('updates bpm and time signature numerator', () {
-        container.read(metronomeProvider.notifier).start(140, 3);
+      test('preserves configured bpm and main beats', () {
+        final notifier = container.read(metronomeProvider.notifier);
+        notifier.setBpm(140);
+        notifier.setAccentBeats(3);
+        notifier.start();
         final state = container.read(metronomeProvider);
         expect(state.bpm, equals(140));
-        expect(state.timeSignature.numerator, equals(3));
+        expect(state.accentBeats, equals(3));
       });
     });
 
     group('stop', () {
       test('sets isPlaying to false', () {
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         container.read(metronomeProvider.notifier).stop();
         final state = container.read(metronomeProvider);
         expect(state.isPlaying, isFalse);
@@ -378,7 +381,7 @@ void main() {
       });
 
       test('stops metronome when playing', () {
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         expect(container.read(metronomeProvider).isPlaying, isTrue);
         container.read(metronomeProvider.notifier).toggle();
         expect(container.read(metronomeProvider).isPlaying, isFalse);
@@ -387,7 +390,7 @@ void main() {
 
     group('runtime side effects', () {
       test('start starts playback and enables wakelock', () async {
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         await Future<void>.delayed(Duration.zero);
 
         expect(runtime.playback.startCalls, 1);
@@ -398,7 +401,7 @@ void main() {
       });
 
       test('stop disables wakelock cleanly', () async {
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         await Future<void>.delayed(Duration.zero);
 
         container.read(metronomeProvider.notifier).stop();
@@ -417,7 +420,7 @@ void main() {
       test(
         'playback tick updates current beat without platform plugins',
         () async {
-          container.read(metronomeProvider.notifier).start(120, 4);
+          container.read(metronomeProvider.notifier).start();
           await Future<void>.delayed(Duration.zero);
           runtime.playback.emitTick(2);
 
@@ -426,7 +429,7 @@ void main() {
       );
 
       test('haptics changes update playback config while playing', () async {
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         await Future<void>.delayed(Duration.zero);
 
         container.read(metronomeProvider.notifier).setHapticsEnabled(false);

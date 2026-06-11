@@ -61,14 +61,14 @@ void main() {
         expect(state.bpm, 100);
       });
 
-      test('clamps BPM to valid range (10-260)', () {
+      test('clamps BPM to valid range (1-600)', () {
         final container = createContainer();
 
         final song = Song(
           id: 'song-3',
           title: 'Test Song',
           artist: 'Test Artist',
-          ourBPM: 500, // Too high
+          ourBPM: 500,
           createdAt: DateTime(2024, 1, 1),
           updatedAt: DateTime(2024, 1, 1),
         );
@@ -910,7 +910,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.start(120, 4);
+        metronome.start();
         metronome.toggle();
 
         final state = container.read(metronomeProvider);
@@ -921,7 +921,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.start(120, 4);
+        metronome.start();
 
         final state = container.read(metronomeProvider);
         expect(state.isPlaying, isTrue);
@@ -931,7 +931,7 @@ void main() {
         final runtime = MetronomeTestRuntime();
         final container = createContainer(runtime: runtime);
 
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         await Future<void>.delayed(Duration.zero);
 
         expect(runtime.playback.startCalls, 1);
@@ -945,9 +945,9 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.start(120, 4);
+        metronome.start();
 
-        metronome.start(120, 4);
+        metronome.start();
 
         final state = container.read(metronomeProvider);
         expect(state.isPlaying, isTrue);
@@ -957,7 +957,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.start(120, 4);
+        metronome.start();
         metronome.stop();
 
         final state = container.read(metronomeProvider);
@@ -969,7 +969,7 @@ void main() {
         final container = createContainer(runtime: runtime);
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.start(120, 4);
+        metronome.start();
         await Future<void>.delayed(Duration.zero);
 
         metronome.stop();
@@ -1084,7 +1084,7 @@ void main() {
           final runtime = MetronomeTestRuntime();
           final container = createContainer(runtime: runtime);
 
-          container.read(metronomeProvider.notifier).start(120, 4);
+          container.read(metronomeProvider.notifier).start();
           await Future<void>.delayed(Duration.zero);
           runtime.playback.emitTick(2);
 
@@ -1096,7 +1096,7 @@ void main() {
         final runtime = MetronomeTestRuntime();
         final container = createContainer(runtime: runtime);
 
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         await Future<void>.delayed(Duration.zero);
 
         container.read(metronomeProvider.notifier).setHapticsEnabled(false);
@@ -1105,6 +1105,104 @@ void main() {
         expect(runtime.playback.updateCalls, greaterThanOrEqualTo(1));
         expect(runtime.playback.lastConfig?.hapticsEnabled, isFalse);
       });
+
+      test('start preserves a configured three-beat pattern', () async {
+        final runtime = MetronomeTestRuntime();
+        final container = createContainer(runtime: runtime);
+        final metronome = container.read(metronomeProvider.notifier);
+
+        metronome.setBpm(147);
+        metronome.setAccentBeats(3);
+        metronome.setRegularBeats(2);
+        metronome.setBeatMode(1, 1, BeatMode.silent);
+        metronome.setAccentPattern([true, false, true]);
+        final beforeStart = container.read(metronomeProvider);
+
+        metronome.start();
+        await Future<void>.delayed(Duration.zero);
+        final playing = container.read(metronomeProvider);
+
+        expect(playing.bpm, beforeStart.bpm);
+        expect(playing.accentBeats, 3);
+        expect(playing.regularBeats, 2);
+        expect(playing.beatModes, beforeStart.beatModes);
+        expect(playing.accentPattern, beforeStart.accentPattern);
+        expect(runtime.playback.lastConfig?.accentBeats, 3);
+        expect(runtime.playback.lastConfig?.regularBeats, 2);
+      });
+
+      test('play and stop cycles preserve loaded song settings', () async {
+        final runtime = MetronomeTestRuntime();
+        final container = createContainer(runtime: runtime);
+        final metronome = container.read(metronomeProvider.notifier);
+        final song = Song(
+          id: 'cycle-song',
+          title: 'Cycle Song',
+          artist: 'Test Artist',
+          ourBPM: 173,
+          accentBeats: 5,
+          regularBeats: 3,
+          beatModes: const [
+            [BeatMode.accent, BeatMode.normal, BeatMode.silent],
+          ],
+          createdAt: DateTime(2024, 1, 1),
+          updatedAt: DateTime(2024, 1, 1),
+        );
+
+        metronome.loadSongTempo(song);
+        final configured = container.read(metronomeProvider);
+        for (var cycle = 0; cycle < 2; cycle++) {
+          metronome.start();
+          await Future<void>.delayed(Duration.zero);
+          metronome.stop();
+          await Future<void>.delayed(Duration.zero);
+        }
+        final stopped = container.read(metronomeProvider);
+
+        expect(stopped.bpm, configured.bpm);
+        expect(stopped.accentBeats, configured.accentBeats);
+        expect(stopped.regularBeats, configured.regularBeats);
+        expect(stopped.beatModes, configured.beatModes);
+        expect(stopped.loadedSong, song);
+      });
+
+      test('6/8 starts with two main beats', () async {
+        final runtime = MetronomeTestRuntime();
+        final container = createContainer(runtime: runtime);
+        final metronome = container.read(metronomeProvider.notifier);
+
+        metronome.setTimeSignature(TimeSignature(numerator: 6, denominator: 8));
+        metronome.start();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(container.read(metronomeProvider).accentBeats, 2);
+        expect(runtime.playback.lastConfig?.accentBeats, 2);
+      });
+
+      test(
+        'live changes update playback without resetting other fields',
+        () async {
+          final runtime = MetronomeTestRuntime();
+          final container = createContainer(runtime: runtime);
+          final metronome = container.read(metronomeProvider.notifier);
+
+          metronome.setAccentBeats(3);
+          metronome.setRegularBeats(2);
+          metronome.setBeatMode(0, 1, BeatMode.accent);
+          metronome.start();
+          await Future<void>.delayed(Duration.zero);
+
+          metronome.setBpm(201);
+          await Future<void>.delayed(Duration.zero);
+
+          final state = container.read(metronomeProvider);
+          expect(runtime.playback.updateCalls, greaterThanOrEqualTo(1));
+          expect(runtime.playback.lastConfig?.bpm, 201);
+          expect(state.accentBeats, 3);
+          expect(state.regularBeats, 2);
+          expect(state.beatModes[0][1], BeatMode.accent);
+        },
+      );
     });
 
     group('Preset Management', () {
@@ -1143,7 +1241,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.start(120, 4);
+        metronome.start();
 
         expect(() => metronome.dispose(), returnsNormally);
       });

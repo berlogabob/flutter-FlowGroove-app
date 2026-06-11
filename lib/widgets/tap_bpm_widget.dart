@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/metronome_tempo_range.dart';
 import '../providers/data/metronome_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 
@@ -78,7 +79,7 @@ class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
         final bpm = (60000 / avgInterval).round();
 
         // Validate BPM range
-        if (bpm >= 10 && bpm <= 260) {
+        if (MetronomeTempoRange.contains(bpm)) {
           _calculatedBPM = bpm;
         }
       }

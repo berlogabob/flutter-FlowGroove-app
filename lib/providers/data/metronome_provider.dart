@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/metronome_state.dart';
+import '../../models/metronome_tempo_range.dart';
 import '../../models/time_signature.dart';
 import '../../models/song.dart';
 import '../../models/setlist.dart';
@@ -40,33 +41,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   /// Start the metronome
-  void start(int bpm, int beatsPerMeasure) {
+  void start() {
     if (state.isPlaying) return;
-
-    final clampedBpm = _clampBpm(bpm);
-    final timeSignature = TimeSignature(
-      numerator: beatsPerMeasure,
-      denominator: state.timeSignature.denominator,
-    );
-
-    // Auto-generate accent pattern for new time signature
-    List<bool> accentPattern;
-    if (beatsPerMeasure == 6 && timeSignature.denominator == 8) {
-      accentPattern = [true, true]; // 2 main beats for 6/8
-    } else {
-      accentPattern = List.generate(
-        beatsPerMeasure,
-        (index) => index == 0, // First beat is accent
-      );
-    }
 
     state = state.copyWith(
       isPlaying: true,
-      bpm: clampedBpm,
-      timeSignature: timeSignature,
-      accentBeats: beatsPerMeasure,
       currentBeat: -1, // Will be 0 on first tick
-      accentPattern: accentPattern,
     );
 
     // Request audio focus for metronome playback
@@ -152,7 +132,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     final newBpm = _clampBpm(state.bpm + bpmChange);
 
     // Stop at limits - don't wrap around
-    if (newBpm == state.bpm && (state.bpm == 10 || state.bpm == 260)) {
+    if (newBpm == state.bpm &&
+        (state.bpm == MetronomeTempoRange.minimum ||
+            state.bpm == MetronomeTempoRange.maximum)) {
       return; // At limit, don't update
     }
 
@@ -390,7 +372,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     if (state.isPlaying) {
       stop();
     } else {
-      start(state.bpm, state.timeSignature.numerator);
+      start();
 
       // Log analytics event when starting metronome
       AnalyticsService.logMetronomeStarted(
@@ -409,7 +391,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   int _clampBpm(int bpm) {
-    return bpm.clamp(1, 600);
+    return MetronomeTempoRange.clamp(bpm);
   }
 
   Future<void> _startPlaybackSafely({required int initialTick}) async {

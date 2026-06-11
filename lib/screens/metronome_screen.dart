@@ -628,6 +628,53 @@ class _CountInSelector extends ConsumerWidget {
       metronomeProvider.select((state) => state.countInBars),
     );
     final metronome = ref.read(metronomeProvider.notifier);
+    final label = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.timer_outlined,
+          color: countInBars > 0
+              ? MonoPulseColors.accentOrange
+              : MonoPulseColors.textTertiary,
+          size: MonoPulseIcons.sizeMedium,
+        ),
+        const SizedBox(width: MonoPulseSpacing.md),
+        Text(
+          'Count-in',
+          style: MonoPulseTypography.labelLarge.copyWith(
+            color: MonoPulseColors.textHighEmphasis,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+    final options = Wrap(
+      spacing: MonoPulseSpacing.xs,
+      runSpacing: MonoPulseSpacing.xs,
+      children: _options.map((value) {
+        final isSelected = countInBars == value;
+        return ChoiceChip(
+          label: Text(
+            value == 0 ? 'Off' : '$value',
+            style: MonoPulseTypography.labelMedium.copyWith(
+              color: isSelected
+                  ? MonoPulseColors.black
+                  : MonoPulseColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          selected: isSelected,
+          selectedColor: MonoPulseColors.accentOrange,
+          backgroundColor: MonoPulseColors.surfaceRaised,
+          side: BorderSide(
+            color: isSelected
+                ? MonoPulseColors.accentOrange
+                : MonoPulseColors.borderSubtle,
+          ),
+          onSelected: (_) => metronome.setCountInBars(value),
+        );
+      }).toList(),
+    );
 
     return Material(
       color: MonoPulseColors.surface,
@@ -642,60 +689,24 @@ class _CountInSelector extends ConsumerWidget {
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           border: Border.all(color: MonoPulseColors.borderSubtle),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.timer_outlined,
-                  color: countInBars > 0
-                      ? MonoPulseColors.accentOrange
-                      : MonoPulseColors.textTertiary,
-                  size: MonoPulseIcons.sizeMedium,
-                ),
-                const SizedBox(width: MonoPulseSpacing.md),
-                Text(
-                  'Count-in',
-                  style: MonoPulseTypography.labelLarge.copyWith(
-                    color: MonoPulseColors.textHighEmphasis,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: _options.map((value) {
-                final isSelected = countInBars == value;
-                return Padding(
-                  padding: const EdgeInsets.only(left: MonoPulseSpacing.xs),
-                  child: ChoiceChip(
-                    label: Text(
-                      value == 0 ? 'Off' : '$value',
-                      style: MonoPulseTypography.labelMedium.copyWith(
-                        color: isSelected
-                            ? MonoPulseColors.black
-                            : MonoPulseColors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    selected: isSelected,
-                    selectedColor: MonoPulseColors.accentOrange,
-                    backgroundColor: MonoPulseColors.surfaceRaised,
-                    side: BorderSide(
-                      color: isSelected
-                          ? MonoPulseColors.accentOrange
-                          : MonoPulseColors.borderSubtle,
-                    ),
-                    onSelected: (_) {
-                      metronome.setCountInBars(value);
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth < 360) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  label,
+                  const SizedBox(height: MonoPulseSpacing.sm),
+                  options,
+                ],
+              );
+            }
+
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [label, options],
+            );
+          },
         ),
       ),
     );
