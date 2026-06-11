@@ -3,6 +3,7 @@ import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/models/metronome_state.dart';
+import 'package:flowgroove/models/metronome_tempo_range.dart';
 
 void main() {
   group('MetronomeState - Integration Tests', () {
@@ -26,7 +27,7 @@ void main() {
 
         final songBpm = song.ourBPM ?? song.originalBPM;
         if (songBpm != null) {
-          state = state.copyWith(bpm: songBpm.clamp(10, 260));
+          state = state.copyWith(bpm: MetronomeTempoRange.clamp(songBpm));
         }
 
         state = state.copyWith(
@@ -55,7 +56,7 @@ void main() {
 
         final songBpm = song.ourBPM ?? song.originalBPM;
         if (songBpm != null) {
-          state = state.copyWith(bpm: songBpm.clamp(10, 260));
+          state = state.copyWith(bpm: MetronomeTempoRange.clamp(songBpm));
         }
 
         expect(state.bpm, 100);
@@ -66,7 +67,7 @@ void main() {
           id: 'song-3',
           title: 'Test Song',
           artist: 'Test Artist',
-          ourBPM: 500, // Too high
+          ourBPM: 500,
           createdAt: DateTime(2024, 1, 1),
           updatedAt: DateTime(2024, 1, 1),
         );
@@ -76,10 +77,10 @@ void main() {
 
         final songBpm = song.ourBPM ?? song.originalBPM;
         if (songBpm != null) {
-          state = state.copyWith(bpm: songBpm.clamp(10, 260));
+          state = state.copyWith(bpm: MetronomeTempoRange.clamp(songBpm));
         }
 
-        expect(state.bpm, 260); // Clamped
+        expect(state.bpm, 500);
       });
     });
 

@@ -137,7 +137,7 @@ void main() {
           addTearDown(container.dispose);
 
           // Act: Start metronome
-          container.read(metronomeProvider.notifier).start(120, 4);
+          container.read(metronomeProvider.notifier).start();
           final state = container.read(metronomeProvider);
 
           // Assert
@@ -156,7 +156,7 @@ void main() {
           final container = ProviderContainer();
           addTearDown(container.dispose);
 
-          container.read(metronomeProvider.notifier).start(120, 4);
+          container.read(metronomeProvider.notifier).start();
 
           // Act: Stop metronome
           container.read(metronomeProvider.notifier).stop();
@@ -175,7 +175,7 @@ void main() {
         addTearDown(container.dispose);
 
         // Act: Start metronome
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         final state = container.read(metronomeProvider);
 
         // Assert: Metronome is playing (audio initialized)
@@ -208,8 +208,11 @@ void main() {
         final container = ProviderContainer();
         addTearDown(container.dispose);
 
-        // Act: Start with 6 beats
-        container.read(metronomeProvider.notifier).start(100, 6);
+        // Act: Configure 6 beats, then start transport.
+        final notifier = container.read(metronomeProvider.notifier);
+        notifier.setBpm(100);
+        notifier.setTimeSignature(TimeSignature(numerator: 6, denominator: 4));
+        notifier.start();
         final state = container.read(metronomeProvider);
 
         // Assert
@@ -228,9 +231,9 @@ void main() {
         addTearDown(container.dispose);
 
         // Act: Start twice
-        container.read(metronomeProvider.notifier).start(120, 4);
+        container.read(metronomeProvider.notifier).start();
         final firstState = container.read(metronomeProvider);
-        container.read(metronomeProvider.notifier).start(140, 4);
+        container.read(metronomeProvider.notifier).start();
         final secondState = container.read(metronomeProvider);
 
         // Assert: Second start ignored (still at 120 BPM)

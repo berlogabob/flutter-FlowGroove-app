@@ -1,6 +1,6 @@
 # FlowGroove App - Deployment Makefile
 # =====================================
-# Version: 0.13.4+189
+# Version: 0.13.4+190
 # Last Updated: April 24, 2026
 #
 # Quick Start:

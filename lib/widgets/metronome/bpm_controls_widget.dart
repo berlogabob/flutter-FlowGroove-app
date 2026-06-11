@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/metronome_tempo_range.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 
@@ -52,7 +53,7 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
   }
 
   void _setBpm(int value) {
-    final bpm = value.clamp(10, 260);
+    final bpm = MetronomeTempoRange.clamp(value);
     setState(() {
       _localBpm = bpm;
       _bpmController.text = bpm.toString();
@@ -165,9 +166,11 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                   ),
                   child: Slider(
                     value: state.bpm.toDouble(),
-                    min: 10,
-                    max: 260,
-                    divisions: 250,
+                    min: MetronomeTempoRange.minimum.toDouble(),
+                    max: MetronomeTempoRange.maximum.toDouble(),
+                    divisions:
+                        MetronomeTempoRange.maximum -
+                        MetronomeTempoRange.minimum,
                     onChanged: (value) => _setBpm(value.round()),
                   ),
                 ),
@@ -230,14 +233,15 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                             horizontal: MonoPulseSpacing.md,
                             vertical: MonoPulseSpacing.sm,
                           ),
-                          helperText: '10-260',
+                          helperText: MetronomeTempoRange.label,
                           helperStyle: MonoPulseTypography.labelSmall.copyWith(
                             color: MonoPulseColors.textTertiary,
                           ),
                         ),
                         onChanged: (value) {
                           final bpm = int.tryParse(value);
-                          if (bpm != null && bpm >= 10 && bpm <= 260) {
+                          if (bpm != null &&
+                              MetronomeTempoRange.contains(bpm)) {
                             _setBpm(bpm);
                           }
                         },

@@ -4,12 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
-import 'package:flowgroove/widgets/custom_app_bar.dart';
 import 'package:flowgroove/widgets/metronome/central_tempo_circle.dart';
 import 'package:flowgroove/widgets/metronome/time_signature_block.dart';
 import 'package:flowgroove/widgets/metronome/fine_adjustment_buttons.dart';
 import 'package:flowgroove/widgets/metronome/song_library_block.dart';
 import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
+
+import '../helpers/metronome_test_runtime.dart';
 
 void main() {
   group('MetronomeScreen', () {
@@ -396,6 +397,49 @@ void main() {
       expect(find.text('Off'), findsWidgets);
     });
 
+    testWidgets('play preserves three visible main beats', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final runtime = MetronomeTestRuntime();
+      final container = ProviderContainer(overrides: runtime.overrides);
+      addTearDown(() async {
+        container.dispose();
+        await runtime.dispose();
+      });
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            home: MediaQuery(
+              data: const MediaQueryData(size: Size(400, 800)),
+              child: const MetronomeScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byKey(const Key('main-beats-decrement')));
+      await tester.pump();
+      expect(container.read(metronomeProvider).accentBeats, 3);
+      expect(find.byKey(const Key('main_beat_dot_2')), findsOneWidget);
+      expect(find.byKey(const Key('main_beat_dot_3')), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.play_arrow));
+      await tester.pump();
+
+      expect(container.read(metronomeProvider).isPlaying, isTrue);
+      expect(container.read(metronomeProvider).accentBeats, 3);
+      expect(find.byKey(const Key('main_beat_dot_2')), findsOneWidget);
+      expect(find.byKey(const Key('main_beat_dot_3')), findsNothing);
+    });
+
     testWidgets('has offline indicator', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -435,6 +479,50 @@ void main() {
 
       // Verify no render errors
       expect(find.byType(Scaffold), findsOneWidget);
+    });
+
+    testWidgets('renders the full controls without overflow at 390x844', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ProviderScope(
+            overrides: [metronomeProvider.overrideWith(MetronomeNotifier.new)],
+            child: const MetronomeScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(MetronomeScreen), findsOneWidget);
+    });
+
+    testWidgets('desktop side controls render without overflow at 1280x900', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ProviderScope(
+            overrides: [metronomeProvider.overrideWith(MetronomeNotifier.new)],
+            child: const MetronomeScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Count-in'), findsOneWidget);
     });
 
     testWidgets('has correct screen dimensions handling', (

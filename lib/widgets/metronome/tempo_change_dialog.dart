@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../models/metronome_tempo_range.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 /// Tempo Change Dialog - Modal for changing tempo via Tap or Keyboard
@@ -99,7 +100,7 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
                   color: MonoPulseColors.textHighEmphasis,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Values from 10 to 260',
+                  hintText: 'Values from ${MetronomeTempoRange.label}',
                   hintStyle: MonoPulseTypography.bodyMedium.copyWith(
                     color: MonoPulseColors.textTertiary,
                   ),
@@ -129,14 +130,14 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
                 onChanged: (value) {
                   final bpm = int.tryParse(value);
                   setState(() {
-                    _isValid = bpm != null && bpm >= 10 && bpm <= 260;
+                    _isValid = bpm != null && MetronomeTempoRange.contains(bpm);
                   });
                 },
               ),
               if (!_isValid) ...[
                 const SizedBox(height: MonoPulseSpacing.sm),
                 Text(
-                  'Please enter a value between 10 and 260',
+                  'Please enter a value between ${MetronomeTempoRange.minimum} and ${MetronomeTempoRange.maximum}',
                   style: MonoPulseTypography.labelSmall.copyWith(
                     color: MonoPulseColors.error,
                   ),
