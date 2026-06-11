@@ -109,5 +109,53 @@ void main() {
       expect(savedSetlist.bandId, 'band-123');
       verifyNever(firestore.saveSetlist(any, uid: anyNamed('uid')));
     });
+
+    testWidgets('shows an error instead of throwing when shared save fails', (
+      tester,
+    ) async {
+      final firebaseUser = MockUser();
+      when(firebaseUser.uid).thenReturn('test-user-id');
+
+      final firestore = MockFirestoreService();
+      when(
+        firestore.saveBandSetlist(any, any),
+      ).thenThrow(Exception('permission-denied'));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWithValue(
+              AsyncValue<User?>.data(firebaseUser),
+            ),
+            firestoreProvider.overrideWithValue(firestore),
+            bandSongsProvider.overrideWith(
+              (ref, bandId) => Stream<List<Song>>.value([]),
+            ),
+          ],
+          child: const MaterialApp(
+            home: CreateSetlistScreen(
+              bandId: 'band-123',
+              storageScope: SetlistStorageScope.band,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, 'Shared Gig');
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Could not save the shared setlist. Check your band permissions and try again.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Create Band Setlist'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

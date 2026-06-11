@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/bands/band_setlists_screen.dart';
@@ -31,6 +32,9 @@ void main() {
           overrides: [
             currentUserProvider.overrideWithValue(
               AsyncValue<User?>.data(firebaseUser),
+            ),
+            appUserProvider.overrideWith(
+              () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
             ),
             bandSetlistsProvider.overrideWith(
               (ref, bandId) => Stream<List<Setlist>>.value([
@@ -77,6 +81,9 @@ void main() {
           currentUserProvider.overrideWithValue(
             AsyncValue<User?>.data(firebaseUser),
           ),
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+          ),
           bandSetlistsProvider.overrideWith(
             (ref, bandId) => Stream<List<Setlist>>.value([
               MockDataHelper.createMockSetlist(
@@ -122,6 +129,9 @@ void main() {
           currentUserProvider.overrideWithValue(
             AsyncValue<User?>.data(firebaseUser),
           ),
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+          ),
           firestoreProvider.overrideWithValue(firestore),
           bandSetlistsProvider.overrideWith(
             (ref, bandId) => Stream<List<Setlist>>.value([
@@ -160,6 +170,9 @@ void main() {
           currentUserProvider.overrideWithValue(
             AsyncValue<User?>.data(firebaseUser),
           ),
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+          ),
           bandSetlistsProvider.overrideWith(
             (ref, bandId) => Stream<List<Setlist>>.value([
               MockDataHelper.createMockSetlist(
@@ -183,6 +196,84 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(currentRouterUri(router).path, '/main/bands/band-123/setlists');
+    });
+
+    testWidgets('demo admins can read setlists but cannot modify them', (
+      tester,
+    ) async {
+      final band = _bandWithRole(BandMember.roleAdmin);
+      final firebaseUser = MockUser();
+      when(firebaseUser.uid).thenReturn('test-user-id');
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/bands/band-123/setlists',
+        routes: _routesFor(band),
+        overrides: [
+          currentUserProvider.overrideWithValue(
+            AsyncValue<User?>.data(firebaseUser),
+          ),
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(
+              AppUser(
+                uid: 'test-user-id',
+                email: 'demo@example.com',
+                accessRole: 'demo',
+                createdAt: DateTime(2024),
+              ),
+            ),
+          ),
+          bandSetlistsProvider.overrideWith(
+            (ref, bandId) => Stream<List<Setlist>>.value([
+              MockDataHelper.createMockSetlist(
+                id: 'setlist-1',
+                bandId: bandId,
+                name: 'Demo Setlist',
+              ),
+            ]),
+          ),
+          bandSongsProvider.overrideWith(
+            (ref, bandId) => Stream<List<Song>>.value([]),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Demo Setlist'), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsNothing);
+      expect(find.byTooltip('Edit setlist'), findsNothing);
+    });
+
+    testWidgets('shows a retry action when shared setlists fail to load', (
+      tester,
+    ) async {
+      final band = _bandWithRole(BandMember.roleAdmin);
+      final firebaseUser = MockUser();
+      when(firebaseUser.uid).thenReturn('test-user-id');
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/bands/band-123/setlists',
+        routes: _routesFor(band),
+        overrides: [
+          currentUserProvider.overrideWithValue(
+            AsyncValue<User?>.data(firebaseUser),
+          ),
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+          ),
+          bandSetlistsProvider.overrideWith(
+            (ref, bandId) => Stream<List<Setlist>>.error('permission-denied'),
+          ),
+          bandSongsProvider.overrideWith(
+            (ref, bandId) => Stream<List<Song>>.value([]),
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('permission-denied'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
     });
   });
 }

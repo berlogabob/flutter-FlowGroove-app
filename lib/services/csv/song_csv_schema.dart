@@ -17,6 +17,23 @@ class SongCsvSchema {
   static const String title = 'title';
   static const String artist = 'artist';
 
+  static const Map<String, String> exportLabels = {
+    title: 'Song Name',
+    artist: 'Artist',
+  };
+
+  static const Map<String, String> _coreAliases = {
+    'title': title,
+    'song': title,
+    'songname': title,
+    'songtitle': title,
+    'track': title,
+    'trackname': title,
+    'artist': artist,
+    'artistname': artist,
+    'performer': artist,
+  };
+
   // Original Key components
   static const String originalKeyBase = 'originalKeyBase';
   static const String originalKeyAccidental = 'originalKeyAccidental';
@@ -125,6 +142,34 @@ class SongCsvSchema {
     return headers;
   }
 
+  static String getExportHeader(String canonicalHeader) =>
+      exportLabels[canonicalHeader] ?? canonicalHeader;
+
+  /// Resolve human-readable and legacy headers to their canonical field name.
+  static String? resolveHeader(String header) {
+    final normalized = _normalizeHeader(header);
+    if (normalized.isEmpty) return null;
+
+    final alias = _coreAliases[normalized];
+    if (alias != null) return alias;
+
+    for (final canonical in <String>[...getAllHeaders(), originalKey, ourKey]) {
+      if (_normalizeHeader(canonical) == normalized) return canonical;
+    }
+
+    final beatMode = RegExp(r'^beatmode(\d+)(\d+)$').firstMatch(normalized);
+    if (beatMode != null) {
+      return 'beatMode_${beatMode.group(1)}_${beatMode.group(2)}';
+    }
+    return null;
+  }
+
+  static String _normalizeHeader(String header) => header
+      .replaceAll('\uFEFF', '')
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]'), '');
+
   /// Validate a header name against the schema
   static bool isValidHeader(String header) {
     if (allHeaders.contains(header)) return true;
@@ -226,7 +271,7 @@ class SongCsvSchema {
   }
 
   /// Get required headers (core fields that must be present)
-  static const List<String> requiredHeaders = [title, artist];
+  static const List<String> requiredHeaders = [title];
 
   /// Parse a key string (e.g., "C#m", "Bb") into components
   static Map<String, String?> parseKeyString(String? key) {

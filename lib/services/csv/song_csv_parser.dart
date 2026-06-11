@@ -48,12 +48,12 @@ class SongCsvParser {
         return SongParseResult(successful: [], errors: ['Invalid header line']);
       }
 
-      final result = SongParseResult(successful: [], errors: []);
+      final result = SongParseResult(successful: [], errors: [], warnings: []);
 
-      // Validate headers
-      final headerValidation = _validateHeaders(headers);
-      if (headerValidation.isNotEmpty) {
-        result.errors.addAll(headerValidation);
+      final headerResult = _resolveHeaders(headers);
+      result.errors.addAll(headerResult.errors);
+      result.warnings.addAll(headerResult.warnings);
+      if (result.errors.isNotEmpty) {
         return result;
       }
 
@@ -63,7 +63,7 @@ class SongCsvParser {
           final row = stringRows[rowIndex];
           final songResult = _parseRow(
             row,
-            headers,
+            headerResult.headers,
             rowIndex + 1,
           ); // 1-based line numbers
           if (songResult.success != null) {
@@ -89,31 +89,34 @@ class SongCsvParser {
     }
   }
 
-  /// Validate CSV headers against the schema.
-  List<String> _validateHeaders(List<String> headers) {
+  _ResolvedHeaders _resolveHeaders(List<String> headers) {
     final errors = <String>[];
+    final warnings = <String>[];
+    final resolved = <String?>[];
+    final seen = <String>{};
 
-    // Check required headers
-    for (final requiredHeader in SongCsvSchema.requiredHeaders) {
-      if (!headers.contains(requiredHeader)) {
-        errors.add('Missing required header: "$requiredHeader"');
-      }
-    }
-
-    // Check for invalid headers
     for (final header in headers) {
-      if (!SongCsvSchema.isValidHeader(header)) {
-        errors.add('Invalid header: "$header"');
+      final canonical = SongCsvSchema.resolveHeader(header);
+      resolved.add(canonical);
+      if (canonical == null) {
+        warnings.add('Ignored unknown column: "$header"');
+      } else if (!seen.add(canonical)) {
+        errors.add('Multiple columns map to "$canonical"');
       }
     }
 
-    return errors;
+    for (final requiredHeader in SongCsvSchema.requiredHeaders) {
+      if (!seen.contains(requiredHeader)) {
+        errors.add('Missing required column: "Song Name"');
+      }
+    }
+    return _ResolvedHeaders(resolved, errors, warnings);
   }
 
   /// Parse a single row into a Song object.
   SongParseResultItem _parseRow(
     List<String> row,
-    List<String> headers,
+    List<String?> headers,
     int lineNumber,
   ) {
     final errors = <String>[];
@@ -121,7 +124,8 @@ class SongCsvParser {
 
     // Map headers to values
     for (int i = 0; i < headers.length && i < row.length; i++) {
-      songData[headers[i]] = row[i];
+      final header = headers[i];
+      if (header != null) songData[header] = row[i];
     }
 
     // Parse core fields
@@ -138,8 +142,8 @@ class SongCsvParser {
       lineNumber,
     );
 
-    if (title == null || artist == null) {
-      return SongParseResultItem(errors: ['Title and artist are required']);
+    if (title == null) {
+      return SongParseResultItem(errors: ['Song name is required']);
     }
 
     // Parse optional core fields
@@ -368,7 +372,7 @@ class SongCsvParser {
       final song = Song(
         id: _uuid.v4(), // Generate unique ID
         title: title,
-        artist: artist,
+        artist: artist ?? '',
         originalKey: originalKey,
         originalBPM: originalBPM,
         ourKey: ourKey,
@@ -643,8 +647,21 @@ class SongCsvParser {
 class SongParseResult {
   final List<Song> successful;
   final List<String> errors;
+  final List<String> warnings;
 
-  SongParseResult({required this.successful, required this.errors});
+  SongParseResult({
+    required this.successful,
+    required this.errors,
+    this.warnings = const [],
+  });
+}
+
+class _ResolvedHeaders {
+  final List<String?> headers;
+  final List<String> errors;
+  final List<String> warnings;
+
+  const _ResolvedHeaders(this.headers, this.errors, this.warnings);
 }
 
 /// Result of parsing a single row

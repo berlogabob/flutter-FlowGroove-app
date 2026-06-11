@@ -24,6 +24,7 @@ import '../screens/profile_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/songs/add_song_screen.dart';
+import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
 import '../widgets/desktop_shell.dart';
@@ -176,6 +177,11 @@ List<RouteBase> _buildAppRoutes() {
               name: 'songs',
               builder: (context, state) => const SongsListScreen(),
               routes: [
+                GoRoute(
+                  path: 'duplicates',
+                  name: 'song-duplicates',
+                  builder: (context, state) => const SongDuplicatesScreen(),
+                ),
                 GoRoute(
                   path: 'add',
                   name: 'add-song',

@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
@@ -27,6 +28,7 @@ void main() {
       final band = MockDataHelper.createMockBand(
         id: 'band-123',
         name: 'Band 123',
+        members: [BandMember(uid: 'test-user-id', role: BandMember.roleAdmin)],
       );
       final firebaseUser = MockUser();
       when(firebaseUser.uid).thenReturn('test-user-id');
