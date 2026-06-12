@@ -293,6 +293,8 @@ abstract class MetronomePlaybackClient {
 
   Future<void> update(MetronomePlaybackConfig config);
 
+  Future<void> resetPhase(MetronomePlaybackConfig config);
+
   Future<void> stop();
 
   void dispose();
@@ -333,6 +335,16 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
   @override
   Future<void> update(MetronomePlaybackConfig config) async {
     _config = config;
+    if (_onTick != null) {
+      _scheduler.start(config.interval, _handleTick);
+    }
+  }
+
+  @override
+  Future<void> resetPhase(MetronomePlaybackConfig config) async {
+    _config = config;
+    _tickIndex = -1;
+    _countInTicks = config.countInBars * config.totalTicks;
     if (_onTick != null) {
       _scheduler.start(config.interval, _handleTick);
     }
@@ -515,6 +527,32 @@ class PlatformMetronomePlaybackClient implements MetronomePlaybackClient {
       final onTick = _onTick;
       if (onTick != null) {
         await _startFallback(config, onTick, _onStopped, _lastTickIndex);
+      }
+    }
+  }
+
+  @override
+  Future<void> resetPhase(MetronomePlaybackConfig config) async {
+    _config = config;
+    _lastTickIndex = -1;
+    if (!_isRunning) return;
+
+    if (!_canUseNative || _usingFallback) {
+      await _fallback.resetPhase(config);
+      return;
+    }
+
+    try {
+      await _channel.invokeMethod<void>(
+        'update',
+        config.toPlatformMap(initialTick: -1),
+      );
+    } catch (error) {
+      debugPrint('[MetronomePlayback] Native phase reset failed: $error');
+      _usingFallback = true;
+      final onTick = _onTick;
+      if (onTick != null) {
+        await _startFallback(config, onTick, _onStopped, -1);
       }
     }
   }

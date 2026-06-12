@@ -42,6 +42,12 @@ MetronomeState _$MetronomeStateFromJson(Map<String, dynamic> json) =>
       loadedSetlist: json['loadedSetlist'] == null
           ? null
           : Setlist.fromJson(json['loadedSetlist'] as Map<String, dynamic>),
+      loadedSetlistSongs:
+          (json['loadedSetlistSongs'] as List<dynamic>?)
+              ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      sourceBandId: json['sourceBandId'] as String?,
       currentSetlistIndex: (json['currentSetlistIndex'] as num?)?.toInt() ?? 0,
       countInBars: (json['countInBars'] as num?)?.toInt() ?? 0,
     );
@@ -66,6 +72,8 @@ Map<String, dynamic> _$MetronomeStateToJson(MetronomeState instance) =>
           .toList(),
       'loadedSong': instance.loadedSong,
       'loadedSetlist': instance.loadedSetlist,
+      'loadedSetlistSongs': instance.loadedSetlistSongs,
+      'sourceBandId': instance.sourceBandId,
       'currentSetlistIndex': instance.currentSetlistIndex,
       'countInBars': instance.countInBars,
     };

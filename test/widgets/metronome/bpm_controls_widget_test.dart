@@ -188,7 +188,7 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('slider has correct range 1-600', (WidgetTester tester) async {
+    testWidgets('slider has correct range 1-400', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -197,10 +197,10 @@ void main() {
 
       final slider = tester.widget<Slider>(find.byType(Slider));
       expect(slider.min, equals(1));
-      expect(slider.max, equals(600));
+      expect(slider.max, equals(400));
     });
 
-    testWidgets('slider has 599 divisions', (WidgetTester tester) async {
+    testWidgets('slider has 399 divisions', (WidgetTester tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -208,7 +208,7 @@ void main() {
       );
 
       final slider = tester.widget<Slider>(find.byType(Slider));
-      expect(slider.divisions, equals(599));
+      expect(slider.divisions, equals(399));
     });
 
     testWidgets('handles invalid input gracefully', (

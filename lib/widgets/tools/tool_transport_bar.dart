@@ -74,10 +74,10 @@ class ToolTransportBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Previous button
-          if (showNavigation && onPrevious != null)
+          if (showNavigation)
             _TransportButton(
               icon: Icons.skip_previous,
-              onTap: onPrevious!,
+              onTap: onPrevious,
               size: touchSize,
             ),
 
@@ -89,10 +89,10 @@ class ToolTransportBar extends StatelessWidget {
           ),
 
           // Next button
-          if (showNavigation && onNext != null)
+          if (showNavigation)
             _TransportButton(
               icon: Icons.skip_next,
-              onTap: onNext!,
+              onTap: onNext,
               size: touchSize,
             ),
 
@@ -146,7 +146,7 @@ class _PlayPauseButton extends StatelessWidget {
 
 class _TransportButton extends StatelessWidget {
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final double size;
 
   const _TransportButton({
@@ -157,23 +157,31 @@ class _TransportButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: MonoPulseColors.surfaceRaised,
-          border: Border.all(color: MonoPulseColors.borderSubtle, width: 1),
-        ),
-        child: Icon(
-          icon,
-          color: MonoPulseColors.textSecondary,
-          size: size * 0.4,
+    final enabled = onTap != null;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      child: GestureDetector(
+        onTap: () {
+          if (!enabled) return;
+          HapticFeedback.lightImpact();
+          onTap!();
+        },
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: MonoPulseColors.surfaceRaised,
+            border: Border.all(color: MonoPulseColors.borderSubtle, width: 1),
+          ),
+          child: Icon(
+            icon,
+            color: enabled
+                ? MonoPulseColors.textSecondary
+                : MonoPulseColors.textDisabled,
+            size: size * 0.4,
+          ),
         ),
       ),
     );

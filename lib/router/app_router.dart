@@ -24,6 +24,7 @@ import '../screens/profile_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/songs/add_song_screen.dart';
+import '../screens/songs/models/song_form_data.dart';
 import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
@@ -187,7 +188,12 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'add-song',
                   builder: (context, state) {
                     final bandId = state.uri.queryParameters['bandId'];
-                    return AddSongScreen(bandId: bandId);
+                    return AddSongScreen(
+                      bandId: bandId,
+                      initialFormData: state.extra is SongFormData
+                          ? state.extra! as SongFormData
+                          : null,
+                    );
                   },
                 ),
                 GoRoute(
@@ -437,11 +443,11 @@ extension GoRouterExtension on BuildContext {
   void goSongs() => goNamed('songs');
 
   /// Navigate to add song screen.
-  void goAddSong({String? bandId}) {
+  void goAddSong({String? bandId, SongFormData? initialFormData}) {
     final Map<String, dynamic> params = bandId != null
         ? {'bandId': bandId}
         : {};
-    goNamed('add-song', queryParameters: params);
+    goNamed('add-song', queryParameters: params, extra: initialFormData);
   }
 
   /// Navigate to edit song screen.

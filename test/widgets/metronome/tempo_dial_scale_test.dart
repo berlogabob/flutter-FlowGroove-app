@@ -6,25 +6,32 @@ import 'package:flowgroove/widgets/metronome/tempo_dial_scale.dart';
 
 void main() {
   group('TempoDialScale', () {
-    test('maps the minimum, midpoint, and maximum to the fixed arc', () {
-      expect(TempoDialScale.bpmToAngle(1), closeTo(2 * math.pi / 3, 0.000001));
-      expect(
-        TempoDialScale.bpmToAngle(600),
-        closeTo(7 * math.pi / 3, 0.000001),
-      );
+    test(
+      'maps the display minimum, midpoint, and maximum to the fixed arc',
+      () {
+        expect(
+          TempoDialScale.bpmToAngle(0),
+          closeTo(2 * math.pi / 3, 0.000001),
+        );
+        expect(
+          TempoDialScale.bpmToAngle(400),
+          closeTo(7 * math.pi / 3, 0.000001),
+        );
 
-      final midpointAngle = TempoDialScale.bpmToAngle(300.5);
-      expect(
-        midpointAngle,
-        closeTo(
-          TempoDialScale.startAngle + TempoDialScale.sweepAngle / 2,
-          0.000001,
-        ),
-      );
-    });
+        final midpointAngle = TempoDialScale.bpmToAngle(200);
+        expect(
+          midpointAngle,
+          closeTo(
+            TempoDialScale.startAngle + TempoDialScale.sweepAngle / 2,
+            0.000001,
+          ),
+        );
+        expect(TempoDialScale.angleToBpm(TempoDialScale.startAngle), 1);
+      },
+    );
 
     test('round trips representative BPM values within one BPM', () {
-      for (final bpm in <int>[1, 37, 120, 240, 360, 480, 599, 600]) {
+      for (final bpm in <int>[1, 37, 80, 160, 240, 320, 399, 400]) {
         final converted = TempoDialScale.angleToBpm(
           TempoDialScale.bpmToAngle(bpm),
         );
@@ -45,9 +52,27 @@ void main() {
       }
 
       expect(
-        TempoDialScale.positionToBpm(pointFor(480), size)!,
-        greaterThan(TempoDialScale.positionToBpm(pointFor(120), size)!),
+        TempoDialScale.positionToBpm(pointFor(320), size)!,
+        greaterThan(TempoDialScale.positionToBpm(pointFor(80), size)!),
       );
+    });
+
+    test('uses evenly spaced round-number labels', () {
+      expect(
+        TempoDialScale.majorLabels,
+        equals(<int>[0, 80, 160, 240, 320, 400]),
+      );
+
+      final angles = TempoDialScale.majorLabels
+          .map(TempoDialScale.bpmToAngle)
+          .toList();
+      final intervals = <double>[
+        for (var index = 1; index < angles.length; index++)
+          angles[index] - angles[index - 1],
+      ];
+      for (final interval in intervals.skip(1)) {
+        expect(interval, closeTo(intervals.first, 0.000001));
+      }
     });
 
     test('center, bottom gap, and outside positions are ignored', () {

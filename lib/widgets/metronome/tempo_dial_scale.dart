@@ -8,21 +8,23 @@ import '../../models/metronome_tempo_range.dart';
 ///
 /// Flutter canvas angles start at the positive x-axis and increase clockwise.
 /// The active scale runs from 120 degrees through a 300-degree sweep, leaving
-/// a 60-degree dead zone centered at the bottom of the dial.
+/// a 60-degree dead zone centered at the bottom of the dial. The visual scale
+/// starts at zero for evenly spaced labels, while playable tempo clamps to 1.
 class TempoDialScale {
   const TempoDialScale._();
 
   static const double startAngle = 2 * math.pi / 3;
   static const double sweepAngle = 5 * math.pi / 3;
-  static const List<int> majorLabels = <int>[1, 120, 240, 360, 480, 600];
+  static const int displayMinimum = 0;
+  static const List<int> majorLabels = <int>[0, 80, 160, 240, 320, 400];
 
   static double bpmToAngle(num bpm) {
     final clampedBpm = bpm
-        .clamp(MetronomeTempoRange.minimum, MetronomeTempoRange.maximum)
+        .clamp(displayMinimum, MetronomeTempoRange.maximum)
         .toDouble();
     final progress =
-        (clampedBpm - MetronomeTempoRange.minimum) /
-        (MetronomeTempoRange.maximum - MetronomeTempoRange.minimum);
+        (clampedBpm - displayMinimum) /
+        (MetronomeTempoRange.maximum - displayMinimum);
     return startAngle + progress * sweepAngle;
   }
 
@@ -32,8 +34,8 @@ class TempoDialScale {
 
     final progress = (relativeAngle / sweepAngle).clamp(0.0, 1.0);
     final bpm =
-        MetronomeTempoRange.minimum +
-        progress * (MetronomeTempoRange.maximum - MetronomeTempoRange.minimum);
+        displayMinimum +
+        progress * (MetronomeTempoRange.maximum - displayMinimum);
     return MetronomeTempoRange.clamp(bpm);
   }
 

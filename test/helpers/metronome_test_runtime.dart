@@ -91,6 +91,7 @@ class FakeMetronomeHapticsClient implements MetronomeHapticsClient {
 class FakeMetronomePlaybackClient implements MetronomePlaybackClient {
   int startCalls = 0;
   int updateCalls = 0;
+  int resetPhaseCalls = 0;
   int stopCalls = 0;
   int disposeCalls = 0;
 
@@ -116,6 +117,12 @@ class FakeMetronomePlaybackClient implements MetronomePlaybackClient {
   @override
   Future<void> update(MetronomePlaybackConfig config) async {
     updateCalls += 1;
+    lastConfig = config;
+  }
+
+  @override
+  Future<void> resetPhase(MetronomePlaybackConfig config) async {
+    resetPhaseCalls += 1;
     lastConfig = config;
   }
 

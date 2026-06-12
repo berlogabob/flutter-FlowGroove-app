@@ -22,7 +22,14 @@ class AddSongScreen extends ConsumerStatefulWidget {
   /// Optional band ID to associate the song with a band
   final String? bandId;
 
-  const AddSongScreen({super.key, this.song, this.bandId});
+  final SongFormData? initialFormData;
+
+  const AddSongScreen({
+    super.key,
+    this.song,
+    this.bandId,
+    this.initialFormData,
+  });
 
   @override
   ConsumerState<AddSongScreen> createState() => _AddSongScreenState();
@@ -117,6 +124,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     // Initialize form state from song if editing
     if (_isEditing && widget.song != null) {
       ref.read(songFormStateProvider.notifier).initFromSong(widget.song!);
+    } else if (widget.initialFormData != null) {
+      ref
+          .read(songFormStateProvider.notifier)
+          .initFromFormData(widget.initialFormData!);
     }
 
     final formData = ref.read(songFormStateProvider).formData;

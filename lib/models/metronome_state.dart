@@ -44,6 +44,9 @@ class MetronomeState {
   final Song? loadedSong;
   @JsonKey(defaultValue: null)
   final Setlist? loadedSetlist;
+  @JsonKey(defaultValue: [])
+  final List<Song> loadedSetlistSongs;
+  final String? sourceBandId;
   @JsonKey(defaultValue: 0)
   final int currentSetlistIndex;
 
@@ -68,6 +71,8 @@ class MetronomeState {
     this.beatModes = const [], // Empty = all normal (2D: beats × subdivisions)
     this.loadedSong,
     this.loadedSetlist,
+    this.loadedSetlistSongs = const [],
+    this.sourceBandId,
     this.currentSetlistIndex = 0,
     this.countInBars = 0,
   });
@@ -111,6 +116,8 @@ class MetronomeState {
     List<List<BeatMode>>? beatModes,
     Object? loadedSong = _metronomeStateNoChange,
     Object? loadedSetlist = _metronomeStateNoChange,
+    List<Song>? loadedSetlistSongs,
+    Object? sourceBandId = _metronomeStateNoChange,
     int? currentSetlistIndex,
     int? countInBars,
   }) {
@@ -135,6 +142,10 @@ class MetronomeState {
       loadedSetlist: identical(loadedSetlist, _metronomeStateNoChange)
           ? this.loadedSetlist
           : loadedSetlist as Setlist?,
+      loadedSetlistSongs: loadedSetlistSongs ?? this.loadedSetlistSongs,
+      sourceBandId: identical(sourceBandId, _metronomeStateNoChange)
+          ? this.sourceBandId
+          : sourceBandId as String?,
       currentSetlistIndex: currentSetlistIndex ?? this.currentSetlistIndex,
       countInBars: countInBars ?? this.countInBars,
     );
@@ -150,6 +161,23 @@ class MetronomeState {
   // Backward compatibility getters
   /// Returns beats per measure (alias for accentBeats)
   int get beatsPerMeasure => accentBeats;
+
+  Song? get currentSetlistSong {
+    if (currentSetlistIndex < 0 ||
+        currentSetlistIndex >= loadedSetlistSongs.length) {
+      return null;
+    }
+    return loadedSetlistSongs[currentSetlistIndex];
+  }
+
+  Song? get activeSong => currentSetlistSong ?? loadedSong;
+
+  bool get canGoToPreviousSetlistSong =>
+      loadedSetlist != null && currentSetlistIndex > 0;
+
+  bool get canGoToNextSetlistSong =>
+      loadedSetlist != null &&
+      currentSetlistIndex < loadedSetlistSongs.length - 1;
 
   /// Check if a beat index should be accented based on accentPattern
   bool isAccentBeat(int beatIndex) {
