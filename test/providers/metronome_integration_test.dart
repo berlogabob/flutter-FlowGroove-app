@@ -80,7 +80,7 @@ void main() {
           state = state.copyWith(bpm: MetronomeTempoRange.clamp(songBpm));
         }
 
-        expect(state.bpm, 500);
+        expect(state.bpm, 400);
       });
     });
 

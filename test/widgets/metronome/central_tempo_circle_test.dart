@@ -52,10 +52,10 @@ void main() {
   testWidgets('ring tap maps directly to BPM', (tester) async {
     await pumpDial(tester);
 
-    await tester.tapAt(globalPointFor(tester, 480));
+    await tester.tapAt(globalPointFor(tester, 320));
     await tester.pump();
 
-    expect(container.read(metronomeProvider).bpm, closeTo(480, 1));
+    expect(container.read(metronomeProvider).bpm, closeTo(320, 1));
   });
 
   testWidgets(
@@ -63,19 +63,19 @@ void main() {
     (tester) async {
       await pumpDial(tester);
 
-      final gesture = await tester.startGesture(globalPointFor(tester, 120));
-      await gesture.moveTo(globalPointFor(tester, 480));
+      final gesture = await tester.startGesture(globalPointFor(tester, 80));
+      await gesture.moveTo(globalPointFor(tester, 320));
       await gesture.up();
       await tester.pump();
-      expect(container.read(metronomeProvider).bpm, closeTo(480, 1));
+      expect(container.read(metronomeProvider).bpm, closeTo(320, 1));
 
       final reverseGesture = await tester.startGesture(
-        globalPointFor(tester, 480),
+        globalPointFor(tester, 320),
       );
-      await reverseGesture.moveTo(globalPointFor(tester, 120));
+      await reverseGesture.moveTo(globalPointFor(tester, 80));
       await reverseGesture.up();
       await tester.pump();
-      expect(container.read(metronomeProvider).bpm, closeTo(120, 1));
+      expect(container.read(metronomeProvider).bpm, closeTo(80, 1));
     },
   );
 
@@ -106,7 +106,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Set BPM'), findsOneWidget);
-    expect(find.text('1-600 BPM'), findsOneWidget);
+    expect(find.text('1-400 BPM'), findsOneWidget);
   });
 
   testWidgets('external BPM changes reposition the indicator immediately', (
@@ -114,7 +114,7 @@ void main() {
   ) async {
     await pumpDial(tester);
 
-    container.read(metronomeProvider.notifier).setBpm(480);
+    container.read(metronomeProvider.notifier).setBpm(320);
     await tester.pump();
 
     final paints = tester.widgetList<CustomPaint>(find.byType(CustomPaint));
@@ -122,7 +122,7 @@ void main() {
         .map((paint) => paint.painter)
         .whereType<TempoDialPainter>()
         .single;
-    expect(painter.bpm, 480);
-    expect(find.text('480'), findsOneWidget);
+    expect(painter.bpm, 320);
+    expect(find.text('320'), findsOneWidget);
   });
 }

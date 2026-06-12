@@ -95,8 +95,7 @@ final canManageAppProvider = Provider<bool>((ref) {
 final isDemoUserProvider = Provider<bool>((ref) {
   final userAsync = ref.watch(appUserProvider);
   return userAsync.when(
-    data: (user) =>
-        user != null && user.accessRole == AccessLevel.demo,
+    data: (user) => user != null && user.accessRole == AccessLevel.demo,
     loading: () => false,
     error: (_, __) => false,
   );
@@ -121,24 +120,23 @@ final isAdminUserProvider = Provider<bool>((ref) {
 /// Can the current user edit this band?
 ///
 /// Checks both app-level access AND band-level role.
-Provider<bool> canEditBandProvider(String bandId) =>
-    Provider<bool>((ref) {
-      final userAsync = ref.watch(appUserProvider);
-      final bandAsync = ref.watch(bandsProvider);
+Provider<bool> canEditBandProvider(String bandId) => Provider<bool>((ref) {
+  final userAsync = ref.watch(appUserProvider);
+  final bandAsync = ref.watch(bandsProvider);
 
-      return userAsync.when(
-        data: (user) {
-          if (user == null || !_canEdit(user)) return false;
-          return bandAsync.when(
-            data: (bands) => _canEditBandIn(bandId, bands),
-            loading: () => false,
-            error: (_, __) => false,
-          );
-        },
+  return userAsync.when(
+    data: (user) {
+      if (user == null || !_canEdit(user)) return false;
+      return bandAsync.when(
+        data: (bands) => _canEditBandIn(user.uid, bandId, bands),
         loading: () => false,
         error: (_, __) => false,
       );
-    });
+    },
+    loading: () => false,
+    error: (_, __) => false,
+  );
+});
 
 /// Can the current user manage members in this band?
 Provider<bool> canManageBandMembersProvider(String bandId) =>
@@ -172,11 +170,10 @@ bool _canManageMembers(AppUser user) {
   return AccessLevel.hasAccess(user.accessRole, AccessLevel.admin);
 }
 
-bool _canEditBandIn(String bandId, List<Band> bands) {
+bool _canEditBandIn(String uid, String bandId, List<Band> bands) {
   final band = bands.where((b) => b.id == bandId).firstOrNull;
   if (band == null) return false;
-  return band.adminUids.contains(band.createdBy) ||
-      band.editorUids.contains(band.createdBy);
+  return band.adminUids.contains(uid) || band.editorUids.contains(uid);
 }
 
 bool _canManageBandMembersIn(String bandId, List<Band> bands) {

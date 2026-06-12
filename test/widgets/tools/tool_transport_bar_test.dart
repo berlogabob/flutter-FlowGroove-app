@@ -210,7 +210,7 @@ void main() {
       expect(find.byIcon(Icons.skip_next), findsNothing);
     });
 
-    testWidgets('hides navigation buttons when callbacks are null', (
+    testWidgets('disables navigation buttons when callbacks are null', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -224,8 +224,15 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.skip_previous), findsNothing);
-      expect(find.byIcon(Icons.skip_next), findsNothing);
+      expect(find.byIcon(Icons.skip_previous), findsOneWidget);
+      expect(find.byIcon(Icons.skip_next), findsOneWidget);
+
+      final previousIcon = tester.widget<Icon>(
+        find.byIcon(Icons.skip_previous),
+      );
+      final nextIcon = tester.widget<Icon>(find.byIcon(Icons.skip_next));
+      expect(previousIcon.color, MonoPulseColors.textDisabled);
+      expect(nextIcon.color, MonoPulseColors.textDisabled);
     });
 
     testWidgets('calls onPrevious when previous button tapped', (

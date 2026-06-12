@@ -8,8 +8,10 @@ import '../widgets/metronome/time_signature_block.dart';
 import '../widgets/metronome/central_tempo_circle.dart';
 import '../widgets/metronome/fine_adjustment_buttons.dart';
 import '../widgets/metronome/song_library_block.dart';
-import '../../models/song.dart';
 import '../../models/metronome_state.dart';
+import '../../models/band.dart';
+import '../../router/app_router.dart';
+import 'songs/models/song_form_data.dart';
 import '../../widgets/tap_bpm_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/data/data_providers.dart';
@@ -43,12 +45,35 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(metronomeProvider);
     final metronome = ref.watch(metronomeProvider.notifier);
+    var canEditSource = false;
+    if (state.activeSong != null) {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (state.sourceBandId == null) {
+        canEditSource = userId != null;
+      } else {
+        final bands = ref.watch(bandsProvider).value ?? const <Band>[];
+        final sourceBand = bands
+            .where((band) => band.id == state.sourceBandId)
+            .firstOrNull;
+        final sourceMember = sourceBand?.members
+            .where((member) => member.uid == userId)
+            .firstOrNull;
+        canEditSource =
+            sourceMember?.role == BandMember.roleAdmin ||
+            sourceMember?.role == BandMember.roleEditor;
+      }
+    }
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: ToolScreenScaffold(
         title: 'Metronome',
-        menuItems: _buildMenuItems(context, metronome, state),
+        menuItems: _buildMenuItems(
+          context,
+          metronome,
+          state,
+          canEditSource: canEditSource,
+        ),
         mainWidget: const _MetronomePerformanceSurface(),
         showOfflineIndicator: true,
       ),
@@ -59,8 +84,9 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
   List<PopupMenuEntry<dynamic>> _buildMenuItems(
     BuildContext context,
     MetronomeNotifier metronome,
-    MetronomeState state,
-  ) {
+    MetronomeState state, {
+    required bool canEditSource,
+  }) {
     final items = <PopupMenuEntry<dynamic>>[];
 
     items.add(
@@ -101,9 +127,10 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
     items.add(const PopupMenuDivider(height: 1));
 
     // Save to Song (only shown when song is loaded)
-    if (state.loadedSong != null) {
+    if (state.activeSong != null) {
       items.add(
         PopupMenuItem<void>(
+          enabled: canEditSource,
           child: Row(
             children: [
               const Icon(
@@ -114,7 +141,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
               const SizedBox(width: MonoPulseSpacing.md),
               Expanded(
                 child: Text(
-                  "Save to '${state.loadedSong!.title}'",
+                  "Save to '${state.activeSong!.title}'",
                   style: MonoPulseTypography.bodyMedium.copyWith(
                     color: MonoPulseColors.textHighEmphasis,
                   ),
@@ -124,7 +151,9 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
               ),
             ],
           ),
-          onTap: () => _saveMetronomeToSong(context, metronome, state),
+          onTap: canEditSource
+              ? () => _saveMetronomeToSong(context, metronome, state)
+              : null,
         ),
       );
     }
@@ -132,6 +161,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
     // Save New Song
     items.add(
       PopupMenuItem<void>(
+        enabled: canEditSource,
         child: Row(
           children: [
             const Icon(
@@ -148,36 +178,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
             ),
           ],
         ),
-        onTap: () => _navigateToSaveSong(context, metronome, state.bpm),
-      ),
-    );
-
-    // Update Song
-    items.add(
-      PopupMenuItem<void>(
-        child: Row(
-          children: [
-            const Icon(
-              Icons.edit_note_outlined,
-              color: MonoPulseColors.accentOrange,
-              size: 20,
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-            Expanded(
-              child: Text(
-                state.loadedSong != null
-                    ? "Update '${state.loadedSong!.title}'"
-                    : 'Update Song',
-                style: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        onTap: () => _navigateToUpdateSong(context, metronome, state),
+        onTap: canEditSource ? () => _navigateToSaveSong(context, state) : null,
       ),
     );
 
@@ -204,9 +205,12 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
         return;
       }
 
-      await ref
-          .read(songRepositoryProvider)
-          .updateSong(updatedSong, uid: user.uid);
+      final repository = ref.read(songRepositoryProvider);
+      if (state.sourceBandId != null) {
+        await repository.updateBandSong(updatedSong, state.sourceBandId!);
+      } else {
+        await repository.updateSong(updatedSong, uid: user.uid);
+      }
 
       if (!context.mounted) return;
       _showSuccessSnackBar(
@@ -245,232 +249,16 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
     );
   }
 
-  void _navigateToSaveSong(
-    BuildContext context,
-    MetronomeNotifier metronome,
-    int currentBpm,
-  ) {
-    // Navigate to save song form with pre-filled BPM
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Save New Song (BPM: $currentBpm)'),
-        backgroundColor: MonoPulseColors.surfaceRaised,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        ),
-      ),
-    );
-  }
-
-  void _navigateToUpdateSong(
-    BuildContext context,
-    MetronomeNotifier metronome,
-    MetronomeState state,
-  ) {
-    // If playlist loaded — pre-select current song
-    if (state.loadedSong != null) {
-      _showUpdateConfirmDialog(context, state.loadedSong!);
-    } else if (state.loadedSetlist != null) {
-      // Show setlist songs
-      _showSetlistSelectionDialog(context, state);
-    } else {
-      // Show all songs list
-      _showSongsListDialog(context, state);
-    }
-  }
-
-  void _showUpdateConfirmDialog(BuildContext context, Song song) {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: MonoPulseColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
-        ),
-        title: Text(
-          "Update '${song.title}'?",
-          style: MonoPulseTypography.headlineSmall.copyWith(
-            color: MonoPulseColors.textHighEmphasis,
-          ),
-        ),
-        content: Text(
-          'This will update the song with current metronome settings.',
-          style: MonoPulseTypography.bodyMedium.copyWith(
-            color: MonoPulseColors.textSecondary,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              'Cancel',
-              style: MonoPulseTypography.labelLarge.copyWith(
-                color: MonoPulseColors.textSecondary,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Perform update
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Updated '${song.title}'"),
-                  backgroundColor: MonoPulseColors.accentOrange,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-                  ),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: MonoPulseColors.accentOrange,
-              foregroundColor: MonoPulseColors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-              ),
-            ),
-            child: Text(
-              'Update',
-              style: MonoPulseTypography.labelLarge.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSetlistSelectionDialog(BuildContext context, MetronomeState state) {
-    final setlist = state.loadedSetlist;
-    if (setlist == null) return;
-
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: MonoPulseColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
-        ),
-        title: Text(
-          'Select Song from ${setlist.name}',
-          style: MonoPulseTypography.headlineSmall.copyWith(
-            color: MonoPulseColors.textHighEmphasis,
-          ),
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: setlist.songIds.length,
-            itemBuilder: (context, index) {
-              final songId = setlist.songIds[index];
-              // In real implementation, fetch song name from repository
-              return ListTile(
-                title: Text(
-                  'Song $songId',
-                  style: MonoPulseTypography.bodyMedium.copyWith(
-                    color: MonoPulseColors.textHighEmphasis,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  // Show confirm dialog with selected song
-                  _showUpdateConfirmDialog(
-                    context,
-                    Song(
-                      id: songId,
-                      title: 'Song $songId',
-                      artist: 'Unknown',
-                      originalBPM: 120,
-                      createdAt: DateTime.now(),
-                      updatedAt: DateTime.now(),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showSongsListDialog(BuildContext context, MetronomeState state) {
-    // Sample songs list - in real implementation, fetch from repository
-    final songs = [
-      Song(
-        id: '1',
-        title: 'Song One',
-        artist: 'Artist A',
-        originalBPM: 120,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Song(
-        id: '2',
-        title: 'Song Two',
-        artist: 'Artist B',
-        originalBPM: 140,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Song(
-        id: '3',
-        title: 'Song Three',
-        artist: 'Artist C',
-        originalBPM: 100,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
-
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: MonoPulseColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
-        ),
-        title: Text(
-          'Select Song to Update',
-          style: MonoPulseTypography.headlineSmall.copyWith(
-            color: MonoPulseColors.textHighEmphasis,
-          ),
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: songs.length,
-            itemBuilder: (context, index) {
-              final song = songs[index];
-              return ListTile(
-                title: Text(
-                  song.title,
-                  style: MonoPulseTypography.bodyMedium.copyWith(
-                    color: MonoPulseColors.textHighEmphasis,
-                  ),
-                ),
-                subtitle: Text(
-                  '${song.originalBPM ?? 120} BPM',
-                  style: MonoPulseTypography.bodySmall.copyWith(
-                    color: MonoPulseColors.textTertiary,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _showUpdateConfirmDialog(context, song);
-                },
-              );
-            },
-          ),
-        ),
+  void _navigateToSaveSong(BuildContext context, MetronomeState state) {
+    context.goAddSong(
+      bandId: state.sourceBandId,
+      initialFormData: SongFormData(
+        ourBpm: state.bpm.toString(),
+        accentBeats: state.accentBeats,
+        regularBeats: state.regularBeats,
+        beatModes: state.beatModes
+            .map((row) => List.of(row))
+            .toList(growable: false),
       ),
     );
   }
@@ -609,8 +397,10 @@ class _MetronomeTransport extends ConsumerWidget {
       isPlaying: state.isPlaying,
       onPlayPause: metronome.toggle,
       showNavigation: hasSetlist,
-      onPrevious: hasSetlist ? metronome.previousSetlistSong : null,
-      onNext: hasSetlist ? metronome.nextSetlistSong : null,
+      onPrevious: state.canGoToPreviousSetlistSong
+          ? metronome.previousSetlistSong
+          : null,
+      onNext: state.canGoToNextSetlistSong ? metronome.nextSetlistSong : null,
       margin: EdgeInsets.zero,
     );
   }

@@ -61,7 +61,7 @@ void main() {
         expect(state.bpm, 100);
       });
 
-      test('clamps BPM to valid range (1-600)', () {
+      test('clamps loaded song BPM to valid range (1-400)', () {
         final container = createContainer();
 
         final song = Song(
@@ -77,7 +77,7 @@ void main() {
         metronome.loadSongTempo(song);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 500); // Within extended range (1-600)
+        expect(state.bpm, 400);
       });
 
       test('loads metronome settings from song', () {
@@ -732,14 +732,14 @@ void main() {
         expect(state.bpm, 1);
       });
 
-      test('setBpm clamps to maximum 600', () {
+      test('setBpm clamps to maximum 400', () {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
         metronome.setBpm(500);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 500);
+        expect(state.bpm, 400);
       });
 
       test('adjustTempoFine increases BPM', () {
@@ -766,12 +766,12 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        // Use setTempoDirectly to set to max (600)
-        metronome.setTempoDirectly(600);
+        // Use setTempoDirectly to set to max (400)
+        metronome.setTempoDirectly(400);
         metronome.adjustTempoFine(40);
 
         final state = container.read(metronomeProvider);
-        expect(state.bpm, 600);
+        expect(state.bpm, 400);
       });
 
       test('adjustTempoFine clamps at minimum', () {

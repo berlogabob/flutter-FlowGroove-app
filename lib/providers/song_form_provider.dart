@@ -87,6 +87,10 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     state = SongFormState.fromSong(song);
   }
 
+  void initFromFormData(SongFormData formData) {
+    state = SongFormState(formData: formData);
+  }
+
   /// Mark form as having unsaved changes.
   void markAsChanged() {
     if (!state.hasUnsavedChanges) {

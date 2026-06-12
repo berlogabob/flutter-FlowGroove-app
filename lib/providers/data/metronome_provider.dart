@@ -150,10 +150,19 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   /// Load tempo and metronome settings from a song
-  void loadSongTempo(Song song) {
-    // Load song into state
-    state = state.copyWith(loadedSong: song);
+  void loadSongTempo(Song song, {String? sourceBandId}) {
+    state = state.copyWith(
+      loadedSong: song,
+      loadedSetlist: null,
+      loadedSetlistSongs: const [],
+      sourceBandId: sourceBandId,
+      currentSetlistIndex: 0,
+    );
 
+    _applySongSettings(song);
+  }
+
+  void _applySongSettings(Song song, {bool resetPhase = false}) {
     // Load BPM from song (prefer ourBPM, fallback to originalBPM)
     final songBpm = song.ourBPM ?? song.originalBPM;
     if (songBpm != null) {
@@ -175,7 +184,13 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     );
     state = state.copyWith(timeSignature: timeSignature);
 
-    _syncPlaybackConfig();
+    if (resetPhase && state.isPlaying) {
+      unawaited(
+        _playbackClient.resetPhase(MetronomePlaybackConfig.fromState(state)),
+      );
+    } else {
+      _syncPlaybackConfig();
+    }
   }
 
   /// Save current metronome settings to the loaded song
@@ -183,7 +198,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   /// Returns the updated song with metronome settings applied.
   /// The caller is responsible for persisting the song to Firestore.
   Song? saveMetronomeToSong() {
-    final song = state.loadedSong;
+    final song = state.activeSong;
     if (song == null) return null;
 
     // Create updated song with current metronome settings
@@ -196,35 +211,64 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     );
 
     // Update loaded song in state
-    state = state.copyWith(loadedSong: updatedSong);
+    replaceActiveSong(updatedSong);
 
     return updatedSong;
   }
 
   /// Load tempo from a setlist
-  void loadSetlistQueue(Setlist setlist) {
-    state = state.copyWith(loadedSetlist: setlist, currentSetlistIndex: 0);
+  bool loadSetlistQueue(
+    Setlist setlist, {
+    List<Song>? availableSongs,
+    String? sourceBandId,
+  }) {
+    if (setlist.songIds.isEmpty) return false;
+
+    final resolvedSongs =
+        availableSongs ??
+        setlist.songIds
+            .map(
+              (id) => Song(
+                id: id,
+                title: id,
+                artist: '',
+                createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+                updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+              ),
+            )
+            .toList(growable: false);
+    final songsById = {for (final song in resolvedSongs) song.id: song};
+    final queue = setlist.songIds.map((id) => songsById[id]).toList();
+    if (queue.any((song) => song == null)) return false;
+
+    final resolvedQueue = queue.cast<Song>();
+    state = state.copyWith(
+      loadedSong: null,
+      loadedSetlist: setlist,
+      loadedSetlistSongs: List.unmodifiable(resolvedQueue),
+      sourceBandId: sourceBandId,
+      currentSetlistIndex: 0,
+    );
+    _applySongSettings(resolvedQueue.first, resetPhase: true);
+    return true;
   }
 
   /// Move to next song in setlist
   void nextSetlistSong() {
-    if (state.loadedSetlist == null) return;
-
-    final newIndex = state.currentSetlistIndex + 1;
-    if (newIndex < state.loadedSetlist!.songIds.length) {
-      state = state.copyWith(currentSetlistIndex: newIndex);
-    }
+    if (!state.canGoToNextSetlistSong) return;
+    _activateSetlistSong(state.currentSetlistIndex + 1);
   }
 
   /// Move to previous song in setlist
   void previousSetlistSong() {
-    if (state.loadedSetlist == null) return;
+    if (!state.canGoToPreviousSetlistSong) return;
+    _activateSetlistSong(state.currentSetlistIndex - 1);
+  }
 
-    if (state.currentSetlistIndex > 0) {
-      state = state.copyWith(
-        currentSetlistIndex: state.currentSetlistIndex - 1,
-      );
-    }
+  void _activateSetlistSong(int index) {
+    final song = state.loadedSetlistSongs[index];
+    state = state.copyWith(currentSetlistIndex: index);
+    _applySongSettings(song, resetPhase: true);
   }
 
   /// Clear loaded song/setlist
@@ -232,8 +276,22 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     state = state.copyWith(
       loadedSong: null,
       loadedSetlist: null,
+      loadedSetlistSongs: const [],
+      sourceBandId: null,
       currentSetlistIndex: 0,
     );
+  }
+
+  void replaceActiveSong(Song updatedSong) {
+    if (state.loadedSetlist != null) {
+      final queue = List<Song>.from(state.loadedSetlistSongs);
+      if (state.currentSetlistIndex < queue.length) {
+        queue[state.currentSetlistIndex] = updatedSong;
+        state = state.copyWith(loadedSetlistSongs: List.unmodifiable(queue));
+      }
+      return;
+    }
+    state = state.copyWith(loadedSong: updatedSong);
   }
 
   /// Set tempo directly
