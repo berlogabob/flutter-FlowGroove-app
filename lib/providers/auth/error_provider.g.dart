@@ -113,7 +113,7 @@ abstract class _$ErrorStateNotifier extends $Notifier<ErrorState> {
   ErrorState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ErrorState, ErrorState>;
     final element =
         ref.element
@@ -123,6 +123,6 @@ abstract class _$ErrorStateNotifier extends $Notifier<ErrorState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
