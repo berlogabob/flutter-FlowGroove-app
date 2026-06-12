@@ -125,4 +125,22 @@ void main() {
     expect(painter.bpm, 320);
     expect(find.text('320'), findsOneWidget);
   });
+
+  testWidgets('does not scale or pop the dial while playing', (tester) async {
+    await pumpDial(tester);
+
+    container.read(metronomeProvider.notifier).start();
+    runtime.playback.emitTick(0);
+    await tester.pump();
+
+    final dial = find.byKey(const Key('tempo-dial'));
+    expect(
+      find.descendant(of: dial, matching: find.byType(AnimatedBuilder)),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: dial, matching: find.byType(Transform)),
+      findsNothing,
+    );
+  });
 }

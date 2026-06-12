@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
@@ -9,8 +11,11 @@ import 'package:flowgroove/widgets/metronome/time_signature_block.dart';
 import 'package:flowgroove/widgets/metronome/fine_adjustment_buttons.dart';
 import 'package:flowgroove/widgets/metronome/song_library_block.dart';
 import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
+import 'package:go_router/go_router.dart';
+import 'package:mockito/mockito.dart';
 
 import '../helpers/metronome_test_runtime.dart';
+import '../helpers/mocks.mocks.dart';
 
 void main() {
   group('MetronomeScreen', () {
@@ -395,6 +400,76 @@ void main() {
 
       expect(find.text('Haptics'), findsOneWidget);
       expect(find.text('Off'), findsWidgets);
+    });
+
+    testWidgets('edit song menu opens the loaded song editor', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final runtime = MetronomeTestRuntime();
+      final mockAuth = MockFirebaseAuth();
+      final mockUser = MockUser();
+      when(mockAuth.currentUser).thenReturn(mockUser);
+      when(mockUser.uid).thenReturn('user-1');
+
+      final container = ProviderContainer(
+        overrides: [
+          ...runtime.overrides,
+          firebaseAuthProvider.overrideWithValue(mockAuth),
+        ],
+      );
+      addTearDown(() async {
+        container.dispose();
+        await runtime.dispose();
+      });
+
+      final song = Song(
+        id: 'song-1',
+        title: 'Loaded Song',
+        artist: 'Artist',
+        ourBPM: 120,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      container.read(metronomeProvider.notifier).loadSongTempo(song);
+
+      final router = GoRouter(
+        initialLocation: '/metronome',
+        routes: [
+          GoRoute(
+            path: '/metronome',
+            builder: (context, state) => const MetronomeScreen(),
+          ),
+          GoRoute(
+            path: '/songs/:id/edit',
+            name: 'edit-song',
+            builder: (context, state) {
+              final editedSong = state.extra! as Song;
+              return Scaffold(body: Text('Editing ${editedSong.title}'));
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit Song'), findsOneWidget);
+      await tester.tap(find.text('Edit Song'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Editing Loaded Song'), findsOneWidget);
     });
 
     testWidgets('play preserves three visible main beats', (
