@@ -77,6 +77,16 @@ jobs:
         with:
           node-version: 22
 
+      - name: Reclaim disk space for Android emulator
+        run: |
+          echo "Disk usage before cleanup:"
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY/CodeQL"
+          sudo docker image prune --all --force || true
+          sudo apt-get clean
+          echo "Disk usage after cleanup:"
+          df -h /
+
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
