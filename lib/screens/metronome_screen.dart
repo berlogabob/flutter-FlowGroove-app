@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
@@ -10,10 +11,10 @@ import '../widgets/metronome/fine_adjustment_buttons.dart';
 import '../widgets/metronome/song_library_block.dart';
 import '../../models/metronome_state.dart';
 import '../../models/band.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../router/app_router.dart';
 import 'songs/models/song_form_data.dart';
 import '../../widgets/tap_bpm_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 
@@ -47,7 +48,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
     final metronome = ref.watch(metronomeProvider.notifier);
     var canEditSource = false;
     if (state.activeSong != null) {
-      final userId = FirebaseAuth.instance.currentUser?.uid;
+      final userId = ref.watch(firebaseAuthProvider).currentUser?.uid;
       if (state.sourceBandId == null) {
         canEditSource = userId != null;
       } else {
@@ -131,6 +132,33 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
       items.add(
         PopupMenuItem<void>(
           enabled: canEditSource,
+          onTap: canEditSource
+              ? () => _navigateToEditSong(context, state)
+              : null,
+          child: Row(
+            children: [
+              const Icon(
+                Icons.edit_outlined,
+                color: MonoPulseColors.accentOrange,
+                size: 20,
+              ),
+              const SizedBox(width: MonoPulseSpacing.md),
+              Expanded(
+                child: Text(
+                  'Edit Song',
+                  style: MonoPulseTypography.bodyMedium.copyWith(
+                    color: MonoPulseColors.textHighEmphasis,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      items.add(
+        PopupMenuItem<void>(
+          enabled: canEditSource,
           child: Row(
             children: [
               const Icon(
@@ -199,7 +227,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
 
     try {
       // Get current user
-      final user = FirebaseAuth.instance.currentUser;
+      final user = ref.read(firebaseAuthProvider).currentUser;
       if (user == null) {
         _showErrorSnackBar(context, 'Not signed in');
         return;
@@ -260,6 +288,19 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
             .map((row) => List.of(row))
             .toList(growable: false),
       ),
+    );
+  }
+
+  void _navigateToEditSong(BuildContext context, MetronomeState state) {
+    final song = state.activeSong;
+    if (song == null) return;
+
+    context.pushNamed(
+      'edit-song',
+      pathParameters: {'id': song.id},
+      extra: state.sourceBandId == null
+          ? song
+          : {'song': song, 'bandId': state.sourceBandId},
     );
   }
 }

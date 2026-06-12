@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../models/metronome_tempo_range.dart';
 import '../../providers/data/metronome_provider.dart';
-import '../../providers/metronome_selective_providers.dart';
 import 'tempo_dial_scale.dart';
 
 /// Central tempo circle with bounded rotary BPM control.
@@ -21,34 +20,11 @@ class CentralTempoCircle extends ConsumerStatefulWidget {
   ConsumerState<CentralTempoCircle> createState() => _CentralTempoCircleState();
 }
 
-class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(vsync: this);
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
+class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(metronomeProvider);
     final notifier = ref.read(metronomeProvider.notifier);
-
-    ref.listen<int>(metronomeCurrentBeatProvider, (previous, next) {
-      if (state.isPlaying) _triggerPulse();
-    });
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -89,48 +65,40 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
                   }
                   _updateTempoFromPosition(details.localPosition, dialSize);
                 },
-                child: AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _pulseAnimation.value,
-                      child: CustomPaint(
-                        painter: TempoDialPainter(
-                          bpm: state.bpm.toDouble(),
-                          isPlaying: state.isPlaying,
-                        ),
-                        child: Center(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  state.bpm.toString(),
-                                  style: MonoPulseTypography.displayLarge
-                                      .copyWith(
-                                        fontSize: 64,
-                                        fontWeight: FontWeight.w700,
-                                        color: state.isPlaying
-                                            ? MonoPulseColors.accentOrange
-                                            : MonoPulseColors.textPrimary,
-                                      ),
-                                ),
-                                Text(
-                                  'BPM',
-                                  style: MonoPulseTypography.bodyLarge.copyWith(
-                                    color: MonoPulseColors.textSecondary
-                                        .withValues(alpha: 0.7),
-                                  ),
-                                ),
-                              ],
+                child: CustomPaint(
+                  painter: TempoDialPainter(
+                    bpm: state.bpm.toDouble(),
+                    isPlaying: state.isPlaying,
+                  ),
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            state.bpm.toString(),
+                            style: MonoPulseTypography.displayLarge.copyWith(
+                              fontSize: 64,
+                              fontWeight: FontWeight.w700,
+                              color: state.isPlaying
+                                  ? MonoPulseColors.accentOrange
+                                  : MonoPulseColors.textPrimary,
                             ),
                           ),
-                        ),
+                          Text(
+                            'BPM',
+                            style: MonoPulseTypography.bodyLarge.copyWith(
+                              color: MonoPulseColors.textSecondary.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -194,15 +162,6 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle>
         ],
       ),
     ).whenComplete(controller.dispose);
-  }
-
-  void _triggerPulse() {
-    final state = ref.read(metronomeProvider);
-    final intervalMs = 60000 / state.bpm;
-    _pulseController.duration = Duration(
-      milliseconds: math.min(200, (intervalMs * 0.8).round()),
-    );
-    _pulseController.forward(from: 0.0);
   }
 }
 
