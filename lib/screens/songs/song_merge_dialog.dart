@@ -130,19 +130,27 @@ class _SongMergeDialogState extends State<SongMergeDialog> {
   ) {
     return InputDecorator(
       decoration: InputDecoration(labelText: label),
-      child: SegmentedButton<SongMergeSide>(
-        segments: [
-          ButtonSegment(
-            value: SongMergeSide.keeper,
-            label: Text(keeperValue.isEmpty ? 'Blank' : keeperValue),
-          ),
-          ButtonSegment(
-            value: SongMergeSide.duplicate,
-            label: Text(duplicateValue.isEmpty ? 'Blank' : duplicateValue),
-          ),
-        ],
-        selected: {value},
-        onSelectionChanged: (values) => onChanged(values.first),
+      child: RadioGroup<SongMergeSide>(
+        groupValue: value,
+        onChanged: (selection) {
+          if (selection != null) onChanged(selection);
+        },
+        child: Column(
+          children: [
+            RadioListTile<SongMergeSide>(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              value: SongMergeSide.keeper,
+              title: Text(keeperValue.isEmpty ? 'Blank' : keeperValue),
+            ),
+            RadioListTile<SongMergeSide>(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              value: SongMergeSide.duplicate,
+              title: Text(duplicateValue.isEmpty ? 'Blank' : duplicateValue),
+            ),
+          ],
+        ),
       ),
     );
   }

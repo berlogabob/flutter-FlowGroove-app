@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/api_error.dart';
 import '../../models/song.dart';
 import '../../models/song_import_plan.dart';
+import '../../models/tuner_launch_context.dart';
 import '../../models/band.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
@@ -138,40 +139,64 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   /// Handle CSV import
   Future<void> _handleImport() async {
     final currentSongs = ref.read(songsProvider).value ?? const <Song>[];
-    final result = await showDialog<SongImportPlan>(
+    final result = await showDialog<SongImportAnalysis>(
       context: context,
       builder: (_) => SongImportDialog(librarySongs: currentSongs),
     );
 
-    if (result == null ||
-        (result.songsToCreate.isEmpty && result.merges.isEmpty) ||
-        !mounted) {
+    if (result == null || !result.hasWork || !mounted) {
       return;
     }
 
-    // Show loading indicator
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Row(
-          children: [
-            SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
+    final totalOperations = result.songsToCreate.length + result.updates.length;
+    final completedOperations = ValueNotifier<int>(0);
+    var progressDialogOpen = true;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => PopScope(
+          canPop: false,
+          child: AlertDialog(
+            title: const Text('Importing songs'),
+            content: ValueListenableBuilder<int>(
+              valueListenable: completedOperations,
+              builder: (context, completed, _) => Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  LinearProgressIndicator(
+                    value: totalOperations == 0
+                        ? 1
+                        : completed / totalOperations,
+                  ),
+                  const SizedBox(height: 12),
+                  Text('$completed of $totalOperations changes completed'),
+                ],
+              ),
             ),
-            SizedBox(width: 16),
-            Text('Importing songs...'),
-          ],
+          ),
         ),
-        duration: Duration(seconds: 30),
       ),
     );
+    await Future<void>.delayed(Duration.zero);
+
+    void closeProgress() {
+      if (!progressDialogOpen || !mounted) return;
+      progressDialogOpen = false;
+      Navigator.of(context, rootNavigator: true).pop();
+      Future<void>.delayed(
+        const Duration(milliseconds: 300),
+        completedOperations.dispose,
+      );
+    }
 
     try {
       // Get current user
       final user = ref.read(firebaseAuthProvider).currentUser;
       if (user == null) {
         if (!mounted) return;
+        closeProgress();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Error: User not logged in'),
@@ -184,53 +209,69 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       // Save each song through the repository so linked canonical songs use
       // the v2 LibrarySong write path.
       final songRepo = ref.read(songRepositoryProvider);
-      int savedCount = 0;
-      int failedCount = 0;
+      int addedCount = 0;
+      int mergedCount = 0;
+      final failures = <String>[];
+      final warnings = <String>[];
 
       for (final song in result.songsToCreate) {
         try {
           await songRepo.saveSong(song, uid: user.uid);
-          savedCount++;
+          addedCount++;
         } catch (e) {
           debugPrint('Failed to save song "${song.title}": $e');
-          failedCount++;
+          failures.add('${song.title}: $e');
+        } finally {
+          completedOperations.value++;
         }
       }
 
-      for (final merge in result.merges) {
+      final mergeService = SongLibraryMergeService(
+        firestore: ref.read(firebaseFirestoreProvider),
+      );
+      for (final update in result.updates) {
         try {
-          await SongLibraryMergeService(
-            firestore: ref.read(firebaseFirestoreProvider),
-          ).merge(
+          final warning = await mergeService.mergeImportedSong(
             uid: user.uid,
-            keeperBefore: merge.keeper,
-            duplicate: merge.duplicate,
-            merged: merge.merged,
-            setlists: ref.read(setlistsProvider).value ?? [],
+            original: update.original,
+            merged: update.merged,
+            sources: update.sources,
             songRepository: songRepo,
-            setlistRepository: ref.read(setlistRepositoryProvider),
           );
-          savedCount++;
+          mergedCount += update.sources.length;
+          if (warning != null) warnings.add(warning);
         } catch (e) {
           debugPrint('Failed to merge imported song: $e');
-          failedCount++;
+          failures.add('${update.merged.title}: $e');
+        } finally {
+          completedOperations.value++;
         }
       }
 
       if (!mounted) return;
+      closeProgress();
 
       // Show success/error message
-      if (savedCount > 0 && failedCount == 0) {
+      final completedCount = addedCount + mergedCount;
+      if (completedCount > 0 && failures.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Successfully imported $savedCount song(s)'),
-            backgroundColor: MonoPulseColors.success,
+            content: Text(
+              warnings.isEmpty
+                  ? 'Imported $addedCount new, merged $mergedCount'
+                  : 'Imported $addedCount new, merged $mergedCount. ${warnings.length} history warning(s)',
+            ),
+            backgroundColor: warnings.isEmpty
+                ? MonoPulseColors.success
+                : MonoPulseColors.warning,
           ),
         );
-      } else if (savedCount > 0 && failedCount > 0) {
+      } else if (completedCount > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Imported $savedCount song(s), $failedCount failed'),
+            content: Text(
+              'Imported $completedCount row(s), ${failures.length} operation(s) failed',
+            ),
             backgroundColor: MonoPulseColors.warning,
           ),
         );
@@ -247,6 +288,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       ref.invalidate(songsProvider);
     } catch (e) {
       if (!mounted) return;
+      closeProgress();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Import error: $e'),
@@ -844,6 +886,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     List<Band> bands,
   ) {
     return [
+      _OpenInTunerAction(onPressed: () => _openInTuner(adapter.song)),
       if (_hasMetronomeData(adapter.song))
         _OpenInMetronomeAction(onPressed: () => _openInMetronome(adapter.song)),
       if (bands.isNotEmpty) _buildAddToBandAction(adapter, bands),
@@ -879,6 +922,26 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     }
     metronome.loadSongTempo(song);
     context.goNamed('metronome');
+  }
+
+  void _openInTuner(Song song) {
+    final user = ref.read(currentUserProvider).value;
+    unawaited(
+      context.pushNamed<void>(
+        'tuner',
+        extra: TunerLaunchContext(
+          song: song,
+          saveSong: user == null
+              ? null
+              : (updatedSong) async {
+                  await ref
+                      .read(songRepositoryProvider)
+                      .saveSong(updatedSong, uid: user.uid);
+                  ref.invalidate(songsProvider);
+                },
+        ),
+      ),
+    );
   }
 
   /// Navigate to edit song screen.
@@ -1021,6 +1084,23 @@ class _OpenInMetronomeAction implements UnifiedItemAction {
       icon: const Icon(Icons.speed, size: 20),
       color: MonoPulseColors.accentOrange,
       tooltip: 'Open in Metronome',
+      onPressed: onPressed,
+    );
+  }
+}
+
+class _OpenInTunerAction implements UnifiedItemAction {
+  final VoidCallback onPressed;
+
+  const _OpenInTunerAction({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      key: const ValueKey('open-in-tuner-action'),
+      icon: const Icon(Icons.tune, size: 20),
+      color: MonoPulseColors.accentOrange,
+      tooltip: 'Open in Tuner',
       onPressed: onPressed,
     );
   }

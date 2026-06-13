@@ -11,6 +11,33 @@ class SongLibraryMergeService {
 
   final FirebaseFirestore _firestore;
 
+  Future<String?> mergeImportedSong({
+    required String uid,
+    required Song original,
+    required Song merged,
+    required List<Song> sources,
+    required SongRepository songRepository,
+  }) async {
+    await songRepository.saveSong(merged, uid: uid);
+    try {
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('song_merges')
+          .add({
+            'type': 'csv_import',
+            'keeperId': original.id,
+            'keeperBefore': original.toJson(),
+            'mergedSong': merged.toJson(),
+            'importedSources': sources.map((song) => song.toJson()).toList(),
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+      return null;
+    } catch (error) {
+      return 'Updated "${merged.title}", but could not record merge history: $error';
+    }
+  }
+
   Future<void> merge({
     required String uid,
     required Song keeperBefore,
@@ -43,6 +70,7 @@ class SongLibraryMergeService {
         .doc(uid)
         .collection('song_merges')
         .add({
+          'type': 'library_merge',
           'keeperId': keeperBefore.id,
           'duplicateId': duplicate.id,
           'keeperBefore': keeperBefore.toJson(),

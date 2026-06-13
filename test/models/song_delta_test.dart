@@ -44,6 +44,7 @@ void main() {
         ourKey: 'C',
         ourBPM: 76,
         notes: 'Start soft.',
+        defaultTuningPresetId: 'guitar:drop_d',
         tags: const ['ready'],
         links: canonical.baseLinks,
         sections: canonical.baseSections,
@@ -61,11 +62,13 @@ void main() {
         SongDeltaField.ourBPM,
         SongDeltaField.notes,
         SongDeltaField.tags,
+        SongDeltaField.defaultTuningPresetId,
       });
       expect(delta.ourKey, 'C');
       expect(delta.ourBPM, 76);
       expect(delta.notes, 'Start soft.');
       expect(delta.tags, ['ready']);
+      expect(delta.defaultTuningPresetId, 'guitar:drop_d');
     });
 
     test('applyTo produces the existing Song read model', () {
@@ -76,6 +79,7 @@ void main() {
           SongDeltaField.notes: 'Start soft.',
           SongDeltaField.tags: ['ready'],
           SongDeltaField.accentBeats: 4,
+          SongDeltaField.defaultTuningPresetId: 'custom-live',
         },
       );
 
@@ -98,6 +102,7 @@ void main() {
       expect(merged.links.single.url, 'https://original.test');
       expect(merged.sections.single.name, 'Intro');
       expect(merged.accentBeats, 4);
+      expect(merged.defaultTuningPresetId, 'custom-live');
       expect(merged.regularBeats, 1);
       expect(merged.canonicalSongId, 'canonical-1');
       expect(merged.isFromMusicBrainz, isTrue);

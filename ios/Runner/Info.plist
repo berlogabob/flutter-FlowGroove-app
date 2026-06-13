@@ -27,9 +27,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>FlowGroove needs microphone access for tuner functionality to detect pitch and help you tune your instrument</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>FlowGroove needs speech recognition access for audio processing in the tuner</string>
+	<string>FlowGroove uses the microphone only for local pitch detection while the tuner is open.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -1,6 +1,6 @@
 # FlowGroove App - Deployment Makefile
 # =====================================
-# Version: 0.13.4+193
+# Version: 0.13.4+194
 # Last Updated: April 24, 2026
 #
 # Quick Start:
@@ -24,7 +24,7 @@ FTP_DIR_DEFAULT := flowgroove.app
 FIREBASE_EMULATOR_TEST_FILES := integration_test/auth_flow_test.dart integration_test/setlist_management_test.dart
 GITHUB_PAGES_BASE_HREF ?= /flutter-FlowGroove-app/
 GITHUB_PAGES_DIST ?= docs
-RELEASE_GIT_PATHS ?= Makefile Makefile.hugo pubspec.yaml web/version.json lib test
+RELEASE_GIT_PATHS ?= Makefile Makefile.hugo pubspec.yaml web/version.json assets firestore.indexes.json firestore.rules ios android macos docs lib test
 
 # =============================================================================
 # HELP

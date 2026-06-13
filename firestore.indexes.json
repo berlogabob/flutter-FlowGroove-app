@@ -48,6 +48,30 @@
         { "fieldPath": "normalizedTitle", "order": "ASCENDING" },
         { "fieldPath": "normalizedArtist", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "tunerPresets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "scope", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "tunerPresets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "bandId", "order": "ASCENDING" },
+        { "fieldPath": "scope", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "tunerPresets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "songId", "order": "ASCENDING" },
+        { "fieldPath": "scope", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

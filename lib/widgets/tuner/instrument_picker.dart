@@ -75,7 +75,9 @@ class InstrumentPicker extends ConsumerWidget {
           Flexible(
             child: ListView.builder(
               shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.sm),
+              padding: const EdgeInsets.symmetric(
+                vertical: MonoPulseSpacing.sm,
+              ),
               itemCount: state.instruments.length,
               itemBuilder: (context, index) {
                 final instrument = state.instruments[index];
@@ -84,6 +86,9 @@ class InstrumentPicker extends ConsumerWidget {
 
                 return _InstrumentTile(
                   instrument: instrument,
+                  tunings: isSelected
+                      ? state.availableTunings
+                      : instrument.tunings,
                   isSelected: isSelected,
                   isExpanded: isSelected,
                   onTap: () {
@@ -107,6 +112,7 @@ class InstrumentPicker extends ConsumerWidget {
 
 class _InstrumentTile extends StatelessWidget {
   final Instrument instrument;
+  final List<Tuning> tunings;
   final bool isSelected;
   final bool isExpanded;
   final VoidCallback onTap;
@@ -114,6 +120,7 @@ class _InstrumentTile extends StatelessWidget {
 
   const _InstrumentTile({
     required this.instrument,
+    required this.tunings,
     required this.isSelected,
     required this.isExpanded,
     required this.onTap,
@@ -150,8 +157,9 @@ class _InstrumentTile extends StatelessWidget {
               color: isSelected
                   ? MonoPulseColors.accentOrange
                   : MonoPulseColors.textHighEmphasis,
-              fontWeight:
-                  isSelected ? MonoPulseTypography.semibold : MonoPulseTypography.regular,
+              fontWeight: isSelected
+                  ? MonoPulseTypography.semibold
+                  : MonoPulseTypography.regular,
             ),
           ),
           subtitle: Text(
@@ -175,7 +183,7 @@ class _InstrumentTile extends StatelessWidget {
             curve: MonoPulseAnimation.curveCustom,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: instrument.tunings
+              children: tunings
                   .map(
                     (tuning) => Padding(
                       padding: const EdgeInsets.symmetric(
@@ -207,6 +215,10 @@ class _InstrumentTile extends StatelessWidget {
         return Icons.wb_sunny_outlined;
       case 'auto_awesome':
         return Icons.auto_awesome;
+      case 'mic':
+        return Icons.mic_none;
+      case 'graphic_eq':
+        return Icons.graphic_eq;
       default:
         return Icons.piano_outlined;
     }
@@ -217,10 +229,7 @@ class _TuningChip extends StatelessWidget {
   final Tuning tuning;
   final VoidCallback onTap;
 
-  const _TuningChip({
-    required this.tuning,
-    required this.onTap,
-  });
+  const _TuningChip({required this.tuning, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

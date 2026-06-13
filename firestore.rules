@@ -127,6 +127,41 @@ service cloud.firestore {
         request.resource.data.accessRole == 'member';
     }
 
+    function canReadTunerPreset(data) {
+      return isAuthenticated() && (
+        (data.scope == 'account' && data.ownerId == request.auth.uid) ||
+        (data.scope == 'band' && isGlobalBandMember(data.bandId)) ||
+        (data.scope == 'song' && (
+          data.ownerId == request.auth.uid ||
+          (data.bandId != null && isGlobalBandMember(data.bandId))
+        ))
+      );
+    }
+
+    function canManageTunerPreset(data) {
+      return isAuthenticated() && isNotDemo(request.auth.uid) &&
+        data.scope != 'local' && (
+          (data.scope == 'account' && data.ownerId == request.auth.uid) ||
+          (data.scope == 'band' && isGlobalBandEditorOrAdmin(data.bandId)) ||
+          (data.scope == 'song' && (
+            (data.bandId == null && data.ownerId == request.auth.uid) ||
+            (data.bandId != null && isGlobalBandEditorOrAdmin(data.bandId))
+          ))
+        );
+    }
+
+    match /tunerPresets/{presetId} {
+      allow read: if canReadTunerPreset(resource.data);
+      allow create: if request.resource.data.id == presetId &&
+        request.resource.data.ownerId == request.auth.uid &&
+        canManageTunerPreset(request.resource.data);
+      allow update: if request.resource.data.id == presetId &&
+        request.resource.data.ownerId == resource.data.ownerId &&
+        canManageTunerPreset(resource.data) &&
+        canManageTunerPreset(request.resource.data);
+      allow delete: if canManageTunerPreset(resource.data);
+    }
+
     // ============================================================
     // Global Bands Collection
     // ============================================================

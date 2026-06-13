@@ -26,6 +26,8 @@
 	<string>$(PRODUCT_COPYRIGHT)</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>FlowGroove uses the microphone only for local pitch detection while the tuner is open.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

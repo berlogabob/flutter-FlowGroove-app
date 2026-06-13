@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 
-/// Settings Bottom Sheet for Tuner
-///
-/// Minimal settings panel with:
-/// - A4 calibration slider (432-445 Hz)
-/// - Haptic feedback toggle
-/// - Stage mode toggle
-/// - Current instrument/tuning display
-/// - About text
 class TunerSettingsSheet extends ConsumerWidget {
   const TunerSettingsSheet({super.key});
 
@@ -21,212 +14,253 @@ class TunerSettingsSheet extends ConsumerWidget {
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.6,
+        maxHeight: MediaQuery.of(context).size.height * 0.82,
       ),
       decoration: const BoxDecoration(
         color: MonoPulseColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(MonoPulseRadius.large)),
-      ),
-      padding: const EdgeInsets.fromLTRB(
-        MonoPulseSpacing.xl,
-        MonoPulseSpacing.lg,
-        MonoPulseSpacing.xl,
-        MonoPulseSpacing.xxl,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(MonoPulseRadius.large),
+        ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Tuner Settings',
-                style: MonoPulseTypography.titleMedium.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close, size: 24),
-                color: MonoPulseColors.textSecondary,
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-          const SizedBox(height: MonoPulseSpacing.xl),
-
-          // Current Instrument Display
-          if (state.selectedInstrument != null) ...[
-            Text(
-              'Current Instrument',
-              style: MonoPulseTypography.labelMedium.copyWith(
-                color: MonoPulseColors.textSecondary,
-              ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              MonoPulseSpacing.xl,
+              MonoPulseSpacing.lg,
+              MonoPulseSpacing.md,
+              0,
             ),
-            const SizedBox(height: MonoPulseSpacing.sm),
-            Container(
-              padding: const EdgeInsets.all(MonoPulseSpacing.md),
-              decoration: BoxDecoration(
-                color: MonoPulseColors.surfaceRaised,
-                borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-                border: Border.all(color: MonoPulseColors.borderSubtle),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.piano_outlined,
-                    color: MonoPulseColors.accentOrange,
-                    size: 20,
-                  ),
-                  const SizedBox(width: MonoPulseSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          state.selectedInstrument!.name,
-                          style: MonoPulseTypography.bodyMedium.copyWith(
-                            color: MonoPulseColors.textHighEmphasis,
-                            fontWeight: MonoPulseTypography.medium,
-                          ),
-                        ),
-                        Text(
-                          state.selectedTuning?.name ?? '',
-                          style: MonoPulseTypography.bodySmall.copyWith(
-                            color: MonoPulseColors.textTertiary,
-                          ),
-                        ),
-                      ],
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Tuner Settings',
+                    style: MonoPulseTypography.titleMedium.copyWith(
+                      color: MonoPulseColors.textHighEmphasis,
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: MonoPulseSpacing.xl),
-          ],
-
-          // A4 Calibration
-          Text(
-            'A4 Reference Frequency',
-            style: MonoPulseTypography.labelMedium.copyWith(
-              color: MonoPulseColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: SliderTheme(
-                  data: SliderThemeData(
-                    trackHeight: 2,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-                    activeTrackColor: MonoPulseColors.accentOrange,
-                    inactiveTrackColor: MonoPulseColors.borderSubtle,
-                    thumbColor: MonoPulseColors.accentOrange,
-                    overlayColor: MonoPulseColors.accentOrange.withValues(alpha: 0.2),
-                  ),
-                  child: Slider(
-                    value: state.referenceA4,
-                    min: 432,
-                    max: 445,
-                    divisions: 13,
-                    label: '${state.referenceA4.round()} Hz',
-                    onChanged: notifier.setReferenceA4,
-                  ),
                 ),
-              ),
-              const SizedBox(width: MonoPulseSpacing.md),
-              SizedBox(
-                width: 70,
-                child: Text(
-                  '${state.referenceA4.round()} Hz',
-                  textAlign: TextAlign.right,
-                  style: MonoPulseTypography.bodyMedium.copyWith(
-                    color: MonoPulseColors.textHighEmphasis,
-                    fontWeight: MonoPulseTypography.medium,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: MonoPulseSpacing.xl),
-
-          // Haptic Feedback Toggle
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Haptic Feedback',
-                style: MonoPulseTypography.labelMedium.copyWith(
+                IconButton(
+                  icon: const Icon(Icons.close),
                   color: MonoPulseColors.textSecondary,
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
-              ),
-              Switch(
-                value: state.hapticEnabled,
-                onChanged: (_) => notifier.toggleHapticFeedback(),
-                activeTrackColor: MonoPulseColors.accentOrange,
-                activeThumbColor: MonoPulseColors.white,
-                trackOutlineColor: WidgetStateProperty.all(MonoPulseColors.borderDefault),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: MonoPulseSpacing.lg),
-
-          // Stage Mode Toggle
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                MonoPulseSpacing.xl,
+                MonoPulseSpacing.md,
+                MonoPulseSpacing.xl,
+                MonoPulseSpacing.xxl,
+              ),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (state.selectedInstrument != null) ...[
+                    _SectionLabel('Current Preset'),
+                    const SizedBox(height: MonoPulseSpacing.sm),
+                    _PresetSummary(
+                      instrument: state.selectedInstrument!.name,
+                      tuning: state.selectedTuning?.name ?? 'Chromatic',
+                    ),
+                    const SizedBox(height: MonoPulseSpacing.xl),
+                  ],
+                  _SettingSlider(
+                    label: 'A4 Reference',
+                    valueLabel: '${state.referenceA4.round()} Hz',
+                    value: state.referenceA4,
+                    min: 415,
+                    max: 466,
+                    divisions: 51,
+                    onChanged: notifier.setReferenceA4,
+                  ),
+                  _SettingSlider(
+                    label: 'In-Tune Tolerance',
+                    valueLabel: '±${state.centsTolerance} cents',
+                    value: state.centsTolerance.toDouble(),
+                    min: 1,
+                    max: 20,
+                    divisions: 19,
+                    onChanged: notifier.setCentsTolerance,
+                  ),
+                  _SettingSlider(
+                    label: 'Input Sensitivity',
+                    valueLabel: '${state.sensitivity.round()}%',
+                    value: state.sensitivity,
+                    min: 0,
+                    max: 100,
+                    divisions: 20,
+                    onChanged: notifier.setSensitivity,
+                  ),
+                  _SettingSwitch(
+                    title: 'Haptic Feedback',
+                    subtitle:
+                        'Confirm when the note becomes stable and in tune',
+                    value: state.hapticEnabled,
+                    onChanged: (_) => notifier.toggleHapticFeedback(),
+                  ),
+                  _SettingSwitch(
+                    title: 'Stage Mode',
+                    subtitle: 'Show a simplified full-screen tuning display',
+                    value: state.stageModeEnabled,
+                    onChanged: (_) => notifier.toggleStageModeEnabled(),
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.lg),
+                  Divider(color: MonoPulseColors.borderSubtle),
+                  const SizedBox(height: MonoPulseSpacing.md),
                   Text(
-                    'Stage Mode',
+                    'Microphone privacy',
                     style: MonoPulseTypography.labelMedium.copyWith(
                       color: MonoPulseColors.textSecondary,
                     ),
                   ),
+                  const SizedBox(height: MonoPulseSpacing.sm),
                   Text(
-                    'Hide UI after 10s inactivity',
+                    'Pitch detection runs locally. Raw microphone audio is never stored or sent to FlowGroove servers.',
                     style: MonoPulseTypography.bodySmall.copyWith(
                       color: MonoPulseColors.textTertiary,
                     ),
                   ),
                 ],
               ),
-              Switch(
-                value: state.stageModeEnabled,
-                onChanged: (_) => notifier.toggleStageModeEnabled(),
-                activeTrackColor: MonoPulseColors.accentOrange,
-                activeThumbColor: MonoPulseColors.white,
-                trackOutlineColor: WidgetStateProperty.all(MonoPulseColors.borderDefault),
-              ),
-            ],
-          ),
-          const SizedBox(height: MonoPulseSpacing.xl),
-
-          // About
-          Divider(color: MonoPulseColors.borderSubtle),
-          const SizedBox(height: MonoPulseSpacing.md),
-          Text(
-            'About Tuner',
-            style: MonoPulseTypography.labelMedium.copyWith(
-              color: MonoPulseColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.sm),
-          Text(
-            'Offline-first professional tuner\n'
-            'YIN pitch detection algorithm\n'
-            '${state.instruments.length} instruments · ${state.instruments.fold<int>(0, (sum, i) => sum + i.tunings.length)}+ tunings\n'
-            'No ads • No subscriptions • Always free',
-            style: MonoPulseTypography.bodySmall.copyWith(
-              color: MonoPulseColors.textTertiary,
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: MonoPulseTypography.labelMedium.copyWith(
+        color: MonoPulseColors.textSecondary,
+      ),
+    );
+  }
+}
+
+class _PresetSummary extends StatelessWidget {
+  final String instrument;
+  final String tuning;
+
+  const _PresetSummary({required this.instrument, required this.tuning});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(MonoPulseSpacing.md),
+      decoration: BoxDecoration(
+        color: MonoPulseColors.surfaceRaised,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+        border: Border.all(color: MonoPulseColors.borderSubtle),
+      ),
+      child: Text(
+        '$instrument · $tuning',
+        style: MonoPulseTypography.bodyMedium.copyWith(
+          color: MonoPulseColors.textHighEmphasis,
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingSlider extends StatelessWidget {
+  final String label;
+  final String valueLabel;
+  final double value;
+  final double min;
+  final double max;
+  final int divisions;
+  final ValueChanged<double> onChanged;
+
+  const _SettingSlider({
+    required this.label,
+    required this.valueLabel,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.divisions,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: MonoPulseSpacing.lg),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: _SectionLabel(label)),
+              Text(
+                valueLabel,
+                style: MonoPulseTypography.bodyMedium.copyWith(
+                  color: MonoPulseColors.textHighEmphasis,
+                ),
+              ),
+            ],
+          ),
+          Slider(
+            value: value.clamp(min, max),
+            min: min,
+            max: max,
+            divisions: divisions,
+            activeColor: MonoPulseColors.accentOrange,
+            inactiveColor: MonoPulseColors.borderSubtle,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SettingSwitch extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SettingSwitch({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        title,
+        style: MonoPulseTypography.labelMedium.copyWith(
+          color: MonoPulseColors.textSecondary,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: MonoPulseTypography.bodySmall.copyWith(
+          color: MonoPulseColors.textTertiary,
+        ),
+      ),
+      value: value,
+      activeTrackColor: MonoPulseColors.accentOrange,
+      onChanged: onChanged,
     );
   }
 }

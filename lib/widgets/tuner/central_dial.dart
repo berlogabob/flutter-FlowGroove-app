@@ -57,11 +57,25 @@ class CentralDial extends ConsumerWidget {
                   frequency: state.frequency,
                   cents: cents,
                   mode: state.mode,
+                  hasValidPitch: state.hasValidPitch,
+                  isInTune: state.isInTune,
+                  isListening: state.isListening,
+                  isStarting: state.isStarting,
+                  signalLabel: switch (state.signalState.name) {
+                    'noSignal' => 'No signal',
+                    'unstable' => 'Hold the note steady',
+                    _ => 'Tap Listen to start',
+                  },
                   targetNoteIndex: state.mode == TunerMode.listen
                       ? (() {
-                          final noteName = state.note.replaceAll(RegExp(r'\d'), '');
+                          final noteName = state.note.replaceAll(
+                            RegExp(r'\d'),
+                            '',
+                          );
                           final idx = _noteNameToIndex(noteName);
-                          debugPrint('🎵 Dial: state.note=${state.note}, noteName=$noteName, index=$idx');
+                          debugPrint(
+                            '🎵 Dial: state.note=${state.note}, noteName=$noteName, index=$idx',
+                          );
                           return idx;
                         }).call()
                       : null,
@@ -82,6 +96,11 @@ class _InteractiveDial extends StatefulWidget {
   final double frequency;
   final int cents;
   final TunerMode mode;
+  final bool hasValidPitch;
+  final bool isInTune;
+  final bool isListening;
+  final bool isStarting;
+  final String signalLabel;
   final int? targetNoteIndex; // For manual mode: which note is selected (0-11)
   final void Function(double) onFrequencyChanged;
 
@@ -91,6 +110,11 @@ class _InteractiveDial extends StatefulWidget {
     required this.frequency,
     required this.cents,
     required this.mode,
+    required this.hasValidPitch,
+    required this.isInTune,
+    required this.isListening,
+    required this.isStarting,
+    required this.signalLabel,
     this.targetNoteIndex,
     required this.onFrequencyChanged,
   });
@@ -102,10 +126,6 @@ class _InteractiveDial extends StatefulWidget {
 class _InteractiveDialState extends State<_InteractiveDial> {
   double _startAngle = 0;
   bool _isDragging = false;
-
-  // Frequency range
-  static const double minFrequency = 20.0;
-  static const double maxFrequency = 2000.0;
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +151,11 @@ class _InteractiveDialState extends State<_InteractiveDial> {
               cents: widget.cents,
               mode: widget.mode,
               size: widget.size,
+              hasValidPitch: widget.hasValidPitch,
+              isInTune: widget.isInTune,
+              isListening: widget.isListening,
+              isStarting: widget.isStarting,
+              signalLabel: widget.signalLabel,
             ),
 
             // Radial gradient overlay for lens effect
@@ -143,13 +168,14 @@ class _InteractiveDialState extends State<_InteractiveDial> {
                 angle: _angleForFrequency(widget.frequency),
                 child: _EdgeHandle(size: widget.size),
               )
-            else if (widget.mode == TunerMode.listen && widget.targetNoteIndex != null)
+            else if (widget.mode == TunerMode.listen &&
+                widget.targetNoteIndex != null)
               // Manual mode: handle points to selected note position (chromatic)
               Transform.rotate(
                 angle: _angleForNoteIndex(widget.targetNoteIndex!),
                 child: _EdgeHandle(size: widget.size),
               )
-            else
+            else if (widget.hasValidPitch)
               // Listen mode: needle indicator for cents
               _NeedleIndicator(cents: widget.cents, size: widget.size),
           ],
@@ -168,14 +194,17 @@ class _InteractiveDialState extends State<_InteractiveDial> {
     if (renderObject is! RenderBox) return;
     final center = Offset(widget.size / 2, widget.size / 2);
     final localPosition = renderObject.globalToLocal(details.globalPosition);
-    
+
     // Calculate current note index from frequency (same as note ruler)
     const referenceFrequency = 440.0;
     const referenceNoteIndex = 69;
-    final midiNote = referenceNoteIndex + 12 * math.log(widget.frequency / referenceFrequency) / math.ln2;
-    final chromaticIndex = ((midiNote.round() % 12) + 12) % 12; // Ensure positive
+    final midiNote =
+        referenceNoteIndex +
+        12 * math.log(widget.frequency / referenceFrequency) / math.ln2;
+    final chromaticIndex =
+        ((midiNote.round() % 12) + 12) % 12; // Ensure positive
     final currentAngle = _angleForNoteIndex(chromaticIndex);
-    
+
     _startAngle = currentAngle - (localPosition - center).direction;
   }
 
@@ -211,11 +240,13 @@ class _InteractiveDialState extends State<_InteractiveDial> {
     // Convert frequency to MIDI note number
     const referenceFrequency = 440.0; // A4
     const referenceNoteIndex = 69; // A4 in MIDI
-    final midiNote = referenceNoteIndex + 12 * math.log(frequency / referenceFrequency) / math.ln2;
-    
+    final midiNote =
+        referenceNoteIndex +
+        12 * math.log(frequency / referenceFrequency) / math.ln2;
+
     // Get chromatic index (0-11, C-B), ensure positive
     final chromaticIndex = ((midiNote.round() % 12) + 12) % 12;
-    
+
     // Match note ruler: -90° + (index * 30°)
     return (-math.pi / 2) + (chromaticIndex * 30.0) * (math.pi / 180);
   }
@@ -227,7 +258,7 @@ class _InteractiveDialState extends State<_InteractiveDial> {
     // So: index = (angle + 90°) / 30°
     final angleDeg = angle * 180 / math.pi;
     final chromaticIndex = (((angleDeg + 90) / 30).round() % 12 + 12) % 12;
-    
+
     // Convert note index to frequency (4th octave)
     const noteFrequencies = [
       261.63, // C4
@@ -243,7 +274,7 @@ class _InteractiveDialState extends State<_InteractiveDial> {
       466.16, // A#4
       493.88, // B4
     ];
-    
+
     return noteFrequencies[chromaticIndex];
   }
 
@@ -261,6 +292,11 @@ class _FrequencyDisplay extends StatelessWidget {
   final int cents;
   final TunerMode mode;
   final double size;
+  final bool hasValidPitch;
+  final bool isInTune;
+  final bool isListening;
+  final bool isStarting;
+  final String signalLabel;
 
   const _FrequencyDisplay({
     required this.note,
@@ -268,6 +304,11 @@ class _FrequencyDisplay extends StatelessWidget {
     required this.cents,
     required this.mode,
     required this.size,
+    required this.hasValidPitch,
+    required this.isInTune,
+    required this.isListening,
+    required this.isStarting,
+    required this.signalLabel,
   });
 
   @override
@@ -281,7 +322,7 @@ class _FrequencyDisplay extends StatelessWidget {
       children: [
         // Large note display (e.g., "A4") - 72px Bold
         Text(
-          note,
+          mode == TunerMode.listen && !hasValidPitch ? '--' : note,
           style: TextStyle(
             fontSize: noteFontSize,
             fontWeight: MonoPulseTypography.bold,
@@ -302,9 +343,27 @@ class _FrequencyDisplay extends StatelessWidget {
               fontSize: subFontSize,
             ),
           )
-        else
-          // Listen mode: show cents deviation
-          _CentsDisplay(cents: cents, fontSize: subFontSize),
+        else ...[
+          Text(
+            hasValidPitch
+                ? '${frequency.toStringAsFixed(1)} Hz'
+                : isStarting
+                ? 'Starting microphone…'
+                : signalLabel,
+            style: MonoPulseTypography.bodyLarge.copyWith(
+              color: MonoPulseColors.textTertiary,
+              fontWeight: MonoPulseTypography.medium,
+              fontSize: subFontSize,
+            ),
+          ),
+          const SizedBox(height: 4),
+          if (hasValidPitch)
+            _CentsDisplay(
+              cents: cents,
+              fontSize: subFontSize,
+              isInTune: isInTune,
+            ),
+        ],
       ],
     );
   }
@@ -313,14 +372,19 @@ class _FrequencyDisplay extends StatelessWidget {
 class _CentsDisplay extends StatelessWidget {
   final int cents;
   final double fontSize;
+  final bool isInTune;
 
-  const _CentsDisplay({required this.cents, required this.fontSize});
+  const _CentsDisplay({
+    required this.cents,
+    required this.fontSize,
+    required this.isInTune,
+  });
 
   @override
   Widget build(BuildContext context) {
     // Color based on how close to zero (in tune)
     Color centsColor;
-    if (cents == 0) {
+    if (isInTune) {
       centsColor = MonoPulseColors.accentOrange;
     } else if (cents.abs() <= 10) {
       centsColor = MonoPulseColors.textHighEmphasis;
@@ -331,7 +395,7 @@ class _CentsDisplay extends StatelessWidget {
     }
 
     final sign = cents > 0 ? '+' : '';
-    final centsText = cents == 0 ? 'In Tune' : '$sign$cents cents';
+    final centsText = isInTune ? 'In Tune' : '$sign$cents cents';
 
     return Text(
       centsText,
@@ -428,7 +492,20 @@ class _RadialGradientOverlay extends StatelessWidget {
 
 /// Convert note name to chromatic index (C=0, C#=1, ... B=11)
 int _noteNameToIndex(String noteName) {
-  const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const notes = [
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
+  ];
   final idx = notes.indexOf(noteName);
   return idx >= 0 ? idx : 0;
 }

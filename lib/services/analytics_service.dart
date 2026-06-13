@@ -679,6 +679,36 @@ class AnalyticsService {
     }
   }
 
+  /// Log a tuner lifecycle event. Parameters must never contain audio data.
+  static Future<void> logTunerEvent(
+    String name, [
+    Map<String, Object>? parameters,
+  ]) async {
+    const allowedEvents = <String>{
+      AnalyticsEvents.tunerOpened,
+      AnalyticsEvents.tunerPermissionPrompted,
+      AnalyticsEvents.tunerPermissionGranted,
+      AnalyticsEvents.tunerPermissionDenied,
+      AnalyticsEvents.tunerListenStarted,
+      AnalyticsEvents.tunerListenStopped,
+      AnalyticsEvents.tunerToneStarted,
+      AnalyticsEvents.tunerToneStopped,
+      AnalyticsEvents.tunerInTuneReached,
+      AnalyticsEvents.tunerPresetSelected,
+      AnalyticsEvents.tunerPresetSaved,
+      AnalyticsEvents.tunerSongPresetLinked,
+    };
+    if (!allowedEvents.contains(name)) {
+      throw ArgumentError.value(name, 'name', 'Unknown tuner event');
+    }
+    try {
+      await _analytics.logEvent(name: name, parameters: parameters);
+      if (_debugMode) debugPrint('📊 Event: $name');
+    } catch (error) {
+      _logError('logTunerEvent', error);
+    }
+  }
+
   // ============================================================
   // NAVIGATION EVENTS
   // ============================================================

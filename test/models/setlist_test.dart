@@ -3,6 +3,39 @@ import 'package:flowgroove/models/setlist.dart';
 
 void main() {
   group('Setlist Model', () {
+    test('legacy songIds produce deterministic setlist items', () {
+      final setlist = Setlist(
+        id: 'setlist-1',
+        bandId: 'band-1',
+        name: 'Show',
+        songIds: const ['song-1', 'song-1'],
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+
+      expect(setlist.effectiveItems, hasLength(2));
+      expect(setlist.effectiveItems.first.id, 'legacy-0-song-1');
+      expect(setlist.effectiveItems.last.id, 'legacy-1-song-1');
+    });
+
+    test('per-item tuning override round trips with legacy songIds', () {
+      final original = Setlist(
+        id: 'setlist-1',
+        bandId: 'band-1',
+        name: 'Show',
+        songIds: const ['song-1'],
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      final linked = original.withItemTuningPreset(
+        'legacy-0-song-1',
+        'guitar_6:drop_d',
+      );
+      final restored = Setlist.fromJson(linked.toJson());
+
+      expect(restored.songIds, const ['song-1']);
+      expect(restored.effectiveItems.single.tuningPresetId, 'guitar_6:drop_d');
+    });
     // Test data
     final testDate = DateTime(2024, 5, 10, 18, 0, 0);
     final testSongIds = ['song-1', 'song-2', 'song-3'];

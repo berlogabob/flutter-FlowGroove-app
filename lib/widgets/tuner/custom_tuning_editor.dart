@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import '../../models/instrument.dart';
+import '../../models/tuner_preset.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 
@@ -11,7 +13,10 @@ import '../../theme/mono_pulse_theme.dart';
 /// User picks note name + octave for each string.
 /// Saves to in-memory custom tunings list.
 class CustomTuningEditor extends ConsumerStatefulWidget {
-  const CustomTuningEditor({super.key});
+  final String? bandId;
+  final String? songId;
+
+  const CustomTuningEditor({super.key, this.bandId, this.songId});
 
   @override
   ConsumerState<CustomTuningEditor> createState() => _CustomTuningEditorState();
@@ -22,14 +27,27 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
   late List<String> _selectedNotes;
   late int _stringCount;
   late List<String> _stringLabels;
+  TunerPresetScope _scope = TunerPresetScope.local;
+  bool _isSaving = false;
 
   // Available note names for picker
   static const _noteNames = [
-    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
   ];
 
   // Available octaves
-  static const _octaves = [1, 2, 3, 4, 5];
+  static const _octaves = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
   @override
   void initState() {
@@ -42,7 +60,9 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
     final instrument = state.selectedInstrument;
 
     _stringCount = instrument?.stringCount ?? 6;
-    _stringLabels = instrument?.stringLabels ??
+    if (_stringCount == 0) _stringCount = 1;
+    _stringLabels =
+        instrument?.stringLabels ??
         List.generate(_stringCount, (i) => '${i + 1}');
 
     // Initialize with the current tuning's notes or defaults
@@ -93,6 +113,29 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
               ),
             ),
           ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: MonoPulseSpacing.xl,
+            ),
+            child: DropdownButtonFormField<TunerPresetScope>(
+              initialValue: _scope,
+              dropdownColor: MonoPulseColors.surfaceRaised,
+              decoration: const InputDecoration(labelText: 'Save preset to'),
+              items: _availableScopes
+                  .map(
+                    (scope) => DropdownMenuItem(
+                      value: scope,
+                      child: Text(_scopeLabel(scope)),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) setState(() => _scope = value);
+              },
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.md),
 
           // Header
           Padding(
@@ -157,7 +200,9 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
           Flexible(
             child: ListView.builder(
               shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xl),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.xl,
+              ),
               itemCount: _stringCount,
               itemBuilder: (context, index) {
                 final label = index < _stringLabels.length
@@ -191,8 +236,8 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _saveCustomTuning,
-                child: const Text('Save Custom Tuning'),
+                onPressed: _isSaving ? null : _saveCustomTuning,
+                child: Text(_isSaving ? 'Saving...' : 'Save Custom Tuning'),
               ),
             ),
           ),
@@ -201,7 +246,21 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
     );
   }
 
-  void _saveCustomTuning() {
+  List<TunerPresetScope> get _availableScopes => <TunerPresetScope>[
+    TunerPresetScope.local,
+    TunerPresetScope.account,
+    if (widget.bandId != null) TunerPresetScope.band,
+    if (widget.songId != null) TunerPresetScope.song,
+  ];
+
+  String _scopeLabel(TunerPresetScope scope) => switch (scope) {
+    TunerPresetScope.local => 'This device',
+    TunerPresetScope.account => 'My account',
+    TunerPresetScope.band => 'Current band',
+    TunerPresetScope.song => 'Current song',
+  };
+
+  Future<void> _saveCustomTuning() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       // Show error
@@ -223,19 +282,41 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
       return;
     }
 
-    final tuningId = 'custom_${DateTime.now().millisecondsSinceEpoch}';
+    final tuningId = 'custom_${const Uuid().v4()}';
     final tuning = Tuning(
       id: tuningId,
       name: name,
       notes: List.from(_selectedNotes),
     );
 
-    final notifier = ref.read(tunerProvider.notifier);
-    notifier.addCustomTuning(tuning);
-    notifier.selectTuning(tuning);
-
-    HapticFeedback.mediumImpact();
-    Navigator.of(context).pop();
+    setState(() => _isSaving = true);
+    try {
+      final notifier = ref.read(tunerProvider.notifier);
+      await notifier.addCustomTuning(
+        tuning,
+        scope: _scope,
+        bandId:
+            _scope == TunerPresetScope.band || _scope == TunerPresetScope.song
+            ? widget.bandId
+            : null,
+        songId: _scope == TunerPresetScope.song ? widget.songId : null,
+      );
+      notifier.selectTuning(tuning);
+      await HapticFeedback.mediumImpact();
+      if (mounted) Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _scope == TunerPresetScope.local
+                ? 'The preset could not be saved.'
+                : 'Sign in and check your band permissions before syncing this preset.',
+          ),
+        ),
+      );
+    }
   }
 }
 
@@ -271,15 +352,24 @@ class _StringNotePickerState extends State<_StringNotePicker> {
   void _parseCurrentNote() {
     // Parse "E2" -> noteName="E", octave=2
     final note = widget.currentNote;
-    final match = RegExp(r'^([A-G]#?)(\d)$').firstMatch(note);
+    final match = RegExp(r'^([A-G][#b]?)(-?\d+)$').firstMatch(note);
     if (match != null) {
-      _selectedNoteName = match.group(1) ?? 'E';
+      _selectedNoteName = _canonicalNoteName(match.group(1) ?? 'E');
       _selectedOctave = int.tryParse(match.group(2) ?? '2') ?? 2;
     } else {
       _selectedNoteName = 'E';
       _selectedOctave = 2;
     }
   }
+
+  String _canonicalNoteName(String note) => switch (note) {
+    'Db' => 'C#',
+    'Eb' => 'D#',
+    'Gb' => 'F#',
+    'Ab' => 'G#',
+    'Bb' => 'A#',
+    _ => note,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -372,10 +462,7 @@ class _DropdownSelector<T> extends StatelessWidget {
           items: items.map((item) {
             return DropdownMenuItem<T>(
               value: item,
-              child: Text(
-                item.toString(),
-                textAlign: TextAlign.center,
-              ),
+              child: Text(item.toString(), textAlign: TextAlign.center),
             );
           }).toList(),
           onChanged: onChanged,
