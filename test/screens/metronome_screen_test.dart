@@ -578,6 +578,35 @@ void main() {
       expect(find.byType(MetronomeScreen), findsOneWidget);
     });
 
+    testWidgets('short compact layout keeps beat controls above tempo dial', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 650);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ProviderScope(
+            overrides: [metronomeProvider.overrideWith(MetronomeNotifier.new)],
+            child: const MetronomeScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final beatControlsTop = tester
+          .getTopLeft(find.byType(TimeSignatureBlock))
+          .dy;
+      final tempoDialTop = tester
+          .getTopLeft(find.byType(CentralTempoCircle))
+          .dy;
+
+      expect(beatControlsTop, lessThan(tempoDialTop));
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('desktop side controls render without overflow at 1280x900', (
       WidgetTester tester,
     ) async {

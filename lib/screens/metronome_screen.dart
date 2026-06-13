@@ -340,9 +340,7 @@ class _CompactPerformanceLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controls = const [
-      TimeSignatureBlock(),
-      SizedBox(height: MonoPulseSpacing.md),
+    const trailingControls = [
       FineAdjustmentButtons(),
       SizedBox(height: MonoPulseSpacing.md),
       _CountInSelector(),
@@ -355,31 +353,33 @@ class _CompactPerformanceLayout extends StatelessWidget {
     ];
 
     if (useScroll) {
-      return SingleChildScrollView(
+      return const SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: MonoPulseSpacing.xs),
-            const SizedBox(height: 220, child: CentralTempoCircle()),
-            const SizedBox(height: MonoPulseSpacing.md),
-            ...controls,
-            const SizedBox(height: MonoPulseSpacing.lg),
+            SizedBox(height: MonoPulseSpacing.xs),
+            TimeSignatureBlock(),
+            SizedBox(height: MonoPulseSpacing.md),
+            SizedBox(height: 220, child: CentralTempoCircle()),
+            SizedBox(height: MonoPulseSpacing.md),
+            ...trailingControls,
+            SizedBox(height: MonoPulseSpacing.lg),
           ],
         ),
       );
     }
 
-    return Column(
+    return const Column(
       children: [
-        const TimeSignatureBlock(),
-        const SizedBox(height: MonoPulseSpacing.md),
-        const Expanded(child: CentralTempoCircle()),
-        const SizedBox(height: MonoPulseSpacing.sm),
-        const FineAdjustmentButtons(),
-        const SizedBox(height: MonoPulseSpacing.md),
-        const _MetronomeTransport(),
-        const SizedBox(height: MonoPulseSpacing.sm),
-        const SongLibraryBlock(),
+        TimeSignatureBlock(),
+        SizedBox(height: MonoPulseSpacing.md),
+        Expanded(child: CentralTempoCircle()),
+        SizedBox(height: MonoPulseSpacing.sm),
+        FineAdjustmentButtons(),
+        SizedBox(height: MonoPulseSpacing.md),
+        _MetronomeTransport(),
+        SizedBox(height: MonoPulseSpacing.sm),
+        SongLibraryBlock(),
       ],
     );
   }
