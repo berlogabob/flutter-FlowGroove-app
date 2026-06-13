@@ -1,170 +1,124 @@
-import 'dart:math' as math;
-import 'dart:typed_data';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
-/// Tone generator service for tuner generate mode.
-///
-/// Uses the current SoLoud audio stack. Do not deinitialize SoLoud from here:
-/// the metronome engine may be sharing the same global audio backend.
+/// Click-free reference tone generator backed by SoLoud's native oscillator.
 class ToneGenerator {
   AudioSource? _source;
   SoundHandle? _handle;
-  bool _isPlaying = false;
   double _currentVolume = 0.5;
-  double? _currentFrequency;
+  double _currentFrequency = 440;
+  bool _disposed = false;
+  int _operationId = 0;
 
-  static const int _sampleRate = 44100;
-  static const double _toneDuration = 1.0;
+  bool get isPlaying => _handle != null;
 
   Future<void> _ensureInitialized() async {
     if (SoLoud.instance.isInitialized) return;
-
     await SoLoud.instance.init(
       bufferSize: 512,
       channels: Channels.mono,
-      sampleRate: _sampleRate,
+      sampleRate: 44100,
     );
   }
 
-  /// Start playing a sine wave tone at the specified frequency.
-  Future<void> startTone(double frequency, double volume) async {
-    if (_isPlaying && _currentFrequency == frequency) return;
-
-    await stopTone();
+  Future<AudioSource> _ensureSource() async {
     await _ensureInitialized();
-
-    _currentVolume = volume.clamp(0.0, 1.0);
-    _currentFrequency = frequency;
-
-    final wavBytes = _generateWavBytes(frequency, duration: _toneDuration);
-    _source = await SoLoud.instance.loadMem(
-      'tuner_${frequency.toStringAsFixed(2)}_${DateTime.now().microsecondsSinceEpoch}.wav',
-      wavBytes,
+    final existing = _source;
+    if (existing != null) return existing;
+    final source = await SoLoud.instance.loadWaveform(
+      WaveForm.sin,
+      false,
+      1,
+      0,
     );
-    _handle = await SoLoud.instance.play(
-      _source!,
-      volume: _currentVolume,
-      looping: true,
-    );
-    _isPlaying = true;
+    _source = source;
+    return source;
   }
 
-  /// Stop playing the tone and release only this generator's source.
-  Future<void> stopTone() async {
-    final handle = _handle;
-    _handle = null;
-
-    if (handle != null && SoLoud.instance.isInitialized) {
-      try {
-        await SoLoud.instance.stop(handle);
-      } catch (error) {
-        debugPrint('Error stopping tone handle: $error');
-      }
-    }
-
-    await _disposeSource();
-    _isPlaying = false;
-    _currentFrequency = null;
-  }
-
-  /// Update volume while playing.
-  Future<void> setVolume(double volume) async {
+  Future<void> startTone(double frequency, double volume) async {
+    if (_disposed) throw StateError('ToneGenerator has been disposed');
+    final operationId = ++_operationId;
+    _currentFrequency = frequency.clamp(20.0, 20000.0);
     _currentVolume = volume.clamp(0.0, 1.0);
-    final handle = _handle;
-    if (handle != null && SoLoud.instance.isInitialized) {
-      SoLoud.instance.setVolume(handle, _currentVolume);
-    }
-  }
 
-  /// Update frequency while playing.
-  Future<void> setFrequency(double frequency) async {
-    if (!_isPlaying) {
-      _currentFrequency = frequency;
+    final source = await _ensureSource();
+    if (operationId != _operationId) return;
+    SoLoud.instance.setWaveformFreq(source, _currentFrequency);
+
+    final existing = _handle;
+    if (existing != null) {
+      SoLoud.instance.fadeVolume(
+        existing,
+        _currentVolume,
+        const Duration(milliseconds: 20),
+      );
       return;
     }
-    await startTone(frequency, _currentVolume);
+
+    final handle = await SoLoud.instance.play(source, volume: 0, looping: true);
+    if (operationId != _operationId) {
+      await SoLoud.instance.stop(handle);
+      return;
+    }
+    _handle = handle;
+    SoLoud.instance.fadeVolume(
+      handle,
+      _currentVolume,
+      const Duration(milliseconds: 20),
+    );
   }
 
-  /// Check if currently playing.
-  bool get isPlaying => _isPlaying;
+  Future<void> stopTone() async {
+    final operationId = ++_operationId;
+    final handle = _handle;
+    _handle = null;
+    if (handle == null || !SoLoud.instance.isInitialized) return;
 
-  /// Dispose of resources owned by this tone generator.
+    try {
+      SoLoud.instance.fadeVolume(handle, 0, const Duration(milliseconds: 25));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      if (operationId <= _operationId && SoLoud.instance.isInitialized) {
+        await SoLoud.instance.stop(handle);
+      }
+    } catch (error) {
+      debugPrint('Error stopping tuner tone: $error');
+    }
+  }
+
+  void setVolume(double volume) {
+    _currentVolume = volume.clamp(0.0, 1.0);
+    final handle = _handle;
+    if (handle != null && SoLoud.instance.isInitialized) {
+      SoLoud.instance.fadeVolume(
+        handle,
+        _currentVolume,
+        const Duration(milliseconds: 20),
+      );
+    }
+  }
+
+  void setFrequency(double frequency) {
+    _currentFrequency = frequency.clamp(20.0, 20000.0);
+    final source = _source;
+    if (source != null && SoLoud.instance.isInitialized) {
+      SoLoud.instance.setWaveformFreq(source, _currentFrequency);
+    }
+  }
+
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
     await stopTone();
-  }
-
-  Future<void> _disposeSource() async {
     final source = _source;
     _source = null;
     if (source != null && SoLoud.instance.isInitialized) {
       try {
         await SoLoud.instance.disposeSource(source);
       } catch (error) {
-        debugPrint('Error disposing tone source: $error');
+        debugPrint('Error disposing tuner oscillator: $error');
       }
     }
-  }
-
-  /// Generate WAV bytes for a sine wave tone.
-  Uint8List _generateWavBytes(double frequency, {required double duration}) {
-    const channels = 1;
-    const bitsPerSample = 16;
-
-    final numSamples = (_sampleRate * duration).round();
-    final bytesPerSample = bitsPerSample ~/ 8;
-    final byteRate = _sampleRate * channels * bytesPerSample;
-    final blockSize = channels * bytesPerSample;
-    final dataSize = numSamples * channels * bytesPerSample;
-    final fileSize = 36 + dataSize;
-    final bytes = BytesBuilder(copy: false);
-
-    bytes.add('RIFF'.codeUnits);
-    bytes.add(_intToLittleEndian(fileSize, 4));
-    bytes.add('WAVE'.codeUnits);
-    bytes.add('fmt '.codeUnits);
-    bytes.add(_intToLittleEndian(16, 4));
-    bytes.add(_intToLittleEndian(1, 2));
-    bytes.add(_intToLittleEndian(channels, 2));
-    bytes.add(_intToLittleEndian(_sampleRate, 4));
-    bytes.add(_intToLittleEndian(byteRate, 4));
-    bytes.add(_intToLittleEndian(blockSize, 2));
-    bytes.add(_intToLittleEndian(bitsPerSample, 2));
-    bytes.add('data'.codeUnits);
-    bytes.add(_intToLittleEndian(dataSize, 4));
-
-    final attackSamples = (_sampleRate * 0.01).round();
-    final releaseSamples = (_sampleRate * 0.05).round();
-
-    for (var i = 0; i < numSamples; i++) {
-      final t = i / _sampleRate;
-      final wave = math.sin(2 * math.pi * frequency * t);
-
-      double envelope;
-      if (i < attackSamples) {
-        envelope = i / attackSamples;
-      } else if (i >= numSamples - releaseSamples) {
-        envelope = (numSamples - i) / releaseSamples;
-      } else {
-        envelope = 1.0;
-      }
-
-      final sample = wave * envelope;
-      final pcmSample = (sample * 32767).clamp(-32768, 32767).toInt();
-      bytes.add(<int>[pcmSample & 0xFF, (pcmSample >> 8) & 0xFF]);
-    }
-
-    return bytes.toBytes();
-  }
-
-  List<int> _intToLittleEndian(int value, int bytes) {
-    final result = <int>[];
-    var currentValue = value;
-    for (var i = 0; i < bytes; i++) {
-      result.add(currentValue & 0xFF);
-      currentValue >>= 8;
-    }
-    return result;
   }
 }

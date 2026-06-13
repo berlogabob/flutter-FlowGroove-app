@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/music_mode.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import 'settings_sheet.dart';
 
 /// Bottom Transport Bar widget for Tuner screen
 ///
@@ -34,10 +34,13 @@ class TransportBar extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Volume icon with slider (left)
-          _VolumeControl(
-            volume: state.volume,
-            onVolumeChanged: notifier.setVolume,
-          ),
+          if (state.mode == TunerMode.generate)
+            _VolumeControl(
+              volume: state.volume,
+              onVolumeChanged: notifier.setVolume,
+            )
+          else
+            _InputLevelIndicator(levelDb: state.inputLevelDb),
           const SizedBox(width: MonoPulseSpacing.xxl),
 
           // Play/Stop or Start/Stop button (center)
@@ -46,42 +49,29 @@ class TransportBar extends ConsumerWidget {
             isActive: state.mode == TunerMode.generate
                 ? state.isPlaying
                 : state.isListening,
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              if (state.mode == TunerMode.generate) {
-                notifier.togglePlaying();
-              } else {
-                notifier.toggleListening();
-              }
-            },
+            isStarting: state.isStarting,
+            onTap: state.isStarting
+                ? null
+                : () {
+                    HapticFeedback.mediumImpact();
+                    if (state.mode == TunerMode.generate) {
+                      notifier.togglePlaying();
+                    } else {
+                      notifier.toggleListening();
+                    }
+                  },
           ),
 
           const SizedBox(width: MonoPulseSpacing.xxl),
 
-          // Music Mode cycle button (right)
-          _ModeCycleButton(
-            modeIndex: state.musicModeIndex,
-            onTap: () {
-              // Cycle to next mode
-              notifier.cycleMusicMode();
-              HapticFeedback.mediumImpact();
-              
-              // Show NEW mode name after cycling
-              final nextIndex = (state.musicModeIndex + 1) % allMusicModes.length;
-              final newMode = allMusicModes[nextIndex];
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    '🎵 ${newMode.name}',
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                  duration: const Duration(milliseconds: 800),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: Colors.orange.withValues(alpha: 0.8),
-                ),
-              );
-            },
+          _CalibrationButton(
+            referenceHz: state.referenceA4,
+            onTap: () => showModalBottomSheet<void>(
+              context: context,
+              backgroundColor: Colors.transparent,
+              isScrollControlled: true,
+              builder: (context) => const TunerSettingsSheet(),
+            ),
           ),
         ],
       ),
@@ -92,11 +82,13 @@ class TransportBar extends ConsumerWidget {
 class _MainActionButton extends StatelessWidget {
   final TunerMode mode;
   final bool isActive;
-  final VoidCallback onTap;
+  final bool isStarting;
+  final VoidCallback? onTap;
 
   const _MainActionButton({
     required this.mode,
     required this.isActive,
+    required this.isStarting,
     required this.onTap,
   });
 
@@ -135,7 +127,17 @@ class _MainActionButton extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Icon(icon, color: MonoPulseColors.white, size: 44),
+            if (isStarting)
+              const SizedBox(
+                width: 30,
+                height: 30,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: MonoPulseColors.white,
+                ),
+              )
+            else
+              Icon(icon, color: MonoPulseColors.white, size: 44),
             if (label != null)
               Positioned(
                 bottom: -18,
@@ -241,21 +243,14 @@ class _VolumeControlState extends State<_VolumeControl> {
   }
 }
 
-/// Music Mode Cycle Button - Right side of transport bar
-/// Cycles through musical scales (Chromatic, Ionian, Dorian, etc.)
-class _ModeCycleButton extends StatelessWidget {
-  final int modeIndex;
+class _CalibrationButton extends StatelessWidget {
+  final double referenceHz;
   final VoidCallback onTap;
 
-  const _ModeCycleButton({
-    required this.modeIndex,
-    required this.onTap,
-  });
+  const _CalibrationButton({required this.referenceHz, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final currentMode = allMusicModes[modeIndex];
-
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -269,25 +264,56 @@ class _ModeCycleButton extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Mode icon
-            Icon(
-              currentMode.icon,
+            const Icon(
+              Icons.tune,
               color: MonoPulseColors.accentOrange,
-              size: 26,
+              size: 22,
             ),
-            // Mode short name below icon
             Positioned(
               bottom: 4,
               child: Text(
-                currentMode.shortName,
+                'A4 ${referenceHz.round()}',
                 style: MonoPulseTypography.labelSmall.copyWith(
                   color: MonoPulseColors.accentOrange,
-                  fontSize: 8,
+                  fontSize: 7,
                   fontWeight: MonoPulseTypography.medium,
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InputLevelIndicator extends StatelessWidget {
+  final double levelDb;
+
+  const _InputLevelIndicator({required this.levelDb});
+
+  @override
+  Widget build(BuildContext context) {
+    final normalized = ((levelDb + 70) / 50).clamp(0.0, 1.0);
+    return Container(
+      width: 56,
+      height: 56,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: MonoPulseColors.borderSubtle, width: 1.5),
+      ),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: FractionallySizedBox(
+          heightFactor: normalized,
+          child: Container(
+            width: 12,
+            decoration: BoxDecoration(
+              color: MonoPulseColors.accentOrange,
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
         ),
       ),
     );

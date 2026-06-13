@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "instruments": [
     {
       "id": "guitar_6",
@@ -39,6 +39,27 @@
           "id": "dadgad",
           "name": "DADGAD",
           "notes": ["D2", "A2", "D3", "G3", "A3", "D4"]
+        }
+      ]
+    },
+    {
+      "id": "bass_4",
+      "name": "Bass",
+      "subtitle": "4-String",
+      "origin": "Global",
+      "icon": "music_note",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "notes": ["E1", "A1", "D2", "G2"]
+        },
+        {
+          "id": "drop_d",
+          "name": "Drop D",
+          "notes": ["D1", "A1", "D2", "G2"]
         }
       ]
     },
@@ -117,6 +138,86 @@
           "id": "slack_key",
           "name": "Slack Key (G-C-E-G)",
           "notes": ["G4", "C4", "E4", "G4"]
+        }
+      ]
+    },
+    {
+      "id": "violin",
+      "name": "Violin",
+      "subtitle": "4-String",
+      "origin": "Global",
+      "icon": "music_note",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "notes": ["G3", "D4", "A4", "E5"]
+        }
+      ]
+    },
+    {
+      "id": "viola",
+      "name": "Viola",
+      "subtitle": "4-String",
+      "origin": "Global",
+      "icon": "music_note",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "notes": ["C3", "G3", "D4", "A4"]
+        }
+      ]
+    },
+    {
+      "id": "cello",
+      "name": "Cello",
+      "subtitle": "4-String",
+      "origin": "Global",
+      "icon": "music_note",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "notes": ["C2", "G2", "D3", "A3"]
+        }
+      ]
+    },
+    {
+      "id": "voice",
+      "name": "Voice",
+      "subtitle": "Chromatic",
+      "origin": "Global",
+      "icon": "mic",
+      "stringCount": 0,
+      "stringLabels": [],
+      "tunings": [
+        {
+          "id": "chromatic",
+          "name": "Chromatic",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "chromatic",
+      "name": "Chromatic",
+      "subtitle": "All Notes",
+      "origin": "Global",
+      "icon": "graphic_eq",
+      "stringCount": 0,
+      "stringLabels": [],
+      "tunings": [
+        {
+          "id": "chromatic",
+          "name": "All Notes",
+          "notes": []
         }
       ]
     },

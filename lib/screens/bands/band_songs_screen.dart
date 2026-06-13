@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../models/song.dart';
 import '../../../models/band.dart';
+import '../../../models/tuner_launch_context.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
@@ -242,17 +245,19 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                       : null,
                   onTap: (index) =>
                       _editSong(context, ref, filteredSongs[index]),
-                  additionalActionsBuilder: _canEdit
-                      ? (index) => [
-                          _BuildEditAction(
-                            context: context,
-                            ref: ref,
-                            song: filteredSongs[index],
-                            onEdit: () =>
-                                _editSong(context, ref, filteredSongs[index]),
-                          ),
-                        ]
-                      : null,
+                  additionalActionsBuilder: (index) => [
+                    _OpenBandSongInTunerAction(
+                      onPressed: () => _openInTuner(filteredSongs[index]),
+                    ),
+                    if (_canEdit)
+                      _BuildEditAction(
+                        context: context,
+                        ref: ref,
+                        song: filteredSongs[index],
+                        onEdit: () =>
+                            _editSong(context, ref, filteredSongs[index]),
+                      ),
+                  ],
                 ),
         ),
       ],
@@ -378,7 +383,9 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
+              ),
               children: [
                 FilterChip(
                   label: const Text('All'),
@@ -449,6 +456,26 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       'edit-song',
       pathParameters: {'id': song.id},
       extra: {'song': song, 'bandId': widget.band.id},
+    );
+  }
+
+  void _openInTuner(Song song) {
+    unawaited(
+      context.pushNamed<void>(
+        'tuner',
+        extra: TunerLaunchContext(
+          song: song,
+          bandId: widget.band.id,
+          saveSong: _canEdit
+              ? (updatedSong) async {
+                  await ref
+                      .read(firestoreProvider)
+                      .saveBandSong(updatedSong, widget.band.id);
+                  ref.invalidate(bandSongsProvider(widget.band.id));
+                }
+              : null,
+        ),
+      ),
     );
   }
 
@@ -851,6 +878,25 @@ class _BuildEditAction implements UnifiedItemAction {
   }
 }
 
+class _OpenBandSongInTunerAction implements UnifiedItemAction {
+  final VoidCallback onPressed;
+
+  const _OpenBandSongInTunerAction({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(
+        Icons.tune,
+        size: 20,
+        color: MonoPulseColors.accentOrange,
+      ),
+      onPressed: onPressed,
+      tooltip: 'Open in Tuner',
+    );
+  }
+}
+
 class _EditMemberSheet extends StatefulWidget {
   final BandMember member;
   final Band band;
@@ -904,7 +950,10 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
                   ),
                 ],
               ),
@@ -932,8 +981,16 @@ class _EditMemberSheetState extends State<_EditMemberSheet> {
                 spacing: 8,
                 children: [
                   _buildPermissionChip('admin', 'Admin', MonoPulseColors.error),
-                  _buildPermissionChip('editor', 'Editor', MonoPulseColors.info),
-                  _buildPermissionChip('viewer', 'Viewer', MonoPulseColors.textTertiary),
+                  _buildPermissionChip(
+                    'editor',
+                    'Editor',
+                    MonoPulseColors.info,
+                  ),
+                  _buildPermissionChip(
+                    'viewer',
+                    'Viewer',
+                    MonoPulseColors.textTertiary,
+                  ),
                 ],
               ),
               const SizedBox(height: 24),

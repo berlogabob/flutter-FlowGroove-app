@@ -129,6 +129,7 @@ void main() {
       expect(find.text('130 BPM'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
       expect(find.byIcon(Icons.music_note), findsWidgets);
+      expect(find.byTooltip('Open in Tuner'), findsNWidgets(2));
     });
 
     testWidgets('shows metronome action for songs with tempo data', (

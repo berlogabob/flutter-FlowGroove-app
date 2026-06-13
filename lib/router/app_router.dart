@@ -28,6 +28,7 @@ import '../screens/songs/models/song_form_data.dart';
 import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
+import '../models/tuner_launch_context.dart';
 import '../widgets/desktop_shell.dart';
 
 /// Minimal auth surface needed by the app router.
@@ -422,7 +423,11 @@ List<RouteBase> _buildAppRoutes() {
             GoRoute(
               path: '/main/tuner',
               name: 'tuner',
-              builder: (context, state) => const TunerScreen(),
+              builder: (context, state) => TunerScreen(
+                launchContext: state.extra is TunerLaunchContext
+                    ? state.extra! as TunerLaunchContext
+                    : null,
+              ),
             ),
           ],
         ),
@@ -518,7 +523,8 @@ extension GoRouterExtension on BuildContext {
   void goMetronome() => goNamed('metronome');
 
   /// Navigate to tuner screen.
-  void goTuner() => goNamed('tuner');
+  void goTuner({TunerLaunchContext? launchContext}) =>
+      goNamed('tuner', extra: launchContext);
 
   /// Navigate to login screen.
   void goLogin() => goNamed('login');

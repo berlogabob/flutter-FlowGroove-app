@@ -44,6 +44,18 @@ class AnalyticsEvents {
   static const String metronomeStarted = 'metronome_started';
   static const String metronomeStopped = 'metronome_stopped';
   static const String tunerUsed = 'tuner_used';
+  static const String tunerOpened = 'tuner_opened';
+  static const String tunerPermissionPrompted = 'tuner_permission_prompted';
+  static const String tunerPermissionGranted = 'tuner_permission_granted';
+  static const String tunerPermissionDenied = 'tuner_permission_denied';
+  static const String tunerListenStarted = 'tuner_listen_started';
+  static const String tunerListenStopped = 'tuner_listen_stopped';
+  static const String tunerToneStarted = 'tuner_tone_started';
+  static const String tunerToneStopped = 'tuner_tone_stopped';
+  static const String tunerInTuneReached = 'tuner_in_tune_reached';
+  static const String tunerPresetSelected = 'tuner_preset_selected';
+  static const String tunerPresetSaved = 'tuner_preset_saved';
+  static const String tunerSongPresetLinked = 'tuner_song_preset_linked';
 
   // Navigation
   static const String screenView = 'screen_view';
@@ -132,10 +144,7 @@ abstract class AnalyticsEventData {
   final String eventName;
   final Map<String, Object> parameters;
 
-  const AnalyticsEventData({
-    required this.eventName,
-    required this.parameters,
-  });
+  const AnalyticsEventData({required this.eventName, required this.parameters});
 
   Map<String, Object> toParameters() => parameters;
 }
@@ -143,18 +152,18 @@ abstract class AnalyticsEventData {
 // Authentication Events
 class LoginEventData extends AnalyticsEventData {
   LoginEventData({required String loginMethod})
-      : super(
-          eventName: AnalyticsEvents.login,
-          parameters: {'method': loginMethod},
-        );
+    : super(
+        eventName: AnalyticsEvents.login,
+        parameters: {'method': loginMethod},
+      );
 }
 
 class LoginSuccessEventData extends AnalyticsEventData {
   LoginSuccessEventData({required String loginMethod})
-      : super(
-          eventName: AnalyticsEvents.loginSuccess,
-          parameters: {'method': loginMethod},
-        );
+    : super(
+        eventName: AnalyticsEvents.loginSuccess,
+        parameters: {'method': loginMethod},
+      );
 }
 
 // Band Events
@@ -164,13 +173,13 @@ class BandCreatedEventData extends AnalyticsEventData {
     required String bandName,
     required int memberCount,
   }) : super(
-          eventName: AnalyticsEvents.bandCreated,
-          parameters: {
-            AnalyticsParams.bandId: bandId,
-            AnalyticsParams.bandName: bandName,
-            AnalyticsParams.memberCount: memberCount,
-          },
-        );
+         eventName: AnalyticsEvents.bandCreated,
+         parameters: {
+           AnalyticsParams.bandId: bandId,
+           AnalyticsParams.bandName: bandName,
+           AnalyticsParams.memberCount: memberCount,
+         },
+       );
 
   factory BandCreatedEventData.fromBand(Band band) {
     return BandCreatedEventData(
@@ -187,39 +196,35 @@ class BandJoinedEventData extends AnalyticsEventData {
     required String bandName,
     required String inviteCode,
   }) : super(
-          eventName: AnalyticsEvents.bandJoined,
-          parameters: {
-            AnalyticsParams.bandId: bandId,
-            AnalyticsParams.bandName: bandName,
-            AnalyticsParams.inviteCode: inviteCode,
-          },
-        );
+         eventName: AnalyticsEvents.bandJoined,
+         parameters: {
+           AnalyticsParams.bandId: bandId,
+           AnalyticsParams.bandName: bandName,
+           AnalyticsParams.inviteCode: inviteCode,
+         },
+       );
 }
 
 class BandDeletedEventData extends AnalyticsEventData {
-  BandDeletedEventData({
-    required String bandId,
-    required String bandName,
-  }) : super(
-          eventName: AnalyticsEvents.bandDeleted,
-          parameters: {
-            AnalyticsParams.bandId: bandId,
-            AnalyticsParams.bandName: bandName,
-          },
-        );
+  BandDeletedEventData({required String bandId, required String bandName})
+    : super(
+        eventName: AnalyticsEvents.bandDeleted,
+        parameters: {
+          AnalyticsParams.bandId: bandId,
+          AnalyticsParams.bandName: bandName,
+        },
+      );
 }
 
 class MemberInvitedEventData extends AnalyticsEventData {
-  MemberInvitedEventData({
-    required String bandId,
-    required String memberRole,
-  }) : super(
-          eventName: AnalyticsEvents.memberInvited,
-          parameters: {
-            AnalyticsParams.bandId: bandId,
-            AnalyticsParams.memberRole: memberRole,
-          },
-        );
+  MemberInvitedEventData({required String bandId, required String memberRole})
+    : super(
+        eventName: AnalyticsEvents.memberInvited,
+        parameters: {
+          AnalyticsParams.bandId: bandId,
+          AnalyticsParams.memberRole: memberRole,
+        },
+      );
 }
 
 // Song Events
@@ -234,19 +239,19 @@ class SongAddedEventData extends AnalyticsEventData {
     String? timeSignature,
     String? bandId,
   }) : super(
-          eventName: AnalyticsEvents.songAdded,
-          parameters: {
-            AnalyticsParams.songId: songId,
-            AnalyticsParams.songTitle: songTitle,
-            AnalyticsParams.artistName: artistName,
-            AnalyticsParams.hasLyrics: hasLyrics,
-            AnalyticsParams.hasChords: hasChords,
-            if (bpm != null) AnalyticsParams.bpm: bpm,
-            if (timeSignature != null)
-              AnalyticsParams.timeSignature: timeSignature,
-            if (bandId != null) AnalyticsParams.bandId: bandId,
-          },
-        );
+         eventName: AnalyticsEvents.songAdded,
+         parameters: {
+           AnalyticsParams.songId: songId,
+           AnalyticsParams.songTitle: songTitle,
+           AnalyticsParams.artistName: artistName,
+           AnalyticsParams.hasLyrics: hasLyrics,
+           AnalyticsParams.hasChords: hasChords,
+           if (bpm != null) AnalyticsParams.bpm: bpm,
+           if (timeSignature != null)
+             AnalyticsParams.timeSignature: timeSignature,
+           if (bandId != null) AnalyticsParams.bandId: bandId,
+         },
+       );
 
   factory SongAddedEventData.fromSong(Song song) {
     return SongAddedEventData(
@@ -267,25 +272,23 @@ class SongEditedEventData extends AnalyticsEventData {
     required String songId,
     required List<String> fieldsChanged,
   }) : super(
-          eventName: AnalyticsEvents.songEdited,
-          parameters: {
-            AnalyticsParams.songId: songId,
-            AnalyticsParams.fieldsChanged: fieldsChanged.join(','),
-          },
-        );
+         eventName: AnalyticsEvents.songEdited,
+         parameters: {
+           AnalyticsParams.songId: songId,
+           AnalyticsParams.fieldsChanged: fieldsChanged.join(','),
+         },
+       );
 }
 
 class SongDeletedEventData extends AnalyticsEventData {
-  SongDeletedEventData({
-    required String songId,
-    required String songTitle,
-  }) : super(
-          eventName: AnalyticsEvents.songDeleted,
-          parameters: {
-            AnalyticsParams.songId: songId,
-            AnalyticsParams.songTitle: songTitle,
-          },
-        );
+  SongDeletedEventData({required String songId, required String songTitle})
+    : super(
+        eventName: AnalyticsEvents.songDeleted,
+        parameters: {
+          AnalyticsParams.songId: songId,
+          AnalyticsParams.songTitle: songTitle,
+        },
+      );
 }
 
 // Setlist Events
@@ -298,16 +301,16 @@ class SetlistCreatedEventData extends AnalyticsEventData {
     bool hasEventDate = false,
     bool hasLocation = false,
   }) : super(
-          eventName: AnalyticsEvents.setlistCreated,
-          parameters: {
-            AnalyticsParams.setlistId: setlistId,
-            AnalyticsParams.setlistName: setlistName,
-            AnalyticsParams.bandId: bandId,
-            AnalyticsParams.songCount: songCount,
-            AnalyticsParams.hasEventDate: hasEventDate,
-            AnalyticsParams.hasLocation: hasLocation,
-          },
-        );
+         eventName: AnalyticsEvents.setlistCreated,
+         parameters: {
+           AnalyticsParams.setlistId: setlistId,
+           AnalyticsParams.setlistName: setlistName,
+           AnalyticsParams.bandId: bandId,
+           AnalyticsParams.songCount: songCount,
+           AnalyticsParams.hasEventDate: hasEventDate,
+           AnalyticsParams.hasLocation: hasLocation,
+         },
+       );
 
   factory SetlistCreatedEventData.fromSetlist(Setlist setlist) {
     return SetlistCreatedEventData(
@@ -327,13 +330,13 @@ class SetlistExportedEventData extends AnalyticsEventData {
     required String format,
     required int songCount,
   }) : super(
-          eventName: AnalyticsEvents.setlistExported,
-          parameters: {
-            AnalyticsParams.setlistId: setlistId,
-            AnalyticsParams.exportFormat: format,
-            AnalyticsParams.songCount: songCount,
-          },
-        );
+         eventName: AnalyticsEvents.setlistExported,
+         parameters: {
+           AnalyticsParams.setlistId: setlistId,
+           AnalyticsParams.exportFormat: format,
+           AnalyticsParams.songCount: songCount,
+         },
+       );
 }
 
 // Metronome Events
@@ -344,14 +347,14 @@ class MetronomeStartedEventData extends AnalyticsEventData {
     int subdivision = 1,
     String soundType = 'digital',
   }) : super(
-          eventName: AnalyticsEvents.metronomeStarted,
-          parameters: {
-            AnalyticsParams.bpm: bpm,
-            AnalyticsParams.timeSignature: timeSignature,
-            AnalyticsParams.subdivision: subdivision,
-            AnalyticsParams.soundType: soundType,
-          },
-        );
+         eventName: AnalyticsEvents.metronomeStarted,
+         parameters: {
+           AnalyticsParams.bpm: bpm,
+           AnalyticsParams.timeSignature: timeSignature,
+           AnalyticsParams.subdivision: subdivision,
+           AnalyticsParams.soundType: soundType,
+         },
+       );
 }
 
 // Tuner Events
@@ -362,27 +365,24 @@ class TunerUsedEventData extends AnalyticsEventData {
     String? detectedNote,
     int? cents,
   }) : super(
-          eventName: AnalyticsEvents.tunerUsed,
-          parameters: {
-            AnalyticsParams.mode: mode,
-            if (targetNote != null) AnalyticsParams.targetNote: targetNote,
-            if (detectedNote != null)
-              AnalyticsParams.detectedNote: detectedNote,
-            if (cents != null) AnalyticsParams.cents: cents,
-          },
-        );
+         eventName: AnalyticsEvents.tunerUsed,
+         parameters: {
+           AnalyticsParams.mode: mode,
+           if (targetNote != null) AnalyticsParams.targetNote: targetNote,
+           if (detectedNote != null) AnalyticsParams.detectedNote: detectedNote,
+           if (cents != null) AnalyticsParams.cents: cents,
+         },
+       );
 }
 
 // Screen View Events
 class ScreenViewEventData extends AnalyticsEventData {
-  ScreenViewEventData({
-    required String screenName,
-    String? screenClass,
-  }) : super(
-          eventName: AnalyticsEvents.screenView,
-          parameters: {
-            AnalyticsParams.screenName: screenName,
-            AnalyticsParams.screenClass: screenClass ?? screenName,
-          },
-        );
+  ScreenViewEventData({required String screenName, String? screenClass})
+    : super(
+        eventName: AnalyticsEvents.screenView,
+        parameters: {
+          AnalyticsParams.screenName: screenName,
+          AnalyticsParams.screenClass: screenClass ?? screenName,
+        },
+      );
 }

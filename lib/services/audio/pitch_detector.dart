@@ -1,198 +1,380 @@
 import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:pitch_detector_dart/pitch_detector.dart' as pid;
-import 'package:pcm_stream_recorder/pcm_stream_recorder.dart';
+import 'package:record/record.dart';
 
-/// Pitch Detector service for microphone input
-///
-/// Stage 3: Real pitch detection using YIN algorithm via pitch_detector_dart package
-/// Uses pcm_stream_recorder for real-time PCM audio capture
-/// Provides accurate frequency detection from microphone input for tuner functionality
-class PitchDetector {
-  PcmStreamRecorder? _recorder;
-  pid.PitchDetector? _pitchDetectorDart;
-  bool _isInitialized = false;
-  bool _isListening = false;
+import 'pitch_analysis.dart';
 
-  StreamSubscription<Uint8List>? _pcmSubscription;
+enum TunerPermissionState {
+  notRequested,
+  granted,
+  denied,
+  permanentlyDenied,
+  unavailable,
+}
 
-  /// Callback for detected pitch (frequency in Hz)
-  Function(double frequency)? onPitchDetected;
+class PitchSample {
+  final TunerSignalState signalState;
+  final double? frequencyHz;
+  final double confidence;
+  final double rmsDb;
 
-  /// Sample rate for audio recording
-  static const int sampleRate = 44100;
+  const PitchSample({
+    required this.signalState,
+    required this.frequencyHz,
+    required this.confidence,
+    required this.rmsDb,
+  });
+}
 
-  /// Buffer size for pitch detection (must be power of 2 for optimal performance)
-  static const int bufferSize = 2048;
+abstract class AudioInput {
+  int get sampleRate;
+  bool get isRecording;
 
-  /// Initialize the audio recorder and pitch detection algorithm
-  Future<void> _ensureInitialized() async {
-    if (_isInitialized) return;
+  Future<TunerPermissionState> permissionStatus();
+  Future<TunerPermissionState> requestPermission();
+  Future<Stream<Uint8List>> start();
+  Future<void> stop();
+  Future<void> dispose();
+}
 
-    try {
-      _recorder = PcmStreamRecorder();
+class RecordAudioInput implements AudioInput {
+  final AudioRecorder _recorder;
+  int _sampleRate = 44100;
+  bool _isRecording = false;
 
-      // Initialize the YIN pitch detection algorithm with named parameters
-      _pitchDetectorDart = pid.PitchDetector(
-        audioSampleRate: sampleRate * 1.0,
-        bufferSize: bufferSize,
-      );
+  RecordAudioInput({AudioRecorder? recorder})
+    : _recorder = recorder ?? AudioRecorder();
 
-      _isInitialized = true;
-    } catch (e) {
-      debugPrint('Error initializing pitch detector: $e');
-      rethrow;
-    }
+  @override
+  int get sampleRate => _sampleRate;
+
+  @override
+  bool get isRecording => _isRecording;
+
+  bool get _isSecureWebContext {
+    if (!kIsWeb) return true;
+    final uri = Uri.base;
+    return uri.scheme == 'https' ||
+        uri.host == 'localhost' ||
+        uri.host == '127.0.0.1' ||
+        uri.host == '::1';
   }
 
-  /// Request microphone permission
-  ///
-  /// Returns true if permission is granted, false otherwise
-  Future<bool> requestPermission() async {
+  @override
+  Future<TunerPermissionState> permissionStatus() async {
+    if (!_isSecureWebContext) return TunerPermissionState.unavailable;
     try {
       final status = await Permission.microphone.status;
-
-      if (status.isGranted) {
-        return true;
+      if (status.isGranted || status.isLimited) {
+        return TunerPermissionState.granted;
       }
-
-      if (status.isDenied) {
-        final result = await Permission.microphone.request();
-        return result.isGranted;
+      if (status.isPermanentlyDenied || status.isRestricted) {
+        return TunerPermissionState.permanentlyDenied;
       }
-
-      if (status.isPermanentlyDenied) {
-        // Open app settings for user to manually grant permission
-        await openAppSettings();
-        return false;
+      return TunerPermissionState.denied;
+    } catch (_) {
+      try {
+        final granted = await _recorder.hasPermission(request: false);
+        return granted
+            ? TunerPermissionState.granted
+            : TunerPermissionState.denied;
+      } catch (_) {
+        return TunerPermissionState.unavailable;
       }
-
-      return false;
-    } catch (e) {
-      debugPrint('Error requesting microphone permission: $e');
-      return false;
     }
   }
 
-  /// Start listening to microphone
-  ///
-  /// Stage 3: Real-time pitch detection enabled using YIN algorithm
-  /// Calls onPitchDetected callback when pitch is detected
-  Future<void> startListening() async {
-    await _ensureInitialized();
-
+  @override
+  Future<TunerPermissionState> requestPermission() async {
+    if (!_isSecureWebContext) return TunerPermissionState.unavailable;
     try {
-      // Check permission first
-      final hasPermission = await requestPermission();
-      if (!hasPermission) {
-        throw Exception('Microphone permission not granted');
+      final status = await Permission.microphone.request();
+      if (status.isGranted || status.isLimited) {
+        return TunerPermissionState.granted;
       }
+      if (status.isPermanentlyDenied || status.isRestricted) {
+        return TunerPermissionState.permanentlyDenied;
+      }
+      return TunerPermissionState.denied;
+    } catch (_) {
+      try {
+        final granted = await _recorder.hasPermission();
+        return granted
+            ? TunerPermissionState.granted
+            : TunerPermissionState.denied;
+      } catch (_) {
+        return TunerPermissionState.unavailable;
+      }
+    }
+  }
 
-      // Start recording with PCM stream
-      final pcmStream = await _recorder!.start(sampleRate: sampleRate);
+  @override
+  Future<Stream<Uint8List>> start() async {
+    if (_isRecording) {
+      throw StateError('Microphone capture is already active');
+    }
+    if (!await _recorder.isEncoderSupported(AudioEncoder.pcm16bits)) {
+      throw UnsupportedError('PCM16 microphone streaming is unavailable');
+    }
 
-      // Listen to PCM data and detect pitch in real-time
-      _pcmSubscription = pcmStream.listen((pcmChunk) async {
-        if (!_isListening || _pitchDetectorDart == null) return;
+    _sampleRate = 44100;
+    await _recorder.setOnConfigChanged((config) {
+      _sampleRate = config.sampleRate;
+    });
+    final stream = await _recorder.startStream(
+      const RecordConfig(
+        encoder: AudioEncoder.pcm16bits,
+        sampleRate: 44100,
+        numChannels: 1,
+        autoGain: false,
+        echoCancel: false,
+        noiseSuppress: false,
+        streamBufferSize: 4096,
+      ),
+    );
+    _isRecording = true;
+    return stream;
+  }
 
-        final frequency = await detectPitchFromBuffer(pcmChunk);
+  @override
+  Future<void> stop() async {
+    if (!_isRecording) return;
+    _isRecording = false;
+    await _recorder.stop();
+  }
 
-        if (frequency > 0 && onPitchDetected != null) {
-          onPitchDetected!(frequency);
-        }
-      });
+  @override
+  Future<void> dispose() async {
+    await stop();
+    await _recorder.dispose();
+  }
+}
 
-      _isListening = true;
-      debugPrint('Pitch detector started (Stage 3: real detection mode)');
-    } catch (e) {
-      debugPrint('Error starting pitch detector: $e');
+/// Cross-platform microphone pitch detector with serialized frame analysis.
+class PitchDetector {
+  static const int bufferSize = 4096;
+  static const int hopSize = 1024;
+
+  AudioInput? _audioInput;
+  final List<int> _pendingBytes = <int>[];
+  final List<double> _recentFrequencies = <double>[];
+
+  StreamSubscription<Uint8List>? _subscription;
+  Uint8List? _latestFrame;
+  bool _analysisRunning = false;
+  bool _isListening = false;
+  bool _disposed = false;
+  double _noiseFloorDb = -55;
+  DateTime? _signalStartedAt;
+  DateTime _lastEmission = DateTime.fromMillisecondsSinceEpoch(0);
+
+  PitchDetector({AudioInput? audioInput}) : _audioInput = audioInput;
+
+  AudioInput get _input => _audioInput ??= RecordAudioInput();
+
+  void Function(double frequency)? onPitchDetected;
+  ValueChanged<PitchSample>? onSample;
+
+  bool get isListening => _isListening;
+  int get sampleRate => _input.sampleRate;
+
+  void setSensitivity(double sensitivity) {
+    final normalized = sensitivity.clamp(0.0, 100.0) / 100;
+    _noiseFloorDb = -40 - (30 * normalized);
+  }
+
+  Future<TunerPermissionState> permissionStatus() {
+    return _input.permissionStatus();
+  }
+
+  Future<TunerPermissionState> requestPermission() {
+    return _input.requestPermission();
+  }
+
+  Future<void> openPermissionSettings() => openAppSettings();
+
+  Future<void> startListening() async {
+    if (_disposed) throw StateError('PitchDetector has been disposed');
+    if (_isListening) return;
+
+    final permission = await _input.permissionStatus();
+    if (permission != TunerPermissionState.granted) {
+      throw StateError('Microphone permission is not granted');
+    }
+
+    _resetPipeline();
+    _isListening = true;
+    try {
+      final stream = await _input.start();
+      _subscription = stream.listen(
+        _handleChunk,
+        onError: (Object error, StackTrace stackTrace) {
+          _emit(
+            const PitchSample(
+              signalState: TunerSignalState.unstable,
+              frequencyHz: null,
+              confidence: 0,
+              rmsDb: -120,
+            ),
+            force: true,
+          );
+        },
+        onDone: () => _isListening = false,
+        cancelOnError: false,
+      );
+    } catch (_) {
+      _isListening = false;
       rethrow;
     }
   }
 
-  /// Stop listening to microphone
-  Future<void> stopListening() async {
-    try {
-      _pcmSubscription?.cancel();
-      _pcmSubscription = null;
+  void _handleChunk(Uint8List bytes) {
+    if (!_isListening || bytes.isEmpty) return;
+    _pendingBytes.addAll(bytes);
+    if (_pendingBytes.length.isOdd) return;
 
-      if (_recorder != null && _isListening) {
-        await _recorder!.stop();
-        _isListening = false;
-        debugPrint('Pitch detector stopped');
-      }
-    } catch (e) {
-      debugPrint('Error stopping pitch detector: $e');
+    const frameBytes = bufferSize * 2;
+    const hopBytes = hopSize * 2;
+    while (_pendingBytes.length >= frameBytes) {
+      _latestFrame = Uint8List.fromList(_pendingBytes.sublist(0, frameBytes));
+      _pendingBytes.removeRange(0, hopBytes);
+    }
+    _scheduleLatestFrame();
+  }
+
+  void _scheduleLatestFrame() {
+    if (_analysisRunning || _latestFrame == null || !_isListening) return;
+    final frame = _latestFrame!;
+    _latestFrame = null;
+    _analysisRunning = true;
+    _analyse(frame).whenComplete(() {
+      _analysisRunning = false;
+      if (_latestFrame != null) _scheduleLatestFrame();
+    });
+  }
+
+  Future<void> _analyse(Uint8List frame) async {
+    final map = await compute(analysePitchFrame, <String, Object?>{
+      'bytes': frame,
+      'sampleRate': sampleRate,
+      'noiseFloorDb': _noiseFloorDb,
+      'minFrequency': 35.0,
+      'maxFrequency': 2100.0,
+    });
+    if (!_isListening) return;
+
+    final analysis = PitchAnalysisResult.fromMap(map);
+    if (!analysis.hasPitch || analysis.confidence < 0.65) {
+      _signalStartedAt = null;
+      _recentFrequencies.clear();
+      _emit(
+        PitchSample(
+          signalState: analysis.rmsDb < _noiseFloorDb
+              ? TunerSignalState.noSignal
+              : TunerSignalState.unstable,
+          frequencyHz: null,
+          confidence: analysis.confidence,
+          rmsDb: analysis.rmsDb,
+        ),
+      );
+      return;
+    }
+
+    final now = DateTime.now();
+    _signalStartedAt ??= now;
+    if (now.difference(_signalStartedAt!) < const Duration(milliseconds: 120)) {
+      _emit(
+        PitchSample(
+          signalState: TunerSignalState.unstable,
+          frequencyHz: null,
+          confidence: analysis.confidence,
+          rmsDb: analysis.rmsDb,
+        ),
+      );
+      return;
+    }
+
+    _recentFrequencies.add(analysis.frequencyHz!);
+    if (_recentFrequencies.length > 5) _recentFrequencies.removeAt(0);
+    final sorted = [..._recentFrequencies]..sort();
+    final frequency = sorted[sorted.length ~/ 2];
+    final sample = PitchSample(
+      signalState: analysis.confidence >= 0.8
+          ? TunerSignalState.detected
+          : TunerSignalState.unstable,
+      frequencyHz: frequency,
+      confidence: analysis.confidence,
+      rmsDb: analysis.rmsDb,
+    );
+    _emit(sample);
+    if (sample.signalState == TunerSignalState.detected) {
+      onPitchDetected?.call(frequency);
     }
   }
 
-  /// Check if currently listening
-  bool get isListening => _isListening;
+  void _emit(PitchSample sample, {bool force = false}) {
+    final now = DateTime.now();
+    if (!force &&
+        now.difference(_lastEmission) < const Duration(milliseconds: 33)) {
+      return;
+    }
+    _lastEmission = now;
+    onSample?.call(sample);
+  }
 
-  /// Process audio buffer for pitch detection
-  ///
-  /// Stage 3: Uses YIN algorithm for accurate pitch detection
-  ///
-  /// [pcmData] - PCM16 audio data from microphone
-  /// Returns detected frequency in Hz, or 0.0 if no pitch detected
   Future<double> detectPitchFromBuffer(Uint8List pcmData) async {
-    final detector = _pitchDetectorDart;
-    if (detector == null || pcmData.isEmpty) {
-      return 0.0;
-    }
-
-    try {
-      // Use YIN algorithm to detect pitch from PCM16 buffer (async)
-      final result = await detector.getPitchFromIntBuffer(pcmData);
-
-      // Return detected pitch if valid, otherwise 0.0
-      if (result.pitched && result.pitch > 0) {
-        return result.pitch;
-      }
-
-      return 0.0;
-    } catch (e) {
-      debugPrint('Error detecting pitch: $e');
-      return 0.0;
-    }
+    if (pcmData.isEmpty) return 0;
+    final result = PitchAnalysisResult.fromMap(
+      analysePitchFrame(<String, Object?>{
+        'bytes': pcmData,
+        'sampleRate': sampleRate,
+        'noiseFloorDb': -100.0,
+        'minFrequency': 35.0,
+        'maxFrequency': 2100.0,
+      }),
+    );
+    return result.frequencyHz ?? 0;
   }
 
-  /// Process audio buffer for pitch detection (legacy method for compatibility)
   @Deprecated('Use detectPitchFromBuffer instead')
   Future<double> detectPitch(List<int> pcmData) {
     return detectPitchFromBuffer(Uint8List.fromList(pcmData));
   }
 
-  /// Convert PCM bytes to double samples
-  ///
-  /// Used for debugging or alternative processing
   List<double> pcm16ToDouble(Uint8List pcmData) {
-    final samples = <double>[];
-    for (int i = 0; i < pcmData.length; i += 2) {
-      if (i + 1 < pcmData.length) {
-        final sample = (pcmData[i] | (pcmData[i + 1] << 8));
-        samples.add(sample / 32768.0);
-      }
+    final result = <double>[];
+    final data = ByteData.sublistView(pcmData);
+    for (var offset = 0; offset + 1 < pcmData.length; offset += 2) {
+      result.add(data.getInt16(offset, Endian.little) / 32768.0);
     }
-    return samples;
+    return result;
   }
 
-  /// Get the pitch detector instance for advanced usage
-  pid.PitchDetector? get detector => _pitchDetectorDart;
+  Future<void> stopListening() async {
+    final input = _audioInput;
+    if (!_isListening && (input == null || !input.isRecording)) return;
+    _isListening = false;
+    await _subscription?.cancel();
+    _subscription = null;
+    await input?.stop();
+    _resetPipeline();
+  }
 
-  /// Dispose of resources
+  void _resetPipeline() {
+    _pendingBytes.clear();
+    _latestFrame = null;
+    _recentFrequencies.clear();
+    _signalStartedAt = null;
+  }
+
   Future<void> dispose() async {
-    try {
-      await stopListening();
-      if (_recorder != null) {
-        await _recorder!.dispose();
-        _recorder = null;
-      }
-      _pitchDetectorDart = null;
-      _isInitialized = false;
-    } catch (e) {
-      debugPrint('Error disposing pitch detector: $e');
-    }
+    if (_disposed) return;
+    _disposed = true;
+    await stopListening();
+    await _audioInput?.dispose();
+    _audioInput = null;
   }
 }

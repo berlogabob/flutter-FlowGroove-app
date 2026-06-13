@@ -15,6 +15,38 @@ class _Sentinel {
   String toString() => '_sentinel';
 }
 
+class SetlistItem {
+  final String id;
+  final String songId;
+  final String? tuningPresetId;
+
+  const SetlistItem({
+    required this.id,
+    required this.songId,
+    this.tuningPresetId,
+  });
+
+  SetlistItem copyWith({String? id, String? songId, String? tuningPresetId}) {
+    return SetlistItem(
+      id: id ?? this.id,
+      songId: songId ?? this.songId,
+      tuningPresetId: tuningPresetId ?? this.tuningPresetId,
+    );
+  }
+
+  factory SetlistItem.fromJson(Map<String, dynamic> json) => SetlistItem(
+    id: json['id'] as String? ?? '',
+    songId: json['songId'] as String? ?? '',
+    tuningPresetId: json['tuningPresetId'] as String?,
+  );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'id': id,
+    'songId': songId,
+    if (tuningPresetId != null) 'tuningPresetId': tuningPresetId,
+  };
+}
+
 @JsonSerializable()
 class Setlist {
   @JsonKey(defaultValue: '')
@@ -29,6 +61,8 @@ class Setlist {
   final String? eventLocation;
   @JsonKey(defaultValue: [])
   final List<String> songIds;
+  @JsonKey(defaultValue: [], fromJson: _itemsFromJson, toJson: _itemsToJson)
+  final List<SetlistItem> items;
   final int? totalDuration;
   @JsonKey(
     defaultValue: {},
@@ -49,6 +83,7 @@ class Setlist {
     this.eventDateTime,
     this.eventLocation,
     this.songIds = const [],
+    this.items = const [],
     this.totalDuration,
     this.assignments = const {},
     required this.createdAt,
@@ -63,6 +98,7 @@ class Setlist {
     Object? eventDateTime = _sentinel,
     Object? eventLocation = _sentinel,
     List<String>? songIds,
+    List<SetlistItem>? items,
     Object? totalDuration = _sentinel,
     Map<String, SetlistAssignment>? assignments,
     DateTime? createdAt,
@@ -82,6 +118,7 @@ class Setlist {
           ? this.eventLocation
           : eventLocation as String?,
       songIds: songIds ?? this.songIds,
+      items: items ?? this.items,
       totalDuration: totalDuration == _sentinel
           ? this.totalDuration
           : totalDuration as int?,
@@ -91,7 +128,50 @@ class Setlist {
     );
   }
 
-  Map<String, dynamic> toJson() => _$SetlistToJson(this);
+  List<SetlistItem> get effectiveItems {
+    if (items.isNotEmpty) return items;
+    return List.generate(
+      songIds.length,
+      (index) => SetlistItem(
+        id: 'legacy-$index-${songIds[index]}',
+        songId: songIds[index],
+      ),
+    );
+  }
+
+  String? tuningPresetIdForItem(String itemId) {
+    for (final item in effectiveItems) {
+      if (item.id == itemId) return item.tuningPresetId;
+    }
+    return null;
+  }
+
+  Setlist withItemTuningPreset(String itemId, String? presetId) {
+    final updatedItems = effectiveItems
+        .map(
+          (item) => item.id == itemId
+              ? SetlistItem(
+                  id: item.id,
+                  songId: item.songId,
+                  tuningPresetId: presetId,
+                )
+              : item,
+        )
+        .toList();
+    return copyWith(
+      items: updatedItems,
+      songIds: updatedItems.map((item) => item.songId).toList(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = _$SetlistToJson(this);
+    final syncedItems = effectiveItems;
+    json['items'] = _itemsToJson(syncedItems);
+    json['songIds'] = syncedItems.map((item) => item.songId).toList();
+    return json;
+  }
 
   factory Setlist.fromJson(Map<String, dynamic> json) =>
       _$SetlistFromJson(json);
@@ -137,7 +217,9 @@ DateTime _parseDateTime(dynamic value) {
   if (value is int) {
     return DateTime.fromMillisecondsSinceEpoch(value);
   }
-  debugPrint('⚠️ Invalid date format in Setlist: $value (${value.runtimeType})');
+  debugPrint(
+    '⚠️ Invalid date format in Setlist: $value (${value.runtimeType})',
+  );
   return DateTime.now();
 }
 
@@ -187,4 +269,17 @@ Map<String, SetlistAssignment> _assignmentsFromJson(dynamic value) {
 
 Map<String, dynamic> _assignmentsToJson(Map<String, SetlistAssignment> value) {
   return value.map((key, val) => MapEntry(key, val.toJson()));
+}
+
+List<SetlistItem> _itemsFromJson(dynamic value) {
+  if (value is! List) return const [];
+  return value
+      .whereType<Map<dynamic, dynamic>>()
+      .map((item) => SetlistItem.fromJson(Map<String, dynamic>.from(item)))
+      .where((item) => item.songId.isNotEmpty)
+      .toList();
+}
+
+List<Map<String, dynamic>> _itemsToJson(List<SetlistItem> value) {
+  return value.map((item) => item.toJson()).toList();
 }

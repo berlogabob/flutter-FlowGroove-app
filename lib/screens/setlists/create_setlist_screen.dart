@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/setlist.dart';
 import '../../models/song.dart';
+import '../../models/tuner_launch_context.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/analytics_service.dart';
@@ -34,9 +36,11 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  late final String _setlistId;
   DateTime? _eventDate;
   final _eventLocationController = TextEditingController();
   List<Song> _selectedSongs = [];
+  List<SetlistItem> _selectedItems = [];
   bool _hasUnsavedChanges = false;
   bool _isSaving = false;
 
@@ -72,25 +76,49 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   @override
   void initState() {
     super.initState();
+    _setlistId = widget.setlist?.id ?? const Uuid().v4();
     if (_isEditing) {
       final setlist = widget.setlist!;
       _nameController.text = setlist.name;
       _descriptionController.text = setlist.description ?? '';
       _eventDate = setlist.eventDateTime;
       _eventLocationController.text = setlist.eventLocation ?? '';
-      _loadSongsForEditing(setlist.songIds);
+      _loadSongsForEditing(setlist);
     }
   }
 
-  void _loadSongsForEditing(List<String> songIds) {
+  void _loadSongsForEditing(Setlist setlist) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final songsAsync = _readAvailableSongs();
       final allSongs = songsAsync.value ?? [];
+      final songsById = <String, Song>{
+        for (final song in allSongs) song.id: song,
+      };
+      final items = setlist.effectiveItems;
       if (!mounted) return;
       setState(() {
-        _selectedSongs = allSongs.where((s) => songIds.contains(s.id)).toList();
+        _selectedSongs = [
+          for (final item in items)
+            if (songsById[item.songId] case final song?) song,
+        ];
+        _selectedItems = [
+          for (final item in items)
+            if (songsById.containsKey(item.songId)) item,
+        ];
       });
     });
+  }
+
+  List<SetlistItem> _reconcileItems(List<Song> songs) {
+    final available = List<SetlistItem>.from(_selectedItems);
+    return [
+      for (final song in songs)
+        if (available.indexWhere((item) => item.songId == song.id)
+            case final index when index >= 0)
+          available.removeAt(index)
+        else
+          SetlistItem(id: const Uuid().v4(), songId: song.id),
+    ];
   }
 
   @override
@@ -153,6 +181,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           scrollController: scrollController,
           onConfirm: (selected) {
             setState(() {
+              _selectedItems = _reconcileItems(selected);
               _selectedSongs = selected;
               _markAsChanged();
             });
@@ -161,7 +190,12 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
         ),
       ),
     );
-    if (result != null) setState(() => _selectedSongs = result);
+    if (result != null) {
+      setState(() {
+        _selectedItems = _reconcileItems(result);
+        _selectedSongs = result;
+      });
+    }
   }
 
   Future<void> _saveSetlist() async {
@@ -186,8 +220,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       return;
     }
 
+    final items = _reconcileItems(_selectedSongs);
     final setlist = Setlist(
-      id: _isEditing ? widget.setlist!.id : const Uuid().v4(),
+      id: _setlistId,
       bandId: bandId ?? '',
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isNotEmpty
@@ -198,6 +233,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           ? _eventLocationController.text.trim()
           : null,
       songIds: _selectedSongs.map((s) => s.id).toList(),
+      items: items,
+      totalDuration: widget.setlist?.totalDuration,
+      assignments: widget.setlist?.assignments ?? const {},
       createdAt: _isEditing ? widget.setlist!.createdAt : DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -461,7 +499,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                     setState(() {
                       if (adjustedIndex > oldIndex) adjustedIndex--;
                       final song = _selectedSongs.removeAt(oldIndex);
+                      final item = _selectedItems.removeAt(oldIndex);
                       _selectedSongs.insert(adjustedIndex, song);
+                      _selectedItems.insert(adjustedIndex, item);
                       _markAsChanged();
                     });
                   },
@@ -542,9 +582,15 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                               ),
                             ],
                             IconButton(
+                              icon: const Icon(Icons.tune, size: 20),
+                              tooltip: 'Open in Tuner',
+                              onPressed: () => _openTunerForItem(index),
+                            ),
+                            IconButton(
                               icon: const Icon(Icons.close, size: 20),
                               onPressed: () => setState(() {
                                 _selectedSongs.removeAt(index);
+                                _selectedItems.removeAt(index);
                                 _markAsChanged();
                               }),
                             ),
@@ -557,6 +603,49 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _openTunerForItem(int index) async {
+    if (index < 0 ||
+        index >= _selectedSongs.length ||
+        index >= _selectedItems.length) {
+      return;
+    }
+    final song = _selectedSongs[index];
+    final draft = Setlist(
+      id: _setlistId,
+      bandId: _effectiveBandId ?? '',
+      name: _nameController.text.trim(),
+      description: _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
+      eventDateTime: _eventDate,
+      eventLocation: _eventLocationController.text.trim().isEmpty
+          ? null
+          : _eventLocationController.text.trim(),
+      songIds: _selectedSongs.map((value) => value.id).toList(),
+      items: _selectedItems,
+      totalDuration: widget.setlist?.totalDuration,
+      assignments: widget.setlist?.assignments ?? const {},
+      createdAt: widget.setlist?.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    await context.pushNamed<void>(
+      'tuner',
+      extra: TunerLaunchContext(
+        song: song,
+        setlist: draft,
+        setlistItemId: _selectedItems[index].id,
+        bandId: _effectiveBandId,
+        saveSetlist: (updatedSetlist) async {
+          if (!mounted) return;
+          setState(() {
+            _selectedItems = updatedSetlist.effectiveItems;
+            _hasUnsavedChanges = true;
+          });
+        },
       ),
     );
   }

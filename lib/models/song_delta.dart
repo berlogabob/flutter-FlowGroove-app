@@ -19,6 +19,7 @@ class SongDeltaField {
   static const beatModes = 'beatModes';
   static const arrangementName = 'arrangementName';
   static const arrangementType = 'arrangementType';
+  static const defaultTuningPresetId = 'defaultTuningPresetId';
 
   static const allowed = {
     ourKey,
@@ -32,6 +33,7 @@ class SongDeltaField {
     beatModes,
     arrangementName,
     arrangementType,
+    defaultTuningPresetId,
   };
 }
 
@@ -92,6 +94,8 @@ class SongDelta extends Equatable {
       values[SongDeltaField.arrangementName] as String?;
   String? get arrangementType =>
       values[SongDeltaField.arrangementType] as String?;
+  String? get defaultTuningPresetId =>
+      values[SongDeltaField.defaultTuningPresetId] as String?;
 
   bool get isEmpty => values.isEmpty;
   bool get isNotEmpty => values.isNotEmpty;
@@ -148,6 +152,9 @@ class SongDelta extends Equatable {
     if (arrangementType != null && arrangementType.trim().isNotEmpty) {
       values[SongDeltaField.arrangementType] = arrangementType.trim();
     }
+    if ((song.defaultTuningPresetId ?? '').isNotEmpty) {
+      values[SongDeltaField.defaultTuningPresetId] = song.defaultTuningPresetId;
+    }
 
     return SongDelta(values: values);
   }
@@ -176,6 +183,9 @@ class SongDelta extends Equatable {
       ourBPM: has(SongDeltaField.ourBPM) ? ourBPM : canonical.baseBpm,
       links: links ?? canonical.baseLinks,
       notes: has(SongDeltaField.notes) ? notes : null,
+      defaultTuningPresetId: has(SongDeltaField.defaultTuningPresetId)
+          ? defaultTuningPresetId
+          : null,
       tags: tags ?? const [],
       bandId: bandId,
       createdAt: createdAt ?? canonical.createdAt,

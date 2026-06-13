@@ -33,6 +33,7 @@ class Song {
   final List<String> tags;
   final String? bandId;
   final String? spotifyUrl;
+  final String? defaultTuningPresetId;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
@@ -120,6 +121,7 @@ class Song {
     this.tags = const [],
     this.bandId,
     this.spotifyUrl,
+    this.defaultTuningPresetId,
     required this.createdAt,
     required this.updatedAt,
     this.originalOwnerId,
@@ -162,6 +164,7 @@ class Song {
     List<String>? tags,
     Object? bandId = _sentinel,
     Object? spotifyUrl = _sentinel,
+    Object? defaultTuningPresetId = _sentinel,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? originalOwnerId = _sentinel,
@@ -209,6 +212,9 @@ class Song {
       spotifyUrl: spotifyUrl == _sentinel
           ? this.spotifyUrl
           : spotifyUrl as String?,
+      defaultTuningPresetId: defaultTuningPresetId == _sentinel
+          ? this.defaultTuningPresetId
+          : defaultTuningPresetId as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       originalOwnerId: originalOwnerId == _sentinel
