@@ -264,6 +264,17 @@ service cloud.firestore {
         allow read: if isAuthenticated() && isOwner(userId);
         allow write, delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
       }
+
+      match /duplicate_dismissals/{dismissalId} {
+        allow read: if isAuthenticated() && isOwner(userId);
+        allow create, update, delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+      }
+
+      match /song_merges/{mergeId} {
+        allow read: if isAuthenticated() && isOwner(userId);
+        allow create: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+        allow update, delete: if false;
+      }
     }
 
     // ============================================================

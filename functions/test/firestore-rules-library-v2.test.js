@@ -164,6 +164,7 @@ describe("library v2 Firestore rules", function () {
   it("allows band members to read shared band setlists", async () => {
     const editorDb = authedDb("user-1");
     const viewerDb = authedDb("user-2");
+    const demoDb = authedDb("demo-user");
     const outsiderDb = authedDb("outsider");
 
     await assertSucceeds(
@@ -176,6 +177,14 @@ describe("library v2 Firestore rules", function () {
     );
     await assertSucceeds(
       viewerDb
+        .collection("bands")
+        .doc("band-1")
+        .collection("setlists")
+        .doc("setlist-1")
+        .get(),
+    );
+    await assertSucceeds(
+      demoDb
         .collection("bands")
         .doc("band-1")
         .collection("setlists")
