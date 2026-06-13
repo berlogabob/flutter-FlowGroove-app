@@ -53,6 +53,12 @@ else
     SOURCE_LABEL="$DEMO_FILE"
 fi
 
+# Android Studio exposes its JDK under jbr/Contents/Home on macOS. Accept the
+# bundle root in local env files while exporting the path Gradle expects.
+if [ -n "${JAVA_HOME:-}" ] && [ ! -x "$JAVA_HOME/bin/java" ] && [ -x "$JAVA_HOME/Contents/Home/bin/java" ]; then
+    export JAVA_HOME="$JAVA_HOME/Contents/Home"
+fi
+
 if is_placeholder "${FIREBASE_API_KEY:-}"; then
     echo "❌ ERROR: FIREBASE_API_KEY is missing for mobile build" >&2
     exit 1
