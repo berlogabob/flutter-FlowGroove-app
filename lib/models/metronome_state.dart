@@ -1,10 +1,11 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'time_signature.dart';
+
 import 'beat_mode.dart';
-import 'song.dart';
-import '../models/setlist.dart';
 import 'metronome_runtime_state.dart';
+import 'setlist.dart';
+import 'song.dart';
 import 'tempo_ramp.dart';
+import 'time_signature.dart';
 
 part 'metronome_state.g.dart';
 
@@ -13,6 +14,54 @@ const Object _metronomeStateNoChange = Object();
 /// Immutable state class for MetronomeNotifier
 @JsonSerializable()
 class MetronomeState {
+  const MetronomeState({
+    required this.isPlaying,
+    required this.bpm,
+    required this.currentBeat,
+    required this.timeSignature,
+    required this.waveType,
+    required this.volume,
+    required this.accentEnabled,
+    required this.accentFrequency,
+    required this.beatFrequency,
+    required this.accentPattern,
+    this.hapticsEnabled = true,
+    this.accentBeats = 4,
+    this.regularBeats = 1,
+    this.beatModes = const [], // Empty = all normal (2D: beats × subdivisions)
+    this.loadedSong,
+    this.loadedSetlist,
+    this.loadedSetlistSongs = const [],
+    this.sourceBandId,
+    this.currentSetlistIndex = 0,
+    this.countInBars = 0,
+    this.bpmSource = BpmSource.manual,
+    this.playbackPhase = MetronomePlaybackPhase.stopped,
+    this.activePresetId,
+    this.activePresetName,
+    this.visualFlashEnabled = true,
+    this.activeTempoRamp,
+    this.completedBars = 0,
+  });
+
+  factory MetronomeState.initial() {
+    return const MetronomeState(
+      isPlaying: false,
+      bpm: 120,
+      currentBeat: 0,
+      timeSignature: TimeSignature.commonTime,
+      waveType: 'sine',
+      volume: 0.5,
+      accentEnabled: true,
+      accentFrequency: 1600,
+      beatFrequency: 800,
+      accentPattern: [true, false, false, false],
+    );
+  }
+
+  factory MetronomeState.fromJson(Map<String, dynamic> json) =>
+      _$MetronomeStateFromJson(json);
+
   @JsonKey(defaultValue: false)
   final bool isPlaying;
   @JsonKey(defaultValue: 120)
@@ -42,9 +91,7 @@ class MetronomeState {
   final int regularBeats; // SUBDIVISIONS per beat (bottom row)
   @JsonKey(defaultValue: [])
   final List<List<BeatMode>> beatModes; // 2D: beats × subdivisions (independent modes)
-  @JsonKey(defaultValue: null)
   final Song? loadedSong;
-  @JsonKey(defaultValue: null)
   final Setlist? loadedSetlist;
   @JsonKey(defaultValue: [])
   final List<Song> loadedSetlistSongs;
@@ -67,62 +114,6 @@ class MetronomeState {
   @JsonKey(defaultValue: 0)
   final int completedBars;
 
-  const MetronomeState({
-    required this.isPlaying,
-    required this.bpm,
-    required this.currentBeat,
-    required this.timeSignature,
-    required this.waveType,
-    required this.volume,
-    required this.accentEnabled,
-    required this.accentFrequency,
-    required this.beatFrequency,
-    this.hapticsEnabled = true,
-    required this.accentPattern,
-    this.accentBeats = 4,
-    this.regularBeats = 1,
-    this.beatModes = const [], // Empty = all normal (2D: beats × subdivisions)
-    this.loadedSong,
-    this.loadedSetlist,
-    this.loadedSetlistSongs = const [],
-    this.sourceBandId,
-    this.currentSetlistIndex = 0,
-    this.countInBars = 0,
-    this.bpmSource = BpmSource.manual,
-    this.playbackPhase = MetronomePlaybackPhase.stopped,
-    this.activePresetId,
-    this.activePresetName,
-    this.visualFlashEnabled = true,
-    this.activeTempoRamp,
-    this.completedBars = 0,
-  });
-
-  /// Creates initial metronome state
-  factory MetronomeState.initial() {
-    return const MetronomeState(
-      isPlaying: false,
-      bpm: 120,
-      currentBeat: 0,
-      timeSignature: TimeSignature.commonTime,
-      waveType: 'sine',
-      volume: 0.5,
-      accentEnabled: true,
-      accentFrequency: 1600,
-      beatFrequency: 800,
-      hapticsEnabled: true,
-      accentPattern: [true, false, false, false],
-      accentBeats: 4,
-      regularBeats: 1,
-      beatModes: [], // Empty = all normal
-      countInBars: 0,
-      bpmSource: BpmSource.manual,
-      playbackPhase: MetronomePlaybackPhase.stopped,
-      visualFlashEnabled: true,
-      completedBars: 0,
-    );
-  }
-
-  /// Creates a copy of this state with the given fields replaced
   MetronomeState copyWith({
     bool? isPlaying,
     int? bpm,
@@ -195,11 +186,6 @@ class MetronomeState {
     );
   }
 
-  /// Convert from JSON
-  factory MetronomeState.fromJson(Map<String, dynamic> json) =>
-      _$MetronomeStateFromJson(json);
-
-  /// Convert to JSON
   Map<String, dynamic> toJson() => _$MetronomeStateToJson(this);
 
   // Backward compatibility getters

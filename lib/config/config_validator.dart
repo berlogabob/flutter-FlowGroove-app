@@ -10,15 +10,15 @@ import '../config/env_config.dart';
 
 /// Result of configuration validation
 class ConfigValidationResult {
-  final bool isValid;
-  final List<String> errors;
-  final List<String> warnings;
-
   ConfigValidationResult({
     required this.isValid,
     required this.errors,
     required this.warnings,
   });
+
+  final bool isValid;
+  final List<String> errors;
+  final List<String> warnings;
 
   @override
   String toString() {
@@ -51,8 +51,8 @@ class ConfigValidator {
 
     // Check Firebase App ID (hardcoded, but verify it's valid format)
     // This is just a sanity check
-    const expectedAppIdPattern = r'^1:\d+:[a-z]+:[a-f0-9]+$';
-    final appId = '1:703941154390:web:43dfeaf2f6a0495e004df7';
+    const String expectedAppIdPattern = r'^1:\d+:[a-z]+:[a-f0-9]+$';
+    const String appId = '1:703941154390:web:43dfeaf2f6a0495e004df7';
     if (!RegExp(expectedAppIdPattern).hasMatch(appId)) {
       errors.add('Firebase App ID format is invalid');
     }
@@ -121,15 +121,15 @@ class ConfigValidator {
 
 /// Exception thrown when configuration validation fails
 class ConfigValidationException implements Exception {
-  final String message;
-  final List<String> errors;
-  final List<String> warnings;
-
   ConfigValidationException(
     this.message, {
     required this.errors,
     required this.warnings,
   });
+
+  final String message;
+  final List<String> errors;
+  final List<String> warnings;
 
   @override
   String toString() => 'ConfigValidationException: $message';

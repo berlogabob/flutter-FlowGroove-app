@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../models/song.dart';
+import '../models/song.dart';
 import '../theme/mono_pulse_theme.dart';
+import 'app_icon_button.dart';
 
 /// A card widget for displaying song information.
 ///
@@ -29,11 +30,11 @@ class SongCard extends StatelessWidget {
   const SongCard({
     super.key,
     required this.song,
+    this.showSpotifyButton = true,
     this.onEdit,
     this.onDelete,
     this.onPlaySpotify,
     this.onOpenMetronome,
-    this.showSpotifyButton = true,
   });
 
   @override
@@ -86,15 +87,12 @@ class SongCard extends StatelessWidget {
             tooltip: 'Play on Spotify',
           ),
         if (onOpenMetronome != null && _hasMetronomeData)
-          IconButton(
+          AppIconButton(
             key: const ValueKey('song-card-open-metronome'),
-            icon: const Icon(
-              Icons.speed,
-              color: MonoPulseColors.accentOrange,
-              size: 24,
-            ),
+            icon: Icons.speed,
+            label: 'Open in Metronome',
             onPressed: onOpenMetronome,
-            tooltip: 'Open in Metronome',
+            color: MonoPulseColors.accentOrange,
           ),
         if (song.ourBPM != null) _buildBpmBadge(),
         if (song.ourKey != null) ...[
@@ -105,10 +103,11 @@ class SongCard extends StatelessWidget {
           ),
         ],
         const SizedBox(width: 8),
-        IconButton(
-          icon: const Icon(Icons.edit, size: 20),
+        AppIconButton(
+          icon: Icons.edit,
+          label: 'Edit song',
           onPressed: onEdit,
-          tooltip: 'Edit',
+          size: 20,
         ),
       ],
     );
@@ -210,12 +209,13 @@ class CompactSongCard extends StatelessWidget {
             ],
             if (onOpenMetronome != null && _hasMetronomeData) ...[
               const SizedBox(width: MonoPulseSpacing.sm),
-              IconButton(
+              AppIconButton(
                 key: const ValueKey('compact-song-card-open-metronome'),
-                icon: const Icon(Icons.speed, size: 20),
-                color: MonoPulseColors.accentOrange,
-                tooltip: 'Open in Metronome',
+                icon: Icons.speed,
+                label: 'Open in Metronome',
                 onPressed: onOpenMetronome,
+                color: MonoPulseColors.accentOrange,
+                size: 20,
               ),
             ],
           ],

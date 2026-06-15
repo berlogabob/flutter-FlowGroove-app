@@ -68,6 +68,7 @@ class DashboardGrid extends StatelessWidget {
           padding: padding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Greeting card
               if (greetingCard != null) ...[
@@ -97,6 +98,9 @@ class DashboardGrid extends StatelessWidget {
                 SizedBox(height: MonoPulseSpacing.md),
                 _buildResponsiveToolsGrid(breakpoint, constraints.maxWidth),
               ],
+
+              // Bottom spacing to prevent top-weighted layout on tall screens
+              SizedBox(height: sectionSpacing),
             ],
           ),
         );

@@ -17,7 +17,7 @@ class SongConstructor extends StatefulWidget {
   /// Initial sections (optional).
   final List<Section>? initialSections;
 
-  const SongConstructor({super.key, this.onChange, this.initialSections});
+  const SongConstructor({super.key, this.initialSections, this.onChange});
 
   @override
   State<SongConstructor> createState() => _SongConstructorState();

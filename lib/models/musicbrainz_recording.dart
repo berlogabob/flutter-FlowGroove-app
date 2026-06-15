@@ -21,10 +21,10 @@ class MusicBrainzArtistCredit extends Equatable {
 
   Map<String, dynamic> toJson() => _$MusicBrainzArtistCreditToJson(this);
 
-  String get displayName => name ?? artist.name;
-
   @override
   List<Object?> get props => [artist.id, name, joinPhrase];
+
+  String get displayName => name ?? artist.name;
 }
 
 /// Artist in MusicBrainz response
@@ -47,15 +47,15 @@ class MusicBrainzArtist extends Equatable {
 
   Map<String, dynamic> toJson() => _$MusicBrainzArtistToJson(this);
 
+  @override
+  List<Object?> get props => [id, name, disambiguation];
+
   String get displayString {
     if (disambiguation != null && disambiguation!.isNotEmpty) {
       return '$name ($disambiguation)';
     }
     return name;
   }
-
-  @override
-  List<Object?> get props => [id, name, disambiguation];
 }
 
 /// Release (album/single) in MusicBrainz response
@@ -80,14 +80,14 @@ class MusicBrainzRelease extends Equatable {
 
   Map<String, dynamic> toJson() => _$MusicBrainzReleaseToJson(this);
 
+  @override
+  List<Object?> get props => [id, title, date];
+
   int? get releaseYear {
     if (date == null) return null;
     final yearStr = date!.split('-').first;
     return int.tryParse(yearStr);
   }
-
-  @override
-  List<Object?> get props => [id, title, date];
 }
 
 /// MusicBrainz Recording - represents a specific audio recording
@@ -143,6 +143,16 @@ class MusicBrainzRecording extends Equatable {
 
   Map<String, dynamic> toJson() => _$MusicBrainzRecordingToJson(this);
 
+  @override
+  List<Object?> get props => [
+        id,
+        title,
+        artist,
+        disambiguation,
+        lengthMs,
+        isrcs,
+      ];
+
   /// Get primary artist name from artist-credit
   String get artist {
     if (artistCredit.isEmpty) return 'Unknown';
@@ -186,16 +196,6 @@ class MusicBrainzRecording extends Equatable {
 
   /// Check if this recording has ISRC
   bool get hasISRC => isrcs.isNotEmpty;
-
-  @override
-  List<Object?> get props => [
-        id,
-        title,
-        artist,
-        disambiguation,
-        lengthMs,
-        isrcs,
-      ];
 }
 
 /// Alias (alternative name) in MusicBrainz

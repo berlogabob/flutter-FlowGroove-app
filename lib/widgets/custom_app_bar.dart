@@ -35,9 +35,9 @@ class CustomAppBar {
   static PreferredSizeWidget build(
     BuildContext context, {
     required String title,
+    bool isTool = false,
     List<PopupMenuEntry<dynamic>>? menuItems,
     VoidCallback? onBack,
-    bool isTool = false,
   }) {
     return AppBar(
       backgroundColor: MonoPulseColors.black,
@@ -61,10 +61,10 @@ class CustomAppBar {
             }
           }
         },
-        // 48px minimum touch zone
+        // minTapTarget touch zone
         child: SizedBox(
-          width: 48,
-          height: 48,
+          width: MonoPulseSpacing.massive, // 48px
+          height: MonoPulseSpacing.massive,
           child: Center(
             child: Container(
               width: 40,
@@ -73,13 +73,14 @@ class CustomAppBar {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: MonoPulseColors.textSecondary,
-                  width: 1.5,
+                  width: MonoPulseBorder.default_,
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_ios_new,
                 color: MonoPulseColors.textSecondary,
-                size: 20,
+                size: MonoPulseIcons.sizeMedium,
+                semanticLabel: 'Back',
               ),
             ),
           ),
@@ -104,10 +105,10 @@ class CustomAppBar {
                   HapticFeedback.lightImpact();
                   // Menu will be shown by PopupMenuButton
                 },
-                // 48px minimum touch zone
+                // minTapTarget touch zone
                 child: SizedBox(
-                  width: 48,
-                  height: 48,
+                  width: MonoPulseSpacing.massive, // 48px
+                  height: MonoPulseSpacing.massive,
                   child: Center(
                     child: Container(
                       width: 40,
@@ -116,15 +117,15 @@ class CustomAppBar {
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: MonoPulseColors.borderSubtle,
-                          width: 1,
+                          width: MonoPulseBorder.thin,
                         ),
                       ),
                       child: PopupMenuButton<void>(
                         padding: EdgeInsets.zero,
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.more_horiz,
                           color: MonoPulseColors.textSecondary,
-                          size: 22,
+                          size: MonoPulseIcons.sizeLarge,
                         ),
                         itemBuilder: (context) => menuItems,
                         onSelected: (value) {},
@@ -169,10 +170,10 @@ class CustomAppBar {
             }
           }
         },
-        // 48px minimum touch zone
+        // minTapTarget touch zone
         child: SizedBox(
-          width: 48,
-          height: 48,
+          width: MonoPulseSpacing.massive, // 48px
+          height: MonoPulseSpacing.massive,
           child: Center(
             child: Container(
               width: 40,
@@ -181,13 +182,14 @@ class CustomAppBar {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: MonoPulseColors.textSecondary,
-                  width: 1.5,
+                  width: MonoPulseBorder.default_,
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_ios_new,
                 color: MonoPulseColors.textSecondary,
-                size: 20,
+                size: MonoPulseIcons.sizeMedium,
+                semanticLabel: 'Back',
               ),
             ),
           ),
@@ -218,7 +220,7 @@ class CustomAppBar {
       foregroundColor: MonoPulseColors.textPrimary,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.light,
-      leading: const SizedBox(width: 48), // Empty space for alignment
+      leading: SizedBox(width: MonoPulseSpacing.massive), // Empty space for alignment (48px)
       title: Text(
         title,
         style: MonoPulseTypography.headlineLarge.copyWith(
@@ -234,8 +236,8 @@ class CustomAppBar {
                   HapticFeedback.lightImpact();
                 },
                 child: SizedBox(
-                  width: 48,
-                  height: 48,
+                  width: MonoPulseSpacing.massive, // 48px
+                  height: MonoPulseSpacing.massive,
                   child: Center(
                     child: Container(
                       width: 40,
@@ -244,15 +246,15 @@ class CustomAppBar {
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: MonoPulseColors.textSecondary,
-                          width: 1.5,
+                          width: MonoPulseBorder.default_,
                         ),
                       ),
                       child: PopupMenuButton<void>(
                         padding: EdgeInsets.zero,
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.more_horiz,
                           color: MonoPulseColors.textSecondary,
-                          size: 22,
+                          size: MonoPulseIcons.sizeLarge,
                         ),
                         itemBuilder: (context) => menuItems,
                         onSelected: (value) {},

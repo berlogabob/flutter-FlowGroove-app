@@ -1,14 +1,14 @@
 /// MusicBrainz API error types
 sealed class MusicBrainzError implements Exception {
-  final String message;
-  final String? details;
-  final dynamic originalError;
-
   const MusicBrainzError({
     required this.message,
     this.details,
     this.originalError,
   });
+
+  final String message;
+  final String? details;
+  final Object? originalError;
 
   @override
   String toString() {
@@ -30,12 +30,12 @@ class MusicBrainzGenericError extends MusicBrainzError {
 
 /// Rate limit exceeded (429)
 class RateLimitError extends MusicBrainzError {
-  final Duration? retryAfter;
-
   const RateLimitError({
-    this.retryAfter,
     String message = 'MusicBrainz rate limit exceeded',
+    this.retryAfter,
   }) : super(message: message);
+
+  final Duration? retryAfter;
 }
 
 /// Resource not found (404)
@@ -47,19 +47,19 @@ class NotFoundError extends MusicBrainzError {
 
 /// Server error (5xx)
 class ServerError extends MusicBrainzError {
-  final int? statusCode;
-
   const ServerError({
     this.statusCode,
     String message = 'MusicBrainz server error',
   }) : super(message: message);
+
+  final int? statusCode;
 }
 
 /// Network error
 class NetworkError extends MusicBrainzError {
   const NetworkError({
     String message = 'Network error occurred',
-    dynamic originalError,
+    Object? originalError,
   }) : super(message: message, originalError: originalError);
 }
 

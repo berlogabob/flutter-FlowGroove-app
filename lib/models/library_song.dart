@@ -3,30 +3,15 @@ import 'song_delta.dart';
 
 /// Firestore document for a user/band library entry linked to a canonical song.
 class LibrarySong {
-  static const currentSchemaVersion = 2;
-
-  final String id;
-  final int schemaVersion;
-  final String canonicalSongId;
-  final String ownerType;
-  final String ownerId;
-  final int baseRevision;
-  final SongDelta delta;
-  final Song materialized;
-  final String? latestCommitId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final DateTime? deletedAt;
-
   LibrarySong({
     required this.id,
-    this.schemaVersion = currentSchemaVersion,
     required this.canonicalSongId,
     required this.ownerType,
     required this.ownerId,
+    required this.materialized,
+    this.schemaVersion = currentSchemaVersion,
     this.baseRevision = 1,
     SongDelta? delta,
-    required this.materialized,
     this.latestCommitId,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -57,6 +42,21 @@ class LibrarySong {
     );
   }
 
+  static const currentSchemaVersion = 2;
+
+  final String id;
+  final int schemaVersion;
+  final String canonicalSongId;
+  final String ownerType;
+  final String ownerId;
+  final int baseRevision;
+  final SongDelta delta;
+  final Song materialized;
+  final String? latestCommitId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -77,11 +77,11 @@ class LibrarySong {
   bool get isDeleted => deletedAt != null;
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(Object? value) {
   return _parseNullableDateTime(value) ?? DateTime.now();
 }
 
-DateTime? _parseNullableDateTime(dynamic value) {
+DateTime? _parseNullableDateTime(Object? value) {
   if (value == null) return null;
   if (value is DateTime) return value;
   try {

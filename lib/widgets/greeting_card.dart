@@ -46,9 +46,9 @@ class GreetingCard extends StatelessWidget {
   const GreetingCard({
     super.key,
     required this.userName,
+    this.isCompact = false,
     this.avatarPath,
     this.subtitle,
-    this.isCompact = false,
   });
 
   @override

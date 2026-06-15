@@ -1,37 +1,38 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'firebase_options.dart';
-import 'theme/mono_pulse_theme.dart';
-import 'providers/auth/auth_provider.dart';
-import 'router/app_router.dart';
-import 'models/user.dart';
-import 'widgets/loading_indicator.dart';
-import 'widgets/config_error_widget.dart';
-import 'utils/analytics_debug.dart';
-import 'providers/metronome_runtime_providers.dart';
-import 'services/analytics_service.dart';
+
 import 'analytics/metronome_analytics.dart';
 import 'config/config_validator.dart';
+import 'firebase_options.dart';
+import 'models/user.dart';
+import 'providers/auth/auth_provider.dart';
+import 'providers/metronome_runtime_providers.dart';
 import 'repositories/metronome_session_repository.dart';
+import 'router/app_router.dart';
+import 'services/analytics_service.dart';
 import 'services/metronome_preferences.dart';
+import 'theme/mono_pulse_theme.dart';
+import 'utils/analytics_debug.dart';
+import 'widgets/config_error_widget.dart';
+import 'widgets/loading_indicator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Global error widget for graceful degradation (prevents full red screen)
-  ErrorWidget.builder = (FlutterErrorDetails details) {
+  ErrorWidget.builder = (details) {
     debugPrint('⚠️ Widget error: ${details.exception}');
     debugPrint('   Stack: ${details.stack}');
     return Material(
       color: MonoPulseColors.black,
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -112,10 +113,10 @@ void main() async {
     AnalyticsDebug.enableDebugMode();
 
     // Test analytics connection
-    AnalyticsDebug.testConnection();
+    await AnalyticsDebug.testConnection();
 
     // Log app open event
-    AnalyticsDebug.logAppOpen();
+    await AnalyticsDebug.logAppOpen();
     debugPrint('📊 App open event logged');
   } else {
     debugPrint('ℹ️  Web platform - skipping Analytics initialization');
@@ -134,7 +135,7 @@ void main() async {
     // - Emulator without Google Play Services fully configured
     // This doesn't block Firestore, Auth, or Analytics
     debugPrint('ℹ️  Note: Google Play Services errors in debug are expected');
-    debugPrint('   They don\'t affect core app functionality');
+    debugPrint("   They don't affect core app functionality");
   }
 
   final rootContainer = ProviderContainer();
@@ -183,7 +184,7 @@ void main() async {
     debugPrint('   Email verified: ${currentUser.emailVerified}');
 
     // Log login event for existing user
-    analytics?.logLogin(loginMethod: 'auto');
+    await analytics?.logLogin(loginMethod: 'auto');
   } else {
     debugPrint('🔑 NO USER: No user found from previous session');
   }
@@ -197,9 +198,9 @@ void main() async {
 }
 
 class FlowGrooveApp extends ConsumerWidget {
-  final FirebaseAnalytics? analytics;
+  const FlowGrooveApp({super.key, this.analytics});
 
-  FlowGrooveApp({super.key, this.analytics});
+  final FirebaseAnalytics? analytics;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -259,9 +260,9 @@ class FlowGrooveApp extends ConsumerWidget {
 
 /// Error app displayed when configuration validation fails
 class ConfigErrorApp extends StatelessWidget {
-  final ConfigValidationException exception;
+  const ConfigErrorApp({required this.exception, super.key});
 
-  const ConfigErrorApp({super.key, required this.exception});
+  final ConfigValidationException exception;
 
   @override
   Widget build(BuildContext context) {
@@ -299,7 +300,7 @@ class FirebaseErrorApp extends StatelessWidget {
         body: SafeArea(
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

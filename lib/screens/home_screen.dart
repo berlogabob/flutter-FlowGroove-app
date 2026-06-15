@@ -69,7 +69,7 @@ class HomeScreen extends ConsumerWidget {
               icon: Icons.music_note,
               label: 'Songs',
               value: songCount.toString(),
-              color: MonoPulseColors.accentOrange,
+              color: MonoPulseColors.textSecondary,
               onTap: () => context.goNamed('songs'),
             ),
             StatCard(
@@ -105,7 +105,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             QuickActionButton(
               icon: Icons.library_music,
-              label: 'Bank',
+              label: 'Song Bank',
               onTap: () => context.goNamed('songs'),
             ),
           ],

@@ -151,6 +151,8 @@ class Song {
     this.isFromMusicBrainz = false,
   });
 
+  factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
+
   Song copyWith({
     String? id,
     String? title,
@@ -276,8 +278,6 @@ class Song {
   }
 
   Map<String, dynamic> toJson() => _$SongToJson(this);
-
-  factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
 }
 
 // Helper methods for BeatMode serialization

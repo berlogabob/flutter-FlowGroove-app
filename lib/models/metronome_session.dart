@@ -18,6 +18,31 @@ class MetronomeSession {
     this.completion,
   });
 
+  factory MetronomeSession.fromJson(Map<String, dynamic> json) {
+    return MetronomeSession(
+      id: json['id'] as String? ?? '',
+      startedAt: DateTime.parse(json['startedAt'] as String),
+      endedAt: json['endedAt'] == null
+          ? null
+          : DateTime.parse(json['endedAt'] as String),
+      presetId: json['presetId'] as String?,
+      songId: json['songId'] as String?,
+      setlistId: json['setlistId'] as String?,
+      startBpm: (json['startBpm'] as num?)?.toInt() ?? 120,
+      endBpm: (json['endBpm'] as num?)?.toInt(),
+      elapsedSeconds: (json['elapsedSeconds'] as num?)?.toInt() ?? 0,
+      barCount: (json['barCount'] as num?)?.toInt() ?? 0,
+      usedTapTempo: json['usedTapTempo'] as bool? ?? false,
+      usedTempoRamp: json['usedTempoRamp'] as bool? ?? false,
+      usedCountIn: json['usedCountIn'] as bool? ?? false,
+      completion: json['completion'] == null
+          ? null
+          : MetronomeSessionCompletion.values.firstWhere(
+              (value) => value.name == json['completion'],
+            ),
+    );
+  }
+
   final String id;
   final DateTime startedAt;
   final DateTime? endedAt;
@@ -49,30 +74,6 @@ class MetronomeSession {
     'usedCountIn': usedCountIn,
     if (completion != null) 'completion': completion!.name,
   };
-
-  factory MetronomeSession.fromJson(Map<String, dynamic> json) =>
-      MetronomeSession(
-        id: json['id'] as String? ?? '',
-        startedAt: DateTime.parse(json['startedAt'] as String),
-        endedAt: json['endedAt'] == null
-            ? null
-            : DateTime.parse(json['endedAt'] as String),
-        presetId: json['presetId'] as String?,
-        songId: json['songId'] as String?,
-        setlistId: json['setlistId'] as String?,
-        startBpm: (json['startBpm'] as num?)?.toInt() ?? 120,
-        endBpm: (json['endBpm'] as num?)?.toInt(),
-        elapsedSeconds: (json['elapsedSeconds'] as num?)?.toInt() ?? 0,
-        barCount: (json['barCount'] as num?)?.toInt() ?? 0,
-        usedTapTempo: json['usedTapTempo'] as bool? ?? false,
-        usedTempoRamp: json['usedTempoRamp'] as bool? ?? false,
-        usedCountIn: json['usedCountIn'] as bool? ?? false,
-        completion: json['completion'] == null
-            ? null
-            : MetronomeSessionCompletion.values.firstWhere(
-                (value) => value.name == json['completion'],
-              ),
-      );
 }
 
 class MetronomeSessionSummary {

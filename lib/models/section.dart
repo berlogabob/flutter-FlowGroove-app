@@ -29,6 +29,17 @@ class Section {
     this.colorValue,
   });
 
+  /// Create from JSON map.
+  factory Section.fromJson(Map<String, dynamic> json) {
+    return Section(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      notes: json['notes'] as String? ?? '',
+      duration: json['duration'] as int? ?? 1,
+      colorValue: json['colorValue'] as int?,
+    );
+  }
+
   /// Equality operator based on unique ID.
   @override
   bool operator ==(Object other) =>
@@ -77,17 +88,6 @@ class Section {
       'duration': duration,
       if (colorValue != null) 'colorValue': colorValue,
     };
-  }
-
-  /// Create from JSON map.
-  factory Section.fromJson(Map<String, dynamic> json) {
-    return Section(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      notes: json['notes'] as String? ?? '',
-      duration: json['duration'] as int? ?? 1,
-      colorValue: json['colorValue'] as int?,
-    );
   }
 
   /// Get color index for section (custom or hash-based default).

@@ -129,10 +129,10 @@ class ToolScreenScaffold extends StatelessWidget {
     super.key,
     required this.title,
     required this.mainWidget,
+    this.showOfflineIndicator = true,
     this.secondaryWidget,
     this.bottomWidget,
     this.menuItems,
-    this.showOfflineIndicator = true,
   });
 
   @override
@@ -253,8 +253,8 @@ class ToolBlock extends StatelessWidget {
   const ToolBlock({
     super.key,
     required this.child,
-    this.header,
     this.showCard = false,
+    this.header,
     this.padding,
   });
 

@@ -18,9 +18,11 @@ import '../services/api/web_config.stub.dart'
 /// 2. Pass FIREBASE_API_KEY via dart-defines for non-web builds
 /// 3. NEVER commit generated config.js or secret-bearing local env files
 class EnvConfig {
-  static final EnvConfig _instance = EnvConfig._internal();
-  EnvConfig._internal();
   factory EnvConfig() => _instance;
+
+  EnvConfig._internal();
+
+  static final EnvConfig _instance = EnvConfig._internal();
 
   /// Get an environment variable by key
   /// Returns empty string if not found
@@ -123,17 +125,17 @@ class EnvConfig {
       case 'FIREBASE_API_KEY':
         return const String.fromEnvironment('FIREBASE_API_KEY');
       case 'SPOTIFY_CLIENT_ID':
-        return const String.fromEnvironment('SPOTIFY_CLIENT_ID');
+        return String.fromEnvironment('SPOTIFY_CLIENT_ID');
       case 'SPOTIFY_CLIENT_SECRET':
-        return const String.fromEnvironment('SPOTIFY_CLIENT_SECRET');
+        return String.fromEnvironment('SPOTIFY_CLIENT_SECRET');
       case 'TWITTER_API_KEY':
-        return const String.fromEnvironment('TWITTER_API_KEY');
+        return String.fromEnvironment('TWITTER_API_KEY');
       case 'TWITTER_API_SECRET':
-        return const String.fromEnvironment('TWITTER_API_SECRET');
+        return String.fromEnvironment('TWITTER_API_SECRET');
       case 'TELEGRAM_BOT_TOKEN':
-        return const String.fromEnvironment('TELEGRAM_BOT_TOKEN');
+        return String.fromEnvironment('TELEGRAM_BOT_TOKEN');
       case 'SPOTIFY_PROXY_URL':
-        return const String.fromEnvironment('SPOTIFY_PROXY_URL');
+        return String.fromEnvironment('SPOTIFY_PROXY_URL');
       default:
         return '';
     }

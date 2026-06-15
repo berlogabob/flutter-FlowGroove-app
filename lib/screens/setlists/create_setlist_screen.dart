@@ -12,6 +12,7 @@ import '../../providers/data/data_providers.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/primary_action_bar.dart';
 
 enum SetlistStorageScope { personal, band }
 
@@ -339,13 +340,6 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           title: _isEditing
               ? (_isBandScope ? 'Edit Band Setlist' : 'Edit Setlist')
               : (_isBandScope ? 'Create Band Setlist' : 'Create Setlist'),
-          menuItems: [
-            PopupMenuItem<void>(
-              enabled: !_isSaving,
-              onTap: _isSaving ? null : _saveSetlist,
-              child: Text(_isSaving ? 'Saving...' : 'Save'),
-            ),
-          ],
         ),
         body: Form(
           key: _formKey,
@@ -602,6 +596,13 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 ),
             ],
           ),
+        ),
+        bottomNavigationBar: PrimaryActionBar(
+          label: _isSaving
+              ? 'Saving...'
+              : (_isEditing ? 'Save Changes' : 'Create Setlist'),
+          onPressed: !_isSaving ? _saveSetlist : null,
+          isLoading: _isSaving,
         ),
       ),
     );

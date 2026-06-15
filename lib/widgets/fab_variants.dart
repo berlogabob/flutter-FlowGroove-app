@@ -33,8 +33,8 @@ class SingleFab extends StatelessWidget {
     super.key,
     required this.icon,
     required this.onPressed,
-    this.heroTag,
     this.tooltip,
+    this.heroTag,
   });
 
   @override

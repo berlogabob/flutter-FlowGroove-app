@@ -115,8 +115,8 @@ class _InteractiveDial extends StatefulWidget {
     required this.isListening,
     required this.isStarting,
     required this.signalLabel,
-    this.targetNoteIndex,
     required this.onFrequencyChanged,
+    this.targetNoteIndex,
   });
 
   @override

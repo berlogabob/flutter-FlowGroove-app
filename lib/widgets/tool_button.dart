@@ -56,8 +56,8 @@ class ToolButton extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
-    this.onTap,
     this.isCompact = false,
+    this.onTap,
   });
 
   @override

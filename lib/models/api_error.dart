@@ -30,23 +30,6 @@ enum ErrorType {
 /// the application, with typed error categories and user-friendly messages.
 @JsonSerializable()
 class ApiError implements Exception {
-  /// The type of error that occurred.
-  final ErrorType type;
-
-  /// A user-friendly message describing the error.
-  final String message;
-
-  /// Additional details about the error (for debugging).
-  final String? details;
-
-  /// The original exception that caused this error, if any.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final Object? originalException;
-
-  /// The stack trace of the error, if available.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  final StackTrace? stackTrace;
-
   const ApiError({
     required this.type,
     required this.message,
@@ -146,6 +129,10 @@ class ApiError implements Exception {
     );
   }
 
+  /// Creates an [ApiError] from a JSON map.
+  factory ApiError.fromJson(Map<String, dynamic> json) =>
+      _$ApiErrorFromJson(json);
+
   /// Creates an [ApiError] from any exception.
   ///
   /// This factory method attempts to map common exception types to
@@ -205,7 +192,6 @@ class ApiError implements Exception {
         errorString.contains('no document') ||
         errorString.contains('404')) {
       return ApiError.notFound(
-        message: 'The requested resource was not found.',
         exception: e,
         stackTrace: stackTrace,
       );
@@ -218,6 +204,23 @@ class ApiError implements Exception {
       stackTrace: stackTrace,
     );
   }
+
+  /// The type of error that occurred.
+  final ErrorType type;
+
+  /// A user-friendly message describing the error.
+  final String message;
+
+  /// Additional details about the error (for debugging).
+  final String? details;
+
+  /// The original exception that caused this error, if any.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final Object? originalException;
+
+  /// The stack trace of the error, if available.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  final StackTrace? stackTrace;
 
   /// Gets a user-friendly message for network errors.
   static String _getNetworkMessage(Object e) {
@@ -296,6 +299,9 @@ class ApiError implements Exception {
   /// Returns true if this is an unknown error.
   bool get isUnknown => type == ErrorType.unknown;
 
+  /// Converts this error to a JSON map for logging or serialization.
+  Map<String, dynamic> toJson() => _$ApiErrorToJson(this);
+
   @override
   String toString() {
     final buffer = StringBuffer('ApiError(${type.name}): $message');
@@ -305,12 +311,6 @@ class ApiError implements Exception {
     return buffer.toString();
   }
 
-  /// Converts this error to a JSON map for logging or serialization.
-  Map<String, dynamic> toJson() => _$ApiErrorToJson(this);
-
-  /// Creates an [ApiError] from a JSON map.
-  factory ApiError.fromJson(Map<String, dynamic> json) =>
-      _$ApiErrorFromJson(json);
 }
 
 /// Extension to provide user-friendly error messages.

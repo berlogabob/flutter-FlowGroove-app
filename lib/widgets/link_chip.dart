@@ -29,11 +29,11 @@ class LinkChip extends StatelessWidget {
   const LinkChip({
     super.key,
     required this.link,
-    this.onTap,
-    this.onDelete,
     this.showDelete = false,
     this.selectable = false,
     this.isSelected = false,
+    this.onTap,
+    this.onDelete,
   });
 
   @override

@@ -21,8 +21,8 @@ class MatchScoreBadge extends StatelessWidget {
   const MatchScoreBadge({
     super.key,
     required this.score,
-    this.size = 36,
     this.showLabel = true,
+    this.size = 40, // MonoPulseSpacing.xxxl equivalent for badge container
   });
 
   @override
@@ -36,13 +36,16 @@ class MatchScoreBadge extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.xs,
+        vertical: 4, // Custom micro-padding for tight badge layout
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
         border: Border.all(
           color: color.withValues(alpha: 0.3),
-          width: 1,
+          width: MonoPulseBorder.thin,
         ),
       ),
       child: Column(
@@ -52,15 +55,15 @@ class MatchScoreBadge extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 10, // Micro label for badge
                 fontWeight: FontWeight.w700,
                 color: color,
               ),
             ),
           if (!showLabel)
             Container(
-              width: 6,
-              height: 6,
+              width: 8, // Micro dot indicator
+              height: 8,
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,

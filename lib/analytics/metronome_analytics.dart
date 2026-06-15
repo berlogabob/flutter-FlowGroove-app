@@ -26,7 +26,7 @@ class MetronomeAnalytics {
       parameters: {
         'success': success ? 1 : 0, // Firebase requires num, not bool
         'duration_ms': duration.inMilliseconds,
-        if (error != null) 'error': error!,
+        if (error != null) 'error': error,
         'optimized': MetronomeFeatureFlags.enableOptimizedAudio ? 1 : 0,
       },
     );

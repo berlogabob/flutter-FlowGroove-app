@@ -1,6 +1,7 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
+
 import 'beat_mode.dart';
 import 'link.dart';
 import 'section.dart';
@@ -17,6 +18,90 @@ part 'canonical_song.g.dart';
 /// while multiple users/bands have their own Song arrangements linked to it.
 @JsonSerializable()
 class CanonicalSong extends Equatable {
+  CanonicalSong({
+    required this.id,
+    required this.title,
+    required this.artist,
+    this.artists = const [],
+    this.album,
+    this.releaseYear,
+    this.durationMs,
+    this.isrc,
+    this.spotifyId,
+    this.musicBrainzId,
+    this.musicBrainzWorkId,
+    this.iswc,
+    this.normalizedTitle,
+    this.normalizedArtist,
+    this.genres = const [],
+    this.disambiguation,
+    this.schemaVersion = 1,
+    this.canonicalRevision = 1,
+    this.source = 'manual',
+    this.status = 'active',
+    this.createdBy,
+    this.baseKey,
+    this.baseBpm,
+    this.baseSections = const [],
+    this.baseAccentBeats = 4,
+    this.baseRegularBeats = 1,
+    this.baseBeatModes = const [],
+    this.baseLinks = const [],
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
+
+  factory CanonicalSong.fromJson(Map<String, dynamic> json) =>
+      _$CanonicalSongFromJson(json);
+
+  /// Create a CanonicalSong from MusicBrainz data
+  factory CanonicalSong.fromMusicBrainz({
+    required String title,
+    required String artist,
+    String? musicBrainzId,
+    String? musicBrainzWorkId,
+    int? durationMs,
+    String? isrc,
+    List<String>? artists,
+    String? disambiguation,
+  }) {
+    return CanonicalSong(
+      id: musicBrainzId ?? const Uuid().v4(),
+      title: title.trim(),
+      artist: artist.trim(),
+      artists: artists ?? [artist.trim()],
+      musicBrainzId: musicBrainzId,
+      musicBrainzWorkId: musicBrainzWorkId,
+      durationMs: durationMs,
+      isrc: isrc,
+      disambiguation: disambiguation,
+      normalizedTitle: title.toLowerCase().trim(),
+      normalizedArtist: artist.toLowerCase().trim(),
+      source: 'musicbrainz',
+    );
+  }
+
+  /// Create a new CanonicalSong manually (no MusicBrainz)
+  factory CanonicalSong.manual({
+    required String title,
+    required String artist,
+    String? album,
+    int? releaseYear,
+    List<String>? genres,
+  }) {
+    return CanonicalSong(
+      id: const Uuid().v4(),
+      title: title.trim(),
+      artist: artist.trim(),
+      album: album?.trim(),
+      releaseYear: releaseYear,
+      genres: genres ?? [],
+      normalizedTitle: title.toLowerCase().trim(),
+      normalizedArtist: artist.toLowerCase().trim(),
+    );
+  }
+
   /// Unique identifier (UUID or MusicBrainz ID)
   final String id;
 
@@ -127,90 +212,6 @@ class CanonicalSong extends Equatable {
   /// When this record was last updated
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime updatedAt;
-
-  CanonicalSong({
-    required this.id,
-    required this.title,
-    required this.artist,
-    this.artists = const [],
-    this.album,
-    this.releaseYear,
-    this.durationMs,
-    this.isrc,
-    this.spotifyId,
-    this.musicBrainzId,
-    this.musicBrainzWorkId,
-    this.iswc,
-    this.normalizedTitle,
-    this.normalizedArtist,
-    this.genres = const [],
-    this.disambiguation,
-    this.schemaVersion = 1,
-    this.canonicalRevision = 1,
-    this.source = 'manual',
-    this.status = 'active',
-    this.createdBy,
-    this.baseKey,
-    this.baseBpm,
-    this.baseSections = const [],
-    this.baseAccentBeats = 4,
-    this.baseRegularBeats = 1,
-    this.baseBeatModes = const [],
-    this.baseLinks = const [],
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : createdAt = createdAt ?? DateTime.now(),
-       updatedAt = updatedAt ?? DateTime.now();
-
-  /// Create a CanonicalSong from MusicBrainz data
-  factory CanonicalSong.fromMusicBrainz({
-    required String title,
-    required String artist,
-    String? musicBrainzId,
-    String? musicBrainzWorkId,
-    int? durationMs,
-    String? isrc,
-    List<String>? artists,
-    String? disambiguation,
-  }) {
-    return CanonicalSong(
-      id: musicBrainzId ?? const Uuid().v4(),
-      title: title.trim(),
-      artist: artist.trim(),
-      artists: artists ?? [artist.trim()],
-      musicBrainzId: musicBrainzId,
-      musicBrainzWorkId: musicBrainzWorkId,
-      durationMs: durationMs,
-      isrc: isrc,
-      disambiguation: disambiguation,
-      normalizedTitle: title.toLowerCase().trim(),
-      normalizedArtist: artist.toLowerCase().trim(),
-      source: 'musicbrainz',
-    );
-  }
-
-  /// Create a new CanonicalSong manually (no MusicBrainz)
-  factory CanonicalSong.manual({
-    required String title,
-    required String artist,
-    String? album,
-    int? releaseYear,
-    List<String>? genres,
-  }) {
-    return CanonicalSong(
-      id: const Uuid().v4(),
-      title: title.trim(),
-      artist: artist.trim(),
-      album: album?.trim(),
-      releaseYear: releaseYear,
-      genres: genres ?? [],
-      normalizedTitle: title.toLowerCase().trim(),
-      normalizedArtist: artist.toLowerCase().trim(),
-    );
-  }
-
-  factory CanonicalSong.fromJson(Map<String, dynamic> json) =>
-      _$CanonicalSongFromJson(json);
 
   Map<String, dynamic> toJson() => _$CanonicalSongToJson(this);
 
@@ -327,7 +328,7 @@ class CanonicalSong extends Equatable {
   ];
 }
 
-List<Link> _linksFromJson(dynamic value) {
+List<Link> _linksFromJson(value) {
   if (value == null) return [];
   if (value is List<Link>) return value;
   if (value is! List) return [];
@@ -341,7 +342,7 @@ List<Map<String, dynamic>> _linksToJson(List<Link> links) {
   return links.map((link) => link.toJson()).toList();
 }
 
-List<Section> _sectionsFromJson(dynamic value) {
+List<Section> _sectionsFromJson(value) {
   if (value == null) return [];
   if (value is List<Section>) return value;
   if (value is! List) return [];
@@ -355,7 +356,7 @@ List<Map<String, dynamic>> _sectionsToJson(List<Section> sections) {
   return sections.map((section) => section.toJson()).toList();
 }
 
-List<List<BeatMode>> _beatModesFromJson(dynamic value) {
+List<List<BeatMode>> _beatModesFromJson(value) {
   if (value == null) return [];
 
   if (value is List) {
@@ -421,7 +422,7 @@ Map<String, String> _beatModesToJson(List<List<BeatMode>> value) {
   return result;
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   try {

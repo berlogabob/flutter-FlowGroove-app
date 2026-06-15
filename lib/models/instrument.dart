@@ -1,9 +1,27 @@
 /// Instrument and Tuning models for the tuner instrument library.
 ///
 /// These models represent the static data loaded from assets/data/tunings.json.
+library;
+
+import 'package:flutter/foundation.dart';
 
 /// A single tuning configuration for an instrument.
+@immutable
 class Tuning {
+  const Tuning({
+    required this.id,
+    required this.name,
+    required this.notes,
+  });
+
+  factory Tuning.fromJson(Map<String, dynamic> json) {
+    return Tuning(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      notes: (json['notes'] as List<dynamic>).map((e) => e as String).toList(),
+    );
+  }
+
   /// Unique identifier for this tuning within its instrument.
   final String id;
 
@@ -13,25 +31,9 @@ class Tuning {
   /// Note names for each string (e.g., ["E2", "A2", "D3", "G3", "B3", "E4"]).
   final List<String> notes;
 
-  const Tuning({
-    required this.id,
-    required this.name,
-    required this.notes,
-  });
-
   /// Number of strings in this tuning.
   int get stringCount => notes.length;
 
-  /// Create from JSON map.
-  factory Tuning.fromJson(Map<String, dynamic> json) {
-    return Tuning(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      notes: (json['notes'] as List<dynamic>).map((e) => e as String).toList(),
-    );
-  }
-
-  /// Convert to JSON map.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -54,7 +56,36 @@ class Tuning {
 }
 
 /// An instrument with multiple tunings.
+@immutable
 class Instrument {
+  const Instrument({
+    required this.id,
+    required this.name,
+    required this.subtitle,
+    required this.origin,
+    required this.icon,
+    required this.stringCount,
+    required this.stringLabels,
+    required this.tunings,
+  });
+
+  factory Instrument.fromJson(Map<String, dynamic> json) {
+    return Instrument(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      subtitle: json['subtitle'] as String,
+      origin: json['origin'] as String,
+      icon: json['icon'] as String,
+      stringCount: json['stringCount'] as int,
+      stringLabels: (json['stringLabels'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      tunings: (json['tunings'] as List<dynamic>)
+          .map((t) => Tuning.fromJson(t as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
   /// Unique identifier (e.g., "guitar_6", "cavaquinho").
   final String id;
 
@@ -79,39 +110,9 @@ class Instrument {
   /// Available tunings for this instrument.
   final List<Tuning> tunings;
 
-  const Instrument({
-    required this.id,
-    required this.name,
-    required this.subtitle,
-    required this.origin,
-    required this.icon,
-    required this.stringCount,
-    required this.stringLabels,
-    required this.tunings,
-  });
-
   /// Get the default (first) tuning.
   Tuning get defaultTuning => tunings.first;
 
-  /// Create from JSON map.
-  factory Instrument.fromJson(Map<String, dynamic> json) {
-    return Instrument(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      subtitle: json['subtitle'] as String,
-      origin: json['origin'] as String,
-      icon: json['icon'] as String,
-      stringCount: json['stringCount'] as int,
-      stringLabels: (json['stringLabels'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
-      tunings: (json['tunings'] as List<dynamic>)
-          .map((t) => Tuning.fromJson(t as Map<String, dynamic>))
-          .toList(),
-    );
-  }
-
-  /// Convert to JSON map.
   Map<String, dynamic> toJson() {
     return {
       'id': id,

@@ -5,6 +5,8 @@ import '../theme/mono_pulse_theme.dart';
 ///
 /// This widget provides a consistent loading indicator that can be used
 /// throughout the app with optional text message.
+///
+/// Includes semantic label for screen readers.
 class LoadingIndicator extends StatelessWidget {
   /// The size of the loading spinner.
   final double size;
@@ -18,9 +20,13 @@ class LoadingIndicator extends StatelessWidget {
   /// The style for the message text.
   final TextStyle? messageStyle;
 
+  /// Semantic label for screen readers. Defaults to 'Loading'.
+  final String semanticsLabel;
+
   const LoadingIndicator({
     super.key,
     this.size = 40,
+    this.semanticsLabel = 'Loading',
     this.color,
     this.message,
     this.messageStyle,
@@ -28,29 +34,34 @@ class LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                color ?? MonoPulseColors.accentOrange,
+    return Semantics(
+      label: semanticsLabel,
+      enabled: true,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: size,
+              height: size,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  color ?? MonoPulseColors.accentOrange,
+                ),
+                semanticsLabel: semanticsLabel,
               ),
             ),
-          ),
-          if (message != null) ...[
-            const SizedBox(height: MonoPulseSpacing.lg),
-            Text(
-              message!,
-              style: messageStyle ?? MonoPulseTypography.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
+            if (message != null) ...[
+              const SizedBox(height: MonoPulseSpacing.lg),
+              Text(
+                message!,
+                style: messageStyle ?? MonoPulseTypography.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

@@ -109,7 +109,7 @@ class SongArrangement extends Equatable {
   })  : createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
 
-  /// Create a personal arrangement
+  /// Create a personal arrangement.
   factory SongArrangement.personal({
     required String canonicalSongId,
     required String userId,
