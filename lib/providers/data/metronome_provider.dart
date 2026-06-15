@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../models/metronome_state.dart';
 import '../../models/metronome_tempo_range.dart';
@@ -9,11 +10,17 @@ import '../../models/time_signature.dart';
 import '../../models/song.dart';
 import '../../models/setlist.dart';
 import '../../models/beat_mode.dart';
+import '../../models/metronome_preset.dart';
+import '../../models/metronome_runtime_state.dart';
+import '../../models/metronome_session.dart';
+import '../../models/tempo_ramp.dart';
 import '../../providers/metronome_runtime_providers.dart';
 import '../../providers/wakelock_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../services/audio/audio_focus_manager.dart';
 import '../../services/wakelock_controller.dart';
+import '../../repositories/metronome_session_repository.dart';
+import '../../services/metronome_preferences.dart';
 
 /// Metronome Notifier class
 ///
@@ -23,12 +30,19 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   late MetronomeAudioClient _audioClient;
   late MetronomePlaybackClient _playbackClient;
   late WakelockController _wakelock;
+  final TempoRampController _tempoRampController = TempoRampController();
+  final MetronomeSessionRepository _sessionRepository =
+      MetronomeSessionRepository();
+  final MetronomePreferences _preferences = MetronomePreferences();
 
   /// Default constructor
   MetronomeNotifier();
 
   Timer? _debounceTimer;
   bool _debouncePending = false;
+  Timer? _rampTimer;
+  MetronomeSession? _activeSession;
+  Stopwatch? _sessionStopwatch;
 
   @override
   MetronomeState build() {
@@ -47,7 +61,13 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     state = state.copyWith(
       isPlaying: true,
       currentBeat: -1, // Will be 0 on first tick
+      playbackPhase: state.countInBars > 0
+          ? MetronomePlaybackPhase.countIn
+          : MetronomePlaybackPhase.playing,
+      completedBars: 0,
     );
+
+    _startSession();
 
     // Request audio focus for metronome playback
     unawaited(AudioFocusManager().requestFocus());
@@ -64,7 +84,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
     unawaited(_playbackClient.stop());
 
-    state = state.copyWith(isPlaying: false, currentBeat: 0);
+    state = state.copyWith(
+      isPlaying: false,
+      currentBeat: 0,
+      playbackPhase: MetronomePlaybackPhase.stopped,
+    );
+    _finishSession(MetronomeSessionCompletion.stopped);
 
     // Release audio focus when metronome stops
     unawaited(AudioFocusManager().releaseFocus());
@@ -74,10 +99,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   /// Update BPM while playing
-  void setBpm(int bpm) {
+  void setBpm(int bpm, {BpmSource source = BpmSource.manual}) {
     final clampedBpm = _clampBpm(bpm);
-    state = state.copyWith(bpm: clampedBpm);
+    if (source != BpmSource.tempoRamp) stopTempoRamp();
+    state = state.copyWith(bpm: clampedBpm, bpmSource: source);
     _syncPlaybackConfig();
+    _persistManualSettings();
   }
 
   /// Set number of BEATS (top row, first number of time signature)
@@ -138,14 +165,16 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       return; // At limit, don't update
     }
 
-    state = state.copyWith(bpm: newBpm);
+    stopTempoRamp();
+    state = state.copyWith(bpm: newBpm, bpmSource: BpmSource.manual);
     _syncPlaybackConfig();
   }
 
   /// Fine adjustment for tempo (+1, +5, +10 buttons)
   void adjustTempoFine(int delta) {
     final newBpm = _clampBpm(state.bpm + delta);
-    state = state.copyWith(bpm: newBpm);
+    stopTempoRamp();
+    state = state.copyWith(bpm: newBpm, bpmSource: BpmSource.manual);
     _syncPlaybackConfig();
   }
 
@@ -157,6 +186,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       loadedSetlistSongs: const [],
       sourceBandId: sourceBandId,
       currentSetlistIndex: 0,
+      bpmSource: BpmSource.song,
+      activePresetId: null,
+      activePresetName: null,
     );
 
     _applySongSettings(song);
@@ -248,6 +280,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       loadedSetlistSongs: List.unmodifiable(resolvedQueue),
       sourceBandId: sourceBandId,
       currentSetlistIndex: 0,
+      bpmSource: BpmSource.setlist,
+      activePresetId: null,
+      activePresetName: null,
     );
     _applySongSettings(resolvedQueue.first, resetPhase: true);
     return true;
@@ -267,8 +302,13 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   void _activateSetlistSong(int index) {
     final song = state.loadedSetlistSongs[index];
-    state = state.copyWith(currentSetlistIndex: index);
+    _finishSession(MetronomeSessionCompletion.navigated);
+    state = state.copyWith(
+      currentSetlistIndex: index,
+      bpmSource: BpmSource.setlist,
+    );
     _applySongSettings(song, resetPhase: true);
+    if (state.isPlaying) _startSession();
   }
 
   /// Clear loaded song/setlist
@@ -296,9 +336,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Set tempo directly
   void setTempoDirectly(int bpm) {
-    final clampedBpm = _clampBpm(bpm);
-    state = state.copyWith(bpm: clampedBpm);
-    _syncPlaybackConfig();
+    setBpm(bpm);
   }
 
   /// Update beats per measure (backward compatibility)
@@ -404,6 +442,69 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     final clampedBars = bars.clamp(0, 4).toInt();
     state = state.copyWith(countInBars: clampedBars);
     _syncPlaybackConfig();
+    _persistManualSettings();
+  }
+
+  void setVisualFlashEnabled(bool enabled) {
+    state = state.copyWith(visualFlashEnabled: enabled);
+    _persistManualSettings();
+  }
+
+  void applyPreset(MetronomePreset preset) {
+    stopTempoRamp();
+    state = state.copyWith(
+      bpm: _clampBpm(preset.bpm),
+      bpmSource: BpmSource.preset,
+      timeSignature: preset.timeSignature,
+      accentBeats: preset.timeSignature.numerator,
+      regularBeats: preset.subdivisions,
+      beatModes: preset.beatModes,
+      waveType: preset.waveType,
+      accentEnabled: preset.accentEnabled,
+      volume: preset.volume.clamp(0.0, 1.0),
+      countInBars: preset.countInBars.clamp(0, 8),
+      visualFlashEnabled: preset.visualFlashEnabled,
+      hapticsEnabled: preset.hapticsEnabled,
+      activePresetId: preset.id,
+      activePresetName: preset.name,
+    );
+    _syncPlaybackConfig();
+    unawaited(_preferences.saveLastPresetId(preset.id));
+  }
+
+  void startTempoRamp(TempoRamp ramp) {
+    final bpm = _tempoRampController.start(ramp);
+    state = state.copyWith(
+      bpm: bpm,
+      bpmSource: BpmSource.tempoRamp,
+      activeTempoRamp: ramp,
+    );
+    _rampTimer?.cancel();
+    if (ramp.cadence == TempoRampCadence.seconds) {
+      _rampTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        final next = _tempoRampController.onSecond(state.bpm);
+        if (next != null) _applyRampBpm(next);
+      });
+    }
+    _syncPlaybackConfig();
+  }
+
+  void stopTempoRamp() {
+    _rampTimer?.cancel();
+    _rampTimer = null;
+    _tempoRampController.stop();
+    if (state.activeTempoRamp != null) {
+      state = state.copyWith(activeTempoRamp: null);
+    }
+  }
+
+  void _applyRampBpm(int bpm) {
+    state = state.copyWith(
+      bpm: _clampBpm(bpm),
+      bpmSource: BpmSource.tempoRamp,
+      activeTempoRamp: _tempoRampController.activeRamp,
+    );
+    _syncPlaybackConfig();
   }
 
   /// Update accent pattern from time signature
@@ -494,22 +595,113 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   void _handlePlaybackTick(MetronomePlaybackTick tick) {
     if (!state.isPlaying) return;
-    state = state.copyWith(currentBeat: tick.index);
+    var completedBars = state.completedBars;
+    if (tick.index == 0 && state.currentBeat > 0) {
+      completedBars++;
+      final next = _tempoRampController.onBar(state.bpm);
+      if (next != null) _applyRampBpm(next);
+    }
+    state = state.copyWith(
+      currentBeat: tick.index,
+      completedBars: completedBars,
+      playbackPhase: tick.isCountIn
+          ? MetronomePlaybackPhase.countIn
+          : MetronomePlaybackPhase.playing,
+    );
   }
 
   void _handlePlaybackStopped() {
     if (!state.isPlaying) return;
     state = state.copyWith(isPlaying: false, currentBeat: 0);
+    _finishSession(MetronomeSessionCompletion.playbackError);
     unawaited(_wakelock.disable());
   }
 
   void _cleanup() {
     _debounceTimer?.cancel();
+    _rampTimer?.cancel();
     _debounceTimer = null;
     unawaited(_playbackClient.stop());
     unawaited(AudioFocusManager().releaseFocus());
     if (!_wakelock.isDisposed && _wakelock.isEnabled) {
       unawaited(_wakelock.disable());
+    }
+    _activeSession = null;
+    _sessionStopwatch = null;
+  }
+
+  void _startSession() {
+    _sessionStopwatch = Stopwatch()..start();
+    _activeSession = MetronomeSession(
+      id: const Uuid().v4(),
+      startedAt: DateTime.now(),
+      presetId: state.activePresetId,
+      songId: state.activeSong?.id,
+      setlistId: state.loadedSetlist?.id,
+      startBpm: state.bpm,
+      usedCountIn: state.countInBars > 0,
+      usedTempoRamp: state.activeTempoRamp != null,
+      usedTapTempo: state.bpmSource == BpmSource.tapTempo,
+    );
+  }
+
+  void _finishSession(MetronomeSessionCompletion completion) {
+    final session = _activeSession;
+    final stopwatch = _sessionStopwatch;
+    if (session == null || stopwatch == null) return;
+    stopwatch.stop();
+    _activeSession = null;
+    _sessionStopwatch = null;
+    final completedSession = MetronomeSession(
+      id: session.id,
+      startedAt: session.startedAt,
+      endedAt: DateTime.now(),
+      presetId: session.presetId,
+      songId: session.songId,
+      setlistId: session.setlistId,
+      startBpm: session.startBpm,
+      endBpm: state.bpm,
+      elapsedSeconds: stopwatch.elapsed.inSeconds,
+      barCount: state.completedBars,
+      usedTapTempo: session.usedTapTempo,
+      usedTempoRamp: session.usedTempoRamp || state.activeTempoRamp != null,
+      usedCountIn: session.usedCountIn,
+      completion: completion,
+    );
+    unawaited(_saveSessionSafely(completedSession));
+  }
+
+  Future<void> _saveSessionSafely(MetronomeSession session) async {
+    if (!MetronomeSessionRepository.storageReady) return;
+    try {
+      await _sessionRepository.save(session);
+    } catch (error) {
+      debugPrint('Unable to persist metronome session: $error');
+    }
+  }
+
+  void _persistManualSettings() {
+    if (state.bpmSource != BpmSource.manual) return;
+    unawaited(
+      _saveManualSettingsSafely(<String, dynamic>{
+        'bpm': state.bpm,
+        'accentBeats': state.accentBeats,
+        'regularBeats': state.regularBeats,
+        'waveType': state.waveType,
+        'volume': state.volume,
+        'countInBars': state.countInBars,
+        'hapticsEnabled': state.hapticsEnabled,
+        'visualFlashEnabled': state.visualFlashEnabled,
+      }),
+    );
+  }
+
+  Future<void> _saveManualSettingsSafely(Map<String, dynamic> settings) async {
+    if (!MetronomePreferences.storageReady) return;
+    try {
+      await _preferences.saveManualSettings(settings);
+    } catch (error) {
+      debugPrint('Unable to persist metronome settings: $error');
     }
   }
 }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/metronome_tempo_range.dart';
+import '../domain/tap_tempo_calculator.dart';
+import '../models/metronome_runtime_state.dart';
 import '../providers/data/metronome_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 
@@ -22,7 +23,8 @@ class TapBPMWidget extends ConsumerStatefulWidget {
 
 class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
     with SingleTickerProviderStateMixin {
-  final List<DateTime> _taps = [];
+  final TapTempoCalculator _calculator = TapTempoCalculator();
+  int _tapCount = 0;
   int? _calculatedBPM;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -49,49 +51,31 @@ class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
   }
 
   void _handleTap() {
-    final now = DateTime.now();
-
     // Trigger pulse animation
     _pulseController.forward(from: 0);
     HapticFeedback.lightImpact();
 
-    // Add tap
+    final bpm = _calculator.tap();
     setState(() {
-      _taps.add(now);
-
-      // Keep only last 8 taps
-      if (_taps.length > 8) {
-        _taps.removeAt(0);
-      }
-
-      // Calculate BPM if we have at least 2 taps
-      if (_taps.length >= 2) {
-        final intervals = <int>[];
-        for (int i = 1; i < _taps.length; i++) {
-          intervals.add(_taps[i].difference(_taps[i - 1]).inMilliseconds);
-        }
-
-        // Average interval
-        final avgInterval =
-            intervals.reduce((a, b) => a + b) / intervals.length;
-
-        // Convert to BPM
-        final bpm = (60000 / avgInterval).round();
-
-        // Validate BPM range
-        if (MetronomeTempoRange.contains(bpm)) {
-          _calculatedBPM = bpm;
-        }
-      }
+      _tapCount = (_tapCount + 1).clamp(1, TapTempoCalculator.maxTaps);
+      _calculatedBPM = bpm;
     });
+    if (bpm != null) {
+      ref
+          .read(metronomeProvider.notifier)
+          .setBpm(bpm, source: BpmSource.tapTempo);
+    }
   }
 
   void _applyBPM() {
     if (_calculatedBPM != null) {
       HapticFeedback.mediumImpact();
-      ref.read(metronomeProvider.notifier).setBpm(_calculatedBPM!);
+      ref
+          .read(metronomeProvider.notifier)
+          .setBpm(_calculatedBPM!, source: BpmSource.tapTempo);
       setState(() {
-        _taps.clear();
+        _calculator.reset();
+        _tapCount = 0;
         _calculatedBPM = null;
       });
     }
@@ -100,7 +84,8 @@ class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
   void _reset() {
     HapticFeedback.lightImpact();
     setState(() {
-      _taps.clear();
+      _calculator.reset();
+      _tapCount = 0;
       _calculatedBPM = null;
     });
   }
@@ -177,7 +162,7 @@ class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
             ),
             const SizedBox(height: MonoPulseSpacing.xs),
             Text(
-              '${_taps.length} taps',
+              '$_tapCount taps',
               style: MonoPulseTypography.bodySmall.copyWith(
                 color: MonoPulseColors.textTertiary,
               ),

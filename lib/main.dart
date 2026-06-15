@@ -17,6 +17,8 @@ import 'providers/metronome_runtime_providers.dart';
 import 'services/analytics_service.dart';
 import 'analytics/metronome_analytics.dart';
 import 'config/config_validator.dart';
+import 'repositories/metronome_session_repository.dart';
+import 'services/metronome_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +66,10 @@ void main() async {
 
   // Initialize Hive for offline caching
   await Hive.initFlutter();
+  await Hive.openBox<dynamic>(MetronomeSessionRepository.boxName);
+  await Hive.openBox<dynamic>('metronome_presets_v1');
+  MetronomeSessionRepository.storageReady = true;
+  MetronomePreferences.storageReady = true;
 
   // Validate configuration BEFORE Firebase initialization
   // This ensures we have valid credentials before proceeding

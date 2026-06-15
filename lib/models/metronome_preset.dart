@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import '../models/time_signature.dart';
+import '../models/beat_mode.dart';
 
 part 'metronome_preset.g.dart';
 
@@ -16,6 +17,20 @@ class MetronomePreset {
   final String waveType;
   @JsonKey(defaultValue: true)
   final bool accentEnabled;
+  @JsonKey(defaultValue: 1)
+  final int subdivisions;
+  @JsonKey(defaultValue: [])
+  final List<List<BeatMode>> beatModes;
+  @JsonKey(defaultValue: 0.5)
+  final double volume;
+  @JsonKey(defaultValue: 0)
+  final int countInBars;
+  @JsonKey(defaultValue: true)
+  final bool visualFlashEnabled;
+  @JsonKey(defaultValue: true)
+  final bool hapticsEnabled;
+  @JsonKey(defaultValue: 'digital')
+  final String soundProfileId;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
 
@@ -26,6 +41,13 @@ class MetronomePreset {
     required this.timeSignature,
     required this.waveType,
     required this.accentEnabled,
+    this.subdivisions = 1,
+    this.beatModes = const [],
+    this.volume = 0.5,
+    this.countInBars = 0,
+    this.visualFlashEnabled = true,
+    this.hapticsEnabled = true,
+    this.soundProfileId = 'digital',
     required this.createdAt,
   });
 
@@ -44,6 +66,13 @@ class MetronomePreset {
     TimeSignature? timeSignature,
     String? waveType,
     bool? accentEnabled,
+    int? subdivisions,
+    List<List<BeatMode>>? beatModes,
+    double? volume,
+    int? countInBars,
+    bool? visualFlashEnabled,
+    bool? hapticsEnabled,
+    String? soundProfileId,
     DateTime? createdAt,
   }) {
     return MetronomePreset(
@@ -53,6 +82,13 @@ class MetronomePreset {
       timeSignature: timeSignature ?? this.timeSignature,
       waveType: waveType ?? this.waveType,
       accentEnabled: accentEnabled ?? this.accentEnabled,
+      subdivisions: subdivisions ?? this.subdivisions,
+      beatModes: beatModes ?? this.beatModes,
+      volume: volume ?? this.volume,
+      countInBars: countInBars ?? this.countInBars,
+      visualFlashEnabled: visualFlashEnabled ?? this.visualFlashEnabled,
+      hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
+      soundProfileId: soundProfileId ?? this.soundProfileId,
       createdAt: createdAt ?? this.createdAt,
     );
   }

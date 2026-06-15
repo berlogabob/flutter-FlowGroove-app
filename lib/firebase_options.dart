@@ -7,6 +7,27 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'config/env_config.dart';
 
 class DefaultFirebaseOptions {
+  /// Public Firebase API key for the Android/iOS apps.
+  ///
+  /// This is NOT a secret: the same value already ships inside
+  /// `android/app/google-services.json` and `ios/Runner/GoogleService-Info.plist`,
+  /// and would be present in any released binary. Firebase API keys identify the
+  /// project; access is enforced by Firestore Security Rules + App Check, not by
+  /// hiding the key. Used as a fallback so the app boots in every build mode even
+  /// when no compile-time `--dart-define=FIREBASE_API_KEY` is supplied.
+  static const String _mobileFallbackApiKey =
+      'AIzaSyAxQ53DQzyEkKXjo3Ry2B9pcTMvcyk4d5o';
+
+  /// Resolves the effective Firebase API key for mobile: prefers an explicit
+  /// compile-time/runtime value, otherwise falls back to the bundled public key.
+  static String get _mobileApiKey {
+    final fromEnv = env.firebaseApiKey;
+    if (fromEnv.isNotEmpty && !_isPlaceholder(fromEnv)) {
+      return fromEnv;
+    }
+    return _mobileFallbackApiKey;
+  }
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -41,16 +62,8 @@ class DefaultFirebaseOptions {
   }
 
   static FirebaseOptions get android {
-    final apiKey = env.firebaseApiKey;
-    if (apiKey.isEmpty || _isPlaceholder(apiKey)) {
-      throw StateError(
-        'Firebase API key not configured. '
-        'Check .env file. '
-        'The FIREBASE_API_KEY must be set to a valid value.',
-      );
-    }
     return FirebaseOptions(
-      apiKey: apiKey,
+      apiKey: _mobileApiKey,
       appId: '1:703941154390:android:43dfeaf2f6a0495e004df7',
       messagingSenderId: '703941154390',
       projectId: 'repsync-app-8685c',
@@ -60,16 +73,8 @@ class DefaultFirebaseOptions {
   }
 
   static FirebaseOptions get ios {
-    final apiKey = env.firebaseApiKey;
-    if (apiKey.isEmpty || _isPlaceholder(apiKey)) {
-      throw StateError(
-        'Firebase API key not configured. '
-        'Check .env file. '
-        'The FIREBASE_API_KEY must be set to a valid value.',
-      );
-    }
     return FirebaseOptions(
-      apiKey: apiKey,
+      apiKey: _mobileApiKey,
       appId: '1:703941154390:ios:43dfeaf2f6a0495e004df7',
       messagingSenderId: '703941154390',
       projectId: 'repsync-app-8685c',

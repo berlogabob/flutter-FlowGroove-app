@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
@@ -10,6 +11,8 @@ import '../widgets/metronome/central_tempo_circle.dart';
 import '../widgets/metronome/fine_adjustment_buttons.dart';
 import '../widgets/metronome/song_library_block.dart';
 import '../../models/metronome_state.dart';
+import '../../models/metronome_preset.dart';
+import '../../models/tempo_ramp.dart';
 import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../router/app_router.dart';
@@ -17,6 +20,7 @@ import 'songs/models/song_form_data.dart';
 import '../../widgets/tap_bpm_widget.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
+import '../../providers/metronome_preset_provider.dart';
 
 /// Metronome Screen - ToolScreenScaffold Migration (Sprint 5)
 ///
@@ -41,7 +45,46 @@ class MetronomeScreen extends ConsumerStatefulWidget {
   ConsumerState<MetronomeScreen> createState() => _MetronomeScreenState();
 }
 
-class _MetronomeScreenState extends ConsumerState<MetronomeScreen> {
+class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
+    with WidgetsBindingObserver {
+  late final MetronomeNotifier _metronome;
+
+  @override
+  void initState() {
+    super.initState();
+    _metronome = ref.read(metronomeProvider.notifier);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void deactivate() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _stopSafely());
+    super.deactivate();
+  }
+
+  void _stopSafely() {
+    try {
+      _metronome.stop();
+    } on StateError {
+      // The provider may already be disposed with its enclosing ProviderScope.
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      _stopSafely();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(metronomeProvider);
@@ -343,6 +386,8 @@ class _CompactPerformanceLayout extends StatelessWidget {
     const trailingControls = [
       FineAdjustmentButtons(),
       SizedBox(height: MonoPulseSpacing.md),
+      _PracticeControls(),
+      SizedBox(height: MonoPulseSpacing.md),
       _CountInSelector(),
       SizedBox(height: MonoPulseSpacing.sm),
       _MetronomeTransport(),
@@ -371,6 +416,8 @@ class _CompactPerformanceLayout extends StatelessWidget {
 
     return const Column(
       children: [
+        _MetronomeContextStatus(),
+        SizedBox(height: MonoPulseSpacing.sm),
         TimeSignatureBlock(),
         SizedBox(height: MonoPulseSpacing.md),
         Expanded(child: CentralTempoCircle()),
@@ -396,6 +443,8 @@ class _WidePerformanceLayout extends StatelessWidget {
           flex: 3,
           child: Column(
             children: [
+              _MetronomeContextStatus(),
+              SizedBox(height: MonoPulseSpacing.sm),
               TimeSignatureBlock(),
               SizedBox(height: MonoPulseSpacing.lg),
               Expanded(child: CentralTempoCircle()),
@@ -410,6 +459,8 @@ class _WidePerformanceLayout extends StatelessWidget {
             children: [
               FineAdjustmentButtons(),
               SizedBox(height: MonoPulseSpacing.xl),
+              _PracticeControls(),
+              SizedBox(height: MonoPulseSpacing.lg),
               _CountInSelector(),
               SizedBox(height: MonoPulseSpacing.lg),
               _MetronomeTransport(),
@@ -422,6 +473,256 @@ class _WidePerformanceLayout extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _MetronomeContextStatus extends ConsumerWidget {
+  const _MetronomeContextStatus();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(metronomeProvider);
+    final source = state.bpmSource.name
+        .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}')
+        .toUpperCase();
+    final title =
+        state.activeSong?.title ?? state.activePresetName ?? 'Practice Mode';
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Flexible(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: MonoPulseTypography.labelLarge.copyWith(
+              color: MonoPulseColors.textSecondary,
+            ),
+          ),
+        ),
+        const SizedBox(width: MonoPulseSpacing.sm),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: MonoPulseColors.accentOrange.withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
+          ),
+          child: Text(
+            source,
+            style: MonoPulseTypography.labelSmall.copyWith(
+              color: MonoPulseColors.accentOrange,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PracticeControls extends ConsumerWidget {
+  const _PracticeControls();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rampActive = ref.watch(
+      metronomeProvider.select((state) => state.activeTempoRamp != null),
+    );
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: MonoPulseSpacing.sm,
+      runSpacing: MonoPulseSpacing.xs,
+      children: [
+        OutlinedButton.icon(
+          onPressed: () => _showPresets(context, ref),
+          icon: const Icon(Icons.bookmark_outline),
+          label: const Text('Presets'),
+        ),
+        OutlinedButton.icon(
+          onPressed: rampActive
+              ? ref.read(metronomeProvider.notifier).stopTempoRamp
+              : () => _showRamp(context, ref),
+          icon: Icon(rampActive ? Icons.stop : Icons.trending_up),
+          label: Text(rampActive ? 'Stop Ramp' : 'Tempo Ramp'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showPresets(BuildContext context, WidgetRef ref) async {
+    final presets = await ref.read(metronomePresetProvider.future);
+    if (!context.mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const Expanded(child: Text('Metronome Presets')),
+                FilledButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(sheetContext);
+                    await _savePreset(context, ref);
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Save Current'),
+                ),
+              ],
+            ),
+            const SizedBox(height: MonoPulseSpacing.md),
+            if (presets.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(MonoPulseSpacing.xl),
+                child: Text('No saved presets yet.'),
+              )
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: presets.length,
+                  itemBuilder: (context, index) {
+                    final preset = presets[index];
+                    return ListTile(
+                      title: Text(preset.name),
+                      subtitle: Text(preset.displayName),
+                      onTap: () {
+                        ref
+                            .read(metronomeProvider.notifier)
+                            .applyPreset(preset);
+                        Navigator.pop(sheetContext);
+                      },
+                      trailing: IconButton(
+                        tooltip: 'Delete preset',
+                        onPressed: () async {
+                          await ref
+                              .read(metronomePresetProvider.notifier)
+                              .delete(preset.id);
+                          if (sheetContext.mounted) Navigator.pop(sheetContext);
+                        },
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _savePreset(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Save Preset'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Preset name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, controller.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null || name.isEmpty) return;
+    final state = ref.read(metronomeProvider);
+    final preset = MetronomePreset(
+      id: const Uuid().v4(),
+      name: name,
+      bpm: state.bpm,
+      timeSignature: state.timeSignature,
+      waveType: state.waveType,
+      accentEnabled: state.accentEnabled,
+      subdivisions: state.regularBeats,
+      beatModes: state.beatModes,
+      volume: state.volume,
+      countInBars: state.countInBars,
+      visualFlashEnabled: state.visualFlashEnabled,
+      hapticsEnabled: state.hapticsEnabled,
+      createdAt: DateTime.now(),
+    );
+    await ref.read(metronomePresetProvider.notifier).save(preset);
+    ref.read(metronomeProvider.notifier).applyPreset(preset);
+  }
+
+  Future<void> _showRamp(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(metronomeProvider).bpm;
+    final targetController = TextEditingController(text: '${current + 20}');
+    final stepController = TextEditingController(text: '2');
+    final everyController = TextEditingController(text: '4');
+    final ramp = await showDialog<TempoRamp>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Tempo Ramp'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: targetController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Target BPM'),
+            ),
+            TextField(
+              controller: stepController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Step BPM'),
+            ),
+            TextField(
+              controller: everyController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Every N bars'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final target = int.tryParse(targetController.text);
+              final step = int.tryParse(stepController.text);
+              final every = int.tryParse(everyController.text);
+              if (target == null || step == null || every == null) return;
+              Navigator.pop(
+                dialogContext,
+                TempoRamp(
+                  id: const Uuid().v4(),
+                  name: '$current to $target BPM',
+                  startBpm: current,
+                  targetBpm: target,
+                  stepBpm: step,
+                  cadence: TempoRampCadence.bars,
+                  every: every,
+                ),
+              );
+            },
+            child: const Text('Start'),
+          ),
+        ],
+      ),
+    );
+    targetController.dispose();
+    stepController.dispose();
+    everyController.dispose();
+    if (ramp != null) ref.read(metronomeProvider.notifier).startTempoRamp(ramp);
   }
 }
 

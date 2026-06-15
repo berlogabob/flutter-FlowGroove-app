@@ -50,6 +50,22 @@ MetronomeState _$MetronomeStateFromJson(Map<String, dynamic> json) =>
       sourceBandId: json['sourceBandId'] as String?,
       currentSetlistIndex: (json['currentSetlistIndex'] as num?)?.toInt() ?? 0,
       countInBars: (json['countInBars'] as num?)?.toInt() ?? 0,
+      bpmSource:
+          $enumDecodeNullable(_$BpmSourceEnumMap, json['bpmSource']) ??
+          BpmSource.manual,
+      playbackPhase:
+          $enumDecodeNullable(
+            _$MetronomePlaybackPhaseEnumMap,
+            json['playbackPhase'],
+          ) ??
+          MetronomePlaybackPhase.stopped,
+      activePresetId: json['activePresetId'] as String?,
+      activePresetName: json['activePresetName'] as String?,
+      visualFlashEnabled: json['visualFlashEnabled'] as bool? ?? true,
+      activeTempoRamp: json['activeTempoRamp'] == null
+          ? null
+          : TempoRamp.fromJson(json['activeTempoRamp'] as Map<String, dynamic>),
+      completedBars: (json['completedBars'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$MetronomeStateToJson(MetronomeState instance) =>
@@ -76,10 +92,34 @@ Map<String, dynamic> _$MetronomeStateToJson(MetronomeState instance) =>
       'sourceBandId': instance.sourceBandId,
       'currentSetlistIndex': instance.currentSetlistIndex,
       'countInBars': instance.countInBars,
+      'bpmSource': _$BpmSourceEnumMap[instance.bpmSource]!,
+      'playbackPhase': _$MetronomePlaybackPhaseEnumMap[instance.playbackPhase]!,
+      'activePresetId': instance.activePresetId,
+      'activePresetName': instance.activePresetName,
+      'visualFlashEnabled': instance.visualFlashEnabled,
+      'activeTempoRamp': instance.activeTempoRamp,
+      'completedBars': instance.completedBars,
     };
 
 const _$BeatModeEnumMap = {
   BeatMode.normal: 'normal',
   BeatMode.accent: 'accent',
   BeatMode.silent: 'silent',
+};
+
+const _$BpmSourceEnumMap = {
+  BpmSource.manual: 'manual',
+  BpmSource.song: 'song',
+  BpmSource.setlist: 'setlist',
+  BpmSource.preset: 'preset',
+  BpmSource.tapTempo: 'tapTempo',
+  BpmSource.tempoRamp: 'tempoRamp',
+};
+
+const _$MetronomePlaybackPhaseEnumMap = {
+  MetronomePlaybackPhase.stopped: 'stopped',
+  MetronomePlaybackPhase.countIn: 'countIn',
+  MetronomePlaybackPhase.playing: 'playing',
+  MetronomePlaybackPhase.pausedByLifecycle: 'pausedByLifecycle',
+  MetronomePlaybackPhase.error: 'error',
 };
