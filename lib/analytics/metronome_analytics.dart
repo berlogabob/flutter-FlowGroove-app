@@ -26,7 +26,7 @@ class MetronomeAnalytics {
       parameters: {
         'success': success ? 1 : 0, // Firebase requires num, not bool
         'duration_ms': duration.inMilliseconds,
-        if (error != null) 'error': error,
+        'error': ?error,
         'optimized': MetronomeFeatureFlags.enableOptimizedAudio ? 1 : 0,
       },
     );
@@ -68,7 +68,7 @@ class MetronomeAnalytics {
       name: 'metronome_tone_matrix',
       parameters: {
         'action': action,
-        if (presetName != null) 'preset': presetName,
+        'preset': ?presetName,
       },
     );
   }
@@ -127,7 +127,7 @@ class MetronomeAnalytics {
       parameters: {
         'error_code': errorCode,
         'error_message': errorMessage,
-        if (stackTrace != null) 'stack_trace': stackTrace,
+        'stack_trace': ?stackTrace,
       },
     );
   }

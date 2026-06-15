@@ -6,20 +6,6 @@ import '../theme/mono_pulse_theme.dart';
 /// Sections are used to build song structures like:
 /// Intro → Verse → Chorus → Verse → Chorus → Bridge → Chorus → Outro
 class Section {
-  /// Unique identifier for this section.
-  final String id;
-
-  /// The name/type of section (e.g., 'Intro', 'Verse', 'Chorus').
-  String name;
-
-  /// Optional notes for this section (e.g., chord progressions).
-  String notes;
-
-  /// Duration in phrases/bars.
-  int duration;
-
-  /// Optional custom color (ARGB value).
-  int? colorValue;
 
   Section({
     required this.id,
@@ -39,6 +25,20 @@ class Section {
       colorValue: json['colorValue'] as int?,
     );
   }
+  /// Unique identifier for this section.
+  final String id;
+
+  /// The name/type of section (e.g., 'Intro', 'Verse', 'Chorus').
+  String name;
+
+  /// Optional notes for this section (e.g., chord progressions).
+  String notes;
+
+  /// Duration in phrases/bars.
+  int duration;
+
+  /// Optional custom color (ARGB value).
+  int? colorValue;
 
   /// Equality operator based on unique ID.
   @override

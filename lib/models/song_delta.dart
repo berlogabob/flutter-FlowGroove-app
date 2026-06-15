@@ -42,7 +42,6 @@ class SongDeltaField {
 /// This is intentionally not a generic JSON Patch. It only permits fields the
 /// app knows how to merge into a [Song] read model.
 class SongDelta extends Equatable {
-  final Map<String, dynamic> values;
 
   SongDelta({Map<String, dynamic> values = const {}})
     : values = Map.unmodifiable(_sanitize(values));
@@ -50,55 +49,6 @@ class SongDelta extends Equatable {
   factory SongDelta.fromJson(Map<String, dynamic>? json) {
     return SongDelta(values: json ?? const {});
   }
-
-  Map<String, dynamic> toJson() {
-    return values.map((key, value) => MapEntry(key, _toJsonValue(value)));
-  }
-
-  bool has(String field) => values.containsKey(field);
-
-  String? get ourKey => values[SongDeltaField.ourKey] as String?;
-  int? get ourBPM => values[SongDeltaField.ourBPM] as int?;
-  String? get notes => values[SongDeltaField.notes] as String?;
-
-  List<String>? get tags {
-    final raw = values[SongDeltaField.tags];
-    if (raw == null) return null;
-    return List<String>.from(raw as List);
-  }
-
-  List<Link>? get links {
-    final raw = values[SongDeltaField.links];
-    if (raw == null) return null;
-    return List<Link>.from(raw as List);
-  }
-
-  List<Section>? get sections {
-    final raw = values[SongDeltaField.sections];
-    if (raw == null) return null;
-    return List<Section>.from(raw as List);
-  }
-
-  int? get accentBeats => values[SongDeltaField.accentBeats] as int?;
-  int? get regularBeats => values[SongDeltaField.regularBeats] as int?;
-
-  List<List<BeatMode>>? get beatModes {
-    final raw = values[SongDeltaField.beatModes];
-    if (raw == null) return null;
-    return (raw as List)
-        .map((row) => List<BeatMode>.from(row as List))
-        .toList();
-  }
-
-  String? get arrangementName =>
-      values[SongDeltaField.arrangementName] as String?;
-  String? get arrangementType =>
-      values[SongDeltaField.arrangementType] as String?;
-  String? get defaultTuningPresetId =>
-      values[SongDeltaField.defaultTuningPresetId] as String?;
-
-  bool get isEmpty => values.isEmpty;
-  bool get isNotEmpty => values.isNotEmpty;
 
   /// Builds a delta by comparing the editable song fields against canonical
   /// defaults.
@@ -158,6 +108,56 @@ class SongDelta extends Equatable {
 
     return SongDelta(values: values);
   }
+  final Map<String, dynamic> values;
+
+  Map<String, dynamic> toJson() {
+    return values.map((key, value) => MapEntry(key, _toJsonValue(value)));
+  }
+
+  bool has(String field) => values.containsKey(field);
+
+  String? get ourKey => values[SongDeltaField.ourKey] as String?;
+  int? get ourBPM => values[SongDeltaField.ourBPM] as int?;
+  String? get notes => values[SongDeltaField.notes] as String?;
+
+  List<String>? get tags {
+    final raw = values[SongDeltaField.tags];
+    if (raw == null) return null;
+    return List<String>.from(raw as List);
+  }
+
+  List<Link>? get links {
+    final raw = values[SongDeltaField.links];
+    if (raw == null) return null;
+    return List<Link>.from(raw as List);
+  }
+
+  List<Section>? get sections {
+    final raw = values[SongDeltaField.sections];
+    if (raw == null) return null;
+    return List<Section>.from(raw as List);
+  }
+
+  int? get accentBeats => values[SongDeltaField.accentBeats] as int?;
+  int? get regularBeats => values[SongDeltaField.regularBeats] as int?;
+
+  List<List<BeatMode>>? get beatModes {
+    final raw = values[SongDeltaField.beatModes];
+    if (raw == null) return null;
+    return (raw as List)
+        .map((row) => List<BeatMode>.from(row as List))
+        .toList();
+  }
+
+  String? get arrangementName =>
+      values[SongDeltaField.arrangementName] as String?;
+  String? get arrangementType =>
+      values[SongDeltaField.arrangementType] as String?;
+  String? get defaultTuningPresetId =>
+      values[SongDeltaField.defaultTuningPresetId] as String?;
+
+  bool get isEmpty => values.isEmpty;
+  bool get isNotEmpty => values.isNotEmpty;
 
   /// Applies this delta to a canonical song and returns the existing app read
   /// model. The library document id remains the user-facing song id.
@@ -224,7 +224,7 @@ Map<String, dynamic> _sanitize(Map<String, dynamic> input) {
   return result;
 }
 
-dynamic _normalizeValue(String field, dynamic value) {
+dynamic _normalizeValue(String field, value) {
   switch (field) {
     case SongDeltaField.tags:
       if (value == null) return null;
@@ -250,7 +250,7 @@ dynamic _normalizeValue(String field, dynamic value) {
   }
 }
 
-dynamic _toJsonValue(dynamic value) {
+dynamic _toJsonValue(value) {
   if (value is List<Link>) return _linksToJson(value);
   if (value is List<Section>) return _sectionsToJson(value);
   if (value is List<List<BeatMode>>) return _beatModesToJson(value);
@@ -265,7 +265,7 @@ List<Map<String, dynamic>> _sectionsToJson(List<Section> sections) {
   return sections.map((section) => section.toJson()).toList();
 }
 
-List<List<BeatMode>> _beatModesFromJson(dynamic value) {
+List<List<BeatMode>> _beatModesFromJson(value) {
   if (value == null) return [];
   if (value is List<List<BeatMode>>) return value;
   if (value is List) {

@@ -1,13 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../services/secure_storage_service.dart';
+
 import '../../models/api_error.dart';
 import '../../models/user.dart';
+import '../../services/analytics_service.dart';
 import '../../services/cache_service.dart';
 import '../../services/firestore_service.dart';
-import '../../services/analytics_service.dart';
+import '../../services/secure_storage_service.dart';
 
 /// Provider for the FirebaseAuth instance.
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
@@ -139,7 +140,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
           if (_canAccessFirestore()) {
             // Load Telegram photo if consent given.
             _loadTelegramProfile(user.uid).then((
-              Map<String, dynamic>? telegramData,
+              telegramData,
             ) {
               if (telegramData != null) {
                 if (displayName == 'User' &&
@@ -192,8 +193,8 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       final userDoc = await firestore.collection('users').doc(user.uid).get();
 
       int bandCount = 0;
-      int songCount = 0;
-      int setlistCount = 0;
+      const int songCount = 0;
+      const int setlistCount = 0;
 
       if (userDoc.exists) {
         final data = userDoc.data();
@@ -540,7 +541,6 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         );
       case 'network-request-failed':
         return ApiError.network(
-          message: 'Unable to connect. Please check your internet connection.',
           exception: e,
         );
       case 'too-many-requests':

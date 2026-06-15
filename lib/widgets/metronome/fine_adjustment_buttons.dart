@@ -72,10 +72,6 @@ class FineAdjustmentButtons extends ConsumerWidget {
 
 /// Individual adjustment button
 class _AdjustButton extends StatelessWidget {
-  final IconData icon;
-  final int delta;
-  final String tooltip;
-  final MetronomeNotifier notifier;
 
   const _AdjustButton({
     required this.icon,
@@ -83,6 +79,10 @@ class _AdjustButton extends StatelessWidget {
     required this.tooltip,
     required this.notifier,
   });
+  final IconData icon;
+  final int delta;
+  final String tooltip;
+  final MetronomeNotifier notifier;
 
   @override
   Widget build(BuildContext context) {

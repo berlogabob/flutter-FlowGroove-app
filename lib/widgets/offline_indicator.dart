@@ -10,7 +10,6 @@ import '../services/connectivity_service.dart';
 /// - chip: Small chip indicator (only shows when offline)
 /// - minimal: Icon-only indicator (only shows when offline)
 class OfflineIndicator extends ConsumerWidget {
-  final OfflineIndicatorVariant variant;
 
   const OfflineIndicator.banner({super.key})
     : variant = OfflineIndicatorVariant.banner;
@@ -20,6 +19,7 @@ class OfflineIndicator extends ConsumerWidget {
 
   const OfflineIndicator.minimal({super.key})
     : variant = OfflineIndicatorVariant.minimal;
+  final OfflineIndicatorVariant variant;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -52,8 +52,8 @@ class OfflineIndicator extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 20),
-          SizedBox(width: 8),
+          const Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 20),
+          const SizedBox(width: 8),
           Text(
             'Offline - Some features may be limited',
             style: MonoPulseTypography.bodySmall.copyWith(
@@ -77,8 +77,8 @@ class OfflineIndicator extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 16),
-          SizedBox(width: 6),
+          const Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 16),
+          const SizedBox(width: 6),
           Text(
             'Offline',
             style: MonoPulseTypography.bodySmall.copyWith(

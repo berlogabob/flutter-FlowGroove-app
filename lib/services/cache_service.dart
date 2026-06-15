@@ -1,7 +1,8 @@
 import 'package:hive/hive.dart';
-import '../models/song.dart';
+
 import '../models/band.dart';
 import '../models/setlist.dart';
+import '../models/song.dart';
 
 /// CacheService provides offline-first data persistence using Hive.
 ///
@@ -44,7 +45,7 @@ class CacheService {
 
   /// Opens a Hive box with the given name.
   Future<Box> _openBox(String name) async {
-    return await Hive.openBox(name);
+    return Hive.openBox(name);
   }
 
   /// Generic method to cache a list of items.
@@ -110,7 +111,7 @@ class CacheService {
   /// Retrieves cached songs for a specific user.
   Future<List<Song>> getCachedSongs(String uid) => _getCachedItems(
     boxName: '$_songsBoxPrefix$uid',
-    fromJson: (json) => Song.fromJson(json),
+    fromJson: Song.fromJson,
   );
 
   /// Gets the cache timestamp for songs.
@@ -135,7 +136,7 @@ class CacheService {
   /// Retrieves cached bands for a specific user.
   Future<List<Band>> getCachedBands(String uid) => _getCachedItems(
     boxName: '$_bandsBoxPrefix$uid',
-    fromJson: (json) => Band.fromJson(json),
+    fromJson: Band.fromJson,
   );
 
   /// Gets the cache timestamp for bands.
@@ -160,7 +161,7 @@ class CacheService {
   /// Retrieves cached setlists for a specific user.
   Future<List<Setlist>> getCachedSetlists(String uid) => _getCachedItems(
     boxName: '$_setlistsBoxPrefix$uid',
-    fromJson: (json) => Setlist.fromJson(json),
+    fromJson: Setlist.fromJson,
   );
 
   /// Gets the cache timestamp for setlists.
@@ -189,7 +190,7 @@ class CacheService {
   /// Retrieves cached songs for a specific band.
   Future<List<Song>> getCachedBandSongs(String bandId) => _getCachedItems(
     boxName: '$_bandSongsBoxPrefix$bandId',
-    fromJson: (json) => Song.fromJson(json),
+    fromJson: Song.fromJson,
   );
 
   /// Clears cached band songs.

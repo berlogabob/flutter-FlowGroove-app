@@ -1,9 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/router/app_router.dart';
@@ -12,6 +7,10 @@ import 'package:flowgroove/screens/bands/my_bands_screen.dart';
 import 'package:flowgroove/screens/login_screen.dart';
 import 'package:flowgroove/screens/setlists/setlists_list_screen.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 class TestAuthRouterClient implements AuthRouterClient {
   TestAuthRouterClient({this.user});

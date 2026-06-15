@@ -1,7 +1,7 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../../theme/mono_pulse_theme.dart';
 import 'package:printing/printing.dart';
+
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 
@@ -22,7 +22,7 @@ class PdfService {
           margin: const pw.EdgeInsets.only(bottom: 12),
           padding: const pw.EdgeInsets.all(12),
           decoration: pw.BoxDecoration(
-            border: pw.Border.all(color: PdfColor.fromHex("E0E0E0")),
+            border: pw.Border.all(color: PdfColor.fromHex('E0E0E0')),
             borderRadius: pw.BorderRadius.circular(8),
           ),
           child: pw.Row(
@@ -32,7 +32,7 @@ class PdfService {
                 width: 30,
                 height: 30,
                 decoration: pw.BoxDecoration(
-                  color: PdfColor.fromHex("E3F2FD"),
+                  color: PdfColor.fromHex('E3F2FD'),
                   shape: pw.BoxShape.circle,
                 ),
                 child: pw.Center(
@@ -40,7 +40,7 @@ class PdfService {
                     '${i + 1}',
                     style: pw.TextStyle(
                       font: fontBold,
-                      color: PdfColor.fromHex("0D47A1"),
+                      color: PdfColor.fromHex('0D47A1'),
                     ),
                   ),
                 ),
@@ -79,14 +79,14 @@ class PdfService {
                         vertical: 4,
                       ),
                       decoration: pw.BoxDecoration(
-                        color: PdfColor.fromHex("E8F5E9"),
+                        color: PdfColor.fromHex('E8F5E9'),
                         borderRadius: pw.BorderRadius.circular(4),
                       ),
                       child: pw.Text(
                         song.ourKey!,
                         style: pw.TextStyle(
                           font: fontBold,
-                          color: PdfColor.fromHex("1B5E20"),
+                          color: PdfColor.fromHex('1B5E20'),
                         ),
                       ),
                     ),
@@ -149,7 +149,7 @@ class PdfService {
               ),
             ],
             pw.SizedBox(height: 20),
-            pw.Divider(color: PdfColor.fromHex("E0E0E0")),
+            pw.Divider(color: PdfColor.fromHex('E0E0E0')),
             pw.SizedBox(height: 20),
           ],
         ),

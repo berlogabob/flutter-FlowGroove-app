@@ -8,16 +8,16 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent chip layout for displaying links
 /// with type label and tap-to-open functionality.
 class LinkChip extends StatelessWidget {
+
   const LinkChip({
-    super.key,
     required this.link,
     this.onTap,
     this.onDelete,
     this.showDelete = false,
     this.selectable = false,
     this.isSelected = false,
+    super.key,
   });
-
   /// The link to display.
   final Link link;
 
@@ -39,7 +39,7 @@ class LinkChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chip = Chip(
-      label: Text(_getLinkLabel(), style: MonoPulseTypography.labelMedium),
+      label: Text(_getLinkLabel(), style: const TextStyle(fontSize: 12)),
       avatar: _getLinkIcon(),
       deleteIcon: showDelete ? const Icon(Icons.close, size: 16) : null,
       onDeleted: onDelete,
@@ -49,11 +49,8 @@ class LinkChip extends StatelessWidget {
     if (onTap != null) {
       return InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-        child: SizedBox(
-          height: 48,
-          child: chip,
-        ),
+        borderRadius: BorderRadius.circular(16),
+        child: chip,
       );
     }
 
@@ -75,24 +72,19 @@ class LinkChip extends StatelessWidget {
       case Link.typeSpotify:
         icon = Icons.play_circle;
         color = MonoPulseColors.success;
-        break;
       case Link.typeYoutubeOriginal:
       case Link.typeYoutubeCover:
         icon = Icons.video_library;
         color = MonoPulseColors.error;
-        break;
       case Link.typeTabs:
         icon = Icons.description;
         color = MonoPulseColors.accentOrange;
-        break;
       case Link.typeDrums:
         icon = Icons.music_note;
         color = MonoPulseColors.textSecondary;
-        break;
       case Link.typeChords:
         icon = Icons.music_note;
         color = MonoPulseColors.accentOrange;
-        break;
       default:
         icon = Icons.link;
         color = MonoPulseColors.textTertiary;
@@ -119,6 +111,14 @@ class LinkChip extends StatelessWidget {
 
 /// A row of link chips for displaying multiple links.
 class LinkChipRow extends StatelessWidget {
+
+  const LinkChipRow({
+    required this.links,
+    this.onTap,
+    this.onDelete,
+    this.showDelete = false,
+    super.key,
+  });
   /// The list of links to display.
   final List<Link> links;
 
@@ -130,14 +130,6 @@ class LinkChipRow extends StatelessWidget {
 
   /// Whether to show delete icons.
   final bool showDelete;
-
-  const LinkChipRow({
-    super.key,
-    required this.links,
-    this.onTap,
-    this.onDelete,
-    this.showDelete = false,
-  });
 
   @override
   Widget build(BuildContext context) {

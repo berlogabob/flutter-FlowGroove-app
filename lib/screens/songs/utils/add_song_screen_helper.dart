@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../models/api_error.dart';
 import '../../../models/song_suggestion.dart';
 import '../../../providers/auth/error_provider.dart';
 import '../../../services/api/spotify_proxy_service.dart';
 import '../../../services/api/track_analysis_service.dart';
-import '../components/spotify_search_section.dart';
 import '../components/musicbrainz_search_section.dart';
+import '../components/spotify_search_section.dart';
 import '../models/song_form_data.dart';
 
 /// Mixin providing helper methods for the AddSongScreen.
@@ -84,7 +85,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
           if (result.key != null) {
             final key = result.key!;
             formData.originalKeyBase = key
-                .replaceAll(RegExp(r'[#bm]'), '')
+                .replaceAll(RegExp('[#bm]'), '')
                 .substring(0, 1);
             formData.originalKeyModifier = key.contains('#')
                 ? '#'
@@ -144,7 +145,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
             }
 
             final fallbackId = '${title.toLowerCase()}-${artist.toLowerCase()}'
-                .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+                .replaceAll(RegExp('[^a-z0-9]+'), '-')
                 .replaceAll(RegExp(r'^-+|-+$'), '');
             final suggestion = SongSuggestion.fromMusicBrainz(
               id: recording.id ?? fallbackId,
@@ -225,7 +226,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
     if (keyParts.isNotEmpty) {
       final key = keyParts[0];
       formData.originalKeyBase = key
-          .replaceAll(RegExp(r'[#b]'), '')
+          .replaceAll(RegExp('[#b]'), '')
           .substring(0, 1);
       formData.originalKeyModifier = key.contains('#')
           ? '#'
@@ -278,7 +279,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
   }
 
   /// Open a URL in external browser.
-  void openUrl(String url) async {
+  Future<void> openUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

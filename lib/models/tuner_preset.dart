@@ -21,19 +21,19 @@ class TuningNote {
     this.stringNumber,
   });
 
-  final String note;
-  final int octave;
-  final double targetFrequencyHz;
-  final int? stringNumber;
-
-  String get displayName => '$note$octave';
-
   factory TuningNote.fromJson(Map<String, dynamic> json) => TuningNote(
     note: json['note'] as String,
     octave: (json['octave'] as num).toInt(),
     targetFrequencyHz: (json['targetFrequencyHz'] as num).toDouble(),
     stringNumber: (json['stringNumber'] as num?)?.toInt(),
   );
+
+  final String note;
+  final int octave;
+  final double targetFrequencyHz;
+  final int? stringNumber;
+
+  String get displayName => '$note$octave';
 
   Map<String, dynamic> toJson() => <String, dynamic>{
     'note': note,
@@ -60,6 +60,38 @@ class TunerPreset {
     this.songId,
     this.bandId,
   });
+
+  factory TunerPreset.fromJson(Map<String, dynamic> json) => TunerPreset(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    instrumentType: InstrumentType.values.firstWhere(
+      (value) => value.name == json['instrumentType'],
+      orElse: () => InstrumentType.custom,
+    ),
+    tuningNotes: (json['tuningNotes'] as List<dynamic>? ?? const [])
+        .map(
+          (value) =>
+              TuningNote.fromJson(Map<String, dynamic>.from(value as Map)),
+        )
+        .toList(),
+    referenceHz: (json['referenceHz'] as num?)?.toDouble() ?? 440,
+    centsTolerance: (json['centsTolerance'] as num?)?.toInt() ?? 5,
+    temperament: json['temperament'] as String?,
+    isDefault: json['isDefault'] as bool? ?? false,
+    scope: TunerPresetScope.values.firstWhere(
+      (value) => value.name == json['scope'],
+      orElse: () => TunerPresetScope.local,
+    ),
+    ownerId: json['ownerId'] as String?,
+    songId: json['songId'] as String?,
+    bandId: json['bandId'] as String?,
+    createdAt:
+        DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+        DateTime.now(),
+    updatedAt:
+        DateTime.tryParse(json['updatedAt']?.toString() ?? '') ??
+        DateTime.now(),
+  );
 
   final String id;
   final String name;
@@ -109,38 +141,6 @@ class TunerPreset {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
-
-  factory TunerPreset.fromJson(Map<String, dynamic> json) => TunerPreset(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    instrumentType: InstrumentType.values.firstWhere(
-      (value) => value.name == json['instrumentType'],
-      orElse: () => InstrumentType.custom,
-    ),
-    tuningNotes: (json['tuningNotes'] as List<dynamic>? ?? const [])
-        .map(
-          (value) =>
-              TuningNote.fromJson(Map<String, dynamic>.from(value as Map)),
-        )
-        .toList(),
-    referenceHz: (json['referenceHz'] as num?)?.toDouble() ?? 440,
-    centsTolerance: (json['centsTolerance'] as num?)?.toInt() ?? 5,
-    temperament: json['temperament'] as String?,
-    isDefault: json['isDefault'] as bool? ?? false,
-    scope: TunerPresetScope.values.firstWhere(
-      (value) => value.name == json['scope'],
-      orElse: () => TunerPresetScope.local,
-    ),
-    ownerId: json['ownerId'] as String?,
-    songId: json['songId'] as String?,
-    bandId: json['bandId'] as String?,
-    createdAt:
-        DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
-        DateTime.now(),
-    updatedAt:
-        DateTime.tryParse(json['updatedAt']?.toString() ?? '') ??
-        DateTime.now(),
-  );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
     'id': id,

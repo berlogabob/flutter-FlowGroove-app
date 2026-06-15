@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../models/api_error.dart';
-import '../../providers/data/data_providers.dart';
+import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
-import '../../models/band.dart';
+import '../../providers/data/data_providers.dart';
 import '../../services/analytics_service.dart';
-import '../../widgets/error_banner.dart';
-import '../../widgets/custom_app_bar.dart';
-import '../../widgets/primary_action_bar.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_app_bar.dart';
+import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
+import '../../widgets/primary_action_bar.dart';
 
 /// Screen for creating or editing a band with comprehensive error handling.
 class CreateBandScreen extends ConsumerStatefulWidget {
-  final Band? band;
 
   const CreateBandScreen({super.key, this.band});
+  final Band? band;
 
   @override
   ConsumerState<CreateBandScreen> createState() => _CreateBandScreenState();
@@ -315,11 +316,13 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                 const SizedBox(height: 32),
                 // Error banner
                 if (_currentError != null) ...[
-                  ErrorBanner.banner(
+                  ErrorBanner(
                     message:
                         _currentError?.message ??
                         'An unexpected error occurred',
                     onRetry: _saveBand,
+                    showRetry: _currentError!.isNetwork,
+                    style: ErrorBannerStyle.card,
                   ),
                   const SizedBox(height: 24),
                 ],

@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/widgets/song_card.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 Future<void> pumpAppWidget(WidgetTester tester, Widget widget) async {
   await tester.pumpWidget(MaterialApp(home: Material(child: widget)));
@@ -36,8 +36,8 @@ Song createMockSong({
     originalKey: originalKey,
     ourKey: ourKey,
     spotifyUrl: spotifyUrl,
-    createdAt: DateTime(2024, 1, 1),
-    updatedAt: DateTime(2024, 1, 1),
+    createdAt: DateTime(2024),
+    updatedAt: DateTime(2024),
   );
 }
 
@@ -48,8 +48,6 @@ void main() {
     setUp(() {
       mockSong = createMockSong(
         id: 'test-song',
-        title: 'Test Song',
-        artist: 'Test Artist',
         ourBPM: 120,
         ourKey: 'C',
         spotifyUrl: 'https://open.spotify.com/track/test',
@@ -57,7 +55,7 @@ void main() {
     });
 
     testWidgets('renders song card with title and artist', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, SongCard(song: mockSong));
 
@@ -65,28 +63,28 @@ void main() {
       expect(findText('Test Artist'), findsOneWidget);
     });
 
-    testWidgets('renders music note icon', (WidgetTester tester) async {
+    testWidgets('renders music note icon', (tester) async {
       await pumpAppWidget(tester, SongCard(song: mockSong));
 
       expect(findIcon(Icons.music_note), findsOneWidget);
     });
 
     testWidgets('renders BPM badge when ourBPM is set', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, SongCard(song: mockSong));
 
       expect(find.text('120'), findsWidgets);
     });
 
-    testWidgets('renders key when ourKey is set', (WidgetTester tester) async {
+    testWidgets('renders key when ourKey is set', (tester) async {
       await pumpAppWidget(tester, SongCard(song: mockSong));
 
       expect(find.text('C'), findsWidgets);
     });
 
     testWidgets('renders Spotify play button when spotifyUrl is set', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, SongCard(song: mockSong));
 
@@ -94,7 +92,7 @@ void main() {
     });
 
     testWidgets('does not render Spotify button when spotifyUrl is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       final songWithoutSpotify = mockSong.copyWith(spotifyUrl: null);
 
@@ -105,7 +103,7 @@ void main() {
 
     testWidgets(
       'does not render Spotify button when showSpotifyButton is false',
-      (WidgetTester tester) async {
+      (tester) async {
         await pumpAppWidget(
           tester,
           SongCard(song: mockSong, showSpotifyButton: false),
@@ -115,14 +113,14 @@ void main() {
       },
     );
 
-    testWidgets('renders edit button', (WidgetTester tester) async {
+    testWidgets('renders edit button', (tester) async {
       await pumpAppWidget(tester, SongCard(song: mockSong));
 
       expect(findIcon(Icons.edit), findsOneWidget);
     });
 
     testWidgets('calls onEdit when edit button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasEdited = false;
 
@@ -138,7 +136,7 @@ void main() {
     });
 
     testWidgets('calls onPlaySpotify when Spotify button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasPlayed = false;
 
@@ -154,7 +152,7 @@ void main() {
     });
 
     testWidgets('renders metronome action when song has tempo data', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -169,7 +167,7 @@ void main() {
     });
 
     testWidgets('does not render metronome action without metronome data', (
-      WidgetTester tester,
+      tester,
     ) async {
       final songWithoutTempo = mockSong.copyWith(ourBPM: null);
 
@@ -185,7 +183,7 @@ void main() {
     });
 
     testWidgets('calls onOpenMetronome when metronome action is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       var openedMetronome = false;
 
@@ -200,7 +198,7 @@ void main() {
       expect(openedMetronome, isTrue);
     });
 
-    testWidgets('calls onTap when card is tapped', (WidgetTester tester) async {
+    testWidgets('calls onTap when card is tapped', (tester) async {
       bool wasTapped = false;
 
       await pumpAppWidget(
@@ -215,7 +213,7 @@ void main() {
     });
 
     testWidgets('does not render BPM badge when ourBPM is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       final songWithoutBpm = mockSong.copyWith(ourBPM: null);
 
@@ -226,7 +224,7 @@ void main() {
     });
 
     testWidgets('does not render key when ourKey is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       final songWithoutKey = mockSong.copyWith(ourKey: null);
 
@@ -236,13 +234,13 @@ void main() {
       expect(find.text('C'), findsNothing);
     });
 
-    testWidgets('renders as Card widget', (WidgetTester tester) async {
+    testWidgets('renders as Card widget', (tester) async {
       await pumpAppWidget(tester, SongCard(song: mockSong));
 
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('renders as ListTile', (WidgetTester tester) async {
+    testWidgets('renders as ListTile', (tester) async {
       await pumpAppWidget(tester, SongCard(song: mockSong));
 
       expect(find.byType(ListTile), findsOneWidget);
@@ -263,7 +261,7 @@ void main() {
     });
 
     testWidgets('renders compact card with title and artist', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, CompactSongCard(song: mockSong));
 
@@ -271,20 +269,20 @@ void main() {
       expect(findText('Compact Artist'), findsOneWidget);
     });
 
-    testWidgets('renders key when available', (WidgetTester tester) async {
+    testWidgets('renders key when available', (tester) async {
       await pumpAppWidget(tester, CompactSongCard(song: mockSong));
 
       expect(find.text('D'), findsOneWidget);
     });
 
-    testWidgets('renders BPM when available', (WidgetTester tester) async {
+    testWidgets('renders BPM when available', (tester) async {
       await pumpAppWidget(tester, CompactSongCard(song: mockSong));
 
       expect(find.text('100 BPM'), findsOneWidget);
     });
 
     testWidgets('does not render key when not available', (
-      WidgetTester tester,
+      tester,
     ) async {
       final songWithoutKey = mockSong.copyWith(ourKey: null);
 
@@ -294,7 +292,7 @@ void main() {
     });
 
     testWidgets('does not render BPM when not available', (
-      WidgetTester tester,
+      tester,
     ) async {
       final songWithoutBpm = mockSong.copyWith(ourBPM: null);
 
@@ -303,7 +301,7 @@ void main() {
       expect(find.text('BPM'), findsNothing);
     });
 
-    testWidgets('calls onTap when card is tapped', (WidgetTester tester) async {
+    testWidgets('calls onTap when card is tapped', (tester) async {
       bool wasTapped = false;
 
       await pumpAppWidget(
@@ -318,7 +316,7 @@ void main() {
     });
 
     testWidgets('renders compact metronome action when song has tempo data', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -332,7 +330,7 @@ void main() {
     });
 
     testWidgets('calls compact onOpenMetronome when action is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       var openedMetronome = false;
 
@@ -352,13 +350,13 @@ void main() {
       expect(openedMetronome, isTrue);
     });
 
-    testWidgets('renders as Card widget', (WidgetTester tester) async {
+    testWidgets('renders as Card widget', (tester) async {
       await pumpAppWidget(tester, CompactSongCard(song: mockSong));
 
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('renders as ListTile', (WidgetTester tester) async {
+    testWidgets('renders as ListTile', (tester) async {
       await pumpAppWidget(tester, CompactSongCard(song: mockSong));
 
       expect(find.byType(ListTile), findsOneWidget);

@@ -9,9 +9,9 @@ import 'color_picker_dialog.dart';
 /// - Parts: Section type matrix
 /// - Colors: Color assignment matrix
 class SectionPicker extends StatefulWidget {
-  final Function(String) onSectionSelected;
 
-  const SectionPicker({super.key, required this.onSectionSelected});
+  const SectionPicker({required this.onSectionSelected, super.key});
+  final Function(String) onSectionSelected;
 
   @override
   State<SectionPicker> createState() => _SectionPickerState();
@@ -91,7 +91,7 @@ class _SectionPickerState extends State<SectionPicker>
   }
 
   Widget _buildTabBar(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
@@ -208,7 +208,7 @@ class _SectionPickerState extends State<SectionPicker>
           widget.onSectionSelected(template);
         }
       },
-      child: Container(
+      child: DecoratedBox(
         decoration: BoxDecoration(
           color: color ?? Theme.of(context).colorScheme.secondaryContainer,
           borderRadius: BorderRadius.circular(AppDimensions.cardBorderRadius),
@@ -243,7 +243,7 @@ class _SectionPickerState extends State<SectionPicker>
     );
   }
 
-  void _showColorPicker(
+  Future<void> _showColorPicker(
     BuildContext context,
     String sectionName,
     Color currentColor,

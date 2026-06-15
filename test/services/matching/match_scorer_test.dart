@@ -1,13 +1,13 @@
 /// Unit tests for match scoring.
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:uuid/uuid.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/services/matching/match_scorer.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
-  Song _createSong({
+  Song createSong({
     required String title,
     required String artist,
     int? durationMs,
@@ -27,7 +27,7 @@ void main() {
   group('MatchScorer', () {
     group('calculate', () {
       test('exact match returns 100%', () {
-        final existingSong = _createSong(
+        final existingSong = createSong(
           title: 'Bohemian Rhapsody',
           artist: 'Queen',
         );
@@ -43,7 +43,7 @@ void main() {
       });
 
       test('typo in title returns high match', () {
-        final existingSong = _createSong(
+        final existingSong = createSong(
           title: 'Bohemian Rhapsody',
           artist: 'Queen',
         );
@@ -63,7 +63,7 @@ void main() {
       });
 
       test('missing "The" in artist returns high match', () {
-        final existingSong = _createSong(
+        final existingSong = createSong(
           title: 'Hey Jude',
           artist: 'The Beatles',
         );
@@ -82,7 +82,7 @@ void main() {
       });
 
       test('different song returns low match', () {
-        final existingSong = _createSong(
+        final existingSong = createSong(
           title: 'Bohemian Rhapsody',
           artist: 'Queen',
         );
@@ -98,7 +98,7 @@ void main() {
       });
 
       test('same title different artist is medium match', () {
-        final existingSong = _createSong(
+        final existingSong = createSong(
           title: 'Yesterday',
           artist: 'The Beatles',
         );
@@ -115,7 +115,7 @@ void main() {
       });
 
       test('duration similarity boosts score', () {
-        final existingSong = _createSong(
+        final existingSong = createSong(
           title: 'Song',
           artist: 'Artist',
           durationMs: 300000, // 5 minutes
@@ -142,7 +142,7 @@ void main() {
       });
 
       test('album similarity boosts score', () {
-        final existingSong = _createSong(
+        final existingSong = createSong(
           title: 'Song',
           artist: 'Artist',
           album: 'Greatest Hits',
@@ -171,7 +171,7 @@ void main() {
 
     group('applySpecialRules', () {
       test('empty artist input weights title higher', () {
-        final existingSong = _createSong(
+        final existingSong = createSong(
           title: 'Bohemian Rhapsody',
           artist: 'Queen',
         );
@@ -189,7 +189,7 @@ void main() {
       });
 
       test('live version without live in query reduces score', () {
-        final liveSong = _createSong(title: 'Song (Live)', artist: 'Artist');
+        final liveSong = createSong(title: 'Song (Live)', artist: 'Artist');
 
         final score = MatchScorer.calculate(
           inputTitle: 'Song',
@@ -213,7 +213,7 @@ void main() {
         artistSimilarity: 96,
         durationSimilarity: 0,
         albumSimilarity: 0,
-        matchedSong: _createSong(title: 'Test', artist: 'Test'),
+        matchedSong: createSong(title: 'Test', artist: 'Test'),
       );
 
       expect(score.grade, equals(MatchGrade.exact));
@@ -228,7 +228,7 @@ void main() {
         artistSimilarity: 90,
         durationSimilarity: 0,
         albumSimilarity: 0,
-        matchedSong: _createSong(title: 'Test', artist: 'Test'),
+        matchedSong: createSong(title: 'Test', artist: 'Test'),
       );
 
       expect(score.grade, equals(MatchGrade.high));
@@ -243,7 +243,7 @@ void main() {
         artistSimilarity: 75,
         durationSimilarity: 0,
         albumSimilarity: 0,
-        matchedSong: _createSong(title: 'Test', artist: 'Test'),
+        matchedSong: createSong(title: 'Test', artist: 'Test'),
       );
 
       expect(score.grade, equals(MatchGrade.medium));
@@ -258,7 +258,7 @@ void main() {
         artistSimilarity: 60,
         durationSimilarity: 0,
         albumSimilarity: 0,
-        matchedSong: _createSong(title: 'Test', artist: 'Test'),
+        matchedSong: createSong(title: 'Test', artist: 'Test'),
       );
 
       expect(score.grade, equals(MatchGrade.low));
@@ -273,7 +273,7 @@ void main() {
         artistSimilarity: 40,
         durationSimilarity: 0,
         albumSimilarity: 0,
-        matchedSong: _createSong(title: 'Test', artist: 'Test'),
+        matchedSong: createSong(title: 'Test', artist: 'Test'),
       );
 
       expect(score.grade, equals(MatchGrade.none));

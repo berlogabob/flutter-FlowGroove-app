@@ -1,66 +1,92 @@
-/// Bottom transport bar widget
-///
-/// Main transport controls for metronome.
-/// Features:
-/// - Play/pause button with pulse animation
-/// - Setlist navigation (previous/next)
-/// - Loaded song/setlist display
-/// - Large touch targets
-/// - Visual feedback
-library;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/data/metronome_provider.dart';
-import '../../providers/metronome_selective_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
 
-/// Bottom transport bar with play/pause and navigation
+/// Bottom Transport Bar widget - Mono Pulse design
+///
+/// Horizontal row at bottom (64-80px height):
+/// - Center: Large oval Play button (radius 32px, background #FF5E00)
+///   - White icon 48px (▶ when stopped, ‖ when playing)
+///   - Tap to toggle play/stop
+/// - If setlist loaded:
+///   - Left: Previous button (circle #111111, icon ◀◀ #A0A0A5 → orange on tap)
+///   - Right: Next button (circle #111111, icon ▶▶ #A0A0A5 → orange on tap)
+/// - Icons large (48px touch zone) for stage use
+/// - Fixed height: 64px minimum, always visible at bottom
 class BottomTransportBar extends ConsumerWidget {
   const BottomTransportBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final metronome = ref.watch(metronomeProvider.notifier);
     final state = ref.watch(metronomeProvider);
-    final notifier = ref.read(metronomeProvider.notifier);
-    final loadedSong = ref.watch(metronomeLoadedSongProvider);
-    final loadedSetlist = ref.watch(metronomeLoadedSetlistProvider);
+    final isPlaying = state.isPlaying;
+    final hasSetlist = state.loadedSetlist != null;
+
+    // Adaptive sizing for small screens
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 375;
+    final barHeight = isSmallScreen ? 64.0 : 80.0;
+    final playButtonWidth = isSmallScreen ? 64.0 : 80.0;
+    final playButtonHeight = isSmallScreen ? 56.0 : 64.0;
+    final navButtonSize = isSmallScreen ? 48.0 : 56.0;
+    final navIconSize = isSmallScreen ? 24.0 : 32.0;
+    final horizontalMargin = isSmallScreen
+        ? MonoPulseSpacing.xxl
+        : MonoPulseSpacing.xxxl;
+    final buttonSpacing = isSmallScreen
+        ? MonoPulseSpacing.lg
+        : MonoPulseSpacing.xl;
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      height: barHeight,
+      margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
+      // NO vertical margin - prevents button from being clipped
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Play/Pause button
-          _PlayPauseButton(
-            isPlaying: state.isPlaying,
-            onTap: notifier.toggle,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Loaded content display
-          if (loadedSong != null || loadedSetlist != null) ...[
-            _LoadedContentDisplay(
-              song: loadedSong,
-              setlist: loadedSetlist,
-              currentIndex: state.currentSetlistIndex,
+          // Previous button (only if setlist loaded)
+          if (hasSetlist) ...[
+            _NavigationButton(
+              icon: Icons.fast_rewind,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                metronome.previousSetlistSong();
+              },
+              isEnabled: state.currentSetlistIndex > 0,
+              buttonSize: navButtonSize,
+              iconSize: navIconSize,
             ),
-            const SizedBox(height: 12),
+            SizedBox(width: buttonSpacing),
           ],
 
-          // Setlist navigation
-          if (loadedSetlist != null) ...[
-            _SetlistNavigation(
-              currentIndex: state.currentSetlistIndex,
-              totalSongs: loadedSetlist.songIds.length,
-              onPrevious: notifier.previousSetlistSong,
-              onNext: notifier.nextSetlistSong,
+          // Play/Pause button (center)
+          _PlayButton(
+            isPlaying: isPlaying,
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              metronome.toggle();
+            },
+            buttonWidth: playButtonWidth,
+            buttonHeight: playButtonHeight,
+          ),
+
+          // Next button (only if setlist loaded)
+          if (hasSetlist) ...[
+            SizedBox(width: buttonSpacing),
+            _NavigationButton(
+              icon: Icons.fast_forward,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                metronome.nextSetlistSong();
+              },
+              isEnabled:
+                  state.currentSetlistIndex <
+                  state.loadedSetlist!.songIds.length - 1,
+              buttonSize: navButtonSize,
+              iconSize: navIconSize,
             ),
           ],
         ],
@@ -69,22 +95,26 @@ class BottomTransportBar extends ConsumerWidget {
   }
 }
 
-/// Play/pause button with pulse animation
-class _PlayPauseButton extends StatefulWidget {
-  const _PlayPauseButton({
+class _PlayButton extends StatefulWidget {
+
+  const _PlayButton({
     required this.isPlaying,
     required this.onTap,
+    this.buttonWidth = 80.0,
+    this.buttonHeight = 64.0,
   });
-
   final bool isPlaying;
   final VoidCallback onTap;
+  final double buttonWidth;
+  final double buttonHeight;
 
   @override
-  State<_PlayPauseButton> createState() => _PlayPauseButtonState();
+  State<_PlayButton> createState() => _PlayButtonState();
 }
 
-class _PlayPauseButtonState extends State<_PlayPauseButton>
+class _PlayButtonState extends State<_PlayButton>
     with SingleTickerProviderStateMixin {
+  bool _isPressed = false;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -92,12 +122,31 @@ class _PlayPauseButtonState extends State<_PlayPauseButton>
   void initState() {
     super.initState();
     _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: MonoPulseAnimation.durationShort,
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+
+    _pulseAnimation = Tween<double>(begin: 1, end: 1.08).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: MonoPulseAnimation.curveCustom,
+      ),
     );
+
+    if (widget.isPlaying) {
+      _pulseController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(_PlayButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isPlaying && !oldWidget.isPlaying) {
+      _pulseController.repeat(reverse: true);
+    } else if (!widget.isPlaying && oldWidget.isPlaying) {
+      _pulseController.stop();
+      _pulseController.reset();
+    }
   }
 
   @override
@@ -108,173 +157,116 @@ class _PlayPauseButtonState extends State<_PlayPauseButton>
 
   @override
   Widget build(BuildContext context) {
+    // Adaptive icon size based on button size
+    final iconSize = widget.buttonWidth * 0.6;
+
     return GestureDetector(
-      onTap: () {
-        _pulseController.forward(from: 0.0);
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
         widget.onTap();
-        HapticFeedback.mediumImpact();
       },
-      child: AnimatedBuilder(
-        animation: _pulseAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _pulseAnimation.value,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: widget.isPlaying
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.primaryContainer,
-                boxShadow: widget.isPlaying
-                    ? [
-                        BoxShadow(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Icon(
-                widget.isPlaying ? Icons.pause : Icons.play_arrow,
-                color: widget.isPlaying
-                    ? Theme.of(context).colorScheme.onPrimary
-                    : Theme.of(context).colorScheme.onPrimaryContainer,
-                size: 48,
-              ),
-            ),
-          );
-        },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed
+            ? 0.95
+            : (_pulseController.isAnimating ? _pulseAnimation.value : 1.0),
+        duration: MonoPulseAnimation.durationShort,
+        curve: MonoPulseAnimation.curveCustom,
+        child: Container(
+          // Minimum 48px touch zone (adaptive size)
+          width: widget.buttonWidth,
+          height: widget.buttonHeight,
+          decoration: BoxDecoration(
+            color: MonoPulseColors.accentOrange,
+            borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
+          ),
+          child: Icon(
+            widget.isPlaying ? Icons.pause : Icons.play_arrow,
+            color: MonoPulseColors.black,
+            size: iconSize,
+          ),
+        ),
       ),
     );
   }
 }
 
-/// Display for loaded song/setlist info
-class _LoadedContentDisplay extends StatelessWidget {
-  const _LoadedContentDisplay({
-    this.song,
-    this.setlist,
-    required this.currentIndex,
-  });
+class _NavigationButton extends StatefulWidget {
 
-  final dynamic song;
-  final dynamic setlist;
-  final int currentIndex;
+  const _NavigationButton({
+    required this.icon,
+    required this.onTap,
+    this.isEnabled = true,
+    this.buttonSize = 56.0,
+    this.iconSize = 32.0,
+  });
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool isEnabled;
+  final double buttonSize;
+  final double iconSize;
 
   @override
-  Widget build(BuildContext context) {
-    String title;
-    String subtitle;
-
-    if (song != null) {
-      title = (song as dynamic).title as String? ?? 'Unknown';
-      subtitle = (song as dynamic).artist as String? ?? '';
-    } else if (setlist != null &&
-        (setlist as dynamic).songIds is List &&
-        ((setlist as dynamic).songIds as List).isNotEmpty &&
-        currentIndex < ((setlist as dynamic).songIds as List).length) {
-      // For now, just show setlist info
-      title = 'Setlist: ${(setlist as dynamic).name as String? ?? "Unnamed"}';
-      subtitle = 'Song ${currentIndex + 1} of ${((setlist as dynamic).songIds as List).length}';
-    } else {
-      title = 'No song loaded';
-      subtitle = '';
-    }
-
-    return Row(
-      children: [
-        Icon(
-          Icons.music_note,
-          color: Theme.of(context).colorScheme.primary,
-          size: 24,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (subtitle.isNotEmpty)
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  State<_NavigationButton> createState() => _NavigationButtonState();
 }
 
-/// Setlist navigation controls
-class _SetlistNavigation extends StatelessWidget {
-  const _SetlistNavigation({
-    required this.currentIndex,
-    required this.totalSongs,
-    required this.onPrevious,
-    required this.onNext,
-  });
-
-  final int currentIndex;
-  final int totalSongs;
-  final VoidCallback onPrevious;
-  final VoidCallback onNext;
+class _NavigationButtonState extends State<_NavigationButton> {
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
-    final canGoPrevious = currentIndex > 0;
-    final canGoNext = currentIndex < totalSongs - 1;
+    final isEnabled = widget.isEnabled;
+    final isPressed = _isPressed && isEnabled;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          icon: const Icon(Icons.skip_previous),
-          onPressed: canGoPrevious ? onPrevious : null,
-          tooltip: 'Previous Song',
-          color: canGoPrevious
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-        ),
-        Text(
-          '${currentIndex + 1} / $totalSongs',
-          style: MonoPulseTypography.labelMedium.copyWith(
-            fontWeight: FontWeight.w700,
-            color: Theme.of(context).colorScheme.primary,
+    return GestureDetector(
+      onTapDown: (_) {
+        if (isEnabled) {
+          setState(() => _isPressed = true);
+          HapticFeedback.vibrate();
+        }
+      },
+      onTapUp: (_) {
+        if (isEnabled) {
+          setState(() => _isPressed = false);
+          HapticFeedback.vibrate();
+          widget.onTap();
+        }
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: isPressed ? 0.95 : 1.0,
+        duration: MonoPulseAnimation.durationShort,
+        curve: MonoPulseAnimation.curveCustom,
+        child: Container(
+          // Minimum 48px touch zone (adaptive size)
+          width: widget.buttonSize,
+          height: widget.buttonSize,
+          decoration: BoxDecoration(
+            color: isPressed
+                ? MonoPulseColors.accentOrange.withValues(alpha: 0.2)
+                : MonoPulseColors.blackElevated,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isPressed
+                  ? MonoPulseColors.accentOrange
+                  : (isEnabled
+                        ? MonoPulseColors.borderSubtle
+                        : MonoPulseColors.borderSubtle.withValues(alpha: 0.3)),
+              width: 1.5,
+            ),
+          ),
+          child: Icon(
+            widget.icon,
+            color: isPressed
+                ? MonoPulseColors.accentOrange
+                : (isEnabled
+                      ? MonoPulseColors.textSecondary
+                      : MonoPulseColors.textDisabled),
+            size: widget.iconSize,
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.skip_next),
-          onPressed: canGoNext ? onNext : null,
-          tooltip: 'Next Song',
-          color: canGoNext
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-        ),
-      ],
+      ),
     );
   }
 }

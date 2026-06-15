@@ -11,6 +11,16 @@ import '../../../theme/mono_pulse_theme.dart';
 
 /// A collapsible section widget.
 class CollapsibleSection extends StatefulWidget {
+
+  const CollapsibleSection({
+    required this.title,
+    required this.child,
+    super.key,
+    this.initiallyExpanded = true,
+    this.action,
+    this.icon,
+    this.onExpandedChanged,
+  });
   /// Section title.
   final String title;
 
@@ -29,16 +39,6 @@ class CollapsibleSection extends StatefulWidget {
   /// Callback when expansion state changes.
   final Function(bool expanded)? onExpandedChanged;
 
-  const CollapsibleSection({
-    super.key,
-    required this.title,
-    required this.child,
-    this.initiallyExpanded = true,
-    this.action,
-    this.icon,
-    this.onExpandedChanged,
-  });
-
   @override
   State<CollapsibleSection> createState() => _CollapsibleSectionState();
 }
@@ -54,11 +54,11 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: MonoPulseColors.surface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
+        border: Border.all(color: MonoPulseColors.borderDefault),
       ),
       child: Column(
         children: [

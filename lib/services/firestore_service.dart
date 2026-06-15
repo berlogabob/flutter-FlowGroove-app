@@ -1,11 +1,13 @@
 import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+
 import '../models/api_error.dart';
-import '../models/song.dart';
 import '../models/band.dart';
 import '../models/setlist.dart';
+import '../models/song.dart';
 import '../models/user.dart';
 import '../repositories/firestore_song_repository.dart';
 import '../repositories/song_repository.dart';

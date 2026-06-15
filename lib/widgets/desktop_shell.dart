@@ -1,3 +1,4 @@
+import 'package:flowgroove/screens/main_shell.dart' show MainShell;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,13 +30,13 @@ import 'loading_indicator.dart';
 /// )
 /// ```
 class DesktopShell extends ConsumerWidget {
+
+  const DesktopShell({required this.child, super.key});
   /// The main app shell (typically [MainShell]).
   final Widget child;
 
   /// Maximum width for the main app area (mobile phone simulation).
-  static const double maxMainAppWidth = 480.0;
-
-  const DesktopShell({super.key, required this.child});
+  static const double maxMainAppWidth = 480;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,7 +55,7 @@ class DesktopShell extends ConsumerWidget {
               Expanded(
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
+                    constraints: const BoxConstraints(
                       maxWidth: maxMainAppWidth,
                     ),
                     child: child,
@@ -69,7 +70,6 @@ class DesktopShell extends ConsumerWidget {
               ),
               // Welcome sidebar - takes all remaining space
               Expanded(
-                flex: 1,
                 child: _buildSidebar(context, ref),
               ),
             ],
@@ -88,7 +88,7 @@ class DesktopShell extends ConsumerWidget {
     // Get user name from auth provider
     final userAsync = ref.watch(appUserProvider);
 
-    return Container(
+    return ColoredBox(
       color: MonoPulseColors.surface,
       child: userAsync.when(
         data: (user) {
@@ -96,7 +96,7 @@ class DesktopShell extends ConsumerWidget {
           return DashboardWelcomeWidget.sidebar(userName: userName);
         },
         loading: () => const Center(child: LoadingIndicator()),
-        error: (_, __) => DashboardWelcomeWidget.sidebar(userName: 'User'),
+        error: (_, _) => DashboardWelcomeWidget.sidebar(userName: 'User'),
       ),
     );
   }

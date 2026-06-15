@@ -7,6 +7,10 @@ part 'error_provider.g.dart';
 
 /// Represents the current state of error handling.
 class ErrorState {
+
+  const ErrorState({this.error, List<ApiError>? errorHistory})
+    : errorHistory = errorHistory ?? const [],
+      hasError = error != null;
   /// The current error, if any.
   final ApiError? error;
 
@@ -15,10 +19,6 @@ class ErrorState {
 
   /// Whether an error is currently being displayed.
   final bool hasError;
-
-  const ErrorState({this.error, List<ApiError>? errorHistory})
-    : errorHistory = errorHistory ?? const [],
-      hasError = error != null;
 
   /// Creates a copy of this state with the given fields replaced.
   ErrorState copyWith({ApiError? error, List<ApiError>? errorHistory}) {

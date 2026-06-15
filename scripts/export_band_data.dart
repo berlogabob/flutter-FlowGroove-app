@@ -35,9 +35,9 @@ import 'package:firebase_core/firebase_core.dart';
 /// - Summary comparison table
 ///
 void main() async {
-  print('╔' + '═' * 68 + '╗');
-  print('║' + centerText('FIRESTORE BAND DATA EXPORT & ANALYSIS', 68) + '║');
-  print('╚' + '═' * 68 + '╝');
+  print('╔${'═' * 68}╗');
+  print('║${centerText('FIRESTORE BAND DATA EXPORT & ANALYSIS', 68)}║');
+  print('╚${'═' * 68}╝');
   print('');
 
   // Initialize Firebase
@@ -133,7 +133,7 @@ Map<String, dynamic> _analyzeBands(List<QueryDocumentSnapshot> docs) {
 
   for (final bandDoc in docs) {
     final bandId = bandDoc.id;
-    final bandData = bandDoc.data() as Map<String, dynamic>;
+    final bandData = bandDoc.data()! as Map<String, dynamic>;
     final analysis = _analyzeBand(bandId, bandData);
     (exportData['bands'] as List).add(analysis);
 
@@ -282,9 +282,9 @@ Map<String, dynamic> _analyzeMembers(List<dynamic> members) {
 }
 
 void _printDetailedAnalysis(Map<String, dynamic> exportData) {
-  print('╔' + '═' * 68 + '╗');
-  print('║' + centerText('DETAILED BAND ANALYSIS', 68) + '║');
-  print('╚' + '═' * 68 + '╝');
+  print('╔${'═' * 68}╗');
+  print('║${centerText('DETAILED BAND ANALYSIS', 68)}║');
+  print('╚${'═' * 68}╝');
   print('');
 
   for (final band in exportData['bands'] as List<Map<String, dynamic>>) {
@@ -311,10 +311,12 @@ void _printDetailedAnalysis(Map<String, dynamic> exportData) {
         print('          UID: $uid | Role: $role');
 
         // Check for empty strings
-        if (displayName == '')
+        if (displayName == '') {
           print('          ⚠️  displayName is EMPTY STRING (not null!)');
-        if (email == '')
+        }
+        if (email == '') {
           print('          ⚠️  email is EMPTY STRING (not null!)');
+        }
         if (uid == '') print('          ⚠️  uid is EMPTY STRING (not null!)');
         if (role == '') print('          ⚠️  role is EMPTY STRING (not null!)');
       }
@@ -340,13 +342,10 @@ void _printDetailedAnalysis(Map<String, dynamic> exportData) {
         switch (severity) {
           case 'CRITICAL':
             icon = '🔴';
-            break;
           case 'HIGH_PRIORITY':
             icon = '🟠';
-            break;
           case 'MEDIUM':
             icon = '🟡';
-            break;
           default:
             icon = '🔵';
         }
@@ -358,49 +357,19 @@ void _printDetailedAnalysis(Map<String, dynamic> exportData) {
 }
 
 void _printComparisonSummary(Map<String, dynamic> exportData) {
-  print('╔' + '═' * 68 + '╗');
-  print('║' + centerText('BAND COMPARISON SUMMARY', 68) + '║');
-  print('╚' + '═' * 68 + '╝');
+  print('╔${'═' * 68}╗');
+  print('║${centerText('BAND COMPARISON SUMMARY', 68)}║');
+  print('╚${'═' * 68}╝');
   print('');
 
   print(
-    '┌' +
-        '─' * 10 +
-        '┬' +
-        '─' * 20 +
-        '┬' +
-        '─' * 10 +
-        '┬' +
-        '─' * 10 +
-        '┬' +
-        '─' * 10 +
-        '┐',
+    '┌${'─' * 10}┬${'─' * 20}┬${'─' * 10}┬${'─' * 10}┬${'─' * 10}┐',
   );
   print(
-    '│' +
-        centerText('Band', 10) +
-        '│' +
-        centerText('Name', 20) +
-        '│' +
-        centerText('Members', 10) +
-        '│' +
-        centerText('Issues', 10) +
-        '│' +
-        centerText('Status', 10) +
-        '│',
+    '│${centerText('Band', 10)}│${centerText('Name', 20)}│${centerText('Members', 10)}│${centerText('Issues', 10)}│${centerText('Status', 10)}│',
   );
   print(
-    '├' +
-        '─' * 10 +
-        '┼' +
-        '─' * 20 +
-        '┼' +
-        '─' * 10 +
-        '┼' +
-        '─' * 10 +
-        '┼' +
-        '─' * 10 +
-        '┤',
+    '├${'─' * 10}┼${'─' * 20}┼${'─' * 10}┼${'─' * 10}┼${'─' * 10}┤',
   );
 
   for (final band in exportData['bands'] as List<Map<String, dynamic>>) {
@@ -420,36 +389,16 @@ void _printComparisonSummary(Map<String, dynamic> exportData) {
     }
 
     final name = (band['name'] as String).length > 18
-        ? (band['name'] as String).substring(0, 17) + '…'
+        ? '${(band['name'] as String).substring(0, 17)}…'
         : band['name'] as String;
 
     print(
-      '│' +
-          centerText((band['id'] as String).substring(0, 8), 10) +
-          '│' +
-          centerText(name, 20) +
-          '│' +
-          centerText('${band['memberCount']}', 10) +
-          '│' +
-          centerText('$issueCount', 10) +
-          '│' +
-          centerText(status, 10) +
-          '│',
+      '│${centerText((band['id'] as String).substring(0, 8), 10)}│${centerText(name, 20)}│${centerText('${band['memberCount']}', 10)}│${centerText('$issueCount', 10)}│${centerText(status, 10)}│',
     );
   }
 
   print(
-    '└' +
-        '─' * 10 +
-        '┴' +
-        '─' * 20 +
-        '┴' +
-        '─' * 10 +
-        '┴' +
-        '─' * 10 +
-        '┴' +
-        '─' * 10 +
-        '┘',
+    '└${'─' * 10}┴${'─' * 20}┴${'─' * 10}┴${'─' * 10}┴${'─' * 10}┘',
   );
   print('');
 
@@ -477,13 +426,13 @@ void _printComparisonSummary(Map<String, dynamic> exportData) {
 void _saveToFile(Map<String, dynamic> exportData) {
   try {
     final timestamp = DateTime.now().toString().replaceAll(
-      RegExp(r'[^0-9]'),
+      RegExp('[^0-9]'),
       '',
     );
     final filename = 'band_export_$timestamp.json';
     final filepath = 'scripts/$filename';
 
-    final jsonOutput = JsonEncoder.withIndent('  ').convert(exportData);
+    final jsonOutput = const JsonEncoder.withIndent('  ').convert(exportData);
 
     // Try to write to file (may not work in all contexts)
     try {
@@ -498,9 +447,9 @@ void _saveToFile(Map<String, dynamic> exportData) {
     }
 
     // Always print JSON to console
-    print('╔' + '═' * 68 + '╗');
-    print('║' + centerText('RAW JSON EXPORT', 68) + '║');
-    print('╚' + '═' * 68 + '╝');
+    print('╔${'═' * 68}╗');
+    print('║${centerText('RAW JSON EXPORT', 68)}║');
+    print('╚${'═' * 68}╝');
     print('');
     print(jsonOutput);
     print('');
@@ -510,9 +459,9 @@ void _saveToFile(Map<String, dynamic> exportData) {
 }
 
 void _printRecommendations(Map<String, dynamic> exportData) {
-  print('╔' + '═' * 68 + '╗');
-  print('║' + centerText('RECOMMENDATIONS', 68) + '║');
-  print('╚' + '═' * 68 + '╝');
+  print('╔${'═' * 68}╗');
+  print('║${centerText('RECOMMENDATIONS', 68)}║');
+  print('╚${'═' * 68}╝');
   print('');
 
   final criticalBands = (exportData['bands'] as List)
@@ -531,7 +480,7 @@ void _printRecommendations(Map<String, dynamic> exportData) {
     print('✅ All bands have valid data structures!');
     print('');
     print(
-      'If you\'re still experiencing gray screen issues, the cause may be:',
+      "If you're still experiencing gray screen issues, the cause may be:",
     );
     print('   1. UI rendering bug (check band_songs_screen.dart)');
     print('   2. State management issue');
@@ -578,7 +527,7 @@ void _printRecommendations(Map<String, dynamic> exportData) {
   print('   Line: ~677 (avatar initial calculation)');
   print('');
   print('   Replace:');
-  print('     (member.displayName ?? member.email ?? \'\?\')[0]');
+  print("     (member.displayName ?? member.email ?? '?')[0]");
   print('');
   print('   With:');
   print('     (() {');
@@ -586,13 +535,13 @@ void _printRecommendations(Map<String, dynamic> exportData) {
   print('         ? member.displayName');
   print('         : member.email?.isNotEmpty == true');
   print('           ? member.email');
-  print('           : \'\?\';');
-  print('       return name.isNotEmpty ? name[0] : \'\?\';');
+  print("           : '?';");
+  print("       return name.isNotEmpty ? name[0] : '?';");
   print('     })()');
   print('');
 }
 
-String _formatArray(dynamic array) {
+String _formatArray(array) {
   if (array == null) return 'MISSING';
   if (array is List) {
     if (array.isEmpty) return '[] (empty)';

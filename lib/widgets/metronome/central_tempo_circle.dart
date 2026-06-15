@@ -35,7 +35,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
             ? constraints.maxHeight
             : maxWidth;
         final rawDiameter = math.min(maxWidth, maxHeight);
-        final diameter = rawDiameter.clamp(120.0, 300.0).toDouble();
+        final diameter = rawDiameter.clamp(120.0, 300.0);
         final dialSize = Size.square(diameter);
 
         return Center(
@@ -167,10 +167,10 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
 
 /// Custom painter for the fixed tempo scale and moving BPM indicator.
 class TempoDialPainter extends CustomPainter {
-  final double bpm;
-  final bool isPlaying;
 
   TempoDialPainter({required this.bpm, required this.isPlaying});
+  final double bpm;
+  final bool isPlaying;
 
   @override
   void paint(Canvas canvas, Size size) {

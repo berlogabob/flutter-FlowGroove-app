@@ -168,7 +168,7 @@ class SongCsvSchema {
       .replaceAll('\uFEFF', '')
       .trim()
       .toLowerCase()
-      .replaceAll(RegExp(r'[^a-z0-9]'), '');
+      .replaceAll(RegExp('[^a-z0-9]'), '');
 
   /// Validate a header name against the schema
   static bool isValidHeader(String header) {
@@ -279,7 +279,7 @@ class SongCsvSchema {
       return {'base': null, 'accidental': null, 'scale': null};
     }
 
-    var trimmedKey = key.trim();
+    final trimmedKey = key.trim();
     String? base;
     String? accidental;
     String? scale;
@@ -307,8 +307,8 @@ class SongCsvSchema {
   /// Build a key string from components
   static String buildKeyString({
     required String base,
-    String? accidental,
     required String scale,
+    String? accidental,
   }) {
     String result = base.toUpperCase();
     if (accidental != null && accidental.isNotEmpty) {
@@ -324,7 +324,7 @@ class SongCsvSchema {
 /// Validation rules for CSV data
 class SongCsvValidation {
   /// Validate BPM value (must be integer between 40-300)
-  static bool isValidBpm(dynamic value) {
+  static bool isValidBpm(value) {
     if (value == null || value.toString().isEmpty) return true; // Optional
     final bpm = int.tryParse(value.toString());
     return bpm != null && bpm >= 40 && bpm <= 300;
@@ -379,7 +379,7 @@ class SongCsvValidation {
   }
 
   /// Validate duration (positive number)
-  static bool isValidDuration(dynamic value) {
+  static bool isValidDuration(value) {
     if (value == null || value.toString().isEmpty) return true; // Optional
     final duration = double.tryParse(value.toString());
     return duration != null && duration > 0;

@@ -1,15 +1,16 @@
 /// Tests for CSV parsing and serialization.
+library;
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/services/csv/song_csv_parser.dart';
+import 'package:flowgroove/services/csv/song_csv_schema.dart';
 import 'package:flowgroove/services/csv/song_csv_serializer.dart';
 import 'package:flowgroove/services/csv/song_csv_service.dart';
-import 'package:flowgroove/services/csv/song_csv_schema.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SongCsvSchema', () {
@@ -47,7 +48,6 @@ void main() {
       test('builds C major', () {
         final result = SongCsvSchema.buildKeyString(
           base: 'C',
-          accidental: null,
           scale: 'major',
         );
         expect(result, equals('C'));
@@ -96,12 +96,8 @@ void main() {
         links: [],
         notes: 'Test notes',
         tags: ['rock', 'live'],
-        bandId: null,
-        spotifyUrl: null,
-        createdAt: DateTime(2024, 1, 1),
+        createdAt: DateTime(2024),
         updatedAt: DateTime(2024, 1, 2),
-        accentBeats: 4,
-        regularBeats: 1,
         beatModes: [],
         sections: [],
       );
@@ -125,14 +121,9 @@ void main() {
         ourKey: 'Bb',
         ourBPM: 130,
         links: [],
-        notes: null,
         tags: [],
-        bandId: null,
-        spotifyUrl: null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        accentBeats: 4,
-        regularBeats: 1,
         beatModes: [],
         sections: [],
       );
@@ -156,25 +147,15 @@ void main() {
         id: 'test-2',
         title: 'Song With Sections',
         artist: 'Artist',
-        originalKey: null,
-        originalBPM: null,
-        ourKey: null,
-        ourBPM: null,
         links: [],
-        notes: null,
         tags: [],
-        bandId: null,
-        spotifyUrl: null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        accentBeats: 4,
-        regularBeats: 1,
         beatModes: [],
         sections: [
           Section(
             id: 'sec-1',
             name: 'Intro',
-            notes: '',
             duration: 4,
             colorValue: 0xFF42A5F5,
           ),
@@ -201,10 +182,6 @@ void main() {
         id: 'test-3',
         title: 'Song With Links',
         artist: 'Artist',
-        originalKey: null,
-        originalBPM: null,
-        ourKey: null,
-        ourBPM: null,
         links: [
           Link(
             type: 'youtube_original',
@@ -217,14 +194,9 @@ void main() {
             title: 'Spotify',
           ),
         ],
-        notes: null,
         tags: [],
-        bandId: null,
-        spotifyUrl: null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        accentBeats: 4,
-        regularBeats: 1,
         beatModes: [],
         sections: [],
       );
@@ -239,7 +211,7 @@ void main() {
   group('SongCsvParser', () {
     test('parses basic CSV to songs', () {
       final parser = SongCsvParser();
-      final csv = '''
+      const csv = '''
 title,artist,originalKey,originalBPM,ourKey,ourBPM,notes,tags,accentBeats,regularBeats
 Test Song,Test Artist,C,120,D,130,Test notes,"rock,live",4,1
 ''';
@@ -261,7 +233,7 @@ Test Song,Test Artist,C,120,D,130,Test notes,"rock,live",4,1
 
     test('parses CSV with split key format', () {
       final parser = SongCsvParser();
-      final csv = '''
+      const csv = '''
 title,artist,originalKeyBase,originalKeyAccidental,originalKeyScale,originalBPM,ourKeyBase,ourKeyAccidental,ourKeyScale,ourBPM
 Test Song,Test Artist,C,#,minor,120,B,b,major,130
 ''';
@@ -277,7 +249,7 @@ Test Song,Test Artist,C,#,minor,120,B,b,major,130
 
     test('returns error for missing required fields', () {
       final parser = SongCsvParser();
-      final csv = '''
+      const csv = '''
 title,artist
 ,Test Artist
 ''';
@@ -290,7 +262,7 @@ title,artist
 
     test('allows artist to be omitted', () {
       final parser = SongCsvParser();
-      final csv = '''
+      const csv = '''
 title
 Test Song
 ''';
@@ -303,7 +275,7 @@ Test Song
 
     test('accepts friendly aliases and warns about unknown columns', () {
       final parser = SongCsvParser();
-      final csv = '''
+      const csv = '''
  Song Name ,ARTIST NAME,Personal Rating
 Test Song,Test Artist,5
 ''';
@@ -318,7 +290,7 @@ Test Song,Test Artist,5
 
     test('parses CSV with sections', () {
       final parser = SongCsvParser();
-      final csv = '''
+      const csv = '''
 title,artist,section_1_name,section_1_duration,section_2_name,section_2_duration
 Test Song,Artist,Intro,4,Verse,8
 ''';
@@ -335,7 +307,7 @@ Test Song,Artist,Intro,4,Verse,8
 
     test('parses CSV with links', () {
       final parser = SongCsvParser();
-      final csv = '''
+      const csv = '''
 title,artist,link_1_url,link_1_title,link_1_type
 Test Song,Artist,https://youtube.com/test,Official Video,youtube_original
 ''';
@@ -358,7 +330,7 @@ Test Song,Artist,https://youtube.com/test,Official Video,youtube_original
 
     test('parses CSV with beat modes', () {
       final parser = SongCsvParser();
-      final csv = '''
+      const csv = '''
 title,artist,accentBeats,regularBeats,beatMode_0_0,beatMode_0_1,beatMode_1_0
 Test Song,Artist,4,2,accent,normal,normal
 ''';
@@ -376,7 +348,7 @@ Test Song,Artist,4,2,accent,normal,normal
 
     test('handles empty CSV', () {
       final parser = SongCsvParser();
-      final csv = '';
+      const csv = '';
 
       final result = parser.parse(csv);
 
@@ -386,7 +358,7 @@ Test Song,Artist,4,2,accent,normal,normal
 
     test('handles multiple songs', () {
       final parser = SongCsvParser();
-      final csv = '''
+      const csv = '''
 title,artist
 Song 1,Artist 1
 Song 2,Artist 2
@@ -429,14 +401,9 @@ Song 3,Artist 3
         ourKey: 'D',
         ourBPM: 130,
         links: [],
-        notes: null,
         tags: [],
-        bandId: null,
-        spotifyUrl: null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        accentBeats: 4,
-        regularBeats: 1,
         beatModes: [],
         sections: [],
       );
@@ -475,18 +442,13 @@ Song 3,Artist 3
         ],
         notes: 'Test notes',
         tags: ['rock'],
-        bandId: null,
-        spotifyUrl: null,
-        createdAt: DateTime(2024, 1, 1),
+        createdAt: DateTime(2024),
         updatedAt: DateTime(2024, 1, 2),
-        accentBeats: 4,
-        regularBeats: 1,
         beatModes: [],
         sections: [
           Section(
             id: 'sec-1',
             name: 'Intro',
-            notes: '',
             duration: 4,
             colorValue: 0xFF42A5F5,
           ),

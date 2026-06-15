@@ -20,12 +20,12 @@ import '../theme/mono_pulse_theme.dart';
 /// );
 /// ```
 class SuggestionSelectionDialog extends StatelessWidget {
-  final SongSuggestion suggestion;
 
   const SuggestionSelectionDialog({
-    super.key,
     required this.suggestion,
+    super.key,
   });
+  final SongSuggestion suggestion;
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +119,7 @@ class SuggestionSelectionDialog extends StatelessWidget {
       case SuggestionSource.group:
         return Icon(Icons.group, color: Theme.of(context).colorScheme.secondary);
       case SuggestionSource.musicbrainz:
-        return Icon(Icons.cloud, color: MonoPulseColors.successGreen);
+        return const Icon(Icons.cloud, color: MonoPulseColors.successGreen);
       case SuggestionSource.canonical:
         return Icon(Icons.library_music, color: Theme.of(context).colorScheme.tertiary);
     }
@@ -204,15 +204,15 @@ class SuggestionSelectionDialog extends StatelessWidget {
 
 /// Simple detail row widget
 class _SongDetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
 
   const _SongDetailRow({
     required this.icon,
     required this.label,
     required this.value,
   });
+  final IconData icon;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {

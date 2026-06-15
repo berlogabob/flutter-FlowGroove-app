@@ -1,10 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/models/link.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_delta.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SongDelta', () {
@@ -22,7 +22,6 @@ void main() {
       baseBpm: 72,
       baseSections: [Section(id: 'intro', name: 'Intro', duration: 2)],
       baseAccentBeats: 6,
-      baseRegularBeats: 1,
       baseBeatModes: const [
         [BeatMode.accent],
         [BeatMode.normal],
@@ -73,7 +72,7 @@ void main() {
 
     test('applyTo produces the existing Song read model', () {
       final delta = SongDelta(
-        values: {
+        values: const {
           SongDeltaField.ourKey: 'C',
           SongDeltaField.ourBPM: 76,
           SongDeltaField.notes: 'Start soft.',
@@ -110,10 +109,10 @@ void main() {
 
     test('fromJson ignores unsupported fields and restores typed lists', () {
       final delta = SongDelta.fromJson({
-        SongDeltaField.links: [
+        SongDeltaField.links: const [
           {'type': Link.typeOther, 'url': 'https://lyrics.test'},
         ],
-        SongDeltaField.sections: [
+        SongDeltaField.sections: const [
           {'id': 'chorus', 'name': 'Chorus', 'duration': 4},
         ],
         SongDeltaField.beatModes: {'0-0': BeatMode.accent.name},

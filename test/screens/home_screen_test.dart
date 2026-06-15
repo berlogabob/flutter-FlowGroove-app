@@ -1,24 +1,25 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flowgroove/screens/home_screen.dart';
-import 'package:flowgroove/providers/data/data_providers.dart';
-import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/models/user.dart';
-import 'package:flowgroove/widgets/stat_card.dart';
-import 'package:flowgroove/widgets/quick_action_button.dart';
-import 'package:flowgroove/widgets/tool_button.dart';
-import 'package:flowgroove/widgets/greeting_card.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/widgets/dashboard_grid.dart';
-import '../helpers/test_helpers.dart';
+import 'package:flowgroove/widgets/greeting_card.dart';
+import 'package:flowgroove/widgets/quick_action_button.dart';
+import 'package:flowgroove/widgets/stat_card.dart';
+import 'package:flowgroove/widgets/tool_button.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
 import '../helpers/mocks.dart';
 import '../helpers/mocks.mocks.dart';
+import '../helpers/test_helpers.dart';
 
 // Test notifier that returns a specific value
 class TestAppUserNotifier extends AppUserNotifier {
-  final AppUser? mockUser;
 
   TestAppUserNotifier(this.mockUser);
+  final AppUser? mockUser;
 
   @override
   AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
@@ -73,7 +74,7 @@ void main() {
     });
 
     testWidgets('renders home screen with dashboard grid', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpHomeScreen(tester, mockAuth: mockAuth);
 
@@ -81,7 +82,7 @@ void main() {
     });
 
     testWidgets('displays greeting section with user name', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser(displayName: 'John');
 
@@ -92,7 +93,7 @@ void main() {
     });
 
     testWidgets('displays statistics section with stat cards', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -105,7 +106,7 @@ void main() {
     });
 
     testWidgets('displays correct statistics counts', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -123,7 +124,7 @@ void main() {
       expect(find.text('3'), findsOneWidget);
     });
 
-    testWidgets('displays quick actions section', (WidgetTester tester) async {
+    testWidgets('displays quick actions section', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
@@ -135,7 +136,7 @@ void main() {
       expect(find.text('Bank'), findsOneWidget);
     });
 
-    testWidgets('displays tools section', (WidgetTester tester) async {
+    testWidgets('displays tools section', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
@@ -146,7 +147,7 @@ void main() {
     });
 
     testWidgets('displays loading state when user data is loading', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpHomeScreen(tester, mockAuth: mockAuth);
 
@@ -154,7 +155,7 @@ void main() {
     });
 
     testWidgets('renders stat cards with correct icons', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -166,7 +167,7 @@ void main() {
     });
 
     testWidgets('renders quick action buttons with correct icons', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -179,7 +180,7 @@ void main() {
     });
 
     testWidgets('renders tool buttons with correct icons', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -189,7 +190,7 @@ void main() {
       expect(find.byIcon(Icons.speed), findsOneWidget);
     });
 
-    testWidgets('has responsive layout', (WidgetTester tester) async {
+    testWidgets('has responsive layout', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
@@ -198,7 +199,7 @@ void main() {
     });
 
     testWidgets('displays zero counts when no data', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 

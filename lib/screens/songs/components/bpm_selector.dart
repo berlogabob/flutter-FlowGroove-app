@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../../theme/mono_pulse_theme.dart';
 
 /// A widget for entering BPM (Beats Per Minute) value.
 ///
 /// This widget provides a text field specifically designed for
 /// entering tempo values with numeric keyboard and validation.
 class BpmSelector extends StatelessWidget {
+
   const BpmSelector({
-    super.key,
     required this.controller,
-    this.isDense = false,
     this.label,
     this.hintText,
     this.onChanged,
+    super.key,
   });
-
   /// Controller for the BPM text field.
   final TextEditingController controller;
 
@@ -27,9 +25,6 @@ class BpmSelector extends StatelessWidget {
   /// Callback when BPM value changes.
   final ValueChanged<String>? onChanged;
 
-  /// Whether to use dense layout (for compact forms).
-  final bool isDense;
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -38,9 +33,7 @@ class BpmSelector extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: MonoPulseTypography.labelMedium.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
           ),
           const SizedBox(height: 4),
         ],
@@ -49,10 +42,7 @@ class BpmSelector extends StatelessWidget {
           decoration: InputDecoration(
             labelText: 'BPM',
             hintText: hintText,
-            isDense: isDense,
-            contentPadding: isDense
-                ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
-                : const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            isDense: true,
           ),
           keyboardType: TextInputType.number,
           onChanged: onChanged,
@@ -66,17 +56,12 @@ class BpmSelector extends StatelessWidget {
 ///
 /// This is useful for song forms where key and tempo are related.
 class KeyBpmSelector extends StatelessWidget {
+
   const KeyBpmSelector({
-    super.key,
-    required this.base,
-    required this.modifier,
-    required this.bpmController,
-    required this.label,
-    required this.onKeyChanged,
+    required this.base, required this.modifier, required this.bpmController, required this.label, required this.onKeyChanged, super.key,
     this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
     this.keyModifiers = const ['', '#', 'b', 'm'],
   });
-
   /// The selected base note.
   final String base;
 
@@ -105,9 +90,7 @@ class KeyBpmSelector extends StatelessWidget {
       children: [
         Text(
           label,
-          style: MonoPulseTypography.labelMedium.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
         ),
         const SizedBox(height: 4),
         IntrinsicHeight(
@@ -117,18 +100,23 @@ class KeyBpmSelector extends StatelessWidget {
                 base,
                 keyBases,
                 (v) => onKeyChanged(v ?? 'C', modifier),
-                width: 50,
               ),
               const SizedBox(width: 4),
               _buildMiniDropdown(
                 modifier,
                 keyModifiers,
                 (v) => onKeyChanged(base, v ?? ''),
-                width: 50,
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: BpmSelector(controller: bpmController, isDense: true),
+                child: TextFormField(
+                  controller: bpmController,
+                  decoration: const InputDecoration(
+                    labelText: 'BPM',
+                    isDense: true,
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
               ),
             ],
           ),
@@ -140,30 +128,26 @@ class KeyBpmSelector extends StatelessWidget {
   Widget _buildMiniDropdown(
     String value,
     List<String> items,
-    Function(String?) onChanged, {
-    required double width,
-  }) {
-    return SizedBox(
-      width: width,
+    Function(String?) onChanged,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
       child: DropdownButton<String>(
         value: value,
         isDense: true,
-        isExpanded: true,
         underline: const SizedBox(),
-        style: MonoPulseTypography.labelLarge.copyWith(
-          color: MonoPulseColors.textPrimary,
-        ),
-        dropdownColor: MonoPulseColors.surfaceRaised,
         items: items
             .map(
-              (k) => DropdownMenuItem<String>(
+              (k) => DropdownMenuItem(
                 value: k,
                 child: Text(
                   k.isEmpty ? '-' : k,
-                  style: MonoPulseTypography.labelLarge.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13),
                 ),
               ),
             )

@@ -11,8 +11,8 @@ library;
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/services/audio/metronome_audio_engine.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('MetronomeAudioEngine', () {
@@ -43,7 +43,7 @@ void main() {
       // If it's not, it should throw StateError.
       if (!engine.isInitialized) {
         expect(
-          () async => await engine.playClick(
+          () async => engine.playClick(
             isAccent: true,
             volume: 0.5,
           ),
@@ -136,7 +136,7 @@ void main() {
     }
 
     test('generates valid WAV header for accent sample', () {
-      final wav = generateTestWav(1600.0);
+      final wav = generateTestWav(1600);
 
       expect(wav.length, greaterThan(44));
       expect(wav[0], 0x52); // 'R'
@@ -150,7 +150,7 @@ void main() {
     });
 
     test('generates valid WAV header for regular sample', () {
-      final wav = generateTestWav(800.0);
+      final wav = generateTestWav(800);
 
       expect(wav.length, greaterThan(44));
       expect(wav[0], 0x52);
@@ -160,16 +160,16 @@ void main() {
     });
 
     test('accent and regular samples have same size', () {
-      final accent = generateTestWav(1600.0);
-      final regular = generateTestWav(800.0);
+      final accent = generateTestWav(1600);
+      final regular = generateTestWav(800);
 
       // Same duration and sample rate => same size
       expect(accent.length, equals(regular.length));
     });
 
     test('accent and regular samples have different content', () {
-      final accent = generateTestWav(1600.0);
-      final regular = generateTestWav(800.0);
+      final accent = generateTestWav(1600);
+      final regular = generateTestWav(800);
 
       // Different frequencies should produce different PCM data
       bool hasDifference = false;
@@ -183,7 +183,7 @@ void main() {
     });
 
     test('WAV header has correct sample rate', () {
-      final wav = generateTestWav(1000.0);
+      final wav = generateTestWav(1000);
       final view = ByteData.view(wav.buffer, wav.offsetInBytes, wav.length);
 
       // Sample rate at offset 24, little-endian uint32
@@ -192,7 +192,7 @@ void main() {
     });
 
     test('WAV header has correct bits per sample', () {
-      final wav = generateTestWav(1000.0);
+      final wav = generateTestWav(1000);
       final view = ByteData.view(wav.buffer, wav.offsetInBytes, wav.length);
 
       // Bits per sample at offset 34, little-endian uint16
@@ -201,7 +201,7 @@ void main() {
     });
 
     test('WAV header has correct number of channels', () {
-      final wav = generateTestWav(1000.0);
+      final wav = generateTestWav(1000);
       final view = ByteData.view(wav.buffer, wav.offsetInBytes, wav.length);
 
       // Num channels at offset 22, little-endian uint16
@@ -210,7 +210,7 @@ void main() {
     });
 
     test('sample data is non-zero (contains actual audio)', () {
-      final wav = generateTestWav(1000.0);
+      final wav = generateTestWav(1000);
 
       // Check that at least some PCM data bytes are non-zero
       bool hasNonZero = false;
@@ -224,7 +224,7 @@ void main() {
     });
 
     test('sample size matches expected duration', () {
-      final wav = generateTestWav(1000.0);
+      final wav = generateTestWav(1000);
       final view = ByteData.view(wav.buffer, wav.offsetInBytes, wav.length);
 
       // Subchunk2Size at offset 40

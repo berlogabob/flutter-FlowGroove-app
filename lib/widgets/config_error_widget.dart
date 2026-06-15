@@ -6,8 +6,8 @@ import '../config/config_validator.dart';
 /// Shows user-friendly error messages and troubleshooting steps
 class ConfigErrorWidget extends StatelessWidget {
   const ConfigErrorWidget({
-    super.key,
     required this.exception,
+    super.key,
     this.onRetry,
   });
 
@@ -20,7 +20,7 @@ class ConfigErrorWidget extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24),
             child: MaxWidthBox(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -245,8 +245,8 @@ class ConfigErrorWidget extends StatelessWidget {
 /// Constrains content to a maximum width for better readability
 class MaxWidthBox extends StatelessWidget {
   const MaxWidthBox({
-    super.key,
     required this.child,
+    super.key,
     this.maxWidth = 600,
   });
 

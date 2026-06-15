@@ -15,8 +15,8 @@ import '../theme/mono_pulse_theme.dart';
 /// ```
 class MatchScoreBadge extends StatelessWidget {
   const MatchScoreBadge({
-    super.key,
     required this.score,
+    super.key,
     this.showLabel = true,
     this.size = 40, // MonoPulseSpacing.xxxl equivalent for badge container
   });
@@ -45,7 +45,6 @@ class MatchScoreBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(MonoPulseRadius.small),
         border: Border.all(
           color: color.withValues(alpha: 0.3),
-          width: MonoPulseBorder.thin,
         ),
       ),
       child: Column(
@@ -94,14 +93,14 @@ class MatchScoreBadge extends StatelessWidget {
 
 /// Simple dot indicator for match quality
 class MatchQualityDot extends StatelessWidget {
-  final double score;
-  final double size;
 
   const MatchQualityDot({
-    super.key,
     required this.score,
+    super.key,
     this.size = 8,
   });
+  final double score;
+  final double size;
 
   @override
   Widget build(BuildContext context) {

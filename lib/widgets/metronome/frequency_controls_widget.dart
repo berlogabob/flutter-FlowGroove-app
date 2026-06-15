@@ -185,8 +185,6 @@ class _FrequencyControlsWidgetState
                           ),
                           child: Slider(
                             value: state.volume,
-                            min: 0.0,
-                            max: 1.0,
                             divisions: 10,
                             label: '${(state.volume * 100).round()}%',
                             onChanged: (value) {
@@ -287,7 +285,6 @@ class _FrequencyControlsWidgetState
                                   ),
                                   borderSide: const BorderSide(
                                     color: MonoPulseColors.borderDefault,
-                                    width: 1,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
@@ -296,7 +293,6 @@ class _FrequencyControlsWidgetState
                                   ),
                                   borderSide: const BorderSide(
                                     color: MonoPulseColors.borderDefault,
-                                    width: 1,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -351,7 +347,6 @@ class _FrequencyControlsWidgetState
                                   ),
                                   borderSide: const BorderSide(
                                     color: MonoPulseColors.borderDefault,
-                                    width: 1,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
@@ -360,7 +355,6 @@ class _FrequencyControlsWidgetState
                                   ),
                                   borderSide: const BorderSide(
                                     color: MonoPulseColors.borderDefault,
-                                    width: 1,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -404,10 +398,10 @@ class _FrequencyControlsWidgetState
 }
 
 class _WaveTypeDropdown extends StatelessWidget {
-  final String value;
-  final Function(String?) onChanged;
 
   const _WaveTypeDropdown({required this.value, required this.onChanged});
+  final String value;
+  final Function(String?) onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -419,7 +413,7 @@ class _WaveTypeDropdown extends StatelessWidget {
       decoration: BoxDecoration(
         color: MonoPulseColors.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
+        border: Border.all(color: MonoPulseColors.borderDefault),
       ),
       child: DropdownButton<String>(
         value: value,
@@ -445,10 +439,10 @@ class _WaveTypeDropdown extends StatelessWidget {
 }
 
 class _OrangeSwitch extends StatelessWidget {
-  final bool value;
-  final Function(bool) onChanged;
 
   const _OrangeSwitch({required this.value, required this.onChanged});
+  final bool value;
+  final Function(bool) onChanged;
 
   @override
   Widget build(BuildContext context) {

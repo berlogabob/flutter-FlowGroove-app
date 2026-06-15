@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import '../../../services/api/musicbrainz_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
-import '../../../widgets/loading_indicator.dart';
 
 /// A bottom sheet widget for searching and selecting recordings from MusicBrainz.
 ///
 /// This widget displays search results from MusicBrainz with BPM information
 /// when available. Users can select a recording to populate song information.
 class MusicBrainzSearchSection extends StatefulWidget {
+
   const MusicBrainzSearchSection({
-    super.key,
     required this.query,
     required this.scrollController,
     required this.onSelect,
+    super.key,
   });
-
   /// The search query string.
   final String query;
 
@@ -43,7 +42,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          padding: const EdgeInsets.all(16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -67,7 +66,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
             future: _searchResults,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const LoadingIndicator();
+                return const Center(child: CircularProgressIndicator());
               }
 
               if (snapshot.hasError) {
@@ -78,16 +77,14 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                       const Icon(
                         Icons.error_outline,
                         size: 48,
-                        color: MonoPulseColors.error,
+                        color: Colors.red,
                       ),
                       const SizedBox(height: 16),
                       const Text('Search error'),
                       const SizedBox(height: 8),
                       Text(
                         'Try again later',
-                        style: MonoPulseTypography.bodySmall.copyWith(
-                          color: MonoPulseColors.textTertiary,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                     ],
                   ),
@@ -97,19 +94,23 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
               final results = snapshot.data ?? [];
 
               if (results.isEmpty) {
-                return Center(
+                return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.search_off, size: 48, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      const Text('No results found'),
-                      const SizedBox(height: 8),
+                      Icon(
+                        Icons.search_off,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 16),
+                      Text('No results found'),
+                      SizedBox(height: 8),
                       Text(
                         'Try different keywords',
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
                           color: Colors.grey,
+                          fontSize: 12,
                         ),
                       ),
                     ],

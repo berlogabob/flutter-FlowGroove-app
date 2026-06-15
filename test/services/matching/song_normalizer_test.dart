@@ -1,8 +1,8 @@
 /// Unit tests for song normalization.
 library;
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/services/matching/song_normalizer.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SongNormalizer.normalizeTitle', () {

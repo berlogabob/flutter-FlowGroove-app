@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../theme/mono_pulse_theme.dart';
-import 'unified_item/unified_item_model.dart';
-import 'unified_item/unified_item_list.dart';
-import 'unified_item/unified_filter_sort_widget.dart';
 import 'empty_state.dart';
-import 'error_banner.dart';
+import 'error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import 'loading_indicator.dart';
+import 'unified_item/unified_filter_sort_widget.dart';
+import 'unified_item/unified_item_list.dart';
+import 'unified_item/unified_item_model.dart';
 
 /// Generic list content widget for displaying unified items.
 ///
@@ -32,6 +33,24 @@ import 'loading_indicator.dart';
 /// ```
 class ListScreenContent<T extends UnifiedItemModel>
     extends ConsumerStatefulWidget {
+
+  const ListScreenContent({
+    required this.items,
+    required this.emptyStateBuilder,
+    super.key,
+    this.itemsAsync,
+    this.sortOption = SortOption.manual,
+    this.filterText,
+    this.additionalFilters,
+    this.tagCloud,
+    this.enableReorder = false,
+    this.onReorder,
+    this.onDelete,
+    this.onEdit,
+    this.onTap,
+    this.additionalActionsBuilder,
+    this.searchEmptyStateBuilder,
+  });
   /// List of items to display.
   final List<T> items;
 
@@ -74,24 +93,6 @@ class ListScreenContent<T extends UnifiedItemModel>
   /// Factory for empty state when search returns no results.
   final EmptyState Function(String query)? searchEmptyStateBuilder;
 
-  const ListScreenContent({
-    super.key,
-    required this.items,
-    this.itemsAsync,
-    this.sortOption = SortOption.manual,
-    this.filterText,
-    this.additionalFilters,
-    this.tagCloud,
-    this.enableReorder = false,
-    this.onReorder,
-    this.onDelete,
-    this.onEdit,
-    this.onTap,
-    this.additionalActionsBuilder,
-    required this.emptyStateBuilder,
-    this.searchEmptyStateBuilder,
-  });
-
   @override
   ConsumerState<ListScreenContent<T>> createState() =>
       _ListScreenContentState<T>();
@@ -109,7 +110,7 @@ class _ListScreenContentState<T extends UnifiedItemModel>
     // Handle error state
     final error = widget.itemsAsync?.error;
     if (error != null && widget.items.isEmpty) {
-      return ErrorBanner.card(message: error.toString(), onRetry: () {});
+      return ErrorBanner(message: error.toString(), onRetry: () {}, showRetry: false, style: ErrorBannerStyle.inline);
     }
 
     // Build content

@@ -110,7 +110,6 @@ class AccentPatternEditorWidget extends ConsumerWidget {
                     horizontal: MonoPulseSpacing.xs,
                   ),
                   child: _AccentToggleButton(
-                    key: Key('accent_toggle_$index'),
                     beatNumber: index + 1,
                     isAccent: isAccent,
                     onTap: () {
@@ -131,13 +130,12 @@ class AccentPatternEditorWidget extends ConsumerWidget {
 }
 
 class _AccentToggleButton extends StatefulWidget {
+
   const _AccentToggleButton({
-    super.key,
     required this.beatNumber,
     required this.isAccent,
     required this.onTap,
   });
-
   final int beatNumber;
   final bool isAccent;
   final VoidCallback onTap;
@@ -159,7 +157,7 @@ class _AccentToggleButtonState extends State<_AccentToggleButton>
       duration: MonoPulseAnimation.durationShort,
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
+    _pulseAnimation = Tween<double>(begin: 1, end: 1.08).animate(
       CurvedAnimation(
         parent: _pulseController,
         curve: MonoPulseAnimation.curveCustom,
@@ -195,7 +193,6 @@ class _AccentToggleButtonState extends State<_AccentToggleButton>
         const SizedBox(height: MonoPulseSpacing.xs),
         // Toggle button
         GestureDetector(
-          key: Key('accent_toggle_button_${widget.beatNumber}'),
           onTapDown: (_) {
             setState(() => _isPressed = true);
             HapticFeedback.vibrate();

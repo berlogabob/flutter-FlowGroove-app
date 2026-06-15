@@ -1,7 +1,7 @@
 name: flowgroove
 description: "FlowGroove - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.13.4+197
+version: 0.13.4+199
 
 environment:
   sdk: ^3.12.0
@@ -45,9 +45,10 @@ dependencies:
 
   # UI Utilities
   gap: ^3.0.0
+  google_fonts: ^8.1.0
 
   # Audio
-  flutter_soloud: ^3.5.4
+  flutter_soloud: ^4.0.9
   record: ^7.1.0
 
   # PDF & Export
@@ -59,7 +60,7 @@ dependencies:
   http: ^1.4.0
   intl: ^0.20.2
   json_annotation: ^4.11.0
-  package_info_plus: ^9.0.0
+  package_info_plus: ^10.1.0
   url_launcher: ^6.3.2
   uuid: ^4.5.3
   equatable: ^2.0.7
@@ -71,13 +72,14 @@ dependencies:
   image_picker: ^1.1.2
 
   # File picker for import/export
-  file_picker: ^10.3.10
-  share_plus: ^12.0.1
+  file_picker: ^12.0.0-beta.5
+  share_plus: ^13.1.0
 
   permission_handler: ^12.0.1
 
   web: ^1.1.1
 
+  path_provider: any
 dev_dependencies:
   build_runner: ^2.12.2
   flutter_lints: ^6.0.0

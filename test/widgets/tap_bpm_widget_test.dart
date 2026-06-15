@@ -1,6 +1,6 @@
+import 'package:flowgroove/widgets/tap_bpm_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/tap_bpm_widget.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 import '../helpers/test_helpers.dart';
@@ -27,7 +27,7 @@ void main() {
       }
     }
 
-    testWidgets('renders tap button', (WidgetTester tester) async {
+    testWidgets('renders tap button', (tester) async {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
@@ -39,7 +39,7 @@ void main() {
     });
 
     testWidgets('renders helper text when no BPM calculated', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -50,7 +50,7 @@ void main() {
       expect(find.text('Tap to calculate tempo'), findsOneWidget);
     });
 
-    testWidgets('tap button has correct size', (WidgetTester tester) async {
+    testWidgets('tap button has correct size', (tester) async {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
@@ -65,7 +65,7 @@ void main() {
     });
 
     testWidgets('displays calculated BPM after multiple taps', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -81,7 +81,7 @@ void main() {
     });
 
     testWidgets('shows Apply and Reset buttons after BPM calculation', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -90,13 +90,13 @@ void main() {
       );
 
       final tapButton = find.byIcon(Icons.touch_app);
-      await tapAtInterval(tester, tapButton, count: 2);
+      await tapAtInterval(tester, tapButton);
 
       expect(find.text('Apply'), findsOneWidget);
       expect(find.text('Reset'), findsOneWidget);
     });
 
-    testWidgets('Reset button clears taps', (WidgetTester tester) async {
+    testWidgets('Reset button clears taps', (tester) async {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
@@ -104,7 +104,7 @@ void main() {
       );
 
       final tapButton = find.byIcon(Icons.touch_app);
-      await tapAtInterval(tester, tapButton, count: 2);
+      await tapAtInterval(tester, tapButton);
 
       await tester.tap(find.text('Reset'));
       await tester.pump();
@@ -112,7 +112,7 @@ void main() {
       expect(find.text('Tap to calculate tempo'), findsOneWidget);
     });
 
-    testWidgets('shows tap count', (WidgetTester tester) async {
+    testWidgets('shows tap count', (tester) async {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
@@ -125,7 +125,7 @@ void main() {
       expect(find.text('3 taps'), findsOneWidget);
     });
 
-    testWidgets('has correct container styling', (WidgetTester tester) async {
+    testWidgets('has correct container styling', (tester) async {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),
@@ -135,7 +135,7 @@ void main() {
       expect(find.byType(Container), findsWidgets);
     });
 
-    testWidgets('tap button is tappable', (WidgetTester tester) async {
+    testWidgets('tap button is tappable', (tester) async {
       await pumpAppWidget(
         tester,
         const TapBPMWidget(),

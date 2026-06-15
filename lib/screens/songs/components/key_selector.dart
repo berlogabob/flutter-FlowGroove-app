@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../theme/mono_pulse_theme.dart';
 
 /// A widget for selecting musical key with base note and modifier.
 ///
@@ -7,16 +6,16 @@ import '../../../theme/mono_pulse_theme.dart';
 /// dropdown selectors for the base note (C, D, E, F, G, A, B) and
 /// modifier (sharp, flat, minor).
 class KeySelector extends StatelessWidget {
+
   const KeySelector({
-    super.key,
     required this.base,
     required this.modifier,
     required this.onChanged,
     this.label,
     this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
     this.keyModifiers = const ['', '#', 'b', 'm'],
+    super.key,
   });
-
   /// The selected base note (e.g., 'C', 'D', 'E').
   final String base;
 
@@ -45,9 +44,7 @@ class KeySelector extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: MonoPulseTypography.labelMedium.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
           ),
           const SizedBox(height: 4),
         ],
@@ -82,7 +79,7 @@ class KeySelector extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: MonoPulseColors.borderDefault),
+        border: Border.all(color: Colors.grey.shade300),
       ),
       child: DropdownButton<String>(
         value: value,

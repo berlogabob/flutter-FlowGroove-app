@@ -199,7 +199,7 @@ class ApiError implements Exception {
 
     // Default to unknown
     return ApiError.unknown(
-      message: 'An unexpected error occurred: ${e.toString()}',
+      message: 'An unexpected error occurred: $e',
       exception: e,
       stackTrace: stackTrace,
     );

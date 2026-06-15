@@ -197,7 +197,7 @@ DateTime _parseDateTime(value) {
       return DateTime.fromMillisecondsSinceEpoch(value);
     }
   } catch (e) {
-    debugPrint('⚠️ Invalid date format in Band: $value - ${e.toString()}');
+    debugPrint('⚠️ Invalid date format in Band: $value - $e');
   }
   return DateTime.now();
 }

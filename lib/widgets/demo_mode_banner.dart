@@ -15,9 +15,9 @@ import '../../theme/mono_pulse_theme.dart';
 ///
 /// Wraps child content and shows a dismissible banner when user is in demo mode.
 class DemoModeBanner extends ConsumerWidget {
-  final Widget child;
 
-  const DemoModeBanner({super.key, required this.child});
+  const DemoModeBanner({required this.child, super.key});
+  final Widget child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

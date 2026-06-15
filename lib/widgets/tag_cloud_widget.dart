@@ -3,18 +3,18 @@ import '../theme/mono_pulse_theme.dart';
 import 'app_filter_chip.dart';
 
 class TagCloudWidget extends StatelessWidget {
+
+  const TagCloudWidget({
+    required this.tagCounts,
+    required this.onTagSelected,
+    super.key,
+    this.maxTags = 10,
+    this.selectedTag,
+  });
   final Map<String, int> tagCounts;
   final String? selectedTag;
   final ValueChanged<String?> onTagSelected;
   final int maxTags;
-
-  const TagCloudWidget({
-    super.key,
-    required this.tagCounts,
-    required this.onTagSelected,
-    this.maxTags = 10,
-    this.selectedTag,
-  });
 
   @override
   Widget build(BuildContext context) {

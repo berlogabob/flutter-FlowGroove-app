@@ -2,21 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/data/data_providers.dart';
-import '../../providers/auth/auth_provider.dart';
+
 import '../../models/setlist.dart';
 import '../../models/song.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../providers/data/data_providers.dart';
 import '../../services/export/pdf_service.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/fab_variants.dart';
-import '../../widgets/unified_item/unified_item_list.dart';
-import '../../widgets/unified_item/unified_filter_sort_widget.dart';
-import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
-import '../../widgets/unified_item/unified_item_model.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/error_banner.dart';
+import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
+import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
+import '../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../widgets/unified_item/unified_item_list.dart';
+import '../../widgets/unified_item/unified_item_model.dart';
 
 class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});
@@ -38,7 +39,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     }
 
     var adapters = setlistsToUse
-        .map((setlist) => SetlistItemAdapter(setlist))
+        .map(SetlistItemAdapter.new)
         .toList();
 
     if (_searchQuery.trim().isNotEmpty) {
@@ -56,17 +57,14 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
           adapters.sort(
             (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
           );
-          break;
         case SortOption.dateAdded:
           adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          break;
         case SortOption.dateModified:
           adapters.sort(
             (a, b) => (b.updatedAt ?? DateTime(0)).compareTo(
               a.updatedAt ?? DateTime(0),
             ),
           );
-          break;
         case SortOption.manual:
           break;
       }
@@ -109,7 +107,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     }
   }
 
-  void _handleDelete(int index) async {
+  Future<void> _handleDelete(int index) async {
     final adapters = _filterAndSortSetlists(
       ref.read(setlistsProvider).value ?? [],
     );
@@ -169,12 +167,14 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
 
   Widget _buildBody(AsyncValue<List<Setlist>> setlistsAsync) {
     return setlistsAsync.when(
-      data: (setlists) => _buildContent(setlists),
+      data: _buildContent,
       loading: () => const LoadingIndicator(),
       error: (e, _) => Center(
-        child: ErrorBanner.card(
+        child: ErrorBanner(
           message: e.toString(),
           onRetry: () => ref.invalidate(setlistsProvider),
+          showRetry: true,
+          style: ErrorBannerStyle.card,
         ),
       ),
     );
@@ -224,7 +224,6 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       onDelete: _handleDelete,
       onTap: _handleTap,
       onEdit: _handleEdit,
-      showCompact: false,
       additionalActionsBuilder: (index) {
         return [
           _PdfExportAction(
@@ -235,7 +234,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     );
   }
 
-  void _exportPdf(Setlist setlist) async {
+  Future<void> _exportPdf(Setlist setlist) async {
     final songsAsync = ref.read(songsProvider);
     final allSongs = songsAsync.value ?? [];
     final setlistSongs = allSongs
@@ -327,8 +326,8 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
 }
 
 class _PdfExportAction implements UnifiedItemAction {
-  final VoidCallback? onPressed;
   _PdfExportAction({this.onPressed});
+  final VoidCallback? onPressed;
   @override
   Widget build(BuildContext context) {
     return IconButton(

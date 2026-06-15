@@ -1,7 +1,6 @@
 #!/usr/bin/env dart
 
 import 'dart:io';
-import 'dart:convert';
 
 /// ISAR Auto-Migration Script
 /// 
@@ -110,10 +109,10 @@ String migrateModel(String content, String fileName) {
   var migrated = content;
   
   // Step 1: Add Isar import
-  if (!migrated.contains('import \'package:isar/isar.dart\';')) {
+  if (!migrated.contains("import 'package:isar/isar.dart';")) {
     migrated = migrated.replaceFirst(
-      'import \'package:json_annotation/json_annotation.dart\';',
-      'import \'package:isar/isar.dart\';\nimport \'package:json_annotation/json_annotation.dart\';',
+      "import 'package:json_annotation/json_annotation.dart';",
+      "import 'package:isar/isar.dart';\nimport 'package:json_annotation/json_annotation.dart';",
     );
   }
   
@@ -125,20 +124,20 @@ String migrateModel(String content, String fileName) {
   
   // Step 3: Replace final String id with Id id = Isar.autoIncrement
   migrated = migrated.replaceAll(
-    RegExp(r'final String id;'),
+    RegExp('final String id;'),
     'Id id = Isar.autoIncrement;',
   );
   
   // Step 4: Replace final int id with Id id = Isar.autoIncrement
   migrated = migrated.replaceAll(
-    RegExp(r'final int id;'),
+    RegExp('final int id;'),
     'Id id = Isar.autoIncrement;',
   );
   
   // Step 5: Remove 'final' from other fields and add defaults
   migrated = migrated.replaceAllMapped(
     RegExp(r'final String (\w+);'),
-    (match) => 'String ${match.group(1)} = \'\';',
+    (match) => "String ${match.group(1)} = '';",
   );
   
   migrated = migrated.replaceAllMapped(
@@ -158,7 +157,7 @@ String migrateModel(String content, String fileName) {
   
   // Step 6: Add @Index() to fields that look like they should be indexed
   migrated = migrated.replaceAllMapped(
-    RegExp(r'  String (id|name|type|email|uid) =', multiLine: true),
+    RegExp('  String (id|name|type|email|uid) =', multiLine: true),
     (match) => '  @Index()\n  String ${match.group(1)} =',
   );
   
@@ -180,13 +179,13 @@ String migrateModel(String content, String fileName) {
 ''';
     
     // Add before the closing brace of the class
-    migrated = migrated.replaceFirst('}', fromMapMethod + '}');
+    migrated = migrated.replaceFirst('}', '$fromMapMethod}');
   }
   
   // Step 8: Add Isar.autoIncrement default to id parameter in constructor
   migrated = migrated.replaceAll(
     RegExp(r'(\s+)(this\.id|id:)(\s*)(=)?'),
-    '\$1\$2\$3= Isar.autoIncrement',
+    r'$1$2$3= Isar.autoIncrement',
   );
   
   return migrated;

@@ -14,9 +14,9 @@ import '../../analytics/metronome_analytics.dart';
 
 /// Manages audio focus for metronome playback
 class AudioFocusManager {
-  static final AudioFocusManager _instance = AudioFocusManager._internal();
   factory AudioFocusManager() => _instance;
   AudioFocusManager._internal();
+  static final AudioFocusManager _instance = AudioFocusManager._internal();
 
   bool _hasFocus = false;
   bool _isPaused = false;

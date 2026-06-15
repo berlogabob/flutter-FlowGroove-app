@@ -1,21 +1,20 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flowgroove/screens/songs/add_song_screen.dart';
+import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/song_autocomplete_provider.dart';
-import 'package:flowgroove/models/user.dart';
-import 'package:flowgroove/models/song_suggestion.dart';
+import 'package:flowgroove/screens/songs/add_song_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 
-import '../../helpers/test_helpers.dart';
 import '../../helpers/mocks.dart';
 import '../../helpers/mocks.mocks.dart';
+import '../../helpers/test_helpers.dart';
 
 // Test notifier that returns a specific value
 class TestAppUserNotifier extends AppUserNotifier {
-  final AppUser? mockUser;
 
   TestAppUserNotifier(this.mockUser);
+  final AppUser? mockUser;
 
   @override
   AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
@@ -32,7 +31,7 @@ void main() {
     });
 
     testWidgets('renders add song screen with title', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -43,7 +42,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -53,13 +52,11 @@ void main() {
     });
 
     testWidgets('renders edit song screen with title when editing', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final song = MockDataHelper.createMockSong(
         id: 'test-song',
-        title: 'Test Song',
-        artist: 'Test Artist',
       );
 
       await pumpAppWidget(
@@ -69,7 +66,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -78,7 +75,7 @@ void main() {
       expect(findText('Edit Song'), findsOneWidget);
     });
 
-    testWidgets('displays all form fields', (WidgetTester tester) async {
+    testWidgets('displays all form fields', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -88,7 +85,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -102,7 +99,7 @@ void main() {
       expect(find.text('Notes'), findsOneWidget);
     });
 
-    testWidgets('displays save button in app bar', (WidgetTester tester) async {
+    testWidgets('displays save button in app bar', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -112,7 +109,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -126,7 +123,7 @@ void main() {
     });
 
     testWidgets('allows entering song title and artist', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -137,7 +134,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -159,7 +156,7 @@ void main() {
       expect(find.text('Test Artist'), findsWidgets);
     });
 
-    testWidgets('allows entering BPM values', (WidgetTester tester) async {
+    testWidgets('allows entering BPM values', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -169,7 +166,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -192,7 +189,7 @@ void main() {
       expect(find.text('125'), findsWidgets);
     });
 
-    testWidgets('allows entering notes', (WidgetTester tester) async {
+    testWidgets('allows entering notes', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -202,7 +199,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -221,7 +218,7 @@ void main() {
     });
 
     testWidgets('displays tag selection chips when expanded', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -232,7 +229,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -258,7 +255,7 @@ void main() {
       expect(find.text('fast'), findsOneWidget);
     });
 
-    testWidgets('allows selecting tags', (WidgetTester tester) async {
+    testWidgets('allows selecting tags', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -268,7 +265,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -293,7 +290,7 @@ void main() {
       expect(find.text('ready'), findsOneWidget);
     });
 
-    testWidgets('displays search buttons', (WidgetTester tester) async {
+    testWidgets('displays search buttons', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -303,7 +300,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -324,7 +321,7 @@ void main() {
     });
 
     testWidgets('displays copy from original button', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -335,7 +332,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -345,7 +342,7 @@ void main() {
     });
 
     testWidgets('populates form fields when editing', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
       final song = MockDataHelper.createMockSong(
@@ -364,7 +361,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -377,7 +374,7 @@ void main() {
     });
 
     testWidgets('shows validation when saving without title', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -388,7 +385,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -405,7 +402,7 @@ void main() {
       expect(find.text('Title required'), findsOneWidget);
     });
 
-    testWidgets('displays key selector dropdowns', (WidgetTester tester) async {
+    testWidgets('displays key selector dropdowns', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -415,7 +412,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -425,7 +422,7 @@ void main() {
       expect(find.text('Our'), findsOneWidget);
     });
 
-    testWidgets('displays links section', (WidgetTester tester) async {
+    testWidgets('displays links section', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -435,7 +432,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -444,7 +441,7 @@ void main() {
       expect(find.text('Links'), findsWidgets);
     });
 
-    testWidgets('renders scaffold', (WidgetTester tester) async {
+    testWidgets('renders scaffold', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -454,7 +451,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -462,7 +459,7 @@ void main() {
       expect(find.byType(Scaffold), findsOneWidget);
     });
 
-    testWidgets('renders app bar', (WidgetTester tester) async {
+    testWidgets('renders app bar', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -472,7 +469,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -480,7 +477,7 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
     });
 
-    testWidgets('renders ListView body', (WidgetTester tester) async {
+    testWidgets('renders ListView body', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -490,7 +487,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -499,7 +496,7 @@ void main() {
     });
 
     testWidgets('displays Wrap for search buttons', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -510,7 +507,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -525,7 +522,7 @@ void main() {
       expect(find.byType(Wrap), findsOneWidget);
     });
 
-    testWidgets('displays search icons', (WidgetTester tester) async {
+    testWidgets('displays search icons', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -535,7 +532,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -551,7 +548,7 @@ void main() {
     });
 
     testWidgets('displays music note icon for Spotify', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -562,7 +559,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -575,7 +572,7 @@ void main() {
     });
 
     testWidgets('displays analytics icon for BPM/Key', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -586,7 +583,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -599,7 +596,7 @@ void main() {
       expect(find.text('BPM/Key'), findsOneWidget);
     });
 
-    testWidgets('displays SizedBox for spacing', (WidgetTester tester) async {
+    testWidgets('displays SizedBox for spacing', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -609,7 +606,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -618,7 +615,7 @@ void main() {
     });
 
     testWidgets('displays Align widget for search buttons', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -629,7 +626,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -642,17 +639,17 @@ void main() {
       expect(find.byType(Wrap), findsOneWidget);
     });
 
-    testWidgets('handles null song for add mode', (WidgetTester tester) async {
+    testWidgets('handles null song for add mode', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
         tester,
-        const AddSongScreen(song: null),
+        const AddSongScreen(),
         overrides: [
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -661,7 +658,7 @@ void main() {
     });
 
     testWidgets('initializes with form fields for new song', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -672,7 +669,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -682,7 +679,7 @@ void main() {
     });
 
     testWidgets('displays all 5 available tags when expanded', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -693,7 +690,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -717,7 +714,7 @@ void main() {
       expect(find.text('fast'), findsOneWidget);
     });
 
-    testWidgets('displays SongForm widget', (WidgetTester tester) async {
+    testWidgets('displays SongForm widget', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -727,7 +724,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );
@@ -737,7 +734,7 @@ void main() {
     });
 
     testWidgets('displays PopScope for auto-save on back', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
@@ -748,7 +745,7 @@ void main() {
           firebaseAuthProvider.overrideWith((ref) => mockAuth),
           appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
           autocompleteSearchProvider.overrideWith(
-            () => TestAutocompleteNotifier(),
+            TestAutocompleteNotifier.new,
           ),
         ],
       );

@@ -12,8 +12,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/global_tone_config_provider.dart';
+
 import '../../models/metronome_tone_config.dart';
+import '../../providers/global_tone_config_provider.dart';
 
 /// Fullscreen tone settings dialog
 class ToneSettingsDialog extends ConsumerStatefulWidget {
@@ -52,7 +53,7 @@ class _ToneSettingsDialogState extends ConsumerState<ToneSettingsDialog> {
             // Preset Selector
             _PresetSelector(
               currentPreset: _getCurrentPresetName(toneConfig),
-              onSelect: (preset) => notifier.setPreset(preset),
+              onSelect: notifier.setPreset,
             ),
 
             const SizedBox(height: 24),
@@ -380,11 +381,11 @@ class _WaveTypeSelector extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         ...waveTypes.map((wave) {
-          final waveName = wave['name'] as String;
+          final waveName = wave['name']! as String;
           // ignore: deprecated_member_use
           return RadioListTile<String>(
             title: Text(waveName),
-            subtitle: Text(wave['desc'] as String),
+            subtitle: Text(wave['desc']! as String),
             value: waveName.toLowerCase(),
             // ignore: deprecated_member_use
             groupValue: currentWaveType.toLowerCase(),
@@ -394,7 +395,7 @@ class _WaveTypeSelector extends StatelessWidget {
                 onWaveTypeChanged(value);
               }
             },
-            secondary: Icon(wave['icon'] as IconData),
+            secondary: Icon(wave['icon']! as IconData),
           );
         }),
       ],
@@ -431,8 +432,6 @@ class _VolumeControl extends StatelessWidget {
             Expanded(
               child: Slider(
                 value: currentVolume,
-                min: 0.0,
-                max: 1.0,
                 divisions: 20,
                 label: '${(currentVolume * 100).round()}%',
                 onChanged: onVolumeChanged,

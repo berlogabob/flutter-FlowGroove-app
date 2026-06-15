@@ -440,7 +440,7 @@ class _DropdownSelector<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: MonoPulseColors.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),

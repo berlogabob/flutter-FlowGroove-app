@@ -5,9 +5,9 @@ import '../core/theme/app_colors.dart';
 /// Color picker dialog with 3 methods: theme colors, color wheel, hex input.
 class ColorPickerDialog extends StatefulWidget {
   const ColorPickerDialog({
-    super.key,
     required this.sectionName,
     required this.initialColor,
+    super.key,
   });
 
   final String sectionName;
@@ -233,10 +233,10 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
         onChanged: (value) {
           setState(() {
             _selectedColor = HSVColor.fromAHSV(
-              1.0,
+              1,
               value * 360,
-              1.0,
-              1.0,
+              1,
+              1,
             ).toColor();
             _hexController.text = SectionColorPalette.colorToHex(
               _selectedColor,
@@ -251,7 +251,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
     return SliderTheme(
       data: const SliderThemeData(
         trackHeight: 16,
-        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
+        thumbShape: RoundSliderThumbShape(),
       ),
       child: Slider(
         value: HSVColor.fromColor(_selectedColor).saturation,
@@ -259,7 +259,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
           setState(() {
             final hsv = HSVColor.fromColor(_selectedColor);
             _selectedColor = HSVColor.fromAHSV(
-              1.0,
+              1,
               hsv.hue,
               value,
               hsv.value,
@@ -277,7 +277,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
     return SliderTheme(
       data: const SliderThemeData(
         trackHeight: 16,
-        thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10),
+        thumbShape: RoundSliderThumbShape(),
       ),
       child: Slider(
         value: HSVColor.fromColor(_selectedColor).value,
@@ -285,7 +285,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
           setState(() {
             final hsv = HSVColor.fromColor(_selectedColor);
             _selectedColor = HSVColor.fromAHSV(
-              1.0,
+              1,
               hsv.hue,
               hsv.saturation,
               value,

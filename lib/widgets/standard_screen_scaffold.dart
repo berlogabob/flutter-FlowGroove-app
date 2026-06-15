@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../theme/mono_pulse_theme.dart';
 import 'custom_app_bar.dart';
 import 'offline_indicator.dart';
-import '../theme/mono_pulse_theme.dart';
 
 /// Standard screen scaffold providing consistent layout across all screens.
 ///
@@ -24,6 +25,16 @@ import '../theme/mono_pulse_theme.dart';
 /// )
 /// ```
 class StandardScreenScaffold extends StatelessWidget {
+
+  const StandardScreenScaffold({
+    required this.title,
+    required this.body,
+    super.key,
+    this.showOfflineIndicator = true,
+    this.showBackButton = true,
+    this.menuItems,
+    this.floatingActionButton,
+  });
   /// Screen title displayed in AppBar.
   final String title;
 
@@ -41,16 +52,6 @@ class StandardScreenScaffold extends StatelessWidget {
 
   /// Whether to show back button in AppBar.
   final bool showBackButton;
-
-  const StandardScreenScaffold({
-    super.key,
-    required this.title,
-    required this.body,
-    this.showOfflineIndicator = true,
-    this.showBackButton = true,
-    this.menuItems,
-    this.floatingActionButton,
-  });
 
   @override
   Widget build(BuildContext context) {

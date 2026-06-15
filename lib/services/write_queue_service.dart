@@ -10,16 +10,11 @@
 /// - Type-safe write entry serialization
 library;
 
-import 'package:hive/hive.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 
 /// A queued write operation.
 class WriteEntry {
-  final String id;
-  final WriteType type;
-  final Map<String, dynamic> payload;
-  final DateTime createdAt;
-  final int retryCount;
 
   WriteEntry({
     required this.id,
@@ -28,6 +23,19 @@ class WriteEntry {
     DateTime? createdAt,
     this.retryCount = 0,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  factory WriteEntry.fromJson(Map<String, dynamic> json) => WriteEntry(
+        id: json['id'] as String,
+        type: WriteType.values.byName(json['type'] as String),
+        payload: json['payload'] as Map<String, dynamic>,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        retryCount: json['retryCount'] as int? ?? 0,
+      );
+  final String id;
+  final WriteType type;
+  final Map<String, dynamic> payload;
+  final DateTime createdAt;
+  final int retryCount;
 
   WriteEntry copyWith({int? retryCount}) {
     return WriteEntry(
@@ -46,14 +54,6 @@ class WriteEntry {
         'createdAt': createdAt.toIso8601String(),
         'retryCount': retryCount,
       };
-
-  factory WriteEntry.fromJson(Map<String, dynamic> json) => WriteEntry(
-        id: json['id'] as String,
-        type: WriteType.values.byName(json['type'] as String),
-        payload: json['payload'] as Map<String, dynamic>,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        retryCount: json['retryCount'] as int? ?? 0,
-      );
 }
 
 /// Types of write operations supported by the queue.

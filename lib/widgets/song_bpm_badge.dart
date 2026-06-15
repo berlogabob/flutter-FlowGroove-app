@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../theme/mono_pulse_theme.dart';
+
 import '../providers/data/song_bpm_provider.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// Widget to display song BPM with quick metronome start.
 ///
 /// When [spotifyId] is provided, fetches BPM from Spotify automatically.
 /// Falls back to manual [bpm] if no Spotify ID or API unavailable.
 class SongBPMBadge extends ConsumerWidget {
-  final int? bpm;
-  final VoidCallback? onTap;
-  final bool showLabel;
-  final String? spotifyId;
 
   const SongBPMBadge({
     super.key,
@@ -20,6 +17,10 @@ class SongBPMBadge extends ConsumerWidget {
     this.showLabel = true,
     this.spotifyId,
   });
+  final int? bpm;
+  final VoidCallback? onTap;
+  final bool showLabel;
+  final String? spotifyId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

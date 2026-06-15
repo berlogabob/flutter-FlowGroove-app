@@ -15,10 +15,11 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'data/metronome_provider.dart';
+
 import '../models/beat_mode.dart';
-import '../models/song.dart';
 import '../models/setlist.dart';
+import '../models/song.dart';
+import 'data/metronome_provider.dart';
 
 /// Provider for BPM only (doesn't rebuild on beat changes)
 final metronomeBpmProvider = Provider<int>((ref) {

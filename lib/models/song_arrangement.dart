@@ -1,5 +1,5 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 part 'song_arrangement.g.dart';
@@ -59,55 +59,6 @@ class SongArrangement extends Equatable {
     DateTime? updatedAt,
   })  : createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
-
-  /// Unique identifier
-  final String id;
-
-  /// ID of the canonical song this arrangement is based on
-  final String canonicalSongId;
-
-  /// Owner type (user or group)
-  final String ownerType; // 'user' or 'group'
-
-  /// Owner ID (user ID or band ID)
-  final String ownerId;
-
-  /// Band ID (if owner is group)
-  final String? bandId;
-
-  /// Arrangement type
-  final ArrangementType arrangementType;
-
-  /// Version name (e.g., "Live 2025", "Wedding Version")
-  final String? versionName;
-
-  /// Performance key (e.g., "C", "Gm", "A#")
-  final String? key;
-
-  /// Performance tempo in BPM
-  final int? tempoBpm;
-
-  /// Capo fret number (for guitar)
-  final int? capoFret;
-
-  /// Custom structure (JSON)
-  final Map<String, dynamic>? structure;
-
-  /// Performance notes
-  final String? notes;
-
-  /// Whether this arrangement is public (for groups)
-  @JsonKey(defaultValue: false)
-  final bool isPublic;
-
-  /// ID of arrangement this was forked from (if any)
-  final String? forkedFrom;
-
-  /// When this arrangement was created
-  final DateTime createdAt;
-
-  /// When this arrangement was last updated
-  final DateTime updatedAt;
 
   /// Create a personal arrangement.
   factory SongArrangement.personal({
@@ -174,6 +125,55 @@ class SongArrangement extends Equatable {
 
   factory SongArrangement.fromJson(Map<String, dynamic> json) =>
       _$SongArrangementFromJson(json);
+
+  /// Unique identifier
+  final String id;
+
+  /// ID of the canonical song this arrangement is based on
+  final String canonicalSongId;
+
+  /// Owner type (user or group)
+  final String ownerType; // 'user' or 'group'
+
+  /// Owner ID (user ID or band ID)
+  final String ownerId;
+
+  /// Band ID (if owner is group)
+  final String? bandId;
+
+  /// Arrangement type
+  final ArrangementType arrangementType;
+
+  /// Version name (e.g., "Live 2025", "Wedding Version")
+  final String? versionName;
+
+  /// Performance key (e.g., "C", "Gm", "A#")
+  final String? key;
+
+  /// Performance tempo in BPM
+  final int? tempoBpm;
+
+  /// Capo fret number (for guitar)
+  final int? capoFret;
+
+  /// Custom structure (JSON)
+  final Map<String, dynamic>? structure;
+
+  /// Performance notes
+  final String? notes;
+
+  /// Whether this arrangement is public (for groups)
+  @JsonKey(defaultValue: false)
+  final bool isPublic;
+
+  /// ID of arrangement this was forked from (if any)
+  final String? forkedFrom;
+
+  /// When this arrangement was created
+  final DateTime createdAt;
+
+  /// When this arrangement was last updated
+  final DateTime updatedAt;
 
   Map<String, dynamic> toJson() => _$SongArrangementToJson(this);
 

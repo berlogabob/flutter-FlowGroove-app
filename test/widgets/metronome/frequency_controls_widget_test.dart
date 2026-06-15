@@ -1,6 +1,6 @@
+import 'package:flowgroove/widgets/metronome/frequency_controls_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/metronome/frequency_controls_widget.dart';
 
 import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/test_helpers.dart';
@@ -8,7 +8,7 @@ import '../../helpers/test_helpers.dart';
 void main() {
   group('FrequencyControlsWidget', () {
     testWidgets('renders Advanced Settings header', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -20,7 +20,7 @@ void main() {
     });
 
     testWidgets('renders container with border decoration', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -32,7 +32,7 @@ void main() {
       expect(find.byType(Container), findsWidgets);
     });
 
-    testWidgets('renders tune icon', (WidgetTester tester) async {
+    testWidgets('renders tune icon', (tester) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
@@ -42,7 +42,7 @@ void main() {
       expect(find.byIcon(Icons.tune), findsOneWidget);
     });
 
-    testWidgets('renders expand/collapse icon', (WidgetTester tester) async {
+    testWidgets('renders expand/collapse icon', (tester) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
@@ -53,7 +53,7 @@ void main() {
       expect(find.byIcon(Icons.expand_more), findsOneWidget);
     });
 
-    testWidgets('content is collapsed by default', (WidgetTester tester) async {
+    testWidgets('content is collapsed by default', (tester) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
@@ -66,7 +66,7 @@ void main() {
       expect(crossFade.crossFadeState, CrossFadeState.showFirst);
     });
 
-    testWidgets('expands when header is tapped', (WidgetTester tester) async {
+    testWidgets('expands when header is tapped', (tester) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
@@ -82,7 +82,7 @@ void main() {
     });
 
     testWidgets('shows volume slider when expanded', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -99,7 +99,7 @@ void main() {
     });
 
     testWidgets('shows tone type selector when expanded', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -116,7 +116,7 @@ void main() {
     });
 
     testWidgets('shows wave type options when expanded', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -134,7 +134,7 @@ void main() {
       expect(find.byType(DropdownButton<String>), findsOneWidget);
     });
 
-    testWidgets('shows volume icon when expanded', (WidgetTester tester) async {
+    testWidgets('shows volume icon when expanded', (tester) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
@@ -149,7 +149,7 @@ void main() {
     });
 
     testWidgets('shows accent toggle when expanded', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -165,7 +165,7 @@ void main() {
     });
 
     testWidgets('shows frequency inputs when expanded', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -182,7 +182,7 @@ void main() {
       expect(find.text('Beat:'), findsOneWidget);
     });
 
-    testWidgets('shows divider when expanded', (WidgetTester tester) async {
+    testWidgets('shows divider when expanded', (tester) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
@@ -197,7 +197,7 @@ void main() {
     });
 
     testWidgets('collapses when tapped again after expanding', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -218,7 +218,7 @@ void main() {
     });
 
     testWidgets('displays current wave type in dropdown', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -235,7 +235,7 @@ void main() {
       expect(find.byType(DropdownButton<String>), findsOneWidget);
     });
 
-    testWidgets('displays accent toggle subtitle', (WidgetTester tester) async {
+    testWidgets('displays accent toggle subtitle', (tester) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),
@@ -249,7 +249,7 @@ void main() {
       expect(find.text('Higher pitch on first beat'), findsOneWidget);
     });
 
-    testWidgets('volume slider has correct range', (WidgetTester tester) async {
+    testWidgets('volume slider has correct range', (tester) async {
       await pumpAppWidget(
         tester,
         const FrequencyControlsWidget(),

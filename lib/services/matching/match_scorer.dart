@@ -7,34 +7,34 @@
 /// - Album similarity (10%)
 library;
 
-import 'dart:math' show min, max;
+import 'dart:math' show max, min;
 
 import '../../models/song.dart';
-import 'song_normalizer.dart';
 import 'fuzzy_matcher.dart';
+import 'song_normalizer.dart';
 
 /// Match confidence thresholds.
 class MatchThresholds {
   /// Minimum score to show in search results.
-  static const double REQUIRE_REVIEW = 70.0;
+  static const double REQUIRE_REVIEW = 70;
 
   /// Score at which to show "Did you mean?" suggestion.
-  static const double SUGGEST_MATCH = 85.0;
+  static const double SUGGEST_MATCH = 85;
 
   /// Score at which to auto-suggest with high confidence.
-  static const double AUTO_SELECT = 98.0;
+  static const double AUTO_SELECT = 98;
 
   /// Score considered an exact match.
   static const double EXACT_MATCH = 99.5;
 
   /// Minimum title similarity required.
-  static const double MIN_TITLE_SIMILARITY = 60.0;
+  static const double MIN_TITLE_SIMILARITY = 60;
 
   /// Minimum artist similarity required.
-  static const double MIN_ARTIST_SIMILARITY = 50.0;
+  static const double MIN_ARTIST_SIMILARITY = 50;
 
   /// Bonus for phonetic match.
-  static const double PHONETIC_BOOST = 5.0;
+  static const double PHONETIC_BOOST = 5;
 }
 
 /// Match score grade.
@@ -57,6 +57,15 @@ enum MatchGrade {
 
 /// Represents a match score between input and existing song.
 class MatchScore {
+
+  const MatchScore({
+    required this.total,
+    required this.titleSimilarity,
+    required this.artistSimilarity,
+    required this.durationSimilarity,
+    required this.albumSimilarity,
+    required this.matchedSong,
+  });
   /// Total match score (0-100).
   final double total;
 
@@ -90,15 +99,6 @@ class MatchScore {
   /// Whether this should be shown as a suggestion (>= 70%).
   bool get shouldSuggest => total >= MatchThresholds.REQUIRE_REVIEW;
 
-  const MatchScore({
-    required this.total,
-    required this.titleSimilarity,
-    required this.artistSimilarity,
-    required this.durationSimilarity,
-    required this.albumSimilarity,
-    required this.matchedSong,
-  });
-
   @override
   String toString() {
     return 'MatchScore(total: ${total.toStringAsFixed(1)}%, '
@@ -119,9 +119,9 @@ class MatchScorer {
   static MatchScore calculate({
     required String inputTitle,
     required String inputArtist,
+    required Song existingSong,
     int? inputDuration,
     String? inputAlbum,
-    required Song existingSong,
   }) {
     // Normalize inputs
     final normInputTitle = SongNormalizer.normalizeTitle(inputTitle);
@@ -174,7 +174,7 @@ class MatchScorer {
         100;
 
     // Calculate duration similarity (if available)
-    double durationSimilarity = 0.0;
+    double durationSimilarity = 0;
     bool hasDuration = false;
     if (inputDuration != null && existingSong.durationMs != null) {
       final durationDiff = (inputDuration - existingSong.durationMs!).abs();
@@ -184,7 +184,7 @@ class MatchScorer {
     }
 
     // Calculate album similarity (if available)
-    double albumSimilarity = 0.0;
+    double albumSimilarity = 0;
     bool hasAlbum = false;
     if (inputAlbum != null && inputAlbum.isNotEmpty) {
       final normInputAlbum = SongNormalizer.normalizeTitle(inputAlbum);
@@ -202,8 +202,8 @@ class MatchScorer {
     // Redistribute weights if duration/album are not available
     double titleWeight = 0.40;
     double artistWeight = 0.40;
-    double durationWeight = hasDuration ? 0.10 : 0.0;
-    double albumWeight = hasAlbum ? 0.10 : 0.0;
+    final double durationWeight = hasDuration ? 0.10 : 0.0;
+    final double albumWeight = hasAlbum ? 0.10 : 0.0;
 
     // Redistribute missing weights to title and artist
     final missingWeight = (0.10 - durationWeight) + (0.10 - albumWeight);
@@ -211,10 +211,10 @@ class MatchScorer {
     artistWeight += missingWeight / 2;
 
     final score =
-        (titleSimilarity * titleWeight +
+        titleSimilarity * titleWeight +
         artistSimilarity * artistWeight +
         durationSimilarity * durationWeight +
-        albumSimilarity * albumWeight);
+        albumSimilarity * albumWeight;
 
     return MatchScore(
       total: score,
@@ -233,9 +233,9 @@ class MatchScorer {
     // Case 1: Empty artist input - weight title higher
     if (inputArtist.trim().isEmpty) {
       adjustedScore =
-          (score.titleSimilarity * 0.70 +
+          score.titleSimilarity * 0.70 +
           score.durationSimilarity * 0.15 +
-          score.albumSimilarity * 0.15);
+          score.albumSimilarity * 0.15;
     }
 
     // Case 2: Live version detection

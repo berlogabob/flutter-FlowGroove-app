@@ -15,11 +15,11 @@ enum SortOption {
 /// Filter and sort widget for unified item lists
 class UnifiedFilterSortWidget extends StatefulWidget {
   const UnifiedFilterSortWidget({
-    super.key,
     required this.currentSort,
     required this.onSortChanged,
-    this.filterText,
     required this.onFilterChanged,
+    super.key,
+    this.filterText,
     this.hintText = 'Search...',
   });
 
@@ -51,7 +51,7 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.small),

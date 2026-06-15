@@ -1,6 +1,6 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flowgroove/providers/tuner_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -41,7 +41,7 @@ void main() {
 
       test('TunerState copyWith creates new instance', () {
         const originalState = TunerState();
-        final newState = originalState.copyWith(frequency: 880.0);
+        final newState = originalState.copyWith(frequency: 880);
 
         expect(originalState.frequency, 440.0);
         expect(newState.frequency, 880.0);
@@ -50,7 +50,7 @@ void main() {
 
       test('TunerState copyWith preserves unchanged values', () {
         const originalState = TunerState();
-        final newState = originalState.copyWith(frequency: 880.0);
+        final newState = originalState.copyWith(frequency: 880);
 
         expect(newState.mode, originalState.mode);
         expect(newState.note, originalState.note);
@@ -100,7 +100,7 @@ void main() {
 
       test('updateFrequency updates frequency', () {
         final notifier = container.read(tunerProvider.notifier);
-        notifier.updateFrequency(880.0);
+        notifier.updateFrequency(880);
 
         final state = container.read(tunerProvider);
         expect(state.frequency, 880.0);
@@ -108,7 +108,7 @@ void main() {
 
       test('updateFrequency clamps to minimum 20 Hz', () {
         final notifier = container.read(tunerProvider.notifier);
-        notifier.updateFrequency(10.0);
+        notifier.updateFrequency(10);
 
         final state = container.read(tunerProvider);
         expect(state.frequency, 20.0);
@@ -116,7 +116,7 @@ void main() {
 
       test('updateFrequency clamps to maximum 2000 Hz', () {
         final notifier = container.read(tunerProvider.notifier);
-        notifier.updateFrequency(3000.0);
+        notifier.updateFrequency(3000);
 
         final state = container.read(tunerProvider);
         expect(state.frequency, 2000.0);
@@ -142,7 +142,7 @@ void main() {
         final notifier = container.read(tunerProvider.notifier);
 
         // A4 = 440 Hz should be 0 cents
-        final cents = notifier.calculateCents(440.0);
+        final cents = notifier.calculateCents(440);
         expect(cents, 0);
       });
 
@@ -150,7 +150,7 @@ void main() {
         final notifier = container.read(tunerProvider.notifier);
 
         // Very high frequency should clamp to 50
-        final cents = notifier.calculateCents(10000.0);
+        final cents = notifier.calculateCents(10000);
         expect(cents, inInclusiveRange(-50, 50));
       });
     });
@@ -189,7 +189,7 @@ void main() {
 
     group('NoteData Class', () {
       test('NoteData creates correct instance', () {
-        const noteData = NoteData(note: 'A', octave: 4, frequency: 440.0);
+        const noteData = NoteData(note: 'A', octave: 4, frequency: 440);
 
         expect(noteData.note, 'A');
         expect(noteData.octave, 4);
@@ -223,7 +223,7 @@ void main() {
       test('ProviderContainer dispose cleans up resources', () {
         final localContainer = ProviderContainer();
         localContainer.read(tunerProvider);
-        expect(() => localContainer.dispose(), returnsNormally);
+        expect(localContainer.dispose, returnsNormally);
       });
     });
 
@@ -241,10 +241,10 @@ void main() {
       test('multiple frequency updates work correctly', () {
         final notifier = container.read(tunerProvider.notifier);
 
-        notifier.updateFrequency(440.0);
+        notifier.updateFrequency(440);
         expect(container.read(tunerProvider).frequency, 440.0);
 
-        notifier.updateFrequency(880.0);
+        notifier.updateFrequency(880);
         expect(container.read(tunerProvider).frequency, 880.0);
 
         notifier.updateFrequency(261.63);
@@ -265,7 +265,7 @@ void main() {
     group('Edge Cases', () {
       test('updateFrequency with exactly 20 Hz', () {
         final notifier = container.read(tunerProvider.notifier);
-        notifier.updateFrequency(20.0);
+        notifier.updateFrequency(20);
 
         final state = container.read(tunerProvider);
         expect(state.frequency, 20.0);
@@ -273,7 +273,7 @@ void main() {
 
       test('updateFrequency with exactly 2000 Hz', () {
         final notifier = container.read(tunerProvider.notifier);
-        notifier.updateFrequency(2000.0);
+        notifier.updateFrequency(2000);
 
         final state = container.read(tunerProvider);
         expect(state.frequency, 2000.0);
@@ -281,7 +281,7 @@ void main() {
 
       test('setVolume with 0.0', () {
         final notifier = container.read(tunerProvider.notifier);
-        notifier.setVolume(0.0);
+        notifier.setVolume(0);
 
         final state = container.read(tunerProvider);
         expect(state.volume, 0.0);
@@ -289,7 +289,7 @@ void main() {
 
       test('setVolume with 1.0', () {
         final notifier = container.read(tunerProvider.notifier);
-        notifier.setVolume(1.0);
+        notifier.setVolume(1);
 
         final state = container.read(tunerProvider);
         expect(state.volume, 1.0);
@@ -299,7 +299,7 @@ void main() {
         final notifier = container.read(tunerProvider.notifier);
 
         // Test various standard frequencies
-        expect(notifier.calculateCents(440.0), inInclusiveRange(-50, 50));
+        expect(notifier.calculateCents(440), inInclusiveRange(-50, 50));
         expect(notifier.calculateCents(261.63), inInclusiveRange(-50, 50));
         expect(notifier.calculateCents(523.25), inInclusiveRange(-50, 50));
       });
@@ -314,7 +314,7 @@ void main() {
       test('derived providers update with tunerProvider', () {
         final notifier = container.read(tunerProvider.notifier);
 
-        notifier.updateFrequency(880.0);
+        notifier.updateFrequency(880);
 
         expect(container.read(tunerFrequencyProvider), 880.0);
         expect(container.read(tunerProvider).frequency, 880.0);

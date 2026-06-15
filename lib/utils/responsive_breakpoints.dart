@@ -90,7 +90,7 @@ class ResponsiveSizes {
       case ScreenBreakpoint.tablet:
         return 3.5;
       case ScreenBreakpoint.desktop:
-        return 4.0;
+        return 4;
     }
   }
 
@@ -102,7 +102,7 @@ class ResponsiveSizes {
       case ScreenBreakpoint.tablet:
         return 2.5;
       case ScreenBreakpoint.desktop:
-        return 3.0;
+        return 3;
     }
   }
 

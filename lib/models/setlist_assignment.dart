@@ -4,11 +4,6 @@ part 'setlist_assignment.g.dart';
 
 @JsonSerializable()
 class SetlistAssignment {
-  @JsonKey(defaultValue: '')
-  final String oderId;
-  final String? roleOverride;
-  final String? keyOverride;
-  final String? notes;
 
   SetlistAssignment({
     required this.oderId,
@@ -19,6 +14,11 @@ class SetlistAssignment {
 
   factory SetlistAssignment.fromJson(Map<String, dynamic> json) =>
       _$SetlistAssignmentFromJson(json);
+  @JsonKey(defaultValue: '')
+  final String oderId;
+  final String? roleOverride;
+  final String? keyOverride;
+  final String? notes;
 
   SetlistAssignment copyWith({
     String? oderId,

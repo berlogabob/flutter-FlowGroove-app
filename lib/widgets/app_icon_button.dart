@@ -17,6 +17,16 @@ import '../theme/mono_pulse_theme.dart';
 /// )
 /// ```
 class AppIconButton extends StatelessWidget {
+
+  const AppIconButton({
+    required this.icon,
+    required this.label,
+    super.key,
+    this.size = 20, // MonoPulseIcons.sizeMedium
+    this.padding = const EdgeInsets.all(14), // 48×48 min tap target (20px + 14*2)
+    this.onPressed,
+    this.color,
+  });
   /// Icon to display
   final IconData icon;
 
@@ -34,16 +44,6 @@ class AppIconButton extends StatelessWidget {
 
   /// Padding around the icon (for tap target sizing)
   final EdgeInsetsGeometry? padding;
-
-  const AppIconButton({
-    super.key,
-    required this.icon,
-    required this.label,
-    this.size = 20, // MonoPulseIcons.sizeMedium
-    this.padding = const EdgeInsets.all(14), // 48×48 min tap target (20px + 14*2)
-    this.onPressed,
-    this.color,
-  });
 
   @override
   Widget build(BuildContext context) {

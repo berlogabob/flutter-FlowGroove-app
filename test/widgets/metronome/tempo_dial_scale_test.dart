@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flowgroove/widgets/metronome/tempo_dial_scale.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/metronome/tempo_dial_scale.dart';
 
 void main() {
   group('TempoDialScale', () {
@@ -52,7 +52,7 @@ void main() {
       }
 
       expect(
-        TempoDialScale.positionToBpm(pointFor(320), size)!,
+        TempoDialScale.positionToBpm(pointFor(320), size),
         greaterThan(TempoDialScale.positionToBpm(pointFor(80), size)!),
       );
     });

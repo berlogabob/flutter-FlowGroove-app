@@ -32,14 +32,14 @@ Future<List<String>?> showRolePicker({
 
 /// Role picker dialog.
 class RolePickerDialog extends StatefulWidget {
-  final List<String> currentRoles;
-  final String? title;
 
   const RolePickerDialog({
-    super.key,
     required this.currentRoles,
+    super.key,
     this.title,
   });
+  final List<String> currentRoles;
+  final String? title;
 
   @override
   State<RolePickerDialog> createState() => _RolePickerDialogState();
@@ -217,7 +217,6 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                           color: isSelected
                               ? MonoPulseColors.accentOrange
                               : MonoPulseColors.textTertiary.withValues(alpha: 0.2),
-                          width: 1,
                         ),
                       ),
                       child: Row(

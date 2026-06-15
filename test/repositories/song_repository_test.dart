@@ -1,6 +1,7 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flutter_test/flutter_test.dart';
+
 import 'mock_repositories.dart';
 
 void main() {
@@ -238,7 +239,6 @@ void main() {
         artist: 'Test Artist',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        accentBeats: 4,
         regularBeats: 4,
       );
 

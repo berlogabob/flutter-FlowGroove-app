@@ -3,11 +3,12 @@
 // Uses mockito for HTTP client mocking to avoid real API calls
 
 import 'dart:convert';
+
+import 'package:flowgroove/models/api_error.dart';
+import 'package:flowgroove/services/api/spotify_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:flowgroove/services/api/spotify_service.dart';
-import 'package:flowgroove/models/api_error.dart';
 
 void main() {
   group('SpotifyService', () {

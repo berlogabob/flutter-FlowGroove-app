@@ -7,12 +7,13 @@
 ///
 /// Note: For real integration tests with Firebase Emulators,
 /// configure the emulator settings and remove mock behaviors.
+library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/band.dart';
-import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
@@ -344,7 +345,7 @@ void main() {
         id: 'test-id',
         title: 'Test Song',
         artist: 'Test Artist',
-        createdAt: DateTime(2024, 1, 1),
+        createdAt: DateTime(2024),
         updatedAt: DateTime(2024, 1, 2),
       );
 
@@ -361,7 +362,7 @@ void main() {
         name: 'Test Band',
         createdBy: testUserId,
         members: [BandMember(uid: testUserId, role: BandMember.roleAdmin)],
-        createdAt: DateTime(2024, 1, 1),
+        createdAt: DateTime(2024),
       );
 
       final json = band.toJson();
@@ -376,7 +377,7 @@ void main() {
         name: 'Test Setlist',
         bandId: 'test-band-id',
         songIds: ['song-1', 'song-2'],
-        createdAt: DateTime(2024, 1, 1),
+        createdAt: DateTime(2024),
         updatedAt: DateTime(2024, 1, 2),
       );
 

@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('BeatMode Enum', () {

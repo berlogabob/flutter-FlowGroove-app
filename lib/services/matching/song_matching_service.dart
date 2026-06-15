@@ -9,33 +9,33 @@ library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../models/song.dart';
-import 'song_normalizer.dart';
 import 'match_scorer.dart';
 
 /// Result of a paginated search.
 class PaginatedResult<T> {
-  final List<T> items;
-  final bool hasMore;
-  final DocumentSnapshot? lastDocument;
 
   const PaginatedResult({
     required this.items,
     required this.hasMore,
     this.lastDocument,
   });
+  final List<T> items;
+  final bool hasMore;
+  final DocumentSnapshot? lastDocument;
 }
 
 /// Service for finding matching songs.
 class SongMatchingService {
-  final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
-
-  static const int _pageSize = 50;
 
   SongMatchingService({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestore = firestore ?? FirebaseFirestore.instance,
       _auth = auth ?? FirebaseAuth.instance;
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  static const int _pageSize = 50;
 
   /// Gets the current user ID.
   String get _currentUserId {
@@ -139,7 +139,7 @@ class SongMatchingService {
 
       for (final doc in snapshot.docs) {
         try {
-          songs.add(Song.fromJson(doc.data() as Map<String, dynamic>));
+          songs.add(Song.fromJson(doc.data()));
         } catch (e) {
           // Skip invalid documents
           continue;
@@ -155,7 +155,7 @@ class SongMatchingService {
 
       for (final doc in snapshot.docs) {
         try {
-          songs.add(Song.fromJson(doc.data() as Map<String, dynamic>));
+          songs.add(Song.fromJson(doc.data()));
         } catch (e) {
           // Skip invalid documents
           continue;
@@ -199,7 +199,7 @@ class SongMatchingService {
     final songs = <Song>[];
     for (final doc in snapshot.docs) {
       try {
-        songs.add(Song.fromJson(doc.data() as Map<String, dynamic>));
+        songs.add(Song.fromJson(doc.data()! as Map<String, dynamic>));
       } catch (e) {
         continue;
       }

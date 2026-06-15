@@ -1,10 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Song Model - Firestore Metronome Settings', () {
-    final testDate = DateTime(2024, 1, 1);
+    final testDate = DateTime(2024);
 
     group('Song serialization with metronome settings', () {
       test('Song toJson includes metronome settings', () {
@@ -19,7 +19,6 @@ void main() {
           artist: 'Test Artist',
           createdAt: testDate,
           updatedAt: testDate,
-          accentBeats: 4,
           regularBeats: 2,
           beatModes: beatModes,
         );
@@ -79,7 +78,6 @@ void main() {
           artist: 'Test Artist',
           createdAt: testDate,
           updatedAt: testDate,
-          accentBeats: 4,
           regularBeats: 2,
           beatModes: originalBeatModes,
         );
@@ -176,8 +174,6 @@ void main() {
           artist: 'Artist',
           createdAt: testDate,
           updatedAt: testDate,
-          accentBeats: 4,
-          regularBeats: 1,
           beatModes: [],
         );
 
@@ -237,8 +233,6 @@ void main() {
             artist: 'Artist',
             createdAt: testDate,
             updatedAt: testDate,
-            accentBeats: 4,
-            regularBeats: 1,
           ),
           Song(
             id: 'song-2',
@@ -256,7 +250,6 @@ void main() {
             createdAt: testDate,
             updatedAt: testDate,
             accentBeats: 3,
-            regularBeats: 1,
           ),
         ];
 

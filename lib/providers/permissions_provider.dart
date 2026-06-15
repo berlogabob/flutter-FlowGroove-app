@@ -12,8 +12,9 @@
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/user.dart';
+
 import '../models/band.dart';
+import '../models/user.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
 
@@ -53,7 +54,7 @@ final canEditProvider = Provider<bool>((ref) {
   return userAsync.when(
     data: (user) => user != null && _canEdit(user),
     loading: () => false,
-    error: (_, __) => false,
+    error: (_, _) => false,
   );
 });
 
@@ -73,7 +74,7 @@ final canManageMembersProvider = Provider<bool>((ref) {
   return userAsync.when(
     data: (user) => user != null && _canManageMembers(user),
     loading: () => false,
-    error: (_, __) => false,
+    error: (_, _) => false,
   );
 });
 
@@ -87,7 +88,7 @@ final canManageAppProvider = Provider<bool>((ref) {
         user != null &&
         AccessLevel.hasAccess(user.accessRole, AccessLevel.owner),
     loading: () => false,
-    error: (_, __) => false,
+    error: (_, _) => false,
   );
 });
 
@@ -97,7 +98,7 @@ final isDemoUserProvider = Provider<bool>((ref) {
   return userAsync.when(
     data: (user) => user != null && user.accessRole == AccessLevel.demo,
     loading: () => false,
-    error: (_, __) => false,
+    error: (_, _) => false,
   );
 });
 
@@ -109,7 +110,7 @@ final isAdminUserProvider = Provider<bool>((ref) {
         user != null &&
         AccessLevel.hasAccess(user.accessRole, AccessLevel.admin),
     loading: () => false,
-    error: (_, __) => false,
+    error: (_, _) => false,
   );
 });
 
@@ -130,11 +131,11 @@ Provider<bool> canEditBandProvider(String bandId) => Provider<bool>((ref) {
       return bandAsync.when(
         data: (bands) => _canEditBandIn(user.uid, bandId, bands),
         loading: () => false,
-        error: (_, __) => false,
+        error: (_, _) => false,
       );
     },
     loading: () => false,
-    error: (_, __) => false,
+    error: (_, _) => false,
   );
 });
 
@@ -150,11 +151,11 @@ Provider<bool> canManageBandMembersProvider(String bandId) =>
           return bandAsync.when(
             data: (bands) => _canManageBandMembersIn(bandId, bands),
             loading: () => false,
-            error: (_, __) => false,
+            error: (_, _) => false,
           );
         },
         loading: () => false,
-        error: (_, __) => false,
+        error: (_, _) => false,
       );
     });
 

@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/screens/songs/models/song_form_data.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/link.dart';
 import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/screens/songs/models/song_form_data.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SongFormData - Metronome Settings', () {
@@ -57,9 +57,8 @@ void main() {
           originalBPM: 120,
           ourKey: 'D',
           ourBPM: 125,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
-          accentBeats: 4,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
           regularBeats: 2,
           beatModes: beatModes,
         );
@@ -84,8 +83,8 @@ void main() {
             id: 'song-2',
             title: 'Simple Song',
             artist: 'Simple Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           );
 
           final formData = SongFormData.fromSong(song);
@@ -102,8 +101,8 @@ void main() {
           title: 'Old Song',
           artist: 'Old Artist',
           originalBPM: 100,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final formData = SongFormData.fromSong(song);
@@ -127,14 +126,13 @@ void main() {
           artist: 'Test Artist',
           originalBpm: '120',
           ourBpm: '125',
-          accentBeats: 4,
           regularBeats: 2,
           beatModes: beatModes,
         );
 
         final song = formData.toSong(
           id: 'song-1',
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
 
         expect(song.title, 'Test Song');
@@ -156,7 +154,7 @@ void main() {
 
         final song = formData.toSong(
           id: 'song-2',
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
 
         expect(song.accentBeats, 4);
@@ -174,7 +172,7 @@ void main() {
 
         final song = formData.toSong(
           id: 'song-3',
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
           bandId: 'band-123',
           originalOwnerId: 'user-1',
           contributedBy: 'Contributor',
@@ -274,7 +272,7 @@ void main() {
       test(
         'initializes beatModes grid based on accentBeats and regularBeats',
         () {
-          final formData = SongFormData(accentBeats: 4, regularBeats: 2);
+          final formData = SongFormData(regularBeats: 2);
           formData.initializeBeatModes();
 
           expect(formData.beatModes.length, 4);
@@ -289,7 +287,7 @@ void main() {
       );
 
       test('initializes with single subdivision', () {
-        final formData = SongFormData(accentBeats: 3, regularBeats: 1);
+        final formData = SongFormData(accentBeats: 3);
         formData.initializeBeatModes();
 
         expect(formData.beatModes.length, 3);
@@ -300,7 +298,7 @@ void main() {
       });
 
       test('clears existing beatModes before initializing', () {
-        final formData = SongFormData(accentBeats: 4, regularBeats: 2);
+        final formData = SongFormData(regularBeats: 2);
         formData.updateBeatMode(0, 0, BeatMode.silent);
         formData.initializeBeatModes();
 
@@ -331,12 +329,9 @@ void main() {
           originalBpm: '120',
           ourBpm: '125',
           notes: 'Test notes',
-          originalKeyBase: 'C',
-          originalKeyModifier: '',
           ourKeyBase: 'D',
           ourKeyModifier: 'm',
           spotifyUrl: 'https://spotify.com/track',
-          accentBeats: 4,
           regularBeats: 2,
         );
         formData.addLink(
@@ -374,7 +369,7 @@ void main() {
 
         final song = formData.toSong(
           id: 'song-1',
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
 
         expect(song.title, 'Full Song');

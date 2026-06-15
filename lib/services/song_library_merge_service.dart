@@ -6,8 +6,7 @@ import '../repositories/setlist_repository.dart';
 import '../repositories/song_repository.dart';
 
 class SongLibraryMergeService {
-  SongLibraryMergeService({required FirebaseFirestore firestore})
-    : _firestore = firestore;
+  SongLibraryMergeService({required this._firestore});
 
   final FirebaseFirestore _firestore;
 

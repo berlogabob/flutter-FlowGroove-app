@@ -31,6 +31,14 @@ import '../utils/responsive_breakpoints.dart';
 /// GreetingCard(userName: 'John', isCompact: true)
 /// ```
 class GreetingCard extends StatelessWidget {
+
+  const GreetingCard({
+    required this.userName,
+    super.key,
+    this.isCompact = false,
+    this.avatarPath,
+    this.subtitle,
+  });
   /// User name to display in greeting.
   final String userName;
 
@@ -42,14 +50,6 @@ class GreetingCard extends StatelessWidget {
 
   /// Compact mode for tablet/desktop layouts (optional).
   final bool isCompact;
-
-  const GreetingCard({
-    super.key,
-    required this.userName,
-    this.isCompact = false,
-    this.avatarPath,
-    this.subtitle,
-  });
 
   @override
   Widget build(BuildContext context) {

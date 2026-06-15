@@ -5,9 +5,10 @@
 library;
 
 import 'package:csv/csv.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/models/song.dart';
+
 import 'song_csv_schema.dart';
 
 class SongCsvSerializer {

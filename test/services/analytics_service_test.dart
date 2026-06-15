@@ -1,12 +1,11 @@
 // Analytics Service Unit Tests
 // Tests for the centralized analytics service
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/services/analytics_events.dart';
-import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/models/band.dart';
-import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/services/analytics_events.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AnalyticsService', () {
@@ -42,8 +41,6 @@ void main() {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           originalBPM: 120,
-          accentBeats: 4,
-          regularBeats: 1,
         );
 
         final eventData = SongAddedEventData.fromSong(song);

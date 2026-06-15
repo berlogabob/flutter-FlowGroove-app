@@ -127,7 +127,7 @@ class MetronomeSampleGenerator {
       final decayT = t - attackTime;
       return exp(-3.0 * decayT / decayTime);
     } else {
-      return 0.0;
+      return 0;
     }
   }
 

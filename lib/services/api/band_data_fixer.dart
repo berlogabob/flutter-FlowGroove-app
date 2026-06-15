@@ -76,10 +76,10 @@ extension BandDataFix on Band {
 
 /// Service to fix band data in Firestore.
 class BandDataFixer {
-  final FirebaseFirestore _firestore;
 
   BandDataFixer({FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
 
   /// Fix a single band document.
   Future<bool> fixBand(String bandId) async {

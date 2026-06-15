@@ -8,6 +8,15 @@ import '../theme/mono_pulse_theme.dart';
 ///
 /// Includes semantic label for screen readers.
 class LoadingIndicator extends StatelessWidget {
+
+  const LoadingIndicator({
+    super.key,
+    this.size = 40,
+    this.semanticsLabel = 'Loading',
+    this.color,
+    this.message,
+    this.messageStyle,
+  });
   /// The size of the loading spinner.
   final double size;
 
@@ -22,15 +31,6 @@ class LoadingIndicator extends StatelessWidget {
 
   /// Semantic label for screen readers. Defaults to 'Loading'.
   final String semanticsLabel;
-
-  const LoadingIndicator({
-    super.key,
-    this.size = 40,
-    this.semanticsLabel = 'Loading',
-    this.color,
-    this.message,
-    this.messageStyle,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,13 +69,13 @@ class LoadingIndicator extends StatelessWidget {
 
 /// A small inline loading indicator for buttons and compact spaces.
 class LoadingSpinner extends StatelessWidget {
+
+  const LoadingSpinner({super.key, this.size = 16, this.color});
   /// The size of the spinner.
   final double size;
 
   /// The color of the spinner.
   final Color? color;
-
-  const LoadingSpinner({super.key, this.size = 16, this.color});
 
   @override
   Widget build(BuildContext context) {

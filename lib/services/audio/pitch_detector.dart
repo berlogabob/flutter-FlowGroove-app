@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -16,10 +15,6 @@ enum TunerPermissionState {
 }
 
 class PitchSample {
-  final TunerSignalState signalState;
-  final double? frequencyHz;
-  final double confidence;
-  final double rmsDb;
 
   const PitchSample({
     required this.signalState,
@@ -27,6 +22,10 @@ class PitchSample {
     required this.confidence,
     required this.rmsDb,
   });
+  final TunerSignalState signalState;
+  final double? frequencyHz;
+  final double confidence;
+  final double rmsDb;
 }
 
 abstract class AudioInput {
@@ -41,12 +40,12 @@ abstract class AudioInput {
 }
 
 class RecordAudioInput implements AudioInput {
-  final AudioRecorder _recorder;
-  int _sampleRate = 44100;
-  bool _isRecording = false;
 
   RecordAudioInput({AudioRecorder? recorder})
     : _recorder = recorder ?? AudioRecorder();
+  final AudioRecorder _recorder;
+  int _sampleRate = 44100;
+  bool _isRecording = false;
 
   @override
   int get sampleRate => _sampleRate;
@@ -127,11 +126,7 @@ class RecordAudioInput implements AudioInput {
     final stream = await _recorder.startStream(
       const RecordConfig(
         encoder: AudioEncoder.pcm16bits,
-        sampleRate: 44100,
         numChannels: 1,
-        autoGain: false,
-        echoCancel: false,
-        noiseSuppress: false,
         streamBufferSize: 4096,
       ),
     );
@@ -155,6 +150,8 @@ class RecordAudioInput implements AudioInput {
 
 /// Cross-platform microphone pitch detector with serialized frame analysis.
 class PitchDetector {
+
+  PitchDetector({this._audioInput});
   static const int bufferSize = 4096;
   static const int hopSize = 1024;
 
@@ -170,8 +167,6 @@ class PitchDetector {
   double _noiseFloorDb = -55;
   DateTime? _signalStartedAt;
   DateTime _lastEmission = DateTime.fromMillisecondsSinceEpoch(0);
-
-  PitchDetector({AudioInput? audioInput}) : _audioInput = audioInput;
 
   AudioInput get _input => _audioInput ??= RecordAudioInput();
 

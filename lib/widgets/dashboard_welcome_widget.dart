@@ -32,17 +32,6 @@ import '../utils/responsive_breakpoints.dart';
 /// )
 /// ```
 class DashboardWelcomeWidget extends StatelessWidget {
-  /// User name for personalized greeting (optional).
-  final String? userName;
-
-  /// Custom welcome message (optional).
-  final String? message;
-
-  /// List of quick tips to display (optional).
-  final List<String> quickTips;
-
-  /// Callback for "Get Started" button (optional).
-  final VoidCallback? onGetStarted;
 
   const DashboardWelcomeWidget({
     super.key,
@@ -83,6 +72,17 @@ class DashboardWelcomeWidget extends StatelessWidget {
       ],
     );
   }
+  /// User name for personalized greeting (optional).
+  final String? userName;
+
+  /// Custom welcome message (optional).
+  final String? message;
+
+  /// List of quick tips to display (optional).
+  final List<String> quickTips;
+
+  /// Callback for "Get Started" button (optional).
+  final VoidCallback? onGetStarted;
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +106,7 @@ class DashboardWelcomeWidget extends StatelessWidget {
               size: isSidebar ? 48 : 64,
               color: MonoPulseColors.accentOrange,
             ),
-            SizedBox(height: MonoPulseSpacing.md),
+            const SizedBox(height: MonoPulseSpacing.md),
 
             // Greeting
             Text(
@@ -118,7 +118,7 @@ class DashboardWelcomeWidget extends StatelessWidget {
                 height: 1.2,
               ),
             ),
-            SizedBox(height: MonoPulseSpacing.sm),
+            const SizedBox(height: MonoPulseSpacing.sm),
 
             // Welcome message
             if (message != null && message!.isNotEmpty)
@@ -132,7 +132,7 @@ class DashboardWelcomeWidget extends StatelessWidget {
               ),
 
             if (quickTips.isNotEmpty) ...[
-              SizedBox(height: MonoPulseSpacing.lg),
+              const SizedBox(height: MonoPulseSpacing.lg),
 
               // Tips section
               Text(
@@ -143,7 +143,7 @@ class DashboardWelcomeWidget extends StatelessWidget {
                   fontSize: isSidebar ? 13 : 14,
                 ),
               ),
-              SizedBox(height: MonoPulseSpacing.sm),
+              const SizedBox(height: MonoPulseSpacing.sm),
 
               // Tips list
               ...quickTips.map((tip) => Padding(
@@ -151,12 +151,12 @@ class DashboardWelcomeWidget extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.check_circle,
                       size: 16,
                       color: MonoPulseColors.accentOrange,
                     ),
-                    SizedBox(width: MonoPulseSpacing.sm),
+                    const SizedBox(width: MonoPulseSpacing.sm),
                     Expanded(
                       child: Text(
                         tip,
@@ -174,7 +174,7 @@ class DashboardWelcomeWidget extends StatelessWidget {
 
             // Get started button
             if (onGetStarted != null) ...[
-              SizedBox(height: MonoPulseSpacing.lg),
+              const SizedBox(height: MonoPulseSpacing.lg),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -186,7 +186,7 @@ class DashboardWelcomeWidget extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: MonoPulseColors.accentOrange,
                     foregroundColor: MonoPulseColors.white,
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       vertical: MonoPulseSpacing.sm,
                       horizontal: MonoPulseSpacing.lg,
                     ),

@@ -4,28 +4,17 @@ import 'song_delta.dart';
 class SongCommit {
   SongCommit({
     required this.id,
-    this.parentCommitId,
     required this.canonicalSongId,
-    this.baseRevision = 1,
-    SongDelta? delta,
     required this.operation,
     required this.authorId,
+    required this.clientMutationId,
+    this.parentCommitId,
+    this.baseRevision = 1,
+    SongDelta? delta,
     this.message,
     DateTime? createdAt,
-    required this.clientMutationId,
   }) : delta = delta ?? SongDelta(),
        createdAt = createdAt ?? DateTime.now();
-
-  final String id;
-  final String? parentCommitId;
-  final String canonicalSongId;
-  final int baseRevision;
-  final SongDelta delta;
-  final String operation;
-  final String authorId;
-  final String? message;
-  final DateTime createdAt;
-  final String clientMutationId;
 
   factory SongCommit.fromJson(Map<String, dynamic> json) {
     return SongCommit(
@@ -44,6 +33,17 @@ class SongCommit {
     );
   }
 
+  final String id;
+  final String? parentCommitId;
+  final String canonicalSongId;
+  final int baseRevision;
+  final SongDelta delta;
+  final String operation;
+  final String authorId;
+  final String? message;
+  final DateTime createdAt;
+  final String clientMutationId;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -60,7 +60,7 @@ class SongCommit {
   }
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value is DateTime) return value;
   try {
     if (value.runtimeType.toString() == 'Timestamp') {

@@ -25,13 +25,6 @@ class TrackAnalysisService {
 }
 
 class TrackAnalysis {
-  final String? title;
-  final String? artist;
-  final String? key;
-  final String? mode; // major/minor
-  final int? bpm;
-  final double? energy;
-  final double? danceability;
 
   TrackAnalysis({
     this.title,
@@ -54,6 +47,13 @@ class TrackAnalysis {
       danceability: (json['danceability'] as num?)?.toDouble(),
     );
   }
+  final String? title;
+  final String? artist;
+  final String? key;
+  final String? mode; // major/minor
+  final int? bpm;
+  final double? energy;
+  final double? danceability;
 
   String get musicalKey {
     if (key == null) return '';

@@ -7,11 +7,13 @@
 library;
 
 import 'dart:convert';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../models/song.dart';
+
 import '../../models/section.dart';
+import '../../models/song.dart';
 import '../../theme/mono_pulse_theme.dart';
 import 'song_csv_parser.dart';
 import 'song_csv_serializer.dart';
@@ -27,7 +29,7 @@ class SongCsvService {
   Future<SongParseResult> importFromFile() async {
     try {
       // Pick file
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
         allowMultiple: false,
@@ -79,7 +81,7 @@ class SongCsvService {
   /// Returns true if the save/download action was started successfully.
   Future<bool> exportToFile(List<Song> songs) async {
     try {
-      final filePath = await FilePicker.platform.saveFile(
+      final filePath = await FilePicker.saveFile(
         dialogTitle: 'Export FlowGroove songs',
         fileName: _createExportFileName(),
         type: FileType.custom,
@@ -113,7 +115,6 @@ class SongCsvService {
           fileNameOverrides: [fileName],
           subject: 'FlowGroove Song Export',
           text: 'Exported ${songs.length} songs from FlowGroove',
-          downloadFallbackEnabled: true,
         ),
       );
 
@@ -147,27 +148,22 @@ class SongCsvService {
       links: [],
       notes: 'Song notes here',
       tags: ['rock', 'live'],
-      bandId: null,
       spotifyUrl: 'https://open.spotify.com/track/...',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      accentBeats: 4,
-      regularBeats: 1,
       beatModes: [],
       sections: [
         Section(
           id: '',
           name: 'Intro',
-          notes: '',
           duration: 4,
-          colorValue: MonoPulseColors.section5.withValues(alpha: 1.0).value,
+          colorValue: MonoPulseColors.section5.withValues(alpha: 1).value,
         ),
         Section(
           id: '',
           name: 'Verse',
-          notes: '',
           duration: 8,
-          colorValue: MonoPulseColors.section8.withValues(alpha: 1.0).value,
+          colorValue: MonoPulseColors.section8.withValues(alpha: 1).value,
         ),
       ],
     );

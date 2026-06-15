@@ -8,11 +8,14 @@
 ///
 /// Note: These tests use mocked responses for external APIs to ensure
 /// consistent test results and avoid rate limiting.
+library;
+
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
-import 'dart:convert';
+
 import '../helpers/mocks.mocks.dart';
 
 void main() {
@@ -38,9 +41,9 @@ void main() {
 
       // Verify the response structure
       expect(mockResponse['tracks'], isNotNull);
-      expect((mockResponse['tracks'] as Map)['items'], isA<List>());
+      expect((mockResponse['tracks']! as Map)['items'], isA<List>());
       expect(
-        ((mockResponse['tracks'] as Map)['items'] as List).length,
+        ((mockResponse['tracks']! as Map)['items'] as List).length,
         equals(1),
       );
     });
@@ -50,7 +53,7 @@ void main() {
         'tracks': {'items': []},
       };
 
-      expect((mockResponse['tracks'] as Map)['items'], isEmpty);
+      expect((mockResponse['tracks']! as Map)['items'], isEmpty);
     });
 
     test('parses track data correctly', () async {
@@ -66,8 +69,8 @@ void main() {
       };
 
       expect(trackData['name'], equals('Bohemian Rhapsody'));
-      expect((trackData['artists'] as List)[0]['name'], equals('Queen'));
-      expect((trackData['external_urls'] as Map)['spotify'], isNotEmpty);
+      expect((trackData['artists']! as List)[0]['name'], equals('Queen'));
+      expect((trackData['external_urls']! as Map)['spotify'], isNotEmpty);
     });
 
     test('handles audio features response', () async {
@@ -116,7 +119,7 @@ void main() {
       };
 
       expect(errorResponse['error'], isNotNull);
-      expect((errorResponse['error'] as Map)['status'], equals(401));
+      expect((errorResponse['error']! as Map)['status'], equals(401));
     });
 
     test('handles rate limit error', () async {
@@ -124,7 +127,7 @@ void main() {
         'error': {'status': 429, 'message': 'Rate limit exceeded'},
       };
 
-      expect((errorResponse['error'] as Map)['status'], equals(429));
+      expect((errorResponse['error']! as Map)['status'], equals(429));
     });
   });
 
@@ -146,7 +149,7 @@ void main() {
       };
 
       expect(mockResponse['recordings'], isA<List>());
-      expect((mockResponse['recordings'] as List).length, equals(1));
+      expect((mockResponse['recordings']! as List).length, equals(1));
     });
 
     test('returns empty results when no recordings found', () async {
@@ -170,7 +173,7 @@ void main() {
 
       expect(recordingData['title'], equals('Hotel California'));
       expect(
-        (recordingData['artist-credit'] as List)[0]['artist']['name'],
+        (recordingData['artist-credit']! as List)[0]['artist']['name'],
         equals('Eagles'),
       );
       expect(recordingData['length'], equals('391000'));
@@ -228,7 +231,7 @@ void main() {
     });
 
     test('returns null when track not found', () async {
-      final analysisResult = null;
+      const analysisResult = null;
 
       expect(analysisResult, isNull);
     });

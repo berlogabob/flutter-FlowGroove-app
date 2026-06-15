@@ -6,19 +6,10 @@ import 'unified_item_card.dart';
 
 /// Optimized list widget with swipe-to-delete and drag-and-drop reordering
 class UnifiedItemList<T extends UnifiedItemModel> extends StatefulWidget {
-  final List<T> items;
-  final VoidCallback? onRefresh;
-  final void Function(int, int)? onReorder;
-  final FutureOr<void> Function(int)? onDelete;
-  final void Function(int)? onTap;
-  final void Function(int)? onEdit;
-  final bool showCompact;
-  final bool enableReorder;
-  final List<UnifiedItemAction> Function(int)? additionalActionsBuilder;
 
   const UnifiedItemList({
-    super.key,
     required this.items,
+    super.key,
     this.onRefresh,
     this.onReorder,
     this.onDelete,
@@ -28,6 +19,15 @@ class UnifiedItemList<T extends UnifiedItemModel> extends StatefulWidget {
     this.enableReorder = false,
     this.additionalActionsBuilder,
   });
+  final List<T> items;
+  final VoidCallback? onRefresh;
+  final void Function(int, int)? onReorder;
+  final FutureOr<void> Function(int)? onDelete;
+  final void Function(int)? onTap;
+  final void Function(int)? onEdit;
+  final bool showCompact;
+  final bool enableReorder;
+  final List<UnifiedItemAction> Function(int)? additionalActionsBuilder;
 
   @override
   State<UnifiedItemList<T>> createState() => _UnifiedItemListState<T>();

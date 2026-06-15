@@ -38,6 +38,16 @@ enum AppCardVariant {
 }
 
 class AppCard extends StatelessWidget {
+
+  const AppCard({
+    required this.child,
+    super.key,
+    this.variant = AppCardVariant.surface,
+    this.onTap,
+    this.backgroundColor,
+    this.padding,
+    this.border,
+  });
   /// The visual variant of the card
   final AppCardVariant variant;
 
@@ -56,21 +66,11 @@ class AppCard extends StatelessWidget {
   /// Optional callback when card is tapped
   final VoidCallback? onTap;
 
-  const AppCard({
-    super.key,
-    required this.child,
-    this.variant = AppCardVariant.surface,
-    this.onTap,
-    this.backgroundColor,
-    this.padding,
-    this.border,
-  });
-
   @override
   Widget build(BuildContext context) {
     final content = padding != null ? Padding(padding: padding!, child: child) : child;
 
-    final card = Container(
+    final card = DecoratedBox(
       decoration: BoxDecoration(
         color: backgroundColor ?? _getBackgroundColor(),
         borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),

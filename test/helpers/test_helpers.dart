@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+
 import 'mocks.mocks.dart';
 
 // Initialize Firebase for tests (only once)
@@ -192,12 +193,12 @@ UserCredential createMockUserCredential({
 
 /// Mock navigator observer for testing navigation
 class MockNavigatorObserver extends NavigatorObserver {
+
+  MockNavigatorObserver({this.onPush, this.onPop});
   final Function(Route<dynamic>)? onPush;
   final Function(Route<dynamic>)? onPop;
   final List<Route<dynamic>> pushedRoutes = [];
   final List<Route<dynamic>> poppedRoutes = [];
-
-  MockNavigatorObserver({this.onPush, this.onPop});
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {

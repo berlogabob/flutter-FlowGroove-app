@@ -3,24 +3,25 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
-import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/tools/tool_scaffold.dart';
-import '../../widgets/tools/tool_transport_bar.dart';
-import '../widgets/metronome/time_signature_block.dart';
-import '../widgets/metronome/central_tempo_circle.dart';
-import '../widgets/metronome/fine_adjustment_buttons.dart';
-import '../widgets/metronome/song_library_block.dart';
-import '../../models/metronome_state.dart';
-import '../../models/metronome_preset.dart';
-import '../../models/tempo_ramp.dart';
+
 import '../../models/band.dart';
+import '../../models/metronome_preset.dart';
+import '../../models/metronome_state.dart';
+import '../../models/tempo_ramp.dart';
 import '../../providers/auth/auth_provider.dart';
-import '../../router/app_router.dart';
-import 'songs/models/song_form_data.dart';
-import '../../widgets/tap_bpm_widget.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/metronome_preset_provider.dart';
+import '../../router/app_router.dart';
+import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/tap_bpm_widget.dart';
+import '../../widgets/tools/tool_scaffold.dart';
+import '../../widgets/tools/tool_transport_bar.dart';
+import '../widgets/metronome/central_tempo_circle.dart';
+import '../widgets/metronome/fine_adjustment_buttons.dart';
+import '../widgets/metronome/song_library_block.dart';
+import '../widgets/metronome/time_signature_block.dart';
+import 'songs/models/song_form_data.dart';
 
 /// Metronome Screen - ToolScreenScaffold Migration (Sprint 5)
 ///
@@ -119,7 +120,6 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
           canEditSource: canEditSource,
         ),
         mainWidget: const _MetronomePerformanceSurface(),
-        showOfflineIndicator: true,
       ),
     );
   }
@@ -135,6 +135,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
 
     items.add(
       PopupMenuItem<void>(
+        onTap: metronome.toggleHaptics,
         child: Row(
           children: [
             Icon(
@@ -164,7 +165,6 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
             ),
           ],
         ),
-        onTap: metronome.toggleHaptics,
       ),
     );
 
@@ -202,6 +202,9 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       items.add(
         PopupMenuItem<void>(
           enabled: canEditSource,
+          onTap: canEditSource
+              ? () => _saveMetronomeToSong(context, metronome, state)
+              : null,
           child: Row(
             children: [
               const Icon(
@@ -222,9 +225,6 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
               ),
             ],
           ),
-          onTap: canEditSource
-              ? () => _saveMetronomeToSong(context, metronome, state)
-              : null,
         ),
       );
     }
@@ -233,6 +233,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     items.add(
       PopupMenuItem<void>(
         enabled: canEditSource,
+        onTap: canEditSource ? () => _navigateToSaveSong(context, state) : null,
         child: Row(
           children: [
             const Icon(
@@ -249,7 +250,6 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
             ),
           ],
         ),
-        onTap: canEditSource ? () => _navigateToSaveSong(context, state) : null,
       ),
     );
 
@@ -328,7 +328,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
         accentBeats: state.accentBeats,
         regularBeats: state.regularBeats,
         beatModes: state.beatModes
-            .map((row) => List.of(row))
+            .map(List.of)
             .toList(growable: false),
       ),
     );
@@ -483,7 +483,7 @@ class _MetronomeContextStatus extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(metronomeProvider);
     final source = state.bpmSource.name
-        .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(1)}')
+        .replaceAllMapped(RegExp('([A-Z])'), (match) => ' ${match.group(1)}')
         .toUpperCase();
     final title =
         state.activeSong?.title ?? state.activePresetName ?? 'Practice Mode';

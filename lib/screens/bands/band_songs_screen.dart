@@ -1,36 +1,23 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
-import '../../../models/song.dart';
+
 import '../../../models/band.dart';
-import '../../../models/tuner_launch_context.dart';
+import '../../../models/song.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
-import '../../../utils/music_role_icon.dart';
-import '../../../widgets/empty_state.dart';
 import '../../../widgets/confirmation_dialog.dart';
-import '../../../widgets/custom_app_bar.dart';
-import '../../../widgets/error_banner.dart';
-import '../../../widgets/role_picker_widget.dart';
-import '../../../widgets/unified_item/unified_item_list.dart';
-import '../../../widgets/unified_item/unified_item_model.dart';
-import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
-import '../../../widgets/unified_item/unified_filter_sort_widget.dart';
-import '../../../widgets/fab_variants.dart';
-import '../../../widgets/loading_indicator.dart';
-import 'song_picker_screen.dart';
+import '../../../widgets/custom_text_field.dart';
+import '../../../widgets/empty_state.dart';
+import '../../../widgets/song_attribution_badge.dart';
 
 /// Screen for displaying a band's shared songs.
 ///
 /// This screen shows all songs that have been shared to the band's
 /// song bank, with filtering by contributor and attribution badges.
 class BandSongsScreen extends ConsumerStatefulWidget {
-  const BandSongsScreen({super.key, required this.band});
 
+  const BandSongsScreen({required this.band, super.key});
   /// The band whose songs to display.
   final Band band;
 
@@ -41,17 +28,13 @@ class BandSongsScreen extends ConsumerStatefulWidget {
 class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   String _searchQuery = '';
   String? _filterContributor;
-  SortOption _sortOption = SortOption.alphabetical;
-  bool _isMembersExpanded = true; // Changed to true - show members by default
 
   /// Get the current user's role in the band.
   String? get _userRole {
-    final userAsync = ref.read(currentUserProvider);
-    final user = userAsync.value;
-    if (user == null) return null;
+    final user = ref.read(currentUserProvider).value;
 
     final member = widget.band.members.firstWhere(
-      (m) => m.uid == user.uid,
+      (m) => m.uid == user?.uid,
       orElse: () => BandMember(uid: '', role: ''),
     );
     return member.role;
@@ -87,24 +70,6 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       }).toList();
     }
 
-    // Apply sorting
-    switch (_sortOption) {
-      case SortOption.alphabetical:
-        filtered.sort(
-          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-        );
-        break;
-      case SortOption.dateAdded:
-        filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
-      case SortOption.dateModified:
-        filtered.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-        break;
-      case SortOption.manual:
-        // Keep current order for manual
-        break;
-    }
-
     return filtered;
   }
 
@@ -124,82 +89,31 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     final songsAsync = ref.watch(bandSongsProvider(widget.band.id));
 
     return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
-        title: widget.band.name,
-        menuItems: [
-          PopupMenuItem<void>(
-            onTap: () => _showAboutBand(context),
-            child: const Row(
-              children: [
-                Icon(Icons.info_outline, size: 20),
-                SizedBox(width: 12),
-                Text('About Band'),
-              ],
-            ),
-          ),
-          PopupMenuItem<void>(
-            onTap: () => _showMembers(context),
-            child: const Row(
-              children: [
-                Icon(Icons.people_outline, size: 20),
-                SizedBox(width: 12),
-                Text('Members'),
-              ],
-            ),
-          ),
-          PopupMenuItem<void>(
-            onTap: () => _shareBand(context),
-            child: const Row(
-              children: [
-                Icon(Icons.share_outlined, size: 20),
-                SizedBox(width: 12),
-                Text('Share Band'),
-              ],
-            ),
-          ),
-          PopupMenuItem<void>(
-            onTap: () => _editDescription(context),
-            child: const Row(
-              children: [
-                Icon(Icons.edit_outlined, size: 20),
-                SizedBox(width: 12),
-                Text('Edit Description'),
-              ],
-            ),
-          ),
+      appBar: AppBar(
+        title: Text('${widget.band.name} Songs'),
+        actions: [
           if (_filterContributor != null)
-            PopupMenuItem<void>(
-              onTap: () {
+            IconButton(
+              icon: const Icon(Icons.filter_alt_off),
+              onPressed: () {
                 setState(() {
                   _filterContributor = null;
                 });
               },
-              child: const Row(
-                children: [
-                  Icon(Icons.filter_alt_off, size: 20),
-                  SizedBox(width: 12),
-                  Text('Clear Filter'),
-                ],
-              ),
+              tooltip: 'Clear filter',
             ),
         ],
       ),
       body: songsAsync.when(
         data: (songs) => _buildContent(context, ref, songs),
-        loading: () => const LoadingIndicator(),
-        error: (e, _) => Center(
-          child: ErrorBanner.card(
-            message: e.toString(),
-            onRetry: () => ref.invalidate(songsProvider),
-          ),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
       ),
       floatingActionButton: _canEdit
-          ? SingleFab(
-              icon: Icons.add,
-              onPressed: () => _addSongToBand(context, ref),
+          ? FloatingActionButton(
               heroTag: 'band_songs_fab',
+              onPressed: () => _addSongToBand(context, ref),
+              child: const Icon(Icons.add),
             )
           : null,
     );
@@ -211,147 +125,21 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
 
     return Column(
       children: [
-        // Band Info Header
-        _buildBandHeader(),
         // Search and filter section
         _buildSearchAndFilter(context, contributors),
         // Songs list
         Expanded(
           child: filteredSongs.isEmpty
               ? _buildEmptyState(songs.isEmpty)
-              : UnifiedItemList<SongItemAdapter>(
-                  items: filteredSongs.map((song) {
-                    return SongItemAdapter(
-                      song,
-                      onEdit: () => _editSong(context, ref, song),
-                      onDelete: () => _deleteSongFromBand(context, ref, song),
-                      onTap: () => _editSong(context, ref, song),
-                    );
-                  }).toList(),
-                  enableReorder: _sortOption == SortOption.manual,
-                  onReorder: _sortOption == SortOption.manual
-                      ? (oldIndex, newIndex) =>
-                            _handleReorder(oldIndex, newIndex, filteredSongs)
-                      : null,
-                  onDelete: _canEdit
-                      ? (index) => _deleteSongFromBand(
-                          context,
-                          ref,
-                          filteredSongs[index],
-                        )
-                      : null,
-                  onEdit: _canEdit
-                      ? (index) => _editSong(context, ref, filteredSongs[index])
-                      : null,
-                  onTap: (index) =>
-                      _editSong(context, ref, filteredSongs[index]),
-                  additionalActionsBuilder: (index) => [
-                    _OpenBandSongInTunerAction(
-                      onPressed: () => _openInTuner(filteredSongs[index]),
-                    ),
-                    if (_canEdit)
-                      _BuildEditAction(
-                        context: context,
-                        ref: ref,
-                        song: filteredSongs[index],
-                        onEdit: () =>
-                            _editSong(context, ref, filteredSongs[index]),
-                      ),
-                  ],
+              : ListView.builder(
+                  itemCount: filteredSongs.length,
+                  itemBuilder: (context, index) {
+                    final song = filteredSongs[index];
+                    return _buildSongCard(context, ref, song);
+                  },
                 ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBandHeader() {
-    final band = widget.band;
-    final description = band.description;
-
-    return Container(
-      margin: const EdgeInsets.all(MonoPulseSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Description section - Centered under band name
-          if (description != null && description.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Center(
-                child: Text(
-                  description,
-                  style: MonoPulseTypography.bodyLarge.copyWith(
-                    color: MonoPulseColors.textPrimary,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            )
-          else
-            const Padding(
-              padding: EdgeInsets.only(bottom: 12),
-              child: Center(
-                child: Text(
-                  'Ready to rock?',
-                  style: TextStyle(
-                    color: MonoPulseColors.textTertiary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-
-          // Quick Actions - Members only (Tags section removed)
-          Card(
-            child: Column(
-              children: [
-                // Members section
-                InkWell(
-                  onTap: () =>
-                      setState(() => _isMembersExpanded = !_isMembersExpanded),
-                  child: Padding(
-                    padding: const EdgeInsets.all(MonoPulseSpacing.md),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.people_outline, size: 20),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Members',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${band.members.length}',
-                          style: const TextStyle(
-                            color: MonoPulseColors.textSecondary,
-                          ),
-                        ),
-                        AnimatedRotation(
-                          turns: _isMembersExpanded ? 0.5 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: const Icon(Icons.keyboard_arrow_down),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (_isMembersExpanded)
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                    child: Column(
-                      children: band.members.map((member) {
-                        return _buildMemberTile(member);
-                      }).toList(),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -361,20 +149,13 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   ) {
     return Column(
       children: [
-        // Unified filter/sort widget at top (like personal songs bank)
+        // Search field
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: UnifiedFilterSortWidget(
-            currentSort: _sortOption,
-            onSortChanged: (option) {
-              if (option != null) {
-                setState(() => _sortOption = option);
-              }
-            },
-            filterText: _searchQuery,
-            onFilterChanged: (value) {
-              setState(() => _searchQuery = value ?? '');
-            },
+          padding: const EdgeInsets.all(16),
+          child: CustomTextField(
+            hint: 'Search songs...',
+            prefixIcon: Icons.search,
+            onChanged: (value) => setState(() => _searchQuery = value),
           ),
         ),
         // Contributor filter chips
@@ -383,9 +164,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                horizontal: MonoPulseSpacing.lg,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 FilterChip(
                   label: const Text('All'),
@@ -425,7 +204,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         icon: Icons.music_note,
         message: 'No songs yet',
         hint: _canEdit
-            ? 'Add songs to your band\'s collection'
+            ? "Add songs to your band's collection"
             : 'No songs have been shared to this band yet',
         actionLabel: _canEdit ? 'Add Song' : null,
         onAction: _canEdit ? () => _addSongToBand(context, ref) : null,
@@ -434,669 +213,121 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     return EmptyState.search(query: _searchQuery);
   }
 
-  void _addSongToBand(BuildContext context, WidgetRef ref) async {
-    // Navigate to song picker to select from personal library
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SongPickerScreen(band: widget.band),
+  Widget _buildSongCard(BuildContext context, WidgetRef ref, Song song) {
+    return Dismissible(
+      key: Key(song.id),
+      direction: _canEdit ? DismissDirection.endToStart : DismissDirection.none,
+      background: Container(
+        color: Colors.red,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 16),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      confirmDismiss: (direction) async {
+        if (!_canEdit) return false;
+        return ConfirmationDialog.showDeleteDialog(
+          context,
+          title: 'Remove from Band',
+          message: 'Are you sure you want to remove this song from the band?',
+          confirmLabel: 'Remove',
+        );
+      },
+      onDismissed: (direction) async {
+        if (!_canEdit) return;
+        await ref
+            .read(firestoreProvider)
+            .deleteBandSong(widget.band.id, song.id);
+      },
+      child: _buildSongTile(context, ref, song),
+    );
+  }
+
+  Widget _buildSongTile(BuildContext context, WidgetRef ref, Song song) {
+    final isCopy = song.isCopy;
+    final contributorName = song.contributedBy;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.sm,
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: isCopy
+              ? MonoPulseColors.accentOrangeSubtle
+              : MonoPulseColors.accentOrangeSubtle,
+          child: Icon(
+            isCopy ? Icons.content_copy : Icons.music_note,
+            color: isCopy
+                ? MonoPulseColors.accentOrange
+                : MonoPulseColors.accentOrange,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          song.title,
+          style: const TextStyle(color: MonoPulseColors.textPrimary),
+        ),
+        subtitle: AttributionSubtitle(
+          subtitle: song.artist,
+          contributorName: contributorName,
+          isCopy: isCopy,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (song.ourKey != null)
+              Text(
+                song.ourKey!,
+                style: const TextStyle(
+                  color: MonoPulseColors.accentOrange,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            if (song.ourBPM != null) ...[
+              const SizedBox(width: MonoPulseSpacing.sm),
+              Text(
+                '${song.ourBPM}',
+                style: const TextStyle(
+                  color: MonoPulseColors.accentOrange,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+            if (_canEdit)
+              IconButton(
+                icon: const Icon(
+                  Icons.edit,
+                  size: 20,
+                  color: MonoPulseColors.textSecondary,
+                ),
+                onPressed: () => _editSong(context, ref, song),
+                tooltip: 'Edit',
+              ),
+          ],
+        ),
+        onTap: () => _editSong(context, ref, song),
       ),
     );
+  }
 
-    // Refresh songs if songs were added
-    if (result == true && mounted) {
-      ref.invalidate(bandSongsProvider(widget.band.id));
-    }
+  void _addSongToBand(BuildContext context, WidgetRef ref) {
+    // Navigate to song picker or add new song
+    // For now, we'll just show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Song picker coming soon'),
+        action: SnackBarAction(label: 'OK', onPressed: () {}),
+      ),
+    );
   }
 
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
     if (!_canEdit) return;
 
-    context.pushNamed(
-      'edit-song',
-      pathParameters: {'id': song.id},
-      extra: {'song': song, 'bandId': widget.band.id},
-    );
-  }
-
-  void _openInTuner(Song song) {
-    unawaited(
-      context.pushNamed<void>(
-        'tuner',
-        extra: TunerLaunchContext(
-          song: song,
-          bandId: widget.band.id,
-          saveSong: _canEdit
-              ? (updatedSong) async {
-                  await ref
-                      .read(firestoreProvider)
-                      .saveBandSong(updatedSong, widget.band.id);
-                  ref.invalidate(bandSongsProvider(widget.band.id));
-                }
-              : null,
-        ),
-      ),
-    );
-  }
-
-  void _handleReorder(int oldIndex, int newIndex, List<Song> songs) {
-    setState(() {
-      var adjustedIndex = newIndex;
-      if (adjustedIndex > oldIndex) adjustedIndex--;
-      final item = songs.removeAt(oldIndex);
-      songs.insert(adjustedIndex, item);
-    });
-  }
-
-  Future<void> _deleteSongFromBand(
-    BuildContext context,
-    WidgetRef ref,
-    Song song,
-  ) async {
-    if (!_canEdit) return;
-
-    final confirmed = await ConfirmationDialog.showDeleteDialog(
-      context,
-      title: 'Remove from Band',
-      message: 'Are you sure you want to remove this song from the band?',
-      confirmLabel: 'Remove',
-    );
-
-    if (!confirmed) return;
-
-    final userAsync = ref.read(currentUserProvider);
-    final user = userAsync.value;
-    if (user != null) {
-      await ref.read(firestoreProvider).deleteBandSong(widget.band.id, song.id);
-    }
-  }
-
-  void _showAboutBand(BuildContext context) {
-    context.pushNamed(
-      'band-about',
-      pathParameters: {'id': widget.band.id},
-      extra: widget.band,
-    );
-  }
-
-  void _showMembers(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: MonoPulseColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.5,
-        minChildSize: 0.25,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) =>
-            _buildMembersSheet(context, scrollController),
-      ),
-    );
-  }
-
-  Widget _buildMembersSheet(
-    BuildContext context,
-    ScrollController scrollController,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      child: ListView(
-        controller: scrollController,
-        children: [
-          Text(
-            'Band Members',
-            style: MonoPulseTypography.headlineLarge.copyWith(
-              color: MonoPulseColors.textHighEmphasis,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (widget.band.members.isEmpty)
-            const Text('No members found')
-          else
-            ...widget.band.members.map(
-              (member) => ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: MonoPulseColors.accentOrange,
-                  child: Text(
-                    _getMemberInitials(member).toUpperCase(),
-                    style: const TextStyle(color: MonoPulseColors.textPrimary),
-                  ),
-                ),
-                title: Text(member.displayName ?? member.email ?? 'Unknown'),
-                subtitle: Text(_formatRole(member.role)),
-              ),
-            ),
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-
-  void _shareBand(BuildContext context) async {
-    final inviteCode = widget.band.inviteCode;
-    if (inviteCode == null || inviteCode.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No invite code available for this band')),
-      );
-      return;
-    }
-
-    // Use Firebase hosting URL (you can configure custom domain in Firebase Console)
-    const String domain = 'flowgroove.app';
-
-    final shareText =
-        'Join my band "${widget.band.name}" on FlowGroove!\n\n'
-        'Use invite code: $inviteCode\n\n'
-        'Or click the link: https://$domain/join-band?code=$inviteCode';
-
-    await SharePlus.instance.share(
-      ShareParams(
-        text: shareText,
-        subject: 'Join my band "${widget.band.name}" on FlowGroove',
-      ),
-    );
-  }
-
-  void _editDescription(BuildContext context) {
-    final controller = TextEditingController(text: widget.band.description);
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: MonoPulseColors.surface,
-        title: const Text('Edit Description'),
-        content: TextField(
-          controller: controller,
-          maxLines: 4,
-          decoration: const InputDecoration(
-            hintText: 'Enter band description...',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final userAsync = ref.read(currentUserProvider);
-              final user = userAsync.value;
-              if (user != null) {
-                await ref
-                    .read(firestoreProvider)
-                    .saveBand(
-                      widget.band.copyWith(description: controller.text),
-                      uid: user.uid,
-                    );
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Description updated')),
-                  );
-                }
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Get member initials safely (handles empty strings).
-  String _getMemberInitials(BandMember member) {
-    final text = member.displayName != null && member.displayName!.isNotEmpty
-        ? member.displayName!
-        : member.email != null && member.email!.isNotEmpty
-        ? member.email!
-        : '?';
-    return text.isNotEmpty ? text[0] : '?';
-  }
-
-  Widget _buildMemberTile(BandMember member) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(MonoPulseSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: MonoPulseColors.accentOrange,
-                  radius: 20,
-                  child: Text(
-                    _getMemberInitials(member).toUpperCase(),
-                    style: const TextStyle(
-                      color: MonoPulseColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        member.displayName ?? member.email ?? 'Unknown',
-                        style: MonoPulseTypography.labelLarge.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      // Permission role badge
-                      Row(
-                        children: [
-                          _buildPermissionBadge(member.role),
-                          const SizedBox(width: 8),
-                          if (_canEdit && member.uid != _currentUserId)
-                            GestureDetector(
-                              onTap: () => _showEditMemberDialog(member),
-                              child: const Icon(
-                                Icons.edit,
-                                size: 16,
-                                color: MonoPulseColors.textSecondary,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            // Music roles display
-            if (member.musicRoles.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                children: member.musicRoles.map((role) {
-                  final icon = MusicRoleIcon.getIcon(role);
-                  final displayName = MusicRoleIcon.getDisplayName(role);
-                  return Chip(
-                    label: Text(
-                      icon != null ? '$icon $displayName' : displayName,
-                      style: const TextStyle(fontSize: 10),
-                    ),
-                    padding: EdgeInsets.zero,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                    backgroundColor: MonoPulseColors.accentOrangeSubtle,
-                    labelStyle: const TextStyle(
-                      color: MonoPulseColors.accentOrange,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPermissionBadge(String role) {
-    Color color;
-    String icon;
-    switch (role) {
-      case 'admin':
-        color = MonoPulseColors.roleAdmin;
-        icon = 'A';
-        break;
-      case 'editor':
-        color = MonoPulseColors.roleEditor;
-        icon = 'E';
-        break;
-      default:
-        color = MonoPulseColors.textTertiary;
-        icon = 'V';
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon == 'A'
-                ? Icons.star
-                : icon == 'E'
-                ? Icons.edit
-                : Icons.visibility,
-            size: 10,
-            color: color,
-          ),
-          const SizedBox(width: 2),
-          Text(
-            icon,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String? get _currentUserId {
-    final userAsync = ref.read(currentUserProvider);
-    return userAsync.value?.uid;
-  }
-
-  void _showEditMemberDialog(BandMember member) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: MonoPulseColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => _EditMemberSheet(
-        member: member,
-        band: widget.band,
-        onSave: (updatedMember) => _updateMember(updatedMember),
-      ),
-    );
-  }
-
-  Future<void> _updateMember(BandMember updatedMember) async {
-    final currentMembers = List<BandMember>.from(widget.band.members);
-    final index = currentMembers.indexWhere((m) => m.uid == updatedMember.uid);
-    if (index != -1) {
-      currentMembers[index] = updatedMember;
-      final updatedBand = widget.band.copyWith(members: currentMembers);
-
-      try {
-        final userAsync = ref.read(currentUserProvider);
-        final user = userAsync.value;
-        if (user == null) return;
-
-        await ref.read(firestoreProvider).saveBand(updatedBand, uid: user.uid);
-        if (mounted) {
-          setState(() {});
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error updating member: $e')));
-        }
-      }
-    }
-  }
-
-  String _formatRole(String role) {
-    switch (role) {
-      case 'admin':
-        return 'Admin';
-      case 'editor':
-        return 'Editor';
-      case 'viewer':
-      default:
-        return 'Viewer';
-    }
-  }
-}
-
-/// Custom action for edit functionality in band songs screen
-class _BuildEditAction implements UnifiedItemAction {
-  final BuildContext context;
-  final WidgetRef ref;
-  final Song song;
-  final VoidCallback onEdit;
-
-  _BuildEditAction({
-    required this.context,
-    required this.ref,
-    required this.song,
-    required this.onEdit,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(
-        Icons.edit,
-        size: 20,
-        color: MonoPulseColors.textSecondary,
-      ),
-      onPressed: onEdit,
-      tooltip: 'Edit',
-    );
-  }
-}
-
-class _OpenBandSongInTunerAction implements UnifiedItemAction {
-  const _OpenBandSongInTunerAction({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(
-        Icons.tune,
-        size: 20,
-        color: MonoPulseColors.accentOrange,
-      ),
-      onPressed: onPressed,
-      tooltip: 'Open in Tuner',
-    );
-  }
-}
-
-class _EditMemberSheet extends StatefulWidget {
-  const _EditMemberSheet({
-    required this.member,
-    required this.band,
-    required this.onSave,
-  });
-
-  final BandMember member;
-  final Band band;
-  final Function(BandMember) onSave;
-
-  @override
-  State<_EditMemberSheet> createState() => _EditMemberSheetState();
-}
-
-class _EditMemberSheetState extends State<_EditMemberSheet> {
-  late List<String> _selectedMusicRoles;
-  late String _selectedPermission;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedMusicRoles = List<String>.from(widget.member.musicRoles);
-    _selectedPermission = widget.member.role;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.5,
-      maxChildSize: 0.9,
-      expand: false,
-      builder: (context, scrollController) {
-        return Container(
-          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-          child: ListView(
-            controller: scrollController,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Edit Member',
-                    style: MonoPulseTypography.headlineLarge.copyWith(
-                      color: MonoPulseColors.textHighEmphasis,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    constraints: const BoxConstraints(
-                      minWidth: 48,
-                      minHeight: 48,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Member name
-              Text(
-                widget.member.displayName ?? widget.member.email ?? 'Unknown',
-                style: MonoPulseTypography.titleLarge.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Permission role section
-              const Text(
-                'Permission Role',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: MonoPulseColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [
-                  _buildPermissionChip('admin', 'Admin', MonoPulseColors.error),
-                  _buildPermissionChip(
-                    'editor',
-                    'Editor',
-                    MonoPulseColors.info,
-                  ),
-                  _buildPermissionChip(
-                    'viewer',
-                    'Viewer',
-                    MonoPulseColors.textTertiary,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Music roles section — using RolePickerWidget
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Roles in Band',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: MonoPulseColors.textPrimary,
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: _editRoles,
-                    icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('Edit'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (_selectedMusicRoles.isEmpty)
-                Text(
-                  'Tap edit to add roles (instruments, tech, etc.)',
-                  style: TextStyle(color: MonoPulseColors.textTertiary),
-                )
-              else
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: _selectedMusicRoles.map((role) {
-                    final icon = MusicRoleIcon.getIcon(role);
-                    final displayName = MusicRoleIcon.getDisplayName(role);
-                    return InputChip(
-                      label: Text(
-                        icon != null ? '$icon $displayName' : displayName,
-                      ),
-                      deleteIcon: const Icon(Icons.close, size: 16),
-                      onDeleted: () {
-                        setState(() => _selectedMusicRoles.remove(role));
-                      },
-                      selected: true,
-                      onSelected: (_) =>
-                          setState(() => _selectedMusicRoles.remove(role)),
-                      backgroundColor: MonoPulseColors.accentOrangeSubtle,
-                      selectedColor: MonoPulseColors.accentOrangeSubtle,
-                      padding: EdgeInsets.zero,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    );
-                  }).toList(),
-                ),
-              const SizedBox(height: 32),
-
-              // Save button
-              ElevatedButton(
-                onPressed: () {
-                  final updatedMember = widget.member.copyWith(
-                    role: _selectedPermission,
-                    musicRoles: _selectedMusicRoles,
-                  );
-                  widget.onSave(updatedMember);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MonoPulseColors.accentOrange,
-                  foregroundColor: MonoPulseColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text('Save Changes'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _editRoles() async {
-    final result = await showRolePicker(
-      context: context,
-      currentRoles: _selectedMusicRoles,
-      title: 'Roles in "${widget.band.name}"',
-    );
-    if (result != null) {
-      setState(() => _selectedMusicRoles = result);
-    }
-  }
-
-  Widget _buildPermissionChip(String value, String label, Color color) {
-    final isSelected = _selectedPermission == value;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
-        if (selected) {
-          setState(() => _selectedPermission = value);
-        }
-      },
-      selectedColor: color.withValues(alpha: 0.3),
-      labelStyle: TextStyle(
-        color: isSelected ? color : MonoPulseColors.textSecondary,
-        fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-      ),
-    );
+    Navigator.pushNamed(context, '/songs/${song.id}/edit', arguments: song);
   }
 }
 

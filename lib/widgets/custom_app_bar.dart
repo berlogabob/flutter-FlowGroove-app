@@ -76,7 +76,7 @@ class CustomAppBar {
                   width: MonoPulseBorder.default_,
                 ),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.arrow_back_ios_new,
                 color: MonoPulseColors.textSecondary,
                 size: MonoPulseIcons.sizeMedium,
@@ -101,10 +101,7 @@ class CustomAppBar {
       actions: menuItems != null
           ? [
               GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  // Menu will be shown by PopupMenuButton
-                },
+                onTap: HapticFeedback.lightImpact,
                 // minTapTarget touch zone
                 child: SizedBox(
                   width: MonoPulseSpacing.massive, // 48px
@@ -117,12 +114,11 @@ class CustomAppBar {
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: MonoPulseColors.borderSubtle,
-                          width: MonoPulseBorder.thin,
                         ),
                       ),
                       child: PopupMenuButton<void>(
                         padding: EdgeInsets.zero,
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.more_horiz,
                           color: MonoPulseColors.textSecondary,
                           size: MonoPulseIcons.sizeLarge,
@@ -185,7 +181,7 @@ class CustomAppBar {
                   width: MonoPulseBorder.default_,
                 ),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.arrow_back_ios_new,
                 color: MonoPulseColors.textSecondary,
                 size: MonoPulseIcons.sizeMedium,
@@ -220,7 +216,7 @@ class CustomAppBar {
       foregroundColor: MonoPulseColors.textPrimary,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.light,
-      leading: SizedBox(width: MonoPulseSpacing.massive), // Empty space for alignment (48px)
+      leading: const SizedBox(width: MonoPulseSpacing.massive), // Empty space for alignment (48px)
       title: Text(
         title,
         style: MonoPulseTypography.headlineLarge.copyWith(
@@ -232,9 +228,7 @@ class CustomAppBar {
       actions: menuItems != null
           ? [
               GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                },
+                onTap: HapticFeedback.lightImpact,
                 child: SizedBox(
                   width: MonoPulseSpacing.massive, // 48px
                   height: MonoPulseSpacing.massive,
@@ -251,7 +245,7 @@ class CustomAppBar {
                       ),
                       child: PopupMenuButton<void>(
                         padding: EdgeInsets.zero,
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.more_horiz,
                           color: MonoPulseColors.textSecondary,
                           size: MonoPulseIcons.sizeLarge,

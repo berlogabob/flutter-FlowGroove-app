@@ -9,9 +9,9 @@ import '../../utils/music_role_icon.dart';
 import '../../widgets/custom_app_bar.dart';
 
 class BandAboutScreen extends ConsumerStatefulWidget {
-  final Band band;
 
-  const BandAboutScreen({super.key, required this.band});
+  const BandAboutScreen({required this.band, super.key});
+  final Band band;
 
   @override
   ConsumerState<BandAboutScreen> createState() => _BandAboutScreenState();
@@ -85,7 +85,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
         menuItems: [
           if (_canEdit) ...[
             PopupMenuItem<void>(
-              onTap: () => _toggleEdit(),
+              onTap: _toggleEdit,
               child: Row(
                 children: [
                   Icon(
@@ -498,7 +498,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     }
   }
 
-  void _shareBand(BuildContext context) async {
+  Future<void> _shareBand(BuildContext context) async {
     final inviteCode = _band.inviteCode;
     if (inviteCode == null || inviteCode.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

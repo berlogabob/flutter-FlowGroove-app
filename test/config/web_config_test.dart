@@ -10,9 +10,9 @@
 /// For web platform tests, run with: flutter test --platform chrome
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flowgroove/services/api/web_config.stub.dart' as stub_config;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_test/flutter_test.dart';
 
 // Conditional import for web-specific testing
 import 'web_config_test.web.dart' if (dart.library.io) 'web_config_test.io.dart';
@@ -161,7 +161,7 @@ void main() {
           );
         }
 
-        expect(() => stub_config.hasWebConfig(), returnsNormally);
+        expect(stub_config.hasWebConfig, returnsNormally);
       });
     });
   });

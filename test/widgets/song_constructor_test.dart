@@ -1,14 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/song_constructor.dart';
 import 'package:flowgroove/screens/songs/components/song_constructor/widgets/pill_view.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SongConstructor', () {
     testWidgets('displays initial sections in collapsed state', (tester) async {
       final sections = [
-        Section(id: '1', name: 'Intro', duration: 1),
+        Section(id: '1', name: 'Intro'),
         Section(id: '2', name: 'Verse', duration: 2),
       ];
 
@@ -25,8 +25,8 @@ void main() {
 
     testWidgets('displays title and expand button', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: const SongConstructor(initialSections: [])),
+        const MaterialApp(
+          home: Scaffold(body: SongConstructor(initialSections: [])),
         ),
       );
 
@@ -37,8 +37,8 @@ void main() {
 
     testWidgets('expand button toggles expanded state', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: const SongConstructor(initialSections: [])),
+        const MaterialApp(
+          home: Scaffold(body: SongConstructor(initialSections: [])),
         ),
       );
 
@@ -57,8 +57,8 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: const SongConstructor(initialSections: [])),
+        const MaterialApp(
+          home: Scaffold(body: SongConstructor(initialSections: [])),
         ),
       );
 
@@ -70,7 +70,7 @@ void main() {
 
     testWidgets('displays sections in expanded state', (tester) async {
       final sections = [
-        Section(id: '1', name: 'Intro', duration: 1),
+        Section(id: '1', name: 'Intro'),
         Section(id: '2', name: 'Verse', duration: 2),
         Section(id: '3', name: 'Chorus', duration: 2),
       ];
@@ -96,7 +96,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SongConstructor(
-              initialSections: [],
+              initialSections: const [],
               onChange: (sections) => capturedSections = sections,
             ),
           ),
@@ -124,7 +124,7 @@ void main() {
 
     testWidgets('edit section updates data', (tester) async {
       final sections = [
-        Section(id: '1', name: 'Intro', duration: 1, notes: ''),
+        Section(id: '1', name: 'Intro'),
       ];
 
       List<Section>? capturedSections;
@@ -161,7 +161,7 @@ void main() {
     });
 
     testWidgets('delete section removes from list', (tester) async {
-      final sections = [Section(id: '1', name: 'Intro', duration: 1)];
+      final sections = [Section(id: '1', name: 'Intro')];
 
       List<Section>? capturedSections;
 
@@ -192,7 +192,7 @@ void main() {
     });
 
     testWidgets('auto-generate creates sections', (tester) async {
-      final sections = [Section(id: '1', name: 'Intro', duration: 1)];
+      final sections = [Section(id: '1', name: 'Intro')];
 
       List<Section>? capturedSections;
 
@@ -224,7 +224,7 @@ void main() {
 
     testWidgets('pill view shows in collapsed state', (tester) async {
       final sections = [
-        Section(id: '1', name: 'Intro', duration: 1, colorValue: 0xFFFF5350),
+        Section(id: '1', name: 'Intro', colorValue: 0xFFFF5350),
         Section(id: '2', name: 'Verse', duration: 2, colorValue: 0xFF66BB6A),
       ];
 

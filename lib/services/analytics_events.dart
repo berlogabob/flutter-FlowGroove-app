@@ -4,9 +4,9 @@
 // This file defines all analytics events used in the FlowGroove app.
 // Each event is strongly typed with required and optional parameters.
 
-import '../models/song.dart';
 import '../models/band.dart';
 import '../models/setlist.dart';
+import '../models/song.dart';
 
 /// Analytics event names - single source of truth
 class AnalyticsEvents {
@@ -141,10 +141,10 @@ class AnalyticsParams {
 
 /// Type-safe analytics event data
 abstract class AnalyticsEventData {
-  final String eventName;
-  final Map<String, Object> parameters;
 
   const AnalyticsEventData({required this.eventName, required this.parameters});
+  final String eventName;
+  final Map<String, Object> parameters;
 
   Map<String, Object> toParameters() => parameters;
 }
@@ -246,10 +246,9 @@ class SongAddedEventData extends AnalyticsEventData {
            AnalyticsParams.artistName: artistName,
            AnalyticsParams.hasLyrics: hasLyrics,
            AnalyticsParams.hasChords: hasChords,
-           if (bpm != null) AnalyticsParams.bpm: bpm,
-           if (timeSignature != null)
-             AnalyticsParams.timeSignature: timeSignature,
-           if (bandId != null) AnalyticsParams.bandId: bandId,
+           AnalyticsParams.bpm: ?bpm,
+           AnalyticsParams.timeSignature: ?timeSignature,
+           AnalyticsParams.bandId: ?bandId,
          },
        );
 
@@ -368,9 +367,9 @@ class TunerUsedEventData extends AnalyticsEventData {
          eventName: AnalyticsEvents.tunerUsed,
          parameters: {
            AnalyticsParams.mode: mode,
-           if (targetNote != null) AnalyticsParams.targetNote: targetNote,
-           if (detectedNote != null) AnalyticsParams.detectedNote: detectedNote,
-           if (cents != null) AnalyticsParams.cents: cents,
+           AnalyticsParams.targetNote: ?targetNote,
+           AnalyticsParams.detectedNote: ?detectedNote,
+           AnalyticsParams.cents: ?cents,
          },
        );
 }

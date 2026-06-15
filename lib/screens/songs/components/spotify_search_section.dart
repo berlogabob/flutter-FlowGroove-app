@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../services/api/spotify_proxy_service.dart';
 import '../../../services/api/spotify_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
-import '../../../widgets/loading_indicator.dart';
 
 /// A bottom sheet widget for searching and selecting tracks from Spotify.
 ///
@@ -11,13 +9,13 @@ import '../../../widgets/loading_indicator.dart';
 /// (BPM, key) when available. Users can select a track to populate
 /// song information.
 class SpotifySearchSection extends StatefulWidget {
+
   const SpotifySearchSection({
-    super.key,
     required this.query,
     required this.scrollController,
     required this.onSelect,
+    super.key,
   });
-
   /// The search query string.
   final String query;
 
@@ -45,9 +43,9 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
 
   Future<List<SpotifyTrack>> _loadResults() async {
     try {
-      final tracks = await SpotifyProxyService.search(widget.query);
+      final tracks = await SpotifyService.search(widget.query);
       for (final track in tracks) {
-        final features = await SpotifyProxyService.getAudioFeatures(track.id);
+        final features = await SpotifyService.getAudioFeatures(track.id);
         if (features != null) {
           _audioFeatures[track.id] = features;
         }
@@ -63,18 +61,14 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          padding: const EdgeInsets.all(16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
                   'Spotify: ${widget.query}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: MonoPulseColors.textHighEmphasis,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -91,7 +85,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
             future: _searchResults,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const LoadingIndicator();
+                return const Center(child: CircularProgressIndicator());
               }
 
               if (snapshot.hasError) {
@@ -104,7 +98,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                       Icon(
                         isPremiumError ? Icons.lock : Icons.error_outline,
                         size: 48,
-                        color: isPremiumError ? MonoPulseColors.warning : MonoPulseColors.error,
+                        color: isPremiumError ? Colors.orange : Colors.red,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -117,9 +111,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                         isPremiumError
                             ? 'Spotify API needs Premium subscription'
                             : 'Try again later',
-                        style: MonoPulseTypography.bodySmall.copyWith(
-                          color: MonoPulseColors.textTertiary,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                       if (isPremiumError) ...[
                         const SizedBox(height: 16),
@@ -147,19 +139,17 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
               final results = snapshot.data ?? [];
 
               if (results.isEmpty) {
-                return Center(
+                return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.music_off, size: 48, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      const Text('No results found'),
-                      const SizedBox(height: 8),
+                      Icon(Icons.music_off, size: 48, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text('No results found'),
+                      SizedBox(height: 8),
                       Text(
                         'Spotify API not configured.\nSee lib/services/spotify_service.dart',
-                        style: MonoPulseTypography.bodySmall.copyWith(
-                          color: MonoPulseColors.textSecondary,
-                        ),
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -183,8 +173,9 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                         if (features != null)
                           Text(
                             '${features.musicalKey} • ${features.bpm} BPM',
-                            style: MonoPulseTypography.bodySmall.copyWith(
+                            style: const TextStyle(
                               color: MonoPulseColors.accentOrange,
+                              fontSize: 12,
                             ),
                           ),
                       ],

@@ -5,22 +5,23 @@
 library;
 
 import 'package:flutter/material.dart';
-import '../../theme/mono_pulse_theme.dart';
+
 import '../../services/matching/match_scorer.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 /// Dialog for confirming song matches.
 class SongMatchDialog extends StatelessWidget {
+
+  const SongMatchDialog({
+    required this.matchScore,
+    required this.userInput,
+    super.key,
+  });
   /// The match score to display.
   final MatchScore matchScore;
 
   /// The user's original input.
   final String userInput;
-
-  const SongMatchDialog({
-    super.key,
-    required this.matchScore,
-    required this.userInput,
-  });
 
   /// Shows the match dialog and returns true if user accepts the match.
   static Future<bool?> show(

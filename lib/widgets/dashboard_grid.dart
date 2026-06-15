@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/mono_pulse_theme.dart';
 import '../utils/responsive_breakpoints.dart';
-import 'stat_card.dart';
 import 'quick_action_button.dart';
+import 'stat_card.dart';
 import 'tool_button.dart';
 
 /// Dashboard grid displaying statistics and quick actions.
@@ -37,10 +37,10 @@ import 'tool_button.dart';
 /// ```
 class DashboardGrid extends StatelessWidget {
   const DashboardGrid({
-    super.key,
     required this.statistics,
     required this.quickActions,
     required this.tools,
+    super.key,
     this.greetingCard,
   });
 
@@ -79,7 +79,7 @@ class DashboardGrid extends StatelessWidget {
               // Statistics section
               if (statistics.isNotEmpty) ...[
                 _buildSectionTitle(context, 'My Library', breakpoint),
-                SizedBox(height: MonoPulseSpacing.md),
+                const SizedBox(height: MonoPulseSpacing.md),
                 _buildResponsiveStatisticsGrid(breakpoint),
                 SizedBox(height: sectionSpacing),
               ],
@@ -87,7 +87,7 @@ class DashboardGrid extends StatelessWidget {
               // Quick actions section
               if (quickActions.isNotEmpty) ...[
                 _buildSectionTitle(context, 'Quick Actions', breakpoint),
-                SizedBox(height: MonoPulseSpacing.md),
+                const SizedBox(height: MonoPulseSpacing.md),
                 _buildResponsiveQuickActionsGrid(breakpoint),
                 SizedBox(height: sectionSpacing),
               ],
@@ -95,7 +95,7 @@ class DashboardGrid extends StatelessWidget {
               // Tools section
               if (tools.isNotEmpty) ...[
                 _buildSectionTitle(context, 'Tools', breakpoint),
-                SizedBox(height: MonoPulseSpacing.md),
+                const SizedBox(height: MonoPulseSpacing.md),
                 _buildResponsiveToolsGrid(breakpoint, constraints.maxWidth),
               ],
 
@@ -171,7 +171,7 @@ class DashboardGrid extends StatelessWidget {
   ) {
     // Mobile: 2 columns (Tuner, Metronome side by side)
     // Tablet/Desktop: 2 columns with more tools in 2nd row
-    final crossAxisCount = 2;
+    const crossAxisCount = 2;
 
     return _buildFixedGrid(
       children: tools,
@@ -205,7 +205,6 @@ class DashboardGrid extends StatelessWidget {
           ),
           itemCount: children.length,
           itemBuilder: (context, index) => FittedBox(
-            fit: BoxFit.contain,
             child: children[index],
           ),
         );

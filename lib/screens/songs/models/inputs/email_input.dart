@@ -21,16 +21,16 @@ enum EmailValidationError {
 /// }
 /// ```
 class Email extends FormzInput<String, EmailValidationError> {
-  /// Regular expression for email validation.
-  static final _emailRegex = RegExp(
-    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-  );
 
   /// Pure email input (no user interaction yet).
   const Email.pure() : super.pure('');
 
   /// Dirty email input (user has interacted).
   const Email.dirty([super.value = '']) : super.dirty();
+  /// Regular expression for email validation.
+  static final _emailRegex = RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  );
 
   @override
   EmailValidationError? validator(String value) {

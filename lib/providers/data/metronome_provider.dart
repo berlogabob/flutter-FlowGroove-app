@@ -4,29 +4,32 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../models/metronome_state.dart';
-import '../../models/metronome_tempo_range.dart';
-import '../../models/time_signature.dart';
-import '../../models/song.dart';
-import '../../models/setlist.dart';
 import '../../models/beat_mode.dart';
 import '../../models/metronome_preset.dart';
 import '../../models/metronome_runtime_state.dart';
 import '../../models/metronome_session.dart';
+import '../../models/metronome_state.dart';
+import '../../models/metronome_tempo_range.dart';
+import '../../models/setlist.dart';
+import '../../models/song.dart';
 import '../../models/tempo_ramp.dart';
+import '../../models/time_signature.dart';
 import '../../providers/metronome_runtime_providers.dart';
 import '../../providers/wakelock_provider.dart';
+import '../../repositories/metronome_session_repository.dart';
 import '../../services/analytics_service.dart';
 import '../../services/audio/audio_focus_manager.dart';
-import '../../services/wakelock_controller.dart';
-import '../../repositories/metronome_session_repository.dart';
 import '../../services/metronome_preferences.dart';
+import '../../services/wakelock_controller.dart';
 
 /// Metronome Notifier class
 ///
 /// Manages metronome state and provides methods to control it.
 /// Uses Riverpod Notifier pattern for state management.
 class MetronomeNotifier extends Notifier<MetronomeState> {
+
+  /// Default constructor
+  MetronomeNotifier();
   late MetronomeAudioClient _audioClient;
   late MetronomePlaybackClient _playbackClient;
   late WakelockController _wakelock;
@@ -34,9 +37,6 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   final MetronomeSessionRepository _sessionRepository =
       MetronomeSessionRepository();
   final MetronomePreferences _preferences = MetronomePreferences();
-
-  /// Default constructor
-  MetronomeNotifier();
 
   Timer? _debounceTimer;
   bool _debouncePending = false;
@@ -111,7 +111,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   /// Examples: 4/4 → 4 beats, 2/2 → 2 beats, 6/8 → 2 beats
   /// INDEPENDENT: Does NOT affect subdivisions count
   void setAccentBeats(int count) {
-    final clampedCount = count.clamp(1, 12).toInt();
+    final clampedCount = count.clamp(1, 12);
     state = state.copyWith(accentBeats: clampedCount);
     _syncPlaybackConfig();
   }
@@ -121,7 +121,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   /// Where H = High pitch (1760 Hz), l = Low pitch (880 Hz)
   /// INDEPENDENT: Does NOT affect beats count
   void setRegularBeats(int count) {
-    final clampedCount = count.clamp(1, 12).toInt();
+    final clampedCount = count.clamp(1, 12);
     state = state.copyWith(regularBeats: clampedCount);
     _syncPlaybackConfig();
   }
@@ -132,7 +132,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   /// [mode] - BeatMode (normal, accent, silent)
   void setBeatMode(int beatIndex, int subdivisionIndex, BeatMode mode) {
     final newBeatModes = List<List<BeatMode>>.from(
-      state.beatModes.map((beat) => List<BeatMode>.from(beat)),
+      state.beatModes.map(List<BeatMode>.from),
     );
 
     // Extend outer list if needed (add new beats)
@@ -392,7 +392,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Set volume
   void setVolume(double volume) {
-    final clampedVolume = volume.clamp(0.0, 1.0).toDouble();
+    final clampedVolume = volume.clamp(0.0, 1.0);
     state = state.copyWith(volume: clampedVolume);
     _syncPlaybackConfig();
   }
@@ -439,7 +439,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Set count-in bars (0 = off, 1-4 = number of bars to count in)
   void setCountInBars(int bars) {
-    final clampedBars = bars.clamp(0, 4).toInt();
+    final clampedBars = bars.clamp(0, 4);
     state = state.copyWith(countInBars: clampedBars);
     _syncPlaybackConfig();
     _persistManualSettings();
@@ -539,7 +539,6 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
         timeSignature:
             '${state.timeSignature.numerator}/${state.timeSignature.denominator}',
         subdivision: state.regularBeats,
-        soundType: 'digital',
       );
     }
   }

@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/services/api/track_analysis_service.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('TrackAnalysisService', () {
@@ -131,7 +131,6 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           key: 'D',
-          mode: null,
           bpm: 120,
         );
 
@@ -142,7 +141,6 @@ void main() {
         final analysis = TrackAnalysis(
           title: 'Test Song',
           artist: 'Test Artist',
-          key: null,
           mode: 'major',
           bpm: 120,
         );

@@ -13,9 +13,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 
+import '../config/metronome_feature_flags.dart';
 import '../models/beat_mode.dart';
 import '../models/metronome_state.dart';
-import '../config/metronome_feature_flags.dart';
 import '../services/audio/metronome_audio_engine.dart';
 import '../services/audio/wall_clock_scheduler.dart';
 
@@ -223,12 +223,10 @@ class PcmTimelineMetronomePlaybackClient implements MetronomePlaybackClient {
         bufferingType: BufferingType.released,
         bufferingTimeNeeds: 0.15,
         sampleRate: _sampleRate,
-        channels: Channels.mono,
-        format: BufferType.s16le,
       );
       _appendChunk();
       _appendChunk();
-      _handle = await SoLoud.instance.play(_stream!, volume: 1);
+      _handle = SoLoud.instance.play(_stream!);
       _feedTimer = Timer.periodic(
         const Duration(milliseconds: 500),
         (_) => _appendChunk(),
@@ -264,7 +262,6 @@ class PcmTimelineMetronomePlaybackClient implements MetronomePlaybackClient {
       config,
       onTick: onTick ?? (_) {},
       onStopped: _onStopped,
-      initialTick: -1,
     );
   }
 
@@ -501,10 +498,9 @@ abstract class MetronomePlaybackClient {
 
 class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
   FlutterMetronomePlaybackClient({
-    required MetronomeAudioClient audioClient,
-    required MetronomeHapticsClient hapticsClient,
-  }) : _audioClient = audioClient,
-       _hapticsClient = hapticsClient;
+    required this._audioClient,
+    required this._hapticsClient,
+  });
 
   final MetronomeAudioClient _audioClient;
   final MetronomeHapticsClient _hapticsClient;
@@ -649,10 +645,9 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
 
 class PlatformMetronomePlaybackClient implements MetronomePlaybackClient {
   PlatformMetronomePlaybackClient({
-    required FlutterMetronomePlaybackClient fallback,
+    required this._fallback,
     MethodChannel? channel,
-  }) : _channel = channel ?? const MethodChannel('com.flowgroove/metronome'),
-       _fallback = fallback {
+  }) : _channel = channel ?? const MethodChannel('com.flowgroove/metronome') {
     _channel.setMethodCallHandler(_handleNativeCall);
   }
 

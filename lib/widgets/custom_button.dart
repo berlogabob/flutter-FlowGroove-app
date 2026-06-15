@@ -6,6 +6,17 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a reusable button with support for different
 /// variants (primary, secondary, outline, text) and loading states.
 class CustomButton extends StatelessWidget {
+
+  const CustomButton({
+    required this.label,
+    this.onPressed,
+    this.variant = ButtonVariant.primary,
+    this.size = ButtonSize.medium,
+    this.isLoading = false,
+    this.icon,
+    this.fullWidth = false,
+    super.key,
+  });
   /// The text displayed on the button.
   final String label;
 
@@ -27,45 +38,11 @@ class CustomButton extends StatelessWidget {
   /// Whether the button should expand to fill available width.
   final bool fullWidth;
 
-  /// Optional tooltip shown on hover / long-press.
-  final String? tooltip;
-
-  /// Optional screen-reader label. Falls back to [label].
-  final String? semanticLabel;
-
-  const CustomButton({
-    super.key,
-    required this.label,
-    this.variant = ButtonVariant.primary,
-    this.size = ButtonSize.medium,
-    this.isLoading = false,
-    this.fullWidth = false,
-    this.onPressed,
-    this.icon,
-    this.tooltip,
-    this.semanticLabel,
-  });
-
   @override
   Widget build(BuildContext context) {
-    Widget button = _buildButton(context);
+    final button = _buildButton(context);
 
-    if (fullWidth) {
-      button = SizedBox(width: double.infinity, child: button);
-    }
-
-    button = Semantics(
-      button: true,
-      enabled: onPressed != null && !isLoading,
-      label: semanticLabel ?? label,
-      child: button,
-    );
-
-    if (tooltip != null) {
-      button = Tooltip(message: tooltip!, child: button);
-    }
-
-    return button;
+    return fullWidth ? SizedBox(width: double.infinity, child: button) : button;
   }
 
   Widget _buildButton(BuildContext context) {
@@ -96,7 +73,6 @@ class CustomButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(MonoPulseRadius.large),
               side: const BorderSide(
                 color: MonoPulseColors.accentOrange,
-                width: 1,
               ),
             ),
           ),
@@ -136,7 +112,7 @@ class CustomButton extends StatelessWidget {
             ),
           ),
         ),
-        if (label.isNotEmpty) ...[SizedBox(width: MonoPulseSpacing.sm), Text(label)],
+        if (label.isNotEmpty) ...[const SizedBox(width: 8), Text(label)],
       ],
     );
 
@@ -179,7 +155,7 @@ class CustomButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: _iconSize),
-          if (label.isNotEmpty) ...[SizedBox(width: MonoPulseSpacing.sm), Text(label)],
+          if (label.isNotEmpty) ...[const SizedBox(width: 8), Text(label)],
         ],
       );
     }
@@ -189,31 +165,22 @@ class CustomButton extends StatelessWidget {
   EdgeInsetsGeometry get _padding {
     switch (size) {
       case ButtonSize.small:
-        return const EdgeInsets.symmetric(
-          horizontal: MonoPulseSpacing.md,
-          vertical: MonoPulseSpacing.sm,
-        );
+        return const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
       case ButtonSize.medium:
-        return const EdgeInsets.symmetric(
-          horizontal: MonoPulseSpacing.xxl,
-          vertical: MonoPulseSpacing.md,
-        );
+        return const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
       case ButtonSize.large:
-        return const EdgeInsets.symmetric(
-          horizontal: MonoPulseSpacing.xxxl,
-          vertical: MonoPulseSpacing.lg,
-        );
+        return const EdgeInsets.symmetric(horizontal: 32, vertical: 16);
     }
   }
 
   double get _iconSize {
     switch (size) {
       case ButtonSize.small:
-        return MonoPulseIcons.sizeSmall; // 16
+        return 16;
       case ButtonSize.medium:
-        return MonoPulseIcons.sizeMedium; // 20 (consistent with large)
+        return 18;
       case ButtonSize.large:
-        return MonoPulseIcons.sizeMedium; // 20
+        return 20;
     }
   }
 }

@@ -2,12 +2,6 @@ import 'setlist.dart';
 import 'song.dart';
 
 class TunerLaunchContext {
-  final Song song;
-  final Setlist? setlist;
-  final String? setlistItemId;
-  final String? bandId;
-  final Future<void> Function(Song song)? saveSong;
-  final Future<void> Function(Setlist setlist)? saveSetlist;
 
   const TunerLaunchContext({
     required this.song,
@@ -17,6 +11,12 @@ class TunerLaunchContext {
     this.saveSong,
     this.saveSetlist,
   });
+  final Song song;
+  final Setlist? setlist;
+  final String? setlistItemId;
+  final String? bandId;
+  final Future<void> Function(Song song)? saveSong;
+  final Future<void> Function(Setlist setlist)? saveSetlist;
 
   String? get initialPresetId {
     final itemId = setlistItemId;

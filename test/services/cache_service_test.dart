@@ -1,10 +1,10 @@
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/services/cache_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-import 'package:flowgroove/services/cache_service.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/band.dart';
-import 'package:flowgroove/models/setlist.dart';
-import 'package:flowgroove/models/link.dart';
 
 void main() {
   group('CacheService', () {
@@ -30,15 +30,15 @@ void main() {
             id: 'song-1',
             title: 'Test Song 1',
             artist: 'Test Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
           Song(
             id: 'song-2',
             title: 'Test Song 2',
             artist: 'Test Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -61,8 +61,8 @@ void main() {
             id: 'song-1',
             title: 'Original Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -73,8 +73,8 @@ void main() {
             id: 'song-2',
             title: 'New Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -91,8 +91,8 @@ void main() {
             id: 'song-1',
             title: 'Test Song',
             artist: 'Test Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -117,8 +117,8 @@ void main() {
             id: 'song-1',
             title: 'Test Song',
             artist: 'Test Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -144,8 +144,8 @@ void main() {
             tags: ['rock', 'classic'],
             bandId: 'band-1',
             spotifyUrl: 'https://spotify.com/track/123',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -170,13 +170,13 @@ void main() {
             id: 'band-1',
             name: 'Test Band 1',
             createdBy: testUid,
-            createdAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
           ),
           Band(
             id: 'band-2',
             name: 'Test Band 2',
             createdBy: testUid,
-            createdAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
           ),
         ];
 
@@ -199,7 +199,7 @@ void main() {
             id: 'band-1',
             name: 'Test Band',
             createdBy: testUid,
-            createdAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
           ),
         ];
 
@@ -218,7 +218,7 @@ void main() {
             id: 'band-1',
             name: 'Test Band',
             createdBy: testUid,
-            createdAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
           ),
         ];
 
@@ -237,7 +237,7 @@ void main() {
             description: 'Test Description',
             createdBy: testUid,
             inviteCode: 'ABC123',
-            createdAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
           ),
         ];
 
@@ -259,16 +259,16 @@ void main() {
             bandId: 'band-1',
             name: 'Test Setlist 1',
             songIds: ['song-1', 'song-2'],
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
           Setlist(
             id: 'setlist-2',
             bandId: 'band-1',
             name: 'Test Setlist 2',
             songIds: ['song-3'],
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -296,8 +296,8 @@ void main() {
               bandId: 'band-1',
               name: 'Test Setlist',
               songIds: [],
-              createdAt: DateTime(2024, 1, 1),
-              updatedAt: DateTime(2024, 1, 1),
+              createdAt: DateTime(2024),
+              updatedAt: DateTime(2024),
             ),
           ];
 
@@ -322,8 +322,8 @@ void main() {
             bandId: 'band-1',
             name: 'Test Setlist',
             songIds: [],
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -345,8 +345,8 @@ void main() {
             eventLocation: 'Test Venue',
             songIds: ['song-1', 'song-2'],
             totalDuration: 600,
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -369,8 +369,8 @@ void main() {
             id: 'song-1',
             title: 'Band Song 1',
             artist: 'Test Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -394,8 +394,8 @@ void main() {
             id: 'song-1',
             title: 'Band Song',
             artist: 'Test Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -415,8 +415,8 @@ void main() {
             id: 'song-1',
             title: 'Test Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ]);
 
@@ -425,7 +425,7 @@ void main() {
             id: 'band-1',
             name: 'Test Band',
             createdBy: testUid,
-            createdAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
           ),
         ]);
 
@@ -435,8 +435,8 @@ void main() {
             bandId: 'band-1',
             name: 'Test Setlist',
             songIds: [],
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ]);
 
@@ -454,8 +454,8 @@ void main() {
             id: 'song-1',
             title: 'Test Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ]);
 
@@ -464,8 +464,8 @@ void main() {
             id: 'song-2',
             title: 'Other Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ]);
 
@@ -481,8 +481,8 @@ void main() {
             id: 'song-1',
             title: 'Test Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ]);
 
@@ -501,8 +501,8 @@ void main() {
             id: 'song-1',
             title: 'Test Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ]);
 
@@ -609,8 +609,8 @@ void main() {
             id: 'song-1',
             title: 'User 1 Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -619,8 +619,8 @@ void main() {
             id: 'song-2',
             title: 'User 2 Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -643,8 +643,8 @@ void main() {
             id: 'song-1',
             title: 'Band 1 Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -653,8 +653,8 @@ void main() {
             id: 'song-2',
             title: 'Band 2 Song',
             artist: 'Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 

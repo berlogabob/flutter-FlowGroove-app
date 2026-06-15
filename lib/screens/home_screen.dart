@@ -46,7 +46,6 @@ class HomeScreen extends ConsumerWidget {
     return StandardScreenScaffold(
       title: 'Home',
       showBackButton: false, // Hide back button for main tabs
-      showOfflineIndicator: true,
       body: _HomeDashboard(context, ref),
     );
   }
@@ -145,7 +144,7 @@ class HomeScreen extends ConsumerWidget {
         subtitle: '',
         isCompact: isCompact,
       ),
-      error: (_, __) => GreetingCard(
+      error: (_, _) => GreetingCard(
         userName: 'User',
         subtitle: 'Ready to rock?',
         isCompact: isCompact,

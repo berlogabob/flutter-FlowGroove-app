@@ -12,9 +12,10 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../theme/mono_pulse_theme.dart';
-import '../../providers/data/metronome_provider.dart';
 import '../../models/beat_mode.dart';
+import '../../providers/data/metronome_provider.dart';
 
 /// Accent pattern editor with 2D grid
 class AccentPatternEditor extends ConsumerWidget {
@@ -73,7 +74,7 @@ class AccentPatternEditor extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Beat Pattern Editor'),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -81,18 +82,18 @@ class AccentPatternEditor extends ConsumerWidget {
               mode: BeatMode.normal,
               description: 'Normal: Standard click',
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             _LegendItem(
               mode: BeatMode.accent,
               description: 'Accent: Louder, higher pitch',
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             _LegendItem(
               mode: BeatMode.silent,
               description: 'Silent: Visual only, no sound',
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               'Tap any cell to cycle through modes.',
               style: TextStyle(fontStyle: FontStyle.italic),
             ),
@@ -172,7 +173,6 @@ class _BeatModeGrid extends StatelessWidget {
         crossAxisCount: regularBeats,
         mainAxisSpacing: 4,
         crossAxisSpacing: 4,
-        childAspectRatio: 1.0,
       ),
       itemCount: beatModes.length * (beatModes.isNotEmpty ? beatModes[0].length : 0),
       itemBuilder: (context, index) {
@@ -219,7 +219,7 @@ class _BeatModeCell extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: DecoratedBox(
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           border: Border.all(color: color, width: 2),
@@ -289,7 +289,7 @@ class _BeatModeCell extends StatelessWidget {
 class _Legend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Wrap(
+    return const Wrap(
       spacing: 16,
       runSpacing: 8,
       children: [
@@ -312,13 +312,13 @@ class _Legend extends StatelessWidget {
 
 /// Individual legend item
 class _LegendItem extends StatelessWidget {
-  final BeatMode mode;
-  final String description;
 
   const _LegendItem({
     required this.mode,
     required this.description,
   });
+  final BeatMode mode;
+  final String description;
 
   @override
   Widget build(BuildContext context) {

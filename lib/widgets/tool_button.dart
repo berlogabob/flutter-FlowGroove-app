@@ -41,9 +41,7 @@ import '../utils/responsive_breakpoints.dart';
 /// ```
 class ToolButton extends StatelessWidget {
   const ToolButton({
-    super.key,
-    required this.icon,
-    required this.label,
+    required this.icon, required this.label, super.key,
     this.isCompact = false,
     this.onTap,
   });
@@ -120,7 +118,7 @@ class ToolButton extends StatelessWidget {
               if (!isEnabled) ...[
                 SizedBox(height: isCompact ? 2 : MonoPulseSpacing.xs),
                 Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: MonoPulseSpacing.sm,
                     vertical: 2,
                   ),

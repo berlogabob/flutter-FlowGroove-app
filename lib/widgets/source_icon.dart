@@ -15,14 +15,14 @@ import '../theme/mono_pulse_theme.dart';
 /// SourceIcon(source: SuggestionSource.personal)
 /// ```
 class SourceIcon extends StatelessWidget {
-  final SuggestionSource source;
-  final double size;
 
   const SourceIcon({
-    super.key,
     required this.source,
+    super.key,
     this.size = 20,
   });
+  final SuggestionSource source;
+  final double size;
 
   @override
   Widget build(BuildContext context) {

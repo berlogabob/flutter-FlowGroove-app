@@ -58,10 +58,6 @@ class StringSelector extends ConsumerWidget {
 }
 
 class _StringPill extends StatelessWidget {
-  final String label;
-  final String note;
-  final bool isSelected;
-  final VoidCallback onTap;
 
   const _StringPill({
     required this.label,
@@ -69,6 +65,10 @@ class _StringPill extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
   });
+  final String label;
+  final String note;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +92,6 @@ class _StringPill extends StatelessWidget {
             color: isSelected
                 ? MonoPulseColors.accentOrange
                 : MonoPulseColors.borderDefault,
-            width: 1,
           ),
         ),
         child: Column(

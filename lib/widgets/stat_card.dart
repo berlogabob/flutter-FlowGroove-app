@@ -36,11 +36,11 @@ import 'app_card.dart';
 /// ```
 class StatCard extends StatelessWidget {
   const StatCard({
-    super.key,
     required this.icon,
     required this.label,
     required this.value,
     required this.color,
+    super.key,
     this.aspectRatio,
     this.onTap,
   });
@@ -72,9 +72,8 @@ class StatCard extends StatelessWidget {
 
     // Canonical surface card from the design system (Phase 4).
     return AppCard(
-      variant: AppCardVariant.surface,
       onTap: onTap,
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.lg,
         vertical: MonoPulseSpacing.sm,
       ),
@@ -82,7 +81,7 @@ class StatCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, color: color, size: iconSize),
-          SizedBox(height: MonoPulseSpacing.xxs),
+          const SizedBox(height: MonoPulseSpacing.xxs),
           Text(
             value,
             maxLines: 1,
@@ -91,10 +90,10 @@ class StatCard extends StatelessWidget {
               fontWeight: FontWeight.w700,
               color: color,
               fontSize: valueFontSize,
-              height: 1.0,
+              height: 1,
             ),
           ),
-          SizedBox(height: MonoPulseSpacing.xxs),
+          const SizedBox(height: MonoPulseSpacing.xxs),
           Text(
             label,
             maxLines: 1,
@@ -102,7 +101,7 @@ class StatCard extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: MonoPulseColors.textTertiary,
               fontSize: labelFontSize,
-              height: 1.0,
+              height: 1,
             ),
           ),
         ],

@@ -1,6 +1,6 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/domain/tap_tempo_calculator.dart';
 import 'package:flowgroove/models/tempo_ramp.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('tap tempo averages recent intervals and resets after timeout', () {

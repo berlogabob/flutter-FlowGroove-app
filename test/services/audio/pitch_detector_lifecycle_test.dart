@@ -34,13 +34,13 @@ void main() {
 }
 
 class _FakeAudioInput implements AudioInput {
+
+  _FakeAudioInput(this.permission);
   final TunerPermissionState permission;
   final StreamController<Uint8List> controller = StreamController<Uint8List>();
   int startCount = 0;
   int stopCount = 0;
   int disposeCount = 0;
-
-  _FakeAudioInput(this.permission);
 
   @override
   bool isRecording = false;

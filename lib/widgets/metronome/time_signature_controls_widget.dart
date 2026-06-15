@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/data/metronome_provider.dart';
+
 import '../../models/time_signature.dart';
+import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 /// Time Signature Controls widget - Preset buttons for common time signatures
@@ -130,7 +131,6 @@ class TimeSignatureControlsWidget extends ConsumerWidget {
                       color: MonoPulseColors.accentOrange.withValues(
                         alpha: 0.3,
                       ),
-                      width: 1,
                     ),
                   ),
                   child: Text(
@@ -151,15 +151,15 @@ class TimeSignatureControlsWidget extends ConsumerWidget {
 }
 
 class _TimeSignatureChip extends StatefulWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
 
   const _TimeSignatureChip({
     required this.label,
     required this.isSelected,
     required this.onTap,
   });
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   State<_TimeSignatureChip> createState() => _TimeSignatureChipState();
@@ -202,7 +202,6 @@ class _TimeSignatureChipState extends State<_TimeSignatureChip> {
               color: isSelected
                   ? MonoPulseColors.accentOrange
                   : MonoPulseColors.borderDefault,
-              width: 1,
             ),
           ),
           child: Text(

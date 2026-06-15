@@ -1,11 +1,12 @@
+import 'package:flowgroove/widgets/band_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/band_card.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('BandCard', () {
-    testWidgets('renders band card with name', (WidgetTester tester) async {
+    testWidgets('renders band card with name', (tester) async {
       await pumpAppWidget(
         tester,
         const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
@@ -14,7 +15,7 @@ void main() {
       expect(findText('Test Band'), findsOneWidget);
     });
 
-    testWidgets('renders groups icon', (WidgetTester tester) async {
+    testWidgets('renders groups icon', (tester) async {
       await pumpAppWidget(
         tester,
         const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
@@ -23,7 +24,7 @@ void main() {
       expect(findIcon(Icons.groups), findsOneWidget);
     });
 
-    testWidgets('renders member count', (WidgetTester tester) async {
+    testWidgets('renders member count', (tester) async {
       await pumpAppWidget(
         tester,
         const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
@@ -33,7 +34,7 @@ void main() {
     });
 
     testWidgets('renders member count singular for one member', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -44,7 +45,7 @@ void main() {
     });
 
     testWidgets('renders description when provided', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -60,7 +61,7 @@ void main() {
     });
 
     testWidgets('does not render description when null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -68,7 +69,6 @@ void main() {
           id: 'test-band',
           name: 'Test Band',
           memberCount: 4,
-          description: null,
         ),
       );
 
@@ -76,7 +76,7 @@ void main() {
     });
 
     testWidgets('does not render description when empty', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -91,7 +91,7 @@ void main() {
       verifyNotFound(find.text(''));
     });
 
-    testWidgets('renders edit button', (WidgetTester tester) async {
+    testWidgets('renders edit button', (tester) async {
       await pumpAppWidget(
         tester,
         const BandCard(
@@ -105,7 +105,7 @@ void main() {
       expect(findIcon(Icons.edit), findsOneWidget);
     });
 
-    testWidgets('renders delete button', (WidgetTester tester) async {
+    testWidgets('renders delete button', (tester) async {
       await pumpAppWidget(
         tester,
         const BandCard(
@@ -120,7 +120,7 @@ void main() {
     });
 
     testWidgets('does not render edit button when onEdit is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -131,7 +131,7 @@ void main() {
     });
 
     testWidgets('does not render delete button when onDelete is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -141,7 +141,7 @@ void main() {
       verifyNotFound(findIcon(Icons.delete));
     });
 
-    testWidgets('calls onTap when card is tapped', (WidgetTester tester) async {
+    testWidgets('calls onTap when card is tapped', (tester) async {
       bool wasTapped = false;
 
       await pumpAppWidget(
@@ -161,7 +161,7 @@ void main() {
     });
 
     testWidgets('calls onEdit when edit button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasEdited = false;
 
@@ -182,7 +182,7 @@ void main() {
     });
 
     testWidgets('calls onDelete when delete button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasDeleted = false;
 
@@ -202,7 +202,7 @@ void main() {
       expect(wasDeleted, isTrue);
     });
 
-    testWidgets('renders as Card widget', (WidgetTester tester) async {
+    testWidgets('renders as Card widget', (tester) async {
       await pumpAppWidget(
         tester,
         const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
@@ -211,7 +211,7 @@ void main() {
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('renders as ListTile', (WidgetTester tester) async {
+    testWidgets('renders as ListTile', (tester) async {
       await pumpAppWidget(
         tester,
         const BandCard(id: 'test-band', name: 'Test Band', memberCount: 4),
@@ -222,7 +222,7 @@ void main() {
   });
 
   group('CompactBandCard', () {
-    testWidgets('renders compact card with name', (WidgetTester tester) async {
+    testWidgets('renders compact card with name', (tester) async {
       await pumpAppWidget(
         tester,
         const CompactBandCard(id: 'test-band', name: 'Compact Band'),
@@ -231,7 +231,7 @@ void main() {
       expect(findText('Compact Band'), findsOneWidget);
     });
 
-    testWidgets('renders groups icon', (WidgetTester tester) async {
+    testWidgets('renders groups icon', (tester) async {
       await pumpAppWidget(
         tester,
         const CompactBandCard(id: 'test-band', name: 'Compact Band'),
@@ -240,7 +240,7 @@ void main() {
       expect(findIcon(Icons.groups), findsOneWidget);
     });
 
-    testWidgets('calls onTap when card is tapped', (WidgetTester tester) async {
+    testWidgets('calls onTap when card is tapped', (tester) async {
       bool wasTapped = false;
 
       await pumpAppWidget(
@@ -258,7 +258,7 @@ void main() {
       expect(wasTapped, isTrue);
     });
 
-    testWidgets('renders as Card widget', (WidgetTester tester) async {
+    testWidgets('renders as Card widget', (tester) async {
       await pumpAppWidget(
         tester,
         const CompactBandCard(id: 'test-band', name: 'Compact Band'),
@@ -267,7 +267,7 @@ void main() {
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('renders as ListTile', (WidgetTester tester) async {
+    testWidgets('renders as ListTile', (tester) async {
       await pumpAppWidget(
         tester,
         const CompactBandCard(id: 'test-band', name: 'Compact Band'),

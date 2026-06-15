@@ -15,7 +15,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: help test-fast test-firebase-emulator deploy-stable deploy-test release bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+.PHONY: help test-fast test-firebase-emulator deploy-stable deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
@@ -24,6 +24,7 @@ FTP_DIR_DEFAULT := flowgroove.app
 FIREBASE_EMULATOR_TEST_FILES := integration_test/auth_flow_test.dart integration_test/setlist_management_test.dart
 GITHUB_PAGES_BASE_HREF ?= /flutter-FlowGroove-app/
 GITHUB_PAGES_DIST ?= docs
+FTP_WEB_DIST ?= dist/ftp-web
 RELEASE_GIT_PATHS ?= Makefile Makefile.hugo pubspec.yaml web/version.json assets firestore.indexes.json firestore.rules ios android macos docs lib scripts test
 
 # =============================================================================
@@ -37,12 +38,19 @@ help:
 	@echo ""
 	@echo "🚀 Quick Start:"
 	@echo ""
+	@echo "  make build-all       # Build all 3 release artifacts (FTP + Pages + Android), no deploy"
+	@echo "  make release-all     # Deploy all 3 channels (FTP + Pages + Android release)"
 	@echo "  make -f Makefile.hugo deploy-all  # Safe GitHub Pages preview"
 	@echo "  make release         # Build Android APK + GitHub Release"
 	@echo "  make build-release-artifacts # Build GitHub Pages web + Android APK"
 	@echo "  make deploy-stable   # Production FTP (Hugo + Flutter)"
 	@echo "  make test-fast       # Full fast Flutter suite"
 	@echo "  make test-firebase-emulator  # Auth/Firestore emulator acceptance suite"
+	@echo ""
+	@echo "📦 Combined (all three release types):"
+	@echo ""
+	@echo "  make build-all       - Build FTP web + GitHub Pages web + Android APK/AAB (no deploy)"
+	@echo "  make release-all     - Deploy FTP + GitHub Pages + Android release (outward-facing!)"
 	@echo ""
 	@echo "📋 All Commands:"
 	@echo ""
@@ -342,6 +350,57 @@ build-appbundle:
 	@echo ""
 	@echo "✅ AAB build complete!"
 	@echo "📦 AAB: build/app/outputs/bundle/release/app-release.aab"
+	@echo ""
+
+# =============================================================================
+# COMBINED RELEASE TARGETS (all three channels)
+# =============================================================================
+
+# Build all three release artifacts locally — no upload, no git push, no tag.
+#   1. FTP web      (base-href /app/, production config) → $(FTP_WEB_DIST)/
+#   2. GitHub Pages (base-href $(GITHUB_PAGES_BASE_HREF), demo config) → $(GITHUB_PAGES_DIST)/
+#   3. Android      (APK + AAB)                          → build/app/outputs/
+#
+# Order matters: the FTP build needs the production web/config.js, and the
+# GitHub Pages step overwrites web/config.js with the demo config — so the FTP
+# build runs first and its output is copied aside before the Pages build
+# clobbers build/web/. Requires production env (.env / .ftp-env) for the FTP step.
+build-all: check-env-prod build-web-prod
+	@echo "📦 Packaging FTP web build → $(FTP_WEB_DIST)/..."
+	@rm -rf "$(FTP_WEB_DIST)"
+	@mkdir -p "$(FTP_WEB_DIST)"
+	@cp -R build/web/. "$(FTP_WEB_DIST)/"
+	@$(MAKE) package-github-pages
+	@$(MAKE) build-android
+	@$(MAKE) build-appbundle
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         ✅ All Release Artifacts Built                    ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🌐 FTP web (/app/):  $(FTP_WEB_DIST)/"
+	@echo "🌐 GitHub Pages:     $(GITHUB_PAGES_DIST)/"
+	@echo "📱 Android APK:      build/app/outputs/flutter-apk/app-release.apk"
+	@echo "📦 Android AAB:      build/app/outputs/bundle/release/app-release.aab"
+	@echo ""
+	@echo "ℹ️  Nothing was deployed. To publish all three, run: make release-all"
+	@echo ""
+
+# Deploy all three release channels — OUTWARD-FACING and largely irreversible.
+#   1. FTP     → flowgroove.app (Hugo root + Flutter /app/, with backup + health check)
+#   2. Pages   → GitHub Pages (Hugo + Flutter), git commit + push
+#   3. Android → version bump + git tag + push + GitHub Release (APK + AAB)
+release-all: deploy-stable
+	@$(MAKE) -f Makefile.hugo deploy-all
+	@$(MAKE) release
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         🎉 All Release Channels Deployed                  ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🌐 FTP:          https://flowgroove.app/  (app: /app/)"
+	@echo "🌐 GitHub Pages: https://berlogabob.github.io/flutter-FlowGroove-app/"
+	@echo "📱 Android:      see GitHub Releases"
 	@echo ""
 
 # =============================================================================

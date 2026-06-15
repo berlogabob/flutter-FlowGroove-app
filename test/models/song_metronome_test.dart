@@ -1,11 +1,11 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/link.dart';
 import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Song Model - Metronome Settings', () {
-    final testDate = DateTime(2024, 1, 15, 10, 30, 0);
+    final testDate = DateTime(2024, 1, 15, 10, 30);
 
     group('Constructor with metronome settings', () {
       test('creates Song with default metronome settings', () {
@@ -36,7 +36,6 @@ void main() {
           artist: 'Test Artist',
           createdAt: testDate,
           updatedAt: testDate,
-          accentBeats: 4,
           regularBeats: 2,
           beatModes: beatModes,
         );
@@ -58,7 +57,6 @@ void main() {
           createdAt: testDate,
           updatedAt: testDate,
           accentBeats: 1,
-          regularBeats: 1,
           beatModes: [
             [BeatMode.accent],
           ],
@@ -236,7 +234,6 @@ void main() {
           artist: 'Test Artist',
           createdAt: testDate,
           updatedAt: testDate,
-          accentBeats: 4,
           regularBeats: 2,
           beatModes: beatModes,
         );
@@ -334,7 +331,6 @@ void main() {
           artist: 'Test Artist',
           createdAt: testDate,
           updatedAt: testDate,
-          accentBeats: 4,
         );
 
         final copiedSong = originalSong.copyWith(accentBeats: 8);
@@ -350,7 +346,6 @@ void main() {
           artist: 'Test Artist',
           createdAt: testDate,
           updatedAt: testDate,
-          regularBeats: 1,
         );
 
         final copiedSong = originalSong.copyWith(regularBeats: 4);
@@ -387,8 +382,6 @@ void main() {
           artist: 'Test Artist',
           createdAt: testDate,
           updatedAt: testDate,
-          accentBeats: 4,
-          regularBeats: 1,
           beatModes: [],
         );
 
@@ -473,7 +466,6 @@ void main() {
           ourBPM: 125,
           createdAt: testDate,
           updatedAt: testDate,
-          accentBeats: 4,
           regularBeats: 2,
           beatModes: [
             [BeatMode.accent, BeatMode.normal],
@@ -505,7 +497,6 @@ void main() {
           createdAt: testDate,
           updatedAt: testDate,
           accentBeats: 3,
-          regularBeats: 1,
           beatModes: [
             [BeatMode.accent],
             [BeatMode.normal],

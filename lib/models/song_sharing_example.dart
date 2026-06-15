@@ -13,7 +13,6 @@ void main() {
     artist: 'Oasis',
     originalKey: 'Em',
     originalBPM: 87,
-    links: const [],
     tags: ['rock', '90s'],
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),

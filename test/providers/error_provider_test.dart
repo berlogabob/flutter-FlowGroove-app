@@ -1,7 +1,7 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flowgroove/providers/auth/error_provider.dart';
 import 'package:flowgroove/models/api_error.dart';
+import 'package:flowgroove/providers/auth/error_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ErrorProvider', () {
@@ -250,7 +250,7 @@ void main() {
       test('ProviderContainer dispose cleans up resources', () {
         final localContainer = ProviderContainer();
         localContainer.read(errorStateProvider);
-        expect(() => localContainer.dispose(), returnsNormally);
+        expect(localContainer.dispose, returnsNormally);
       });
     });
 

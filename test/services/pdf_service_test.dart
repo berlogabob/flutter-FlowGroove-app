@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/services/export/pdf_service.dart';
+import 'package:flowgroove/models/link.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/services/export/pdf_service.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PdfService', () {
@@ -29,8 +29,8 @@ void main() {
           eventLocation: 'Test Venue',
           songIds: ['song-1', 'song-2'],
           totalDuration: 600,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         expect(setlist.name, equals('Test Setlist'));
@@ -46,13 +46,9 @@ void main() {
           id: 'setlist-1',
           bandId: 'band-1',
           name: 'Test Setlist',
-          description: null,
-          eventDateTime: null,
-          eventLocation: null,
           songIds: [],
-          totalDuration: null,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         expect(setlist.name, equals('Test Setlist'));
@@ -73,7 +69,7 @@ void main() {
           eventLocation: 'Test Venue',
           songIds: ['song-1'],
           totalDuration: 300,
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
           updatedAt: DateTime(2024, 1, 2),
         );
 
@@ -152,8 +148,8 @@ void main() {
           bandId: 'band-1',
           name: 'Original',
           songIds: [],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final copied = original.copyWith(
@@ -177,8 +173,8 @@ void main() {
           eventLocation: 'Venue',
           songIds: ['song-1'],
           totalDuration: 300,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final copied = original.copyWith(name: 'Updated');
@@ -207,8 +203,8 @@ void main() {
           tags: ['rock', 'classic'],
           bandId: 'band-1',
           spotifyUrl: 'https://spotify.com/track/123',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         expect(song.title, equals('Test Song'));
@@ -228,15 +224,10 @@ void main() {
           id: 'song-1',
           title: 'Test Song',
           artist: 'Test Artist',
-          originalKey: null,
-          originalBPM: null,
-          ourKey: null,
-          ourBPM: null,
           links: [],
-          notes: null,
           tags: [],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         expect(song.title, equals('Test Song'));
@@ -259,7 +250,7 @@ void main() {
           ourBPM: 130,
           links: [],
           tags: ['rock'],
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
           updatedAt: DateTime(2024, 1, 2),
         );
 
@@ -321,8 +312,8 @@ void main() {
           id: 'song-1',
           title: 'Original',
           artist: 'Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final copied = original.copyWith(
@@ -350,8 +341,8 @@ void main() {
           notes: 'Notes',
           bandId: 'band-1',
           spotifyUrl: 'https://spotify.com',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         // Copy without changes should preserve all values
@@ -373,8 +364,8 @@ void main() {
           artist: 'Artist',
           originalKey: 'C',
           originalBPM: 120,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final copied = original.copyWith(originalKey: null, originalBPM: null);
@@ -426,8 +417,8 @@ void main() {
           bandId: 'band-1',
           name: 'Empty Setlist',
           songIds: [],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         expect(setlist.songIds, isEmpty);
@@ -439,8 +430,8 @@ void main() {
           id: 'song-1',
           title: 'Minimal Song',
           artist: 'Minimal Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         expect(song.id, equals('song-1'));
@@ -456,8 +447,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test & Setlist "With" Special Characters',
           songIds: [],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         expect(setlist.name, contains('&'));
@@ -469,8 +460,8 @@ void main() {
           id: 'song-1',
           title: 'Song with émojis 🎵',
           artist: 'Artist ñ',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         expect(song.title, contains('🎵'));

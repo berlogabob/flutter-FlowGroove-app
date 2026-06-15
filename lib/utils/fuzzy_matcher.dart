@@ -23,8 +23,8 @@ class FuzzyMatcher {
   /// FuzzyMatcher.ratio('hello', 'world') // 0.2
   /// ```
   static double ratio(String s1, String s2) {
-    if (s1.isEmpty && s2.isEmpty) return 1.0;
-    if (s1.isEmpty || s2.isEmpty) return 0.0;
+    if (s1.isEmpty && s2.isEmpty) return 1;
+    if (s1.isEmpty || s2.isEmpty) return 0;
     
     final distance = _levenshteinDistance(s1, s2);
     final maxLength = max(s1.length, s2.length);
@@ -43,15 +43,15 @@ class FuzzyMatcher {
   ///   'Queen - Bohemian Rhapsody (Remaster)') // High score
   /// ```
   static double partialRatio(String s1, String s2) {
-    if (s1.isEmpty && s2.isEmpty) return 1.0;
-    if (s1.isEmpty || s2.isEmpty) return 0.0;
+    if (s1.isEmpty && s2.isEmpty) return 1;
+    if (s1.isEmpty || s2.isEmpty) return 0;
     
     final short = s1.length < s2.length ? s1 : s2;
     final long = s1.length < s2.length ? s2 : s1;
     
     // If short is contained in long, perfect match
     if (long.toLowerCase().contains(short.toLowerCase())) {
-      return 1.0;
+      return 1;
     }
     
     // Slide window over long string
@@ -82,8 +82,8 @@ class FuzzyMatcher {
   /// ) // High score despite word order
   /// ```
   static double tokenSortRatio(String s1, String s2) {
-    if (s1.isEmpty && s2.isEmpty) return 1.0;
-    if (s1.isEmpty || s2.isEmpty) return 0.0;
+    if (s1.isEmpty && s2.isEmpty) return 1;
+    if (s1.isEmpty || s2.isEmpty) return 0;
     
     final words1 = _tokenize(s1);
     final words2 = _tokenize(s2);
@@ -102,8 +102,8 @@ class FuzzyMatcher {
   /// Similar to token sort but removes duplicate words.
   /// Better for "Queen Queen Bohemian Rhapsody" vs "Queen Bohemian Rhapsody"
   static double tokenSetRatio(String s1, String s2) {
-    if (s1.isEmpty && s2.isEmpty) return 1.0;
-    if (s1.isEmpty || s2.isEmpty) return 0.0;
+    if (s1.isEmpty && s2.isEmpty) return 1;
+    if (s1.isEmpty || s2.isEmpty) return 0;
     
     final words1 = _tokenize(s1).toSet().toList();
     final words2 = _tokenize(s2).toSet().toList();
@@ -128,9 +128,9 @@ class FuzzyMatcher {
   static MatchResult calculateMatchScore({
     required String inputTitle,
     required String inputArtist,
-    String? inputAlbum,
     required String targetTitle,
     required String targetArtist,
+    String? inputAlbum,
     String? targetAlbum,
   }) {
     // Normalize inputs
@@ -284,10 +284,6 @@ class FuzzyMatcher {
 
 /// Result of multi-field fuzzy match
 class MatchResult {
-  final double overall;
-  final double title;
-  final double artist;
-  final double album;
 
   const MatchResult({
     required this.overall,
@@ -295,6 +291,10 @@ class MatchResult {
     required this.artist,
     required this.album,
   });
+  final double overall;
+  final double title;
+  final double artist;
+  final double album;
 
   /// Get match quality label
   String get quality {
