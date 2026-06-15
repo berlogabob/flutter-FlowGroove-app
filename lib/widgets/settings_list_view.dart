@@ -29,7 +29,7 @@ import '../theme/mono_pulse_theme.dart';
 /// )
 /// ```
 class SettingsListView extends StatelessWidget {
-  const SettingsListView({super.key, required this.sections, this.footer});
+  const SettingsListView({required this.sections, super.key, this.footer});
 
   /// List of settings sections.
   final List<SettingsSection> sections;
@@ -113,9 +113,9 @@ abstract class SettingsItem extends StatelessWidget {
 /// Settings item with icon, title, subtitle, and navigation.
 class SettingsMenuItem extends SettingsItem {
   const SettingsMenuItem({
-    super.key,
     required this.icon,
     required this.title,
+    super.key,
     this.subtitle,
     this.onTap,
     this.trailing,
@@ -180,9 +180,9 @@ class SettingsMenuItem extends SettingsItem {
 /// Settings item displaying a title/value pair (info display).
 class SettingsInfoItem extends SettingsItem {
   const SettingsInfoItem({
-    super.key,
     required this.title,
     required this.value,
+    super.key,
     this.onTap,
   });
 
@@ -223,12 +223,12 @@ class SettingsInfoItem extends SettingsItem {
 /// Settings item with editable text field.
 class SettingsEditableItem extends StatefulWidget {
   const SettingsEditableItem({
-    super.key,
     required this.title,
     required this.value,
     required this.isEditing,
     required this.onToggleEdit,
     required this.onSave,
+    super.key,
   });
 
   /// Item title (label).
@@ -341,8 +341,7 @@ class _SettingsEditableItemState extends State<SettingsEditableItem> {
 /// Settings item for profile photo with picker.
 class SettingsPhotoItem extends SettingsItem {
   const SettingsPhotoItem({
-    super.key,
-    required this.onPhotoTap,
+    required this.onPhotoTap, super.key,
     this.photoPath,
   });
 
@@ -386,7 +385,7 @@ class SettingsPhotoItem extends SettingsItem {
 
 /// Sign out button for settings footer.
 class SignOutButton extends StatelessWidget {
-  const SignOutButton({super.key, required this.onPressed});
+  const SignOutButton({required this.onPressed, super.key});
 
   /// Callback when sign out is pressed.
   final VoidCallback onPressed;

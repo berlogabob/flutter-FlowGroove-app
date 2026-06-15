@@ -4,9 +4,9 @@ import '../../../../../theme/mono_pulse_theme.dart';
 
 /// Dialog for editing a section's name, duration, and notes.
 class EditSectionDialog extends StatefulWidget {
-  final Section section;
 
-  const EditSectionDialog({super.key, required this.section});
+  const EditSectionDialog({required this.section, super.key});
+  final Section section;
 
   @override
   State<EditSectionDialog> createState() => _EditSectionDialogState();
@@ -62,7 +62,6 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: MonoPulseSpacing.md,
-                  vertical: 0,
                 ),
               ),
               hint: const Text('Select template'),
@@ -135,7 +134,6 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: MonoPulseSpacing.sm,
-                        vertical: 0,
                       ),
                     ),
                     onChanged: (value) {

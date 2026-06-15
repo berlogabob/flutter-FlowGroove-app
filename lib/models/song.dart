@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'link.dart';
+
 import 'beat_mode.dart';
+import 'link.dart';
 import 'section.dart';
 
 part 'song.g.dart';
@@ -16,6 +17,49 @@ class _Sentinel {
 
 @JsonSerializable()
 class Song {
+
+  Song({
+    required this.id,
+    required this.title,
+    required this.artist,
+    required this.createdAt, required this.updatedAt, this.originalKey,
+    this.originalBPM,
+    this.ourKey,
+    this.ourBPM,
+    this.links = const [],
+    this.notes,
+    this.tags = const [],
+    this.bandId,
+    this.spotifyUrl,
+    this.defaultTuningPresetId,
+    this.originalOwnerId,
+    this.originalSongId,
+    this.contributedBy,
+    this.isCopy = false,
+    this.contributedAt,
+    this.accentBeats = 4,
+    this.regularBeats = 1,
+    this.beatModes = const [],
+    this.sections = const [],
+    this.spotifyId,
+    this.musicbrainzId,
+    this.isrc,
+    this.deezerId,
+    this.normalizedTitle,
+    this.normalizedArtist,
+    this.titleSoundex,
+    this.artistSoundex,
+    this.durationMs,
+    this.album,
+    this.variantType,
+    this.variantOf,
+    this.canonicalSongId,
+    this.libraryBaseRevision,
+    this.latestCommitId,
+    this.isFromMusicBrainz = false,
+  });
+
+  factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
   @JsonKey(defaultValue: '')
   final String id;
   @JsonKey(defaultValue: '')
@@ -108,51 +152,6 @@ class Song {
   @JsonKey(defaultValue: false)
   final bool isFromMusicBrainz;
 
-  Song({
-    required this.id,
-    required this.title,
-    required this.artist,
-    this.originalKey,
-    this.originalBPM,
-    this.ourKey,
-    this.ourBPM,
-    this.links = const [],
-    this.notes,
-    this.tags = const [],
-    this.bandId,
-    this.spotifyUrl,
-    this.defaultTuningPresetId,
-    required this.createdAt,
-    required this.updatedAt,
-    this.originalOwnerId,
-    this.originalSongId,
-    this.contributedBy,
-    this.isCopy = false,
-    this.contributedAt,
-    this.accentBeats = 4,
-    this.regularBeats = 1,
-    this.beatModes = const [],
-    this.sections = const [],
-    this.spotifyId,
-    this.musicbrainzId,
-    this.isrc,
-    this.deezerId,
-    this.normalizedTitle,
-    this.normalizedArtist,
-    this.titleSoundex,
-    this.artistSoundex,
-    this.durationMs,
-    this.album,
-    this.variantType,
-    this.variantOf,
-    this.canonicalSongId,
-    this.libraryBaseRevision,
-    this.latestCommitId,
-    this.isFromMusicBrainz = false,
-  });
-
-  factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
-
   Song copyWith({
     String? id,
     String? title,
@@ -228,7 +227,7 @@ class Song {
       contributedBy: contributedBy == _sentinel
           ? this.contributedBy
           : contributedBy as String?,
-      isCopy: isCopy == _sentinel ? this.isCopy : isCopy as bool,
+      isCopy: isCopy == _sentinel ? this.isCopy : isCopy! as bool,
       contributedAt: contributedAt == _sentinel
           ? this.contributedAt
           : contributedAt as DateTime?,
@@ -273,7 +272,7 @@ class Song {
           : latestCommitId as String?,
       isFromMusicBrainz: isFromMusicBrainz == _sentinel
           ? this.isFromMusicBrainz
-          : isFromMusicBrainz as bool,
+          : isFromMusicBrainz! as bool,
     );
   }
 
@@ -281,7 +280,7 @@ class Song {
 }
 
 // Helper methods for BeatMode serialization
-List<List<BeatMode>> _beatModesFromJson(dynamic value) {
+List<List<BeatMode>> _beatModesFromJson(value) {
   if (value == null) return [];
 
   // Support both nested arrays (legacy) and map format (new)
@@ -361,13 +360,13 @@ Map<String, String> _beatModesToJson(List<List<BeatMode>> value) {
   return result;
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   return DateTime.parse(value as String);
 }
 
-DateTime? _parseNullableDateTime(dynamic value) {
+DateTime? _parseNullableDateTime(value) {
   if (value == null) return null;
   if (value is DateTime) return value;
   return DateTime.parse(value as String);
@@ -375,7 +374,7 @@ DateTime? _parseNullableDateTime(dynamic value) {
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
 
-List<Link> _linksFromJson(dynamic value) {
+List<Link> _linksFromJson(value) {
   if (value == null) return [];
   if (value is List<Link>) return value;
   return (value as List<dynamic>)
@@ -387,7 +386,7 @@ List<Map<String, dynamic>> _linksToJson(List<Link> links) {
   return links.map((l) => l.toJson()).toList();
 }
 
-List<Section> _sectionsFromJson(dynamic value) {
+List<Section> _sectionsFromJson(value) {
   if (value == null) return [];
   if (value is List<Section>) return value;
   return (value as List<dynamic>)

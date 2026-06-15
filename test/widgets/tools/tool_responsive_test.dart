@@ -1,11 +1,11 @@
+import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
 
 void main() {
   group('ToolSpacing Responsive Breakpoints', () {
     testWidgets('xs spacing adapts to compact breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? spacingValue;
 
@@ -27,7 +27,7 @@ void main() {
     });
 
     testWidgets('xs spacing adapts to medium breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? spacingValue;
 
@@ -49,7 +49,7 @@ void main() {
     });
 
     testWidgets('xs spacing adapts to expanded breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? spacingValue;
 
@@ -71,7 +71,7 @@ void main() {
     });
 
     testWidgets('xs spacing adapts to desktop breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? spacingValue;
 
@@ -93,7 +93,7 @@ void main() {
     });
 
     testWidgets('sm spacing is consistent across breakpoints', (
-      WidgetTester tester,
+      tester,
     ) async {
       final testCases = [
         {'width': 300.0, 'expected': 8.0},
@@ -123,7 +123,7 @@ void main() {
       }
     });
 
-    testWidgets('md spacing increases at desktop', (WidgetTester tester) async {
+    testWidgets('md spacing increases at desktop', (tester) async {
       final testCases = [
         {'width': 300.0, 'expected': 12.0},
         {'width': 400.0, 'expected': 12.0},
@@ -153,7 +153,7 @@ void main() {
     });
 
     testWidgets('lg spacing scales with breakpoints', (
-      WidgetTester tester,
+      tester,
     ) async {
       final testCases = [
         {'width': 300.0, 'expected': 16.0},
@@ -184,7 +184,7 @@ void main() {
     });
 
     testWidgets('xl spacing scales with breakpoints', (
-      WidgetTester tester,
+      tester,
     ) async {
       final testCases = [
         {'width': 300.0, 'expected': 20.0},
@@ -215,7 +215,7 @@ void main() {
     });
 
     testWidgets('xxl spacing scales with breakpoints', (
-      WidgetTester tester,
+      tester,
     ) async {
       final testCases = [
         {'width': 300.0, 'expected': 24.0},
@@ -246,7 +246,7 @@ void main() {
     });
 
     testWidgets('xxxl spacing scales with breakpoints', (
-      WidgetTester tester,
+      tester,
     ) async {
       final testCases = [
         {'width': 300.0, 'expected': 32.0},
@@ -277,16 +277,16 @@ void main() {
     });
 
     testWidgets('spacing follows 4-point grid system', (
-      WidgetTester tester,
+      tester,
     ) async {
       final allSpacingMethods = [
-        (BuildContext ctx) => ToolSpacing.xs(ctx),
-        (BuildContext ctx) => ToolSpacing.sm(ctx),
-        (BuildContext ctx) => ToolSpacing.md(ctx),
-        (BuildContext ctx) => ToolSpacing.lg(ctx),
-        (BuildContext ctx) => ToolSpacing.xl(ctx),
-        (BuildContext ctx) => ToolSpacing.xxl(ctx),
-        (BuildContext ctx) => ToolSpacing.xxxl(ctx),
+        ToolSpacing.xs,
+        ToolSpacing.sm,
+        ToolSpacing.md,
+        ToolSpacing.lg,
+        ToolSpacing.xl,
+        ToolSpacing.xxl,
+        ToolSpacing.xxxl,
       ];
 
       final testWidths = [300.0, 400.0, 800.0, 1200.0];
@@ -322,7 +322,7 @@ void main() {
 
   group('ToolTouchTarget Adaptive Sizing', () {
     testWidgets('small touch target adapts to compact breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? touchSize;
 
@@ -344,7 +344,7 @@ void main() {
     });
 
     testWidgets('small touch target adapts to medium breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? touchSize;
 
@@ -366,7 +366,7 @@ void main() {
     });
 
     testWidgets('small touch target adapts to expanded breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? touchSize;
 
@@ -388,7 +388,7 @@ void main() {
     });
 
     testWidgets('small touch target adapts to desktop breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? touchSize;
 
@@ -410,7 +410,7 @@ void main() {
     });
 
     testWidgets('medium touch target scales with breakpoints', (
-      WidgetTester tester,
+      tester,
     ) async {
       final testCases = [
         {'width': 300.0, 'expected': 44.0},
@@ -441,7 +441,7 @@ void main() {
     });
 
     testWidgets('large touch target scales with breakpoints', (
-      WidgetTester tester,
+      tester,
     ) async {
       final testCases = [
         {'width': 300.0, 'expected': 48.0},
@@ -472,12 +472,14 @@ void main() {
     });
 
     testWidgets('touch targets increase with screen size', (
-      WidgetTester tester,
+      tester,
     ) async {
       final widths = [300.0, 400.0, 800.0, 1200.0];
 
       for (final width in widths) {
-        double? smallSize, mediumSize, largeSize;
+        double? smallSize;
+        double? mediumSize;
+        double? largeSize;
 
         await tester.pumpWidget(
           MaterialApp(
@@ -511,7 +513,7 @@ void main() {
 
   group('Accessibility - Touch Target Minimum 48px', () {
     testWidgets('small touch target meets 48px minimum on expanded+', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? expandedSize;
       await tester.pumpWidget(
@@ -547,7 +549,7 @@ void main() {
     });
 
     testWidgets('medium touch target meets 48px minimum on medium+', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? mediumSize;
       await tester.pumpWidget(
@@ -599,7 +601,7 @@ void main() {
     });
 
     testWidgets('large touch target meets 48px minimum on all breakpoints', (
-      WidgetTester tester,
+      tester,
     ) async {
       final widths = [300.0, 400.0, 800.0, 1200.0];
 
@@ -629,7 +631,7 @@ void main() {
     });
 
     testWidgets('compact breakpoint small target is 40px (below 48)', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? touchSize;
 
@@ -653,7 +655,7 @@ void main() {
 
   group('ToolBreakpoint Edge Cases', () {
     testWidgets('handles exact breakpoint boundaries', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(ToolBreakpoint.fromWidth(374), equals(ToolBreakpoint.compact));
       expect(ToolBreakpoint.fromWidth(375), equals(ToolBreakpoint.medium));
@@ -663,21 +665,21 @@ void main() {
       expect(ToolBreakpoint.fromWidth(1024), equals(ToolBreakpoint.desktop));
     });
 
-    testWidgets('handles zero width', (WidgetTester tester) async {
+    testWidgets('handles zero width', (tester) async {
       expect(ToolBreakpoint.fromWidth(0), equals(ToolBreakpoint.compact));
     });
 
-    testWidgets('handles very large width', (WidgetTester tester) async {
+    testWidgets('handles very large width', (tester) async {
       expect(ToolBreakpoint.fromWidth(3840), equals(ToolBreakpoint.desktop));
     });
 
     testWidgets('handles negative width gracefully', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(ToolBreakpoint.fromWidth(-100), equals(ToolBreakpoint.compact));
     });
 
-    testWidgets('handles fractional widths', (WidgetTester tester) async {
+    testWidgets('handles fractional widths', (tester) async {
       expect(ToolBreakpoint.fromWidth(374.9), equals(ToolBreakpoint.compact));
       expect(ToolBreakpoint.fromWidth(375.1), equals(ToolBreakpoint.medium));
       expect(ToolBreakpoint.fromWidth(599.5), equals(ToolBreakpoint.medium));
@@ -687,7 +689,7 @@ void main() {
 
   group('Responsive Layout Integration', () {
     testWidgets('ToolSpacing works in actual widget tree', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -714,7 +716,7 @@ void main() {
     });
 
     testWidgets('ToolTouchTarget works in actual widget tree', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -749,7 +751,7 @@ void main() {
     });
 
     testWidgets('spacing values change when widget rebuilds with new width', (
-      WidgetTester tester,
+      tester,
     ) async {
       double? currentSpacing;
       double currentWidth = 400;
@@ -791,7 +793,7 @@ void main() {
 
   group('MonoPulse Theme Integration', () {
     testWidgets('spacing values align with MonoPulseSpacing', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -810,7 +812,7 @@ void main() {
     });
 
     testWidgets('touch targets use appropriate sizes for theme', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -831,7 +833,7 @@ void main() {
 
   group('Breakpoint Detection from Context', () {
     testWidgets('ToolBreakpoint.of returns correct value for compact', (
-      WidgetTester tester,
+      tester,
     ) async {
       ToolBreakpoint? breakpoint;
 
@@ -853,7 +855,7 @@ void main() {
     });
 
     testWidgets('ToolBreakpoint.of returns correct value for medium', (
-      WidgetTester tester,
+      tester,
     ) async {
       ToolBreakpoint? breakpoint;
 
@@ -875,7 +877,7 @@ void main() {
     });
 
     testWidgets('ToolBreakpoint.of returns correct value for expanded', (
-      WidgetTester tester,
+      tester,
     ) async {
       ToolBreakpoint? breakpoint;
 
@@ -897,7 +899,7 @@ void main() {
     });
 
     testWidgets('ToolBreakpoint.of returns correct value for desktop', (
-      WidgetTester tester,
+      tester,
     ) async {
       ToolBreakpoint? breakpoint;
 
@@ -920,7 +922,7 @@ void main() {
   });
 
   group('Real-world Usage Patterns', () {
-    testWidgets('can be used for button padding', (WidgetTester tester) async {
+    testWidgets('can be used for button padding', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -948,7 +950,7 @@ void main() {
     });
 
     testWidgets('can be used for container margins', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -971,7 +973,7 @@ void main() {
     });
 
     testWidgets('can be used for touch target sizing', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -998,7 +1000,7 @@ void main() {
     });
 
     testWidgets('can be used for list item spacing', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(

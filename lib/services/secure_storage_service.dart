@@ -16,12 +16,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// - Windows: Windows Credential Manager
 /// - Linux: libsecret
 class SecureStorageService {
-  final FlutterSecureStorage _storage;
-
-  /// Keys for secure storage
-  static const String _authTokenKey = 'auth_token';
-  static const String _refreshTokenKey = 'refresh_token';
-  static const String _userIdKey = 'user_id';
 
   SecureStorageService()
       : _storage = const FlutterSecureStorage(
@@ -30,6 +24,12 @@ class SecureStorageService {
             encryptedSharedPreferences: true,
           ),
         );
+  final FlutterSecureStorage _storage;
+
+  /// Keys for secure storage
+  static const String _authTokenKey = 'auth_token';
+  static const String _refreshTokenKey = 'refresh_token';
+  static const String _userIdKey = 'user_id';
 
   /// Write a value to secure storage.
   ///
@@ -111,7 +111,7 @@ class SecureStorageService {
 
   /// Get auth token from secure storage.
   Future<String?> getAuthToken() async {
-    return await read(key: _authTokenKey);
+    return read(key: _authTokenKey);
   }
 
   /// Delete auth token from secure storage.
@@ -126,7 +126,7 @@ class SecureStorageService {
 
   /// Get refresh token from secure storage.
   Future<String?> getRefreshToken() async {
-    return await read(key: _refreshTokenKey);
+    return read(key: _refreshTokenKey);
   }
 
   /// Delete refresh token from secure storage.
@@ -141,7 +141,7 @@ class SecureStorageService {
 
   /// Get user ID from secure storage.
   Future<String?> getUserId() async {
-    return await read(key: _userIdKey);
+    return read(key: _userIdKey);
   }
 
   /// Delete user ID from secure storage.

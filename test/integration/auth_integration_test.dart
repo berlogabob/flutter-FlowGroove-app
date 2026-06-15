@@ -6,10 +6,12 @@
 /// 1. Run tests: `flutter test test/integration/auth_integration_test.dart`
 ///
 /// Note: These tests use mocked Firebase Auth to ensure consistent test results.
+library;
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+
 import '../helpers/mocks.mocks.dart';
 
 void main() {

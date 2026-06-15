@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'setlist_assignment.dart';
+
 import 'band.dart';
+import 'setlist_assignment.dart';
 
 part 'setlist.g.dart';
 
@@ -22,15 +23,15 @@ class SetlistItem {
     this.tuningPresetId,
   });
 
-  final String id;
-  final String songId;
-  final String? tuningPresetId;
-
   factory SetlistItem.fromJson(Map<String, dynamic> json) => SetlistItem(
     id: json['id'] as String? ?? '',
     songId: json['songId'] as String? ?? '',
     tuningPresetId: json['tuningPresetId'] as String?,
   );
+
+  final String id;
+  final String songId;
+  final String? tuningPresetId;
 
   SetlistItem copyWith({String? id, String? songId, String? tuningPresetId}) {
     return SetlistItem(
@@ -53,16 +54,17 @@ class Setlist {
     required this.id,
     required this.bandId,
     required this.name,
-    this.description,
+    required this.createdAt, required this.updatedAt, this.description,
     this.eventDateTime,
     this.eventLocation,
     this.songIds = const [],
     this.items = const [],
     this.totalDuration,
     this.assignments = const {},
-    required this.createdAt,
-    required this.updatedAt,
   });
+
+  factory Setlist.fromJson(Map<String, dynamic> json) =>
+      _$SetlistFromJson(json);
 
   @JsonKey(defaultValue: '')
   final String id;
@@ -89,9 +91,6 @@ class Setlist {
   final DateTime createdAt;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime updatedAt;
-
-  factory Setlist.fromJson(Map<String, dynamic> json) =>
-      _$SetlistFromJson(json);
 
   Setlist copyWith({
     String? id,
@@ -200,7 +199,7 @@ class Setlist {
   }
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   if (value is Timestamp) return value.toDate();
@@ -223,7 +222,7 @@ DateTime _parseDateTime(dynamic value) {
   return DateTime.now();
 }
 
-DateTime? _parseTimestamp(dynamic value) {
+DateTime? _parseTimestamp(value) {
   if (value == null) return null;
   if (value is DateTime) return value;
   if (value is Timestamp) return value.toDate();
@@ -247,7 +246,7 @@ DateTime? _parseTimestamp(dynamic value) {
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
 
-Map<String, SetlistAssignment> _assignmentsFromJson(dynamic value) {
+Map<String, SetlistAssignment> _assignmentsFromJson(value) {
   if (value == null) return {};
   if (value is Map) {
     final result = <String, SetlistAssignment>{};
@@ -271,7 +270,7 @@ Map<String, dynamic> _assignmentsToJson(Map<String, SetlistAssignment> value) {
   return value.map((key, val) => MapEntry(key, val.toJson()));
 }
 
-List<SetlistItem> _itemsFromJson(dynamic value) {
+List<SetlistItem> _itemsFromJson(value) {
   if (value is! List) return const [];
   return value
       .whereType<Map<dynamic, dynamic>>()

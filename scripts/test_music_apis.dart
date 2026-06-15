@@ -21,13 +21,6 @@ import 'dart:io';
 /// Run: dart scripts/test_music_apis.dart
 
 class ApiTestResult {
-  final String apiName;
-  final bool success;
-  final int responseTimeMs;
-  final int httpStatusCode;
-  final Map<String, dynamic> responseData;
-  final String errorMessage;
-  final Map<String, dynamic> dataQuality;
 
   ApiTestResult({
     required this.apiName,
@@ -38,6 +31,13 @@ class ApiTestResult {
     this.errorMessage = '',
     Map<String, dynamic>? dataQuality,
   }) : dataQuality = dataQuality ?? {};
+  final String apiName;
+  final bool success;
+  final int responseTimeMs;
+  final int httpStatusCode;
+  final Map<String, dynamic> responseData;
+  final String errorMessage;
+  final Map<String, dynamic> dataQuality;
 
   @override
   String toString() {
@@ -92,7 +92,7 @@ class MusicApiTester {
 
     // Test MusicBrainz
     print('🎵 Testing MusicBrainz API...\n');
-    for (var song in testSongs) {
+    for (final song in testSongs) {
       final result = await testMusicBrainz(song['title']!, song['artist']!);
       results.add(result);
       print(result);
@@ -101,7 +101,7 @@ class MusicApiTester {
 
     // Test Deezer
     print('\n🎵 Testing Deezer API...\n');
-    for (var song in testSongs) {
+    for (final song in testSongs) {
       final result = await testDeezer(song['title']!, song['artist']!);
       results.add(result);
       print(result);
@@ -109,7 +109,7 @@ class MusicApiTester {
 
     // Test Discogs (unauthenticated)
     print('\n🎵 Testing Discogs API (unauthenticated)...\n');
-    for (var song in testSongs.take(2)) {
+    for (final song in testSongs.take(2)) {
       final result = await testDiscogs(song['title']!, song['artist']!);
       results.add(result);
       print(result);
@@ -118,7 +118,7 @@ class MusicApiTester {
 
     // Test edge cases
     print('\n🎵 Testing Edge Cases...\n');
-    for (var edgeCase in edgeCases) {
+    for (final edgeCase in edgeCases) {
       print('Edge Case: ${edgeCase['note']} - "${edgeCase['title']}"');
       final result = await testDeezer(edgeCase['title']!, edgeCase['artist']!);
       print(result);
@@ -383,7 +383,7 @@ class MusicApiTester {
 
     // Group by API
     final apiGroups = <String, List<ApiTestResult>>{};
-    for (var result in results) {
+    for (final result in results) {
       apiGroups.putIfAbsent(result.apiName, () => []).add(result);
     }
 
@@ -397,15 +397,15 @@ class MusicApiTester {
       '├─────────────┼───────────┼────────────┼─────────────┼──────────────┤',
     );
 
-    for (var entry in apiGroups.entries) {
+    for (final entry in apiGroups.entries) {
       final apiName = entry.key.padRight(11);
       final avgTime =
           entry.value.map((e) => e.responseTimeMs).reduce((a, b) => a + b) ~/
           entry.value.length;
       final successRate =
-          (entry.value.where((e) => e.success).length *
+          entry.value.where((e) => e.success).length *
           100 ~/
-          entry.value.length);
+          entry.value.length;
       final correctMatches = entry.value
           .where((e) => e.dataQuality['correct_match'] == true)
           .length;
@@ -461,7 +461,7 @@ class MusicApiTester {
     print('7. AUDD.IO:');
     print('   ✓ Music recognition');
     print('   ✓ 300 free requests');
-    print('   ✗ Paid service (\$5/1000 requests)');
+    print(r'   ✗ Paid service ($5/1000 requests)');
     print('   ⚠ Best for audio recognition\n');
   }
 }

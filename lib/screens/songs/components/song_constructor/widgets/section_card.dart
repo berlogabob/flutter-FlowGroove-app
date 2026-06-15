@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
+
 import '../../../../../models/section.dart';
-import '../core/theme/app_colors.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
+import '../core/theme/app_colors.dart';
 
 /// Card widget for displaying a section in expanded state.
 class SectionCard extends StatelessWidget {
-  final Section section;
-  final VoidCallback? onTap;
-  final VoidCallback? onDelete;
-  final int? dragIndex;
-  final bool enableDrag;
 
   const SectionCard({
-    super.key,
     required this.section,
+    super.key,
     this.onTap,
     this.onDelete,
     this.dragIndex,
     this.enableDrag = false,
   });
+  final Section section;
+  final VoidCallback? onTap;
+  final VoidCallback? onDelete;
+  final int? dragIndex;
+  final bool enableDrag;
 
   @override
   Widget build(BuildContext context) {

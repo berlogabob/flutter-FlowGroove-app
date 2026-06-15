@@ -1,13 +1,13 @@
+import 'package:flowgroove/widgets/metronome/accent_pattern_editor_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/metronome/accent_pattern_editor_widget.dart';
 
 import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/test_helpers.dart';
 
 void main() {
   group('AccentPatternEditorWidget', () {
-    testWidgets('renders title', (WidgetTester tester) async {
+    testWidgets('renders title', (tester) async {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
@@ -17,7 +17,7 @@ void main() {
       expect(find.text('Accent Pattern'), findsOneWidget);
     });
 
-    testWidgets('renders Card widget', (WidgetTester tester) async {
+    testWidgets('renders Card widget', (tester) async {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
@@ -28,7 +28,7 @@ void main() {
       expect(find.byType(Container), findsWidgets);
     });
 
-    testWidgets('renders reset button', (WidgetTester tester) async {
+    testWidgets('renders reset button', (tester) async {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
@@ -38,7 +38,7 @@ void main() {
       expect(find.byIcon(Icons.refresh), findsOneWidget);
     });
 
-    testWidgets('renders helper text', (WidgetTester tester) async {
+    testWidgets('renders helper text', (tester) async {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
@@ -54,7 +54,7 @@ void main() {
     });
 
     testWidgets('renders beat toggle buttons for 4/4 time', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -69,7 +69,7 @@ void main() {
       ); // 4 beats + 1 reset button
     });
 
-    testWidgets('renders beat numbers', (WidgetTester tester) async {
+    testWidgets('renders beat numbers', (tester) async {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
@@ -82,7 +82,7 @@ void main() {
       expect(find.text('4'), findsWidgets);
     });
 
-    testWidgets('renders accent labels', (WidgetTester tester) async {
+    testWidgets('renders accent labels', (tester) async {
       await pumpAppWidget(
         tester,
         const AccentPatternEditorWidget(),
@@ -96,7 +96,7 @@ void main() {
     });
 
     testWidgets('first beat is accented by default', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -109,7 +109,7 @@ void main() {
     });
 
     testWidgets('non-first beats show circle outline', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -122,7 +122,7 @@ void main() {
     });
 
     testWidgets('toggles accent when beat button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -142,7 +142,7 @@ void main() {
     });
 
     testWidgets('adapts to different time signatures', (
-      WidgetTester tester,
+      tester,
     ) async {
       // This test verifies the widget renders correctly with default state
       await pumpAppWidget(
@@ -159,7 +159,7 @@ void main() {
     });
 
     testWidgets('renders beat labels below buttons', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,

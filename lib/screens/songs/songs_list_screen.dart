@@ -3,29 +3,30 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../models/api_error.dart';
+import '../../models/band.dart';
 import '../../models/song.dart';
 import '../../models/song_import_plan.dart';
 import '../../models/tuner_launch_context.dart';
-import '../../models/band.dart';
-import '../../providers/data/data_providers.dart';
-import '../../providers/data/metronome_provider.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
+import '../../providers/data/data_providers.dart';
+import '../../providers/data/metronome_provider.dart';
 import '../../services/song_library_merge_service.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/empty_state.dart';
+import '../../widgets/app_filter_chip.dart';
 import '../../widgets/confirmation_dialog.dart';
-import '../../widgets/error_banner.dart';
-import '../../widgets/unified_item/adapters/song_item_adapter.dart';
-import '../../widgets/unified_item/unified_item_list.dart';
-import '../../widgets/unified_item/unified_item_model.dart';
-import '../../widgets/unified_item/unified_filter_sort_widget.dart';
-import '../../widgets/tag_cloud_widget.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../widgets/app_filter_chip.dart';
+import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/tag_cloud_widget.dart';
+import '../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../widgets/unified_item/unified_item_list.dart';
+import '../../widgets/unified_item/unified_item_model.dart';
 import 'components/csv_import_export/csv_import_export.dart';
 
 /// Notifier for songs filter/sort state.
@@ -72,11 +73,6 @@ final songsFilterSortProvider =
 
 /// State class for songs filter/sort.
 class SongsFilterSortState {
-  final SortOption sortOption;
-  final String filterText;
-  final String? keyFilter;
-  final int? bpmFilter;
-  final String? tagFilter;
 
   const SongsFilterSortState({
     this.sortOption = SortOption.alphabetical,
@@ -85,6 +81,11 @@ class SongsFilterSortState {
     this.bpmFilter,
     this.tagFilter,
   });
+  final SortOption sortOption;
+  final String filterText;
+  final String? keyFilter;
+  final int? bpmFilter;
+  final String? tagFilter;
 
   SongsFilterSortState copyWith({
     SortOption? sortOption,
@@ -380,13 +381,10 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         filtered.sort(
           (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
         );
-        break;
       case SortOption.dateAdded:
         filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
       case SortOption.dateModified:
         filtered.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-        break;
       case SortOption.manual:
         // Manual sort - use stored manual order if available, otherwise maintain current order
         if (_manualOrder != null) {
@@ -404,7 +402,6 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                 _manualOrder!.indexOf(a).compareTo(_manualOrder!.indexOf(b)),
           );
         }
-        break;
     }
 
     return filtered;
@@ -514,7 +511,6 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                         hint: const Text('Any BPM'),
                         items: [
                           const DropdownMenuItem(
-                            value: null,
                             child: Text('Any BPM'),
                           ),
                           ...[60, 80, 100, 120, 140, 160, 180].map(
@@ -634,13 +630,15 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
-          child: ErrorBanner.card(
+          child: ErrorBanner(
             message: _currentError?.message ?? 'An unexpected error occurred',
             onRetry: () {
               _clearError();
               // Trigger a refresh by re-watching the provider
               ref.invalidate(songsProvider);
             },
+            showRetry: _currentError!.isNetwork,
+            style: ErrorBannerStyle.card,
           ),
         ),
       );
@@ -681,12 +679,14 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         if (_currentError != null && filteredSongs.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-            child: ErrorBanner.inline(
+            child: ErrorBanner(
               message: _currentError?.message ?? 'An unexpected error occurred',
               onRetry: () {
                 _clearError();
                 ref.invalidate(songsProvider);
               },
+              showRetry: _currentError!.isNetwork,
+              style: ErrorBannerStyle.inline,
             ),
           ),
         ],
@@ -875,8 +875,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       items: songAdapters,
       enableReorder: enableReorder,
       onReorder: _handleReorder,
-      onDelete: (index) => _deleteSongByIndex(index),
-      onEdit: (index) => _navigateToEditByIndex(index),
+      onDelete: _deleteSongByIndex,
+      onEdit: _navigateToEditByIndex,
       additionalActionsBuilder: (index) =>
           _buildSongActions(songAdapters[index], bands),
     );
@@ -969,7 +969,6 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       context,
       title: 'Delete Song',
       message: 'Are you sure you want to delete "${song.title}"?',
-      confirmLabel: 'Delete',
     );
 
     if (!confirmed) return;
@@ -1109,11 +1108,6 @@ class _OpenInTunerAction implements UnifiedItemAction {
 
 /// Custom action for "Add to Band" functionality.
 class _AddToBandAction implements UnifiedItemAction {
-  final SongItemAdapter adapter;
-  final List<Band> bands;
-  final BuildContext context;
-  final WidgetRef ref;
-  final Future<void> Function(Song, String) onAddToBand;
 
   _AddToBandAction({
     required this.adapter,
@@ -1122,6 +1116,11 @@ class _AddToBandAction implements UnifiedItemAction {
     required this.ref,
     required this.onAddToBand,
   });
+  final SongItemAdapter adapter;
+  final List<Band> bands;
+  final BuildContext context;
+  final WidgetRef ref;
+  final Future<void> Function(Song, String) onAddToBand;
 
   @override
   Widget build(BuildContext context) {

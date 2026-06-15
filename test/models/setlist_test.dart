@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/setlist.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Setlist Model', () {
@@ -37,7 +37,7 @@ void main() {
       expect(restored.effectiveItems.single.tuningPresetId, 'guitar_6:drop_d');
     });
     // Test data
-    final testDate = DateTime(2024, 5, 10, 18, 0, 0);
+    final testDate = DateTime(2024, 5, 10, 18);
     final testSongIds = ['song-1', 'song-2', 'song-3'];
 
     group('Constructor', () {
@@ -366,7 +366,7 @@ void main() {
           id: 'setlist-id-13',
           bandId: 'band-13',
           name: 'Setlist 13',
-          eventDateTime: DateTime(2024, 1, 1),
+          eventDateTime: DateTime(2024),
           createdAt: testDate,
           updatedAt: testDate,
         );
@@ -434,7 +434,7 @@ void main() {
           bandId: 'band-17',
           name: 'Setlist 17',
           description: 'Description',
-          eventDateTime: DateTime(2024, 1, 1),
+          eventDateTime: DateTime(2024),
           eventLocation: 'Venue',
           totalDuration: 1000,
           createdAt: testDate,
@@ -465,7 +465,7 @@ void main() {
           bandId: 'band-18',
           name: 'Setlist 18',
           description: 'Some description',
-          eventDateTime: DateTime(2024, 1, 1),
+          eventDateTime: DateTime(2024),
           eventLocation: 'Some Venue',
           totalDuration: 1000,
           createdAt: testDate,
@@ -521,14 +521,14 @@ void main() {
           id: 'setlist-id-21',
           bandId: 'band-21',
           name: 'Setlist & Show "Night"',
-          description: 'Description with special: @#\$%^&*()',
+          description: r'Description with special: @#$%^&*()',
           eventLocation: 'Venue #1 @ Downtown',
           createdAt: testDate,
           updatedAt: testDate,
         );
 
         expect(setlist.name, contains('&'));
-        expect(setlist.description, contains('@#\$%^&*()'));
+        expect(setlist.description, contains(r'@#$%^&*()'));
         expect(setlist.eventLocation, contains('@'));
       });
 

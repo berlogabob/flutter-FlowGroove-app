@@ -1,13 +1,13 @@
+import 'package:flowgroove/widgets/song_attribution_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/song_attribution_badge.dart';
 
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('SongAttributionBadge', () {
     testWidgets('renders nothing when all badges are hidden', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -22,7 +22,7 @@ void main() {
     });
 
     testWidgets('renders copy badge when isCopy is true', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -34,19 +34,18 @@ void main() {
     });
 
     testWidgets('does not render copy badge when isCopy is false', (
-      WidgetTester tester,
+      tester,
     ) async {
-      await pumpAppWidget(tester, const SongAttributionBadge(isCopy: false));
+      await pumpAppWidget(tester, const SongAttributionBadge());
 
       expect(find.byIcon(Icons.content_copy), findsNothing);
     });
 
-    testWidgets('renders original owner badge', (WidgetTester tester) async {
+    testWidgets('renders original owner badge', (tester) async {
       await pumpAppWidget(
         tester,
         const SongAttributionBadge(
           originalOwnerName: 'John Doe',
-          showOriginalOwner: true,
           size: BadgeSize.medium,
         ),
       );
@@ -56,25 +55,24 @@ void main() {
     });
 
     testWidgets('does not render original owner when name is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
-        const SongAttributionBadge(originalOwnerName: null),
+        const SongAttributionBadge(),
       );
 
       expect(find.byIcon(Icons.person), findsNothing);
     });
 
     testWidgets('renders contributor badge when isCopy is true', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
         const SongAttributionBadge(
           contributorName: 'Jane Doe',
           isCopy: true,
-          showContributor: true,
           size: BadgeSize.medium,
         ),
       );
@@ -84,17 +82,17 @@ void main() {
     });
 
     testWidgets('does not render contributor when isCopy is false', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
-        const SongAttributionBadge(contributorName: 'Jane Doe', isCopy: false),
+        const SongAttributionBadge(contributorName: 'Jane Doe'),
       );
 
       expect(find.byIcon(Icons.add_circle_outline), findsNothing);
     });
 
-    testWidgets('respects showOriginalOwner flag', (WidgetTester tester) async {
+    testWidgets('respects showOriginalOwner flag', (tester) async {
       await pumpAppWidget(
         tester,
         const SongAttributionBadge(
@@ -106,7 +104,7 @@ void main() {
       expect(find.byIcon(Icons.person), findsNothing);
     });
 
-    testWidgets('respects showContributor flag', (WidgetTester tester) async {
+    testWidgets('respects showContributor flag', (tester) async {
       await pumpAppWidget(
         tester,
         const SongAttributionBadge(
@@ -119,7 +117,7 @@ void main() {
       expect(find.byIcon(Icons.add_circle_outline), findsNothing);
     });
 
-    testWidgets('respects showCopyIndicator flag', (WidgetTester tester) async {
+    testWidgets('respects showCopyIndicator flag', (tester) async {
       await pumpAppWidget(
         tester,
         const SongAttributionBadge(isCopy: true, showCopyIndicator: false),
@@ -128,16 +126,16 @@ void main() {
       expect(find.byIcon(Icons.content_copy), findsNothing);
     });
 
-    testWidgets('renders with small size', (WidgetTester tester) async {
+    testWidgets('renders with small size', (tester) async {
       await pumpAppWidget(
         tester,
-        const SongAttributionBadge(isCopy: true, size: BadgeSize.small),
+        const SongAttributionBadge(isCopy: true),
       );
 
       expect(find.byIcon(Icons.content_copy), findsOneWidget);
     });
 
-    testWidgets('renders with medium size', (WidgetTester tester) async {
+    testWidgets('renders with medium size', (tester) async {
       await pumpAppWidget(
         tester,
         const SongAttributionBadge(isCopy: true, size: BadgeSize.medium),
@@ -147,7 +145,7 @@ void main() {
       expect(find.text('Shared'), findsOneWidget);
     });
 
-    testWidgets('renders with large size', (WidgetTester tester) async {
+    testWidgets('renders with large size', (tester) async {
       await pumpAppWidget(
         tester,
         const SongAttributionBadge(isCopy: true, size: BadgeSize.large),
@@ -157,7 +155,7 @@ void main() {
       expect(find.text('Shared'), findsOneWidget);
     });
 
-    testWidgets('uses Wrap for layout', (WidgetTester tester) async {
+    testWidgets('uses Wrap for layout', (tester) async {
       await pumpAppWidget(tester, const SongAttributionBadge(isCopy: true));
 
       expect(find.byType(Wrap), findsOneWidget);
@@ -166,7 +164,7 @@ void main() {
 
   group('CompactAttributionBadge', () {
     testWidgets('renders nothing when isCopy is false', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, const CompactAttributionBadge(isCopy: false));
 
@@ -174,7 +172,7 @@ void main() {
     });
 
     testWidgets('renders copy badge when isCopy is true', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, const CompactAttributionBadge(isCopy: true));
 
@@ -182,7 +180,7 @@ void main() {
     });
 
     testWidgets('shows contributor name when provided', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -193,11 +191,11 @@ void main() {
     });
 
     testWidgets('hides contributor name when null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
-        const CompactAttributionBadge(isCopy: true, contributorName: null),
+        const CompactAttributionBadge(isCopy: true),
       );
 
       expect(find.textContaining('by'), findsNothing);
@@ -205,7 +203,7 @@ void main() {
   });
 
   group('AttributionSubtitle', () {
-    testWidgets('renders subtitle text', (WidgetTester tester) async {
+    testWidgets('renders subtitle text', (tester) async {
       await pumpAppWidget(
         tester,
         const AttributionSubtitle(subtitle: 'Test Artist'),
@@ -214,7 +212,7 @@ void main() {
       expect(find.text('Test Artist'), findsOneWidget);
     });
 
-    testWidgets('renders attribution badge', (WidgetTester tester) async {
+    testWidgets('renders attribution badge', (tester) async {
       await pumpAppWidget(
         tester,
         const AttributionSubtitle(
@@ -227,7 +225,7 @@ void main() {
       expect(find.byType(SongAttributionBadge), findsOneWidget);
     });
 
-    testWidgets('uses Column layout', (WidgetTester tester) async {
+    testWidgets('uses Column layout', (tester) async {
       await pumpAppWidget(
         tester,
         const AttributionSubtitle(subtitle: 'Test Artist'),

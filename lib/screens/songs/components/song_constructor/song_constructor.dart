@@ -1,23 +1,25 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:math' as math;
+
 import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
-import 'widgets/section_card.dart';
-import 'widgets/section_picker.dart';
 import 'widgets/edit_section_dialog.dart';
 import 'widgets/pill_view.dart';
+import 'widgets/section_card.dart';
+import 'widgets/section_picker.dart';
 
 /// Main widget for the Song Structure Constructor.
 /// Supports collapsed (pill visualization) and expanded (vertical list) states.
 class SongConstructor extends StatefulWidget {
+
+  const SongConstructor({super.key, this.initialSections, this.onChange});
   /// Callback when the structure changes.
   final Function(List<Section>)? onChange;
 
   /// Initial sections (optional).
   final List<Section>? initialSections;
-
-  const SongConstructor({super.key, this.initialSections, this.onChange});
 
   @override
   State<SongConstructor> createState() => _SongConstructorState();
@@ -69,7 +71,7 @@ class _SongConstructorState extends State<SongConstructor> {
     );
   }
 
-  void _editSection(Section section) async {
+  Future<void> _editSection(Section section) async {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -129,7 +131,7 @@ class _SongConstructorState extends State<SongConstructor> {
   }
 
   void _autoGenerate() {
-    final templates = Section.templates;
+    const templates = Section.templates;
     final sectionCount = _random.nextInt(5) + 3; // 3-7 sections
 
     setState(() {
@@ -151,11 +153,11 @@ class _SongConstructorState extends State<SongConstructor> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: MonoPulseColors.surface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
+        border: Border.all(color: MonoPulseColors.borderDefault),
       ),
       child: Column(
         children: [

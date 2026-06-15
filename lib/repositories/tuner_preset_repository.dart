@@ -8,13 +8,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/tuner_preset.dart';
 
 class TunerPresetRepository {
-  static const _localPresetsKey = 'tuner.custom_presets';
-  final FirebaseFirestore? _firestoreOverride;
-  final FirebaseAuth? _authOverride;
 
   TunerPresetRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestoreOverride = firestore,
       _authOverride = auth;
+  static const _localPresetsKey = 'tuner.custom_presets';
+  final FirebaseFirestore? _firestoreOverride;
+  final FirebaseAuth? _authOverride;
 
   FirebaseFirestore get _firestore =>
       _firestoreOverride ?? FirebaseFirestore.instance;

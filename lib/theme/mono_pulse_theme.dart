@@ -390,7 +390,7 @@ class MonoPulseAnimation {
   static const Curve curveAccelerate = Curves.easeInCubic;
 
   // Cubic-bezier 0.4 0 0.2 1
-  static const Curve curveCustom = Cubic(0.4, 0.0, 0.2, 1.0);
+  static const Curve curveCustom = Cubic(0.4, 0, 0.2, 1);
 }
 
 /// Icon Theme
@@ -402,15 +402,15 @@ class MonoPulseIcons {
   static const double sizeXLarge = 32;
 
   static const double strokeWidthDefault = 1.5;
-  static const double strokeWidthBold = 2.0;
+  static const double strokeWidthBold = 2;
 }
 
 /// Border Widths
 /// For dividers, borders, and outlines
 class MonoPulseBorder {
-  static const double thin = 1.0;
+  static const double thin = 1;
   static const double default_ = 1.5;
-  static const double bold = 2.0;
+  static const double bold = 2;
 }
 
 /// Mono Pulse Dark Theme (ONLY THEME - dark-only)
@@ -423,17 +423,13 @@ class MonoPulseTheme {
       // Color Scheme
       colorScheme: const ColorScheme.dark(
         primary: MonoPulseColors.accentOrange,
-        onPrimary: MonoPulseColors.black,
         primaryContainer: MonoPulseColors.accentOrangeDark,
         onPrimaryContainer: MonoPulseColors.textPrimary,
 
         secondary: MonoPulseColors.textSecondary,
-        onSecondary: MonoPulseColors.black,
 
         tertiary: MonoPulseColors.surfaceRaised,
         onTertiary: MonoPulseColors.textPrimary,
-
-        surface: MonoPulseColors.surface,
         onSurface: MonoPulseColors.textPrimary,
         surfaceContainerHighest: MonoPulseColors.surfaceRaised,
         onSurfaceVariant: MonoPulseColors.textSecondary,
@@ -501,7 +497,6 @@ class MonoPulseTheme {
           foregroundColor: MonoPulseColors.textPrimary,
           side: const BorderSide(
             color: MonoPulseColors.borderDefault,
-            width: 1,
           ),
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.xl,

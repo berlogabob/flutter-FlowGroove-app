@@ -85,7 +85,7 @@ class SpotifyProxyService {
     }
 
     // Sanitize track ID (alphanumeric only)
-    final sanitizedId = trackId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    final sanitizedId = trackId.replaceAll(RegExp('[^a-zA-Z0-9]'), '');
 
     try {
       if (isProxyConfigured) {

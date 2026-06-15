@@ -7,11 +7,12 @@
 library;
 
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import '../lib/firebase_options.dart';
-import '../lib/services/matching/song_normalizer.dart';
-import '../lib/services/matching/fuzzy_matcher.dart';
+import 'package:flowgroove/firebase_options.dart';
+import 'package:flowgroove/services/matching/fuzzy_matcher.dart';
+import 'package:flowgroove/services/matching/song_normalizer.dart';
 
 /// Migrates all songs to include normalized fields.
 Future<void> main() async {
@@ -51,7 +52,7 @@ Future<void> main() async {
 
         for (final songDoc in songsSnapshot.docs) {
           try {
-            final data = songDoc.data() as Map<String, dynamic>;
+            final data = songDoc.data();
             final title = data['title'] as String? ?? '';
             final artist = data['artist'] as String? ?? '';
 
@@ -117,7 +118,7 @@ Future<void> main() async {
 
         for (final songDoc in songsSnapshot.docs) {
           try {
-            final data = songDoc.data() as Map<String, dynamic>;
+            final data = songDoc.data();
             final title = data['title'] as String? ?? '';
             final artist = data['artist'] as String? ?? '';
 

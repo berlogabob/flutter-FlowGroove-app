@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:flowgroove/providers/data/metronome_provider.dart';
-import 'package:flowgroove/providers/metronome_runtime_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 

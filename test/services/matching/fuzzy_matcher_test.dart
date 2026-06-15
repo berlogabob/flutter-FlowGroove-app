@@ -1,8 +1,8 @@
 /// Unit tests for fuzzy matching algorithms.
 library;
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/services/matching/fuzzy_matcher.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Levenshtein', () {

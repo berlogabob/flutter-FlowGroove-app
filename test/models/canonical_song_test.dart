@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/models/link.dart';
 import 'package:flowgroove/models/section.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('CanonicalSong', () {
@@ -30,7 +30,6 @@ void main() {
         schemaVersion: 2,
         canonicalRevision: 3,
         source: 'musicbrainz',
-        status: 'active',
         createdBy: 'admin-1',
         baseKey: 'Bb',
         baseBpm: 72,

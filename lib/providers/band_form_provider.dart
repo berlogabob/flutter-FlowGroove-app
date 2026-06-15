@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/band.dart';
+
 import '../models/api_error.dart';
+import '../models/band.dart';
 import '../repositories/band_repository.dart';
 
 /// Provider for managing band form state.
@@ -10,11 +11,30 @@ import '../repositories/band_repository.dart';
 /// setState in the screen.
 final bandFormStateProvider =
     NotifierProvider<BandFormStateNotifier, BandFormState>(
-      () => BandFormStateNotifier(),
+      BandFormStateNotifier.new,
     );
 
 /// State class for band form management.
 class BandFormState {
+
+  const BandFormState({
+    required this.band,
+    required this.tags,
+    required this.members,
+    this.description,
+    this.error,
+    this.hasUnsavedChanges = false,
+    this.isAutoSaving = false,
+    this.isSaving = false,
+    this.isLoading = false,
+  });
+
+  factory BandFormState.fromBand(Band band) => BandFormState(
+    band: band,
+    description: band.description,
+    tags: List<String>.from(band.tags),
+    members: List<BandMember>.from(band.members),
+  );
   final Band band;
   final String? description;
   final List<String> tags;
@@ -24,18 +44,6 @@ class BandFormState {
   final bool isAutoSaving;
   final bool isSaving;
   final bool isLoading;
-
-  const BandFormState({
-    required this.band,
-    this.description,
-    required this.tags,
-    required this.members,
-    this.error,
-    this.hasUnsavedChanges = false,
-    this.isAutoSaving = false,
-    this.isSaving = false,
-    this.isLoading = false,
-  });
 
   BandFormState copyWith({
     Band? band,
@@ -60,13 +68,6 @@ class BandFormState {
       isLoading: isLoading ?? this.isLoading,
     );
   }
-
-  factory BandFormState.fromBand(Band band) => BandFormState(
-    band: band,
-    description: band.description,
-    tags: List<String>.from(band.tags),
-    members: List<BandMember>.from(band.members),
-  );
 }
 
 /// Notifier for managing band form state.
@@ -167,7 +168,7 @@ class BandFormStateNotifier extends Notifier<BandFormState> {
 
   /// Clear error state.
   void clearError() {
-    state = state.copyWith(error: null);
+    state = state.copyWith();
   }
 
   /// Save band to repository.
@@ -180,7 +181,7 @@ class BandFormStateNotifier extends Notifier<BandFormState> {
       return false;
     }
 
-    state = state.copyWith(isSaving: true, error: null);
+    state = state.copyWith(isSaving: true);
 
     try {
       // Create updated band with current form values

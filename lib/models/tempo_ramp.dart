@@ -14,6 +14,20 @@ class TempoRamp {
     this.loop = false,
   });
 
+  factory TempoRamp.fromJson(Map<String, dynamic> json) => TempoRamp(
+    id: json['id'] as String? ?? '',
+    name: json['name'] as String? ?? '',
+    startBpm: (json['startBpm'] as num?)?.toInt() ?? 120,
+    targetBpm: (json['targetBpm'] as num?)?.toInt() ?? 120,
+    stepBpm: (json['stepBpm'] as num?)?.toInt() ?? 1,
+    cadence: TempoRampCadence.values.firstWhere(
+      (value) => value.name == json['cadence'],
+      orElse: () => TempoRampCadence.bars,
+    ),
+    every: (json['every'] as num?)?.toInt() ?? 1,
+    loop: json['loop'] as bool? ?? false,
+  );
+
   final String id;
   final String name;
   final int startBpm;
@@ -50,20 +64,6 @@ class TempoRamp {
     'every': every,
     'loop': loop,
   };
-
-  factory TempoRamp.fromJson(Map<String, dynamic> json) => TempoRamp(
-    id: json['id'] as String? ?? '',
-    name: json['name'] as String? ?? '',
-    startBpm: (json['startBpm'] as num?)?.toInt() ?? 120,
-    targetBpm: (json['targetBpm'] as num?)?.toInt() ?? 120,
-    stepBpm: (json['stepBpm'] as num?)?.toInt() ?? 1,
-    cadence: TempoRampCadence.values.firstWhere(
-      (value) => value.name == json['cadence'],
-      orElse: () => TempoRampCadence.bars,
-    ),
-    every: (json['every'] as num?)?.toInt() ?? 1,
-    loop: json['loop'] as bool? ?? false,
-  );
 }
 
 class TempoRampController {

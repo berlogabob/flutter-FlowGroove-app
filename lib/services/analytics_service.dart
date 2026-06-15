@@ -10,10 +10,11 @@
 
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
-import '../models/user.dart';
-import '../models/song.dart';
+
 import '../models/band.dart';
 import '../models/setlist.dart';
+import '../models/song.dart';
+import '../models/user.dart';
 import 'analytics_events.dart';
 
 /// Centralized analytics service for FlowGroove
@@ -854,7 +855,7 @@ class AnalyticsService {
       // Has bands
       await _analytics.setUserProperty(
         name: AnalyticsUserProperties.hasBands,
-        value: (user.bandIds.isNotEmpty).toString(),
+        value: user.bandIds.isNotEmpty.toString(),
       );
 
       if (_debugMode) {
@@ -924,7 +925,7 @@ class AnalyticsService {
   }
 
   /// Log error helper
-  static void _logError(String method, dynamic error) {
+  static void _logError(String method, error) {
     debugPrint('❌ Analytics Error in $method: $error');
   }
 }

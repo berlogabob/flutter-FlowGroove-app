@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
-import 'unified_item_model.dart';
-import 'unified_item_badge.dart';
-import 'unified_item_trailing_actions.dart';
-import 'adapters/song_item_adapter.dart';
+
+import '../../theme/mono_pulse_theme.dart';
 import 'adapters/band_item_adapter.dart';
 import 'adapters/setlist_item_adapter.dart';
-import '../../theme/mono_pulse_theme.dart';
+import 'adapters/song_item_adapter.dart';
+import 'unified_item_badge.dart';
+import 'unified_item_model.dart';
+import 'unified_item_trailing_actions.dart';
 
 /// Unified card widget for displaying items (Song, Band, Setlist)
 class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
-  final T item;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
-  final VoidCallback? onTap;
-  final bool showCompact;
-  final List<UnifiedItemAction> customActions;
 
   const UnifiedItemCard({
-    super.key,
     required this.item,
+    super.key,
     this.onEdit,
     this.onDelete,
     this.onTap,
     this.showCompact = false,
     this.customActions = const [],
   });
+  final T item;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final VoidCallback? onTap;
+  final bool showCompact;
+  final List<UnifiedItemAction> customActions;
 
   @override
   Widget build(BuildContext context) {

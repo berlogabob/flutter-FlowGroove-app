@@ -32,10 +32,10 @@ import 'tool_scaffold.dart';
 /// ```
 class ToolModeSwitcher<T extends Enum> extends StatelessWidget {
   const ToolModeSwitcher({
-    super.key,
     required this.activeMode,
     required this.options,
     required this.onModeChanged,
+    super.key,
     this.animationDuration = const Duration(milliseconds: 250),
   });
 

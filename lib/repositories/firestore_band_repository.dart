@@ -9,12 +9,12 @@ import 'band_repository.dart';
 /// Handles all band-related data operations with Firestore,
 /// including personal band references and global band data.
 class FirestoreBandRepository implements BandRepository {
-  final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
 
   FirestoreBandRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestore = firestore ?? FirebaseFirestore.instance,
       _auth = auth ?? FirebaseAuth.instance;
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
 
   /// Helper method to check if user is authenticated.
   void _requireAuth() {

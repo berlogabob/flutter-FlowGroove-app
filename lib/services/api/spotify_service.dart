@@ -224,13 +224,6 @@ class SpotifyService {
 }
 
 class SpotifyTrack {
-  final String id;
-  final String name;
-  final String artist;
-  final String? album;
-  final String? albumArt;
-  final int? durationMs;
-  final String? spotifyUrl;
 
   SpotifyTrack({
     required this.id,
@@ -275,13 +268,16 @@ class SpotifyTrack {
       spotifyUrl: spotifyUrl,
     );
   }
+  final String id;
+  final String name;
+  final String artist;
+  final String? album;
+  final String? albumArt;
+  final int? durationMs;
+  final String? spotifyUrl;
 }
 
 class SpotifyAudioFeatures {
-  final double tempo; // BPM
-  final int key; // 0-11: C, C#, D, D#, E, F, F#, G, G#, A, A#, B
-  final int mode; // 0 = minor, 1 = major
-  final int timeSignature;
 
   SpotifyAudioFeatures({
     required this.tempo,
@@ -298,6 +294,10 @@ class SpotifyAudioFeatures {
       timeSignature: json['time_signature'] as int? ?? 4,
     );
   }
+  final double tempo; // BPM
+  final int key; // 0-11: C, C#, D, D#, E, F, F#, G, G#, A, A#, B
+  final int mode; // 0 = minor, 1 = major
+  final int timeSignature;
 
   int get bpm => tempo.round();
 

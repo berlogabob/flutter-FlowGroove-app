@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/library_song.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_commit.dart';
 import 'package:flowgroove/models/song_delta.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('LibrarySong', () {
@@ -22,7 +22,7 @@ void main() {
         ownerType: 'user',
         ownerId: 'user-1',
         baseRevision: 4,
-        delta: SongDelta(values: {SongDeltaField.ourBPM: 120}),
+        delta: SongDelta(values: const {SongDeltaField.ourBPM: 120}),
         materialized: materialized,
         latestCommitId: 'commit-1',
         createdAt: DateTime(2026, 5, 11),
@@ -51,7 +51,7 @@ void main() {
         parentCommitId: 'commit-1',
         canonicalSongId: 'canonical-1',
         baseRevision: 4,
-        delta: SongDelta(values: {SongDeltaField.notes: 'New notes'}),
+        delta: SongDelta(values: const {SongDeltaField.notes: 'New notes'}),
         operation: 'update',
         authorId: 'user-1',
         message: 'Update linked song',

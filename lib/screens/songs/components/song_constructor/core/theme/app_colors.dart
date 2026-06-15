@@ -105,23 +105,23 @@ class AppDimensions {
   static const double cardBorderRadius = MonoPulseRadius.large;
 
   /// Border radius for pills.
-  static const double pillBorderRadius = 22.0;
+  static const double pillBorderRadius = 22;
 
   /// Section card leading width.
-  static const double cardLeadingWidth = 12.0;
+  static const double cardLeadingWidth = 12;
 
   /// Section card leading height.
-  static const double cardLeadingHeight = 40.0;
+  static const double cardLeadingHeight = 40;
 
   /// Minimum tap target size (Material Design). Only a11y constant, not tokenized.
-  static const double minTapTarget = 48.0;
+  static const double minTapTarget = 48;
 
   /// Pill view height.
-  static const double pillHeight = 45.0;
+  static const double pillHeight = 45;
 
   /// Section picker dialog height (Parts/Colors tabs).
-  static const double pickerTabHeight = 260.0;
+  static const double pickerTabHeight = 260;
 
   /// Color picker dialog height.
-  static const double colorPickerHeight = 350.0;
+  static const double colorPickerHeight = 350;
 }

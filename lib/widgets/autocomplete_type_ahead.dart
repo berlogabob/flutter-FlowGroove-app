@@ -24,7 +24,6 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/song_suggestion.dart';
@@ -34,8 +33,8 @@ import 'suggestion_card.dart';
 /// Autocomplete TypeAhead widget for song search.
 class AutocompleteTypeAhead extends ConsumerStatefulWidget {
   const AutocompleteTypeAhead({
-    super.key,
     required this.onSuggestionSelected,
+    super.key,
     this.hint = 'Search songs...',
     this.icon = Icons.music_note,
     this.minLength = 2,
@@ -120,9 +119,7 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
             .updateQuery(_controller.text, debounceMs: widget.debounceMs);
       }
     } else {
-      Future.delayed(const Duration(milliseconds: 200), () {
-        _hideOverlay();
-      });
+      Future.delayed(const Duration(milliseconds: 200), _hideOverlay);
     }
   }
 
@@ -141,7 +138,7 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: _hideOverlay,
-          child: Container(
+          child: ColoredBox(
             color: Colors.transparent,
             child: SafeArea(
               child: UnconstrainedBox(
@@ -266,10 +263,10 @@ class _SuggestionDropdown extends StatelessWidget {
   const _SuggestionDropdown({
     required this.suggestions,
     required this.isLoading,
-    this.error,
     required this.selectedIndex,
     required this.onSuggestionSelected,
     required this.onNavigate,
+    this.error,
   });
 
   final List<SongSuggestion> suggestions;

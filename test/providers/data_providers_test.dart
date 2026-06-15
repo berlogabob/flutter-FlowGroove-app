@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/canonical_song.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/repositories.dart';
 import 'package:flowgroove/services/cache_service.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/band.dart';
-import 'package:flowgroove/models/setlist.dart';
-import 'package:flowgroove/models/canonical_song.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 
 @GenerateMocks([
   SongRepository,
@@ -94,8 +94,8 @@ void main() {
           id: 'setlist-1',
           bandId: 'band-1',
           name: 'Band Setlist',
-          createdAt: DateTime(2026, 1, 1),
-          updatedAt: DateTime(2026, 1, 1),
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
         );
         when(
           mockSetlistRepository.watchBandSetlists('band-1'),
@@ -172,7 +172,7 @@ void main() {
 
       test('CachedSongsNotifier dispose cancels subscriptions', () {
         final notifier = container.read(cachedSongsProvider.notifier);
-        expect(() => notifier.dispose(), returnsNormally);
+        expect(notifier.dispose, returnsNormally);
       });
 
       test('songsProvider returns stream', () {
@@ -215,7 +215,7 @@ void main() {
 
       test('CachedBandsNotifier dispose works correctly', () {
         final notifier = container.read(cachedBandsProvider.notifier);
-        expect(() => notifier.dispose(), returnsNormally);
+        expect(notifier.dispose, returnsNormally);
       });
 
       test('bandsProvider returns stream', () {
@@ -245,7 +245,7 @@ void main() {
           name: 'Selected Band',
           createdBy: 'user-1',
           members: [],
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
 
         final notifier = container.read(selectedBandProvider.notifier);
@@ -263,7 +263,7 @@ void main() {
           name: 'Test Band',
           createdBy: 'user-1',
           members: [],
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
 
         final notifier = container.read(selectedBandProvider.notifier);
@@ -280,14 +280,14 @@ void main() {
           name: 'Band 1',
           createdBy: 'user-1',
           members: [],
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
         final band2 = Band(
           id: 'band-2',
           name: 'Band 2',
           createdBy: 'user-1',
           members: [],
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
 
         final notifier = container.read(selectedBandProvider.notifier);
@@ -318,7 +318,7 @@ void main() {
 
       test('CachedSetlistsNotifier dispose works correctly', () {
         final notifier = container.read(cachedSetlistsProvider.notifier);
-        expect(() => notifier.dispose(), returnsNormally);
+        expect(notifier.dispose, returnsNormally);
       });
 
       test('setlistsProvider returns stream', () {
@@ -364,8 +364,8 @@ void main() {
             id: 'song-1',
             title: 'Band Song',
             artist: 'Band Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -458,17 +458,17 @@ void main() {
     group('Dispose Verification', () {
       test('CachedSongsNotifier dispose cancels subscriptions', () {
         final notifier = container.read(cachedSongsProvider.notifier);
-        expect(() => notifier.dispose(), returnsNormally);
+        expect(notifier.dispose, returnsNormally);
       });
 
       test('CachedBandsNotifier dispose works correctly', () {
         final notifier = container.read(cachedBandsProvider.notifier);
-        expect(() => notifier.dispose(), returnsNormally);
+        expect(notifier.dispose, returnsNormally);
       });
 
       test('CachedSetlistsNotifier dispose works correctly', () {
         final notifier = container.read(cachedSetlistsProvider.notifier);
-        expect(() => notifier.dispose(), returnsNormally);
+        expect(notifier.dispose, returnsNormally);
       });
 
       test('ProviderContainer dispose cleans up all resources', () {
@@ -491,7 +491,7 @@ void main() {
         localContainer.read(setlistCountProvider);
 
         // Dispose should not throw
-        expect(() => localContainer.dispose(), returnsNormally);
+        expect(localContainer.dispose, returnsNormally);
       });
     });
 
@@ -508,7 +508,7 @@ void main() {
           name: 'Test Band',
           createdBy: 'user-1',
           members: [],
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
         notifier.select(band);
         expect(container.read(selectedBandProvider), equals(band));
@@ -526,21 +526,21 @@ void main() {
           name: 'First Band',
           createdBy: 'user-1',
           members: [],
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
         final band2 = Band(
           id: 'band-2',
           name: 'Second Band',
           createdBy: 'user-1',
           members: [],
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
         final band3 = Band(
           id: 'band-3',
           name: 'Third Band',
           createdBy: 'user-1',
           members: [],
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
 
         notifier.select(band1);
@@ -627,8 +627,8 @@ void main() {
             id: 'song-1',
             title: 'Cached Song',
             artist: 'Cached Artist',
-            createdAt: DateTime(2024, 1, 1),
-            updatedAt: DateTime(2024, 1, 1),
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
           ),
         ];
 
@@ -730,7 +730,7 @@ void main() {
           name: 'Large Band',
           createdBy: 'user-1',
           members: members,
-          createdAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
         );
 
         final notifier = container.read(selectedBandProvider.notifier);

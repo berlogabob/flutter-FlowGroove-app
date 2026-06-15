@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/song_duplicate.dart';
 import '../../models/song.dart';
+import '../../models/song_duplicate.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/matching/song_duplicate_detector.dart';
@@ -125,9 +125,10 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
     );
     ref.invalidate(songsProvider);
     ref.invalidate(setlistsProvider);
-    if (mounted)
+    if (mounted) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Songs merged.')));
+    }
   }
 }

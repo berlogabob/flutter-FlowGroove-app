@@ -8,18 +8,18 @@
 /// Estimated Time: 0.5 hours (start)
 ///
 /// To run: flutter test test/integration/metronome_flow_test.dart
+library;
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
-
-import 'package:flowgroove/models/metronome_state.dart';
-import 'package:flowgroove/models/metronome_preset.dart';
-import 'package:flowgroove/models/time_signature.dart';
-import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/models/metronome_preset.dart';
+import 'package:flowgroove/models/metronome_state.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/time_signature.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   group('Metronome Flow Integration Tests - INT-METRONOME-01', () {
@@ -28,7 +28,7 @@ void main() {
     // =========================================================================
     group('Manual BPM Input', () {
       testWidgets('INT-METRONOME-01.1: Manual BPM input updates state', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         await tester.pumpWidget(
@@ -57,7 +57,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.2: Manual BPM input with valid range', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange & Act: Test valid BPM values
         final validBpmValues = [1, 40, 60, 80, 120, 200, 300, 400];
@@ -69,10 +69,10 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.3: Manual BPM clamps to minimum (1)', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
-        final inputBpm = 0;
+        const inputBpm = 0;
         final clampedBpm = inputBpm.clamp(1, 400);
 
         // Assert
@@ -80,10 +80,10 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.4: Manual BPM clamps to maximum (400)', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
-        final inputBpm = 700;
+        const inputBpm = 700;
         final clampedBpm = inputBpm.clamp(1, 400);
 
         // Assert
@@ -91,7 +91,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.5: Manual BPM with invalid input handled', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final invalidInputs = ['', 'abc']; // Only truly invalid inputs
@@ -111,7 +111,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.6: BPM input persists after stop', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final state = MetronomeState.initial().copyWith(bpm: 140);
@@ -131,7 +131,7 @@ void main() {
     group('Start/Stop Metronome', () {
       testWidgets(
         'INT-METRONOME-01.7: Start metronome changes state to playing',
-        (WidgetTester tester) async {
+        (tester) async {
           // Arrange
           final container = ProviderContainer();
           addTearDown(container.dispose);
@@ -151,7 +151,7 @@ void main() {
 
       testWidgets(
         'INT-METRONOME-01.8: Stop metronome changes state to not playing',
-        (WidgetTester tester) async {
+        (tester) async {
           // Arrange
           final container = ProviderContainer();
           addTearDown(container.dispose);
@@ -168,7 +168,7 @@ void main() {
       );
 
       testWidgets('INT-METRONOME-01.9: Start metronome initializes audio', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -186,7 +186,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.10: Toggle metronome start/stop', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -202,7 +202,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.11: Start metronome with custom beats', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -211,7 +211,7 @@ void main() {
         // Act: Configure 6 beats, then start transport.
         final notifier = container.read(metronomeProvider.notifier);
         notifier.setBpm(100);
-        notifier.setTimeSignature(TimeSignature(numerator: 6, denominator: 4));
+        notifier.setTimeSignature(const TimeSignature(numerator: 6, denominator: 4));
         notifier.start();
         final state = container.read(metronomeProvider);
 
@@ -224,7 +224,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.12: Cannot start twice without stopping', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -250,7 +250,7 @@ void main() {
     // =========================================================================
     group('Tap BPM Calculation', () {
       testWidgets('INT-METRONOME-01.13: Tap BPM calculates from intervals', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange: Simulate tap intervals (in milliseconds)
         final tapIntervals = [500, 500, 500, 500]; // 500ms = 120 BPM
@@ -265,7 +265,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.14: Tap BPM with faster tempo', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange: Faster taps (300ms = 200 BPM)
         final tapIntervals = [300, 300, 300, 300];
@@ -280,7 +280,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.15: Tap BPM with slower tempo', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange: Slower taps (1000ms = 60 BPM)
         final tapIntervals = [1000, 1000, 1000, 1000];
@@ -296,7 +296,7 @@ void main() {
 
       testWidgets(
         'INT-METRONOME-01.16: Tap BPM with inconsistent taps averaged',
-        (WidgetTester tester) async {
+        (tester) async {
           // Arrange: Inconsistent taps
           final tapIntervals = [480, 520, 500, 500];
 
@@ -311,7 +311,7 @@ void main() {
       );
 
       testWidgets('INT-METRONOME-01.17: Tap BPM requires minimum taps', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final tapIntervals = [500]; // Only 1 tap
@@ -324,7 +324,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.18: Tap BPM clamps to valid range', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange: Very fast taps (100ms = 600 BPM)
         final tapIntervals = [100, 100, 100, 100];
@@ -346,14 +346,14 @@ void main() {
     // =========================================================================
     group('Preset Save/Load', () {
       testWidgets('INT-METRONOME-01.19: Save metronome preset', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final preset = MetronomePreset(
           id: const Uuid().v4(),
           name: 'Custom Preset',
           bpm: 140,
-          timeSignature: TimeSignature(numerator: 4, denominator: 4),
+          timeSignature: const TimeSignature(numerator: 4, denominator: 4),
           waveType: 'sine',
           accentEnabled: true,
           createdAt: DateTime.now(),
@@ -368,7 +368,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.20: Load metronome preset', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -378,7 +378,7 @@ void main() {
           id: const Uuid().v4(),
           name: 'Rock Preset',
           bpm: 120,
-          timeSignature: TimeSignature(numerator: 4, denominator: 4),
+          timeSignature: const TimeSignature(numerator: 4, denominator: 4),
           waveType: 'square',
           accentEnabled: true,
           createdAt: DateTime.now(),
@@ -395,14 +395,14 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.21: Preset persists BPM', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final preset = MetronomePreset(
           id: const Uuid().v4(),
           name: 'Slow Preset',
           bpm: 60,
-          timeSignature: TimeSignature(numerator: 3, denominator: 4),
+          timeSignature: const TimeSignature(numerator: 3, denominator: 4),
           waveType: 'sine',
           accentEnabled: true,
           createdAt: DateTime.now(),
@@ -413,14 +413,14 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.22: Preset persists time signature', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final preset = MetronomePreset(
           id: const Uuid().v4(),
           name: 'Waltz Preset',
           bpm: 90,
-          timeSignature: TimeSignature(numerator: 3, denominator: 4),
+          timeSignature: const TimeSignature(numerator: 3, denominator: 4),
           waveType: 'sine',
           accentEnabled: true,
           createdAt: DateTime.now(),
@@ -432,14 +432,14 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.23: Preset persists wave type', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final preset = MetronomePreset(
           id: const Uuid().v4(),
           name: 'Square Wave Preset',
           bpm: 120,
-          timeSignature: TimeSignature(numerator: 4, denominator: 4),
+          timeSignature: const TimeSignature(numerator: 4, denominator: 4),
           waveType: 'square',
           accentEnabled: true,
           createdAt: DateTime.now(),
@@ -450,7 +450,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.24: Delete preset', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final presets = [
@@ -458,7 +458,7 @@ void main() {
             id: 'preset-1',
             name: 'Preset 1',
             bpm: 60,
-            timeSignature: TimeSignature(numerator: 4, denominator: 4),
+            timeSignature: const TimeSignature(numerator: 4, denominator: 4),
             waveType: 'sine',
             accentEnabled: true,
             createdAt: DateTime.now(),
@@ -467,7 +467,7 @@ void main() {
             id: 'preset-2',
             name: 'Preset 2',
             bpm: 120,
-            timeSignature: TimeSignature(numerator: 4, denominator: 4),
+            timeSignature: const TimeSignature(numerator: 4, denominator: 4),
             waveType: 'sine',
             accentEnabled: true,
             createdAt: DateTime.now(),
@@ -485,7 +485,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.25: Default presets available', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange & Act
         final defaultPresets = MetronomePreset.defaults;
@@ -503,14 +503,14 @@ void main() {
     // =========================================================================
     group('Note Value Change', () {
       testWidgets('INT-METRONOME-01.26: Change time signature numerator', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
         addTearDown(container.dispose);
 
         // Act: Change from 4/4 to 3/4
-        final newTimeSignature = TimeSignature(numerator: 3, denominator: 4);
+        const newTimeSignature = TimeSignature(numerator: 3, denominator: 4);
         container
             .read(metronomeProvider.notifier)
             .setTimeSignature(newTimeSignature);
@@ -522,14 +522,14 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.27: Change time signature denominator', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
         addTearDown(container.dispose);
 
         // Act: Change from 4/4 to 4/8
-        final newTimeSignature = TimeSignature(numerator: 4, denominator: 8);
+        const newTimeSignature = TimeSignature(numerator: 4, denominator: 8);
         container
             .read(metronomeProvider.notifier)
             .setTimeSignature(newTimeSignature);
@@ -540,14 +540,14 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.28: 6/8 time signature special handling', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
         addTearDown(container.dispose);
 
         // Act: Set 6/8 time signature
-        final timeSignature = TimeSignature(numerator: 6, denominator: 8);
+        const timeSignature = TimeSignature(numerator: 6, denominator: 8);
         container
             .read(metronomeProvider.notifier)
             .setTimeSignature(timeSignature);
@@ -560,7 +560,7 @@ void main() {
 
       testWidgets(
         'INT-METRONOME-01.29: Accent pattern updates with time signature',
-        (WidgetTester tester) async {
+        (tester) async {
           // Arrange
           final container = ProviderContainer();
           addTearDown(container.dispose);
@@ -568,7 +568,7 @@ void main() {
           // Act: Change to 3/4
           container
               .read(metronomeProvider.notifier)
-              .setTimeSignature(TimeSignature(numerator: 3, denominator: 4));
+              .setTimeSignature(const TimeSignature(numerator: 3, denominator: 4));
           final state = container.read(metronomeProvider);
 
           // Assert: First beat accented
@@ -581,7 +581,7 @@ void main() {
 
       testWidgets(
         'INT-METRONOME-01.30: Subdivision count affects sound pattern',
-        (WidgetTester tester) async {
+        (tester) async {
           // Arrange
           final container = ProviderContainer();
           addTearDown(container.dispose);
@@ -601,7 +601,7 @@ void main() {
     // =========================================================================
     group('Volume Control', () {
       testWidgets('INT-METRONOME-01.31: Set volume within valid range', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -616,10 +616,10 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.32: Volume clamps to minimum (0.0)', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
-        final inputVolume = -0.5;
+        const inputVolume = -0.5;
         final clampedVolume = inputVolume.clamp(0.0, 1.0);
 
         // Assert
@@ -627,10 +627,10 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.33: Volume clamps to maximum (1.0)', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
-        final inputVolume = 1.5;
+        const inputVolume = 1.5;
         final clampedVolume = inputVolume.clamp(0.0, 1.0);
 
         // Assert
@@ -638,7 +638,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.34: Volume persists across sessions', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -656,7 +656,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.35: Volume at boundary values', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final boundaryValues = [0.0, 0.25, 0.5, 0.75, 1.0];
@@ -673,7 +673,7 @@ void main() {
     // =========================================================================
     group('Song + Metronome Integration', () {
       testWidgets('INT-METRONOME-01.36: Load song BPM into metronome', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -698,7 +698,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.37: Save metronome settings to song', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -729,7 +729,7 @@ void main() {
 
       testWidgets(
         'INT-METRONOME-01.38: Song without BPM uses current metronome BPM',
-        (WidgetTester tester) async {
+        (tester) async {
           // Arrange
           final container = ProviderContainer();
           addTearDown(container.dispose);
@@ -757,7 +757,7 @@ void main() {
     // =========================================================================
     group('Edge Cases and Error Handling', () {
       testWidgets('INT-METRONOME-01.39: Metronome state serialization', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final state = MetronomeState.initial().copyWith(
@@ -776,7 +776,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.40: Metronome state deserialization', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final json = {
@@ -804,7 +804,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.41: BPM rotation gesture calculation', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -819,7 +819,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.42: Fine tempo adjustment', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -834,7 +834,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.43: Tempo at minimum boundary', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -851,7 +851,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.44: Tempo at maximum boundary', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final container = ProviderContainer();
@@ -868,7 +868,7 @@ void main() {
       });
 
       testWidgets('INT-METRONOME-01.45: Beat mode serialization', (
-        WidgetTester tester,
+        tester,
       ) async {
         // Arrange
         final beatModes = [

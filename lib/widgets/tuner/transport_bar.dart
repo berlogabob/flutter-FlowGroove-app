@@ -241,6 +241,7 @@ class _VolumeControlState extends State<_VolumeControl> {
               ),
           ],
         ),
+          ),
         ),
       ),
     );
@@ -303,6 +304,7 @@ class _CalibrationButton extends StatelessWidget {
             ),
           ],
         ),
+          ),
         ),
       ),
     );

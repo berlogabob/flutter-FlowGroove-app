@@ -1,11 +1,12 @@
+import 'package:flowgroove/widgets/confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/confirmation_dialog.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('ConfirmationDialog', () {
-    testWidgets('renders dialog with title', (WidgetTester tester) async {
+    testWidgets('renders dialog with title', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -17,7 +18,7 @@ void main() {
       expect(findText('Confirm Action'), findsOneWidget);
     });
 
-    testWidgets('renders dialog with message', (WidgetTester tester) async {
+    testWidgets('renders dialog with message', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -30,14 +31,13 @@ void main() {
     });
 
     testWidgets('renders warning icon for destructive action', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
           title: 'Delete Item',
           message: 'Are you sure?',
-          isDestructive: true,
         ),
       );
 
@@ -45,7 +45,7 @@ void main() {
     });
 
     testWidgets('renders info icon for non-destructive action', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -60,7 +60,7 @@ void main() {
     });
 
     testWidgets('renders custom icon when provided', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -75,7 +75,7 @@ void main() {
     });
 
     testWidgets('renders confirm button with default label', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -94,7 +94,7 @@ void main() {
     });
 
     testWidgets('renders confirm button with custom label', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -117,7 +117,7 @@ void main() {
     });
 
     testWidgets('renders cancel button with default label', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -128,7 +128,7 @@ void main() {
     });
 
     testWidgets('renders cancel button with custom label', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -143,14 +143,13 @@ void main() {
     });
 
     testWidgets('renders red confirm button for destructive action', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
           title: 'Delete',
           message: 'Are you sure?',
-          isDestructive: true,
         ),
       );
 
@@ -159,13 +158,13 @@ void main() {
     });
 
     testWidgets('closes dialog with false when cancel is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool? result;
 
       await pumpAppWidget(
         tester,
-        ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
+        const ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
       );
 
       // Tap the TextButton (cancel button)
@@ -178,13 +177,13 @@ void main() {
     });
 
     testWidgets('closes dialog with true when confirm is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool? result;
 
       await pumpAppWidget(
         tester,
-        ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
+        const ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
       );
 
       // Tap the ElevatedButton (confirm button)
@@ -196,7 +195,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    testWidgets('renders as AlertDialog', (WidgetTester tester) async {
+    testWidgets('renders as AlertDialog', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
@@ -208,14 +207,13 @@ void main() {
 
   group('ConfirmationDialog.showDeleteDialog', () {
     testWidgets('shows delete dialog with default title', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
           title: 'Delete Item',
           message: 'Are you sure you want to delete this item?',
-          isDestructive: true,
         ),
       );
 
@@ -227,7 +225,7 @@ void main() {
     });
 
     testWidgets('shows delete dialog with custom title', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -235,7 +233,6 @@ void main() {
           title: 'Delete Song',
           message: 'Are you sure you want to delete this song?',
           confirmLabel: 'Delete',
-          isDestructive: true,
         ),
       );
 
@@ -244,7 +241,7 @@ void main() {
     });
 
     testWidgets('shows delete dialog with custom message', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -252,7 +249,6 @@ void main() {
           title: 'Delete Band',
           message: 'Are you sure you want to leave this band?',
           confirmLabel: 'Leave',
-          isDestructive: true,
         ),
       );
 
@@ -267,7 +263,7 @@ void main() {
 
   group('ConfirmationDialog.showConfirmDialog', () {
     testWidgets('shows confirm dialog with custom title and message', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -283,7 +279,7 @@ void main() {
     });
 
     testWidgets('shows confirm dialog with custom icon', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -299,7 +295,7 @@ void main() {
     });
 
     testWidgets('shows confirm dialog with custom confirm label', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,

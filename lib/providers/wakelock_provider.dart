@@ -18,7 +18,7 @@ import '../services/wakelock_controller.dart';
 final wakelockProvider = Provider<WakelockController>(
   (ref) {
     final controller = WakelockController();
-    ref.onDispose(() => controller.dispose());
+    ref.onDispose(controller.dispose);
     return controller;
   },
 );

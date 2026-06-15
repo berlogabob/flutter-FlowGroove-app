@@ -1,12 +1,13 @@
+import 'package:flowgroove/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/custom_button.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('CustomButton', () {
     testWidgets('renders primary button with label', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, const CustomButton(label: 'Click Me'));
 
@@ -14,7 +15,7 @@ void main() {
       expect(find.byType(ElevatedButton), findsOneWidget);
     });
 
-    testWidgets('renders secondary button', (WidgetTester tester) async {
+    testWidgets('renders secondary button', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomButton(
@@ -27,7 +28,7 @@ void main() {
       expect(find.byType(ElevatedButton), findsOneWidget);
     });
 
-    testWidgets('renders outline button', (WidgetTester tester) async {
+    testWidgets('renders outline button', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomButton(label: 'Outline', variant: ButtonVariant.outline),
@@ -37,7 +38,7 @@ void main() {
       expect(find.byType(OutlinedButton), findsOneWidget);
     });
 
-    testWidgets('renders text button', (WidgetTester tester) async {
+    testWidgets('renders text button', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomButton(label: 'Text', variant: ButtonVariant.text),
@@ -47,7 +48,7 @@ void main() {
       expect(find.byType(TextButton), findsOneWidget);
     });
 
-    testWidgets('renders button with icon', (WidgetTester tester) async {
+    testWidgets('renders button with icon', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomButton(label: 'With Icon', icon: Icons.add),
@@ -57,7 +58,7 @@ void main() {
       expect(findIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('renders loading state', (WidgetTester tester) async {
+    testWidgets('renders loading state', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomButton(label: 'Loading', isLoading: true),
@@ -68,7 +69,7 @@ void main() {
     });
 
     testWidgets('renders loading state without label', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -78,7 +79,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('calls onPressed when tapped', (WidgetTester tester) async {
+    testWidgets('calls onPressed when tapped', (tester) async {
       bool wasPressed = false;
 
       await pumpAppWidget(
@@ -93,13 +94,13 @@ void main() {
     });
 
     testWidgets('does not call onPressed when disabled', (
-      WidgetTester tester,
+      tester,
     ) async {
-      bool wasPressed = false;
+      const bool wasPressed = false;
 
       await pumpAppWidget(
         tester,
-        CustomButton(label: 'Disabled', onPressed: null),
+        const CustomButton(label: 'Disabled'),
       );
 
       await tester.tap(findText('Disabled'));
@@ -109,7 +110,7 @@ void main() {
     });
 
     testWidgets('does not call onPressed when loading', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasPressed = false;
 
@@ -128,7 +129,7 @@ void main() {
       expect(wasPressed, isFalse);
     });
 
-    testWidgets('renders full width button', (WidgetTester tester) async {
+    testWidgets('renders full width button', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomButton(label: 'Full Width', fullWidth: true),
@@ -141,7 +142,7 @@ void main() {
       expect(buttonSize.width, equals(screenSize.width));
     });
 
-    testWidgets('renders small button', (WidgetTester tester) async {
+    testWidgets('renders small button', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomButton(label: 'Small', size: ButtonSize.small),
@@ -150,16 +151,16 @@ void main() {
       expect(findText('Small'), findsOneWidget);
     });
 
-    testWidgets('renders medium button', (WidgetTester tester) async {
+    testWidgets('renders medium button', (tester) async {
       await pumpAppWidget(
         tester,
-        const CustomButton(label: 'Medium', size: ButtonSize.medium),
+        const CustomButton(label: 'Medium'),
       );
 
       expect(findText('Medium'), findsOneWidget);
     });
 
-    testWidgets('renders large button', (WidgetTester tester) async {
+    testWidgets('renders large button', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomButton(label: 'Large', size: ButtonSize.large),
@@ -169,7 +170,7 @@ void main() {
     });
 
     testWidgets('renders button without icon when icon is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, const CustomButton(label: 'No Icon'));
 

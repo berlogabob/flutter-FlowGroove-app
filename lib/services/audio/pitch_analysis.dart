@@ -6,23 +6,12 @@ enum TunerSignalState { idle, noSignal, unstable, detected, inTune }
 
 /// Result of analysing one mono PCM16 frame.
 class PitchAnalysisResult {
-  final double? frequencyHz;
-  final double confidence;
-  final double rmsDb;
 
   const PitchAnalysisResult({
     required this.frequencyHz,
     required this.confidence,
     required this.rmsDb,
   });
-
-  bool get hasPitch => frequencyHz != null && frequencyHz! > 0;
-
-  Map<String, Object?> toMap() => {
-    'frequencyHz': frequencyHz,
-    'confidence': confidence,
-    'rmsDb': rmsDb,
-  };
 
   factory PitchAnalysisResult.fromMap(Map<Object?, Object?> map) {
     return PitchAnalysisResult(
@@ -31,6 +20,17 @@ class PitchAnalysisResult {
       rmsDb: (map['rmsDb'] as num?)?.toDouble() ?? -120,
     );
   }
+  final double? frequencyHz;
+  final double confidence;
+  final double rmsDb;
+
+  bool get hasPitch => frequencyHz != null && frequencyHz! > 0;
+
+  Map<String, Object?> toMap() => {
+    'frequencyHz': frequencyHz,
+    'confidence': confidence,
+    'rmsDb': rmsDb,
+  };
 }
 
 /// Musical-note conversion helpers using configurable equal temperament.

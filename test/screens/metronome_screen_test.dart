@@ -1,16 +1,16 @@
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
+import 'package:flowgroove/screens/metronome_screen.dart';
+import 'package:flowgroove/widgets/metronome/central_tempo_circle.dart';
+import 'package:flowgroove/widgets/metronome/fine_adjustment_buttons.dart';
+import 'package:flowgroove/widgets/metronome/song_library_block.dart';
+import 'package:flowgroove/widgets/metronome/time_signature_block.dart';
+import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
+import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/providers/auth/auth_provider.dart';
-import 'package:flowgroove/screens/metronome_screen.dart';
-import 'package:flowgroove/providers/data/metronome_provider.dart';
-import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
-import 'package:flowgroove/widgets/metronome/central_tempo_circle.dart';
-import 'package:flowgroove/widgets/metronome/time_signature_block.dart';
-import 'package:flowgroove/widgets/metronome/fine_adjustment_buttons.dart';
-import 'package:flowgroove/widgets/metronome/song_library_block.dart';
-import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mockito/mockito.dart';
 
@@ -19,14 +19,14 @@ import '../helpers/mocks.mocks.dart';
 
 void main() {
   group('MetronomeScreen', () {
-    testWidgets('renders scaffold', (WidgetTester tester) async {
+    testWidgets('renders scaffold', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -38,14 +38,14 @@ void main() {
       expect(find.byType(Scaffold), findsOneWidget);
     });
 
-    testWidgets('renders ToolScreenScaffold', (WidgetTester tester) async {
+    testWidgets('renders ToolScreenScaffold', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -57,14 +57,14 @@ void main() {
       expect(find.byType(ToolScreenScaffold), findsOneWidget);
     });
 
-    testWidgets('renders app bar', (WidgetTester tester) async {
+    testWidgets('renders app bar', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -76,14 +76,14 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
     });
 
-    testWidgets('displays "Metronome" title', (WidgetTester tester) async {
+    testWidgets('displays "Metronome" title', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -95,14 +95,14 @@ void main() {
       expect(find.text('Metronome'), findsOneWidget);
     });
 
-    testWidgets('app bar has black background', (WidgetTester tester) async {
+    testWidgets('app bar has black background', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -115,14 +115,14 @@ void main() {
       expect(appBar.backgroundColor, isNotNull);
     });
 
-    testWidgets('renders CentralTempoCircle', (WidgetTester tester) async {
+    testWidgets('renders CentralTempoCircle', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -134,14 +134,14 @@ void main() {
       expect(find.byType(CentralTempoCircle), findsOneWidget);
     });
 
-    testWidgets('renders TimeSignatureBlock', (WidgetTester tester) async {
+    testWidgets('renders TimeSignatureBlock', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -153,14 +153,14 @@ void main() {
       expect(find.byType(TimeSignatureBlock), findsOneWidget);
     });
 
-    testWidgets('renders FineAdjustmentButtons', (WidgetTester tester) async {
+    testWidgets('renders FineAdjustmentButtons', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -172,14 +172,14 @@ void main() {
       expect(find.byType(FineAdjustmentButtons), findsOneWidget);
     });
 
-    testWidgets('renders ToolTransportBar', (WidgetTester tester) async {
+    testWidgets('renders ToolTransportBar', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -191,14 +191,14 @@ void main() {
       expect(find.byType(ToolTransportBar), findsOneWidget);
     });
 
-    testWidgets('renders SongLibraryBlock', (WidgetTester tester) async {
+    testWidgets('renders SongLibraryBlock', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -211,7 +211,7 @@ void main() {
     });
 
     testWidgets('displays BPM value in central circle', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -219,7 +219,7 @@ void main() {
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -232,14 +232,14 @@ void main() {
       expect(find.text('120'), findsOneWidget);
     });
 
-    testWidgets('displays BPM label', (WidgetTester tester) async {
+    testWidgets('displays BPM label', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -252,7 +252,7 @@ void main() {
     });
 
     testWidgets('has Expanded widget for main content', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -260,7 +260,7 @@ void main() {
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -272,14 +272,14 @@ void main() {
       expect(find.byType(Expanded), findsWidgets);
     });
 
-    testWidgets('has Column layout in body', (WidgetTester tester) async {
+    testWidgets('has Column layout in body', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -292,7 +292,7 @@ void main() {
     });
 
     testWidgets('has SizedBox spacing between sections', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -300,7 +300,7 @@ void main() {
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -312,14 +312,14 @@ void main() {
       expect(find.byType(SizedBox), findsWidgets);
     });
 
-    testWidgets('has SafeArea wrapper', (WidgetTester tester) async {
+    testWidgets('has SafeArea wrapper', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -333,7 +333,7 @@ void main() {
     });
 
     testWidgets('screen structure matches layout order', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -341,7 +341,7 @@ void main() {
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -361,7 +361,7 @@ void main() {
     });
 
     testWidgets('toggles haptics from app bar menu', (
-      WidgetTester tester,
+      tester,
     ) async {
       final container = ProviderContainer(
         overrides: [metronomeProvider.overrideWith(MetronomeNotifier.new)],
@@ -371,10 +371,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: MediaQuery(
-              data: const MediaQueryData(size: Size(400, 800)),
-              child: const MetronomeScreen(),
+              data: MediaQueryData(size: Size(400, 800)),
+              child: MetronomeScreen(),
             ),
           ),
         ),
@@ -473,7 +473,7 @@ void main() {
     });
 
     testWidgets('play preserves three visible main beats', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1;
@@ -490,10 +490,10 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
+          child: const MaterialApp(
             home: MediaQuery(
-              data: const MediaQueryData(size: Size(400, 800)),
-              child: const MetronomeScreen(),
+              data: MediaQueryData(size: Size(400, 800)),
+              child: MetronomeScreen(),
             ),
           ),
         ),
@@ -515,14 +515,14 @@ void main() {
       expect(find.byKey(const Key('main_beat_dot_3')), findsNothing);
     });
 
-    testWidgets('has offline indicator', (WidgetTester tester) async {
+    testWidgets('has offline indicator', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -536,14 +536,14 @@ void main() {
       expect(find.byType(ToolScreenScaffold), findsOneWidget);
     });
 
-    testWidgets('renders without overflow', (WidgetTester tester) async {
+    testWidgets('renders without overflow', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
             data: const MediaQueryData(size: Size(400, 800)),
             child: ProviderScope(
               overrides: [
-                metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                metronomeProvider.overrideWith(MetronomeNotifier.new),
               ],
               child: const MetronomeScreen(),
             ),
@@ -557,7 +557,7 @@ void main() {
     });
 
     testWidgets('renders the full controls without overflow at 390x844', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
@@ -579,7 +579,7 @@ void main() {
     });
 
     testWidgets('short compact layout keeps beat controls above tempo dial', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(390, 650);
       tester.view.devicePixelRatio = 1;
@@ -608,7 +608,7 @@ void main() {
     });
 
     testWidgets('desktop side controls render without overflow at 1280x900', (
-      WidgetTester tester,
+      tester,
     ) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1;
@@ -630,7 +630,7 @@ void main() {
     });
 
     testWidgets('has correct screen dimensions handling', (
-      WidgetTester tester,
+      tester,
     ) async {
       // Test with different screen sizes
       for (final size in [
@@ -645,7 +645,7 @@ void main() {
               data: MediaQueryData(size: size),
               child: ProviderScope(
                 overrides: [
-                  metronomeProvider.overrideWith(() => MetronomeNotifier()),
+                  metronomeProvider.overrideWith(MetronomeNotifier.new),
                 ],
                 child: const MetronomeScreen(),
               ),

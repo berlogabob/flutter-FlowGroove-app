@@ -1,12 +1,12 @@
+import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/screens/songs/components/metronome_pattern_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/screens/songs/components/metronome_pattern_editor.dart';
-import 'package:flowgroove/models/beat_mode.dart';
 
 void main() {
   group('MetronomePatternEditor Widget', () {
     group('Basic rendering', () {
-      testWidgets('renders with default settings', (WidgetTester tester) async {
+      testWidgets('renders with default settings', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -16,8 +16,8 @@ void main() {
                 child: MetronomePatternEditor(
                   accentBeats: 4,
                   regularBeats: 1,
-                  beatModes: [],
-                  onBeatModeChanged: (_, __, ___) {},
+                  beatModes: const [],
+                  onBeatModeChanged: (_, _, _) {},
                 ),
               ),
             ),
@@ -30,7 +30,7 @@ void main() {
         expect(find.text('4'), findsWidgets); // Default value display
       });
 
-      testWidgets('renders accentBeats selector', (WidgetTester tester) async {
+      testWidgets('renders accentBeats selector', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -40,8 +40,8 @@ void main() {
                 child: MetronomePatternEditor(
                   accentBeats: 4,
                   regularBeats: 1,
-                  beatModes: [],
-                  onBeatModeChanged: (_, __, ___) {},
+                  beatModes: const [],
+                  onBeatModeChanged: (_, _, _) {},
                 ),
               ),
             ),
@@ -52,15 +52,15 @@ void main() {
         expect(find.text('4'), findsWidgets);
       });
 
-      testWidgets('renders regularBeats selector', (WidgetTester tester) async {
+      testWidgets('renders regularBeats selector', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 2,
-                beatModes: [],
-                onBeatModeChanged: (_, __, ___) {},
+                beatModes: const [],
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -70,15 +70,15 @@ void main() {
         expect(find.text('2'), findsWidgets);
       });
 
-      testWidgets('renders legend', (WidgetTester tester) async {
+      testWidgets('renders legend', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 1,
-                beatModes: [],
-                onBeatModeChanged: (_, __, ___) {},
+                beatModes: const [],
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -92,7 +92,7 @@ void main() {
 
     group('Beat grid rendering', () {
       testWidgets('renders grid with 4 beats and 1 subdivision', (
-        WidgetTester tester,
+        tester,
       ) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -100,8 +100,8 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 1,
-                beatModes: [],
-                onBeatModeChanged: (_, __, ___) {},
+                beatModes: const [],
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -115,7 +115,7 @@ void main() {
       });
 
       testWidgets('renders grid with 6 beats and 2 subdivisions', (
-        WidgetTester tester,
+        tester,
       ) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -123,8 +123,8 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 6,
                 regularBeats: 2,
-                beatModes: [],
-                onBeatModeChanged: (_, __, ___) {},
+                beatModes: const [],
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -140,7 +140,7 @@ void main() {
       });
 
       testWidgets('renders subdivision header when regularBeats > 1', (
-        WidgetTester tester,
+        tester,
       ) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -148,8 +148,8 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 3,
-                beatModes: [],
-                onBeatModeChanged: (_, __, ___) {},
+                beatModes: const [],
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -159,7 +159,7 @@ void main() {
       });
 
       testWidgets('renders beat mode buttons in grid', (
-        WidgetTester tester,
+        tester,
       ) async {
         final beatModes = [
           [BeatMode.accent, BeatMode.normal],
@@ -173,7 +173,7 @@ void main() {
                 accentBeats: 2,
                 regularBeats: 2,
                 beatModes: beatModes,
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -187,7 +187,7 @@ void main() {
     });
 
     group('Beat mode visualization', () {
-      testWidgets('renders normal mode as circle', (WidgetTester tester) async {
+      testWidgets('renders normal mode as circle', (tester) async {
         final beatModes = [
           [BeatMode.normal],
         ];
@@ -199,7 +199,7 @@ void main() {
                 accentBeats: 1,
                 regularBeats: 1,
                 beatModes: beatModes,
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -210,7 +210,7 @@ void main() {
       });
 
       testWidgets('renders accent mode with star icon', (
-        WidgetTester tester,
+        tester,
       ) async {
         final beatModes = [
           [BeatMode.accent],
@@ -223,7 +223,7 @@ void main() {
                 accentBeats: 1,
                 regularBeats: 1,
                 beatModes: beatModes,
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -239,7 +239,7 @@ void main() {
       });
 
       testWidgets('renders silent mode with volume_off icon', (
-        WidgetTester tester,
+        tester,
       ) async {
         final beatModes = [
           [BeatMode.silent],
@@ -252,7 +252,7 @@ void main() {
                 accentBeats: 1,
                 regularBeats: 1,
                 beatModes: beatModes,
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -270,7 +270,7 @@ void main() {
 
     group('Number selector interactions', () {
       testWidgets('increase accentBeats button works', (
-        WidgetTester tester,
+        tester,
       ) async {
         int newAccentBeats = 4;
 
@@ -280,11 +280,11 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 1,
-                beatModes: [],
+                beatModes: const [],
                 onAccentBeatsChanged: (value) {
                   newAccentBeats = value;
                 },
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -297,7 +297,7 @@ void main() {
       });
 
       testWidgets('decrease accentBeats button works', (
-        WidgetTester tester,
+        tester,
       ) async {
         int newAccentBeats = 4;
 
@@ -307,11 +307,11 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 1,
-                beatModes: [],
+                beatModes: const [],
                 onAccentBeatsChanged: (value) {
                   newAccentBeats = value;
                 },
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -324,7 +324,7 @@ void main() {
       });
 
       testWidgets('decrease button disabled at minimum', (
-        WidgetTester tester,
+        tester,
       ) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -332,9 +332,9 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 1,
                 regularBeats: 1,
-                beatModes: [],
+                beatModes: const [],
                 onAccentBeatsChanged: (_) {},
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -347,7 +347,7 @@ void main() {
       });
 
       testWidgets('increase button disabled at maximum for accentBeats', (
-        WidgetTester tester,
+        tester,
       ) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -355,9 +355,9 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 16,
                 regularBeats: 1,
-                beatModes: [],
+                beatModes: const [],
                 onAccentBeatsChanged: (_) {},
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -370,7 +370,7 @@ void main() {
       });
 
       testWidgets('increase regularBeats button works', (
-        WidgetTester tester,
+        tester,
       ) async {
         int newRegularBeats = 1;
 
@@ -380,11 +380,11 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 1,
-                beatModes: [],
+                beatModes: const [],
                 onRegularBeatsChanged: (value) {
                   newRegularBeats = value;
                 },
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -397,7 +397,7 @@ void main() {
       });
 
       testWidgets('decrease regularBeats button works', (
-        WidgetTester tester,
+        tester,
       ) async {
         int newRegularBeats = 2;
 
@@ -407,11 +407,11 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 2,
-                beatModes: [],
+                beatModes: const [],
                 onRegularBeatsChanged: (value) {
                   newRegularBeats = value;
                 },
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -426,7 +426,7 @@ void main() {
 
     group('Beat mode button interactions', () {
       testWidgets('tapping beat mode cycles from normal to accent', (
-        WidgetTester tester,
+        tester,
       ) async {
         BeatMode? lastMode;
 
@@ -436,10 +436,10 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 1,
                 regularBeats: 1,
-                beatModes: [
+                beatModes: const [
                   [BeatMode.normal],
                 ],
-                onBeatModeChanged: (_, __, mode) {
+                onBeatModeChanged: (_, _, mode) {
                   lastMode = mode;
                 },
               ),
@@ -455,7 +455,7 @@ void main() {
       });
 
       testWidgets('tapping beat mode cycles from accent to silent', (
-        WidgetTester tester,
+        tester,
       ) async {
         BeatMode? lastMode;
 
@@ -465,10 +465,10 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 1,
                 regularBeats: 1,
-                beatModes: [
+                beatModes: const [
                   [BeatMode.accent],
                 ],
-                onBeatModeChanged: (_, __, mode) {
+                onBeatModeChanged: (_, _, mode) {
                   lastMode = mode;
                 },
               ),
@@ -483,7 +483,7 @@ void main() {
       });
 
       testWidgets('tapping beat mode cycles from silent to normal', (
-        WidgetTester tester,
+        tester,
       ) async {
         BeatMode? lastMode;
 
@@ -493,10 +493,10 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 1,
                 regularBeats: 1,
-                beatModes: [
+                beatModes: const [
                   [BeatMode.silent],
                 ],
-                onBeatModeChanged: (_, __, mode) {
+                onBeatModeChanged: (_, _, mode) {
                   lastMode = mode;
                 },
               ),
@@ -511,7 +511,7 @@ void main() {
       });
 
       testWidgets('tapping different beat positions reports correct indices', (
-        WidgetTester tester,
+        tester,
       ) async {
         int? lastBeatIndex;
         int? lastSubdivisionIndex;
@@ -548,7 +548,7 @@ void main() {
 
     group('Dynamic grid updates', () {
       testWidgets('grid updates when accentBeats changes', (
-        WidgetTester tester,
+        tester,
       ) async {
         int currentAccentBeats = 4;
 
@@ -560,11 +560,11 @@ void main() {
                   return MetronomePatternEditor(
                     accentBeats: currentAccentBeats,
                     regularBeats: 1,
-                    beatModes: [],
+                    beatModes: const [],
                     onAccentBeatsChanged: (value) {
                       setState(() => currentAccentBeats = value);
                     },
-                    onBeatModeChanged: (_, __, ___) {},
+                    onBeatModeChanged: (_, _, _) {},
                   );
                 },
               ),
@@ -583,7 +583,7 @@ void main() {
       });
 
       testWidgets('grid updates when regularBeats changes', (
-        WidgetTester tester,
+        tester,
       ) async {
         int currentRegularBeats = 1;
 
@@ -595,11 +595,11 @@ void main() {
                   return MetronomePatternEditor(
                     accentBeats: 4,
                     regularBeats: currentRegularBeats,
-                    beatModes: [],
+                    beatModes: const [],
                     onRegularBeatsChanged: (value) {
                       setState(() => currentRegularBeats = value);
                     },
-                    onBeatModeChanged: (_, __, ___) {},
+                    onBeatModeChanged: (_, _, _) {},
                   );
                 },
               ),
@@ -617,7 +617,7 @@ void main() {
 
     group('Edge cases', () {
       testWidgets('handles minimum accentBeats (1)', (
-        WidgetTester tester,
+        tester,
       ) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -625,10 +625,10 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 1,
                 regularBeats: 1,
-                beatModes: [
+                beatModes: const [
                   [BeatMode.accent],
                 ],
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -638,7 +638,7 @@ void main() {
       });
 
       testWidgets('handles maximum accentBeats (16)', (
-        WidgetTester tester,
+        tester,
       ) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -646,8 +646,8 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 16,
                 regularBeats: 1,
-                beatModes: [],
-                onBeatModeChanged: (_, __, ___) {},
+                beatModes: const [],
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -657,7 +657,7 @@ void main() {
       });
 
       testWidgets('handles maximum regularBeats (8)', (
-        WidgetTester tester,
+        tester,
       ) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -665,8 +665,8 @@ void main() {
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 8,
-                beatModes: [],
-                onBeatModeChanged: (_, __, ___) {},
+                beatModes: const [],
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -675,15 +675,15 @@ void main() {
         expect(find.text('8'), findsWidgets);
       });
 
-      testWidgets('handles empty beatModes', (WidgetTester tester) async {
+      testWidgets('handles empty beatModes', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: MetronomePatternEditor(
                 accentBeats: 4,
                 regularBeats: 1,
-                beatModes: [],
-                onBeatModeChanged: (_, __, ___) {},
+                beatModes: const [],
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),
@@ -694,7 +694,7 @@ void main() {
       });
 
       testWidgets('handles beatModes smaller than grid', (
-        WidgetTester tester,
+        tester,
       ) async {
         final beatModes = [
           [BeatMode.accent],
@@ -707,7 +707,7 @@ void main() {
                 accentBeats: 4,
                 regularBeats: 1,
                 beatModes: beatModes,
-                onBeatModeChanged: (_, __, ___) {},
+                onBeatModeChanged: (_, _, _) {},
               ),
             ),
           ),

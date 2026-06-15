@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/song.dart';
+
 import '../../../models/band.dart';
+import '../../../models/song.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/custom_button.dart';
 
@@ -12,8 +13,8 @@ import '../../../widgets/custom_button.dart';
 /// - View a preview of the song
 /// - Confirm the addition
 class AddToBandDialog extends ConsumerStatefulWidget {
-  const AddToBandDialog({super.key, required this.song, required this.bands});
 
+  const AddToBandDialog({required this.song, required this.bands, super.key});
   /// The song to add to a band.
   final Song song;
 
@@ -69,7 +70,6 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
         ),
         CustomButton(
           label: 'Add to Band',
-          variant: ButtonVariant.primary,
           onPressed: _selectedBand != null ? _confirm : null,
         ),
       ],
@@ -98,8 +98,9 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
               Expanded(
                 child: Text(
                   widget.song.title,
-                  style: MonoPulseTypography.titleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                     color: MonoPulseColors.textPrimary,
                   ),
                 ),
@@ -109,8 +110,9 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
           const SizedBox(height: 4),
           Text(
             widget.song.artist,
-            style: MonoPulseTypography.bodyMedium.copyWith(
+            style: const TextStyle(
               color: MonoPulseColors.textTertiary,
+              fontSize: 14,
             ),
           ),
           const SizedBox(height: 8),
@@ -173,7 +175,7 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
     if (widget.bands.isEmpty) {
       return const Center(
         child: Padding(
-          padding: EdgeInsets.all(MonoPulseSpacing.lg),
+          padding: EdgeInsets.all(16),
           child: Text(
             'You are not a member of any bands yet.\nJoin or create a band to share songs.',
             textAlign: TextAlign.center,
@@ -186,11 +188,9 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Select a band:',
-          style: MonoPulseTypography.labelLarge.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -224,7 +224,7 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
       title: Text(
         band.name,
         style: TextStyle(
-          fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           color: isSelected
               ? MonoPulseColors.accentOrange
               : MonoPulseColors.textPrimary,
@@ -232,7 +232,8 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
       ),
       subtitle: Text(
         '${band.members.length} member${band.members.length != 1 ? 's' : ''}',
-        style: MonoPulseTypography.bodySmall.copyWith(
+        style: const TextStyle(
+          fontSize: 12,
           color: MonoPulseColors.textTertiary,
         ),
       ),
@@ -251,9 +252,7 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
 
   void _confirm() {
     if (_selectedBand != null) {
-      if (_selectedBand != null) {
-        Navigator.pop(context, _selectedBand!.id);
-      }
+      Navigator.pop(context, _selectedBand!.id);
     }
   }
 }
@@ -262,14 +261,13 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
 ///
 /// This is an alternative to the dialog for inline band selection.
 class BandSelectorField extends StatelessWidget {
+
   const BandSelectorField({
-    super.key,
-    required this.bands,
+    required this.bands, super.key,
     this.value,
     this.onChanged,
     this.enabled = true,
   });
-
   /// The list of bands to choose from.
   final List<Band> bands;
 
@@ -286,7 +284,7 @@ class BandSelectorField extends StatelessWidget {
   Widget build(BuildContext context) {
     if (bands.isEmpty) {
       return const Padding(
-        padding: EdgeInsets.all(MonoPulseSpacing.lg),
+        padding: EdgeInsets.all(16),
         child: Text(
           'No bands available. Join or create a band to share songs.',
           style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),

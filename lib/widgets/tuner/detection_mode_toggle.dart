@@ -57,10 +57,6 @@ class DetectionModeToggle extends ConsumerWidget {
 }
 
 class _ModeOption extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool isActive;
-  final VoidCallback onTap;
 
   const _ModeOption({
     required this.label,
@@ -68,6 +64,10 @@ class _ModeOption extends StatelessWidget {
     required this.isActive,
     required this.onTap,
   });
+  final String label;
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

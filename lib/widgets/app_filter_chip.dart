@@ -19,10 +19,10 @@ import '../theme/mono_pulse_theme.dart';
 /// ```
 class AppFilterChip extends StatelessWidget {
   const AppFilterChip({
-    super.key,
     required this.label,
     required this.selected,
     required this.onSelected,
+    super.key,
     this.unselectedBackgroundColor,
   });
 

@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,15 +8,14 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+
 import '../../providers/auth/auth_provider.dart';
-import '../../providers/data/data_providers.dart';
 import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/web_version_loader_export.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/loading_indicator.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -415,7 +415,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return StandardScreenScaffold(
       title: 'Profile',
       showBackButton: false, // Hide back button for main tabs
-      showOfflineIndicator: true,
       body: ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
@@ -647,7 +646,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               const SizedBox(height: 8),
               if (roles.isEmpty)
-                Text(
+                const Text(
                   'Tap edit to add your instruments and roles.',
                   style: TextStyle(color: MonoPulseColors.textTertiary),
                 )
@@ -679,7 +678,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         padding: EdgeInsets.all(MonoPulseSpacing.lg),
         child: CircularProgressIndicator(),
       ),
-      error: (_, __) => const Padding(
+      error: (_, _) => const Padding(
         padding: EdgeInsets.all(MonoPulseSpacing.lg),
         child: Text(
           'Error loading roles',
@@ -716,8 +715,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
-    String? subtitle,
-    required VoidCallback onTap,
+    required VoidCallback onTap, String? subtitle,
   }) {
     return ListTile(
       leading: Icon(icon, color: MonoPulseColors.accentOrange),

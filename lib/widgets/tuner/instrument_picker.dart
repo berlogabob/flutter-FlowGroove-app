@@ -111,12 +111,6 @@ class InstrumentPicker extends ConsumerWidget {
 }
 
 class _InstrumentTile extends StatelessWidget {
-  final Instrument instrument;
-  final List<Tuning> tunings;
-  final bool isSelected;
-  final bool isExpanded;
-  final VoidCallback onTap;
-  final void Function(Tuning) onTuningSelected;
 
   const _InstrumentTile({
     required this.instrument,
@@ -126,6 +120,12 @@ class _InstrumentTile extends StatelessWidget {
     required this.onTap,
     required this.onTuningSelected,
   });
+  final Instrument instrument;
+  final List<Tuning> tunings;
+  final bool isSelected;
+  final bool isExpanded;
+  final VoidCallback onTap;
+  final void Function(Tuning) onTuningSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -226,10 +226,10 @@ class _InstrumentTile extends StatelessWidget {
 }
 
 class _TuningChip extends StatelessWidget {
-  final Tuning tuning;
-  final VoidCallback onTap;
 
   const _TuningChip({required this.tuning, required this.onTap});
+  final Tuning tuning;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +248,7 @@ class _TuningChip extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(
+            const Icon(
               Icons.tune_outlined,
               color: MonoPulseColors.textTertiary,
               size: 18,

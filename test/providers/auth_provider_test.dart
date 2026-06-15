@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/models/api_error.dart';
 import 'package:flowgroove/models/user.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/services/cache_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 
 @GenerateMocks([FirebaseAuth, User, UserCredential, CacheService])
 import 'auth_provider_test.mocks.dart';
@@ -429,7 +429,7 @@ void main() {
           } catch (e) {
             expect(e, isA<ApiError>());
             expect((e as ApiError).isValidation, isTrue);
-            expect((e as ApiError).message, contains('already exists'));
+            expect(e.message, contains('already exists'));
           }
         },
       );
@@ -461,7 +461,7 @@ void main() {
         } catch (e) {
           expect(e, isA<ApiError>());
           expect((e as ApiError).isValidation, isTrue);
-          expect((e as ApiError).message, contains('weak'));
+          expect(e.message, contains('weak'));
         }
       });
 
@@ -563,7 +563,7 @@ void main() {
 
         final notifier = container.read(appUserProvider.notifier);
 
-        expect(() => notifier.signOut(), returnsNormally);
+        expect(notifier.signOut, returnsNormally);
       });
     });
 
@@ -828,7 +828,7 @@ void main() {
         final notifier = container.read(appUserProvider.notifier);
 
         // Dispose should not throw
-        expect(() => notifier.dispose(), returnsNormally);
+        expect(notifier.dispose, returnsNormally);
       });
 
       test('ProviderContainer dispose cleans up resources', () {
@@ -849,7 +849,7 @@ void main() {
         localContainer.read(currentUserProvider);
 
         // Dispose should not throw
-        expect(() => localContainer.dispose(), returnsNormally);
+        expect(localContainer.dispose, returnsNormally);
       });
     });
 

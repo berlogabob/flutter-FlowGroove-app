@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/api_error.dart';
-import '../../models/beat_mode.dart';
 import '../../models/song.dart';
 import '../../models/song_suggestion.dart';
-import '../../providers/data/data_providers.dart';
 import '../../providers/auth/auth_provider.dart';
+import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
-import '../../widgets/error_banner.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';
 import 'components/song_form.dart';
@@ -17,13 +17,6 @@ import 'utils/add_song_screen_helper.dart';
 
 /// Screen for adding or editing a song with comprehensive error handling.
 class AddSongScreen extends ConsumerStatefulWidget {
-  /// The song to edit. If null, a new song will be created.
-  final Song? song;
-
-  /// Optional band ID to associate the song with a band
-  final String? bandId;
-
-  final SongFormData? initialFormData;
 
   const AddSongScreen({
     super.key,
@@ -31,6 +24,13 @@ class AddSongScreen extends ConsumerStatefulWidget {
     this.bandId,
     this.initialFormData,
   });
+  /// The song to edit. If null, a new song will be created.
+  final Song? song;
+
+  /// Optional band ID to associate the song with a band
+  final String? bandId;
+
+  final SongFormData? initialFormData;
 
   @override
   ConsumerState<AddSongScreen> createState() => _AddSongScreenState();
@@ -203,14 +203,12 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         ref.read(songFormStateProvider.notifier).selectSuggestion(suggestion);
         _titleController.text = suggestion.title;
         _artistController.text = suggestion.artist;
-        break;
 
       case SuggestionAction.fork:
         // Fork to a new editable library song based on the selected source.
         ref.read(songFormStateProvider.notifier).selectSuggestion(suggestion);
         _titleController.text = suggestion.title;
         _artistController.text = suggestion.artist;
-        break;
 
       case SuggestionAction.createNew:
         // Create new song - just populate form fields
@@ -219,7 +217,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
             .applySuggestionToForm(suggestion);
         _titleController.text = suggestion.title;
         _artistController.text = suggestion.artist;
-        break;
     }
   }
 
@@ -303,7 +300,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     final isSaving = formState.isSaving;
 
     return PopScope(
-      canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop &&
             formState.hasUnsavedChanges &&
@@ -321,7 +317,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
           children: [
             // Error banner
             if (error != null) ...[
-              ErrorBanner.banner(
+              ErrorBanner(
                 message: error.message,
                 onRetry: () =>
                     ref.read(songFormStateProvider.notifier).clearError(),
@@ -372,41 +368,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                 _ourBpmController.text = _originalBpmController.text;
                 ref.read(songFormStateProvider.notifier).markAsChanged();
               },
-              onAccentBeatsChanged: (value) {
-                ref
-                    .read(songFormStateProvider.notifier)
-                    .updateAccentBeats(value);
-                ref.read(songFormStateProvider.notifier).initializeBeatModes();
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onRegularBeatsChanged: (value) {
-                ref
-                    .read(songFormStateProvider.notifier)
-                    .updateRegularBeats(value);
-                ref.read(songFormStateProvider.notifier).initializeBeatModes();
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onBeatModeChanged:
-                  (int beatIndex, int subdivisionIndex, BeatMode mode) {
-                    ref
-                        .read(songFormStateProvider.notifier)
-                        .updateBeatMode(beatIndex, subdivisionIndex, mode);
-                    ref.read(songFormStateProvider.notifier).markAsChanged();
-                  },
-              onSectionsChanged: (newSections) {
-                ref
-                    .read(songFormStateProvider.notifier)
-                    .setSections(newSections);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onSubmit: _saveSong,
               isEditing: _isEditing,
-              accentBeats: formData.accentBeats,
-              regularBeats: formData.regularBeats,
-              beatModes: formData.beatModes,
-              sections: formData.sections,
-              bandId: widget.bandId,
-              onSuggestionSelected: _handleSuggestionSelected,
             ),
             const SizedBox(height: 24),
             // Search buttons row

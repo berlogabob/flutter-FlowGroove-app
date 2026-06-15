@@ -1,29 +1,33 @@
+import 'package:flowgroove/widgets/error_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/error_banner.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('ErrorBanner', () {
-    testWidgets('renders banner style by default', (WidgetTester tester) async {
+    testWidgets('renders banner style by default', (tester) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner.banner(message: 'Error occurred'),
+        const ErrorBanner(
+          message: 'Error occurred',
+        ),
       );
 
       expect(find.text('Error occurred'), findsOneWidget);
     });
 
     testWidgets('renders banner with retry button', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool retryCalled = false;
 
       await pumpAppWidget(
         tester,
-        ErrorBanner.banner(
+        ErrorBanner(
           message: 'Something went wrong',
           onRetry: () => retryCalled = true,
+          showRetry: true,
         ),
       );
 
@@ -34,29 +38,39 @@ void main() {
       expect(retryCalled, isTrue);
     });
 
-    testWidgets('renders error icon', (WidgetTester tester) async {
-      await pumpAppWidget(tester, const ErrorBanner.banner(message: 'Error'));
+    testWidgets('renders error icon', (tester) async {
+      await pumpAppWidget(
+        tester,
+        const ErrorBanner(
+          message: 'Error',
+        ),
+      );
 
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('renders card style', (WidgetTester tester) async {
+    testWidgets('renders card style', (tester) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner.card(message: 'Card Error'),
+        const ErrorBanner(
+          message: 'Card Error',
+          style: ErrorBannerStyle.card,
+        ),
       );
 
       expect(find.text('Card Error'), findsOneWidget);
     });
 
-    testWidgets('renders card with retry button', (WidgetTester tester) async {
+    testWidgets('renders card with retry button', (tester) async {
       bool retryCalled = false;
 
       await pumpAppWidget(
         tester,
-        ErrorBanner.card(
+        ErrorBanner(
           message: 'Card Error',
           onRetry: () => retryCalled = true,
+          showRetry: true,
+          style: ErrorBannerStyle.card,
         ),
       );
 
@@ -67,38 +81,51 @@ void main() {
       expect(retryCalled, isTrue);
     });
 
-    testWidgets('renders inline style', (WidgetTester tester) async {
+    testWidgets('renders inline style', (tester) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner.inline(message: 'Inline Error'),
+        const ErrorBanner(
+          message: 'Inline Error',
+          style: ErrorBannerStyle.inline,
+        ),
       );
 
       expect(find.text('Inline Error'), findsOneWidget);
     });
 
-    testWidgets('renders inline with retry', (WidgetTester tester) async {
+    testWidgets('renders inline with retry', (tester) async {
       await pumpAppWidget(
         tester,
-        ErrorBanner.inline(message: 'Inline Error', onRetry: () {}),
+        ErrorBanner(
+          message: 'Inline Error',
+          onRetry: () {},
+          showRetry: true,
+          style: ErrorBannerStyle.inline,
+        ),
       );
 
       expect(find.byIcon(Icons.error), findsOneWidget);
     });
 
-    testWidgets('uses theme colors', (WidgetTester tester) async {
-      await pumpAppWidget(tester, const ErrorBanner.banner(message: 'Error'));
+    testWidgets('uses theme colors', (tester) async {
+      await pumpAppWidget(
+        tester,
+        const ErrorBanner(
+          message: 'Error',
+        ),
+      );
 
-      // Verify error icon is present (indicates error styling)
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('banner is full width', (WidgetTester tester) async {
+    testWidgets('banner is full width', (tester) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner.banner(message: 'Full Width Error'),
+        const ErrorBanner(
+          message: 'Full Width Error',
+        ),
       );
 
-      // Verify banner takes full width
       expect(find.text('Full Width Error'), findsOneWidget);
     });
   });

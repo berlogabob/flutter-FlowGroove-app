@@ -1,6 +1,6 @@
+import 'package:flowgroove/widgets/metronome/bpm_controls_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/metronome/bpm_controls_widget.dart';
 
 import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/test_helpers.dart';
@@ -11,7 +11,7 @@ void main() {
       return buildMetronomeTestOverrides(overrideMetronomeProvider: true);
     }
 
-    testWidgets('renders BPM label', (WidgetTester tester) async {
+    testWidgets('renders BPM label', (tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -21,7 +21,7 @@ void main() {
       expect(find.text('BPM'), findsWidgets);
     });
 
-    testWidgets('renders slider', (WidgetTester tester) async {
+    testWidgets('renders slider', (tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -31,7 +31,7 @@ void main() {
       expect(find.byType(Slider), findsOneWidget);
     });
 
-    testWidgets('renders current BPM value', (WidgetTester tester) async {
+    testWidgets('renders current BPM value', (tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -42,7 +42,7 @@ void main() {
       expect(find.text('120'), findsWidgets);
     });
 
-    testWidgets('renders BPM input field', (WidgetTester tester) async {
+    testWidgets('renders BPM input field', (tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -52,7 +52,7 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('renders minus button', (WidgetTester tester) async {
+    testWidgets('renders minus button', (tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -62,7 +62,7 @@ void main() {
       expect(find.byIcon(Icons.remove), findsOneWidget);
     });
 
-    testWidgets('renders plus button', (WidgetTester tester) async {
+    testWidgets('renders plus button', (tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -72,7 +72,7 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('displays help tooltip icon', (WidgetTester tester) async {
+    testWidgets('displays help tooltip icon', (tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -83,7 +83,7 @@ void main() {
     });
 
     testWidgets('decreases BPM when minus button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -100,7 +100,7 @@ void main() {
     });
 
     testWidgets('increases BPM when plus button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -117,7 +117,7 @@ void main() {
     });
 
     testWidgets('updates BPM when slider is dragged', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -135,7 +135,7 @@ void main() {
     });
 
     testWidgets('updates BPM when input field is changed', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -153,7 +153,7 @@ void main() {
     });
 
     testWidgets('handles BPM below minimum gracefully', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -171,7 +171,7 @@ void main() {
     });
 
     testWidgets('handles BPM above maximum gracefully', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -188,7 +188,7 @@ void main() {
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('slider has correct range 1-400', (WidgetTester tester) async {
+    testWidgets('slider has correct range 1-400', (tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -200,7 +200,7 @@ void main() {
       expect(slider.max, equals(400));
     });
 
-    testWidgets('slider has 399 divisions', (WidgetTester tester) async {
+    testWidgets('slider has 399 divisions', (tester) async {
       await pumpAppWidget(
         tester,
         const BpmControlsWidget(),
@@ -212,7 +212,7 @@ void main() {
     });
 
     testWidgets('handles invalid input gracefully', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,

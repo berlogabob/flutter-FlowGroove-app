@@ -5,22 +5,23 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../models/song.dart';
+
 import '../../../models/band.dart';
-import '../../../providers/data/data_providers.dart';
+import '../../../models/song.dart';
 import '../../../providers/auth/auth_provider.dart';
+import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/empty_state.dart';
-import '../../../widgets/error_banner.dart';
-import '../../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../../widgets/unified_item/unified_filter_sort_widget.dart';
 
 /// Screen for selecting songs to add to a band.
 class SongPickerScreen extends ConsumerStatefulWidget {
+
+  const SongPickerScreen({required this.band, super.key});
   /// The band to add songs to.
   final Band band;
-
-  const SongPickerScreen({super.key, required this.band});
 
   @override
   ConsumerState<SongPickerScreen> createState() => _SongPickerScreenState();
@@ -52,10 +53,8 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
     switch (_sortOption) {
       case SortOption.alphabetical:
         filtered.sort((a, b) => a.title.compareTo(b.title));
-        break;
       case SortOption.dateAdded:
         filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        break;
       case SortOption.manual:
       case SortOption.dateModified:
         break;
@@ -159,7 +158,6 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
         SnackBar(
           content: Text(errorMessage),
           backgroundColor: MonoPulseColors.error,
-          duration: const Duration(seconds: 4),
           action: SnackBarAction(
             label: 'RETRY',
             textColor: MonoPulseColors.textPrimary,
@@ -197,9 +195,11 @@ class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
         data: (songs) => _buildContent(context, songs),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: ErrorBanner.card(
+          child: ErrorBanner(
             message: e.toString(),
             onRetry: () => ref.invalidate(songsProvider),
+            showRetry: true,
+            style: ErrorBannerStyle.card,
           ),
         ),
       ),

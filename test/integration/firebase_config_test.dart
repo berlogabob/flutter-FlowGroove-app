@@ -9,13 +9,12 @@
 /// Note: These tests mock Firebase to avoid actual initialization
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:mockito/annotations.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flowgroove/config/env_config.dart';
 import 'package:flowgroove/config/config_validator.dart';
+import 'package:flowgroove/config/env_config.dart';
 import 'package:flowgroove/firebase_options.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/annotations.dart';
 
 @GenerateMocks([FirebaseApp])
 void main() {
@@ -178,7 +177,7 @@ void main() {
       group('validateOrThrow() method', () {
         test('should throw ConfigValidationException when invalid', () async {
           expect(
-            () => ConfigValidator.validateOrThrow(),
+            ConfigValidator.validateOrThrow,
             throwsA(isA<ConfigValidationException>().having(
               (e) => e.message,
               'message',
@@ -305,7 +304,7 @@ void main() {
       test('should not crash on invalid config', () async {
         // Validation should complete without crashing
         expect(
-          () => ConfigValidator.validate(),
+          ConfigValidator.validate,
           returnsNormally,
         );
       });

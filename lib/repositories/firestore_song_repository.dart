@@ -1,14 +1,16 @@
 import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+
 import '../models/api_error.dart';
 import '../models/canonical_song.dart';
 import '../models/library_song.dart';
+import '../models/song.dart';
 import '../models/song_commit.dart';
 import '../models/song_delta.dart';
-import '../models/song.dart';
 import 'song_repository.dart';
 
 /// Timeout duration for Firestore operations (10 seconds).
@@ -19,13 +21,13 @@ const _firestoreTimeout = Duration(seconds: 10);
 /// Handles all song-related data operations with Firestore,
 /// including personal songs and band songs.
 class FirestoreSongRepository implements SongRepository {
-  final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
-  final Uuid _uuid = const Uuid();
 
   FirestoreSongRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestore = firestore ?? FirebaseFirestore.instance,
       _auth = auth ?? FirebaseAuth.instance;
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+  final Uuid _uuid = const Uuid();
 
   /// Helper method to check if user is authenticated.
   void _requireAuth() {
@@ -219,7 +221,7 @@ class FirestoreSongRepository implements SongRepository {
           .doc(uid)
           .collection('songs')
           .snapshots()
-          .asyncMap((snapshot) => _songsFromSnapshot(snapshot))
+          .asyncMap(_songsFromSnapshot)
           .handleError((Object error, StackTrace stackTrace) {
             throw ApiError.fromException(error, stackTrace: stackTrace);
           });

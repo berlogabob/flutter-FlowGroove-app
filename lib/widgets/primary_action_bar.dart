@@ -28,6 +28,19 @@ import 'custom_button.dart';
 /// )
 /// ```
 class PrimaryActionBar extends StatelessWidget {
+
+  const PrimaryActionBar({
+    required this.label,
+    super.key,
+    this.isLoading = false,
+    this.variant = ButtonVariant.primary,
+    this.size = ButtonSize.large,
+    this.backgroundColor = MonoPulseColors.surface,
+    this.elevation = 8,
+    this.onPressed,
+    this.icon,
+    this.secondaryAction,
+  });
   /// Text displayed on the action button
   final String label;
 
@@ -54,19 +67,6 @@ class PrimaryActionBar extends StatelessWidget {
 
   /// Elevation/shadow of the action bar
   final double elevation;
-
-  const PrimaryActionBar({
-    super.key,
-    required this.label,
-    this.isLoading = false,
-    this.variant = ButtonVariant.primary,
-    this.size = ButtonSize.large,
-    this.backgroundColor = MonoPulseColors.surface,
-    this.elevation = 8,
-    this.onPressed,
-    this.icon,
-    this.secondaryAction,
-  });
 
   @override
   Widget build(BuildContext context) {

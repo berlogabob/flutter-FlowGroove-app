@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 class TagInputDialog extends StatefulWidget {
-  final List<String> initialTags;
-  final String title;
-  final String hintText;
-  final List<String>? suggestions;
 
   const TagInputDialog({
     super.key,
@@ -14,6 +10,10 @@ class TagInputDialog extends StatefulWidget {
     this.hintText = 'Enter tag',
     this.suggestions,
   });
+  final List<String> initialTags;
+  final String title;
+  final String hintText;
+  final List<String>? suggestions;
 
   static Future<List<String>?> show(
     BuildContext context, {

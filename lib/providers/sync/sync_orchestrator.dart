@@ -6,18 +6,15 @@
 /// - Sync status updates for UI
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
-import '../../services/write_queue_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../services/cache_service.dart';
 import '../../services/connectivity_service.dart';
+import '../../services/write_queue_service.dart';
 
 /// Sync status exposed to UI.
 class SyncStatus {
-  final bool isOnline;
-  final int pendingWrites;
-  final DateTime? lastSyncAt;
-  final String? lastError;
 
   const SyncStatus({
     this.isOnline = true,
@@ -25,6 +22,10 @@ class SyncStatus {
     this.lastSyncAt,
     this.lastError,
   });
+  final bool isOnline;
+  final int pendingWrites;
+  final DateTime? lastSyncAt;
+  final String? lastError;
 
   SyncStatus copyWith({
     bool? isOnline,
@@ -53,10 +54,10 @@ class SyncOrchestrator extends Notifier<SyncStatus> {
 
     // Listen to connectivity changes
     ref.listen<bool>(connectivityProvider, (previous, next) {
-      if (previous == false && next == true) {
+      if (previous == false && next) {
         // Offline → Online: trigger sync
         _onReconnect();
-      } else if (previous == true && next == false) {
+      } else if (previous == true && !next) {
         // Online → Offline: update status
         state = state.copyWith(isOnline: false);
       }
@@ -111,7 +112,7 @@ class SyncOrchestrator extends Notifier<SyncStatus> {
 
   /// Clear error state.
   void clearError() {
-    state = state.copyWith(lastError: null);
+    state = state.copyWith();
   }
 }
 
@@ -125,7 +126,7 @@ final syncOrchestratorProvider =
 final writeQueueProvider = Provider<WriteQueueService>(
   (ref) {
     final service = WriteQueueService();
-    ref.onDispose(() => service.dispose());
+    ref.onDispose(service.dispose);
     return service;
   },
 );

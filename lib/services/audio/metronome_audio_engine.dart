@@ -50,8 +50,8 @@ class MetronomeAudioEngine {
   AudioSource? _regularSource;
 
   // Default frequencies
-  static const double _defaultAccentFrequency = 1600.0;
-  static const double _defaultRegularFrequency = 800.0;
+  static const double _defaultAccentFrequency = 1600;
+  static const double _defaultRegularFrequency = 800;
 
   // Sample generation parameters
   static const int _sampleRate = 44100;
@@ -79,7 +79,6 @@ class MetronomeAudioEngine {
     await SoLoud.instance.init(
       bufferSize: bufferSize,
       channels: Channels.mono,
-      sampleRate: _sampleRate,
     );
 
     // Pre-generate PCM samples at init time — zero allocation during playback.
@@ -125,7 +124,7 @@ class MetronomeAudioEngine {
 
     // Play the pre-generated sample. SoLoud creates a new voice handle
     // each time, allowing overlapping clicks.
-    await SoLoud.instance.play(
+    SoLoud.instance.play(
       source,
       volume: volume.clamp(0.0, 1.0),
     );
@@ -166,7 +165,7 @@ class MetronomeAudioEngine {
       final decayT = t - attackTime;
       return exp(-3.0 * decayT / decayTime);
     }
-    return 0.0;
+    return 0;
   }
 
   /// Converts float samples [-1.0, 1.0] to a WAV-formatted byte array

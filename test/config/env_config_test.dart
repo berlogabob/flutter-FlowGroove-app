@@ -11,12 +11,11 @@
 /// Coverage Target: ≥90% for EnvConfig class
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flowgroove/config/env_config.dart';
-
 // Import web config stub for testing
 import 'package:flowgroove/services/api/web_config.stub.dart' as web_config;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('EnvConfig Unit Tests', () {
@@ -34,7 +33,7 @@ void main() {
       });
 
       test('should create instance without throwing', () {
-        expect(() => EnvConfig(), returnsNormally);
+        expect(EnvConfig.new, returnsNormally);
       });
     });
 
@@ -50,7 +49,7 @@ void main() {
       });
 
       test('should return value for existing key', () {
-        final testValue = 'test_value_123';
+        const testValue = 'test_value_123';
         final result = envConfig.get('TEST_KEY', defaultValue: testValue);
         expect(result, equals(testValue));
       });
@@ -59,7 +58,7 @@ void main() {
     group('Placeholder Detection', () {
       test('should detect empty string as placeholder', () {
         // Empty string should be treated as not configured
-        final result = envConfig.get('EMPTY_KEY', defaultValue: '');
+        final result = envConfig.get('EMPTY_KEY');
         expect(result.isEmpty, isTrue);
       });
 
@@ -92,7 +91,7 @@ void main() {
 
       test('should accept valid API key format', () {
         // Valid API keys should not be treated as placeholders
-        final validKey = 'AIzaSyD1234567890abcdefghijklmnop';
+        const validKey = 'AIzaSyD1234567890abcdefghijklmnop';
         final config = EnvConfig();
         final result = config.get('VALID_KEY', defaultValue: validKey);
         expect(result, equals(validKey));
@@ -191,13 +190,13 @@ void main() {
       test('should handle null default value gracefully', () {
         final config = EnvConfig();
         // Empty string is returned when key not found
-        final result = config.get('NULL_TEST_KEY', defaultValue: '');
+        final result = config.get('NULL_TEST_KEY');
         expect(result, equals(''));
       });
 
       test('should handle special characters in default values', () {
         final config = EnvConfig();
-        const specialValue = 'value_with_special! @#\$%^&*()';
+        const specialValue = r'value_with_special! @#$%^&*()';
         final result = config.get('SPECIAL_KEY', defaultValue: specialValue);
         expect(result, equals(specialValue));
       });
@@ -244,14 +243,14 @@ void main() {
 
       test('should handle values with backslashes', () {
         final config = EnvConfig();
-        const valueWithBackslash = 'path\\to\\file';
+        const valueWithBackslash = r'path\to\file';
         final result = config.get('BACKSLASH_KEY', defaultValue: valueWithBackslash);
         expect(result, equals(valueWithBackslash));
       });
 
       test('should handle values with newlines (escaped)', () {
         final config = EnvConfig();
-        const valueWithNewline = 'line1\\nline2';
+        const valueWithNewline = r'line1\nline2';
         final result = config.get('NEWLINE_KEY', defaultValue: valueWithNewline);
         expect(result, equals(valueWithNewline));
       });

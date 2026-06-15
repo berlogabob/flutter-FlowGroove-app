@@ -7,13 +7,13 @@ import '../../../theme/mono_pulse_theme.dart';
 /// This widget displays existing links as chips and provides
 /// functionality to add and remove links through a dialog.
 class LinksEditor extends StatelessWidget {
+
   const LinksEditor({
-    super.key,
     required this.links,
     required this.onAddLink,
     required this.onRemoveLink,
+    super.key,
   });
-
   /// The current list of links.
   final List<Link> links;
 
@@ -31,7 +31,7 @@ class LinksEditor extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Links', style: TextStyle(fontWeight: FontWeight.w700)),
+            const Text('Links', style: TextStyle(fontWeight: FontWeight.bold)),
             TextButton.icon(
               onPressed: () => _showAddLinkDialog(context),
               icon: const Icon(Icons.add),
@@ -125,12 +125,12 @@ class LinksEditor extends StatelessWidget {
 
 /// Internal chip widget for displaying a single link.
 class _LinkChip extends StatelessWidget {
+
   const _LinkChip({
     required this.link,
     required this.index,
     required this.onDeleted,
   });
-
   final Link link;
   final int index;
   final VoidCallback onDeleted;
@@ -140,7 +140,8 @@ class _LinkChip extends StatelessWidget {
     return Chip(
       label: Text(
         link.type.replaceAll('_', ' '),
-        style: MonoPulseTypography.bodySmall.copyWith(
+        style: const TextStyle(
+          fontSize: 12,
           color: MonoPulseColors.textPrimary,
         ),
       ),

@@ -43,15 +43,15 @@ class Password extends FormzInput<String, PasswordValidationError> {
   }
 
   bool _hasUppercase(String value) {
-    return value.contains(RegExp(r'[A-Z]'));
+    return value.contains(RegExp('[A-Z]'));
   }
 
   bool _hasLowercase(String value) {
-    return value.contains(RegExp(r'[a-z]'));
+    return value.contains(RegExp('[a-z]'));
   }
 
   bool _hasNumber(String value) {
-    return value.contains(RegExp(r'[0-9]'));
+    return value.contains(RegExp('[0-9]'));
   }
 
   /// Get a user-friendly error message.

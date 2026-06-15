@@ -1,11 +1,11 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/song_form_provider.dart';
 import 'package:flowgroove/repositories/song_repository.dart';
 import 'package:flowgroove/services/canonical_song_function_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -96,7 +96,7 @@ void main() {
         id: 'song-1',
         title: 'Old Title',
         artist: 'Artist One',
-        createdAt: DateTime(2026, 5, 1),
+        createdAt: DateTime(2026, 5),
         updatedAt: DateTime(2026, 5, 2),
         canonicalSongId: 'canonical-1',
         libraryBaseRevision: 3,
@@ -141,7 +141,7 @@ void main() {
           id: 'song-1',
           title: 'Old Title',
           artist: 'Artist One',
-          createdAt: DateTime(2026, 5, 1),
+          createdAt: DateTime(2026, 5),
           updatedAt: DateTime(2026, 5, 2),
           canonicalSongId: 'canonical-1',
           libraryBaseRevision: 3,

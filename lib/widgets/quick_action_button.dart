@@ -33,10 +33,10 @@ import '../utils/responsive_breakpoints.dart';
 /// ```
 class QuickActionButton extends StatelessWidget {
   const QuickActionButton({
-    super.key,
     required this.icon,
     required this.label,
     required this.onTap,
+    super.key,
     this.isCompact = false,
   });
 

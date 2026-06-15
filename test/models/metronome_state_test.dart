@@ -1,15 +1,15 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/metronome_state.dart';
-import 'package:flowgroove/models/time_signature.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/models/metronome_state.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/time_signature.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('MetronomeState Model', () {
     group('Constructor', () {
       test('creates MetronomeState with required fields', () {
-        final state = MetronomeState(
+        const state = MetronomeState(
           isPlaying: false,
           bpm: 120,
           currentBeat: 0,
@@ -19,7 +19,7 @@ void main() {
           accentEnabled: true,
           accentFrequency: 1600,
           beatFrequency: 800,
-          accentPattern: const [true, false, false, false],
+          accentPattern: [true, false, false, false],
         );
 
         expect(state.isPlaying, false);
@@ -36,7 +36,7 @@ void main() {
       });
 
       test('creates MetronomeState with default metronome settings', () {
-        final state = MetronomeState(
+        const state = MetronomeState(
           isPlaying: false,
           bpm: 120,
           currentBeat: 0,
@@ -46,7 +46,7 @@ void main() {
           accentEnabled: true,
           accentFrequency: 1600,
           beatFrequency: 800,
-          accentPattern: const [true, false, false, false],
+          accentPattern: [true, false, false, false],
         );
 
         expect(state.accentBeats, 4);
@@ -67,8 +67,8 @@ void main() {
           id: 'song-1',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final setlist = Setlist(
@@ -76,8 +76,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final state = MetronomeState(
@@ -91,7 +91,6 @@ void main() {
           accentFrequency: 1600,
           beatFrequency: 800,
           accentPattern: const [true, false, false, false],
-          accentBeats: 4,
           regularBeats: 2,
           beatModes: beatModes,
           loadedSong: song,
@@ -196,8 +195,8 @@ void main() {
           id: 'song-1',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
         final copied = original.copyWith(loadedSong: song);
 
@@ -212,8 +211,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
         final copied = original.copyWith(loadedSetlist: setlist);
 
@@ -250,8 +249,8 @@ void main() {
           id: 'song-1',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
           ourBPM: 100,
         );
         final copied = original.copyWith(bpm: 100, loadedSong: song);
@@ -265,16 +264,16 @@ void main() {
           id: 'song-1',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
         final setlist = Setlist(
           id: 'setlist-1',
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
         final original = MetronomeState.initial().copyWith(
           loadedSong: song,
@@ -388,7 +387,6 @@ void main() {
           accentFrequency: 1600,
           beatFrequency: 800,
           accentPattern: const [true, false, false, false],
-          accentBeats: 4,
           regularBeats: 2,
           beatModes: beatModes,
         );
@@ -467,7 +465,7 @@ void main() {
 
     group('isAccentBeat method', () {
       test('returns true for accented beats', () {
-        final state = MetronomeState(
+        const state = MetronomeState(
           isPlaying: false,
           bpm: 120,
           currentBeat: 0,
@@ -477,7 +475,7 @@ void main() {
           accentEnabled: true,
           accentFrequency: 1600,
           beatFrequency: 800,
-          accentPattern: const [true, false, false, false],
+          accentPattern: [true, false, false, false],
         );
 
         expect(state.isAccentBeat(0), isTrue);
@@ -495,7 +493,7 @@ void main() {
       });
 
       test('works with custom accent patterns', () {
-        final state = MetronomeState(
+        const state = MetronomeState(
           isPlaying: false,
           bpm: 120,
           currentBeat: 0,
@@ -505,7 +503,7 @@ void main() {
           accentEnabled: true,
           accentFrequency: 1600,
           beatFrequency: 800,
-          accentPattern: const [true, false, true, false, true],
+          accentPattern: [true, false, true, false, true],
         );
 
         expect(state.isAccentBeat(0), isTrue);

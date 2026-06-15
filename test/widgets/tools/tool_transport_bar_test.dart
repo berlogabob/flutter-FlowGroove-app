@@ -1,12 +1,12 @@
+import 'package:flowgroove/theme/mono_pulse_theme.dart';
+import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/tools/tool_transport_bar.dart';
-import 'package:flowgroove/theme/mono_pulse_theme.dart';
 
 void main() {
   group('ToolTransportBar', () {
     testWidgets('renders with required parameters', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -18,7 +18,7 @@ void main() {
     });
 
     testWidgets('renders play button when not playing', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -30,7 +30,7 @@ void main() {
     });
 
     testWidgets('renders pause button when playing', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -42,7 +42,7 @@ void main() {
     });
 
     testWidgets('play/pause button uses accentOrange color', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -55,15 +55,15 @@ void main() {
       final playButtonContainer = containers.firstWhere(
         (container) =>
             container.decoration is BoxDecoration &&
-            (container.decoration as BoxDecoration).color ==
+            (container.decoration! as BoxDecoration).color ==
                 MonoPulseColors.accentOrange,
-        orElse: () => Container(),
+        orElse: Container.new,
       );
 
       expect(playButtonContainer.decoration, isNotNull);
     });
 
-    testWidgets('play/pause button is circular', (WidgetTester tester) async {
+    testWidgets('play/pause button is circular', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -75,8 +75,8 @@ void main() {
       final hasCircularOrangeButton = containers.any(
         (container) =>
             container.decoration is BoxDecoration &&
-            (container.decoration as BoxDecoration).shape == BoxShape.circle &&
-            (container.decoration as BoxDecoration).color ==
+            (container.decoration! as BoxDecoration).shape == BoxShape.circle &&
+            (container.decoration! as BoxDecoration).color ==
                 MonoPulseColors.accentOrange,
       );
 
@@ -84,7 +84,7 @@ void main() {
     });
 
     testWidgets('play/pause button is larger than navigation buttons', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -106,7 +106,7 @@ void main() {
           .where(
             (c) =>
                 c.decoration is BoxDecoration &&
-                (c.decoration as BoxDecoration).shape == BoxShape.circle,
+                (c.decoration! as BoxDecoration).shape == BoxShape.circle,
           )
           .toList();
 
@@ -114,7 +114,7 @@ void main() {
     });
 
     testWidgets('calls onPlayPause when play/pause button tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasPressed = false;
 
@@ -134,7 +134,7 @@ void main() {
     });
 
     testWidgets('toggles between play and pause icons', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool isPlaying = false;
 
@@ -175,7 +175,7 @@ void main() {
     });
 
     testWidgets('renders navigation buttons when showNavigation is true', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -194,14 +194,13 @@ void main() {
     });
 
     testWidgets('hides navigation buttons when showNavigation is false', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
             isPlaying: false,
             onPlayPause: _noOp,
-            showNavigation: false,
           ),
         ),
       );
@@ -211,7 +210,7 @@ void main() {
     });
 
     testWidgets('disables navigation buttons when callbacks are null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -236,7 +235,7 @@ void main() {
     });
 
     testWidgets('calls onPrevious when previous button tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool previousCalled = false;
 
@@ -259,7 +258,7 @@ void main() {
     });
 
     testWidgets('calls onNext when next button tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool nextCalled = false;
 
@@ -282,7 +281,7 @@ void main() {
     });
 
     testWidgets('navigation buttons use surfaceRaised color', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -301,7 +300,7 @@ void main() {
       final hasSurfaceRaisedButton = containers.any(
         (container) =>
             container.decoration is BoxDecoration &&
-            (container.decoration as BoxDecoration).color ==
+            (container.decoration! as BoxDecoration).color ==
                 MonoPulseColors.surfaceRaised,
       );
 
@@ -309,7 +308,7 @@ void main() {
     });
 
     testWidgets('navigation buttons have borderSubtle border', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -328,14 +327,14 @@ void main() {
       final hasBorderedContainer = containers.any(
         (container) =>
             container.decoration is BoxDecoration &&
-            (container.decoration as BoxDecoration).border != null,
+            (container.decoration! as BoxDecoration).border != null,
       );
 
       expect(hasBorderedContainer, isTrue);
     });
 
     testWidgets('navigation buttons use textSecondary icon color', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -359,7 +358,7 @@ void main() {
     });
 
     testWidgets('renders settings button when showSettings is true', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -376,14 +375,13 @@ void main() {
     });
 
     testWidgets('hides settings button when showSettings is false', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
             isPlaying: false,
             onPlayPause: _noOp,
-            showSettings: false,
           ),
         ),
       );
@@ -392,7 +390,7 @@ void main() {
     });
 
     testWidgets('hides settings button when onSettings is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -409,7 +407,7 @@ void main() {
     });
 
     testWidgets('calls onSettings when settings button tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool settingsCalled = false;
 
@@ -430,7 +428,7 @@ void main() {
       expect(settingsCalled, isTrue);
     });
 
-    testWidgets('has correct height of 80 pixels', (WidgetTester tester) async {
+    testWidgets('has correct height of 80 pixels', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -443,16 +441,16 @@ void main() {
         (c) =>
             c.constraints != null &&
             c.constraints is BoxConstraints &&
-            (c.constraints as BoxConstraints).hasBoundedHeight &&
-            (c.constraints as BoxConstraints).maxHeight == 80,
-        orElse: () => Container(),
+            (c.constraints!).hasBoundedHeight &&
+            (c.constraints!).maxHeight == 80,
+        orElse: Container.new,
       );
 
       expect(heightContainer.constraints, isNotNull);
     });
 
     testWidgets('has horizontal margin using ToolSpacing.xxxl', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -465,7 +463,7 @@ void main() {
     });
 
     testWidgets('has vertical margin using ToolSpacing.lg', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -477,7 +475,7 @@ void main() {
       expect(find.byType(Row), findsWidgets);
     });
 
-    testWidgets('buttons are centered in row', (WidgetTester tester) async {
+    testWidgets('buttons are centered in row', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -489,7 +487,7 @@ void main() {
     });
 
     testWidgets('play/pause button icon uses on-accent color', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -502,7 +500,7 @@ void main() {
     });
 
     testWidgets('pause button icon uses on-accent color', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -515,7 +513,7 @@ void main() {
     });
 
     testWidgets('render multiple buttons together', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -540,7 +538,7 @@ void main() {
 
   group('ToolTransportBar Haptic Feedback', () {
     testWidgets('play/pause button triggers interaction', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasPressed = false;
 
@@ -560,7 +558,7 @@ void main() {
     });
 
     testWidgets('navigation buttons trigger interaction', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool previousCalled = false;
       bool nextCalled = false;
@@ -587,7 +585,7 @@ void main() {
     });
 
     testWidgets('settings button triggers interaction', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool settingsCalled = false;
 
@@ -611,7 +609,7 @@ void main() {
 
   group('ToolTransportBar Accessibility', () {
     testWidgets('play/pause button meets minimum touch target', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -625,7 +623,7 @@ void main() {
           .where(
             (c) =>
                 c.decoration is BoxDecoration &&
-                (c.decoration as BoxDecoration).shape == BoxShape.circle,
+                (c.decoration! as BoxDecoration).shape == BoxShape.circle,
           )
           .toList();
 
@@ -633,7 +631,7 @@ void main() {
     });
 
     testWidgets('navigation buttons have adequate size', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -653,7 +651,7 @@ void main() {
     });
 
     testWidgets('all buttons are circular for easy tapping', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -674,7 +672,7 @@ void main() {
           .where(
             (c) =>
                 c.decoration is BoxDecoration &&
-                (c.decoration as BoxDecoration).shape == BoxShape.circle,
+                (c.decoration! as BoxDecoration).shape == BoxShape.circle,
           )
           .toList();
 
@@ -684,7 +682,7 @@ void main() {
   });
 
   group('ToolTransportBar MonoPulse Theme', () {
-    testWidgets('play button uses accentOrange', (WidgetTester tester) async {
+    testWidgets('play button uses accentOrange', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -695,16 +693,16 @@ void main() {
       final orangeContainer = containers.firstWhere(
         (c) =>
             c.decoration is BoxDecoration &&
-            (c.decoration as BoxDecoration).color ==
+            (c.decoration! as BoxDecoration).color ==
                 MonoPulseColors.accentOrange,
-        orElse: () => Container(),
+        orElse: Container.new,
       );
 
       expect(orangeContainer.decoration, isNotNull);
     });
 
     testWidgets('navigation buttons use surfaceRaised', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -722,15 +720,15 @@ void main() {
       final surfaceContainer = containers.firstWhere(
         (c) =>
             c.decoration is BoxDecoration &&
-            (c.decoration as BoxDecoration).color ==
+            (c.decoration! as BoxDecoration).color ==
                 MonoPulseColors.surfaceRaised,
-        orElse: () => Container(),
+        orElse: Container.new,
       );
 
       expect(surfaceContainer.decoration, isNotNull);
     });
 
-    testWidgets('icons use correct theme colors', (WidgetTester tester) async {
+    testWidgets('icons use correct theme colors', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -752,7 +750,7 @@ void main() {
       expect(navIcon.color, equals(MonoPulseColors.textSecondary));
     });
 
-    testWidgets('borders use borderSubtle color', (WidgetTester tester) async {
+    testWidgets('borders use borderSubtle color', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -770,7 +768,7 @@ void main() {
       final hasBorderedContainer = containers.any(
         (c) =>
             c.decoration is BoxDecoration &&
-            (c.decoration as BoxDecoration).border != null,
+            (c.decoration! as BoxDecoration).border != null,
       );
 
       expect(hasBorderedContainer, isTrue);
@@ -779,7 +777,7 @@ void main() {
 
   group('_PlayPauseButton', () {
     testWidgets('renders play icon when not playing', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -790,7 +788,7 @@ void main() {
       expect(find.byIcon(Icons.play_arrow), findsOneWidget);
     });
 
-    testWidgets('renders pause icon when playing', (WidgetTester tester) async {
+    testWidgets('renders pause icon when playing', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: true, onPlayPause: _noOp),
@@ -801,7 +799,7 @@ void main() {
     });
 
     testWidgets('icon size is proportional to button size', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -816,7 +814,7 @@ void main() {
   });
 
   group('_TransportButton', () {
-    testWidgets('renders with correct icon', (WidgetTester tester) async {
+    testWidgets('renders with correct icon', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -834,7 +832,7 @@ void main() {
     });
 
     testWidgets('icon size is proportional to button size', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -853,7 +851,7 @@ void main() {
       expect(icon.size, greaterThan(0));
     });
 
-    testWidgets('has circular decoration', (WidgetTester tester) async {
+    testWidgets('has circular decoration', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -870,8 +868,8 @@ void main() {
       final hasCircularNavButton = containers.any(
         (c) =>
             c.decoration is BoxDecoration &&
-            (c.decoration as BoxDecoration).shape == BoxShape.circle &&
-            (c.decoration as BoxDecoration).color ==
+            (c.decoration! as BoxDecoration).shape == BoxShape.circle &&
+            (c.decoration! as BoxDecoration).color ==
                 MonoPulseColors.surfaceRaised,
       );
 

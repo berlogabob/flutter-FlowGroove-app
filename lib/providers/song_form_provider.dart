@@ -1,16 +1,17 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../models/song.dart';
+
 import '../models/api_error.dart';
+import '../models/beat_mode.dart';
 import '../models/link.dart';
 import '../models/section.dart';
+import '../models/song.dart';
 import '../models/song_suggestion.dart';
-import '../models/beat_mode.dart';
 import '../repositories/song_repository.dart';
+import '../screens/songs/models/song_form_data.dart';
 import '../services/analytics_service.dart';
 import '../services/matching/fuzzy_matcher.dart';
-import '../screens/songs/models/song_form_data.dart';
 import 'data/data_providers.dart';
 
 /// Provider for managing song form state.
@@ -20,21 +21,11 @@ import 'data/data_providers.dart';
 /// setState in the screen.
 final songFormStateProvider =
     NotifierProvider<SongFormStateNotifier, SongFormState>(
-      () => SongFormStateNotifier(),
+      SongFormStateNotifier.new,
     );
 
 /// State class for song form management.
 class SongFormState {
-  final SongFormData formData;
-  final ApiError? error;
-  final bool hasUnsavedChanges;
-  final bool isAutoSaving;
-  final bool isSaving;
-  final bool isLoading;
-
-  // Autocomplete fields
-  final SongSuggestion? selectedSuggestion;
-  final bool isUsingSuggestion;
 
   const SongFormState({
     required this.formData,
@@ -46,6 +37,21 @@ class SongFormState {
     this.selectedSuggestion,
     this.isUsingSuggestion = false,
   });
+
+  factory SongFormState.initial() => SongFormState(formData: SongFormData());
+
+  factory SongFormState.fromSong(Song song) =>
+      SongFormState(formData: SongFormData.fromSong(song));
+  final SongFormData formData;
+  final ApiError? error;
+  final bool hasUnsavedChanges;
+  final bool isAutoSaving;
+  final bool isSaving;
+  final bool isLoading;
+
+  // Autocomplete fields
+  final SongSuggestion? selectedSuggestion;
+  final bool isUsingSuggestion;
 
   SongFormState copyWith({
     SongFormData? formData,
@@ -68,11 +74,6 @@ class SongFormState {
       isUsingSuggestion: isUsingSuggestion ?? this.isUsingSuggestion,
     );
   }
-
-  factory SongFormState.initial() => SongFormState(formData: SongFormData());
-
-  factory SongFormState.fromSong(Song song) =>
-      SongFormState(formData: SongFormData.fromSong(song));
 }
 
 /// Notifier for managing song form state.
@@ -189,7 +190,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
   /// Clear error state.
   void clearError() {
-    state = state.copyWith(error: null);
+    state = state.copyWith();
   }
 
   /// Update original key.
@@ -275,7 +276,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
       return false;
     }
 
-    state = state.copyWith(isSaving: true, error: null);
+    state = state.copyWith(isSaving: true);
 
     try {
       final song = state.formData.toSong(
@@ -425,7 +426,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
   /// Clear selected suggestion and allow manual editing.
   void clearSuggestion() {
-    state = state.copyWith(selectedSuggestion: null, isUsingSuggestion: false);
+    state = state.copyWith(isUsingSuggestion: false);
   }
 
   /// Apply suggestion data to form fields.
@@ -578,7 +579,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     }
 
     // Proceed with save
-    return await saveSong(
+    return saveSong(
       songRepo: songRepo,
       uid: uid,
       bandId: bandId,

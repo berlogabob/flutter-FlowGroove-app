@@ -4,11 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 class TelegramUser {
-  final int id;
-  final String? firstName;
-  final String? lastName;
-  final String? username;
-  final String? photoUrl;
 
   TelegramUser({
     required this.id,
@@ -17,6 +12,11 @@ class TelegramUser {
     this.username,
     this.photoUrl,
   });
+  final int id;
+  final String? firstName;
+  final String? lastName;
+  final String? username;
+  final String? photoUrl;
 
   String get displayName => firstName ?? username ?? 'Telegram User';
 }

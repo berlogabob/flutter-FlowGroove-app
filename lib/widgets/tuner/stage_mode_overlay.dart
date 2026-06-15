@@ -15,8 +15,8 @@ import '../../theme/mono_pulse_theme.dart';
 /// The overlay is controlled by [TunerState.stageModeActive].
 class StageModeOverlay extends ConsumerStatefulWidget {
   const StageModeOverlay({
-    super.key,
     required this.child,
+    super.key,
   });
 
   final Widget child;
@@ -113,7 +113,7 @@ class _StageModeContent extends ConsumerWidget {
       child: AnimatedOpacity(
         duration: MonoPulseAnimation.durationLong,
         curve: MonoPulseAnimation.curveDecelerate,
-        opacity: 1.0,
+        opacity: 1,
         child: ColoredBox(
           color: MonoPulseColors.black,
           child: SafeArea(
@@ -129,7 +129,7 @@ class _StageModeContent extends ConsumerWidget {
                       fontWeight: MonoPulseTypography.bold,
                       color: MonoPulseColors.textHighEmphasis,
                       letterSpacing: -4,
-                      height: 1.0,
+                      height: 1,
                     ),
                   ),
                   const SizedBox(height: MonoPulseSpacing.md),
@@ -157,7 +157,7 @@ class _StageModeContent extends ConsumerWidget {
                   const SizedBox(height: MonoPulseSpacing.xxxl),
                   // Tap hint (pulsing)
                   TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0.3, end: 1.0),
+                    tween: Tween<double>(begin: 0.3, end: 1),
                     duration: const Duration(seconds: 2),
                     curve: MonoPulseAnimation.curveCustom,
                     builder: (context, opacity, child) {

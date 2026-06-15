@@ -125,17 +125,17 @@ class EnvConfig {
       case 'FIREBASE_API_KEY':
         return const String.fromEnvironment('FIREBASE_API_KEY');
       case 'SPOTIFY_CLIENT_ID':
-        return String.fromEnvironment('SPOTIFY_CLIENT_ID');
+        return const String.fromEnvironment('SPOTIFY_CLIENT_ID');
       case 'SPOTIFY_CLIENT_SECRET':
-        return String.fromEnvironment('SPOTIFY_CLIENT_SECRET');
+        return const String.fromEnvironment('SPOTIFY_CLIENT_SECRET');
       case 'TWITTER_API_KEY':
-        return String.fromEnvironment('TWITTER_API_KEY');
+        return const String.fromEnvironment('TWITTER_API_KEY');
       case 'TWITTER_API_SECRET':
-        return String.fromEnvironment('TWITTER_API_SECRET');
+        return const String.fromEnvironment('TWITTER_API_SECRET');
       case 'TELEGRAM_BOT_TOKEN':
-        return String.fromEnvironment('TELEGRAM_BOT_TOKEN');
+        return const String.fromEnvironment('TELEGRAM_BOT_TOKEN');
       case 'SPOTIFY_PROXY_URL':
-        return String.fromEnvironment('SPOTIFY_PROXY_URL');
+        return const String.fromEnvironment('SPOTIFY_PROXY_URL');
       default:
         return '';
     }

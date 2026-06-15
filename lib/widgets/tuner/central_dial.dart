@@ -139,7 +139,7 @@ class _InteractiveDialState extends State<_InteractiveDial> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: MonoPulseColors.surface,
-          border: Border.all(color: MonoPulseColors.borderSubtle, width: 1),
+          border: Border.all(color: MonoPulseColors.borderSubtle),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -328,7 +328,7 @@ class _FrequencyDisplay extends StatelessWidget {
             fontWeight: MonoPulseTypography.bold,
             color: MonoPulseColors.textHighEmphasis,
             letterSpacing: -2,
-            height: 1.0,
+            height: 1,
           ),
         ),
         const SizedBox(height: 8),
@@ -474,16 +474,15 @@ class _RadialGradientOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          center: Alignment.center,
           radius: 0.9,
           colors: [
-            const Color(0xFF1A1A1A), // Lighter center
-            const Color(0xFF0D0D0D), // Darker edges
+            Color(0xFF1A1A1A), // Lighter center
+            Color(0xFF0D0D0D), // Darker edges
           ],
-          stops: const [0.0, 1.0],
+          stops: [0.0, 1.0],
         ),
       ),
     );

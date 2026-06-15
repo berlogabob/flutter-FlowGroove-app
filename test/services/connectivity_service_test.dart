@@ -10,10 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 class FakeConnectivityClient implements ConnectivityClient {
   FakeConnectivityClient({
     Future<List<ConnectivityResult>> Function()? checkConnectivity,
-    Error? streamAccessError,
+    this._streamAccessError,
   }) : _checkConnectivity =
-           checkConnectivity ?? (() async => <ConnectivityResult>[]),
-       _streamAccessError = streamAccessError {
+           checkConnectivity ?? (() async => <ConnectivityResult>[]) {
     _controller = StreamController<List<ConnectivityResult>>.broadcast(
       onCancel: () {
         subscriptionCancelled = true;

@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/data/data_providers.dart';
+
+import '../../models/metronome_state.dart';
+import '../../models/song.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../models/song.dart';
-import '../../models/metronome_state.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 /// Three Dots Menu Popup - Mono Pulse design (Sprint Fix)
 ///
 /// Single icon ⋯ (#A0A0A5 → #FF5E00 on tap)
 /// Menu items:
-/// - Save to Song → saves current metronome settings to loaded song
 /// - Save New Song → create song form (pre-fills BPM with current)
 /// - Update Song → songs list → select → confirm "Update 'Name'?"
 /// - If playlist loaded — pre-select current song
@@ -22,8 +20,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 /// - Text: #EDEDED
 /// - Icons: Orange (#FF5E00)
 class MenuPopup extends ConsumerStatefulWidget {
-  const MenuPopup({super.key, required this.position, required this.onClose});
 
+  const MenuPopup({required this.position, required this.onClose, super.key});
   final Offset position;
   final VoidCallback onClose;
 
@@ -64,7 +62,6 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
                       ),
                       border: Border.all(
                         color: MonoPulseColors.borderSubtle,
-                        width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -77,22 +74,6 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Save to Song (only shown when song is loaded)
-                        if (state.loadedSong != null) ...[
-                          _MenuItem(
-                            icon: Icons.save_outlined,
-                            label: "Save to '${state.loadedSong!.title}'",
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              widget.onClose();
-                              _saveMetronomeToSong(context, metronome, state);
-                            },
-                          ),
-                          const Divider(
-                            height: 1,
-                            color: MonoPulseColors.borderSubtle,
-                          ),
-                        ],
                         // Save New Song
                         _MenuItem(
                           icon: Icons.add_circle_outline,
@@ -126,67 +107,6 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  /// Save current metronome settings to the loaded song
-  Future<void> _saveMetronomeToSong(
-    BuildContext context,
-    MetronomeNotifier metronome,
-    MetronomeState state,
-  ) async {
-    final updatedSong = metronome.saveMetronomeToSong();
-    if (updatedSong == null) {
-      _showErrorSnackBar(context, 'No song loaded');
-      return;
-    }
-
-    try {
-      // Get current user
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        _showErrorSnackBar(context, 'Not signed in');
-        return;
-      }
-
-      await ref
-          .read(songRepositoryProvider)
-          .updateSong(updatedSong, uid: user.uid);
-
-      if (!context.mounted) return;
-      _showSuccessSnackBar(
-        context,
-        "Saved metronome settings to '${updatedSong.title}'",
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      _showErrorSnackBar(context, 'Failed to save: $e');
-    }
-  }
-
-  void _showSuccessSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: MonoPulseColors.accentOrange,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        ),
-      ),
-    );
-  }
-
-  void _showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: MonoPulseColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
         ),
       ),
     );
@@ -229,7 +149,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
   }
 
   void _showUpdateConfirmDialog(BuildContext context, Song song) {
-    showDialog<void>(
+    showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: MonoPulseColors.surface,
@@ -285,7 +205,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
             child: Text(
               'Update',
               style: MonoPulseTypography.labelLarge.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -298,7 +218,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
     final setlist = state.loadedSetlist;
     if (setlist == null) return;
 
-    showDialog<void>(
+    showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: MonoPulseColors.surface,
@@ -378,7 +298,7 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
       ),
     ];
 
-    showDialog<void>(
+    showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: MonoPulseColors.surface,
@@ -425,15 +345,15 @@ class _MenuPopupState extends ConsumerState<MenuPopup> {
 }
 
 class _MenuItem extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
 
   const _MenuItem({
     required this.icon,
     required this.label,
     required this.onTap,
   });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 
   @override
   State<_MenuItem> createState() => _MenuItemState();
@@ -450,7 +370,6 @@ class _MenuItemState extends State<_MenuItem> {
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
         child: Container(
-          constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.lg,
             vertical: MonoPulseSpacing.md,

@@ -7,12 +7,12 @@ import '../theme/mono_pulse_theme.dart';
 /// Displays two dropdown menus side by side for selecting the numerator
 /// and denominator of a time signature, formatted as "[X ▼] / [Y ▼]".
 class TimeSignatureDropdown extends StatelessWidget {
+
   const TimeSignatureDropdown({
-    super.key,
     required this.value,
     required this.onChanged,
+    super.key,
   });
-
   /// The current time signature value.
   final TimeSignature value;
 
@@ -28,13 +28,10 @@ class TimeSignatureDropdown extends StatelessWidget {
         _buildDropdown(
           value: value.numerator,
           items: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-          onChanged: (numerator) {
-            if (numerator != null) {
+          onChanged: (num) {
+            if (num != null) {
               onChanged(
-                TimeSignature(
-                  numerator: numerator,
-                  denominator: value.denominator,
-                ),
+                TimeSignature(numerator: num, denominator: value.denominator),
               );
             }
           },
@@ -45,7 +42,11 @@ class TimeSignatureDropdown extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md),
           child: Text(
             '/',
-            style: MonoPulseTypography.headlineLarge,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: MonoPulseColors.textPrimary,
+            ),
           ),
         ),
 
@@ -74,7 +75,7 @@ class TimeSignatureDropdown extends StatelessWidget {
       decoration: BoxDecoration(
         color: MonoPulseColors.surface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
+        border: Border.all(color: MonoPulseColors.borderDefault),
       ),
       padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md),
       child: DropdownButton<int>(
@@ -84,7 +85,11 @@ class TimeSignatureDropdown extends StatelessWidget {
           Icons.arrow_drop_down,
           color: MonoPulseColors.accentOrange,
         ),
-        style: MonoPulseTypography.titleLarge,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: MonoPulseColors.textPrimary,
+        ),
         items: items
             .map(
               (item) => DropdownMenuItem(

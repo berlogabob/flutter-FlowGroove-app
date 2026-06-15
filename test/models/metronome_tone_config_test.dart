@@ -10,20 +10,20 @@
 /// - fromPresetName method
 library;
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/metronome_tone_config.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('MetronomeToneConfig', () {
     // Test constructor
     test('creates instance with required fields', () {
       const config = MetronomeToneConfig(
-        mainRegularFreq: 1600.0,
-        mainAccentFreq: 2060.0,
-        subRegularFreq: 800.0,
-        subAccentFreq: 1030.0,
-        dividerRegularFreq: 1100.0,
-        dividerAccentFreq: 1400.0,
+        mainRegularFreq: 1600,
+        mainAccentFreq: 2060,
+        subRegularFreq: 800,
+        subAccentFreq: 1030,
+        dividerRegularFreq: 1100,
+        dividerAccentFreq: 1400,
         waveType: 'sine',
         volume: 0.75,
       );
@@ -118,7 +118,7 @@ void main() {
     // Test copyWith
     test('copyWith creates modified copy', () {
       final original = MetronomeToneConfig.classic();
-      final modified = original.copyWith(mainRegularFreq: 1800.0);
+      final modified = original.copyWith(mainRegularFreq: 1800);
 
       expect(modified.mainRegularFreq, 1800.0);
       expect(modified.mainAccentFreq, original.mainAccentFreq); // Unchanged
@@ -155,25 +155,25 @@ void main() {
     });
 
     test('isValid returns false for out-of-range frequencies', () {
-      final configLow = MetronomeToneConfig(
-        mainRegularFreq: 100.0, // Below 200
-        mainAccentFreq: 2060.0,
-        subRegularFreq: 800.0,
-        subAccentFreq: 1030.0,
-        dividerRegularFreq: 1100.0,
-        dividerAccentFreq: 1400.0,
+      const configLow = MetronomeToneConfig(
+        mainRegularFreq: 100, // Below 200
+        mainAccentFreq: 2060,
+        subRegularFreq: 800,
+        subAccentFreq: 1030,
+        dividerRegularFreq: 1100,
+        dividerAccentFreq: 1400,
         waveType: 'sine',
         volume: 0.75,
       );
       expect(configLow.isValid, isFalse);
 
       const configHigh = MetronomeToneConfig(
-        mainRegularFreq: 5000.0, // Above 4000
-        mainAccentFreq: 2060.0,
-        subRegularFreq: 800.0,
-        subAccentFreq: 1030.0,
-        dividerRegularFreq: 1100.0,
-        dividerAccentFreq: 1400.0,
+        mainRegularFreq: 5000, // Above 4000
+        mainAccentFreq: 2060,
+        subRegularFreq: 800,
+        subAccentFreq: 1030,
+        dividerRegularFreq: 1100,
+        dividerAccentFreq: 1400,
         waveType: 'sine',
         volume: 0.75,
       );
@@ -181,25 +181,25 @@ void main() {
     });
 
     test('isValid returns false for out-of-range volume', () {
-      final configLow = MetronomeToneConfig(
-        mainRegularFreq: 1600.0,
-        mainAccentFreq: 2060.0,
-        subRegularFreq: 800.0,
-        subAccentFreq: 1030.0,
-        dividerRegularFreq: 1100.0,
-        dividerAccentFreq: 1400.0,
+      const configLow = MetronomeToneConfig(
+        mainRegularFreq: 1600,
+        mainAccentFreq: 2060,
+        subRegularFreq: 800,
+        subAccentFreq: 1030,
+        dividerRegularFreq: 1100,
+        dividerAccentFreq: 1400,
         waveType: 'sine',
         volume: -0.1, // Below 0.0
       );
       expect(configLow.isValid, isFalse);
 
       const configHigh = MetronomeToneConfig(
-        mainRegularFreq: 1600.0,
-        mainAccentFreq: 2060.0,
-        subRegularFreq: 800.0,
-        subAccentFreq: 1030.0,
-        dividerRegularFreq: 1100.0,
-        dividerAccentFreq: 1400.0,
+        mainRegularFreq: 1600,
+        mainAccentFreq: 2060,
+        subRegularFreq: 800,
+        subAccentFreq: 1030,
+        dividerRegularFreq: 1100,
+        dividerAccentFreq: 1400,
         waveType: 'sine',
         volume: 1.1, // Above 1.0
       );
@@ -207,13 +207,13 @@ void main() {
     });
 
     test('isValid returns false for invalid wave type', () {
-      final config = MetronomeToneConfig(
-        mainRegularFreq: 1600.0,
-        mainAccentFreq: 2060.0,
-        subRegularFreq: 800.0,
-        subAccentFreq: 1030.0,
-        dividerRegularFreq: 1100.0,
-        dividerAccentFreq: 1400.0,
+      const config = MetronomeToneConfig(
+        mainRegularFreq: 1600,
+        mainAccentFreq: 2060,
+        subRegularFreq: 800,
+        subAccentFreq: 1030,
+        dividerRegularFreq: 1100,
+        dividerAccentFreq: 1400,
         waveType: 'invalid', // Invalid wave type
         volume: 0.75,
       );

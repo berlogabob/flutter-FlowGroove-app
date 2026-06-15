@@ -1,18 +1,19 @@
 /// Tests for CollapsibleSection widget.
+library;
+import 'package:flowgroove/screens/songs/components/collapsible_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/screens/songs/components/collapsible_section.dart';
 
 void main() {
   testWidgets('CollapsibleSection renders title and content', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: CollapsibleSection(
             title: 'Test Section',
-            child: const Text('Test Content'),
+            child: Text('Test Content'),
           ),
         ),
       ),
@@ -26,14 +27,14 @@ void main() {
   });
 
   testWidgets('CollapsibleSection can be collapsed', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: CollapsibleSection(
             title: 'Test Section',
-            child: const Text('Test Content'),
+            child: Text('Test Content'),
           ),
         ),
       ),
@@ -48,14 +49,14 @@ void main() {
   });
 
   testWidgets('CollapsibleSection can be expanded again', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: CollapsibleSection(
             title: 'Test Section',
-            child: const Text('Test Content'),
+            child: Text('Test Content'),
           ),
         ),
       ),
@@ -75,15 +76,15 @@ void main() {
   });
 
   testWidgets('CollapsibleSection with icon shows icon', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: CollapsibleSection(
             title: 'Test Section',
             icon: Icons.star,
-            child: const Text('Test Content'),
+            child: Text('Test Content'),
           ),
         ),
       ),
@@ -94,7 +95,7 @@ void main() {
   });
 
   testWidgets('CollapsibleSection with action shows action', (
-    WidgetTester tester,
+    tester,
   ) async {
     bool actionPressed = false;
 
@@ -125,15 +126,15 @@ void main() {
   });
 
   testWidgets('CollapsibleSection respects initiallyExpanded', (
-    WidgetTester tester,
+    tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: CollapsibleSection(
             title: 'Test Section',
             initiallyExpanded: false,
-            child: const Text('Test Content'),
+            child: Text('Test Content'),
           ),
         ),
       ),

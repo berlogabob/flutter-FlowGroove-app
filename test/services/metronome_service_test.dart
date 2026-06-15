@@ -1,7 +1,7 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/models/time_signature.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 
@@ -150,14 +150,14 @@ void main() {
 
     group('setTimeSignature', () {
       test('updates time signature', () {
-        final waltzTime = TimeSignature(numerator: 3, denominator: 4);
+        const waltzTime = TimeSignature(numerator: 3, denominator: 4);
         container.read(metronomeProvider.notifier).setTimeSignature(waltzTime);
         final state = container.read(metronomeProvider);
         expect(state.timeSignature, equals(waltzTime));
       });
 
       test('updates accent pattern when time signature changes', () {
-        final waltzTime = TimeSignature(numerator: 3, denominator: 4);
+        const waltzTime = TimeSignature(numerator: 3, denominator: 4);
         container.read(metronomeProvider.notifier).setTimeSignature(waltzTime);
         final state = container.read(metronomeProvider);
         expect(state.accentPattern, equals([true, false, false]));
@@ -198,13 +198,13 @@ void main() {
       });
 
       test('can set volume to 0', () {
-        container.read(metronomeProvider.notifier).setVolume(0.0);
+        container.read(metronomeProvider.notifier).setVolume(0);
         final state = container.read(metronomeProvider);
         expect(state.volume, equals(0.0));
       });
 
       test('can set volume to 1', () {
-        container.read(metronomeProvider.notifier).setVolume(1.0);
+        container.read(metronomeProvider.notifier).setVolume(1);
         final state = container.read(metronomeProvider);
         expect(state.volume, equals(1.0));
       });
@@ -329,7 +329,7 @@ void main() {
       test('generates accent pattern for 6/8 time', () {
         container
             .read(metronomeProvider.notifier)
-            .setTimeSignature(TimeSignature(numerator: 6, denominator: 8));
+            .setTimeSignature(const TimeSignature(numerator: 6, denominator: 8));
         container
             .read(metronomeProvider.notifier)
             .updateAccentPatternFromTimeSignature();

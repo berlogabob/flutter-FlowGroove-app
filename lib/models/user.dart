@@ -13,6 +13,20 @@ class _Sentinel {
 
 @JsonSerializable()
 class AppUser {
+
+  AppUser({
+    required this.uid,
+    required this.createdAt, this.displayName,
+    this.email,
+    this.photoURL,
+    this.accessRole = 'member',
+    this.musicRoles = const [],
+    this.systemTags = const [],
+    this.bandIds = const [],
+  });
+
+  factory AppUser.fromJson(Map<String, dynamic> json) =>
+      _$AppUserFromJson(json);
   @JsonKey(defaultValue: '')
   final String uid;
   final String? displayName;
@@ -39,18 +53,6 @@ class AppUser {
   final List<String> bandIds;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
-
-  AppUser({
-    required this.uid,
-    this.displayName,
-    this.email,
-    this.photoURL,
-    this.accessRole = 'member',
-    this.musicRoles = const [],
-    this.systemTags = const [],
-    this.bandIds = const [],
-    required this.createdAt,
-  });
 
   AppUser copyWith({
     String? uid,
@@ -79,12 +81,9 @@ class AppUser {
   }
 
   Map<String, dynamic> toJson() => _$AppUserToJson(this);
-
-  factory AppUser.fromJson(Map<String, dynamic> json) =>
-      _$AppUserFromJson(json);
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   return DateTime.parse(value as String);

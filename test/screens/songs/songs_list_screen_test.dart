@@ -1,8 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/models/song.dart';
@@ -11,6 +6,10 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/routed_test_harness.dart';
@@ -20,7 +19,7 @@ AppUser createTestUser() {
     uid: 'test-user-id',
     displayName: 'Test User',
     email: 'test@example.com',
-    createdAt: DateTime(2024, 1, 1),
+    createdAt: DateTime(2024),
   );
 }
 
@@ -43,8 +42,8 @@ Song createTestSong({
     originalKey: originalKey,
     ourKey: ourKey,
     tags: tags,
-    createdAt: DateTime(2024, 1, 1),
-    updatedAt: DateTime(2024, 1, 1),
+    createdAt: DateTime(2024),
+    updatedAt: DateTime(2024),
   );
 }
 

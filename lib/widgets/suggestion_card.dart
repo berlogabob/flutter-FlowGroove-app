@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../theme/mono_pulse_theme.dart';
+
 import '../models/song_suggestion.dart';
-import 'source_icon.dart';
+import '../theme/mono_pulse_theme.dart';
 import 'match_score_badge.dart';
+import 'source_icon.dart';
 
 /// Suggestion card widget for autocomplete dropdown
 ///
@@ -23,9 +24,9 @@ import 'match_score_badge.dart';
 /// ```
 class SuggestionCard extends StatelessWidget {
   const SuggestionCard({
-    super.key,
     required this.suggestion,
     required this.onTap,
+    super.key,
     this.isSelected = false,
   });
 
@@ -52,7 +53,6 @@ class SuggestionCard extends StatelessWidget {
           border: Border(
             bottom: BorderSide(
               color: colorScheme.outline.withValues(alpha: 0.05),
-              width: 1,
             ),
           ),
         ),
@@ -201,11 +201,6 @@ class SuggestionCard extends StatelessWidget {
 
 /// Small badge chip
 class _Badge extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final double? opacity;
-  final String? tooltip;
 
   const _Badge({
     required this.label,
@@ -214,6 +209,11 @@ class _Badge extends StatelessWidget {
     this.opacity,
     this.tooltip,
   });
+  final String label;
+  final IconData icon;
+  final Color color;
+  final double? opacity;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +224,6 @@ class _Badge extends StatelessWidget {
         borderRadius: BorderRadius.circular(MonoPulseRadius.small),
         border: Border.all(
           color: color.withValues(alpha: 0.3),
-          width: 1,
         ),
       ),
       child: Row(
@@ -253,7 +252,7 @@ class _Badge extends StatelessWidget {
     );
 
     return tooltip != null
-        ? Tooltip(message: tooltip!, child: badge)
+        ? Tooltip(message: tooltip, child: badge)
         : badge;
   }
 }

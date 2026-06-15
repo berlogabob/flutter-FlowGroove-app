@@ -6,8 +6,8 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent card layout for displaying setlist
 /// details including name, song count, and associated band.
 class SetlistCard extends StatelessWidget {
+
   const SetlistCard({
-    super.key,
     required this.id,
     required this.name,
     required this.songCount,
@@ -17,8 +17,8 @@ class SetlistCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onExportPdf,
+    super.key,
   });
-
   /// The setlist ID.
   final String id;
 
@@ -67,17 +67,26 @@ class SetlistCard extends StatelessWidget {
           children: [
             Text(
               '$songCount ${songCount == 1 ? 'song' : 'songs'}',
-              style: MonoPulseTypography.bodySmall,
+              style: const TextStyle(
+                color: MonoPulseColors.textTertiary,
+                fontSize: 12,
+              ),
             ),
             if (bandName != null && bandName!.isNotEmpty)
               Text(
                 bandName!,
-                style: MonoPulseTypography.bodySmall,
+                style: const TextStyle(
+                  color: MonoPulseColors.textTertiary,
+                  fontSize: 12,
+                ),
               ),
             if (date != null)
               Text(
                 _formatDate(date) ?? '',
-                style: MonoPulseTypography.bodySmall,
+                style: const TextStyle(
+                  color: MonoPulseColors.textTertiary,
+                  fontSize: 12,
+                ),
               ),
           ],
         ),
@@ -148,14 +157,11 @@ class SetlistCard extends StatelessWidget {
 
 /// A compact setlist card for list views.
 class CompactSetlistCard extends StatelessWidget {
+
   const CompactSetlistCard({
-    super.key,
-    required this.id,
-    required this.name,
-    required this.songCount,
+    required this.id, required this.name, required this.songCount, super.key,
     this.onTap,
   });
-
   /// The setlist ID.
   final String id;
 

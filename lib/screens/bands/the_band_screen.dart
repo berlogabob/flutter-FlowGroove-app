@@ -29,9 +29,9 @@ import '../setlists/create_setlist_screen.dart';
 /// - Quick actions: Add Song (to band), Add Setlist (to band), Band Bank, Add Member
 /// - Collapsible/expandable widgets with autosave (via BandAboutScreen for editing)
 class TheBandScreen extends ConsumerStatefulWidget {
-  final Band band;
 
   const TheBandScreen({required this.band, super.key});
+  final Band band;
 
   @override
   ConsumerState<TheBandScreen> createState() => _TheBandScreenState();

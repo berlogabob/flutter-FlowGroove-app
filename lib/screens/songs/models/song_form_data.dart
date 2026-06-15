@@ -1,8 +1,9 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../../../models/link.dart';
-import '../../../models/song.dart';
+
 import '../../../models/beat_mode.dart';
+import '../../../models/link.dart';
 import '../../../models/section.dart';
+import '../../../models/song.dart';
 
 part 'song_form_data.g.dart';
 
@@ -13,6 +14,58 @@ part 'song_form_data.g.dart';
 /// separately from the UI logic.
 @JsonSerializable()
 class SongFormData {
+
+  /// Creates a new SongFormData instance.
+  SongFormData({
+    this.title = '',
+    this.artist = '',
+    this.originalBpm = '',
+    this.ourBpm = '',
+    this.notes = '',
+    List<Link>? links,
+    List<String>? selectedTags,
+    this.originalKeyBase = 'C',
+    this.originalKeyModifier = '',
+    this.ourKeyBase = 'C',
+    this.ourKeyModifier = '',
+    this.spotifyUrl,
+    this.accentBeats = 4,
+    this.regularBeats = 1,
+    List<List<BeatMode>>? beatModes,
+    List<Section>? sections,
+  }) : links = links ?? [],
+       selectedTags = selectedTags ?? [],
+       beatModes = beatModes ?? [],
+       sections = sections ?? [];
+
+  /// Creates a new SongFormData instance from an existing Song.
+  factory SongFormData.fromSong(Song song) {
+    final data = SongFormData(
+      title: song.title,
+      artist: song.artist,
+      originalBpm: song.originalBPM?.toString() ?? '',
+      ourBpm: song.ourBPM?.toString() ?? '',
+      notes: song.notes ?? '',
+      links: List.from(song.links),
+      selectedTags: List.from(song.tags),
+      spotifyUrl: song.spotifyUrl,
+      accentBeats: song.accentBeats,
+      regularBeats: song.regularBeats,
+      beatModes: song.beatModes.isNotEmpty
+          ? song.beatModes
+                .map((row) => row.map((mode) => mode).toList())
+                .toList()
+          : [],
+      sections: List.from(song.sections),
+    );
+    data._parseKey(song.originalKey, isOriginal: true);
+    data._parseKey(song.ourKey, isOriginal: false);
+
+    return data;
+  }
+
+  factory SongFormData.fromJson(Map<String, dynamic> json) =>
+      _$SongFormDataFromJson(json);
   /// The song title.
   String title;
 
@@ -61,29 +114,6 @@ class SongFormData {
   /// The song structure sections.
   final List<Section> sections;
 
-  /// Creates a new SongFormData instance.
-  SongFormData({
-    this.title = '',
-    this.artist = '',
-    this.originalBpm = '',
-    this.ourBpm = '',
-    this.notes = '',
-    List<Link>? links,
-    List<String>? selectedTags,
-    this.originalKeyBase = 'C',
-    this.originalKeyModifier = '',
-    this.ourKeyBase = 'C',
-    this.ourKeyModifier = '',
-    this.spotifyUrl,
-    this.accentBeats = 4,
-    this.regularBeats = 1,
-    List<List<BeatMode>>? beatModes,
-    List<Section>? sections,
-  }) : links = links ?? [],
-       selectedTags = selectedTags ?? [],
-       beatModes = beatModes ?? [],
-       sections = sections ?? [];
-
   /// Creates a copy of this SongFormData with the given fields replaced.
   SongFormData copyWith({
     String? title,
@@ -121,32 +151,6 @@ class SongFormData {
       beatModes: beatModes ?? this.beatModes.map((row) => row.map((mode) => mode).toList()).toList(),
       sections: sections ?? List.from(this.sections),
     );
-  }
-
-  /// Creates a new SongFormData instance from an existing Song.
-  factory SongFormData.fromSong(Song song) {
-    final data = SongFormData(
-      title: song.title,
-      artist: song.artist,
-      originalBpm: song.originalBPM?.toString() ?? '',
-      ourBpm: song.ourBPM?.toString() ?? '',
-      notes: song.notes ?? '',
-      links: List.from(song.links),
-      selectedTags: List.from(song.tags),
-      spotifyUrl: song.spotifyUrl,
-      accentBeats: song.accentBeats,
-      regularBeats: song.regularBeats,
-      beatModes: song.beatModes.isNotEmpty
-          ? song.beatModes
-                .map((row) => row.map((mode) => mode).toList())
-                .toList()
-          : [],
-      sections: List.from(song.sections),
-    );
-    data._parseKey(song.originalKey, isOriginal: true);
-    data._parseKey(song.ourKey, isOriginal: false);
-
-    return data;
   }
 
   /// Parse a key string into base and modifier components.
@@ -356,7 +360,4 @@ class SongFormData {
   }
 
   Map<String, dynamic> toJson() => _$SongFormDataToJson(this);
-
-  factory SongFormData.fromJson(Map<String, dynamic> json) =>
-      _$SongFormDataFromJson(json);
 }

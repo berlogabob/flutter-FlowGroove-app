@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../models/metronome_tempo_range.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 /// Tempo Change Dialog - Modal for changing tempo via Tap or Keyboard
@@ -12,9 +11,9 @@ import '../../theme/mono_pulse_theme.dart';
 /// - Keyboard input field #121212, border #FF5E00 on focus
 /// - Buttons Cancel / Apply: left #A0A0A5, right #FF5E00
 class TempoChangeDialog extends StatefulWidget {
-  final int bpm;
 
-  const TempoChangeDialog({super.key, required this.bpm});
+  const TempoChangeDialog({required this.bpm, super.key});
+  final int bpm;
 
   @override
   State<TempoChangeDialog> createState() => _TempoChangeDialogState();
@@ -55,7 +54,7 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
               'Change tempo',
               style: MonoPulseTypography.headlineLarge.copyWith(
                 color: MonoPulseColors.textHighEmphasis,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: MonoPulseSpacing.xxl),
@@ -100,7 +99,7 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
                   color: MonoPulseColors.textHighEmphasis,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Values from ${MetronomeTempoRange.label}',
+                  hintText: 'Values from 1 to 600',
                   hintStyle: MonoPulseTypography.bodyMedium.copyWith(
                     color: MonoPulseColors.textTertiary,
                   ),
@@ -130,14 +129,14 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
                 onChanged: (value) {
                   final bpm = int.tryParse(value);
                   setState(() {
-                    _isValid = bpm != null && MetronomeTempoRange.contains(bpm);
+                    _isValid = bpm != null && bpm >= 1 && bpm <= 600;
                   });
                 },
               ),
               if (!_isValid) ...[
                 const SizedBox(height: MonoPulseSpacing.sm),
                 Text(
-                  'Please enter a value between ${MetronomeTempoRange.minimum} and ${MetronomeTempoRange.maximum}',
+                  'Please enter a value between 1 and 600',
                   style: MonoPulseTypography.labelSmall.copyWith(
                     color: MonoPulseColors.error,
                   ),
@@ -164,7 +163,7 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
                     const SizedBox(width: MonoPulseSpacing.md),
                     Expanded(
                       child: Text(
-                        'Tap the rhythm you want to set. We\'ll calculate the BPM for you.',
+                        "Tap the rhythm you want to set. We'll calculate the BPM for you.",
                         style: MonoPulseTypography.bodyMedium.copyWith(
                           color: MonoPulseColors.textSecondary,
                         ),
@@ -234,13 +233,13 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
 }
 
 class _ModeButton extends StatefulWidget {
+
   const _ModeButton({
     required this.label,
     required this.icon,
     required this.isSelected,
     required this.onTap,
   });
-
   final String label;
   final IconData icon;
   final bool isSelected;
@@ -312,8 +311,8 @@ class _ModeButtonState extends State<_ModeButton> {
 }
 
 class _OrangeSwitch extends StatelessWidget {
-  const _OrangeSwitch({required this.value, required this.onChanged});
 
+  const _OrangeSwitch({required this.value, required this.onChanged});
   final bool value;
   final Function(bool) onChanged;
 
@@ -331,13 +330,12 @@ class _OrangeSwitch extends StatelessWidget {
 }
 
 class _ActionButton extends StatefulWidget {
+
   const _ActionButton({
     required this.label,
     required this.isPrimary,
-    this.isEnabled = true,
-    required this.onTap,
+    required this.onTap, this.isEnabled = true,
   });
-
   final String label;
   final bool isPrimary;
   final bool isEnabled;

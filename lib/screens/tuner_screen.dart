@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/tuner_launch_context.dart';
 import '../models/tuner_preset.dart';
 import '../providers/tuner_provider.dart';
@@ -12,8 +13,8 @@ import '../widgets/tuner/central_dial.dart';
 import '../widgets/tuner/custom_tuning_editor.dart';
 import '../widgets/tuner/detection_mode_toggle.dart';
 import '../widgets/tuner/instrument_picker.dart';
-import '../widgets/tuner/stage_mode_overlay.dart';
 import '../widgets/tuner/settings_sheet.dart';
+import '../widgets/tuner/stage_mode_overlay.dart';
 import '../widgets/tuner/transport_bar.dart';
 
 /// Tuner Screen - Mono Pulse Design (Post-MVP)
@@ -355,7 +356,7 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
             const DetectionModeToggle(),
             if (state.permissionState.name == 'notRequested') ...[
               const SizedBox(height: MonoPulseSpacing.md),
-              _InfoCard(
+              const _InfoCard(
                 icon: Icons.privacy_tip_outlined,
                 text:
                     'Your microphone is used only on this device for pitch detection. Audio is never stored or uploaded.',

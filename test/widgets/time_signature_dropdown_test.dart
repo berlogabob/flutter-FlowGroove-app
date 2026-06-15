@@ -1,14 +1,14 @@
+import 'package:flowgroove/models/time_signature.dart';
+import 'package:flowgroove/widgets/time_signature_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/time_signature_dropdown.dart';
-import 'package:flowgroove/models/time_signature.dart';
 
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('TimeSignatureDropdown', () {
     testWidgets('renders numerator and denominator dropdowns', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -23,7 +23,7 @@ void main() {
     });
 
     testWidgets('renders divider between dropdowns', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -37,7 +37,7 @@ void main() {
     });
 
     testWidgets('displays current numerator value', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -51,7 +51,7 @@ void main() {
     });
 
     testWidgets('displays current denominator value', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -65,7 +65,7 @@ void main() {
     });
 
     testWidgets('calls onChanged when numerator changes', (
-      WidgetTester tester,
+      tester,
     ) async {
       TimeSignature? newValue;
       await pumpAppWidget(
@@ -82,7 +82,7 @@ void main() {
     });
 
     testWidgets('calls onChanged when denominator changes', (
-      WidgetTester tester,
+      tester,
     ) async {
       TimeSignature? newValue;
       await pumpAppWidget(
@@ -96,7 +96,7 @@ void main() {
       expect(newValue, isNull);
     });
 
-    testWidgets('has correct container styling', (WidgetTester tester) async {
+    testWidgets('has correct container styling', (tester) async {
       await pumpAppWidget(
         tester,
         TimeSignatureDropdown(
@@ -110,7 +110,7 @@ void main() {
     });
 
     testWidgets('renders with different time signatures', (
-      WidgetTester tester,
+      tester,
     ) async {
       // Test 3/4
       await pumpAppWidget(
@@ -134,7 +134,7 @@ void main() {
       expect(find.text('8'), findsWidgets);
     });
 
-    testWidgets('dropdown has arrow icon', (WidgetTester tester) async {
+    testWidgets('dropdown has arrow icon', (tester) async {
       await pumpAppWidget(
         tester,
         TimeSignatureDropdown(
@@ -146,7 +146,7 @@ void main() {
       expect(find.byIcon(Icons.arrow_drop_down), findsWidgets);
     });
 
-    testWidgets('row layout is horizontal', (WidgetTester tester) async {
+    testWidgets('row layout is horizontal', (tester) async {
       await pumpAppWidget(
         tester,
         TimeSignatureDropdown(

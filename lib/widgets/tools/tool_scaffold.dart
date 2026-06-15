@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/offline_indicator.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/offline_indicator.dart';
 
 /// Responsive breakpoint system for tool screens.
 enum ToolBreakpoint {
@@ -108,9 +109,9 @@ class ToolTouchTarget {
 /// ```
 class ToolScreenScaffold extends StatelessWidget {
   const ToolScreenScaffold({
-    super.key,
     required this.title,
     required this.mainWidget,
+    super.key,
     this.secondaryWidget,
     this.bottomWidget,
     this.menuItems,
@@ -152,7 +153,7 @@ class ToolScreenScaffold extends StatelessWidget {
             children: [
               if (showOfflineIndicator) const OfflineIndicator.banner(),
               // Main tool widget (expandable)
-              Expanded(flex: 1, child: mainWidget),
+              Expanded(child: mainWidget),
               // Secondary widget (optional, fixed height)
               if (secondaryWidget != null) ...[
                 const SizedBox(height: 8),
@@ -189,9 +190,7 @@ class ToolScreenScaffold extends StatelessWidget {
 /// ```
 class ToolResponsiveLayout extends StatelessWidget {
   const ToolResponsiveLayout({
-    super.key,
-    required this.portraitBlocks,
-    required this.landscapeBlocks,
+    required this.portraitBlocks, required this.landscapeBlocks, super.key,
     this.landscapeBreakpoint = 600,
   });
 
@@ -239,8 +238,7 @@ class ToolResponsiveLayout extends StatelessWidget {
 /// ```
 class ToolBlock extends StatelessWidget {
   const ToolBlock({
-    super.key,
-    required this.child,
+    required this.child, super.key,
     this.showCard = false,
     this.header,
     this.padding,
@@ -262,7 +260,7 @@ class ToolBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectivePadding = padding ?? EdgeInsets.all(ToolSpacing.lg(context));
 
-    final child_widget = Padding(padding: effectivePadding, child: child);
+    final childWidget = Padding(padding: effectivePadding, child: child);
 
     if (showCard) {
       return Card(
@@ -288,12 +286,12 @@ class ToolBlock extends StatelessWidget {
               ),
               const Divider(height: 1, color: MonoPulseColors.borderSubtle),
             ],
-            child_widget,
+            childWidget,
           ],
         ),
       );
     }
 
-    return child_widget;
+    return childWidget;
   }
 }

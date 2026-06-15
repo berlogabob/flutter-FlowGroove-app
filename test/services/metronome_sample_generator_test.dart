@@ -7,9 +7,9 @@
 /// - Cache management
 library;
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/services/audio/metronome_sample_generator.dart';
 import 'package:flowgroove/models/metronome_tone_config.dart';
+import 'package:flowgroove/services/audio/metronome_sample_generator.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('MetronomeSampleGenerator', () {
@@ -70,7 +70,7 @@ void main() {
     // Test custom frequency samples
     test('generates custom frequency sample', () async {
       final sample = await generator.getCustomSample(
-        frequency: 1500.0,
+        frequency: 1500,
         waveType: 'sine',
         volume: 0.75,
       );
@@ -83,7 +83,7 @@ void main() {
       final initialCacheSize = generator.cacheSize;
 
       await generator.getCustomSample(
-        frequency: 1500.0,
+        frequency: 1500,
         waveType: 'sine',
         volume: 0.75,
       );
@@ -93,13 +93,13 @@ void main() {
 
     test('returns cached custom sample on subsequent calls', () async {
       final sample1 = await generator.getCustomSample(
-        frequency: 1500.0,
+        frequency: 1500,
         waveType: 'sine',
         volume: 0.75,
       );
 
       final sample2 = await generator.getCustomSample(
-        frequency: 1500.0,
+        frequency: 1500,
         waveType: 'sine',
         volume: 0.75,
       );
@@ -138,7 +138,7 @@ void main() {
 
       for (final waveType in waveTypes) {
         final sample = await generator.getCustomSample(
-          frequency: 1000.0,
+          frequency: 1000,
           waveType: waveType,
           volume: 0.75,
         );
@@ -151,7 +151,7 @@ void main() {
     // Test sample format (WAV)
     test('generates valid WAV format', () async {
       final sample = await generator.getCustomSample(
-        frequency: 1000.0,
+        frequency: 1000,
         waveType: 'sine',
         volume: 0.75,
       );

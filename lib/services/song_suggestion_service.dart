@@ -1,8 +1,8 @@
 import '../models/song_suggestion.dart';
 import '../repositories/canonical_song_repository.dart';
 import '../repositories/song_repository.dart';
-import 'musicbrainz_service.dart';
 import 'matching/fuzzy_matcher.dart';
+import 'musicbrainz_service.dart';
 
 /// Song Suggestion Service
 ///
@@ -26,23 +26,19 @@ import 'matching/fuzzy_matcher.dart';
 /// );
 /// ```
 class SongSuggestionService {
+
+  SongSuggestionService({
+    required this._songRepo,
+    required this._musicBrainz,
+    required this._userId,
+    this._canonicalRepo,
+    this._bandId,
+  });
   final SongRepository _songRepo;
   final CanonicalSongRepository? _canonicalRepo;
   final MusicBrainzService _musicBrainz;
   final String _userId;
   final String? _bandId;
-
-  SongSuggestionService({
-    required SongRepository songRepo,
-    required MusicBrainzService musicBrainz,
-    required String userId,
-    CanonicalSongRepository? canonicalRepo,
-    String? bandId,
-  }) : _songRepo = songRepo,
-       _canonicalRepo = canonicalRepo,
-       _musicBrainz = musicBrainz,
-       _userId = userId,
-       _bandId = bandId;
 
   /// Get suggestions as user types
   ///
@@ -168,7 +164,6 @@ class SongSuggestionService {
               key: song.originalKey ?? song.ourKey,
               canonicalSongId: song.canonicalSongId,
               musicBrainzId: song.musicbrainzId,
-              isForkable: false,
               matchReasons: _buildMatchReasons(matchResult),
             ),
           );
@@ -215,7 +210,6 @@ class SongSuggestionService {
               key: song.originalKey ?? song.ourKey,
               canonicalSongId: song.canonicalSongId,
               musicBrainzId: song.musicbrainzId,
-              isForkable: true, // Group songs can be forked to personal
             ),
           );
         }
@@ -368,8 +362,8 @@ class SongSuggestionService {
 
 /// Parsed query parts
 class _QueryParts {
-  final String title;
-  final String artist;
 
   _QueryParts({required this.title, required this.artist});
+  final String title;
+  final String artist;
 }

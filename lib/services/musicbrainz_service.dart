@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../models/musicbrainz_recording.dart';
+
 import '../models/musicbrainz_error.dart';
+import '../models/musicbrainz_recording.dart';
 
 /// MusicBrainz API Service
 /// 
@@ -23,6 +24,17 @@ import '../models/musicbrainz_error.dart';
 /// 
 /// See: https://musicbrainz.org/doc/Development/XML_Web_Service/Rate_Limiting
 class MusicBrainzService {
+
+  MusicBrainzService({Dio? dio})
+      : _dio = dio ??
+            Dio(BaseOptions(
+              headers: {
+                'User-Agent': _userAgent,
+                'Accept': 'application/json',
+              },
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 10),
+            ));
   final Dio _dio;
   
   static const String _baseUrl = 'https://musicbrainz.org/ws/2';
@@ -36,17 +48,6 @@ class MusicBrainzService {
   
   DateTime? _lastRequestTime;
   int _retryCount = 0;
-
-  MusicBrainzService({Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
-              headers: {
-                'User-Agent': _userAgent,
-                'Accept': 'application/json',
-              },
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 10),
-            ));
 
   /// Search recordings by title and artist
   /// 
@@ -79,7 +80,7 @@ class MusicBrainzService {
     
     final query = queryParts.join(' AND ');
     
-    return await _search(
+    return _search(
       query: query,
       limit: limit,
       offset: offset,
@@ -99,7 +100,7 @@ class MusicBrainzService {
     int limit = 10,
     int offset = 0,
   }) async {
-    return await _search(
+    return _search(
       query: query,
       limit: limit,
       offset: offset,
@@ -113,7 +114,7 @@ class MusicBrainzService {
   /// 
   /// Returns exact match or empty list.
   Future<List<MusicBrainzRecording>> searchByISRC(String isrc) async {
-    return await _search(
+    return _search(
       query: 'isrc:"$isrc"',
       limit: 5,
       inc: ['artists', 'releases'],

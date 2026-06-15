@@ -100,7 +100,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       setState(() {
         _selectedSongs = [
           for (final item in items)
-            if (songsById[item.songId] case final song?) song,
+            ?songsById[item.songId],
         ];
         _selectedItems = [
           for (final item in items)

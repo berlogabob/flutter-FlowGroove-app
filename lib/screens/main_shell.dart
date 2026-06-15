@@ -11,9 +11,9 @@ import '../widgets/demo_mode_banner.dart';
 /// - Single tap: Navigate to tab or show next screen in branch
 /// - Double tap: Navigate to root screen of each branch
 class MainShell extends ConsumerStatefulWidget {
-  final StatefulNavigationShell navigationShell;
 
-  const MainShell({super.key, required this.navigationShell});
+  const MainShell({required this.navigationShell, super.key});
+  final StatefulNavigationShell navigationShell;
 
   @override
   ConsumerState<MainShell> createState() => _MainShellState();
@@ -33,11 +33,11 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     return Scaffold(
       body: DemoModeBanner(child: widget.navigationShell),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
           color: MonoPulseColors.black,
           border: Border(
-            top: BorderSide(color: MonoPulseColors.borderSubtle, width: 1),
+            top: BorderSide(color: MonoPulseColors.borderSubtle),
           ),
         ),
         child: NavigationBar(
@@ -151,19 +151,14 @@ class _MainShellState extends ConsumerState<MainShell> {
     switch (branchIndex) {
       case 0: // Home
         context.go('/main/home');
-        break;
       case 1: // Songs
         context.go('/main/songs');
-        break;
       case 2: // Bands
         context.go('/main/bands');
-        break;
       case 3: // Setlists
         context.go('/main/setlists');
-        break;
       case 4: // Profile
         context.go('/main/profile');
-        break;
     }
   }
 }

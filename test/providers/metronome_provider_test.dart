@@ -1,10 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flowgroove/providers/data/metronome_provider.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/time_signature.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 
@@ -30,8 +30,8 @@ void main() {
           artist: 'Test Artist',
           originalBPM: 100,
           ourBPM: 120,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -50,8 +50,8 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           originalBPM: 100,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -69,8 +69,8 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           ourBPM: 500,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -93,8 +93,8 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           ourBPM: 120,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
           accentBeats: 6,
           regularBeats: 2,
           beatModes: beatModes,
@@ -118,8 +118,8 @@ void main() {
           id: 'song-5',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
           accentBeats: 6,
         );
 
@@ -142,8 +142,8 @@ void main() {
           id: 'song-6',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
           beatModes: [], // Empty
         );
 
@@ -163,8 +163,8 @@ void main() {
           id: 'song-7',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -194,8 +194,8 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           ourBPM: 100,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -223,8 +223,8 @@ void main() {
           id: 'song-2',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -240,7 +240,7 @@ void main() {
       test('updates updatedAt timestamp when saving', () {
         final container = createContainer();
 
-        final originalDate = DateTime(2024, 1, 1);
+        final originalDate = DateTime(2024);
         final song = Song(
           id: 'song-3',
           title: 'Test Song',
@@ -275,9 +275,8 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           ourBPM: 100,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
-          accentBeats: 4,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
           regularBeats: 2,
           beatModes: originalBeatModes,
         );
@@ -312,8 +311,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -331,8 +330,8 @@ void main() {
           id: 'song-1',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -343,8 +342,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-2'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         metronome.loadSetlistQueue(setlist);
@@ -364,8 +363,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -385,8 +384,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -408,8 +407,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -431,8 +430,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -454,8 +453,8 @@ void main() {
           id: 'song-1',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -474,8 +473,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -494,8 +493,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -611,8 +610,8 @@ void main() {
           id: 'song-1',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);
@@ -632,8 +631,8 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        expect(() => metronome.nextSetlistSong(), returnsNormally);
-        expect(() => metronome.previousSetlistSong(), returnsNormally);
+        expect(metronome.nextSetlistSong, returnsNormally);
+        expect(metronome.previousSetlistSong, returnsNormally);
       });
     });
 
@@ -875,7 +874,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        final timeSignature = TimeSignature(numerator: 3, denominator: 4);
+        const timeSignature = TimeSignature(numerator: 3, denominator: 4);
         metronome.setTimeSignature(timeSignature);
 
         final state = container.read(metronomeProvider);
@@ -887,7 +886,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        final timeSignature = TimeSignature(numerator: 6, denominator: 8);
+        const timeSignature = TimeSignature(numerator: 6, denominator: 8);
         metronome.setTimeSignature(timeSignature);
 
         final state = container.read(metronomeProvider);
@@ -983,7 +982,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        expect(() => metronome.stop(), returnsNormally);
+        expect(metronome.stop, returnsNormally);
       });
 
       test('setVolume updates state', () {
@@ -1050,7 +1049,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.setAccentFrequency(2000.0);
+        metronome.setAccentFrequency(2000);
 
         final state = container.read(metronomeProvider);
         expect(state.accentFrequency, 2000.0);
@@ -1060,7 +1059,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.setBeatFrequency(1000.0);
+        metronome.setBeatFrequency(1000);
 
         final state = container.read(metronomeProvider);
         expect(state.beatFrequency, 1000.0);
@@ -1145,8 +1144,8 @@ void main() {
           beatModes: const [
             [BeatMode.accent, BeatMode.normal, BeatMode.silent],
           ],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         metronome.loadSongTempo(song);
@@ -1171,7 +1170,7 @@ void main() {
         final container = createContainer(runtime: runtime);
         final metronome = container.read(metronomeProvider.notifier);
 
-        metronome.setTimeSignature(TimeSignature(numerator: 6, denominator: 8));
+        metronome.setTimeSignature(const TimeSignature(numerator: 6, denominator: 8));
         metronome.start();
         await Future<void>.delayed(Duration.zero);
 
@@ -1217,7 +1216,7 @@ void main() {
         final container = createContainer();
 
         final metronome = container.read(metronomeProvider.notifier);
-        metronome.setTimeSignature(TimeSignature(numerator: 3, denominator: 4));
+        metronome.setTimeSignature(const TimeSignature(numerator: 3, denominator: 4));
         metronome.updateAccentPatternFromTimeSignature();
 
         final state = container.read(metronomeProvider);
@@ -1243,7 +1242,7 @@ void main() {
         final metronome = container.read(metronomeProvider.notifier);
         metronome.start();
 
-        expect(() => metronome.dispose(), returnsNormally);
+        expect(metronome.dispose, returnsNormally);
       });
 
       test('dispose can be called multiple times', () {
@@ -1251,8 +1250,8 @@ void main() {
 
         final metronome = container.read(metronomeProvider.notifier);
 
-        expect(() => metronome.dispose(), returnsNormally);
-        expect(() => metronome.dispose(), returnsNormally);
+        expect(metronome.dispose, returnsNormally);
+        expect(metronome.dispose, returnsNormally);
       });
 
       test('ProviderContainer dispose cleans up resources', () {
@@ -1260,7 +1259,7 @@ void main() {
 
         localContainer.read(metronomeProvider);
 
-        expect(() => localContainer.dispose(), returnsNormally);
+        expect(localContainer.dispose, returnsNormally);
       });
     });
 
@@ -1280,8 +1279,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         final metronome = container.read(metronomeProvider.notifier);

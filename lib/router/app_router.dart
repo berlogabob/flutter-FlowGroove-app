@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../models/band.dart';
 import '../models/setlist.dart';
 import '../models/song.dart';
+import '../models/tuner_launch_context.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/bands/band_about_screen.dart';
@@ -28,7 +29,6 @@ import '../screens/songs/models/song_form_data.dart';
 import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
-import '../models/tuner_launch_context.dart';
 import '../widgets/desktop_shell.dart';
 
 /// Minimal auth surface needed by the app router.

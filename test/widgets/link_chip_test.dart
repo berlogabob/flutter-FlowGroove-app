@@ -1,13 +1,14 @@
+import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/widgets/link_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/link_chip.dart';
-import 'package:flowgroove/models/link.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('LinkChip', () {
     testWidgets('renders link chip with type label', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(
         type: Link.typeSpotify,
@@ -20,7 +21,7 @@ void main() {
     });
 
     testWidgets('renders link chip with custom title', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(
         type: Link.typeSpotify,
@@ -34,7 +35,7 @@ void main() {
     });
 
     testWidgets('renders Spotify icon for Spotify link', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(
         type: Link.typeSpotify,
@@ -47,7 +48,7 @@ void main() {
     });
 
     testWidgets('renders video icon for YouTube link', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(
         type: Link.typeYoutubeOriginal,
@@ -60,7 +61,7 @@ void main() {
     });
 
     testWidgets('renders video icon for YouTube cover link', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(
         type: Link.typeYoutubeCover,
@@ -73,7 +74,7 @@ void main() {
     });
 
     testWidgets('renders description icon for tabs link', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(type: Link.typeTabs, url: 'https://example.com/tabs');
 
@@ -83,7 +84,7 @@ void main() {
     });
 
     testWidgets('renders music icon for drums link', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(type: Link.typeDrums, url: 'https://example.com/drums');
 
@@ -93,7 +94,7 @@ void main() {
     });
 
     testWidgets('renders music icon for chords link', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(
         type: Link.typeChords,
@@ -106,7 +107,7 @@ void main() {
     });
 
     testWidgets('renders link icon for unknown type', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(type: 'unknown_type', url: 'https://example.com');
 
@@ -116,7 +117,7 @@ void main() {
     });
 
     testWidgets('renders delete icon when showDelete is true', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(
         type: Link.typeSpotify,
@@ -132,20 +133,20 @@ void main() {
     });
 
     testWidgets('does not render delete icon when showDelete is false', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(
         type: Link.typeSpotify,
         url: 'https://open.spotify.com/track/test',
       );
 
-      await pumpAppWidget(tester, LinkChip(link: link, showDelete: false));
+      await pumpAppWidget(tester, LinkChip(link: link));
 
       verifyNotFound(findIcon(Icons.close));
     });
 
     testWidgets('calls onDelete when delete icon is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasDeleted = false;
       final link = Link(
@@ -168,7 +169,7 @@ void main() {
       expect(wasDeleted, isTrue);
     });
 
-    testWidgets('calls onTap when chip is tapped', (WidgetTester tester) async {
+    testWidgets('calls onTap when chip is tapped', (tester) async {
       bool wasTapped = false;
       final link = Link(
         type: Link.typeSpotify,
@@ -186,7 +187,7 @@ void main() {
       expect(wasTapped, isTrue);
     });
 
-    testWidgets('renders as Chip widget', (WidgetTester tester) async {
+    testWidgets('renders as Chip widget', (tester) async {
       final link = Link(
         type: Link.typeSpotify,
         url: 'https://open.spotify.com/track/test',
@@ -198,7 +199,7 @@ void main() {
     });
 
     testWidgets('renders with selected background when isSelected is true', (
-      WidgetTester tester,
+      tester,
     ) async {
       final link = Link(
         type: Link.typeSpotify,
@@ -216,13 +217,13 @@ void main() {
   });
 
   group('LinkChipRow', () {
-    testWidgets('renders empty when no links', (WidgetTester tester) async {
+    testWidgets('renders empty when no links', (tester) async {
       await pumpAppWidget(tester, const LinkChipRow(links: []));
 
       expect(find.byType(Wrap), findsNothing);
     });
 
-    testWidgets('renders multiple link chips', (WidgetTester tester) async {
+    testWidgets('renders multiple link chips', (tester) async {
       final links = [
         Link(type: Link.typeSpotify, url: 'https://spotify.com/1'),
         Link(type: Link.typeYoutubeOriginal, url: 'https://youtube.com/1'),
@@ -236,7 +237,7 @@ void main() {
       expect(find.text('tabs'), findsOneWidget);
     });
 
-    testWidgets('renders as Wrap widget', (WidgetTester tester) async {
+    testWidgets('renders as Wrap widget', (tester) async {
       final links = [
         Link(type: Link.typeSpotify, url: 'https://spotify.com/1'),
       ];
@@ -246,7 +247,7 @@ void main() {
       expect(find.byType(Wrap), findsOneWidget);
     });
 
-    testWidgets('calls onTap for individual link', (WidgetTester tester) async {
+    testWidgets('calls onTap for individual link', (tester) async {
       Link? tappedLink;
       final links = [
         Link(type: Link.typeSpotify, url: 'https://spotify.com/1'),
@@ -265,7 +266,7 @@ void main() {
     });
 
     testWidgets('calls onDelete for individual link', (
-      WidgetTester tester,
+      tester,
     ) async {
       Link? deletedLink;
       final links = [

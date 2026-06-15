@@ -89,12 +89,6 @@ class MusicBrainzService {
 }
 
 class MusicBrainzRecording {
-  final String? id;
-  final String? title;
-  final String? artist;
-  final String? release;
-  final int? durationMs; // in milliseconds
-  final int? bpm;
 
   MusicBrainzRecording({
     this.id,
@@ -149,6 +143,12 @@ class MusicBrainzRecording {
       bpm: calculatedBpm,
     );
   }
+  final String? id;
+  final String? title;
+  final String? artist;
+  final String? release;
+  final int? durationMs; // in milliseconds
+  final int? bpm;
 
   String get displayInfo {
     final parts = <String>[];

@@ -47,7 +47,7 @@ void main() async {
       // Check members array
       final members = bandData['members'] as List<dynamic>? ?? [];
       print('Members: ${members.length}');
-      for (var member in members) {
+      for (final member in members) {
         print(
           '  - ${member['displayName'] ?? member['uid']} (${member['role']})',
         );
@@ -131,7 +131,7 @@ void main() async {
 
       if (issues.isNotEmpty) {
         print('⚠️  DATA ISSUES FOUND:');
-        for (var issue in issues) {
+        for (final issue in issues) {
           print('   - $issue');
         }
       } else {

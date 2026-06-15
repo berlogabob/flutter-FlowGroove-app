@@ -11,13 +11,10 @@ import '../../services/api/spotify_proxy_service.dart';
 
 /// BPM fetch result with source tracking.
 class BpmResult {
-  final int? bpm;
-  final BpmSource source;
-  final String? error;
 
   const BpmResult({
-    this.bpm,
     required this.source,
+    this.bpm,
     this.error,
   });
 
@@ -29,6 +26,9 @@ class BpmResult {
   const BpmResult.error(this.error)
       : bpm = null,
         source = BpmSource.error;
+  final int? bpm;
+  final BpmSource source;
+  final String? error;
 }
 
 /// Source of the BPM data.
@@ -46,7 +46,6 @@ class BpmStateNotifier extends Notifier<BpmResult> {
     // Initialized via constructor parameter
     if (spotifyId.isEmpty) {
       return const BpmResult(
-        bpm: null,
         source: BpmSource.notAvailable,
       );
     }
@@ -60,8 +59,8 @@ class BpmStateNotifier extends Notifier<BpmResult> {
     if (spotifyId.isEmpty) return;
 
     final prefs = await _prefs;
-    final cachedBpm = prefs.getInt('${_cacheKeyPrefix}$spotifyId');
-    final cachedAt = prefs.getInt('${_timestampKeyPrefix}$spotifyId');
+    final cachedBpm = prefs.getInt('$_cacheKeyPrefix$spotifyId');
+    final cachedAt = prefs.getInt('$_timestampKeyPrefix$spotifyId');
 
     if (cachedBpm != null && cachedAt != null) {
       final age = DateTime.now().millisecondsSinceEpoch - cachedAt;
@@ -82,7 +81,6 @@ class BpmStateNotifier extends Notifier<BpmResult> {
   Future<void> fetchBpm() async {
     if (spotifyId.isEmpty) {
       state = const BpmResult(
-        bpm: null,
         source: BpmSource.notAvailable,
       );
       return;
@@ -95,9 +93,9 @@ class BpmStateNotifier extends Notifier<BpmResult> {
 
       if (bpm != null) {
         final prefs = await _prefs;
-        await prefs.setInt('${_cacheKeyPrefix}$spotifyId', bpm);
+        await prefs.setInt('$_cacheKeyPrefix$spotifyId', bpm);
         await prefs.setInt(
-          '${_timestampKeyPrefix}$spotifyId',
+          '$_timestampKeyPrefix$spotifyId',
           DateTime.now().millisecondsSinceEpoch,
         );
 
@@ -107,7 +105,6 @@ class BpmStateNotifier extends Notifier<BpmResult> {
         );
       } else {
         state = const BpmResult(
-          bpm: null,
           source: BpmSource.notAvailable,
         );
       }
@@ -131,7 +128,7 @@ NotifierProvider<BpmStateNotifier, BpmResult> bpmProviderFor(
     () {
       final notifier = BpmStateNotifier()..spotifyId = spotifyId;
       // Trigger async init after build
-      Future.microtask(() => notifier.initAndFetch());
+      Future.microtask(notifier.initAndFetch);
       return notifier;
     },
   );

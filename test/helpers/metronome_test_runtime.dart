@@ -1,8 +1,8 @@
-import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/providers/metronome_runtime_providers.dart';
 import 'package:flowgroove/providers/wakelock_provider.dart';
 import 'package:flowgroove/services/wakelock_controller.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 
 class FakeMetronomeAudioClient implements MetronomeAudioClient {
   int initializeCalls = 0;

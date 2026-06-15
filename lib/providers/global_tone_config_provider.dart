@@ -4,10 +4,11 @@
 /// Loaded once at startup, then available throughout app lifetime.
 library;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:typed_data';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/metronome_tone_config.dart';
 import '../services/audio/metronome_sample_generator.dart';
@@ -67,22 +68,16 @@ class ToneConfigNotifier extends Notifier<MetronomeToneConfig> {
     switch (frequencyType) {
       case 'mainRegular':
         newConfig = state.copyWith(mainRegularFreq: value);
-        break;
       case 'mainAccent':
         newConfig = state.copyWith(mainAccentFreq: value);
-        break;
       case 'subRegular':
         newConfig = state.copyWith(subRegularFreq: value);
-        break;
       case 'subAccent':
         newConfig = state.copyWith(subAccentFreq: value);
-        break;
       case 'dividerRegular':
         newConfig = state.copyWith(dividerRegularFreq: value);
-        break;
       case 'dividerAccent':
         newConfig = state.copyWith(dividerAccentFreq: value);
-        break;
     }
 
     if (newConfig != null) {

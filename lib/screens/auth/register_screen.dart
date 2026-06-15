@@ -1,7 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import '../../providers/auth/auth_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 
@@ -50,17 +51,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       switch (e.code) {
         case 'email-already-in-use':
           message = 'This email is already registered';
-          break;
         case 'invalid-email':
           message = 'Invalid email address';
-          break;
         case 'weak-password':
           message = 'Password is too weak';
-          break;
         case 'operation-not-allowed':
           message =
               'Email/password auth is not enabled. Go to Firebase Console → Authentication → Sign-in method → enable Email/Password';
-          break;
         default:
           message = 'Error: ${e.code} - ${e.message}';
       }

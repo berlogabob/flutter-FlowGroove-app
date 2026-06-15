@@ -12,7 +12,7 @@ import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/error_banner.dart';
+import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/standard_screen_scaffold.dart';
@@ -66,7 +66,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     }
 
     var adapters = setlistsToUse
-        .map((setlist) => SetlistItemAdapter(setlist))
+        .map(SetlistItemAdapter.new)
         .toList();
 
     if (_searchQuery.trim().isNotEmpty) {
@@ -83,17 +83,14 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
           adapters.sort(
             (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
           );
-          break;
         case SortOption.dateAdded:
           adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          break;
         case SortOption.dateModified:
           adapters.sort(
             (a, b) => (b.updatedAt ?? DateTime(0)).compareTo(
               a.updatedAt ?? DateTime(0),
             ),
           );
-          break;
         case SortOption.manual:
           break;
       }
@@ -171,8 +168,8 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
       menuItems: canEdit
           ? [
               PopupMenuItem<void>(
-                child: const Text('Create Band Setlist'),
                 onTap: _handleCreate,
+                child: const Text('Create Band Setlist'),
               ),
             ]
           : null,
@@ -189,12 +186,14 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
 
   Widget _buildBody(AsyncValue<List<Setlist>> setlistsAsync) {
     return setlistsAsync.when(
-      data: (setlists) => _buildContent(setlists),
+      data: _buildContent,
       loading: () => const LoadingIndicator(),
       error: (e, _) => Center(
-        child: ErrorBanner.card(
+        child: ErrorBanner(
           message: e.toString(),
           onRetry: () => ref.invalidate(bandSetlistsProvider(widget.band.id)),
+          showRetry: true,
+          style: ErrorBannerStyle.card,
         ),
       ),
     );
@@ -253,11 +252,9 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
       onDelete: _canDelete
           ? (index) => _deleteSetlist(adapters[index].setlist)
           : null,
-      onTap: null,
       onEdit: _canEdit
           ? (index) => _editSetlist(adapters[index].setlist)
           : null,
-      showCompact: false,
       additionalActionsBuilder: (index) {
         final setlist = adapters[index].setlist;
         return [

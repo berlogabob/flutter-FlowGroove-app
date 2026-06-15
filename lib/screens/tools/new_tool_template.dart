@@ -46,7 +46,6 @@ class _NewToolScreenState extends ConsumerState<NewToolScreen> {
       mainWidget: _buildMainContent(),
       secondaryWidget: _buildSecondaryControls(),
       bottomWidget: _buildTransportBar(),
-      showOfflineIndicator: true,
     );
   }
 
@@ -60,17 +59,17 @@ class _NewToolScreenState extends ConsumerState<NewToolScreen> {
   List<PopupMenuEntry<dynamic>> _buildMenuItems() {
     return [
       PopupMenuItem<dynamic>(
-        child: const Text('Save Preset'),
         onTap: _savePreset,
+        child: const Text('Save Preset'),
       ),
       PopupMenuItem<dynamic>(
-        child: const Text('Load Preset'),
         onTap: _loadPreset,
+        child: const Text('Load Preset'),
       ),
       const PopupMenuDivider(),
       PopupMenuItem<dynamic>(
-        child: const Text('Reset to Defaults'),
         onTap: _resetToDefaults,
+        child: const Text('Reset to Defaults'),
       ),
     ];
   }
@@ -113,8 +112,6 @@ class _NewToolScreenState extends ConsumerState<NewToolScreen> {
     return ToolTransportBar(
       isPlaying: _isPlaying,
       onPlayPause: _togglePlay,
-      showNavigation: false,
-      showSettings: false,
     );
   }
 

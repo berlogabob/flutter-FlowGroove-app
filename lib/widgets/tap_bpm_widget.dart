@@ -36,7 +36,7 @@ class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
       duration: MonoPulseAnimation.durationShort,
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
+    _pulseAnimation = Tween<double>(begin: 1, end: 1.08).animate(
       CurvedAnimation(
         parent: _pulseController,
         curve: MonoPulseAnimation.curveCustom,
@@ -204,10 +204,6 @@ class _TapBPMWidgetState extends ConsumerState<TapBPMWidget>
 }
 
 class _ActionButton extends StatefulWidget {
-  final String label;
-  final IconData icon;
-  final bool isPrimary;
-  final VoidCallback onTap;
 
   const _ActionButton({
     required this.label,
@@ -215,6 +211,10 @@ class _ActionButton extends StatefulWidget {
     required this.isPrimary,
     required this.onTap,
   });
+  final String label;
+  final IconData icon;
+  final bool isPrimary;
+  final VoidCallback onTap;
 
   @override
   State<_ActionButton> createState() => _ActionButtonState();
@@ -260,7 +260,6 @@ class _ActionButtonState extends State<_ActionButton> {
                         ? MonoPulseColors.accentOrange
                         : MonoPulseColors.accentOrange)
                   : MonoPulseColors.borderDefault,
-              width: 1,
             ),
           ),
           child: Row(

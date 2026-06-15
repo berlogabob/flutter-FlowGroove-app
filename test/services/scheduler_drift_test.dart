@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/services/audio/wall_clock_scheduler.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('WallClockScheduler drift test', () {
@@ -39,7 +39,7 @@ void main() {
         scheduler.stop();
 
         // Calculate cumulative drift as sum of absolute per-tick drifts
-        var cumulativeDriftMs = drifts.fold<int>(0, (sum, d) => sum + d.abs());
+        final cumulativeDriftMs = drifts.fold<int>(0, (sum, d) => sum + d.abs());
         final avgDrift = cumulativeDriftMs / drifts.length;
         final maxDrift = drifts.map((d) => d.abs()).reduce((a, b) => a > b ? a : b);
         final finalDrift = drifts.last.abs();
@@ -56,7 +56,7 @@ void main() {
         // Use final tick drift as the measure of scheduler accuracy.
         expect(finalDrift, lessThan(maxCumulativeDriftMs));
       },
-      timeout: Timeout(const Duration(seconds: 40)),
+      timeout: const Timeout(Duration(seconds: 40)),
     );
   });
 }

@@ -7,9 +7,9 @@ import '../../theme/mono_pulse_theme.dart';
 
 /// Forgot Password Screen - Firebase password reset
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
-  final String? initialEmail;
   
   const ForgotPasswordScreen({super.key, this.initialEmail});
+  final String? initialEmail;
 
   @override
   ConsumerState<ForgotPasswordScreen> createState() =>
@@ -111,7 +111,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Enter your email address and we\'ll send you instructions to reset your password.',
+                "Enter your email address and we'll send you instructions to reset your password.",
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: MonoPulseColors.textSecondary,
                 ),

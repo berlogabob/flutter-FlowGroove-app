@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/data/data_providers.dart';
-import '../../providers/auth/auth_provider.dart';
-import '../../services/secure_storage_service.dart';
-import '../../services/analytics_service.dart';
+
 import '../../models/band.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../providers/data/data_providers.dart';
+import '../../services/analytics_service.dart';
+import '../../services/secure_storage_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
 
 class JoinBandScreen extends ConsumerStatefulWidget {
-  final String? inviteCode;
 
   const JoinBandScreen({super.key, this.inviteCode});
+  final String? inviteCode;
 
   @override
   ConsumerState<JoinBandScreen> createState() => _JoinBandScreenState();
@@ -217,7 +218,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                       widget.inviteCode != null
                           ? 'Loading band info...'
                           : 'Enter invite code',
-                      style: TextStyle(color: MonoPulseColors.textTertiary),
+                      style: const TextStyle(color: MonoPulseColors.textTertiary),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -280,7 +281,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
 
           // Loading overlay
           if (_isLoading)
-            Container(
+            ColoredBox(
               color: MonoPulseColors.black.withValues(alpha: 0.3),
               child: const Center(child: CircularProgressIndicator()),
             ),

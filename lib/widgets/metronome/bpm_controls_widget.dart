@@ -94,7 +94,6 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                   borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
                   border: Border.all(
                     color: MonoPulseColors.borderSubtle,
-                    width: 1,
                   ),
                 ),
                 child: const Icon(
@@ -208,7 +207,6 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                             ),
                             borderSide: const BorderSide(
                               color: MonoPulseColors.borderDefault,
-                              width: 1,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
@@ -217,7 +215,6 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                             ),
                             borderSide: const BorderSide(
                               color: MonoPulseColors.borderDefault,
-                              width: 1,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
@@ -279,7 +276,6 @@ class _BpmControlsWidgetState extends ConsumerState<BpmControlsWidget> {
                   borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
                   border: Border.all(
                     color: MonoPulseColors.borderSubtle,
-                    width: 1,
                   ),
                 ),
                 child: const Icon(

@@ -2,6 +2,7 @@
 ///
 /// Provides validation for 2D beat mode grids to ensure data integrity
 /// and prevent corrupted state.
+library;
 
 import '../../models/beat_mode.dart';
 
@@ -26,10 +27,6 @@ void validateBeatModesGrid({
     );
 
     for (int j = 0; j < beatModes[i].length; j++) {
-      assert(
-        beatModes[i][j] != null,
-        'beatModes[$i][$j] cannot be null',
-      );
       assert(
         BeatMode.values.contains(beatModes[i][j]),
         'beatModes[$i][$j] contains invalid BeatMode: ${beatModes[i][j]}',
@@ -105,7 +102,7 @@ Map<String, String> beatModesToJson(List<List<BeatMode>> beatModes) {
 ///
 /// Supports both sparse map format and legacy list format.
 List<List<BeatMode>> beatModesFromJson(
-  dynamic json, {
+  json, {
   required int accentBeats,
   required int regularBeats,
   BeatMode defaultMode = BeatMode.normal,

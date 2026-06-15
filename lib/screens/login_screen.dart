@@ -7,9 +7,9 @@ import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/error_banner.dart';
+import 'auth/forgot_password_screen.dart';
 import 'songs/models/inputs/email_input.dart';
 import 'songs/models/inputs/password_input.dart';
-import 'auth/forgot_password_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -181,7 +181,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: 32),
               if (_currentError != null) ...[
-                ErrorBanner.banner(
+                ErrorBanner(
                   message:
                       _currentError?.message ?? 'An unexpected error occurred',
                   onRetry: _clearError,

@@ -31,9 +31,9 @@ class MusicBrainzGenericError extends MusicBrainzError {
 /// Rate limit exceeded (429)
 class RateLimitError extends MusicBrainzError {
   const RateLimitError({
-    String message = 'MusicBrainz rate limit exceeded',
+    super.message = 'MusicBrainz rate limit exceeded',
     this.retryAfter,
-  }) : super(message: message);
+  });
 
   final Duration? retryAfter;
 }
@@ -41,16 +41,16 @@ class RateLimitError extends MusicBrainzError {
 /// Resource not found (404)
 class NotFoundError extends MusicBrainzError {
   const NotFoundError({
-    String message = 'Resource not found',
-  }) : super(message: message);
+    super.message = 'Resource not found',
+  });
 }
 
 /// Server error (5xx)
 class ServerError extends MusicBrainzError {
   const ServerError({
     this.statusCode,
-    String message = 'MusicBrainz server error',
-  }) : super(message: message);
+    super.message = 'MusicBrainz server error',
+  });
 
   final int? statusCode;
 }
@@ -58,21 +58,21 @@ class ServerError extends MusicBrainzError {
 /// Network error
 class NetworkError extends MusicBrainzError {
   const NetworkError({
-    String message = 'Network error occurred',
-    Object? originalError,
-  }) : super(message: message, originalError: originalError);
+    super.message = 'Network error occurred',
+    super.originalError,
+  });
 }
 
 /// Authentication error (401/403)
 class AuthError extends MusicBrainzError {
   const AuthError({
-    String message = 'Authentication failed',
-  }) : super(message: message);
+    super.message = 'Authentication failed',
+  });
 }
 
 /// Parse error (invalid response)
 class ParseError extends MusicBrainzError {
   const ParseError({
-    String message = 'Failed to parse MusicBrainz response',
-  }) : super(message: message);
+    super.message = 'Failed to parse MusicBrainz response',
+  });
 }

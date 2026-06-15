@@ -1,16 +1,16 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http;
-import 'package:mockito/annotations.dart';
-import 'package:hive/hive.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:printing/printing.dart';
-import 'package:flowgroove/models/user.dart';
-import 'package:flowgroove/models/song.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/setlist.dart';
-import 'package:flowgroove/services/firestore_service.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/services/cache_service.dart';
+import 'package:flowgroove/services/firestore_service.dart';
+import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
+import 'package:mockito/annotations.dart';
+import 'package:printing/printing.dart';
 
 @GenerateMocks([
   FirebaseAuth,
@@ -44,7 +44,7 @@ class MockDataHelper {
       displayName: displayName,
       email: email,
       bandIds: bandIds ?? [],
-      createdAt: DateTime(2024, 1, 1),
+      createdAt: DateTime(2024),
     );
   }
 
@@ -73,8 +73,8 @@ class MockDataHelper {
       notes: notes,
       tags: tags ?? [],
       spotifyUrl: spotifyUrl,
-      createdAt: DateTime(2024, 1, 1),
-      updatedAt: DateTime(2024, 1, 1),
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
     );
   }
 
@@ -93,7 +93,7 @@ class MockDataHelper {
       members: members ?? [],
       description: description,
       inviteCode: inviteCode,
-      createdAt: DateTime(2024, 1, 1),
+      createdAt: DateTime(2024),
     );
   }
 
@@ -112,8 +112,8 @@ class MockDataHelper {
       songIds: songIds ?? [],
       description: description,
       eventDateTime: eventDateTime,
-      createdAt: DateTime(2024, 1, 1),
-      updatedAt: DateTime(2024, 1, 1),
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
     );
   }
 }

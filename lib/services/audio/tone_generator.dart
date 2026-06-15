@@ -19,7 +19,6 @@ class ToneGenerator {
     await SoLoud.instance.init(
       bufferSize: 512,
       channels: Channels.mono,
-      sampleRate: 44100,
     );
   }
 
@@ -57,7 +56,7 @@ class ToneGenerator {
       return;
     }
 
-    final handle = await SoLoud.instance.play(source, volume: 0, looping: true);
+    final handle = SoLoud.instance.play(source, volume: 0, looping: true);
     if (operationId != _operationId) {
       await SoLoud.instance.stop(handle);
       return;

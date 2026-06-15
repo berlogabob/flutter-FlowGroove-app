@@ -1,15 +1,14 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:flowgroove/providers/auth/auth_provider.dart';
-
+import '../helpers/mocks.mocks.dart';
 import '../helpers/routed_test_harness.dart';
 import '../helpers/test_helpers.dart';
-import '../helpers/mocks.mocks.dart';
 
 void main() {
   group('LoginScreen', () {

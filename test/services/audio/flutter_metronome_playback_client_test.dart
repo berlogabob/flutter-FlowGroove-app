@@ -1,8 +1,6 @@
-import 'dart:async';
-
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/providers/metronome_runtime_providers.dart';
 import 'package:flowgroove/models/beat_mode.dart';
+import 'package:flowgroove/providers/metronome_runtime_providers.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 class SilentAudioClient implements MetronomeAudioClient {
   @override
@@ -59,8 +57,8 @@ void main() {
 
     /// Creates a config with a very short interval for fast test execution.
     /// 600 BPM with 1 regular beat = 100ms intervals.
-    MetronomePlaybackConfig _fastConfig() {
-      return MetronomePlaybackConfig(
+    MetronomePlaybackConfig fastConfig() {
+      return const MetronomePlaybackConfig(
         bpm: 600,
         accentBeats: 4,
         regularBeats: 1,
@@ -73,8 +71,8 @@ void main() {
         waveType: 'sine',
         volume: 0.5,
         accentEnabled: true,
-        accentFrequency: 1600.0,
-        beatFrequency: 800.0,
+        accentFrequency: 1600,
+        beatFrequency: 800,
         hapticsEnabled: false,
       );
     }
@@ -84,7 +82,7 @@ void main() {
       () async {
         final tickIndices = <int>[];
         var throwCount = 0;
-        final config = _fastConfig();
+        final config = fastConfig();
 
         await client.start(
           config,
@@ -120,7 +118,7 @@ void main() {
       'dispose stops the scheduler and cleans up',
       () async {
         final tickIndices = <int>[];
-        final config = _fastConfig();
+        final config = fastConfig();
 
         await client.start(
           config,

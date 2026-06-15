@@ -2,7 +2,7 @@ import 'dart:async';
 
 class WallClockScheduler {
   Timer? _timer;
-  Stopwatch _stopwatch = Stopwatch();
+  final Stopwatch _stopwatch = Stopwatch();
   Duration _interval = Duration.zero;
   void Function()? _callback;
   int _tickCount = 0;

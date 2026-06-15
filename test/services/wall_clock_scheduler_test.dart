@@ -1,12 +1,12 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/services/audio/wall_clock_scheduler.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('WallClockScheduler', () {
     test('fires callback at approximately correct intervals', () async {
       final scheduler = WallClockScheduler();
       final firedTimes = <int>[];
-      final interval = Duration(milliseconds: 100);
+      const interval = Duration(milliseconds: 100);
 
       scheduler.start(interval, () {
         firedTimes.add(scheduler.elapsedMilliseconds);

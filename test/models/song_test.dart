@@ -1,11 +1,11 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Song Model', () {
     // Test data
-    final testDate = DateTime(2024, 1, 15, 10, 30, 0);
+    final testDate = DateTime(2024, 1, 15, 10, 30);
     final testLinks = [
       Link(
         type: Link.typeYoutubeOriginal,
@@ -520,14 +520,14 @@ void main() {
           id: 'test-id-17',
           title: 'Song with "quotes" and \'apostrophes\'',
           artist: 'Artist & Band ft. Someone',
-          notes: 'Notes with special chars: @#\$%^&*()',
+          notes: r'Notes with special chars: @#$%^&*()',
           createdAt: testDate,
           updatedAt: testDate,
         );
 
         expect(song.title, contains('quotes'));
         expect(song.artist, contains('&'));
-        expect(song.notes, contains('@#\$%^&*()'));
+        expect(song.notes, contains(r'@#$%^&*()'));
       });
 
       test('handles unicode characters', () {

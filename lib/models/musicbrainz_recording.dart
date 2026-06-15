@@ -1,5 +1,5 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'musicbrainz_recording.g.dart';
 
@@ -12,12 +12,12 @@ class MusicBrainzArtistCredit extends Equatable {
     this.joinPhrase,
   });
 
+  factory MusicBrainzArtistCredit.fromJson(Map<String, dynamic> json) =>
+      _$MusicBrainzArtistCreditFromJson(json);
+
   final MusicBrainzArtist artist;
   final String? name;
   final String? joinPhrase;
-
-  factory MusicBrainzArtistCredit.fromJson(Map<String, dynamic> json) =>
-      _$MusicBrainzArtistCreditFromJson(json);
 
   Map<String, dynamic> toJson() => _$MusicBrainzArtistCreditToJson(this);
 
@@ -37,13 +37,13 @@ class MusicBrainzArtist extends Equatable {
     this.sortName,
   });
 
+  factory MusicBrainzArtist.fromJson(Map<String, dynamic> json) =>
+      _$MusicBrainzArtistFromJson(json);
+
   final String id;
   final String name;
   final String? disambiguation;
   final String? sortName;
-
-  factory MusicBrainzArtist.fromJson(Map<String, dynamic> json) =>
-      _$MusicBrainzArtistFromJson(json);
 
   Map<String, dynamic> toJson() => _$MusicBrainzArtistToJson(this);
 
@@ -69,14 +69,14 @@ class MusicBrainzRelease extends Equatable {
     this.media,
   });
 
+  factory MusicBrainzRelease.fromJson(Map<String, dynamic> json) =>
+      _$MusicBrainzReleaseFromJson(json);
+
   final String id;
   final String title;
   final String? date;
   final String? country;
   final List<String>? media;
-
-  factory MusicBrainzRelease.fromJson(Map<String, dynamic> json) =>
-      _$MusicBrainzReleaseFromJson(json);
 
   Map<String, dynamic> toJson() => _$MusicBrainzReleaseToJson(this);
 
@@ -109,6 +109,9 @@ class MusicBrainzRecording extends Equatable {
     this.aliases = const [],
   });
 
+  factory MusicBrainzRecording.fromJson(Map<String, dynamic> json) =>
+      _$MusicBrainzRecordingFromJson(json);
+
   /// MusicBrainz ID (UUID)
   final String id;
 
@@ -137,9 +140,6 @@ class MusicBrainzRecording extends Equatable {
   /// Aliases (alternative titles)
   @JsonKey(defaultValue: [])
   final List<MusicBrainzAlias> aliases;
-
-  factory MusicBrainzRecording.fromJson(Map<String, dynamic> json) =>
-      _$MusicBrainzRecordingFromJson(json);
 
   Map<String, dynamic> toJson() => _$MusicBrainzRecordingToJson(this);
 
@@ -207,12 +207,12 @@ class MusicBrainzAlias extends Equatable {
     this.primary,
   });
 
+  factory MusicBrainzAlias.fromJson(Map<String, dynamic> json) =>
+      _$MusicBrainzAliasFromJson(json);
+
   final String name;
   final String? locale;
   final bool? primary;
-
-  factory MusicBrainzAlias.fromJson(Map<String, dynamic> json) =>
-      _$MusicBrainzAliasFromJson(json);
 
   Map<String, dynamic> toJson() => _$MusicBrainzAliasToJson(this);
 

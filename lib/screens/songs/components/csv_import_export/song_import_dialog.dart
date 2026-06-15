@@ -87,7 +87,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
             children: [
               const Icon(Icons.table_view_outlined, size: 56),
               const SizedBox(height: 20),
-              Text(
+              const Text(
                 'Choose a CSV file or paste CSV data. The complete file will be compared with your library before anything is saved.',
                 textAlign: TextAlign.center,
                 style: MonoPulseTypography.bodyLarge,

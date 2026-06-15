@@ -1,9 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/models/metronome_state.dart';
 import 'package:flowgroove/models/metronome_tempo_range.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('MetronomeState - Integration Tests', () {
@@ -15,8 +15,8 @@ void main() {
           artist: 'Test Artist',
           originalBPM: 100,
           ourBPM: 120,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
           accentBeats: 6,
           regularBeats: 2,
         );
@@ -47,8 +47,8 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           originalBPM: 100,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         var state = MetronomeState.initial();
@@ -68,8 +68,8 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           ourBPM: 500,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         var state = MetronomeState.initial();
@@ -91,8 +91,8 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           ourBPM: 100,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         var state = MetronomeState.initial().copyWith(
@@ -152,8 +152,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         var state = MetronomeState.initial();
@@ -171,8 +171,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         var state = MetronomeState.initial().copyWith(
@@ -197,8 +197,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         var state = MetronomeState.initial().copyWith(
@@ -225,8 +225,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         var state = MetronomeState.initial().copyWith(
@@ -252,8 +252,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         var state = MetronomeState.initial().copyWith(
@@ -280,8 +280,8 @@ void main() {
           id: 'song-1',
           title: 'Test Song',
           artist: 'Test Artist',
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         // Create state with loaded song
@@ -305,9 +305,6 @@ void main() {
           accentBeats: stateWithSong.accentBeats,
           regularBeats: stateWithSong.regularBeats,
           beatModes: stateWithSong.beatModes,
-          loadedSong: null,
-          loadedSetlist: null,
-          currentSetlistIndex: 0,
         );
 
         expect(clearedState.loadedSong, isNull);
@@ -319,8 +316,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         // Create state with loaded setlist
@@ -344,9 +341,6 @@ void main() {
           accentBeats: stateWithSetlist.accentBeats,
           regularBeats: stateWithSetlist.regularBeats,
           beatModes: stateWithSetlist.beatModes,
-          loadedSong: null,
-          loadedSetlist: null,
-          currentSetlistIndex: 0,
         );
 
         expect(clearedState.loadedSetlist, isNull);
@@ -358,8 +352,8 @@ void main() {
           bandId: 'band-1',
           name: 'Test Setlist',
           songIds: ['song-1', 'song-2', 'song-3'],
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
         );
 
         // Create state with setlist at index 2
@@ -384,9 +378,6 @@ void main() {
           accentBeats: state.accentBeats,
           regularBeats: state.regularBeats,
           beatModes: state.beatModes,
-          loadedSong: null,
-          loadedSetlist: null,
-          currentSetlistIndex: 0,
         );
 
         expect(clearedState.currentSetlistIndex, 0);
@@ -398,7 +389,7 @@ void main() {
         var state = MetronomeState.initial();
 
         // Simulate setAccentBeats
-        final count = 6;
+        const count = 6;
         state = state.copyWith(accentBeats: count.clamp(1, 12));
 
         expect(state.accentBeats, 6);
@@ -407,7 +398,7 @@ void main() {
       test('clamps accentBeats to maximum', () {
         var state = MetronomeState.initial();
 
-        final count = 20; // Too high
+        const count = 20; // Too high
         state = state.copyWith(accentBeats: count.clamp(1, 12));
 
         expect(state.accentBeats, 12);
@@ -416,7 +407,7 @@ void main() {
       test('clamps accentBeats to minimum', () {
         var state = MetronomeState.initial();
 
-        final count = 0; // Too low
+        const count = 0; // Too low
         state = state.copyWith(accentBeats: count.clamp(1, 12));
 
         expect(state.accentBeats, 1);
@@ -425,7 +416,7 @@ void main() {
       test('sets regularBeats with clamping', () {
         var state = MetronomeState.initial();
 
-        final count = 4;
+        const count = 4;
         state = state.copyWith(regularBeats: count.clamp(1, 12));
 
         expect(state.regularBeats, 4);
@@ -438,13 +429,13 @@ void main() {
 
         // Simulate setBeatMode
         final newBeatModes = List<List<BeatMode>>.from(
-          state.beatModes.map((beat) => List<BeatMode>.from(beat)),
+          state.beatModes.map(List<BeatMode>.from),
         );
 
-        while (newBeatModes.length <= 0) {
+        while (newBeatModes.isEmpty) {
           newBeatModes.add([]);
         }
-        while (newBeatModes[0].length <= 0) {
+        while (newBeatModes[0].isEmpty) {
           newBeatModes[0].add(BeatMode.normal);
         }
         newBeatModes[0][0] = BeatMode.accent;
@@ -458,11 +449,11 @@ void main() {
       test('expands beatModes grid when needed', () {
         var state = MetronomeState.initial();
 
-        final beatIndex = 3;
-        final subdivisionIndex = 2;
+        const beatIndex = 3;
+        const subdivisionIndex = 2;
 
         final newBeatModes = List<List<BeatMode>>.from(
-          state.beatModes.map((beat) => List<BeatMode>.from(beat)),
+          state.beatModes.map(List<BeatMode>.from),
         );
 
         while (newBeatModes.length <= beatIndex) {
@@ -495,9 +486,8 @@ void main() {
           title: 'Test Song',
           artist: 'Test Artist',
           ourBPM: 100,
-          createdAt: DateTime(2024, 1, 1),
-          updatedAt: DateTime(2024, 1, 1),
-          accentBeats: 4,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
           regularBeats: 2,
           beatModes: originalBeatModes,
         );
@@ -517,11 +507,14 @@ void main() {
         state = state.copyWith(bpm: 140);
 
         final newBeatModes = List<List<BeatMode>>.from(
-          state.beatModes.map((beat) => List<BeatMode>.from(beat)),
+          state.beatModes.map(List<BeatMode>.from),
         );
-        while (newBeatModes.length <= 0) newBeatModes.add([]);
-        while (newBeatModes[0].length <= 0)
+        while (newBeatModes.isEmpty) {
+          newBeatModes.add([]);
+        }
+        while (newBeatModes[0].isEmpty) {
           newBeatModes[0].add(BeatMode.normal);
+        }
         newBeatModes[0][0] = BeatMode.silent;
         state = state.copyWith(beatModes: List.unmodifiable(newBeatModes));
 

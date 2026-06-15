@@ -3,22 +3,23 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../models/api_error.dart';
-import '../../providers/data/data_providers.dart';
+import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
-import '../../models/band.dart';
+import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/fab_variants.dart';
-import '../../widgets/unified_item/adapters/band_item_adapter.dart';
-import '../../widgets/unified_item/unified_item_list.dart';
-import '../../widgets/unified_item/unified_filter_sort_widget.dart';
-import '../../widgets/unified_item/unified_item_model.dart';
-import '../../widgets/empty_state.dart';
 import '../../widgets/confirmation_dialog.dart';
-import '../../widgets/error_banner.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
+import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/unified_item/adapters/band_item_adapter.dart';
+import '../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../widgets/unified_item/unified_item_list.dart';
+import '../../widgets/unified_item/unified_item_model.dart';
 
 /// Screen for displaying the user's bands with search, filter, sort,
 /// swipe-to-delete, and drag-and-drop reordering.
@@ -46,7 +47,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     }
 
     // Convert bands to adapters
-    var adapters = bandsToUse.map((band) => BandItemAdapter(band)).toList();
+    var adapters = bandsToUse.map(BandItemAdapter.new).toList();
 
     // Apply search filter
     if (_searchQuery.trim().isNotEmpty) {
@@ -64,14 +65,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           adapters.sort(
             (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
           );
-          break;
         case SortOption.dateAdded:
           adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          break;
         case SortOption.dateModified:
           // Band model doesn't have updatedAt, fallback to createdAt
           adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          break;
         case SortOption.manual:
           break; // Already handled above
       }
@@ -253,12 +251,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
-          child: ErrorBanner.card(
+          child: ErrorBanner(
             message: _currentError?.message ?? 'An unexpected error occurred',
             onRetry: () {
               _clearError();
               ref.invalidate(bandsProvider);
             },
+            showRetry: _currentError!.isNetwork,
+            style: ErrorBannerStyle.card,
           ),
         ),
       );
@@ -282,12 +282,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         if (_currentError != null && filteredBands.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-            child: ErrorBanner.inline(
+            child: ErrorBanner(
               message: _currentError?.message ?? 'An unexpected error occurred',
               onRetry: () {
                 _clearError();
                 ref.invalidate(bandsProvider);
               },
+              showRetry: _currentError!.isNetwork,
+              style: ErrorBannerStyle.inline,
             ),
           ),
         ],
@@ -338,7 +340,6 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       onDelete: _handleDelete,
       onEdit: _handleEdit,
       onTap: _handleTap,
-      showCompact: false,
       additionalActionsBuilder: (index) {
         if (index >= adapters.length) return [];
         final adapter = adapters[index];
@@ -361,10 +362,10 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 }
 
 class _InviteMemberDialog extends ConsumerStatefulWidget {
-  final Band band;
-  final String currentUserId;
 
   const _InviteMemberDialog({required this.band, required this.currentUserId});
+  final Band band;
+  final String currentUserId;
 
   @override
   ConsumerState<_InviteMemberDialog> createState() =>
@@ -392,7 +393,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
     ref.read(errorStateProvider.notifier).handleError(error);
   }
 
-  void _generateNewCode() async {
+  Future<void> _generateNewCode() async {
     setState(() {
       _isRegenerating = true;
       _currentError = null;
@@ -658,10 +659,10 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
 
 /// Action class for View Songs button
 class _ViewSongsAction implements UnifiedItemAction {
-  final Band band;
-  final void Function(Band) onNavigate;
 
   _ViewSongsAction({required this.band, required this.onNavigate});
+  final Band band;
+  final void Function(Band) onNavigate;
 
   @override
   Widget build(BuildContext context) {

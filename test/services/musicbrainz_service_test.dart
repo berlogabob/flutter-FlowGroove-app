@@ -3,11 +3,12 @@
 // Uses mock HTTP client to avoid real API calls
 
 import 'dart:convert';
+
+import 'package:flowgroove/models/api_error.dart';
+import 'package:flowgroove/services/api/musicbrainz_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:flowgroove/services/api/musicbrainz_service.dart';
-import 'package:flowgroove/models/api_error.dart';
 
 void main() {
   group('MusicBrainzService', () {
@@ -208,7 +209,6 @@ void main() {
         final recording = MusicBrainzRecording(
           title: 'Test Song',
           artist: 'Test Artist',
-          release: null,
           durationMs: 180000,
           bpm: 120,
         );
@@ -222,7 +222,6 @@ void main() {
           artist: 'Test Artist',
           release: 'Test Album',
           durationMs: 180000,
-          bpm: null,
         );
 
         expect(recording.displayInfo, equals('(Test Album)'));
@@ -232,9 +231,6 @@ void main() {
         final recording = MusicBrainzRecording(
           title: 'Test Song',
           artist: 'Test Artist',
-          release: null,
-          durationMs: null,
-          bpm: null,
         );
 
         expect(recording.displayInfo, equals(''));

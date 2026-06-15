@@ -1,6 +1,6 @@
+import 'package:flowgroove/models/section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/models/section.dart';
 
 void main() {
   group('Section', () {
@@ -62,7 +62,7 @@ void main() {
       final section = Section(
         id: '1',
         name: 'Verse',
-        colorValue: customColor.value,
+        colorValue: customColor.toARGB32(),
       );
 
       expect(section.color, equals(customColor));
@@ -80,7 +80,7 @@ void main() {
       final darkSection = Section(
         id: '1',
         name: 'Dark',
-        colorValue: const Color(0xFF000000).value,
+        colorValue: const Color(0xFF000000).toARGB32(),
       );
       expect(darkSection.contrastingTextColor.red, greaterThan(0.9));
 
@@ -88,7 +88,7 @@ void main() {
       final lightSection = Section(
         id: '2',
         name: 'Light',
-        colorValue: const Color(0xFFFFFFFF).value,
+        colorValue: const Color(0xFFFFFFFF).toARGB32(),
       );
       expect(lightSection.contrastingTextColor.red, lessThan(0.1));
     });

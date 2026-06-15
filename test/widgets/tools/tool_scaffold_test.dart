@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
+import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/offline_indicator.dart';
-import 'package:flowgroove/services/connectivity_service.dart';
+import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 const Size _testViewport = Size(1200, 800);
 
@@ -21,7 +21,7 @@ Future<void> _pumpToolScaffold(
       ],
       child: MaterialApp(
         home: MediaQuery(
-          data: MediaQueryData(size: _testViewport),
+          data: const MediaQueryData(size: _testViewport),
           child: child,
         ),
       ),
@@ -31,7 +31,7 @@ Future<void> _pumpToolScaffold(
 
 void main() {
   group('ToolScreenScaffold', () {
-    testWidgets('renders with title', (WidgetTester tester) async {
+    testWidgets('renders with title', (tester) async {
       await _pumpToolScaffold(
         tester,
         const ToolScreenScaffold(title: 'Metronome', mainWidget: SizedBox()),
@@ -40,14 +40,14 @@ void main() {
       expect(find.text('Metronome'), findsOneWidget);
     });
 
-    testWidgets('renders main widget', (WidgetTester tester) async {
+    testWidgets('renders main widget', (tester) async {
       const testKey = Key('main_widget');
 
       await _pumpToolScaffold(
         tester,
-        ToolScreenScaffold(
+        const ToolScreenScaffold(
           title: 'Test',
-          mainWidget: const SizedBox(key: testKey),
+          mainWidget: SizedBox(key: testKey),
         ),
       );
 
@@ -55,16 +55,16 @@ void main() {
     });
 
     testWidgets('renders secondary widget when provided', (
-      WidgetTester tester,
+      tester,
     ) async {
       const secondaryKey = Key('secondary_widget');
 
       await _pumpToolScaffold(
         tester,
-        ToolScreenScaffold(
+        const ToolScreenScaffold(
           title: 'Test',
-          mainWidget: const SizedBox(),
-          secondaryWidget: const SizedBox(key: secondaryKey),
+          mainWidget: SizedBox(),
+          secondaryWidget: SizedBox(key: secondaryKey),
         ),
       );
 
@@ -72,16 +72,15 @@ void main() {
     });
 
     testWidgets('does not render secondary widget when null', (
-      WidgetTester tester,
+      tester,
     ) async {
       const secondaryKey = Key('secondary_widget');
 
       await _pumpToolScaffold(
         tester,
-        ToolScreenScaffold(
+        const ToolScreenScaffold(
           title: 'Test',
-          mainWidget: const SizedBox(),
-          secondaryWidget: null,
+          mainWidget: SizedBox(),
         ),
       );
 
@@ -89,16 +88,16 @@ void main() {
     });
 
     testWidgets('renders bottom widget when provided', (
-      WidgetTester tester,
+      tester,
     ) async {
       const bottomKey = Key('bottom_widget');
 
       await _pumpToolScaffold(
         tester,
-        ToolScreenScaffold(
+        const ToolScreenScaffold(
           title: 'Test',
-          mainWidget: const SizedBox(),
-          bottomWidget: const SizedBox(key: bottomKey),
+          mainWidget: SizedBox(),
+          bottomWidget: SizedBox(key: bottomKey),
         ),
       );
 
@@ -106,23 +105,22 @@ void main() {
     });
 
     testWidgets('does not render bottom widget when null', (
-      WidgetTester tester,
+      tester,
     ) async {
       const bottomKey = Key('bottom_widget');
 
       await _pumpToolScaffold(
         tester,
-        ToolScreenScaffold(
+        const ToolScreenScaffold(
           title: 'Test',
-          mainWidget: const SizedBox(),
-          bottomWidget: null,
+          mainWidget: SizedBox(),
         ),
       );
 
       expect(find.byKey(bottomKey), findsNothing);
     });
 
-    testWidgets('renders with black background', (WidgetTester tester) async {
+    testWidgets('renders with black background', (tester) async {
       await _pumpToolScaffold(
         tester,
         const ToolScreenScaffold(title: 'Test', mainWidget: SizedBox()),
@@ -133,7 +131,7 @@ void main() {
     });
 
     testWidgets('renders offline indicator by default', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpToolScaffold(
         tester,
@@ -144,13 +142,13 @@ void main() {
     });
 
     testWidgets('hides offline indicator when showOfflineIndicator is false', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpToolScaffold(
         tester,
-        ToolScreenScaffold(
+        const ToolScreenScaffold(
           title: 'Test',
-          mainWidget: const SizedBox(),
+          mainWidget: SizedBox(),
           showOfflineIndicator: false,
         ),
       );
@@ -159,11 +157,11 @@ void main() {
     });
 
     testWidgets('renders menu items when provided', (
-      WidgetTester tester,
+      tester,
     ) async {
       final menuItems = [
-        const PopupMenuItem<void>(child: Text('Save'), value: 'save'),
-        const PopupMenuItem<void>(child: Text('Settings'), value: 'settings'),
+        const PopupMenuItem<void>(value: 'save', child: Text('Save')),
+        const PopupMenuItem<void>(value: 'settings', child: Text('Settings')),
       ];
 
       await _pumpToolScaffold(
@@ -179,21 +177,20 @@ void main() {
     });
 
     testWidgets('does not render menu when menuItems is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpToolScaffold(
         tester,
         const ToolScreenScaffold(
           title: 'Test',
           mainWidget: SizedBox(),
-          menuItems: null,
         ),
       );
 
       expect(find.byIcon(Icons.more_horiz), findsNothing);
     });
 
-    testWidgets('uses ToolAppBar for app bar', (WidgetTester tester) async {
+    testWidgets('uses ToolAppBar for app bar', (tester) async {
       await _pumpToolScaffold(
         tester,
         const ToolScreenScaffold(title: 'Test', mainWidget: SizedBox()),
@@ -203,7 +200,7 @@ void main() {
     });
 
     testWidgets('has correct layout structure with Expanded main widget', (
-      WidgetTester tester,
+      tester,
     ) async {
       await _pumpToolScaffold(
         tester,
@@ -215,7 +212,7 @@ void main() {
       expect(find.byType(Expanded), findsOneWidget);
     });
 
-    testWidgets('renders with SafeArea', (WidgetTester tester) async {
+    testWidgets('renders with SafeArea', (tester) async {
       await _pumpToolScaffold(
         tester,
         const ToolScreenScaffold(title: 'Test', mainWidget: SizedBox()),
@@ -226,7 +223,7 @@ void main() {
   });
 
   group('ToolBreakpoint', () {
-    testWidgets('returns compact for width < 375', (WidgetTester tester) async {
+    testWidgets('returns compact for width < 375', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -245,7 +242,7 @@ void main() {
     });
 
     testWidgets('returns medium for width 375-599', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(ToolBreakpoint.fromWidth(375), equals(ToolBreakpoint.medium));
       expect(ToolBreakpoint.fromWidth(500), equals(ToolBreakpoint.medium));
@@ -253,7 +250,7 @@ void main() {
     });
 
     testWidgets('returns expanded for width 600-1023', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(ToolBreakpoint.fromWidth(600), equals(ToolBreakpoint.expanded));
       expect(ToolBreakpoint.fromWidth(800), equals(ToolBreakpoint.expanded));
@@ -261,7 +258,7 @@ void main() {
     });
 
     testWidgets('returns desktop for width >= 1024', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(ToolBreakpoint.fromWidth(1024), equals(ToolBreakpoint.desktop));
       expect(ToolBreakpoint.fromWidth(1200), equals(ToolBreakpoint.desktop));
@@ -269,7 +266,7 @@ void main() {
     });
 
     testWidgets('of method returns correct breakpoint from context', (
-      WidgetTester tester,
+      tester,
     ) async {
       ToolBreakpoint? capturedBreakpoint;
 
@@ -293,7 +290,7 @@ void main() {
 
   group('ToolSpacing', () {
     testWidgets('xs returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getSpacingForWidth(ToolSpacing.xs, 300), equals(4));
       expect(getSpacingForWidth(ToolSpacing.xs, 400), equals(4));
@@ -302,7 +299,7 @@ void main() {
     });
 
     testWidgets('sm returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getSpacingForWidth(ToolSpacing.sm, 300), equals(8));
       expect(getSpacingForWidth(ToolSpacing.sm, 400), equals(8));
@@ -311,7 +308,7 @@ void main() {
     });
 
     testWidgets('md returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getSpacingForWidth(ToolSpacing.md, 300), equals(12));
       expect(getSpacingForWidth(ToolSpacing.md, 400), equals(12));
@@ -320,7 +317,7 @@ void main() {
     });
 
     testWidgets('lg returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getSpacingForWidth(ToolSpacing.lg, 300), equals(16));
       expect(getSpacingForWidth(ToolSpacing.lg, 400), equals(16));
@@ -329,7 +326,7 @@ void main() {
     });
 
     testWidgets('xl returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getSpacingForWidth(ToolSpacing.xl, 300), equals(20));
       expect(getSpacingForWidth(ToolSpacing.xl, 400), equals(24));
@@ -338,7 +335,7 @@ void main() {
     });
 
     testWidgets('xxl returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getSpacingForWidth(ToolSpacing.xxl, 300), equals(24));
       expect(getSpacingForWidth(ToolSpacing.xxl, 400), equals(32));
@@ -347,7 +344,7 @@ void main() {
     });
 
     testWidgets('xxxl returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getSpacingForWidth(ToolSpacing.xxxl, 300), equals(32));
       expect(getSpacingForWidth(ToolSpacing.xxxl, 400), equals(40));
@@ -358,7 +355,7 @@ void main() {
 
   group('ToolTouchTarget', () {
     testWidgets('small returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getTouchTargetForWidth(ToolTouchTarget.small, 300), equals(40));
       expect(getTouchTargetForWidth(ToolTouchTarget.small, 400), equals(44));
@@ -367,7 +364,7 @@ void main() {
     });
 
     testWidgets('medium returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getTouchTargetForWidth(ToolTouchTarget.medium, 300), equals(44));
       expect(getTouchTargetForWidth(ToolTouchTarget.medium, 400), equals(48));
@@ -376,7 +373,7 @@ void main() {
     });
 
     testWidgets('large returns correct values per breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       expect(getTouchTargetForWidth(ToolTouchTarget.large, 300), equals(48));
       expect(getTouchTargetForWidth(ToolTouchTarget.large, 400), equals(56));
@@ -386,7 +383,7 @@ void main() {
 
     testWidgets(
       'all touch targets meet accessibility minimum of 48px on expanded+',
-      (WidgetTester tester) async {
+      (tester) async {
         expect(
           getTouchTargetForWidth(ToolTouchTarget.small, 800) >= 48,
           isTrue,
@@ -418,21 +415,20 @@ void main() {
 
   group('ToolResponsiveLayout', () {
     testWidgets('uses portrait layout when width < breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       const portraitKey = Key('portrait');
       const landscapeKey = Key('landscape');
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Center(
             child: SizedBox(
               width: 500,
               height: 600,
               child: ToolResponsiveLayout(
-                portraitBlocks: [const SizedBox(key: portraitKey)],
-                landscapeBlocks: [const SizedBox(key: landscapeKey)],
-                landscapeBreakpoint: 600,
+                portraitBlocks: [SizedBox(key: portraitKey)],
+                landscapeBlocks: [SizedBox(key: landscapeKey)],
               ),
             ),
           ),
@@ -445,21 +441,20 @@ void main() {
     });
 
     testWidgets('uses landscape layout when width >= breakpoint', (
-      WidgetTester tester,
+      tester,
     ) async {
       const portraitKey = Key('portrait');
       const landscapeKey = Key('landscape');
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Center(
             child: SizedBox(
               width: 800,
               height: 600,
               child: ToolResponsiveLayout(
-                portraitBlocks: [const SizedBox(key: portraitKey)],
-                landscapeBlocks: [const SizedBox(key: landscapeKey)],
-                landscapeBreakpoint: 600,
+                portraitBlocks: [SizedBox(key: portraitKey)],
+                landscapeBlocks: [SizedBox(key: landscapeKey)],
               ),
             ),
           ),
@@ -471,17 +466,16 @@ void main() {
       expect(find.byKey(landscapeKey), findsOneWidget);
     });
 
-    testWidgets('uses Column for both layouts', (WidgetTester tester) async {
+    testWidgets('uses Column for both layouts', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Center(
             child: SizedBox(
               width: 800,
               height: 600,
               child: ToolResponsiveLayout(
-                portraitBlocks: const [SizedBox()],
-                landscapeBlocks: const [SizedBox()],
-                landscapeBreakpoint: 600,
+                portraitBlocks: [SizedBox()],
+                landscapeBlocks: [SizedBox()],
               ),
             ),
           ),
@@ -493,20 +487,20 @@ void main() {
     });
 
     testWidgets('uses custom breakpoint when provided', (
-      WidgetTester tester,
+      tester,
     ) async {
       const portraitKey = Key('portrait');
       const landscapeKey = Key('landscape');
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Center(
             child: SizedBox(
               width: 700,
               height: 600,
               child: ToolResponsiveLayout(
-                portraitBlocks: [const SizedBox(key: portraitKey)],
-                landscapeBlocks: [const SizedBox(key: landscapeKey)],
+                portraitBlocks: [SizedBox(key: portraitKey)],
+                landscapeBlocks: [SizedBox(key: landscapeKey)],
                 landscapeBreakpoint: 800,
               ),
             ),
@@ -521,7 +515,7 @@ void main() {
   });
 
   group('ToolBlock', () {
-    testWidgets('renders child widget', (WidgetTester tester) async {
+    testWidgets('renders child widget', (tester) async {
       const childKey = Key('child');
 
       await tester.pumpWidget(
@@ -533,7 +527,7 @@ void main() {
       expect(find.byKey(childKey), findsOneWidget);
     });
 
-    testWidgets('renders header when provided', (WidgetTester tester) async {
+    testWidgets('renders header when provided', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolBlock(
@@ -548,17 +542,17 @@ void main() {
     });
 
     testWidgets('does not render header when null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
-        const MaterialApp(home: ToolBlock(header: null, child: SizedBox())),
+        const MaterialApp(home: ToolBlock(child: SizedBox())),
       );
 
       expect(find.byType(ToolBlock), findsOneWidget);
     });
 
     testWidgets('renders with card background when showCard is true', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(home: ToolBlock(showCard: true, child: SizedBox())),
@@ -568,19 +562,19 @@ void main() {
     });
 
     testWidgets('does not render card when showCard is false', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
-        const MaterialApp(home: ToolBlock(showCard: false, child: SizedBox())),
+        const MaterialApp(home: ToolBlock(child: SizedBox())),
       );
 
       expect(find.byType(Card), findsNothing);
     });
 
     testWidgets('uses custom padding when provided', (
-      WidgetTester tester,
+      tester,
     ) async {
-      const customPadding = EdgeInsets.all(32.0);
+      const customPadding = EdgeInsets.all(32);
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -593,7 +587,7 @@ void main() {
     });
 
     testWidgets('uses default padding when not provided', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(home: ToolBlock(child: SizedBox())),
@@ -603,7 +597,7 @@ void main() {
     });
 
     testWidgets('card uses MonoPulseColors.surface color', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(home: ToolBlock(showCard: true, child: SizedBox())),
@@ -614,7 +608,7 @@ void main() {
     });
 
     testWidgets('header uses MonoPulseTypography.labelLarge', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -634,7 +628,7 @@ void main() {
     });
 
     testWidgets('renders divider below header in card', (
-      WidgetTester tester,
+      tester,
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -666,7 +660,6 @@ double getSpacingForWidth(
       if (spacingFn == ToolSpacing.xl) return 20;
       if (spacingFn == ToolSpacing.xxl) return 24;
       if (spacingFn == ToolSpacing.xxxl) return 32;
-      break;
     case ToolBreakpoint.medium:
       if (spacingFn == ToolSpacing.xs) return 4;
       if (spacingFn == ToolSpacing.sm) return 8;
@@ -675,7 +668,6 @@ double getSpacingForWidth(
       if (spacingFn == ToolSpacing.xl) return 24;
       if (spacingFn == ToolSpacing.xxl) return 32;
       if (spacingFn == ToolSpacing.xxxl) return 40;
-      break;
     case ToolBreakpoint.expanded:
       if (spacingFn == ToolSpacing.xs) return 4;
       if (spacingFn == ToolSpacing.sm) return 8;
@@ -684,7 +676,6 @@ double getSpacingForWidth(
       if (spacingFn == ToolSpacing.xl) return 28;
       if (spacingFn == ToolSpacing.xxl) return 40;
       if (spacingFn == ToolSpacing.xxxl) return 48;
-      break;
     case ToolBreakpoint.desktop:
       if (spacingFn == ToolSpacing.xs) return 4;
       if (spacingFn == ToolSpacing.sm) return 8;
@@ -693,7 +684,6 @@ double getSpacingForWidth(
       if (spacingFn == ToolSpacing.xl) return 32;
       if (spacingFn == ToolSpacing.xxl) return 48;
       if (spacingFn == ToolSpacing.xxxl) return 64;
-      break;
   }
   return 0;
 }
@@ -709,22 +699,18 @@ double getTouchTargetForWidth(
       if (touchFn == ToolTouchTarget.small) return 40;
       if (touchFn == ToolTouchTarget.medium) return 44;
       if (touchFn == ToolTouchTarget.large) return 48;
-      break;
     case ToolBreakpoint.medium:
       if (touchFn == ToolTouchTarget.small) return 44;
       if (touchFn == ToolTouchTarget.medium) return 48;
       if (touchFn == ToolTouchTarget.large) return 56;
-      break;
     case ToolBreakpoint.expanded:
       if (touchFn == ToolTouchTarget.small) return 48;
       if (touchFn == ToolTouchTarget.medium) return 56;
       if (touchFn == ToolTouchTarget.large) return 64;
-      break;
     case ToolBreakpoint.desktop:
       if (touchFn == ToolTouchTarget.small) return 56;
       if (touchFn == ToolTouchTarget.medium) return 64;
       if (touchFn == ToolTouchTarget.large) return 72;
-      break;
   }
   return 0;
 }

@@ -5,11 +5,12 @@
 library;
 
 import 'package:csv/csv.dart';
-import 'package:flowgroove/models/song.dart';
-import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/link.dart';
-import '../../models/beat_mode.dart';
+import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../models/beat_mode.dart';
 import 'song_csv_schema.dart';
 
 const Uuid _uuid = Uuid();
@@ -645,29 +646,29 @@ class SongCsvParser {
 
 /// Result of CSV parsing operation
 class SongParseResult {
-  final List<Song> successful;
-  final List<String> errors;
-  final List<String> warnings;
 
   SongParseResult({
     required this.successful,
     required this.errors,
     this.warnings = const [],
   });
+  final List<Song> successful;
+  final List<String> errors;
+  final List<String> warnings;
 }
 
 class _ResolvedHeaders {
+
+  const _ResolvedHeaders(this.headers, this.errors, this.warnings);
   final List<String?> headers;
   final List<String> errors;
   final List<String> warnings;
-
-  const _ResolvedHeaders(this.headers, this.errors, this.warnings);
 }
 
 /// Result of parsing a single row
 class SongParseResultItem {
-  final Song? success;
-  final List<String> errors;
 
   SongParseResultItem({this.success, this.errors = const []});
+  final Song? success;
+  final List<String> errors;
 }

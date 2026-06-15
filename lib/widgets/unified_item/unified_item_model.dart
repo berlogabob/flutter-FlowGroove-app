@@ -32,9 +32,9 @@ abstract class UnifiedItemAction {
 
 /// Delete action with theme colors
 class DeleteAction implements UnifiedItemAction {
-  final VoidCallback? onPressed;
 
   DeleteAction({this.onPressed});
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +52,9 @@ class DeleteAction implements UnifiedItemAction {
 
 /// Edit action with theme colors
 class EditAction implements UnifiedItemAction {
-  final VoidCallback? onPressed;
 
   EditAction({this.onPressed});
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {

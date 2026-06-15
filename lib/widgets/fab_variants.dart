@@ -18,9 +18,9 @@ import '../theme/mono_pulse_theme.dart';
 /// ```
 class SingleFab extends StatelessWidget {
   const SingleFab({
-    super.key,
     required this.icon,
     required this.onPressed,
+    super.key,
     this.tooltip,
     this.heroTag,
   });
@@ -73,7 +73,7 @@ class SingleFab extends StatelessWidget {
 /// )
 /// ```
 class DualFab extends StatelessWidget {
-  const DualFab({super.key, required this.primary, required this.secondary});
+  const DualFab({required this.primary, required this.secondary, super.key});
 
   /// Primary action (displayed at bottom).
   final FabAction primary;

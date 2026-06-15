@@ -1,12 +1,11 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/screens/songs/add_song_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../helpers/mocks.dart';
 import '../helpers/mocks.mocks.dart';
@@ -70,7 +69,7 @@ void main() {
     });
 
     testWidgets('shows the Song quick action on the home screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser(displayName: 'TestUser');
 
@@ -96,7 +95,7 @@ void main() {
     });
 
     testWidgets('routes from Home to the Add Song entry screen', (
-      WidgetTester tester,
+      tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser(displayName: 'TestUser');
 

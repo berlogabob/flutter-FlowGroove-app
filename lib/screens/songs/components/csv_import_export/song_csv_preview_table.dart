@@ -1,23 +1,24 @@
 /// Preview table for CSV import data.
 library;
 
-import 'package:flutter/material.dart';
 import 'package:flowgroove/models/song.dart';
+import 'package:flutter/material.dart';
+
 import '../../../../theme/mono_pulse_theme.dart';
 
 /// Widget for displaying CSV import preview with validation errors.
 class SongCsvPreviewTable extends StatelessWidget {
+
+  const SongCsvPreviewTable({
+    required this.songs,
+    required this.errors,
+    super.key,
+  });
   /// List of successfully parsed songs.
   final List<Song> songs;
 
   /// List of validation errors.
   final List<String> errors;
-
-  const SongCsvPreviewTable({
-    super.key,
-    required this.songs,
-    required this.errors,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +113,7 @@ class SongCsvPreviewTable extends StatelessWidget {
           const SizedBox(height: 8),
           ...errors.map(
             (error) => Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
+              padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
                   const Icon(

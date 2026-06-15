@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../models/link.dart';
-import '../../../models/beat_mode.dart';
-import '../../../models/section.dart';
 import '../../../theme/mono_pulse_theme.dart';
-import '../../../widgets/autocomplete_type_ahead.dart';
-import '../../../models/song_suggestion.dart';
 import 'bpm_selector.dart';
 import 'links_editor.dart';
-import 'metronome_pattern_editor.dart';
-import 'song_constructor/song_constructor.dart';
-import 'collapsible_section.dart';
 
 /// A comprehensive form widget for adding or editing songs.
 ///
@@ -19,10 +12,9 @@ import 'collapsible_section.dart';
 /// - Links editor
 /// - Notes field
 /// - Tags selection
-/// - Metronome settings (accentBeats, regularBeats, beatModes)
 class SongForm extends StatelessWidget {
+
   const SongForm({
-    super.key,
     required this.formKey,
     required this.titleController,
     required this.artistController,
@@ -41,21 +33,10 @@ class SongForm extends StatelessWidget {
     required this.onAddLink,
     required this.onRemoveLink,
     required this.onTagChanged,
-    this.isEditing = false,
-    this.accentBeats = 4,
-    this.regularBeats = 1,
-    this.beatModes = const [],
-    this.sections = const [],
+    required this.isEditing,
     this.onCopyFromOriginal,
-    this.onAccentBeatsChanged,
-    this.onRegularBeatsChanged,
-    this.onBeatModeChanged,
-    this.onSubmit,
-    this.onSectionsChanged,
-    this.bandId,
-    this.onSuggestionSelected,
+    super.key,
   });
-
   /// Form key for validation.
   final GlobalKey<FormState> formKey;
 
@@ -95,21 +76,6 @@ class SongForm extends StatelessWidget {
   /// "Our" key modifier.
   final String ourKeyModifier;
 
-  /// Number of beats per measure (metronome).
-  final int accentBeats;
-
-  /// Number of subdivisions per beat (metronome).
-  final int regularBeats;
-
-  /// 2D list of beat modes (metronome).
-  final List<List<BeatMode>> beatModes;
-
-  /// The song structure sections.
-  final List<Section> sections;
-
-  /// Callback when sections change.
-  final Function(List<Section>)? onSectionsChanged;
-
   /// Callback when original key changes.
   final Function(String, String) onOriginalKeyChanged;
 
@@ -128,26 +94,8 @@ class SongForm extends StatelessWidget {
   /// Callback when copy from original is triggered.
   final VoidCallback? onCopyFromOriginal;
 
-  /// Callback when accentBeats changes.
-  final Function(int)? onAccentBeatsChanged;
-
-  /// Callback when regularBeats changes.
-  final Function(int)? onRegularBeatsChanged;
-
-  /// Callback when a beat mode changes.
-  final Function(int, int, BeatMode)? onBeatModeChanged;
-
-  /// Callback when form is submitted (Enter key pressed).
-  final VoidCallback? onSubmit;
-
   /// Whether we are in edit mode (vs. add mode).
   final bool isEditing;
-
-  /// Optional band ID for group song suggestions
-  final String? bandId;
-
-  /// Callback when a suggestion is selected
-  final Function(SongSuggestion)? onSuggestionSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -155,24 +103,13 @@ class SongForm extends StatelessWidget {
       key: formKey,
       child: Column(
         children: [
-          // Title field with autocomplete
-          AutocompleteTypeAhead(
-            onSuggestionSelected: onSuggestionSelected ?? (_) {},
-            bandId: bandId,
-            hint: 'Song Title *',
-            icon: Icons.music_note,
-          ),
-          const SizedBox(height: 4),
-          // Hidden title field for form validation
+          // Title field
           TextFormField(
             controller: titleController,
             decoration: const InputDecoration(labelText: 'Title *'),
             textInputAction: TextInputAction.next,
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Title required' : null,
-            onChanged: (value) {
-              // Sync with autocomplete
-            },
           ),
           const SizedBox(height: 16),
           // Artist field
@@ -180,7 +117,6 @@ class SongForm extends StatelessWidget {
             controller: artistController,
             decoration: const InputDecoration(labelText: 'Artist'),
             textInputAction: TextInputAction.done,
-            onFieldSubmitted: (_) => onSubmit?.call(),
           ),
           const SizedBox(height: 24),
           // Original key and BPM
@@ -198,7 +134,7 @@ class SongForm extends StatelessWidget {
             children: [
               const Text(
                 'Our Key & BPM',
-                style: TextStyle(fontWeight: FontWeight.w700),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
               TextButton.icon(
                 onPressed: onCopyFromOriginal,
@@ -217,82 +153,49 @@ class SongForm extends StatelessWidget {
             onKeyChanged: onOurKeyChanged,
           ),
           const SizedBox(height: 24),
-          // Song Structure Constructor
-          SongConstructor(
-            initialSections: sections,
-            onChange: onSectionsChanged,
+          // Links editor
+          LinksEditor(
+            links: links,
+            onAddLink: onAddLink,
+            onRemoveLink: onRemoveLink,
           ),
           const SizedBox(height: 24),
-          // Links editor (collapsible)
-          CollapsibleSection(
-            title: 'Links',
-            icon: Icons.link,
-            initiallyExpanded: true,
-            child: LinksEditor(
-              links: links,
-              onAddLink: onAddLink,
-              onRemoveLink: onRemoveLink,
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Notes field (collapsible)
-          CollapsibleSection(
-            title: 'Notes',
-            icon: Icons.note_alt,
-            initiallyExpanded: true,
-            child: TextFormField(
-              controller: notesController,
-              decoration: const InputDecoration(
-                hintText: 'Add notes about this song...',
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 8),
-              ),
-              maxLines: 3,
-            ),
+          // Notes field
+          const Text('Notes', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: notesController,
+            decoration: const InputDecoration(hintText: 'Notes...'),
+            maxLines: 3,
           ),
           const SizedBox(height: MonoPulseSpacing.xxxl),
-          // Tags selection (collapsible)
-          CollapsibleSection(
-            title: 'Tags',
-            icon: Icons.label,
-            initiallyExpanded: false,
-            child: Wrap(
-              spacing: MonoPulseSpacing.md,
-              runSpacing: MonoPulseSpacing.sm,
-              children: availableTags
-                  .map(
-                    (tag) => FilterChip(
-                      label: Text(
-                        tag,
-                        style: const TextStyle(
-                          color: MonoPulseColors.textPrimary,
-                        ),
+          // Tags selection
+          const Text(
+            'Tags',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: MonoPulseColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.md),
+          Wrap(
+            spacing: MonoPulseSpacing.md,
+            children: availableTags
+                .map(
+                  (tag) => FilterChip(
+                    label: Text(
+                      tag,
+                      style: const TextStyle(
+                        color: MonoPulseColors.textPrimary,
                       ),
-                      selected: selectedTags.contains(tag),
-                      onSelected: (selected) => onTagChanged(tag, selected),
-                      selectedColor: MonoPulseColors.accentOrangeSubtle,
-                      checkmarkColor: MonoPulseColors.accentOrange,
                     ),
-                  )
-                  .toList(),
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.xxxl),
-          // Metronome Settings (collapsible)
-          CollapsibleSection(
-            title: 'Metronome Settings',
-            icon: Icons.music_note,
-            initiallyExpanded: false,
-            child: MetronomePatternEditor(
-              accentBeats: accentBeats,
-              regularBeats: regularBeats,
-              beatModes: beatModes,
-              onBeatModeChanged: (beatIndex, subdivisionIndex, mode) {
-                onBeatModeChanged?.call(beatIndex, subdivisionIndex, mode);
-              },
-              onAccentBeatsChanged: onAccentBeatsChanged,
-              onRegularBeatsChanged: onRegularBeatsChanged,
-            ),
+                    selected: selectedTags.contains(tag),
+                    onSelected: (selected) => onTagChanged(tag, selected),
+                    selectedColor: MonoPulseColors.accentOrangeSubtle,
+                    checkmarkColor: MonoPulseColors.accentOrange,
+                  ),
+                )
+                .toList(),
           ),
         ],
       ),

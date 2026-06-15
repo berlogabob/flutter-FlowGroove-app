@@ -1,14 +1,16 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/song.dart';
+
 import '../../models/band.dart';
-import '../../models/setlist.dart';
 import '../../models/canonical_song.dart';
+import '../../models/setlist.dart';
+import '../../models/song.dart';
+import '../../repositories/repositories.dart';
 import '../../services/cache_service.dart';
 import '../../services/canonical_song_function_service.dart';
 import '../../services/firestore_service.dart';
-import '../../repositories/repositories.dart';
 import '../auth/auth_provider.dart';
 
 /// Provider for FirestoreService.
@@ -268,9 +270,7 @@ final songsProvider = StreamProvider<List<Song>>((ref) {
               },
             );
 
-        listener.onCancel = () {
-          subscription.cancel();
-        };
+        listener.onCancel = subscription.cancel;
       });
     },
     loading: () => Stream.value([]),
@@ -380,9 +380,7 @@ final bandsProvider = StreamProvider<List<Band>>((ref) {
               },
             );
 
-        listener.onCancel = () {
-          subscription.cancel();
-        };
+        listener.onCancel = subscription.cancel;
       });
     },
     loading: () => Stream.value([]),
@@ -516,9 +514,7 @@ final bandSongsProvider = StreamProvider.family<List<Song>, String>((
           },
         );
 
-    listener.onCancel = () {
-      subscription.cancel();
-    };
+    listener.onCancel = subscription.cancel;
   });
 });
 

@@ -5,21 +5,17 @@
 library;
 
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/song_suggestion.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
-import '../models/song_suggestion.dart';
-import '../services/song_suggestion_service.dart';
 import '../services/musicbrainz_service.dart';
+import '../services/song_suggestion_service.dart';
 
 /// State for autocomplete search.
 class AutocompleteSearchState {
-  final String query;
-  final List<SongSuggestion> suggestions;
-  final bool isLoading;
-  final String? error;
-  final int selectedIndex;
 
   const AutocompleteSearchState({
     this.query = '',
@@ -35,6 +31,11 @@ class AutocompleteSearchState {
       isLoading = false,
       error = null,
       selectedIndex = -1;
+  final String query;
+  final List<SongSuggestion> suggestions;
+  final bool isLoading;
+  final String? error;
+  final int selectedIndex;
 
   AutocompleteSearchState copyWith({
     String? query,
@@ -88,7 +89,7 @@ class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
 
   /// Update search query with debouncing.
   void updateQuery(String query, {int debounceMs = 300}) {
-    state = state.copyWith(query: query, selectedIndex: -1, error: null);
+    state = state.copyWith(query: query, selectedIndex: -1);
 
     _debounceTimer?.cancel();
 
@@ -115,7 +116,6 @@ class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
       state = state.copyWith(
         suggestions: suggestions,
         isLoading: false,
-        error: null,
       );
     } catch (e) {
       state = state.copyWith(

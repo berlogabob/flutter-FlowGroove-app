@@ -8,7 +8,7 @@ import '../../models/song.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../error_banner.dart';
+import '../error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 
 class SongLibraryBlock extends ConsumerWidget {
   const SongLibraryBlock({super.key});
@@ -301,7 +301,7 @@ class _SongLibrarySheetState extends ConsumerState<_SongLibrarySheet> {
               ),
               child: bandsAsync.when(
                 loading: () => const LinearProgressIndicator(),
-                error: (_, __) => _SourceDropdown(
+                error: (_, _) => _SourceDropdown(
                   bands: const [],
                   bandId: null,
                   onChanged: (_) {},
@@ -434,7 +434,7 @@ class _SourceDropdown extends StatelessWidget {
         border: OutlineInputBorder(),
       ),
       items: [
-        const DropdownMenuItem<String?>(value: null, child: Text('Personal')),
+        const DropdownMenuItem<String?>(child: Text('Personal')),
         ...bands.map(
           (band) =>
               DropdownMenuItem<String?>(value: band.id, child: Text(band.name)),
@@ -461,9 +461,11 @@ class _AsyncSongList extends StatelessWidget {
     return songsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
-        child: ErrorBanner.card(
+        child: ErrorBanner(
           message: 'Failed to load songs: $error',
           onRetry: onRetry,
+          showRetry: true,
+          style: ErrorBannerStyle.card,
         ),
       ),
       data: (songs) => songs.isEmpty
@@ -499,9 +501,11 @@ class _AsyncSetlistList extends StatelessWidget {
     return setlistsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
-        child: ErrorBanner.card(
+        child: ErrorBanner(
           message: 'Failed to load setlists: $error',
           onRetry: onRetry,
+          showRetry: true,
+          style: ErrorBannerStyle.card,
         ),
       ),
       data: (setlists) => setlists.isEmpty

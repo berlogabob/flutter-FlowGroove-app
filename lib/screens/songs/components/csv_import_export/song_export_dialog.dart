@@ -1,18 +1,19 @@
 /// Dialog for exporting songs to CSV.
 library;
 
-import 'package:flutter/material.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/services/csv/song_csv_service.dart';
+import 'package:flutter/material.dart';
+
 import '../../../../theme/mono_pulse_theme.dart';
 import '../../../../widgets/loading_indicator.dart';
 
 /// Dialog for exporting songs to CSV file.
 class SongExportDialog extends StatefulWidget {
+
+  const SongExportDialog({required this.songs, super.key});
   /// List of songs to export.
   final List<Song> songs;
-
-  const SongExportDialog({super.key, required this.songs});
 
   @override
   State<SongExportDialog> createState() => _SongExportDialogState();
@@ -33,7 +34,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
           children: [
             // Header
             const Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16),
               child: Row(
                 children: [
                   Icon(Icons.file_download),
@@ -53,7 +54,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
 
             // Content
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24),
               child: _buildContent(),
             ),
 
@@ -119,15 +120,15 @@ class _SongExportDialogState extends State<SongExportDialog> {
   }
 
   Widget _buildSuccessContent() {
-    return Column(
+    return const Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(
+        Icon(
           Icons.check_circle,
           color: MonoPulseColors.successGreen,
           size: 64,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         Text(
           'Export Successful!',
           style: TextStyle(
@@ -136,7 +137,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
             color: MonoPulseColors.textHighEmphasis,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           'Songs exported to CSV',
           style: TextStyle(color: MonoPulseColors.textSecondary),
@@ -147,7 +148,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
 
   Widget _buildFooter() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [

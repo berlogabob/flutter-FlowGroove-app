@@ -62,7 +62,7 @@ class TunerSettingsSheet extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (state.selectedInstrument != null) ...[
-                    _SectionLabel('Current Preset'),
+                    const _SectionLabel('Current Preset'),
                     const SizedBox(height: MonoPulseSpacing.sm),
                     _PresetSummary(
                       instrument: state.selectedInstrument!.name,
@@ -111,7 +111,7 @@ class TunerSettingsSheet extends ConsumerWidget {
                     onChanged: (_) => notifier.toggleStageModeEnabled(),
                   ),
                   const SizedBox(height: MonoPulseSpacing.lg),
-                  Divider(color: MonoPulseColors.borderSubtle),
+                  const Divider(color: MonoPulseColors.borderSubtle),
                   const SizedBox(height: MonoPulseSpacing.md),
                   Text(
                     'Microphone privacy',
@@ -137,9 +137,9 @@ class TunerSettingsSheet extends ConsumerWidget {
 }
 
 class _SectionLabel extends StatelessWidget {
-  final String text;
 
   const _SectionLabel(this.text);
+  final String text;
 
   @override
   Widget build(BuildContext context) {

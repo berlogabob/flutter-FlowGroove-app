@@ -11,11 +11,11 @@ import '../../../theme/mono_pulse_theme.dart';
 /// - silent: transparent/dashed circle
 class MetronomePatternEditor extends StatelessWidget {
   const MetronomePatternEditor({
-    super.key,
     required this.accentBeats,
     required this.regularBeats,
     required this.beatModes,
     required this.onBeatModeChanged,
+    super.key,
     this.onAccentBeatsChanged,
     this.onRegularBeatsChanged,
   });
@@ -111,9 +111,9 @@ class MetronomePatternEditor extends StatelessWidget {
     required int value,
     required int min,
     required int max,
-    ValueChanged<int>? onChanged,
     required Key decreaseButtonKey,
     required Key increaseButtonKey,
+    ValueChanged<int>? onChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +218,7 @@ class MetronomePatternEditor extends StatelessWidget {
           // Beat rows
           ...List.generate(
             accentBeats,
-            (beatIndex) => _buildBeatRow(beatIndex),
+            _buildBeatRow,
           ),
         ],
       ),
@@ -327,8 +327,6 @@ class MetronomePatternEditor extends StatelessWidget {
                 ? Border.all(color: color, width: 2)
                 : Border.all(
                     color: MonoPulseColors.borderDefault,
-                    width: 1,
-                    style: BorderStyle.solid,
                   ),
           ),
           child: Center(
@@ -386,7 +384,6 @@ class MetronomePatternEditor extends StatelessWidget {
         _buildLegendItem(
           color: MonoPulseColors.beatModeNormal,
           label: 'Normal',
-          icon: null,
         ),
         const SizedBox(width: MonoPulseSpacing.xl),
         _buildLegendItem(

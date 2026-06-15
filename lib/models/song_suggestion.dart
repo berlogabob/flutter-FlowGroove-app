@@ -1,5 +1,5 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'song_suggestion.g.dart';
 
@@ -63,6 +63,122 @@ class SongSuggestion extends Equatable {
     this.matchReasons = const [],
   });
 
+  /// Create a suggestion from user's personal song.
+  factory SongSuggestion.fromPersonalSong({
+    required String id,
+    required String title,
+    required String artist,
+    String? bpm,
+    String? key,
+    String? canonicalSongId,
+    String? musicBrainzId,
+  }) {
+    return SongSuggestion(
+      id: id,
+      title: title,
+      artist: artist,
+      source: SuggestionSource.personal,
+      type: SuggestionType.exact,
+      bpm: bpm != null ? int.tryParse(bpm) : null,
+      key: key,
+      canonicalSongId: canonicalSongId,
+      musicBrainzId: musicBrainzId,
+      matchReasons: const ['In your library'],
+    );
+  }
+
+  /// Create a suggestion from band/group song.
+  factory SongSuggestion.fromGroupSong({
+    required String id,
+    required String title,
+    required String artist,
+    required String bandId,
+    required String bandName,
+    String? bpm,
+    String? key,
+    String? canonicalSongId,
+    String? musicBrainzId,
+    bool isForkable = true,
+  }) {
+    return SongSuggestion(
+      id: id,
+      title: title,
+      artist: artist,
+      source: SuggestionSource.group,
+      type: SuggestionType.exact,
+      bandId: bandId,
+      bandName: bandName,
+      bpm: bpm != null ? int.tryParse(bpm) : null,
+      key: key,
+      canonicalSongId: canonicalSongId,
+      musicBrainzId: musicBrainzId,
+      isForkable: isForkable,
+      matchReasons: ['In $bandName'],
+    );
+  }
+
+  /// Create a suggestion from MusicBrainz.
+  factory SongSuggestion.fromMusicBrainz({
+    required String id,
+    required String title,
+    required String artist,
+    String? musicBrainzId,
+    int? durationMs,
+    int? releaseYear,
+    String? album,
+  }) {
+    return SongSuggestion(
+      id: 'mb_$id',
+      title: title,
+      artist: artist,
+      source: SuggestionSource.musicbrainz,
+      type: SuggestionType.exact,
+      matchScore: 0.85, // API results are relevant but not exact match
+      musicBrainzId: musicBrainzId,
+      durationMs: durationMs,
+      releaseYear: releaseYear,
+      album: album,
+      matchReasons: const ['From MusicBrainz'],
+    );
+  }
+
+  /// Create a suggestion from local canonical database.
+  factory SongSuggestion.fromCanonical({
+    required String id,
+    required String title,
+    required String artist,
+    String? canonicalSongId,
+    int? bpm,
+    String? key,
+    int? durationMs,
+    String? musicBrainzId,
+    int? releaseYear,
+    String? album,
+    double matchScore = 0.9,
+  }) {
+    return SongSuggestion(
+      id: id,
+      title: title,
+      artist: artist,
+      source: SuggestionSource.canonical,
+      type: matchScore >= 0.95 ? SuggestionType.exact : SuggestionType.similar,
+      matchScore: matchScore,
+      canonicalSongId: canonicalSongId ?? id,
+      bpm: bpm,
+      key: key,
+      durationMs: durationMs,
+      musicBrainzId: musicBrainzId,
+      releaseYear: releaseYear,
+      album: album,
+      matchReasons: matchScore >= 0.95
+          ? ['Exact match in database']
+          : ['Similar song in database'],
+    );
+  }
+
+  factory SongSuggestion.fromJson(Map<String, dynamic> json) =>
+      _$SongSuggestionFromJson(json);
+
   /// Unique identifier for this suggestion
   final String id;
 
@@ -119,127 +235,6 @@ class SongSuggestion extends Equatable {
   /// Reasons why this song matched (for debugging/UI)
   @JsonKey(defaultValue: [])
   final List<String> matchReasons;
-
-  /// Create a suggestion from user's personal song.
-  factory SongSuggestion.fromPersonalSong({
-    required String id,
-    required String title,
-    required String artist,
-    String? bpm,
-    String? key,
-    String? canonicalSongId,
-    String? musicBrainzId,
-  }) {
-    return SongSuggestion(
-      id: id,
-      title: title,
-      artist: artist,
-      source: SuggestionSource.personal,
-      type: SuggestionType.exact,
-      matchScore: 1.0,
-      bpm: bpm != null ? int.tryParse(bpm) : null,
-      key: key,
-      canonicalSongId: canonicalSongId,
-      musicBrainzId: musicBrainzId,
-      isForkable: false,
-      matchReasons: ['In your library'],
-    );
-  }
-
-  /// Create a suggestion from band/group song.
-  factory SongSuggestion.fromGroupSong({
-    required String id,
-    required String title,
-    required String artist,
-    required String bandId,
-    required String bandName,
-    String? bpm,
-    String? key,
-    String? canonicalSongId,
-    String? musicBrainzId,
-    bool isForkable = true,
-  }) {
-    return SongSuggestion(
-      id: id,
-      title: title,
-      artist: artist,
-      source: SuggestionSource.group,
-      type: SuggestionType.exact,
-      matchScore: 1.0,
-      bandId: bandId,
-      bandName: bandName,
-      bpm: bpm != null ? int.tryParse(bpm) : null,
-      key: key,
-      canonicalSongId: canonicalSongId,
-      musicBrainzId: musicBrainzId,
-      isForkable: isForkable,
-      matchReasons: ['In $bandName'],
-    );
-  }
-
-  /// Create a suggestion from MusicBrainz.
-  factory SongSuggestion.fromMusicBrainz({
-    required String id,
-    required String title,
-    required String artist,
-    String? musicBrainzId,
-    int? durationMs,
-    int? releaseYear,
-    String? album,
-  }) {
-    return SongSuggestion(
-      id: 'mb_$id',
-      title: title,
-      artist: artist,
-      source: SuggestionSource.musicbrainz,
-      type: SuggestionType.exact,
-      matchScore: 0.85, // API results are relevant but not exact match
-      musicBrainzId: musicBrainzId,
-      durationMs: durationMs,
-      releaseYear: releaseYear,
-      album: album,
-      isForkable: false,
-      matchReasons: ['From MusicBrainz'],
-    );
-  }
-
-  /// Create a suggestion from local canonical database.
-  factory SongSuggestion.fromCanonical({
-    required String id,
-    required String title,
-    required String artist,
-    String? canonicalSongId,
-    int? bpm,
-    String? key,
-    int? durationMs,
-    String? musicBrainzId,
-    int? releaseYear,
-    String? album,
-    double matchScore = 0.9,
-  }) {
-    return SongSuggestion(
-      id: id,
-      title: title,
-      artist: artist,
-      source: SuggestionSource.canonical,
-      type: matchScore >= 0.95 ? SuggestionType.exact : SuggestionType.similar,
-      matchScore: matchScore,
-      canonicalSongId: canonicalSongId ?? id,
-      bpm: bpm,
-      key: key,
-      durationMs: durationMs,
-      musicBrainzId: musicBrainzId,
-      releaseYear: releaseYear,
-      album: album,
-      isForkable: false,
-      matchReasons: matchScore >= 0.95
-          ? ['Exact match in database']
-          : ['Similar song in database'],
-    );
-  }
-
-  factory SongSuggestion.fromJson(Map<String, dynamic> json) =>
-      _$SongSuggestionFromJson(json);
 
   Map<String, dynamic> toJson() => _$SongSuggestionToJson(this);
 

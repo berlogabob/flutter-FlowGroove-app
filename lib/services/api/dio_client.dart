@@ -16,9 +16,9 @@ import '../../models/api_error.dart';
 /// final response = await dio.get('/endpoint');
 /// ```
 class DioClient {
-  static final DioClient _instance = DioClient._internal();
   factory DioClient() => _instance;
   DioClient._internal();
+  static final DioClient _instance = DioClient._internal();
 
   static DioClient get instance => _instance;
 
@@ -43,7 +43,6 @@ class DioClient {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        responseType: ResponseType.json,
       ),
     );
 
@@ -53,8 +52,7 @@ class DioClient {
         LogInterceptor(
           requestBody: true,
           responseBody: true,
-          error: true,
-          logPrint: (obj) => debugPrint('🌐 ${obj.toString()}'),
+          logPrint: (obj) => debugPrint('🌐 $obj'),
         ),
       );
     }
@@ -96,32 +94,26 @@ class _ErrorHandlingInterceptor extends Interceptor {
       case DioExceptionType.receiveTimeout:
         message = 'Connection timed out. Please try again.';
         type = ErrorType.network;
-        break;
 
       case DioExceptionType.connectionError:
         message = 'Unable to connect. Please check your internet connection.';
         type = ErrorType.network;
-        break;
 
       case DioExceptionType.badResponse:
         message = _handleBadResponse(error.response);
         type = _getResponseErrorType(error.response?.statusCode);
-        break;
 
       case DioExceptionType.cancel:
         message = 'Request cancelled.';
         type = ErrorType.unknown;
-        break;
 
       case DioExceptionType.badCertificate:
         message = 'Security certificate error.';
         type = ErrorType.network;
-        break;
 
       case DioExceptionType.unknown:
         message = 'An unexpected error occurred.';
         type = ErrorType.unknown;
-        break;
     }
 
     return ApiError(
@@ -160,7 +152,7 @@ class _ErrorHandlingInterceptor extends Interceptor {
       case 401:
         return 'Unauthorized. Please log in again.';
       case 403:
-        return 'Access denied. You don\'t have permission.';
+        return "Access denied. You don't have permission.";
       case 404:
         return 'Resource not found.';
       case 409:
@@ -220,7 +212,7 @@ extension DioExtensions on Dio {
   /// POST request with automatic error handling.
   Future<dynamic> postSafe(
     String path, {
-    dynamic data,
+    data,
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
@@ -242,7 +234,7 @@ extension DioExtensions on Dio {
   /// PUT request with automatic error handling.
   Future<dynamic> putSafe(
     String path, {
-    dynamic data,
+    data,
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {
@@ -264,7 +256,7 @@ extension DioExtensions on Dio {
   /// DELETE request with automatic error handling.
   Future<dynamic> deleteSafe(
     String path, {
-    dynamic data,
+    data,
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) async {

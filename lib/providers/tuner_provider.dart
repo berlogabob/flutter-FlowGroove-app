@@ -19,15 +19,15 @@ import '../services/tuner_preferences.dart';
 enum TunerMode { generate, listen }
 
 class NoteData {
-  final String note;
-  final int octave;
-  final double frequency;
 
   const NoteData({
     required this.note,
     required this.octave,
     required this.frequency,
   });
+  final String note;
+  final int octave;
+  final double frequency;
 
   String get displayName => '$note$octave';
 
@@ -38,35 +38,6 @@ class NoteData {
 const Object _notSet = Object();
 
 class TunerState {
-  final TunerMode mode;
-  final double frequency;
-  final String note;
-  final int cents;
-  final bool isPlaying;
-  final bool isListening;
-  final bool isStarting;
-  final double volume;
-  final double referenceA4;
-  final bool hapticEnabled;
-  final TunerPermissionState permissionState;
-  final TunerSignalState signalState;
-  final double confidence;
-  final double inputLevelDb;
-  final String? errorMessage;
-  final int centsTolerance;
-  final double sensitivity;
-  final bool droneEnabled;
-  final List<String> recentPresetIds;
-  final List<Instrument> instruments;
-  final Instrument? selectedInstrument;
-  final Tuning? selectedTuning;
-  final DetectionMode detectionMode;
-  final int? manualTargetStringIndex;
-  final List<Tuning> customTunings;
-  final Map<String, TunerPresetScope> customTuningScopes;
-  final bool stageModeActive;
-  final bool stageModeEnabled;
-  final int musicModeIndex;
 
   const TunerState({
     this.mode = TunerMode.listen,
@@ -99,6 +70,35 @@ class TunerState {
     this.stageModeEnabled = false,
     this.musicModeIndex = 0,
   });
+  final TunerMode mode;
+  final double frequency;
+  final String note;
+  final int cents;
+  final bool isPlaying;
+  final bool isListening;
+  final bool isStarting;
+  final double volume;
+  final double referenceA4;
+  final bool hapticEnabled;
+  final TunerPermissionState permissionState;
+  final TunerSignalState signalState;
+  final double confidence;
+  final double inputLevelDb;
+  final String? errorMessage;
+  final int centsTolerance;
+  final double sensitivity;
+  final bool droneEnabled;
+  final List<String> recentPresetIds;
+  final List<Instrument> instruments;
+  final Instrument? selectedInstrument;
+  final Tuning? selectedTuning;
+  final DetectionMode detectionMode;
+  final int? manualTargetStringIndex;
+  final List<Tuning> customTunings;
+  final Map<String, TunerPresetScope> customTuningScopes;
+  final bool stageModeActive;
+  final bool stageModeEnabled;
+  final int musicModeIndex;
 
   bool get hasValidPitch =>
       signalState == TunerSignalState.detected ||
@@ -219,6 +219,16 @@ class TunerState {
 }
 
 class TunerNotifier extends Notifier<TunerState> {
+
+  TunerNotifier({
+    ToneGenerator? toneGenerator,
+    PitchDetector? pitchDetector,
+    TunerPreferences? preferences,
+    TunerPresetRepository? presetRepository,
+  }) : _toneGenerator = toneGenerator ?? ToneGenerator(),
+       _pitchDetector = pitchDetector ?? PitchDetector(),
+       _preferences = preferences ?? TunerPreferences(),
+       _presetRepository = presetRepository ?? TunerPresetRepository();
   final ToneGenerator _toneGenerator;
   final PitchDetector _pitchDetector;
   final TunerPreferences _preferences;
@@ -234,16 +244,6 @@ class TunerNotifier extends Notifier<TunerState> {
   bool _inTuneEventSent = false;
   String? _pendingPresetId;
   final Map<String, TunerPreset> _customPresetsById = {};
-
-  TunerNotifier({
-    ToneGenerator? toneGenerator,
-    PitchDetector? pitchDetector,
-    TunerPreferences? preferences,
-    TunerPresetRepository? presetRepository,
-  }) : _toneGenerator = toneGenerator ?? ToneGenerator(),
-       _pitchDetector = pitchDetector ?? PitchDetector(),
-       _preferences = preferences ?? TunerPreferences(),
-       _presetRepository = presetRepository ?? TunerPresetRepository();
 
   @override
   TunerState build() {

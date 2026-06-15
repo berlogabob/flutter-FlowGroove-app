@@ -1,12 +1,13 @@
+import 'package:flowgroove/theme/mono_pulse_theme.dart';
+import 'package:flowgroove/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flowgroove/widgets/empty_state.dart';
-import 'package:flowgroove/theme/mono_pulse_theme.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('EmptyState', () {
-    testWidgets('renders empty state with icon', (WidgetTester tester) async {
+    testWidgets('renders empty state with icon', (tester) async {
       await pumpAppWidget(
         tester,
         const EmptyState(icon: Icons.search, message: 'No results'),
@@ -16,7 +17,7 @@ void main() {
     });
 
     testWidgets('renders empty state with message', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -26,7 +27,7 @@ void main() {
       expect(findText('No results found'), findsOneWidget);
     });
 
-    testWidgets('renders empty state with hint', (WidgetTester tester) async {
+    testWidgets('renders empty state with hint', (tester) async {
       await pumpAppWidget(
         tester,
         const EmptyState(
@@ -41,14 +42,13 @@ void main() {
 
     testWidgets(
       'renders action button when actionLabel and onAction provided',
-      (WidgetTester tester) async {
+      (tester) async {
         await pumpAppWidget(
           tester,
           const EmptyState(
             icon: Icons.search,
             message: 'No results',
             actionLabel: 'Search',
-            onAction: null, // Explicitly null - button won't render
           ),
         );
 
@@ -58,7 +58,7 @@ void main() {
     );
 
     testWidgets('renders action button with valid onAction callback', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -76,7 +76,7 @@ void main() {
     });
 
     testWidgets('does not render action button when onAction is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -84,7 +84,6 @@ void main() {
           icon: Icons.search,
           message: 'No results',
           actionLabel: 'Search',
-          onAction: null,
         ),
       );
 
@@ -93,7 +92,7 @@ void main() {
     });
 
     testWidgets('calls onAction when action button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasActionCalled = false;
 
@@ -113,7 +112,7 @@ void main() {
       expect(wasActionCalled, isTrue);
     });
 
-    testWidgets('renders centered', (WidgetTester tester) async {
+    testWidgets('renders centered', (tester) async {
       await pumpAppWidget(
         tester,
         const EmptyState(icon: Icons.search, message: 'No results'),
@@ -122,7 +121,7 @@ void main() {
       expect(find.byType(Center), findsWidgets);
     });
 
-    testWidgets('renders with default icon color', (WidgetTester tester) async {
+    testWidgets('renders with default icon color', (tester) async {
       await pumpAppWidget(
         tester,
         const EmptyState(icon: Icons.search, message: 'No results'),
@@ -132,7 +131,7 @@ void main() {
       expect(icon.color, equals(MonoPulseColors.textTertiary));
     });
 
-    testWidgets('renders with custom icon color', (WidgetTester tester) async {
+    testWidgets('renders with custom icon color', (tester) async {
       await pumpAppWidget(
         tester,
         const EmptyState(
@@ -146,7 +145,7 @@ void main() {
       expect(icon.color, equals(Colors.red));
     });
 
-    testWidgets('renders with default icon size', (WidgetTester tester) async {
+    testWidgets('renders with default icon size', (tester) async {
       await pumpAppWidget(
         tester,
         const EmptyState(icon: Icons.search, message: 'No results'),
@@ -156,7 +155,7 @@ void main() {
       expect(icon.size, equals(80));
     });
 
-    testWidgets('renders with custom icon size', (WidgetTester tester) async {
+    testWidgets('renders with custom icon size', (tester) async {
       await pumpAppWidget(
         tester,
         const EmptyState(
@@ -172,7 +171,7 @@ void main() {
   });
 
   group('EmptyState.songs', () {
-    testWidgets('renders songs empty state', (WidgetTester tester) async {
+    testWidgets('renders songs empty state', (tester) async {
       await pumpAppWidget(tester, EmptyState.songs());
 
       expect(findIcon(Icons.music_note), findsOneWidget);
@@ -183,7 +182,7 @@ void main() {
     });
 
     testWidgets('renders songs empty state with onAdd callback', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, EmptyState.songs(onAdd: () {}));
 
@@ -195,7 +194,7 @@ void main() {
     });
 
     testWidgets('calls onAdd when Add Song button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasAddCalled = false;
 
@@ -212,7 +211,7 @@ void main() {
   });
 
   group('EmptyState.bands', () {
-    testWidgets('renders bands empty state', (WidgetTester tester) async {
+    testWidgets('renders bands empty state', (tester) async {
       await pumpAppWidget(tester, EmptyState.bands());
 
       expect(findIcon(Icons.groups), findsOneWidget);
@@ -223,7 +222,7 @@ void main() {
     });
 
     testWidgets('renders bands empty state with onCreate callback', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, EmptyState.bands(onCreate: () {}));
 
@@ -234,7 +233,7 @@ void main() {
     });
 
     testWidgets('calls onCreate when Create Band button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasCreateCalled = false;
 
@@ -251,7 +250,7 @@ void main() {
   });
 
   group('EmptyState.setlists', () {
-    testWidgets('renders setlists empty state', (WidgetTester tester) async {
+    testWidgets('renders setlists empty state', (tester) async {
       await pumpAppWidget(tester, EmptyState.setlists());
 
       expect(findIcon(Icons.playlist_play), findsOneWidget);
@@ -263,7 +262,7 @@ void main() {
     });
 
     testWidgets('renders setlists empty state with onCreate callback', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, EmptyState.setlists(onCreate: () {}));
 
@@ -273,7 +272,7 @@ void main() {
     });
 
     testWidgets('calls onCreate when Create Setlist button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasCreateCalled = false;
 
@@ -291,7 +290,7 @@ void main() {
 
   group('EmptyState.search', () {
     testWidgets('renders search empty state without query', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, EmptyState.search());
 
@@ -301,7 +300,7 @@ void main() {
     });
 
     testWidgets('renders search empty state with query', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, EmptyState.search(query: 'test query'));
 
@@ -310,7 +309,7 @@ void main() {
       expect(find.textContaining('test query'), findsOneWidget);
     });
 
-    testWidgets('does not render action button', (WidgetTester tester) async {
+    testWidgets('does not render action button', (tester) async {
       await pumpAppWidget(tester, EmptyState.search(query: 'test'));
 
       expect(find.byType(ElevatedButton), findsNothing);

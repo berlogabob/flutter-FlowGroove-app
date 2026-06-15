@@ -23,9 +23,9 @@ import 'tool_scaffold.dart';
 /// ```
 class ToolTransportBar extends StatelessWidget {
   const ToolTransportBar({
-    super.key,
     required this.isPlaying,
     required this.onPlayPause,
+    super.key,
     this.onPrevious,
     this.onNext,
     this.onSettings,
@@ -100,7 +100,7 @@ class ToolTransportBar extends StatelessWidget {
           if (showSettings && onSettings != null)
             _TransportButton(
               icon: Icons.settings,
-              onTap: onSettings!,
+              onTap: onSettings,
               size: touchSize,
             ),
         ],
@@ -130,7 +130,7 @@ class _PlayPauseButton extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: MonoPulseColors.accentOrange,
         ),
@@ -173,7 +173,7 @@ class _TransportButton extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: MonoPulseColors.surfaceRaised,
-            border: Border.all(color: MonoPulseColors.borderSubtle, width: 1),
+            border: Border.all(color: MonoPulseColors.borderSubtle),
           ),
           child: Icon(
             icon,
