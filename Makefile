@@ -15,7 +15,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: help test-fast test-firebase-emulator deploy-stable deploy-test release build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+.PHONY: help test-fast test-firebase-emulator deploy-stable deploy-test release bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
@@ -354,7 +354,18 @@ build-appbundle:
 # RELEASE - ANDROID APK + GITHUB RELEASE
 # =============================================================================
 
-release: build-android build-appbundle
+# Bump the build number (default) or a semver level: make bump-version LEVEL=patch
+bump-version:
+	@./scripts/bump-build-number.sh $(LEVEL)
+
+# Full release: bump version FIRST so the built artifacts carry the new number,
+# then build APK + AAB, tag, push, and create the GitHub Release.
+# Override the bump with: make release LEVEL=patch|minor|major
+release:
+	@echo "🔢 Bumping version before build..."
+	@./scripts/bump-build-number.sh $(LEVEL)
+	@$(MAKE) build-android
+	@$(MAKE) build-appbundle
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         Creating GitHub Release with Android APK          ║"
@@ -363,30 +374,36 @@ release: build-android build-appbundle
 	@echo "📝 Updating version.json..."
 	@./scripts/update-version-json.sh
 	@echo ""
-	$(eval NEW_VERSION := $(shell grep "^version:" pubspec.yaml | sed 's/version: //'))
-	@echo "📦 Version: $(NEW_VERSION)"
-	@echo ""
-	@echo "💾 Committing release-scoped changes..."
-	@git add $(RELEASE_GIT_PATHS)
-	@git commit -m "Release $(NEW_VERSION)" || echo "No changes to commit"
-	@echo ""
-	@echo "🏷️  Creating git tag..."
-	@git tag -a "v$(NEW_VERSION)" -m "Release $(NEW_VERSION)" || echo "Tag already exists"
-	@echo ""
-	@echo "🚀 Pushing to GitHub..."
-	@git push origin HEAD
-	@git push origin "v$(NEW_VERSION)" || echo "Tag already pushed"
-	@echo ""
-	@echo "📱 Creating GitHub Release..."
-	@if command -v gh >/dev/null 2>&1; then \
+	@set -e; \
+	NEW_VERSION="$$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d '[:space:]')"; \
+	echo "📦 Version: $$NEW_VERSION"; \
+	echo ""; \
+	if git rev-parse "v$$NEW_VERSION" >/dev/null 2>&1 || git ls-remote --exit-code --tags origin "v$$NEW_VERSION" >/dev/null 2>&1; then \
+		echo "❌ Tag v$$NEW_VERSION already exists locally or on the remote — aborting before tagging."; \
+		echo "   Run 'make release' again to bump to the next build number."; \
+		exit 1; \
+	fi; \
+	echo "💾 Committing release-scoped changes..."; \
+	git add $(RELEASE_GIT_PATHS); \
+	git commit -m "Release $$NEW_VERSION" || echo "No changes to commit"; \
+	echo ""; \
+	echo "🏷️  Creating git tag..."; \
+	git tag -a "v$$NEW_VERSION" -m "Release $$NEW_VERSION"; \
+	echo ""; \
+	echo "🚀 Pushing to GitHub..."; \
+	git push origin HEAD; \
+	git push origin "v$$NEW_VERSION"; \
+	echo ""; \
+	echo "📱 Creating GitHub Release..."; \
+	if command -v gh >/dev/null 2>&1; then \
 		if gh auth status >/dev/null 2>&1; then \
-			if gh release view "v$(NEW_VERSION)" >/dev/null 2>&1; then \
-				echo "⚠️  Release v$(NEW_VERSION) already exists!"; \
+			if gh release view "v$$NEW_VERSION" >/dev/null 2>&1; then \
+				echo "⚠️  Release v$$NEW_VERSION already exists!"; \
 			else \
-				gh release create "v$(NEW_VERSION)" \
-					--title "Release $(NEW_VERSION)" \
-					--notes "Release $(NEW_VERSION) - $$(date +%Y-%m-%d)" \
-					--target $(CURRENT_BRANCH) \
+				gh release create "v$$NEW_VERSION" \
+					--title "Release $$NEW_VERSION" \
+					--notes "Release $$NEW_VERSION - $$(date +%Y-%m-%d)" \
+					--target "$$(git rev-parse --abbrev-ref HEAD)" \
 					build/app/outputs/flutter-apk/app-release.apk#android-apk \
 					build/app/outputs/bundle/release/app-release.aab#aab && \
 				echo "✅ GitHub Release created!"; \
@@ -396,16 +413,16 @@ release: build-android build-appbundle
 		fi; \
 	else \
 		echo "⚠️  GitHub CLI not installed."; \
-	fi
-	@echo ""
-	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║              🎉 Release Complete! 🎉                      ║"
-	@echo "╚═══════════════════════════════════════════════════════════╝"
-	@echo ""
-	@echo "📱 APK: build/app/outputs/flutter-apk/app-release.apk"
-	@echo "📦 AAB: build/app/outputs/bundle/release/app-release.aab"
-	@echo "🔗 Release: https://github.com/berlogabob/flutter-FlowGroove-app/releases/tag/v$(NEW_VERSION)"
-	@echo ""
+	fi; \
+	echo ""; \
+	echo "╔═══════════════════════════════════════════════════════════╗"; \
+	echo "║              🎉 Release Complete! 🎉                      ║"; \
+	echo "╚═══════════════════════════════════════════════════════════╝"; \
+	echo ""; \
+	echo "📱 APK: build/app/outputs/flutter-apk/app-release.apk"; \
+	echo "📦 AAB: build/app/outputs/bundle/release/app-release.aab"; \
+	echo "🔗 Release: https://github.com/berlogabob/flutter-FlowGroove-app/releases/tag/v$$NEW_VERSION"; \
+	echo ""
 
 CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
