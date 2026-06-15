@@ -11,6 +11,13 @@ import '../../../widgets/loading_indicator.dart';
 /// (BPM, key) when available. Users can select a track to populate
 /// song information.
 class SpotifySearchSection extends StatefulWidget {
+  const SpotifySearchSection({
+    super.key,
+    required this.query,
+    required this.scrollController,
+    required this.onSelect,
+  });
+
   /// The search query string.
   final String query;
 
@@ -21,13 +28,6 @@ class SpotifySearchSection extends StatefulWidget {
   ///
   /// Returns the selected track and its audio features (if available).
   final Function(SpotifyTrack track, SpotifyAudioFeatures? features) onSelect;
-
-  const SpotifySearchSection({
-    super.key,
-    required this.query,
-    required this.scrollController,
-    required this.onSelect,
-  });
 
   @override
   State<SpotifySearchSection> createState() => _SpotifySearchSectionState();

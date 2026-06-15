@@ -234,17 +234,17 @@ class _TempoChangeDialogState extends State<TempoChangeDialog> {
 }
 
 class _ModeButton extends StatefulWidget {
-  final String label;
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-
   const _ModeButton({
     required this.label,
     required this.icon,
     required this.isSelected,
     required this.onTap,
   });
+
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   State<_ModeButton> createState() => _ModeButtonState();
@@ -312,10 +312,10 @@ class _ModeButtonState extends State<_ModeButton> {
 }
 
 class _OrangeSwitch extends StatelessWidget {
+  const _OrangeSwitch({required this.value, required this.onChanged});
+
   final bool value;
   final Function(bool) onChanged;
-
-  const _OrangeSwitch({required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -331,17 +331,17 @@ class _OrangeSwitch extends StatelessWidget {
 }
 
 class _ActionButton extends StatefulWidget {
-  final String label;
-  final bool isPrimary;
-  final bool isEnabled;
-  final VoidCallback onTap;
-
   const _ActionButton({
     required this.label,
     required this.isPrimary,
     this.isEnabled = true,
     required this.onTap,
   });
+
+  final String label;
+  final bool isPrimary;
+  final bool isEnabled;
+  final VoidCallback onTap;
 
   @override
   State<_ActionButton> createState() => _ActionButtonState();

@@ -13,10 +13,10 @@ import '../../theme/mono_pulse_theme.dart';
 /// User picks note name + octave for each string.
 /// Saves to in-memory custom tunings list.
 class CustomTuningEditor extends ConsumerStatefulWidget {
+  const CustomTuningEditor({super.key, this.bandId, this.songId});
+
   final String? bandId;
   final String? songId;
-
-  const CustomTuningEditor({super.key, this.bandId, this.songId});
 
   @override
   ConsumerState<CustomTuningEditor> createState() => _CustomTuningEditorState();
@@ -321,12 +321,6 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
 }
 
 class _StringNotePicker extends StatefulWidget {
-  final String stringLabel;
-  final String currentNote;
-  final List<String> noteNames;
-  final List<int> octaves;
-  final void Function(String) onNoteChanged;
-
   const _StringNotePicker({
     required this.stringLabel,
     required this.currentNote,
@@ -334,6 +328,12 @@ class _StringNotePicker extends StatefulWidget {
     required this.octaves,
     required this.onNoteChanged,
   });
+
+  final String stringLabel;
+  final String currentNote;
+  final List<String> noteNames;
+  final List<int> octaves;
+  final void Function(String) onNoteChanged;
 
   @override
   State<_StringNotePicker> createState() => _StringNotePickerState();
@@ -428,15 +428,15 @@ class _StringNotePickerState extends State<_StringNotePicker> {
 }
 
 class _DropdownSelector<T> extends StatelessWidget {
-  final T value;
-  final List<T> items;
-  final ValueChanged<T?> onChanged;
-
   const _DropdownSelector({
     required this.value,
     required this.items,
     required this.onChanged,
   });
+
+  final T value;
+  final List<T> items;
+  final ValueChanged<T?> onChanged;
 
   @override
   Widget build(BuildContext context) {

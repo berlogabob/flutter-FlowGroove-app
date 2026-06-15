@@ -1074,9 +1074,9 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
 }
 
 class _OpenInMetronomeAction implements UnifiedItemAction {
-  final VoidCallback onPressed;
-
   const _OpenInMetronomeAction({required this.onPressed});
+
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -1091,9 +1091,9 @@ class _OpenInMetronomeAction implements UnifiedItemAction {
 }
 
 class _OpenInTunerAction implements UnifiedItemAction {
-  final VoidCallback onPressed;
-
   const _OpenInTunerAction({required this.onPressed});
+
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {

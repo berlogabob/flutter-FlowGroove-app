@@ -31,6 +31,14 @@ import 'tool_scaffold.dart';
 /// )
 /// ```
 class ToolModeSwitcher<T extends Enum> extends StatelessWidget {
+  const ToolModeSwitcher({
+    super.key,
+    required this.activeMode,
+    required this.options,
+    required this.onModeChanged,
+    this.animationDuration = const Duration(milliseconds: 250),
+  });
+
   /// Currently active mode.
   final T activeMode;
 
@@ -42,14 +50,6 @@ class ToolModeSwitcher<T extends Enum> extends StatelessWidget {
 
   /// Animation duration.
   final Duration animationDuration;
-
-  const ToolModeSwitcher({
-    super.key,
-    required this.activeMode,
-    required this.options,
-    required this.onModeChanged,
-    this.animationDuration = const Duration(milliseconds: 250),
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,20 +73,14 @@ class ToolModeSwitcher<T extends Enum> extends StatelessWidget {
 }
 
 class ToolModeOption<T> {
+  const ToolModeOption({required this.mode, required this.label, this.icon});
+
   final T mode;
   final String label;
   final IconData? icon;
-
-  const ToolModeOption({required this.mode, required this.label, this.icon});
 }
 
 class _ModePill extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final bool isActive;
-  final VoidCallback onTap;
-  final Duration animationDuration;
-
   const _ModePill({
     required this.label,
     required this.isActive,
@@ -94,6 +88,12 @@ class _ModePill extends StatelessWidget {
     required this.animationDuration,
     this.icon,
   });
+
+  final String label;
+  final IconData? icon;
+  final bool isActive;
+  final VoidCallback onTap;
+  final Duration animationDuration;
 
   @override
   Widget build(BuildContext context) {

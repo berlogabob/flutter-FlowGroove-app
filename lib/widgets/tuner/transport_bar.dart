@@ -80,17 +80,17 @@ class TransportBar extends ConsumerWidget {
 }
 
 class _MainActionButton extends StatelessWidget {
-  final TunerMode mode;
-  final bool isActive;
-  final bool isStarting;
-  final VoidCallback? onTap;
-
   const _MainActionButton({
     required this.mode,
     required this.isActive,
     required this.isStarting,
     required this.onTap,
   });
+
+  final TunerMode mode;
+  final bool isActive;
+  final bool isStarting;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -156,10 +156,10 @@ class _MainActionButton extends StatelessWidget {
 }
 
 class _VolumeControl extends StatefulWidget {
+  const _VolumeControl({required this.volume, required this.onVolumeChanged});
+
   final double volume;
   final void Function(double) onVolumeChanged;
-
-  const _VolumeControl({required this.volume, required this.onVolumeChanged});
 
   @override
   State<_VolumeControl> createState() => _VolumeControlState();
@@ -258,10 +258,10 @@ class _VolumeControlState extends State<_VolumeControl> {
 }
 
 class _CalibrationButton extends StatelessWidget {
+  const _CalibrationButton({required this.referenceHz, required this.onTap});
+
   final double referenceHz;
   final VoidCallback onTap;
-
-  const _CalibrationButton({required this.referenceHz, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -310,9 +310,9 @@ class _CalibrationButton extends StatelessWidget {
 }
 
 class _InputLevelIndicator extends StatelessWidget {
-  final double levelDb;
-
   const _InputLevelIndicator({required this.levelDb});
+
+  final double levelDb;
 
   @override
   Widget build(BuildContext context) {

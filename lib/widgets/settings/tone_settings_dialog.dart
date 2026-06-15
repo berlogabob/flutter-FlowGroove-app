@@ -158,13 +158,13 @@ class _ToneSettingsDialogState extends ConsumerState<ToneSettingsDialog> {
 
 /// Preset selector widget
 class _PresetSelector extends StatelessWidget {
-  final String currentPreset;
-  final Function(String) onSelect;
-
   const _PresetSelector({
     required this.currentPreset,
     required this.onSelect,
   });
+
+  final String currentPreset;
+  final Function(String) onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -209,13 +209,13 @@ class _PresetSelector extends StatelessWidget {
 
 /// Frequency matrix widget with 6 sliders
 class _FrequencyMatrix extends StatelessWidget {
-  final MetronomeToneConfig config;
-  final ToneConfigNotifier notifier;
-
   const _FrequencyMatrix({
     required this.config,
     required this.notifier,
   });
+
+  final MetronomeToneConfig config;
+  final ToneConfigNotifier notifier;
 
   @override
   Widget build(BuildContext context) {
@@ -297,12 +297,6 @@ class _FrequencyMatrix extends StatelessWidget {
 
 /// Individual frequency slider
 class _FrequencySlider extends StatelessWidget {
-  final String label;
-  final double value;
-  final double min;
-  final double max;
-  final Function(double) onChanged;
-
   const _FrequencySlider({
     required this.label,
     required this.value,
@@ -310,6 +304,12 @@ class _FrequencySlider extends StatelessWidget {
     required this.max,
     required this.onChanged,
   });
+
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final Function(double) onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -351,13 +351,13 @@ class _FrequencySlider extends StatelessWidget {
 
 /// Wave type selector
 class _WaveTypeSelector extends StatelessWidget {
-  final String currentWaveType;
-  final Function(String) onWaveTypeChanged;
-
   const _WaveTypeSelector({
     required this.currentWaveType,
     required this.onWaveTypeChanged,
   });
+
+  final String currentWaveType;
+  final Function(String) onWaveTypeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -404,13 +404,13 @@ class _WaveTypeSelector extends StatelessWidget {
 
 /// Volume control slider
 class _VolumeControl extends StatelessWidget {
-  final double currentVolume;
-  final Function(double) onVolumeChanged;
-
   const _VolumeControl({
     required this.currentVolume,
     required this.onVolumeChanged,
   });
+
+  final double currentVolume;
+  final Function(double) onVolumeChanged;
 
   @override
   Widget build(BuildContext context) {

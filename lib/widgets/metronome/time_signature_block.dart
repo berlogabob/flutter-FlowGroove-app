@@ -146,17 +146,6 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
 // BEATS ROW (Top Row)
 // ============================================================================
 class _BeatsRow extends StatelessWidget {
-  final int count;
-  final int currentBeat;
-  final int subdivisions;
-  final List<List<BeatMode>> beatModes;
-  final void Function(int, int, BeatMode) onToggleMode;
-  final VoidCallback onIncrement;
-  final VoidCallback onDecrement;
-  final bool isSmallScreen;
-  final Key decrementButtonKey;
-  final Key incrementButtonKey;
-
   const _BeatsRow({
     required this.count,
     required this.subdivisions,
@@ -169,6 +158,17 @@ class _BeatsRow extends StatelessWidget {
     this.currentBeat = -1,
     this.isSmallScreen = false,
   });
+
+  final int count;
+  final int currentBeat;
+  final int subdivisions;
+  final List<List<BeatMode>> beatModes;
+  final void Function(int, int, BeatMode) onToggleMode;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
+  final bool isSmallScreen;
+  final Key decrementButtonKey;
+  final Key incrementButtonKey;
 
   @override
   Widget build(BuildContext context) {
@@ -282,18 +282,6 @@ class _BeatsRow extends StatelessWidget {
 // SUBDIVISIONS ROW (Bottom Row)
 // ============================================================================
 class _SubdivisionsRow extends StatelessWidget {
-  final int count;
-  final bool isPlaying;
-  final int currentBeat;
-  final int beats;
-  final List<List<BeatMode>> beatModes;
-  final void Function(int, int, BeatMode) onToggleMode;
-  final VoidCallback onIncrement;
-  final VoidCallback onDecrement;
-  final bool isSmallScreen;
-  final Key decrementButtonKey;
-  final Key incrementButtonKey;
-
   const _SubdivisionsRow({
     required this.count,
     required this.isPlaying,
@@ -307,6 +295,18 @@ class _SubdivisionsRow extends StatelessWidget {
     required this.incrementButtonKey,
     this.isSmallScreen = false,
   });
+
+  final int count;
+  final bool isPlaying;
+  final int currentBeat;
+  final int beats;
+  final List<List<BeatMode>> beatModes;
+  final void Function(int, int, BeatMode) onToggleMode;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
+  final bool isSmallScreen;
+  final Key decrementButtonKey;
+  final Key incrementButtonKey;
 
   @override
   Widget build(BuildContext context) {
@@ -429,14 +429,6 @@ class _SubdivisionsRow extends StatelessWidget {
 // BEAT CIRCLE WITH MODE (TAPPABLE)
 // ============================================================================
 class _BeatCircleWithMode extends StatelessWidget {
-  final bool isMainBeat;
-  final bool isActive;
-  final BeatMode mode;
-  final VoidCallback onTap;
-  final bool isSmallScreen;
-  final double itemExtent;
-  final String semanticLabel;
-
   const _BeatCircleWithMode({
     super.key,
     required this.isMainBeat,
@@ -447,6 +439,14 @@ class _BeatCircleWithMode extends StatelessWidget {
     required this.semanticLabel,
     this.isSmallScreen = false,
   });
+
+  final bool isMainBeat;
+  final bool isActive;
+  final BeatMode mode;
+  final VoidCallback onTap;
+  final bool isSmallScreen;
+  final double itemExtent;
+  final String semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -549,14 +549,6 @@ class _BeatCircleWithMode extends StatelessWidget {
 // SUBDIVISION CIRCLE WITH MODE (TAPPABLE)
 // ============================================================================
 class _SubdivisionCircleWithMode extends StatelessWidget {
-  final int subdivisionIndex;
-  final bool isActive;
-  final BeatMode mode;
-  final VoidCallback? onTap;
-  final bool isSmallScreen;
-  final double itemExtent;
-  final String semanticLabel;
-
   const _SubdivisionCircleWithMode({
     super.key,
     required this.subdivisionIndex,
@@ -567,6 +559,14 @@ class _SubdivisionCircleWithMode extends StatelessWidget {
     this.onTap,
     this.isSmallScreen = false,
   });
+
+  final int subdivisionIndex;
+  final bool isActive;
+  final BeatMode mode;
+  final VoidCallback? onTap;
+  final bool isSmallScreen;
+  final double itemExtent;
+  final String semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -669,12 +669,6 @@ class _SubdivisionCircleWithMode extends StatelessWidget {
 // BEAT BUTTON (Plus/Minus)
 // ============================================================================
 class _BeatButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onTap;
-  final bool showBadge;
-  final int badgeCount;
-  final bool isSmallScreen;
-
   const _BeatButton({
     super.key,
     required this.icon,
@@ -683,6 +677,12 @@ class _BeatButton extends StatelessWidget {
     this.badgeCount = 0,
     this.isSmallScreen = false,
   });
+
+  final IconData icon;
+  final VoidCallback? onTap;
+  final bool showBadge;
+  final int badgeCount;
+  final bool isSmallScreen;
 
   @override
   Widget build(BuildContext context) {

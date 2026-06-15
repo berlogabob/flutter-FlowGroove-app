@@ -6,15 +6,15 @@ part 'musicbrainz_recording.g.dart';
 /// Artist credit in MusicBrainz response
 @JsonSerializable()
 class MusicBrainzArtistCredit extends Equatable {
-  final MusicBrainzArtist artist;
-  final String? name;
-  final String? joinPhrase;
-
   const MusicBrainzArtistCredit({
     required this.artist,
     this.name,
     this.joinPhrase,
   });
+
+  final MusicBrainzArtist artist;
+  final String? name;
+  final String? joinPhrase;
 
   factory MusicBrainzArtistCredit.fromJson(Map<String, dynamic> json) =>
       _$MusicBrainzArtistCreditFromJson(json);
@@ -30,17 +30,17 @@ class MusicBrainzArtistCredit extends Equatable {
 /// Artist in MusicBrainz response
 @JsonSerializable()
 class MusicBrainzArtist extends Equatable {
-  final String id;
-  final String name;
-  final String? disambiguation;
-  final String? sortName;
-
   const MusicBrainzArtist({
     required this.id,
     required this.name,
     this.disambiguation,
     this.sortName,
   });
+
+  final String id;
+  final String name;
+  final String? disambiguation;
+  final String? sortName;
 
   factory MusicBrainzArtist.fromJson(Map<String, dynamic> json) =>
       _$MusicBrainzArtistFromJson(json);
@@ -61,12 +61,6 @@ class MusicBrainzArtist extends Equatable {
 /// Release (album/single) in MusicBrainz response
 @JsonSerializable()
 class MusicBrainzRelease extends Equatable {
-  final String id;
-  final String title;
-  final String? date;
-  final String? country;
-  final List<String>? media;
-
   const MusicBrainzRelease({
     required this.id,
     required this.title,
@@ -74,6 +68,12 @@ class MusicBrainzRelease extends Equatable {
     this.country,
     this.media,
   });
+
+  final String id;
+  final String title;
+  final String? date;
+  final String? country;
+  final List<String>? media;
 
   factory MusicBrainzRelease.fromJson(Map<String, dynamic> json) =>
       _$MusicBrainzReleaseFromJson(json);
@@ -91,13 +91,24 @@ class MusicBrainzRelease extends Equatable {
 }
 
 /// MusicBrainz Recording - represents a specific audio recording
-/// 
+///
 /// This is the main model for MusicBrainz API responses.
 /// A Recording can appear on multiple releases and have multiple artists.
-/// 
+///
 /// See: https://musicbrainz.org/doc/Recording
 @JsonSerializable()
 class MusicBrainzRecording extends Equatable {
+  const MusicBrainzRecording({
+    required this.id,
+    required this.title,
+    this.artistCredit = const [],
+    this.disambiguation,
+    this.lengthMs,
+    this.isrcs = const [],
+    this.releases = const [],
+    this.aliases = const [],
+  });
+
   /// MusicBrainz ID (UUID)
   final String id;
 
@@ -126,17 +137,6 @@ class MusicBrainzRecording extends Equatable {
   /// Aliases (alternative titles)
   @JsonKey(defaultValue: [])
   final List<MusicBrainzAlias> aliases;
-
-  const MusicBrainzRecording({
-    required this.id,
-    required this.title,
-    this.artistCredit = const [],
-    this.disambiguation,
-    this.lengthMs,
-    this.isrcs = const [],
-    this.releases = const [],
-    this.aliases = const [],
-  });
 
   factory MusicBrainzRecording.fromJson(Map<String, dynamic> json) =>
       _$MusicBrainzRecordingFromJson(json);
@@ -201,15 +201,15 @@ class MusicBrainzRecording extends Equatable {
 /// Alias (alternative name) in MusicBrainz
 @JsonSerializable()
 class MusicBrainzAlias extends Equatable {
-  final String name;
-  final String? locale;
-  final bool? primary;
-
   const MusicBrainzAlias({
     required this.name,
     this.locale,
     this.primary,
   });
+
+  final String name;
+  final String? locale;
+  final bool? primary;
 
   factory MusicBrainzAlias.fromJson(Map<String, dynamic> json) =>
       _$MusicBrainzAliasFromJson(json);

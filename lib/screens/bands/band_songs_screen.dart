@@ -29,10 +29,10 @@ import 'song_picker_screen.dart';
 /// This screen shows all songs that have been shared to the band's
 /// song bank, with filtering by contributor and attribution badges.
 class BandSongsScreen extends ConsumerStatefulWidget {
+  const BandSongsScreen({super.key, required this.band});
+
   /// The band whose songs to display.
   final Band band;
-
-  const BandSongsScreen({super.key, required this.band});
 
   @override
   ConsumerState<BandSongsScreen> createState() => _BandSongsScreenState();
@@ -879,9 +879,9 @@ class _BuildEditAction implements UnifiedItemAction {
 }
 
 class _OpenBandSongInTunerAction implements UnifiedItemAction {
-  final VoidCallback onPressed;
-
   const _OpenBandSongInTunerAction({required this.onPressed});
+
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -898,15 +898,15 @@ class _OpenBandSongInTunerAction implements UnifiedItemAction {
 }
 
 class _EditMemberSheet extends StatefulWidget {
-  final BandMember member;
-  final Band band;
-  final Function(BandMember) onSave;
-
   const _EditMemberSheet({
     required this.member,
     required this.band,
     required this.onSave,
   });
+
+  final BandMember member;
+  final Band band;
+  final Function(BandMember) onSave;
 
   @override
   State<_EditMemberSheet> createState() => _EditMemberSheetState();

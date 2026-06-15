@@ -17,6 +17,14 @@ import '../theme/mono_pulse_theme.dart';
 /// )
 /// ```
 class SingleFab extends StatelessWidget {
+  const SingleFab({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+    this.tooltip,
+    this.heroTag,
+  });
+
   /// Icon to display.
   final IconData icon;
 
@@ -28,14 +36,6 @@ class SingleFab extends StatelessWidget {
 
   /// Tooltip text (optional).
   final String? tooltip;
-
-  const SingleFab({
-    super.key,
-    required this.icon,
-    required this.onPressed,
-    this.tooltip,
-    this.heroTag,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,13 +73,13 @@ class SingleFab extends StatelessWidget {
 /// )
 /// ```
 class DualFab extends StatelessWidget {
+  const DualFab({super.key, required this.primary, required this.secondary});
+
   /// Primary action (displayed at bottom).
   final FabAction primary;
 
   /// Secondary action (displayed at top).
   final FabAction secondary;
-
-  const DualFab({super.key, required this.primary, required this.secondary});
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +137,12 @@ class DualFab extends StatelessWidget {
 
 /// Action configuration for FAB buttons.
 class FabAction {
+  const FabAction({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
   /// Icon to display.
   final IconData icon;
 
@@ -145,10 +151,4 @@ class FabAction {
 
   /// Callback when button is pressed.
   final VoidCallback onPressed;
-
-  const FabAction({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
 }

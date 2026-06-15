@@ -22,10 +22,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 /// - Text: #EDEDED
 /// - Icons: Orange (#FF5E00)
 class MenuPopup extends ConsumerStatefulWidget {
+  const MenuPopup({super.key, required this.position, required this.onClose});
+
   final Offset position;
   final VoidCallback onClose;
-
-  const MenuPopup({super.key, required this.position, required this.onClose});
 
   @override
   ConsumerState<MenuPopup> createState() => _MenuPopupState();

@@ -29,13 +29,13 @@ import '../theme/mono_pulse_theme.dart';
 /// )
 /// ```
 class SettingsListView extends StatelessWidget {
+  const SettingsListView({super.key, required this.sections, this.footer});
+
   /// List of settings sections.
   final List<SettingsSection> sections;
 
   /// Footer widget (e.g., sign out button).
   final Widget? footer;
-
-  const SettingsListView({super.key, required this.sections, this.footer});
 
   @override
   Widget build(BuildContext context) {
@@ -96,13 +96,13 @@ class SettingsListView extends StatelessWidget {
 
 /// Settings section containing a list of items.
 class SettingsSection {
+  const SettingsSection({required this.title, required this.items});
+
   /// Section title.
   final String title;
 
   /// List of settings items.
   final List<SettingsItem> items;
-
-  const SettingsSection({required this.title, required this.items});
 }
 
 /// Base class for settings items.
@@ -112,6 +112,16 @@ abstract class SettingsItem extends StatelessWidget {
 
 /// Settings item with icon, title, subtitle, and navigation.
 class SettingsMenuItem extends SettingsItem {
+  const SettingsMenuItem({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.onTap,
+    this.trailing,
+    this.enabled = true,
+  });
+
   /// Icon to display.
   final IconData icon;
 
@@ -129,16 +139,6 @@ class SettingsMenuItem extends SettingsItem {
 
   /// Whether item is enabled.
   final bool enabled;
-
-  const SettingsMenuItem({
-    super.key,
-    required this.icon,
-    required this.title,
-    this.enabled = true,
-    this.subtitle,
-    this.onTap,
-    this.trailing,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +179,13 @@ class SettingsMenuItem extends SettingsItem {
 
 /// Settings item displaying a title/value pair (info display).
 class SettingsInfoItem extends SettingsItem {
+  const SettingsInfoItem({
+    super.key,
+    required this.title,
+    required this.value,
+    this.onTap,
+  });
+
   /// Item title (label).
   final String title;
 
@@ -187,13 +194,6 @@ class SettingsInfoItem extends SettingsItem {
 
   /// Callback when item is tapped (optional).
   final VoidCallback? onTap;
-
-  const SettingsInfoItem({
-    super.key,
-    required this.title,
-    required this.value,
-    this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -222,6 +222,15 @@ class SettingsInfoItem extends SettingsItem {
 
 /// Settings item with editable text field.
 class SettingsEditableItem extends StatefulWidget {
+  const SettingsEditableItem({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.isEditing,
+    required this.onToggleEdit,
+    required this.onSave,
+  });
+
   /// Item title (label).
   final String title;
 
@@ -236,15 +245,6 @@ class SettingsEditableItem extends StatefulWidget {
 
   /// Callback to save value.
   final Function(String) onSave;
-
-  const SettingsEditableItem({
-    super.key,
-    required this.title,
-    required this.value,
-    required this.isEditing,
-    required this.onToggleEdit,
-    required this.onSave,
-  });
 
   @override
   State<SettingsEditableItem> createState() => _SettingsEditableItemState();
@@ -340,17 +340,17 @@ class _SettingsEditableItemState extends State<SettingsEditableItem> {
 
 /// Settings item for profile photo with picker.
 class SettingsPhotoItem extends SettingsItem {
+  const SettingsPhotoItem({
+    super.key,
+    required this.onPhotoTap,
+    this.photoPath,
+  });
+
   /// Current photo path (null = no photo).
   final String? photoPath;
 
   /// Callback when photo should be changed.
   final VoidCallback onPhotoTap;
-
-  const SettingsPhotoItem({
-    super.key,
-    this.photoPath,
-    required this.onPhotoTap,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -386,10 +386,10 @@ class SettingsPhotoItem extends SettingsItem {
 
 /// Sign out button for settings footer.
 class SignOutButton extends StatelessWidget {
+  const SignOutButton({super.key, required this.onPressed});
+
   /// Callback when sign out is pressed.
   final VoidCallback onPressed;
-
-  const SignOutButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {

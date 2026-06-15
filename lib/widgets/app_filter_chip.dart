@@ -18,6 +18,14 @@ import '../theme/mono_pulse_theme.dart';
 /// )
 /// ```
 class AppFilterChip extends StatelessWidget {
+  const AppFilterChip({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+    this.unselectedBackgroundColor,
+  });
+
   /// The label displayed in the chip
   final String label;
 
@@ -29,14 +37,6 @@ class AppFilterChip extends StatelessWidget {
 
   /// Custom background color for unselected state (optional)
   final Color? unselectedBackgroundColor;
-
-  const AppFilterChip({
-    super.key,
-    required this.label,
-    required this.selected,
-    required this.onSelected,
-    this.unselectedBackgroundColor,
-  });
 
   @override
   Widget build(BuildContext context) {

@@ -11,9 +11,9 @@ import '../../theme/mono_pulse_theme.dart';
 /// Displays 12 chromatic notes around the dial perimeter.
 /// TAPPABLE: User taps directly on note names to select them.
 class NoteScaleRuler extends ConsumerWidget {
-  final double dialSize;
-
   const NoteScaleRuler({super.key, required this.dialSize});
+
+  final double dialSize;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

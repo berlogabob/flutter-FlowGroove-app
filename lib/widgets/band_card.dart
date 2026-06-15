@@ -6,6 +6,17 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent card layout for displaying band
 /// details including name, members count, and action buttons.
 class BandCard extends StatelessWidget {
+  const BandCard({
+    super.key,
+    required this.id,
+    required this.name,
+    required this.memberCount,
+    this.description,
+    this.onTap,
+    this.onEdit,
+    this.onDelete,
+  });
+
   /// The band ID.
   final String id;
 
@@ -26,17 +37,6 @@ class BandCard extends StatelessWidget {
 
   /// Callback when the delete button is pressed.
   final VoidCallback? onDelete;
-
-  const BandCard({
-    super.key,
-    required this.id,
-    required this.name,
-    required this.memberCount,
-    this.description,
-    this.onTap,
-    this.onEdit,
-    this.onDelete,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +101,13 @@ class BandCard extends StatelessWidget {
 
 /// A compact band card for list views.
 class CompactBandCard extends StatelessWidget {
+  const CompactBandCard({
+    super.key,
+    required this.id,
+    required this.name,
+    this.onTap,
+  });
+
   /// The band ID.
   final String id;
 
@@ -109,13 +116,6 @@ class CompactBandCard extends StatelessWidget {
 
   /// Callback when the card is tapped.
   final VoidCallback? onTap;
-
-  const CompactBandCard({
-    super.key,
-    required this.id,
-    required this.name,
-    this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {

@@ -91,19 +91,6 @@ class CentralDial extends ConsumerWidget {
 }
 
 class _InteractiveDial extends StatefulWidget {
-  final double size;
-  final String note;
-  final double frequency;
-  final int cents;
-  final TunerMode mode;
-  final bool hasValidPitch;
-  final bool isInTune;
-  final bool isListening;
-  final bool isStarting;
-  final String signalLabel;
-  final int? targetNoteIndex; // For manual mode: which note is selected (0-11)
-  final void Function(double) onFrequencyChanged;
-
   const _InteractiveDial({
     required this.size,
     required this.note,
@@ -118,6 +105,19 @@ class _InteractiveDial extends StatefulWidget {
     required this.onFrequencyChanged,
     this.targetNoteIndex,
   });
+
+  final double size;
+  final String note;
+  final double frequency;
+  final int cents;
+  final TunerMode mode;
+  final bool hasValidPitch;
+  final bool isInTune;
+  final bool isListening;
+  final bool isStarting;
+  final String signalLabel;
+  final int? targetNoteIndex; // For manual mode: which note is selected (0-11)
+  final void Function(double) onFrequencyChanged;
 
   @override
   State<_InteractiveDial> createState() => _InteractiveDialState();
@@ -287,17 +287,6 @@ class _InteractiveDialState extends State<_InteractiveDial> {
 }
 
 class _FrequencyDisplay extends StatelessWidget {
-  final String note;
-  final double frequency;
-  final int cents;
-  final TunerMode mode;
-  final double size;
-  final bool hasValidPitch;
-  final bool isInTune;
-  final bool isListening;
-  final bool isStarting;
-  final String signalLabel;
-
   const _FrequencyDisplay({
     required this.note,
     required this.frequency,
@@ -310,6 +299,17 @@ class _FrequencyDisplay extends StatelessWidget {
     required this.isStarting,
     required this.signalLabel,
   });
+
+  final String note;
+  final double frequency;
+  final int cents;
+  final TunerMode mode;
+  final double size;
+  final bool hasValidPitch;
+  final bool isInTune;
+  final bool isListening;
+  final bool isStarting;
+  final String signalLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -370,15 +370,15 @@ class _FrequencyDisplay extends StatelessWidget {
 }
 
 class _CentsDisplay extends StatelessWidget {
-  final int cents;
-  final double fontSize;
-  final bool isInTune;
-
   const _CentsDisplay({
     required this.cents,
     required this.fontSize,
     required this.isInTune,
   });
+
+  final int cents;
+  final double fontSize;
+  final bool isInTune;
 
   @override
   Widget build(BuildContext context) {
@@ -409,9 +409,9 @@ class _CentsDisplay extends StatelessWidget {
 }
 
 class _EdgeHandle extends StatelessWidget {
-  final double size;
-
   const _EdgeHandle({required this.size});
+
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -433,10 +433,10 @@ class _EdgeHandle extends StatelessWidget {
 }
 
 class _NeedleIndicator extends StatelessWidget {
+  const _NeedleIndicator({required this.cents, required this.size});
+
   final int cents;
   final double size;
-
-  const _NeedleIndicator({required this.cents, required this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -467,9 +467,9 @@ class _NeedleIndicator extends StatelessWidget {
 
 /// Radial gradient overlay to create lens/physical dial effect
 class _RadialGradientOverlay extends StatelessWidget {
-  final double size;
-
   const _RadialGradientOverlay({required this.size});
+
+  final double size;
 
   @override
   Widget build(BuildContext context) {

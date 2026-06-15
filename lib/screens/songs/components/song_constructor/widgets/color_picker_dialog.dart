@@ -4,14 +4,14 @@ import '../core/theme/app_colors.dart';
 
 /// Color picker dialog with 3 methods: theme colors, color wheel, hex input.
 class ColorPickerDialog extends StatefulWidget {
-  final String sectionName;
-  final Color initialColor;
-
   const ColorPickerDialog({
     super.key,
     required this.sectionName,
     required this.initialColor,
   });
+
+  final String sectionName;
+  final Color initialColor;
 
   @override
   State<ColorPickerDialog> createState() => _ColorPickerDialogState();
@@ -393,15 +393,15 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
 }
 
 class _HexPresetChip extends StatelessWidget {
-  final Color color;
-  final String hex;
-  final Function(String, Color) onTap;
-
   const _HexPresetChip({
     required this.color,
     required this.hex,
     required this.onTap,
   });
+
+  final Color color;
+  final String hex;
+  final Function(String, Color) onTap;
 
   @override
   Widget build(BuildContext context) {

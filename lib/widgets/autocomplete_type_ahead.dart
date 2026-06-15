@@ -33,6 +33,17 @@ import 'suggestion_card.dart';
 
 /// Autocomplete TypeAhead widget for song search.
 class AutocompleteTypeAhead extends ConsumerStatefulWidget {
+  const AutocompleteTypeAhead({
+    super.key,
+    required this.onSuggestionSelected,
+    this.hint = 'Search songs...',
+    this.icon = Icons.music_note,
+    this.minLength = 2,
+    this.debounceMs = 300,
+    this.maxSuggestions = 8,
+    this.bandId,
+  });
+
   /// Callback when user selects a suggestion
   final ValueChanged<SongSuggestion> onSuggestionSelected;
 
@@ -53,17 +64,6 @@ class AutocompleteTypeAhead extends ConsumerStatefulWidget {
 
   /// Maximum suggestions to show
   final int maxSuggestions;
-
-  const AutocompleteTypeAhead({
-    super.key,
-    required this.onSuggestionSelected,
-    this.hint = 'Search songs...',
-    this.icon = Icons.music_note,
-    this.minLength = 2,
-    this.debounceMs = 300,
-    this.maxSuggestions = 8,
-    this.bandId,
-  });
 
   @override
   ConsumerState<AutocompleteTypeAhead> createState() =>
@@ -263,13 +263,6 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
 
 /// Suggestion dropdown widget
 class _SuggestionDropdown extends StatelessWidget {
-  final List<SongSuggestion> suggestions;
-  final bool isLoading;
-  final String? error;
-  final int selectedIndex;
-  final ValueChanged<SongSuggestion> onSuggestionSelected;
-  final ValueChanged<int> onNavigate;
-
   const _SuggestionDropdown({
     required this.suggestions,
     required this.isLoading,
@@ -278,6 +271,13 @@ class _SuggestionDropdown extends StatelessWidget {
     required this.onSuggestionSelected,
     required this.onNavigate,
   });
+
+  final List<SongSuggestion> suggestions;
+  final bool isLoading;
+  final String? error;
+  final int selectedIndex;
+  final ValueChanged<SongSuggestion> onSuggestionSelected;
+  final ValueChanged<int> onNavigate;
 
   @override
   Widget build(BuildContext context) {
