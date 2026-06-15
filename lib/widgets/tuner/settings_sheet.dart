@@ -153,10 +153,10 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _PresetSummary extends StatelessWidget {
+  const _PresetSummary({required this.instrument, required this.tuning});
+
   final String instrument;
   final String tuning;
-
-  const _PresetSummary({required this.instrument, required this.tuning});
 
   @override
   Widget build(BuildContext context) {
@@ -179,14 +179,6 @@ class _PresetSummary extends StatelessWidget {
 }
 
 class _SettingSlider extends StatelessWidget {
-  final String label;
-  final String valueLabel;
-  final double value;
-  final double min;
-  final double max;
-  final int divisions;
-  final ValueChanged<double> onChanged;
-
   const _SettingSlider({
     required this.label,
     required this.valueLabel,
@@ -196,6 +188,14 @@ class _SettingSlider extends StatelessWidget {
     required this.divisions,
     required this.onChanged,
   });
+
+  final String label;
+  final String valueLabel;
+  final double value;
+  final double min;
+  final double max;
+  final int divisions;
+  final ValueChanged<double> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -230,17 +230,17 @@ class _SettingSlider extends StatelessWidget {
 }
 
 class _SettingSwitch extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
   const _SettingSwitch({
     required this.title,
     required this.subtitle,
     required this.value,
     required this.onChanged,
   });
+
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {

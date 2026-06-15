@@ -7,17 +7,17 @@ import '../theme/mono_pulse_theme.dart';
 /// Displays two dropdown menus side by side for selecting the numerator
 /// and denominator of a time signature, formatted as "[X ▼] / [Y ▼]".
 class TimeSignatureDropdown extends StatelessWidget {
-  /// The current time signature value.
-  final TimeSignature value;
-
-  /// Callback when the time signature changes.
-  final Function(TimeSignature) onChanged;
-
   const TimeSignatureDropdown({
     super.key,
     required this.value,
     required this.onChanged,
   });
+
+  /// The current time signature value.
+  final TimeSignature value;
+
+  /// Callback when the time signature changes.
+  final Function(TimeSignature) onChanged;
 
   @override
   Widget build(BuildContext context) {

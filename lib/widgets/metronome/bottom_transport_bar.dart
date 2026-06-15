@@ -71,13 +71,13 @@ class BottomTransportBar extends ConsumerWidget {
 
 /// Play/pause button with pulse animation
 class _PlayPauseButton extends StatefulWidget {
-  final bool isPlaying;
-  final VoidCallback onTap;
-
   const _PlayPauseButton({
     required this.isPlaying,
     required this.onTap,
   });
+
+  final bool isPlaying;
+  final VoidCallback onTap;
 
   @override
   State<_PlayPauseButton> createState() => _PlayPauseButtonState();
@@ -157,15 +157,15 @@ class _PlayPauseButtonState extends State<_PlayPauseButton>
 
 /// Display for loaded song/setlist info
 class _LoadedContentDisplay extends StatelessWidget {
-  final dynamic song;
-  final dynamic setlist;
-  final int currentIndex;
-
   const _LoadedContentDisplay({
     this.song,
     this.setlist,
     required this.currentIndex,
   });
+
+  final dynamic song;
+  final dynamic setlist;
+  final int currentIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -231,17 +231,17 @@ class _LoadedContentDisplay extends StatelessWidget {
 
 /// Setlist navigation controls
 class _SetlistNavigation extends StatelessWidget {
-  final int currentIndex;
-  final int totalSongs;
-  final VoidCallback onPrevious;
-  final VoidCallback onNext;
-
   const _SetlistNavigation({
     required this.currentIndex,
     required this.totalSongs,
     required this.onPrevious,
     required this.onNext,
   });
+
+  final int currentIndex;
+  final int totalSongs;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
 
   @override
   Widget build(BuildContext context) {

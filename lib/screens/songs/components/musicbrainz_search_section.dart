@@ -8,6 +8,13 @@ import '../../../widgets/loading_indicator.dart';
 /// This widget displays search results from MusicBrainz with BPM information
 /// when available. Users can select a recording to populate song information.
 class MusicBrainzSearchSection extends StatefulWidget {
+  const MusicBrainzSearchSection({
+    super.key,
+    required this.query,
+    required this.scrollController,
+    required this.onSelect,
+  });
+
   /// The search query string.
   final String query;
 
@@ -16,13 +23,6 @@ class MusicBrainzSearchSection extends StatefulWidget {
 
   /// Callback when a recording is selected.
   final Function(MusicBrainzRecording recording) onSelect;
-
-  const MusicBrainzSearchSection({
-    super.key,
-    required this.query,
-    required this.scrollController,
-    required this.onSelect,
-  });
 
   @override
   State<MusicBrainzSearchSection> createState() =>

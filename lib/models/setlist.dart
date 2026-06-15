@@ -16,15 +16,15 @@ class _Sentinel {
 }
 
 class SetlistItem {
-  final String id;
-  final String songId;
-  final String? tuningPresetId;
-
   const SetlistItem({
     required this.id,
     required this.songId,
     this.tuningPresetId,
   });
+
+  final String id;
+  final String songId;
+  final String? tuningPresetId;
 
   factory SetlistItem.fromJson(Map<String, dynamic> json) => SetlistItem(
     id: json['id'] as String? ?? '',
@@ -49,6 +49,21 @@ class SetlistItem {
 
 @JsonSerializable()
 class Setlist {
+  Setlist({
+    required this.id,
+    required this.bandId,
+    required this.name,
+    this.description,
+    this.eventDateTime,
+    this.eventLocation,
+    this.songIds = const [],
+    this.items = const [],
+    this.totalDuration,
+    this.assignments = const {},
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
   @JsonKey(defaultValue: '')
   final String id;
   @JsonKey(defaultValue: '')
@@ -74,21 +89,6 @@ class Setlist {
   final DateTime createdAt;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime updatedAt;
-
-  Setlist({
-    required this.id,
-    required this.bandId,
-    required this.name,
-    this.description,
-    this.eventDateTime,
-    this.eventLocation,
-    this.songIds = const [],
-    this.items = const [],
-    this.totalDuration,
-    this.assignments = const {},
-    required this.createdAt,
-    required this.updatedAt,
-  });
 
   factory Setlist.fromJson(Map<String, dynamic> json) =>
       _$SetlistFromJson(json);

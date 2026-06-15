@@ -42,6 +42,27 @@ enum SuggestionType {
 /// to help users make informed decisions.
 @JsonSerializable()
 class SongSuggestion extends Equatable {
+  const SongSuggestion({
+    required this.id,
+    required this.title,
+    required this.artist,
+    required this.source,
+    required this.type,
+    this.matchScore = 1.0,
+    this.bandId,
+    this.bandName,
+    this.canonicalSongId,
+    this.variantInfo,
+    this.bpm,
+    this.key,
+    this.isForkable = false,
+    this.album,
+    this.releaseYear,
+    this.durationMs,
+    this.musicBrainzId,
+    this.matchReasons = const [],
+  });
+
   /// Unique identifier for this suggestion
   final String id;
 
@@ -98,27 +119,6 @@ class SongSuggestion extends Equatable {
   /// Reasons why this song matched (for debugging/UI)
   @JsonKey(defaultValue: [])
   final List<String> matchReasons;
-
-  const SongSuggestion({
-    required this.id,
-    required this.title,
-    required this.artist,
-    required this.source,
-    required this.type,
-    this.matchScore = 1.0,
-    this.bandId,
-    this.bandName,
-    this.canonicalSongId,
-    this.variantInfo,
-    this.bpm,
-    this.key,
-    this.isForkable = false,
-    this.album,
-    this.releaseYear,
-    this.durationMs,
-    this.musicBrainzId,
-    this.matchReasons = const [],
-  });
 
   /// Create a suggestion from user's personal song.
   factory SongSuggestion.fromPersonalSong({

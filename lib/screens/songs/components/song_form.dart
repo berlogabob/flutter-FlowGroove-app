@@ -21,6 +21,41 @@ import 'collapsible_section.dart';
 /// - Tags selection
 /// - Metronome settings (accentBeats, regularBeats, beatModes)
 class SongForm extends StatelessWidget {
+  const SongForm({
+    super.key,
+    required this.formKey,
+    required this.titleController,
+    required this.artistController,
+    required this.originalBpmController,
+    required this.ourBpmController,
+    required this.notesController,
+    required this.links,
+    required this.selectedTags,
+    required this.availableTags,
+    required this.originalKeyBase,
+    required this.originalKeyModifier,
+    required this.ourKeyBase,
+    required this.ourKeyModifier,
+    required this.onOriginalKeyChanged,
+    required this.onOurKeyChanged,
+    required this.onAddLink,
+    required this.onRemoveLink,
+    required this.onTagChanged,
+    this.isEditing = false,
+    this.accentBeats = 4,
+    this.regularBeats = 1,
+    this.beatModes = const [],
+    this.sections = const [],
+    this.onCopyFromOriginal,
+    this.onAccentBeatsChanged,
+    this.onRegularBeatsChanged,
+    this.onBeatModeChanged,
+    this.onSubmit,
+    this.onSectionsChanged,
+    this.bandId,
+    this.onSuggestionSelected,
+  });
+
   /// Form key for validation.
   final GlobalKey<FormState> formKey;
 
@@ -113,41 +148,6 @@ class SongForm extends StatelessWidget {
 
   /// Callback when a suggestion is selected
   final Function(SongSuggestion)? onSuggestionSelected;
-
-  const SongForm({
-    super.key,
-    required this.formKey,
-    required this.titleController,
-    required this.artistController,
-    required this.originalBpmController,
-    required this.ourBpmController,
-    required this.notesController,
-    required this.links,
-    required this.selectedTags,
-    required this.availableTags,
-    required this.originalKeyBase,
-    required this.originalKeyModifier,
-    required this.ourKeyBase,
-    required this.ourKeyModifier,
-    required this.onOriginalKeyChanged,
-    required this.onOurKeyChanged,
-    required this.onAddLink,
-    required this.onRemoveLink,
-    required this.onTagChanged,
-    this.isEditing = false,
-    this.accentBeats = 4,
-    this.regularBeats = 1,
-    this.beatModes = const [],
-    this.sections = const [],
-    this.onCopyFromOriginal,
-    this.onAccentBeatsChanged,
-    this.onRegularBeatsChanged,
-    this.onBeatModeChanged,
-    this.onSubmit,
-    this.onSectionsChanged,
-    this.bandId,
-    this.onSuggestionSelected,
-  });
 
   @override
   Widget build(BuildContext context) {

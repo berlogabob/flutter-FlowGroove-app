@@ -32,9 +32,9 @@ import '../widgets/tuner/transport_bar.dart';
 /// 5. Central Circle (50-60% screen width) - Frequency display with tick marks
 /// 6. Bottom Transport Bar (64-80px) - Play button + icons
 class TunerScreen extends ConsumerStatefulWidget {
-  final TunerLaunchContext? launchContext;
-
   const TunerScreen({super.key, this.launchContext});
+
+  final TunerLaunchContext? launchContext;
 
   @override
   ConsumerState<TunerScreen> createState() => _TunerScreenState();
@@ -444,10 +444,10 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
 }
 
 class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.icon, required this.text});
+
   final IconData icon;
   final String text;
-
-  const _InfoCard({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -477,15 +477,15 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _ErrorCard extends StatelessWidget {
-  final String message;
-  final bool showSettings;
-  final VoidCallback onSettings;
-
   const _ErrorCard({
     required this.message,
     required this.showSettings,
     required this.onSettings,
   });
+
+  final String message;
+  final bool showSettings;
+  final VoidCallback onSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -521,13 +521,6 @@ class _ErrorCard extends StatelessWidget {
 }
 
 class _ToneControls extends StatelessWidget {
-  final String note;
-  final int octave;
-  final List<String> notes;
-  final bool droneEnabled;
-  final void Function(String note, int octave) onNoteChanged;
-  final VoidCallback onDroneChanged;
-
   const _ToneControls({
     required this.note,
     required this.octave,
@@ -536,6 +529,13 @@ class _ToneControls extends StatelessWidget {
     required this.onNoteChanged,
     required this.onDroneChanged,
   });
+
+  final String note;
+  final int octave;
+  final List<String> notes;
+  final bool droneEnabled;
+  final void Function(String note, int octave) onNoteChanged;
+  final VoidCallback onDroneChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -582,17 +582,17 @@ class _ToneControls extends StatelessWidget {
 }
 
 class _SongContextCard extends StatelessWidget {
-  final String songTitle;
-  final bool isSetlistItem;
-  final bool canSave;
-  final VoidCallback onLink;
-
   const _SongContextCard({
     required this.songTitle,
     required this.isSetlistItem,
     required this.canSave,
     required this.onLink,
   });
+
+  final String songTitle;
+  final bool isSetlistItem;
+  final bool canSave;
+  final VoidCallback onLink;
 
   @override
   Widget build(BuildContext context) {

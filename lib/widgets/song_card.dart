@@ -9,6 +9,16 @@ import 'app_icon_button.dart';
 /// This widget provides a consistent card layout for displaying song
 /// details including title, artist, BPM, key, and action buttons.
 class SongCard extends StatelessWidget {
+  const SongCard({
+    super.key,
+    required this.song,
+    this.onEdit,
+    this.onDelete,
+    this.onPlaySpotify,
+    this.onOpenMetronome,
+    this.showSpotifyButton = true,
+  });
+
   /// The song to display.
   final Song song;
 
@@ -26,16 +36,6 @@ class SongCard extends StatelessWidget {
 
   /// Whether to show the Spotify play button.
   final bool showSpotifyButton;
-
-  const SongCard({
-    super.key,
-    required this.song,
-    this.showSpotifyButton = true,
-    this.onEdit,
-    this.onDelete,
-    this.onPlaySpotify,
-    this.onOpenMetronome,
-  });
 
   @override
   Widget build(BuildContext context) {

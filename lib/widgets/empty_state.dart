@@ -6,6 +6,17 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent empty state layout for when there
 /// is no data to display, with an optional call-to-action button.
 class EmptyState extends StatelessWidget {
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.message,
+    this.hint,
+    this.actionLabel,
+    this.onAction,
+    this.iconColor,
+    this.iconSize = 80,
+  });
+
   /// The icon to display.
   final IconData icon;
 
@@ -26,17 +37,6 @@ class EmptyState extends StatelessWidget {
 
   /// The size of the icon.
   final double iconSize;
-
-  const EmptyState({
-    super.key,
-    required this.icon,
-    required this.message,
-    this.iconSize = 80,
-    this.hint,
-    this.actionLabel,
-    this.onAction,
-    this.iconColor,
-  });
 
   @override
   Widget build(BuildContext context) {

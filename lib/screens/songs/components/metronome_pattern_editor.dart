@@ -10,6 +10,16 @@ import '../../../theme/mono_pulse_theme.dart';
 /// - accent: orange circle with icon
 /// - silent: transparent/dashed circle
 class MetronomePatternEditor extends StatelessWidget {
+  const MetronomePatternEditor({
+    super.key,
+    required this.accentBeats,
+    required this.regularBeats,
+    required this.beatModes,
+    required this.onBeatModeChanged,
+    this.onAccentBeatsChanged,
+    this.onRegularBeatsChanged,
+  });
+
   /// Number of beats per measure (1-16, default 4).
   final int accentBeats;
 
@@ -28,16 +38,6 @@ class MetronomePatternEditor extends StatelessWidget {
 
   /// Callback when regularBeats changes.
   final ValueChanged<int>? onRegularBeatsChanged;
-
-  const MetronomePatternEditor({
-    super.key,
-    required this.accentBeats,
-    required this.regularBeats,
-    required this.beatModes,
-    required this.onBeatModeChanged,
-    this.onAccentBeatsChanged,
-    this.onRegularBeatsChanged,
-  });
 
   /// Get the BeatMode for a specific position, defaulting to normal if not set.
   BeatMode _getBeatMode(int beatIndex, int subdivisionIndex) {

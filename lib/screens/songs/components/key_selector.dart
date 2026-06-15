@@ -7,6 +7,16 @@ import '../../../theme/mono_pulse_theme.dart';
 /// dropdown selectors for the base note (C, D, E, F, G, A, B) and
 /// modifier (sharp, flat, minor).
 class KeySelector extends StatelessWidget {
+  const KeySelector({
+    super.key,
+    required this.base,
+    required this.modifier,
+    required this.onChanged,
+    this.label,
+    this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+    this.keyModifiers = const ['', '#', 'b', 'm'],
+  });
+
   /// The selected base note (e.g., 'C', 'D', 'E').
   final String base;
 
@@ -26,16 +36,6 @@ class KeySelector extends StatelessWidget {
 
   /// Available modifiers. Defaults to common modifiers.
   final List<String> keyModifiers;
-
-  const KeySelector({
-    super.key,
-    required this.base,
-    required this.modifier,
-    required this.onChanged,
-    this.label,
-    this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
-    this.keyModifiers = const ['', '#', 'b', 'm'],
-  });
 
   @override
   Widget build(BuildContext context) {

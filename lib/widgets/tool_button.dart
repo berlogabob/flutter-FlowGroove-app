@@ -40,6 +40,14 @@ import '../utils/responsive_breakpoints.dart';
 /// )
 /// ```
 class ToolButton extends StatelessWidget {
+  const ToolButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.isCompact = false,
+    this.onTap,
+  });
+
   /// Icon to display.
   final IconData icon;
 
@@ -51,14 +59,6 @@ class ToolButton extends StatelessWidget {
 
   /// Compact mode for tablet/desktop layouts (optional).
   final bool isCompact;
-
-  const ToolButton({
-    super.key,
-    required this.icon,
-    required this.label,
-    this.isCompact = false,
-    this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {

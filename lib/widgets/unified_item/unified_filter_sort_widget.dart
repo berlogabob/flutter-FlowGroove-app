@@ -14,12 +14,6 @@ enum SortOption {
 
 /// Filter and sort widget for unified item lists
 class UnifiedFilterSortWidget extends StatefulWidget {
-  final SortOption currentSort;
-  final ValueChanged<SortOption?> onSortChanged;
-  final String? filterText;
-  final ValueChanged<String?> onFilterChanged;
-  final String hintText;
-
   const UnifiedFilterSortWidget({
     super.key,
     required this.currentSort,
@@ -28,6 +22,12 @@ class UnifiedFilterSortWidget extends StatefulWidget {
     required this.onFilterChanged,
     this.hintText = 'Search...',
   });
+
+  final SortOption currentSort;
+  final ValueChanged<SortOption?> onSortChanged;
+  final String? filterText;
+  final ValueChanged<String?> onFilterChanged;
+  final String hintText;
 
   @override
   State<UnifiedFilterSortWidget> createState() =>

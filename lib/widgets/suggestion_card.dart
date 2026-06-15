@@ -5,14 +5,14 @@ import 'source_icon.dart';
 import 'match_score_badge.dart';
 
 /// Suggestion card widget for autocomplete dropdown
-/// 
+///
 /// Displays a song suggestion with:
 /// - Source icon (personal/group/MusicBrainz)
 /// - Title and artist
 /// - Match score badge
 /// - Additional info (BPM, key, album)
 /// - Forkable indicator for group songs
-/// 
+///
 /// Usage:
 /// ```dart
 /// SuggestionCard(
@@ -22,16 +22,16 @@ import 'match_score_badge.dart';
 /// )
 /// ```
 class SuggestionCard extends StatelessWidget {
-  final SongSuggestion suggestion;
-  final bool isSelected;
-  final VoidCallback onTap;
-
   const SuggestionCard({
     super.key,
     required this.suggestion,
-    this.isSelected = false,
     required this.onTap,
+    this.isSelected = false,
   });
+
+  final SongSuggestion suggestion;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

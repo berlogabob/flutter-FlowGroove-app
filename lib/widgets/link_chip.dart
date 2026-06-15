@@ -8,6 +8,16 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent chip layout for displaying links
 /// with type label and tap-to-open functionality.
 class LinkChip extends StatelessWidget {
+  const LinkChip({
+    super.key,
+    required this.link,
+    this.onTap,
+    this.onDelete,
+    this.showDelete = false,
+    this.selectable = false,
+    this.isSelected = false,
+  });
+
   /// The link to display.
   final Link link;
 
@@ -25,16 +35,6 @@ class LinkChip extends StatelessWidget {
 
   /// Whether the chip is currently selected.
   final bool isSelected;
-
-  const LinkChip({
-    super.key,
-    required this.link,
-    this.showDelete = false,
-    this.selectable = false,
-    this.isSelected = false,
-    this.onTap,
-    this.onDelete,
-  });
 
   @override
   Widget build(BuildContext context) {

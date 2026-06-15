@@ -36,6 +36,14 @@ import 'tool_button.dart';
 /// )
 /// ```
 class DashboardGrid extends StatelessWidget {
+  const DashboardGrid({
+    super.key,
+    required this.statistics,
+    required this.quickActions,
+    required this.tools,
+    this.greetingCard,
+  });
+
   /// Greeting card widget (optional).
   final Widget? greetingCard;
 
@@ -47,14 +55,6 @@ class DashboardGrid extends StatelessWidget {
 
   /// List of tool buttons.
   final List<ToolButton> tools;
-
-  const DashboardGrid({
-    super.key,
-    required this.statistics,
-    required this.quickActions,
-    required this.tools,
-    this.greetingCard,
-  });
 
   @override
   Widget build(BuildContext context) {

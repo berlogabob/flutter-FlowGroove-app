@@ -14,17 +14,17 @@ enum InstrumentType {
 enum TunerPresetScope { local, account, band, song }
 
 class TuningNote {
-  final String note;
-  final int octave;
-  final double targetFrequencyHz;
-  final int? stringNumber;
-
   const TuningNote({
     required this.note,
     required this.octave,
     required this.targetFrequencyHz,
     this.stringNumber,
   });
+
+  final String note;
+  final int octave;
+  final double targetFrequencyHz;
+  final int? stringNumber;
 
   String get displayName => '$note$octave';
 
@@ -44,21 +44,6 @@ class TuningNote {
 }
 
 class TunerPreset {
-  final String id;
-  final String name;
-  final InstrumentType instrumentType;
-  final List<TuningNote> tuningNotes;
-  final double referenceHz;
-  final int centsTolerance;
-  final String? temperament;
-  final bool isDefault;
-  final TunerPresetScope scope;
-  final String? ownerId;
-  final String? songId;
-  final String? bandId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
   const TunerPreset({
     required this.id,
     required this.name,
@@ -75,6 +60,21 @@ class TunerPreset {
     this.songId,
     this.bandId,
   });
+
+  final String id;
+  final String name;
+  final InstrumentType instrumentType;
+  final List<TuningNote> tuningNotes;
+  final double referenceHz;
+  final int centsTolerance;
+  final String? temperament;
+  final bool isDefault;
+  final TunerPresetScope scope;
+  final String? ownerId;
+  final String? songId;
+  final String? bandId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   TunerPreset copyWith({
     String? id,
@@ -161,18 +161,6 @@ class TunerPreset {
 }
 
 class TunerSession {
-  final String id;
-  final DateTime startedAt;
-  final DateTime? endedAt;
-  final String mode;
-  final String? presetId;
-  final String? instrumentType;
-  final double referenceHz;
-  final double? avgDetectionLatencyMs;
-  final double? avgPitchErrorCents;
-  final String permissionState;
-  final bool completedSuccessfully;
-
   const TunerSession({
     required this.id,
     required this.startedAt,
@@ -186,4 +174,16 @@ class TunerSession {
     this.avgPitchErrorCents,
     this.completedSuccessfully = false,
   });
+
+  final String id;
+  final DateTime startedAt;
+  final DateTime? endedAt;
+  final String mode;
+  final String? presetId;
+  final String? instrumentType;
+  final double referenceHz;
+  final double? avgDetectionLatencyMs;
+  final double? avgPitchErrorCents;
+  final String permissionState;
+  final bool completedSuccessfully;
 }

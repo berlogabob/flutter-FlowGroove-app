@@ -8,10 +8,6 @@ import '../../theme/mono_pulse_theme.dart';
 /// - card: Card-style error display
 /// - inline: Small inline error with icon
 class ErrorBanner extends StatelessWidget {
-  final String message;
-  final VoidCallback? onRetry;
-  final ErrorBannerVariant variant;
-
   const ErrorBanner.banner({super.key, required this.message, this.onRetry})
     : variant = ErrorBannerVariant.banner;
 
@@ -20,6 +16,10 @@ class ErrorBanner extends StatelessWidget {
 
   const ErrorBanner.inline({super.key, required this.message, this.onRetry})
     : variant = ErrorBannerVariant.inline;
+
+  final String message;
+  final VoidCallback? onRetry;
+  final ErrorBannerVariant variant;
 
   @override
   Widget build(BuildContext context) {

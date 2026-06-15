@@ -111,13 +111,13 @@ class AccentPatternEditor extends ConsumerWidget {
 
 /// Grid header showing beat and subdivision counts
 class _GridHeader extends StatelessWidget {
-  final int accentBeats;
-  final int regularBeats;
-
   const _GridHeader({
     required this.accentBeats,
     required this.regularBeats,
   });
+
+  final int accentBeats;
+  final int regularBeats;
 
   @override
   Widget build(BuildContext context) {
@@ -151,17 +151,17 @@ class _GridHeader extends StatelessWidget {
 
 /// Beat mode grid widget
 class _BeatModeGrid extends StatelessWidget {
-  final List<List<BeatMode>> beatModes;
-  final int accentBeats;
-  final int regularBeats;
-  final Function(int, int, BeatMode) onModeChanged;
-
   const _BeatModeGrid({
     required this.beatModes,
     required this.accentBeats,
     required this.regularBeats,
     required this.onModeChanged,
   });
+
+  final List<List<BeatMode>> beatModes;
+  final int accentBeats;
+  final int regularBeats;
+  final Function(int, int, BeatMode) onModeChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -199,17 +199,17 @@ class _BeatModeGrid extends StatelessWidget {
 
 /// Individual beat mode cell
 class _BeatModeCell extends StatelessWidget {
-  final BeatMode mode;
-  final int beatIndex;
-  final int subIndex;
-  final VoidCallback onTap;
-
   const _BeatModeCell({
     required this.mode,
     required this.beatIndex,
     required this.subIndex,
     required this.onTap,
   });
+
+  final BeatMode mode;
+  final int beatIndex;
+  final int subIndex;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

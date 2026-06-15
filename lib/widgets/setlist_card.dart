@@ -6,6 +6,19 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent card layout for displaying setlist
 /// details including name, song count, and associated band.
 class SetlistCard extends StatelessWidget {
+  const SetlistCard({
+    super.key,
+    required this.id,
+    required this.name,
+    required this.songCount,
+    this.bandName,
+    this.date,
+    this.onTap,
+    this.onEdit,
+    this.onDelete,
+    this.onExportPdf,
+  });
+
   /// The setlist ID.
   final String id;
 
@@ -32,19 +45,6 @@ class SetlistCard extends StatelessWidget {
 
   /// Callback when the export PDF button is pressed.
   final VoidCallback? onExportPdf;
-
-  const SetlistCard({
-    super.key,
-    required this.id,
-    required this.name,
-    required this.songCount,
-    this.bandName,
-    this.date,
-    this.onTap,
-    this.onEdit,
-    this.onDelete,
-    this.onExportPdf,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +148,14 @@ class SetlistCard extends StatelessWidget {
 
 /// A compact setlist card for list views.
 class CompactSetlistCard extends StatelessWidget {
+  const CompactSetlistCard({
+    super.key,
+    required this.id,
+    required this.name,
+    required this.songCount,
+    this.onTap,
+  });
+
   /// The setlist ID.
   final String id;
 
@@ -159,14 +167,6 @@ class CompactSetlistCard extends StatelessWidget {
 
   /// Callback when the card is tapped.
   final VoidCallback? onTap;
-
-  const CompactSetlistCard({
-    super.key,
-    required this.id,
-    required this.name,
-    required this.songCount,
-    this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {

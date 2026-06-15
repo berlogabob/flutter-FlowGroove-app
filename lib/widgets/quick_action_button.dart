@@ -32,6 +32,14 @@ import '../utils/responsive_breakpoints.dart';
 /// )
 /// ```
 class QuickActionButton extends StatelessWidget {
+  const QuickActionButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isCompact = false,
+  });
+
   /// Icon to display.
   final IconData icon;
 
@@ -43,14 +51,6 @@ class QuickActionButton extends StatelessWidget {
 
   /// Compact mode for tablet/desktop layouts (optional).
   final bool isCompact;
-
-  const QuickActionButton({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.isCompact = false,
-  });
 
   @override
   Widget build(BuildContext context) {

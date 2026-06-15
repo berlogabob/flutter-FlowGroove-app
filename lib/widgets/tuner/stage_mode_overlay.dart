@@ -14,12 +14,12 @@ import '../../theme/mono_pulse_theme.dart';
 /// Usage: Wrap the main tuner content with this widget.
 /// The overlay is controlled by [TunerState.stageModeActive].
 class StageModeOverlay extends ConsumerStatefulWidget {
-  final Widget child;
-
   const StageModeOverlay({
     super.key,
     required this.child,
   });
+
+  final Widget child;
 
   @override
   ConsumerState<StageModeOverlay> createState() => _StageModeOverlayState();
@@ -99,9 +99,9 @@ class _StageModeOverlayState extends ConsumerState<StageModeOverlay> {
 }
 
 class _StageModeContent extends ConsumerWidget {
-  final VoidCallback onExit;
-
   const _StageModeContent({required this.onExit});
+
+  final VoidCallback onExit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -185,9 +185,9 @@ class _StageModeContent extends ConsumerWidget {
 
 /// Large cents display for stage mode.
 class _LargeCentsIndicator extends StatelessWidget {
-  final int cents;
-
   const _LargeCentsIndicator({required this.cents});
+
+  final int cents;
 
   @override
   Widget build(BuildContext context) {

@@ -5,14 +5,14 @@ import '../config/config_validator.dart';
 ///
 /// Shows user-friendly error messages and troubleshooting steps
 class ConfigErrorWidget extends StatelessWidget {
-  final ConfigValidationException exception;
-  final VoidCallback? onRetry;
-
   const ConfigErrorWidget({
     super.key,
     required this.exception,
     this.onRetry,
   });
+
+  final ConfigValidationException exception;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -244,14 +244,14 @@ class ConfigErrorWidget extends StatelessWidget {
 
 /// Constrains content to a maximum width for better readability
 class MaxWidthBox extends StatelessWidget {
-  final Widget child;
-  final double maxWidth;
-
   const MaxWidthBox({
     super.key,
     required this.child,
     this.maxWidth = 600,
   });
+
+  final Widget child;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {

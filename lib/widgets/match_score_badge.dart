@@ -2,28 +2,28 @@ import 'package:flutter/material.dart';
 import '../theme/mono_pulse_theme.dart';
 
 /// Match score badge for song suggestions
-/// 
+///
 /// Displays match confidence as a colored percentage:
 /// - 90-100%: Green (Exact match)
 /// - 75-89%: Yellow/Orange (Close match)
 /// - 60-74%: Orange (Similar)
 /// - <60%: Red or hidden (Weak match)
-/// 
+///
 /// Usage:
 /// ```dart
 /// MatchScoreBadge(score: 0.95) // Shows "95%" in green
 /// ```
 class MatchScoreBadge extends StatelessWidget {
-  final double score;
-  final double size;
-  final bool showLabel;
-
   const MatchScoreBadge({
     super.key,
     required this.score,
     this.showLabel = true,
     this.size = 40, // MonoPulseSpacing.xxxl equivalent for badge container
   });
+
+  final double score;
+  final double size;
+  final bool showLabel;
 
   @override
   Widget build(BuildContext context) {

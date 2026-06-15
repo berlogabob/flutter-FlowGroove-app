@@ -22,6 +22,18 @@ import 'tool_scaffold.dart';
 /// )
 /// ```
 class ToolTransportBar extends StatelessWidget {
+  const ToolTransportBar({
+    super.key,
+    required this.isPlaying,
+    required this.onPlayPause,
+    this.onPrevious,
+    this.onNext,
+    this.onSettings,
+    this.showNavigation = false,
+    this.showSettings = false,
+    this.margin,
+  });
+
   /// Whether currently playing.
   final bool isPlaying;
 
@@ -45,18 +57,6 @@ class ToolTransportBar extends StatelessWidget {
 
   /// Optional outer margin override.
   final EdgeInsetsGeometry? margin;
-
-  const ToolTransportBar({
-    super.key,
-    required this.isPlaying,
-    required this.onPlayPause,
-    this.onPrevious,
-    this.onNext,
-    this.onSettings,
-    this.showNavigation = false,
-    this.showSettings = false,
-    this.margin,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -110,15 +110,15 @@ class ToolTransportBar extends StatelessWidget {
 }
 
 class _PlayPauseButton extends StatelessWidget {
-  final bool isPlaying;
-  final VoidCallback onTap;
-  final double size;
-
   const _PlayPauseButton({
     required this.isPlaying,
     required this.onTap,
     required this.size,
   });
+
+  final bool isPlaying;
+  final VoidCallback onTap;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -145,15 +145,15 @@ class _PlayPauseButton extends StatelessWidget {
 }
 
 class _TransportButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onTap;
-  final double size;
-
   const _TransportButton({
     required this.icon,
     required this.onTap,
     required this.size,
   });
+
+  final IconData icon;
+  final VoidCallback? onTap;
+  final double size;
 
   @override
   Widget build(BuildContext context) {

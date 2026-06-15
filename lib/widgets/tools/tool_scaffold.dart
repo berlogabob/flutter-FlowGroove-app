@@ -107,6 +107,16 @@ class ToolTouchTarget {
 /// )
 /// ```
 class ToolScreenScaffold extends StatelessWidget {
+  const ToolScreenScaffold({
+    super.key,
+    required this.title,
+    required this.mainWidget,
+    this.secondaryWidget,
+    this.bottomWidget,
+    this.menuItems,
+    this.showOfflineIndicator = true,
+  });
+
   /// Screen title displayed in AppBar.
   final String title;
 
@@ -124,16 +134,6 @@ class ToolScreenScaffold extends StatelessWidget {
 
   /// Whether to show offline indicator.
   final bool showOfflineIndicator;
-
-  const ToolScreenScaffold({
-    super.key,
-    required this.title,
-    required this.mainWidget,
-    this.showOfflineIndicator = true,
-    this.secondaryWidget,
-    this.bottomWidget,
-    this.menuItems,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -188,6 +188,13 @@ class ToolScreenScaffold extends StatelessWidget {
 /// )
 /// ```
 class ToolResponsiveLayout extends StatelessWidget {
+  const ToolResponsiveLayout({
+    super.key,
+    required this.portraitBlocks,
+    required this.landscapeBlocks,
+    this.landscapeBreakpoint = 600,
+  });
+
   /// Blocks to show in portrait mode (vertical stack).
   final List<Widget> portraitBlocks;
 
@@ -196,13 +203,6 @@ class ToolResponsiveLayout extends StatelessWidget {
 
   /// Minimum width for landscape layout (default 600px).
   final double landscapeBreakpoint;
-
-  const ToolResponsiveLayout({
-    super.key,
-    required this.portraitBlocks,
-    required this.landscapeBlocks,
-    this.landscapeBreakpoint = 600,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -238,6 +238,14 @@ class ToolResponsiveLayout extends StatelessWidget {
 /// )
 /// ```
 class ToolBlock extends StatelessWidget {
+  const ToolBlock({
+    super.key,
+    required this.child,
+    this.showCard = false,
+    this.header,
+    this.padding,
+  });
+
   /// Block content.
   final Widget child;
 
@@ -249,14 +257,6 @@ class ToolBlock extends StatelessWidget {
 
   /// Custom padding.
   final EdgeInsetsGeometry? padding;
-
-  const ToolBlock({
-    super.key,
-    required this.child,
-    this.showCard = false,
-    this.header,
-    this.padding,
-  });
 
   @override
   Widget build(BuildContext context) {

@@ -12,9 +12,9 @@ import '../../theme/mono_pulse_theme.dart';
 ///
 /// This is a STATIC widget (Stage 1 - no interactivity).
 class TickMarks extends StatelessWidget {
-  final double size;
-
   const TickMarks({super.key, required this.size});
+
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +27,9 @@ class TickMarks extends StatelessWidget {
 }
 
 class _TickMarksPainter extends CustomPainter {
-  final double size;
-
   _TickMarksPainter({required this.size});
+
+  final double size;
 
   @override
   void paint(Canvas canvas, Size canvasSize) {

@@ -35,6 +35,16 @@ import 'app_card.dart';
 /// )
 /// ```
 class StatCard extends StatelessWidget {
+  const StatCard({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    this.aspectRatio,
+    this.onTap,
+  });
+
   /// Icon to display.
   final IconData icon;
 
@@ -52,16 +62,6 @@ class StatCard extends StatelessWidget {
 
   /// Custom aspect ratio (optional, uses responsive default if not provided).
   final double? aspectRatio;
-
-  const StatCard({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-    this.aspectRatio,
-    this.onTap,
-  });
 
   @override
   Widget build(BuildContext context) {

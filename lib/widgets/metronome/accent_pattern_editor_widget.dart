@@ -131,16 +131,16 @@ class AccentPatternEditorWidget extends ConsumerWidget {
 }
 
 class _AccentToggleButton extends StatefulWidget {
-  final int beatNumber;
-  final bool isAccent;
-  final VoidCallback onTap;
-
   const _AccentToggleButton({
     super.key,
     required this.beatNumber,
     required this.isAccent,
     required this.onTap,
   });
+
+  final int beatNumber;
+  final bool isAccent;
+  final VoidCallback onTap;
 
   @override
   State<_AccentToggleButton> createState() => _AccentToggleButtonState();

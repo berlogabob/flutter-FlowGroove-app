@@ -2,17 +2,6 @@ import 'song_delta.dart';
 
 /// Linear history entry for a linked library song.
 class SongCommit {
-  final String id;
-  final String? parentCommitId;
-  final String canonicalSongId;
-  final int baseRevision;
-  final SongDelta delta;
-  final String operation;
-  final String authorId;
-  final String? message;
-  final DateTime createdAt;
-  final String clientMutationId;
-
   SongCommit({
     required this.id,
     this.parentCommitId,
@@ -26,6 +15,17 @@ class SongCommit {
     required this.clientMutationId,
   }) : delta = delta ?? SongDelta(),
        createdAt = createdAt ?? DateTime.now();
+
+  final String id;
+  final String? parentCommitId;
+  final String canonicalSongId;
+  final int baseRevision;
+  final SongDelta delta;
+  final String operation;
+  final String authorId;
+  final String? message;
+  final DateTime createdAt;
+  final String clientMutationId;
 
   factory SongCommit.fromJson(Map<String, dynamic> json) {
     return SongCommit(

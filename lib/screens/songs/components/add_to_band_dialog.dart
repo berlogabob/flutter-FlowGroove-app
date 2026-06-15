@@ -12,13 +12,13 @@ import '../../../widgets/custom_button.dart';
 /// - View a preview of the song
 /// - Confirm the addition
 class AddToBandDialog extends ConsumerStatefulWidget {
+  const AddToBandDialog({super.key, required this.song, required this.bands});
+
   /// The song to add to a band.
   final Song song;
 
   /// List of bands the user can add the song to.
   final List<Band> bands;
-
-  const AddToBandDialog({super.key, required this.song, required this.bands});
 
   /// Show the add to band dialog.
   ///
@@ -262,6 +262,14 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
 ///
 /// This is an alternative to the dialog for inline band selection.
 class BandSelectorField extends StatelessWidget {
+  const BandSelectorField({
+    super.key,
+    required this.bands,
+    this.value,
+    this.onChanged,
+    this.enabled = true,
+  });
+
   /// The list of bands to choose from.
   final List<Band> bands;
 
@@ -273,14 +281,6 @@ class BandSelectorField extends StatelessWidget {
 
   /// Whether the field is enabled.
   final bool enabled;
-
-  const BandSelectorField({
-    super.key,
-    required this.bands,
-    this.value,
-    this.onChanged,
-    this.enabled = true,
-  });
 
   @override
   Widget build(BuildContext context) {

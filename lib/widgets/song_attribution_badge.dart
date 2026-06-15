@@ -8,6 +8,17 @@ import '../theme/mono_pulse_theme.dart';
 /// - Contributor (who added it to the band)
 /// - Copy indicator (if this is a band's copy of a personal song)
 class SongAttributionBadge extends StatelessWidget {
+  const SongAttributionBadge({
+    super.key,
+    this.originalOwnerName,
+    this.contributorName,
+    this.isCopy = false,
+    this.size = BadgeSize.small,
+    this.showOriginalOwner = true,
+    this.showContributor = true,
+    this.showCopyIndicator = true,
+  });
+
   /// The display name of the original owner.
   final String? originalOwnerName;
 
@@ -28,17 +39,6 @@ class SongAttributionBadge extends StatelessWidget {
 
   /// Whether to show the copy indicator.
   final bool showCopyIndicator;
-
-  const SongAttributionBadge({
-    super.key,
-    this.originalOwnerName,
-    this.contributorName,
-    this.isCopy = false,
-    this.size = BadgeSize.small,
-    this.showOriginalOwner = true,
-    this.showContributor = true,
-    this.showCopyIndicator = true,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -221,17 +221,17 @@ class SongAttributionBadge extends StatelessWidget {
 
 /// A compact attribution badge for use in list items.
 class CompactAttributionBadge extends StatelessWidget {
-  /// Whether this is a copy.
-  final bool isCopy;
-
-  /// The contributor name.
-  final String? contributorName;
-
   const CompactAttributionBadge({
     super.key,
     required this.isCopy,
     this.contributorName,
   });
+
+  /// Whether this is a copy.
+  final bool isCopy;
+
+  /// The contributor name.
+  final String? contributorName;
 
   @override
   Widget build(BuildContext context) {
@@ -286,6 +286,14 @@ enum BadgeSize {
 
 /// A widget that displays attribution information in a ListTile subtitle.
 class AttributionSubtitle extends StatelessWidget {
+  const AttributionSubtitle({
+    super.key,
+    required this.subtitle,
+    this.originalOwnerName,
+    this.contributorName,
+    this.isCopy = false,
+  });
+
   /// The primary subtitle text (e.g., artist name).
   final String subtitle;
 
@@ -297,14 +305,6 @@ class AttributionSubtitle extends StatelessWidget {
 
   /// Whether this is a copy.
   final bool isCopy;
-
-  const AttributionSubtitle({
-    super.key,
-    required this.subtitle,
-    this.originalOwnerName,
-    this.contributorName,
-    this.isCopy = false,
-  });
 
   @override
   Widget build(BuildContext context) {

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 class UnifiedItemBadge extends StatelessWidget {
+  const UnifiedItemBadge({super.key, required this.text, required this.color});
+
   final String text;
   final Color color;
-
-  const UnifiedItemBadge({super.key, required this.text, required this.color});
 
   @override
   Widget build(BuildContext context) {

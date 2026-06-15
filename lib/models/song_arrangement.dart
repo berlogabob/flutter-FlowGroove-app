@@ -29,17 +29,37 @@ enum ArrangementType {
 }
 
 /// Song Arrangement - user/group-specific version of a canonical song
-/// 
+///
 /// This represents a specific arrangement of a canonical song with:
 /// - Performance key and tempo
 /// - Custom structure
 /// - User/group-specific modifications
-/// 
+///
 /// Multiple arrangements can link to the same CanonicalSong,
 /// allowing users to maintain their own versions while
 /// preserving the canonical song identity.
 @JsonSerializable()
 class SongArrangement extends Equatable {
+  SongArrangement({
+    required this.id,
+    required this.canonicalSongId,
+    required this.ownerType,
+    required this.ownerId,
+    this.bandId,
+    this.arrangementType = ArrangementType.original,
+    this.versionName,
+    this.key,
+    this.tempoBpm,
+    this.capoFret,
+    this.structure,
+    this.notes,
+    this.isPublic = false,
+    this.forkedFrom,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  })  : createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
+
   /// Unique identifier
   final String id;
 
@@ -88,26 +108,6 @@ class SongArrangement extends Equatable {
 
   /// When this arrangement was last updated
   final DateTime updatedAt;
-
-  SongArrangement({
-    required this.id,
-    required this.canonicalSongId,
-    required this.ownerType,
-    required this.ownerId,
-    this.bandId,
-    this.arrangementType = ArrangementType.original,
-    this.versionName,
-    this.key,
-    this.tempoBpm,
-    this.capoFret,
-    this.structure,
-    this.notes,
-    this.isPublic = false,
-    this.forkedFrom,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  })  : createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
 
   /// Create a personal arrangement.
   factory SongArrangement.personal({
