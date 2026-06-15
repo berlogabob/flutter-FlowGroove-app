@@ -24,10 +24,10 @@ class BpmSelector extends StatelessWidget {
   const BpmSelector({
     super.key,
     required this.controller,
+    this.isDense = false,
     this.label,
     this.hintText,
     this.onChanged,
-    this.isDense = false,
   });
 
   @override

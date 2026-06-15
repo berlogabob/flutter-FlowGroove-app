@@ -182,10 +182,23 @@ class _VolumeControlState extends State<_VolumeControl> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final volumeLabel = widget.volume == 0
+        ? 'Mute'
+        : widget.volume < 1.0
+            ? 'Volume down (50%)'
+            : 'Volume up (100%)';
+
+    return Semantics(
+      button: true,
+      enabled: true,
+      label: volumeLabel,
       onTap: _cycleVolume,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
+      child: Tooltip(
+        message: 'Cycle volume: Mute → 50% → 100%',
+        child: GestureDetector(
+          onTap: _cycleVolume,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
         width: 56,
         height: 56,
         decoration: BoxDecoration(
@@ -228,6 +241,7 @@ class _VolumeControlState extends State<_VolumeControl> {
               ),
           ],
         ),
+        ),
       ),
     );
   }
@@ -251,10 +265,17 @@ class _CalibrationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      enabled: true,
+      label: 'Calibration settings (A4 ${referenceHz.round()} Hz)',
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
+      child: Tooltip(
+        message: 'Adjust tuner calibration frequency',
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
         width: 56,
         height: 56,
         decoration: BoxDecoration(
@@ -281,6 +302,7 @@ class _CalibrationButton extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

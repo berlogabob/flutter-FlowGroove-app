@@ -30,8 +30,8 @@ class ConfirmationDialog extends StatelessWidget {
     required this.message,
     this.confirmLabel = 'Confirm',
     this.cancelLabel = 'Cancel',
-    this.icon,
     this.isDestructive = true,
+    this.icon,
   });
 
   @override

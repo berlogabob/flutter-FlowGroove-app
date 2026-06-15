@@ -10,6 +10,7 @@ import '../../models/band.dart';
 import '../../services/analytics_service.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/primary_action_bar.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 /// Screen for creating or editing a band with comprehensive error handling.
@@ -288,12 +289,6 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
         appBar: CustomAppBar.build(
           context,
           title: _isEditing ? 'Edit Band' : 'Create Band',
-          menuItems: [
-            PopupMenuItem<void>(
-              onTap: _saveBand,
-              child: const Text('Save Band'),
-            ),
-          ],
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
@@ -348,21 +343,14 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                   onFieldSubmitted: (_) => _saveBand(),
                   maxLines: 3,
                 ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _saveBand,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(
-                          color: MonoPulseColors.textPrimary,
-                        )
-                      : Text(_isEditing ? 'Save Changes' : 'Create Band'),
-                ),
               ],
             ),
           ),
+        ),
+        bottomNavigationBar: PrimaryActionBar(
+          label: _isEditing ? 'Save Changes' : 'Create Band',
+          onPressed: _isLoading ? null : _saveBand,
+          isLoading: _isLoading,
         ),
       ),
     );

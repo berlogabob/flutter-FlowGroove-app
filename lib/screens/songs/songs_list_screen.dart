@@ -25,6 +25,7 @@ import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/tag_cloud_widget.dart';
 import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/app_filter_chip.dart';
 import 'components/csv_import_export/csv_import_export.dart';
 
 /// Notifier for songs filter/sort state.
@@ -459,8 +460,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    FilterChip(
-                      label: const Text('All'),
+                    AppFilterChip(
+                      label: 'All',
                       selected: currentKey == null,
                       onSelected: (_) {
                         ref
@@ -483,8 +484,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                       'A#',
                       'B',
                     ].map(
-                      (key) => FilterChip(
-                        label: Text(key),
+                      (key) => AppFilterChip(
+                        label: key,
                         selected: currentKey == key,
                         onSelected: (_) {
                           ref

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/responsive_breakpoints.dart';
+import 'app_card.dart';
 
 /// Statistics card displaying an icon, value, and label.
 ///
@@ -58,8 +59,8 @@ class StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
-    this.onTap,
     this.aspectRatio,
+    this.onTap,
   });
 
   @override
@@ -69,52 +70,42 @@ class StatCard extends StatelessWidget {
     final valueFontSize = ResponsiveSizes.valueFontSize(breakpoint);
     final labelFontSize = ResponsiveSizes.labelFontSize(breakpoint);
 
-    return Material(
-      color: MonoPulseColors.surface,
-      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: MonoPulseSpacing.lg,
-            vertical: MonoPulseSpacing.sm,
+    // Canonical surface card from the design system (Phase 4).
+    return AppCard(
+      variant: AppCardVariant.surface,
+      onTap: onTap,
+      padding: EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.sm,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: iconSize),
+          SizedBox(height: MonoPulseSpacing.xxs),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: color,
+              fontSize: valueFontSize,
+              height: 1.0,
+            ),
           ),
-          decoration: BoxDecoration(
-            color: MonoPulseColors.surface,
-            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-            border: Border.all(color: MonoPulseColors.borderSubtle),
+          SizedBox(height: MonoPulseSpacing.xxs),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: MonoPulseColors.textTertiary,
+              fontSize: labelFontSize,
+              height: 1.0,
+            ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color, size: iconSize),
-              SizedBox(height: MonoPulseSpacing.xxs),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                  fontSize: valueFontSize,
-                  height: 1.0,
-                ),
-              ),
-              SizedBox(height: MonoPulseSpacing.xxs),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: MonoPulseColors.textTertiary,
-                  fontSize: labelFontSize,
-                  height: 1.0,
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }

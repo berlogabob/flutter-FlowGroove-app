@@ -64,6 +64,8 @@ class TunerPreset {
     required this.name,
     required this.instrumentType,
     required this.tuningNotes,
+    required this.createdAt,
+    required this.updatedAt,
     this.referenceHz = 440,
     this.centsTolerance = 5,
     this.temperament = 'equal',
@@ -72,8 +74,6 @@ class TunerPreset {
     this.ownerId,
     this.songId,
     this.bandId,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   TunerPreset copyWith({
@@ -176,14 +176,14 @@ class TunerSession {
   const TunerSession({
     required this.id,
     required this.startedAt,
-    this.endedAt,
     required this.mode,
+    required this.referenceHz,
+    required this.permissionState,
+    this.endedAt,
     this.presetId,
     this.instrumentType,
-    required this.referenceHz,
     this.avgDetectionLatencyMs,
     this.avgPitchErrorCents,
-    required this.permissionState,
     this.completedSuccessfully = false,
   });
 }

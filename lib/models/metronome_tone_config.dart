@@ -1,5 +1,5 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:equatable/equatable.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 // Manual JSON serialization (more reliable than generated)
 // part 'metronome_tone_config.g.dart';
@@ -16,6 +16,88 @@ import 'package:equatable/equatable.dart';
 /// - 5 professional presets
 @JsonSerializable()
 class MetronomeToneConfig extends Equatable {
+  const MetronomeToneConfig({
+    required this.mainRegularFreq,
+    required this.mainAccentFreq,
+    required this.subRegularFreq,
+    required this.subAccentFreq,
+    required this.dividerRegularFreq,
+    required this.dividerAccentFreq,
+    required this.waveType,
+    required this.volume,
+  });
+
+  /// Classic preset - Traditional metronome sound
+  factory MetronomeToneConfig.classic() => const MetronomeToneConfig(
+        mainRegularFreq: 1600,
+        mainAccentFreq: 2060,
+        subRegularFreq: 800,
+        subAccentFreq: 1030,
+        dividerRegularFreq: 1100,
+        dividerAccentFreq: 1400,
+        waveType: 'sine',
+        volume: 0.75,
+      );
+
+  /// Subtle preset - Soft, gentle clicks
+  factory MetronomeToneConfig.subtle() => const MetronomeToneConfig(
+        mainRegularFreq: 1200,
+        mainAccentFreq: 1600,
+        subRegularFreq: 600,
+        subAccentFreq: 800,
+        dividerRegularFreq: 900,
+        dividerAccentFreq: 1200,
+        waveType: 'sine',
+        volume: 0.5,
+      );
+
+  /// Extreme preset - Loud, distinct clicks
+  factory MetronomeToneConfig.extreme() => const MetronomeToneConfig(
+        mainRegularFreq: 2000,
+        mainAccentFreq: 2800,
+        subRegularFreq: 1000,
+        subAccentFreq: 1400,
+        dividerRegularFreq: 1500,
+        dividerAccentFreq: 2000,
+        waveType: 'square',
+        volume: 1,
+      );
+
+  /// Wood block preset - Simulates wood block sound
+  factory MetronomeToneConfig.woodBlock() => const MetronomeToneConfig(
+        mainRegularFreq: 1800,
+        mainAccentFreq: 2400,
+        subRegularFreq: 900,
+        subAccentFreq: 1200,
+        dividerRegularFreq: 1300,
+        dividerAccentFreq: 1700,
+        waveType: 'triangle',
+        volume: 0.8,
+      );
+
+  /// Electronic preset - Digital/electronic sound
+  factory MetronomeToneConfig.electronic() => const MetronomeToneConfig(
+        mainRegularFreq: 2200,
+        mainAccentFreq: 3000,
+        subRegularFreq: 1100,
+        subAccentFreq: 1500,
+        dividerRegularFreq: 1600,
+        dividerAccentFreq: 2200,
+        waveType: 'sawtooth',
+        volume: 0.9,
+      );
+
+  factory MetronomeToneConfig.fromJson(Map<String, dynamic> json) => MetronomeToneConfig(
+        mainRegularFreq: (json['mainRegularFreq'] as num?)?.toDouble() ?? 1600,
+        mainAccentFreq: (json['mainAccentFreq'] as num?)?.toDouble() ?? 2060,
+        subRegularFreq: (json['subRegularFreq'] as num?)?.toDouble() ?? 800,
+        subAccentFreq: (json['subAccentFreq'] as num?)?.toDouble() ?? 1030,
+        dividerRegularFreq: (json['dividerRegularFreq'] as num?)?.toDouble() ?? 1100,
+        dividerAccentFreq: (json['dividerAccentFreq'] as num?)?.toDouble() ?? 1400,
+        waveType: json['waveType'] as String? ?? 'sine',
+        volume: (json['volume'] as num?)?.toDouble() ?? 0.75,
+      );
+
   /// Main beat frequencies (first beat of measure)
   @JsonKey(defaultValue: 1600.0)
   final double mainRegularFreq;
@@ -44,88 +126,6 @@ class MetronomeToneConfig extends Equatable {
   /// Master volume (0.0-1.0)
   @JsonKey(defaultValue: 0.75)
   final double volume;
-
-  const MetronomeToneConfig({
-    required this.mainRegularFreq,
-    required this.mainAccentFreq,
-    required this.subRegularFreq,
-    required this.subAccentFreq,
-    required this.dividerRegularFreq,
-    required this.dividerAccentFreq,
-    required this.waveType,
-    required this.volume,
-  });
-
-  /// Classic preset - Traditional metronome sound
-  factory MetronomeToneConfig.classic() => MetronomeToneConfig(
-        mainRegularFreq: 1600.0,
-        mainAccentFreq: 2060.0,
-        subRegularFreq: 800.0,
-        subAccentFreq: 1030.0,
-        dividerRegularFreq: 1100.0,
-        dividerAccentFreq: 1400.0,
-        waveType: 'sine',
-        volume: 0.75,
-      );
-
-  /// Subtle preset - Soft, gentle clicks
-  factory MetronomeToneConfig.subtle() => MetronomeToneConfig(
-        mainRegularFreq: 1200.0,
-        mainAccentFreq: 1600.0,
-        subRegularFreq: 600.0,
-        subAccentFreq: 800.0,
-        dividerRegularFreq: 900.0,
-        dividerAccentFreq: 1200.0,
-        waveType: 'sine',
-        volume: 0.5,
-      );
-
-  /// Extreme preset - Loud, distinct clicks
-  factory MetronomeToneConfig.extreme() => MetronomeToneConfig(
-        mainRegularFreq: 2000.0,
-        mainAccentFreq: 2800.0,
-        subRegularFreq: 1000.0,
-        subAccentFreq: 1400.0,
-        dividerRegularFreq: 1500.0,
-        dividerAccentFreq: 2000.0,
-        waveType: 'square',
-        volume: 1.0,
-      );
-
-  /// Wood block preset - Simulates wood block sound
-  factory MetronomeToneConfig.woodBlock() => MetronomeToneConfig(
-        mainRegularFreq: 1800.0,
-        mainAccentFreq: 2400.0,
-        subRegularFreq: 900.0,
-        subAccentFreq: 1200.0,
-        dividerRegularFreq: 1300.0,
-        dividerAccentFreq: 1700.0,
-        waveType: 'triangle',
-        volume: 0.8,
-      );
-
-  /// Electronic preset - Digital/electronic sound
-  factory MetronomeToneConfig.electronic() => MetronomeToneConfig(
-        mainRegularFreq: 2200.0,
-        mainAccentFreq: 3000.0,
-        subRegularFreq: 1100.0,
-        subAccentFreq: 1500.0,
-        dividerRegularFreq: 1600.0,
-        dividerAccentFreq: 2200.0,
-        waveType: 'sawtooth',
-        volume: 0.9,
-      );
-
-  factory MetronomeToneConfig.fromJson(Map<String, dynamic> json) => MetronomeToneConfig(
-        mainRegularFreq: (json['mainRegularFreq'] as num?)?.toDouble() ?? 1600.0,
-        mainAccentFreq: (json['mainAccentFreq'] as num?)?.toDouble() ?? 2060.0,
-        subRegularFreq: (json['subRegularFreq'] as num?)?.toDouble() ?? 800.0,
-        subAccentFreq: (json['subAccentFreq'] as num?)?.toDouble() ?? 1030.0,
-        dividerRegularFreq: (json['dividerRegularFreq'] as num?)?.toDouble() ?? 1100.0,
-        dividerAccentFreq: (json['dividerAccentFreq'] as num?)?.toDouble() ?? 1400.0,
-        waveType: json['waveType'] as String? ?? 'sine',
-        volume: (json['volume'] as num?)?.toDouble() ?? 0.75,
-      );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
         'mainRegularFreq': mainRegularFreq,
@@ -165,68 +165,68 @@ class MetronomeToneConfig extends Equatable {
     switch (name.toLowerCase()) {
       case 'classic':
         return const MetronomeToneConfig(
-          mainRegularFreq: 1600.0,
-          mainAccentFreq: 2060.0,
-          subRegularFreq: 800.0,
-          subAccentFreq: 1030.0,
-          dividerRegularFreq: 1100.0,
-          dividerAccentFreq: 1400.0,
+          mainRegularFreq: 1600,
+          mainAccentFreq: 2060,
+          subRegularFreq: 800,
+          subAccentFreq: 1030,
+          dividerRegularFreq: 1100,
+          dividerAccentFreq: 1400,
           waveType: 'sine',
           volume: 0.75,
         );
       case 'subtle':
         return const MetronomeToneConfig(
-          mainRegularFreq: 1200.0,
-          mainAccentFreq: 1600.0,
-          subRegularFreq: 600.0,
-          subAccentFreq: 800.0,
-          dividerRegularFreq: 900.0,
-          dividerAccentFreq: 1200.0,
+          mainRegularFreq: 1200,
+          mainAccentFreq: 1600,
+          subRegularFreq: 600,
+          subAccentFreq: 800,
+          dividerRegularFreq: 900,
+          dividerAccentFreq: 1200,
           waveType: 'sine',
           volume: 0.5,
         );
       case 'extreme':
         return const MetronomeToneConfig(
-          mainRegularFreq: 2000.0,
-          mainAccentFreq: 2800.0,
-          subRegularFreq: 1000.0,
-          subAccentFreq: 1400.0,
-          dividerRegularFreq: 1500.0,
-          dividerAccentFreq: 2000.0,
+          mainRegularFreq: 2000,
+          mainAccentFreq: 2800,
+          subRegularFreq: 1000,
+          subAccentFreq: 1400,
+          dividerRegularFreq: 1500,
+          dividerAccentFreq: 2000,
           waveType: 'square',
-          volume: 1.0,
+          volume: 1,
         );
       case 'wood block':
       case 'woodblock':
         return const MetronomeToneConfig(
-          mainRegularFreq: 1800.0,
-          mainAccentFreq: 2400.0,
-          subRegularFreq: 900.0,
-          subAccentFreq: 1200.0,
-          dividerRegularFreq: 1300.0,
-          dividerAccentFreq: 1700.0,
+          mainRegularFreq: 1800,
+          mainAccentFreq: 2400,
+          subRegularFreq: 900,
+          subAccentFreq: 1200,
+          dividerRegularFreq: 1300,
+          dividerAccentFreq: 1700,
           waveType: 'triangle',
           volume: 0.8,
         );
       case 'electronic':
         return const MetronomeToneConfig(
-          mainRegularFreq: 2200.0,
-          mainAccentFreq: 3000.0,
-          subRegularFreq: 1100.0,
-          subAccentFreq: 1500.0,
-          dividerRegularFreq: 1600.0,
-          dividerAccentFreq: 2200.0,
+          mainRegularFreq: 2200,
+          mainAccentFreq: 3000,
+          subRegularFreq: 1100,
+          subAccentFreq: 1500,
+          dividerRegularFreq: 1600,
+          dividerAccentFreq: 2200,
           waveType: 'sawtooth',
           volume: 0.9,
         );
       default:
         return const MetronomeToneConfig(
-          mainRegularFreq: 1600.0,
-          mainAccentFreq: 2060.0,
-          subRegularFreq: 800.0,
-          subAccentFreq: 1030.0,
-          dividerRegularFreq: 1100.0,
-          dividerAccentFreq: 1400.0,
+          mainRegularFreq: 1600,
+          mainAccentFreq: 2060,
+          subRegularFreq: 800,
+          subAccentFreq: 1030,
+          dividerRegularFreq: 1100,
+          dividerAccentFreq: 1400,
           waveType: 'sine',
           volume: 0.75,
         );
@@ -250,20 +250,20 @@ class MetronomeToneConfig extends Equatable {
 
   /// Validate configuration values
   bool get isValid =>
-      mainRegularFreq >= 200.0 &&
-      mainRegularFreq <= 4000.0 &&
-      mainAccentFreq >= 200.0 &&
-      mainAccentFreq <= 4000.0 &&
-      subRegularFreq >= 200.0 &&
-      subRegularFreq <= 4000.0 &&
-      subAccentFreq >= 200.0 &&
-      subAccentFreq <= 4000.0 &&
-      dividerRegularFreq >= 200.0 &&
-      dividerRegularFreq <= 4000.0 &&
-      dividerAccentFreq >= 200.0 &&
-      dividerAccentFreq <= 4000.0 &&
-      volume >= 0.0 &&
-      volume <= 1.0 &&
+      mainRegularFreq >= 200 &&
+      mainRegularFreq <= 4000 &&
+      mainAccentFreq >= 200 &&
+      mainAccentFreq <= 4000 &&
+      subRegularFreq >= 200 &&
+      subRegularFreq <= 4000 &&
+      subAccentFreq >= 200 &&
+      subAccentFreq <= 4000 &&
+      dividerRegularFreq >= 200 &&
+      dividerRegularFreq <= 4000 &&
+      dividerAccentFreq >= 200 &&
+      dividerAccentFreq <= 4000 &&
+      volume >= 0 &&
+      volume <= 1 &&
       ['sine', 'square', 'triangle', 'sawtooth'].contains(waveType);
 
   /// Get all available presets

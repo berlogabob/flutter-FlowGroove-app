@@ -82,25 +82,27 @@ class SectionColorPalette {
   }
 
   /// Hex preset colors for quick selection (using MonoPulse section colors).
+  /// These are alternatives to the canonical 14-color section palette.
   static const Map<String, int> hexPresets = {
-    'EF5350': 0xFFEF5350, // Red (section1 similar)
-    '66BB6A': 0xFF66BB6A, // Green (section8 similar)
-    '42A5F5': 0xFF42A5F5, // Blue (section5 similar)
-    'FFA726': 0xFFFFA726, // Orange (section13 similar)
-    'AB47BC': 0xFFAB47BC, // Purple (section2 similar)
-    '26A69A': 0xFF26A69A, // Teal (section7 similar)
+    'EF5350': 0xFFEF5350, // Red
+    '66BB6A': 0xFF66BB6A, // Green
+    '42A5F5': 0xFF42A5F5, // Blue
+    'FFA726': 0xFFFFA726, // Orange
+    'AB47BC': 0xFFAB47BC, // Purple
+    '26A69A': 0xFF26A69A, // Teal
   };
 }
 
 /// Common spacing and sizing constants using MonoPulse design system.
+/// Thin facade over MonoPulse tokens to allow gradual migration.
 class AppDimensions {
   AppDimensions._();
 
-  /// Grid spacing for section picker.
-  static const double gridSpacing = 8.0;
+  /// Grid spacing for section picker (re-exports MonoPulseSpacing.sm).
+  static const double gridSpacing = MonoPulseSpacing.sm;
 
-  /// Border radius for section cards (using MonoPulseRadius.large).
-  static const double cardBorderRadius = 12.0;
+  /// Border radius for section cards (re-exports MonoPulseRadius.large).
+  static const double cardBorderRadius = MonoPulseRadius.large;
 
   /// Border radius for pills.
   static const double pillBorderRadius = 22.0;
@@ -111,7 +113,7 @@ class AppDimensions {
   /// Section card leading height.
   static const double cardLeadingHeight = 40.0;
 
-  /// Minimum tap target size (Material Design).
+  /// Minimum tap target size (Material Design). Only a11y constant, not tokenized.
   static const double minTapTarget = 48.0;
 
   /// Pill view height.

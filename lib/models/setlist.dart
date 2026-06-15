@@ -26,6 +26,12 @@ class SetlistItem {
     this.tuningPresetId,
   });
 
+  factory SetlistItem.fromJson(Map<String, dynamic> json) => SetlistItem(
+    id: json['id'] as String? ?? '',
+    songId: json['songId'] as String? ?? '',
+    tuningPresetId: json['tuningPresetId'] as String?,
+  );
+
   SetlistItem copyWith({String? id, String? songId, String? tuningPresetId}) {
     return SetlistItem(
       id: id ?? this.id,
@@ -33,12 +39,6 @@ class SetlistItem {
       tuningPresetId: tuningPresetId ?? this.tuningPresetId,
     );
   }
-
-  factory SetlistItem.fromJson(Map<String, dynamic> json) => SetlistItem(
-    id: json['id'] as String? ?? '',
-    songId: json['songId'] as String? ?? '',
-    tuningPresetId: json['tuningPresetId'] as String?,
-  );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
     'id': id,
@@ -90,6 +90,9 @@ class Setlist {
     required this.updatedAt,
   });
 
+  factory Setlist.fromJson(Map<String, dynamic> json) =>
+      _$SetlistFromJson(json);
+
   Setlist copyWith({
     String? id,
     String? bandId,
@@ -128,6 +131,14 @@ class Setlist {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    final json = _$SetlistToJson(this);
+    final syncedItems = effectiveItems;
+    json['items'] = _itemsToJson(syncedItems);
+    json['songIds'] = syncedItems.map((item) => item.songId).toList();
+    return json;
+  }
+
   List<SetlistItem> get effectiveItems {
     if (items.isNotEmpty) return items;
     return List.generate(
@@ -164,17 +175,6 @@ class Setlist {
       updatedAt: DateTime.now(),
     );
   }
-
-  Map<String, dynamic> toJson() {
-    final json = _$SetlistToJson(this);
-    final syncedItems = effectiveItems;
-    json['items'] = _itemsToJson(syncedItems);
-    json['songIds'] = syncedItems.map((item) => item.songId).toList();
-    return json;
-  }
-
-  factory Setlist.fromJson(Map<String, dynamic> json) =>
-      _$SetlistFromJson(json);
 
   String get formattedEventDate {
     if (eventDateTime == null) return '';

@@ -120,7 +120,7 @@ class SongSuggestion extends Equatable {
     this.matchReasons = const [],
   });
 
-  /// Create a suggestion from user's personal song
+  /// Create a suggestion from user's personal song.
   factory SongSuggestion.fromPersonalSong({
     required String id,
     required String title,
@@ -146,7 +146,7 @@ class SongSuggestion extends Equatable {
     );
   }
 
-  /// Create a suggestion from band/group song
+  /// Create a suggestion from band/group song.
   factory SongSuggestion.fromGroupSong({
     required String id,
     required String title,
@@ -177,7 +177,7 @@ class SongSuggestion extends Equatable {
     );
   }
 
-  /// Create a suggestion from MusicBrainz
+  /// Create a suggestion from MusicBrainz.
   factory SongSuggestion.fromMusicBrainz({
     required String id,
     required String title,
@@ -203,7 +203,7 @@ class SongSuggestion extends Equatable {
     );
   }
 
-  /// Create a suggestion from local canonical database
+  /// Create a suggestion from local canonical database.
   factory SongSuggestion.fromCanonical({
     required String id,
     required String title,

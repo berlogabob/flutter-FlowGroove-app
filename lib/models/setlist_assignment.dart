@@ -17,6 +17,9 @@ class SetlistAssignment {
     this.notes,
   });
 
+  factory SetlistAssignment.fromJson(Map<String, dynamic> json) =>
+      _$SetlistAssignmentFromJson(json);
+
   SetlistAssignment copyWith({
     String? oderId,
     String? roleOverride,
@@ -37,7 +40,4 @@ class SetlistAssignment {
   }
 
   Map<String, dynamic> toJson() => _$SetlistAssignmentToJson(this);
-
-  factory SetlistAssignment.fromJson(Map<String, dynamic> json) =>
-      _$SetlistAssignmentFromJson(json);
 }

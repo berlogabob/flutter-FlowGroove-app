@@ -9,6 +9,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/song_form_provider.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/primary_action_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';
 import 'components/song_form.dart';
 import 'models/song_form_data.dart';
@@ -314,18 +315,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         appBar: CustomAppBar.build(
           context,
           title: _isEditing ? 'Edit Song' : 'Add Song',
-          menuItems: [
-            PopupMenuItem<void>(
-              onTap: isSaving ? null : _saveSong,
-              child: isSaving
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Save'),
-            ),
-          ],
         ),
         body: ListView(
           padding: const EdgeInsets.all(16),
@@ -450,6 +439,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
               ),
             ),
           ],
+        ),
+        bottomNavigationBar: PrimaryActionBar(
+          label: _isEditing ? 'Save Changes' : 'Save Song',
+          onPressed: isSaving ? null : _saveSong,
+          isLoading: isSaving,
         ),
       ),
     );

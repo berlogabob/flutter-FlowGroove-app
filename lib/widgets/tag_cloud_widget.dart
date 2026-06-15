@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../theme/mono_pulse_theme.dart';
+import '../theme/mono_pulse_theme.dart';
+import 'app_filter_chip.dart';
 
 class TagCloudWidget extends StatelessWidget {
   final Map<String, int> tagCounts;
@@ -10,9 +11,9 @@ class TagCloudWidget extends StatelessWidget {
   const TagCloudWidget({
     super.key,
     required this.tagCounts,
-    this.selectedTag,
     required this.onTagSelected,
     this.maxTags = 10,
+    this.selectedTag,
   });
 
   @override
@@ -34,14 +35,10 @@ class TagCloudWidget extends StatelessWidget {
             // "All" chip
             return Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: const Text('All'),
+              child: AppFilterChip(
+                label: 'All',
                 selected: selectedTag == null,
                 onSelected: (_) => onTagSelected(null),
-                selectedColor: MonoPulseColors.accentOrange.withValues(
-                  alpha: 0.3,
-                ),
-                checkmarkColor: MonoPulseColors.accentOrange,
               ),
             );
           }
@@ -53,15 +50,11 @@ class TagCloudWidget extends StatelessWidget {
 
           return Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text('$tag ($count)'),
+            child: AppFilterChip(
+              label: '$tag ($count)',
               selected: selectedTag == tag,
               onSelected: (_) => onTagSelected(selectedTag == tag ? null : tag),
-              selectedColor: MonoPulseColors.accentOrange.withValues(
-                alpha: 0.3,
-              ),
-              checkmarkColor: MonoPulseColors.accentOrange,
-              backgroundColor: _getTagColor(intensity),
+              unselectedBackgroundColor: _getTagColor(intensity),
             ),
           );
         },

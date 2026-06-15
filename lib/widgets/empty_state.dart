@@ -31,47 +31,53 @@ class EmptyState extends StatelessWidget {
     super.key,
     required this.icon,
     required this.message,
+    this.iconSize = 80,
     this.hint,
     this.actionLabel,
     this.onAction,
     this.iconColor,
-    this.iconSize = 80,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: iconSize,
-            color: iconColor ?? MonoPulseColors.textTertiary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: MonoPulseTypography.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          if (hint != null) ...[
-            const SizedBox(height: 8),
+    return Semantics(
+      label: message,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Semantics(
+              excludeSemantics: true,
+              child: Icon(
+                icon,
+                size: iconSize,
+                color: iconColor ?? MonoPulseColors.textTertiary,
+              ),
+            ),
+            SizedBox(height: MonoPulseSpacing.lg),
             Text(
-              hint!,
-              style: MonoPulseTypography.bodyMedium,
+              message,
+              style: MonoPulseTypography.titleMedium,
               textAlign: TextAlign.center,
             ),
+            if (hint != null) ...[
+              SizedBox(height: MonoPulseSpacing.sm),
+              Text(
+                hint!,
+                style: MonoPulseTypography.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
+            if (actionLabel != null && onAction != null) ...[
+              SizedBox(height: MonoPulseSpacing.xxl),
+              ElevatedButton.icon(
+                onPressed: onAction,
+                icon: const Icon(Icons.add),
+                label: Text(actionLabel!),
+              ),
+            ],
           ],
-          if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: onAction,
-              icon: const Icon(Icons.add),
-              label: Text(actionLabel!),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

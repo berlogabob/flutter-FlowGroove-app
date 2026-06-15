@@ -525,7 +525,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
-          _buildSection(title: 'My Tags', children: [_buildTagsSection()]),
+          _buildSection(title: 'My Roles', children: [_buildTagsSection()]),
           const SizedBox(height: MonoPulseSpacing.lg),
           _buildSection(
             title: 'Account',

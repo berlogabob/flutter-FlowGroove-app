@@ -46,10 +46,10 @@ class StandardScreenScaffold extends StatelessWidget {
     super.key,
     required this.title,
     required this.body,
-    this.menuItems,
-    this.floatingActionButton,
     this.showOfflineIndicator = true,
     this.showBackButton = true,
+    this.menuItems,
+    this.floatingActionButton,
   });
 
   @override

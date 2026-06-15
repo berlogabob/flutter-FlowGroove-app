@@ -38,7 +38,7 @@ class ErrorBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       decoration: BoxDecoration(
-        color: MonoPulseColors.errorSubtle,
+        color: MonoPulseColors.error10,
         border: Border.all(color: MonoPulseColors.error),
       ),
       child: Column(
@@ -46,12 +46,12 @@ class ErrorBanner extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
                 color: MonoPulseColors.error,
-                size: 24,
+                size: MonoPulseIcons.sizeLarge,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: MonoPulseSpacing.md),
               Expanded(
                 child: Text(
                   message,
@@ -63,7 +63,7 @@ class ErrorBanner extends StatelessWidget {
             ],
           ),
           if (onRetry != null) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: MonoPulseSpacing.md),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -71,7 +71,7 @@ class ErrorBanner extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MonoPulseColors.error,
                   foregroundColor: MonoPulseColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  padding: EdgeInsets.symmetric(vertical: MonoPulseSpacing.sm),
                 ),
                 child: const Text('Retry'),
               ),
@@ -84,18 +84,18 @@ class ErrorBanner extends StatelessWidget {
 
   Widget _buildCard(BuildContext context) {
     return Card(
-      color: MonoPulseColors.errorSubtle,
+      color: MonoPulseColors.error10,
       margin: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Padding(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline,
               color: MonoPulseColors.error,
-              size: 48,
+              size: MonoPulseIcons.sizeXLarge,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: MonoPulseSpacing.lg),
             Text(
               message,
               style: MonoPulseTypography.bodyMedium.copyWith(
@@ -104,7 +104,7 @@ class ErrorBanner extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: MonoPulseSpacing.lg),
               ElevatedButton(
                 onPressed: onRetry,
                 style: ElevatedButton.styleFrom(
@@ -123,8 +123,8 @@ class ErrorBanner extends StatelessWidget {
   Widget _buildInline(BuildContext context) {
     return Row(
       children: [
-        const Icon(Icons.error, color: MonoPulseColors.error, size: 20),
-        const SizedBox(width: 8),
+        Icon(Icons.error, color: MonoPulseColors.error, size: MonoPulseIcons.sizeMedium),
+        SizedBox(width: MonoPulseSpacing.sm),
         Expanded(
           child: Text(
             message,

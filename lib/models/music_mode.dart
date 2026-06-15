@@ -3,12 +3,6 @@ import 'package:flutter/material.dart';
 /// Music mode model for tuner scale visualization
 /// Represents different musical modes/scales with their interval patterns
 class MusicMode {
-  final String name;
-  final String shortName;
-  final List<int> intervals; // Semitone intervals from root
-  final IconData icon;
-  final String description;
-
   const MusicMode({
     required this.name,
     required this.shortName,
@@ -17,7 +11,12 @@ class MusicMode {
     this.description = '',
   });
 
-  /// Check if a note index (0-11, C-B) is in this scale
+  final String name;
+  final String shortName;
+  final List<int> intervals; // Semitone intervals from root
+  final IconData icon;
+  final String description;
+
   bool containsNote(int noteIndex) {
     return intervals.contains(noteIndex % 12);
   }

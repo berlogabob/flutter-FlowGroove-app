@@ -134,10 +134,10 @@ class SettingsMenuItem extends SettingsItem {
     super.key,
     required this.icon,
     required this.title,
+    this.enabled = true,
     this.subtitle,
     this.onTap,
     this.trailing,
-    this.enabled = true,
   });
 
   @override

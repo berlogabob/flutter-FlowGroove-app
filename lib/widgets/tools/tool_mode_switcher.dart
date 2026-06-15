@@ -89,10 +89,10 @@ class _ModePill extends StatelessWidget {
 
   const _ModePill({
     required this.label,
-    this.icon,
     required this.isActive,
     required this.onTap,
     required this.animationDuration,
+    this.icon,
   });
 
   @override

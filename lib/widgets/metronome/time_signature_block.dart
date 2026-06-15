@@ -159,15 +159,15 @@ class _BeatsRow extends StatelessWidget {
 
   const _BeatsRow({
     required this.count,
-    this.currentBeat = -1,
     required this.subdivisions,
     required this.beatModes,
     required this.onToggleMode,
     required this.onIncrement,
     required this.onDecrement,
-    this.isSmallScreen = false,
     required this.decrementButtonKey,
     required this.incrementButtonKey,
+    this.currentBeat = -1,
+    this.isSmallScreen = false,
   });
 
   @override
@@ -303,9 +303,9 @@ class _SubdivisionsRow extends StatelessWidget {
     required this.onToggleMode,
     required this.onIncrement,
     required this.onDecrement,
-    this.isSmallScreen = false,
     required this.decrementButtonKey,
     required this.incrementButtonKey,
+    this.isSmallScreen = false,
   });
 
   @override
@@ -443,9 +443,9 @@ class _BeatCircleWithMode extends StatelessWidget {
     required this.isActive,
     required this.mode,
     required this.onTap,
-    this.isSmallScreen = false,
     required this.itemExtent,
     required this.semanticLabel,
+    this.isSmallScreen = false,
   });
 
   @override
@@ -562,10 +562,10 @@ class _SubdivisionCircleWithMode extends StatelessWidget {
     required this.subdivisionIndex,
     required this.isActive,
     required this.mode,
-    this.onTap,
-    this.isSmallScreen = false,
     required this.itemExtent,
     required this.semanticLabel,
+    this.onTap,
+    this.isSmallScreen = false,
   });
 
   @override

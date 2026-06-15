@@ -57,12 +57,12 @@ class AutocompleteTypeAhead extends ConsumerStatefulWidget {
   const AutocompleteTypeAhead({
     super.key,
     required this.onSuggestionSelected,
-    this.bandId,
     this.hint = 'Search songs...',
     this.icon = Icons.music_note,
     this.minLength = 2,
     this.debounceMs = 300,
     this.maxSuggestions = 8,
+    this.bandId,
   });
 
   @override

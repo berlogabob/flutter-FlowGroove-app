@@ -45,12 +45,15 @@ class _MainShellState extends ConsumerState<MainShell> {
           indicatorColor: MonoPulseColors.accentOrangeSubtle,
           selectedIndex: safeIndex,
           onDestinationSelected: (index) => _onTap(context, index),
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: const [
             NavigationDestination(
-              icon: Icon(
-                Icons.home_outlined,
-                color: MonoPulseColors.textTertiary,
+              icon: Tooltip(
+                message: 'Home',
+                child: Icon(
+                  Icons.home_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
               ),
               selectedIcon: Icon(
                 Icons.home,
@@ -59,9 +62,12 @@ class _MainShellState extends ConsumerState<MainShell> {
               label: 'Home',
             ),
             NavigationDestination(
-              icon: Icon(
-                Icons.music_note_outlined,
-                color: MonoPulseColors.textTertiary,
+              icon: Tooltip(
+                message: 'Songs',
+                child: Icon(
+                  Icons.music_note_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
               ),
               selectedIcon: Icon(
                 Icons.music_note,
@@ -70,9 +76,12 @@ class _MainShellState extends ConsumerState<MainShell> {
               label: 'Songs',
             ),
             NavigationDestination(
-              icon: Icon(
-                Icons.groups_outlined,
-                color: MonoPulseColors.textTertiary,
+              icon: Tooltip(
+                message: 'Bands',
+                child: Icon(
+                  Icons.groups_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
               ),
               selectedIcon: Icon(
                 Icons.groups,
@@ -81,9 +90,12 @@ class _MainShellState extends ConsumerState<MainShell> {
               label: 'Bands',
             ),
             NavigationDestination(
-              icon: Icon(
-                Icons.queue_music_outlined,
-                color: MonoPulseColors.textTertiary,
+              icon: Tooltip(
+                message: 'Setlists',
+                child: Icon(
+                  Icons.queue_music_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
               ),
               selectedIcon: Icon(
                 Icons.queue_music,
@@ -92,9 +104,12 @@ class _MainShellState extends ConsumerState<MainShell> {
               label: 'Setlists',
             ),
             NavigationDestination(
-              icon: Icon(
-                Icons.person_outlined,
-                color: MonoPulseColors.textTertiary,
+              icon: Tooltip(
+                message: 'Profile',
+                child: Icon(
+                  Icons.person_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
               ),
               selectedIcon: Icon(
                 Icons.person,

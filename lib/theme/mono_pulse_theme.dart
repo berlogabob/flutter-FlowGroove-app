@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Mono Pulse Design System
 ///
@@ -37,7 +38,11 @@ class MonoPulseColors {
   static const Color accentOrange = Color(0xFFFF5E00);
   static const Color accentOrangeLight = Color(0xFFFF6B1A);
   static const Color accentOrangeDark = Color(0xFFE64E00);
-  static const Color accentOrangeSubtle = Color(0x1AFF5E00); // 10% opacity
+  static const Color accentOrange10 = Color(0x1AFF5E00); // 10% opacity
+
+  // Deprecated alias for accentOrange10
+  @Deprecated('Use accentOrange10 (identical value)')
+  static const Color accentOrangeSubtle = accentOrange10;
 
   // Beat Mode Colors
   static const Color beatModeNormal = Color(0xFFFF5E00); // Orange
@@ -51,7 +56,11 @@ class MonoPulseColors {
 
   // Error - Muted Red (very rare)
   static const Color error = Color(0xFFFF2D55);
-  static const Color errorSubtle = Color(0x1AFF2D55);
+  static const Color error10 = Color(0x1AFF2D55);
+
+  // Deprecated alias for error10
+  @Deprecated('Use error10 (identical value)')
+  static const Color errorSubtle = error10;
 
   // Success - Orange or White
   static const Color success = accentOrange;
@@ -63,15 +72,27 @@ class MonoPulseColors {
 
   // Success (green - for non-orange success states)
   static const Color successGreen = Color(0xFF4CAF50);
-  static const Color successGreenSubtle = Color(0x0D4CAF50); // 5% opacity
+  static const Color successGreen5 = Color(0x0D4CAF50); // 5% opacity
+
+  // Deprecated alias for successGreen5
+  @Deprecated('Use successGreen5 (identical value)')
+  static const Color successGreenSubtle = successGreen5;
 
   // Warning
   static const Color warning = Color(0xFFFF9800);
-  static const Color warningSubtle = Color(0x0DFF9800); // 5% opacity
+  static const Color warning5 = Color(0x0DFF9800); // 5% opacity
+
+  // Deprecated alias for warning5
+  @Deprecated('Use warning5 (identical value)')
+  static const Color warningSubtle = warning5;
 
   // Info
   static const Color info = Color(0xFF2196F3);
-  static const Color infoSubtle = Color(0x0D2196F3); // 5% opacity
+  static const Color info5 = Color(0x0D2196F3); // 5% opacity
+
+  // Deprecated alias for info5
+  @Deprecated('Use info5 (identical value)')
+  static const Color infoSubtle = info5;
 
   // ============================================
   // Role Colors
@@ -95,18 +116,32 @@ class MonoPulseColors {
   // Opacity Variants
   // ============================================
 
-  // Error opacity variants
-  static const Color errorSubtle5 = Color(0x0DFF2D55); // 5%
-  static const Color errorSubtle20 = Color(0x33FF2D55); // 20%
-  static const Color errorSubtle30 = Color(0x4DFF2D55); // 30%
+  // Error opacity variants — canonical naming convention (error{NN})
+  static const Color error5 = Color(0x0DFF2D55); // 5%
+  static const Color error20 = Color(0x33FF2D55); // 20%
+  static const Color error30 = Color(0x4DFF2D55); // 30%
+
+  // Deprecated aliases for error opacity variants
+  @Deprecated('Use error5 (identical value)')
+  static const Color errorSubtle5 = error5;
+  @Deprecated('Use error20 (identical value)')
+  static const Color errorSubtle20 = error20;
+  @Deprecated('Use error30 (identical value)')
+  static const Color errorSubtle30 = error30;
 
   // Orange opacity variants
+  // NOTE: orangeSubtle15/20/30 are exact duplicates of accentOrange15/20/30.
+  // Prefer the canonical accentOrange{NN} naming below; these are kept as
+  // deprecated aliases to allow incremental migration without breaking callers.
   static const Color orangeSubtle5 = Color(0x0DFF5E00); // 5%
-  static const Color orangeSubtle15 = Color(0x26FF5E00); // 15%
-  static const Color orangeSubtle20 = Color(0x33FF5E00); // 20%
-  static const Color orangeSubtle30 = Color(0x4DFF5E00); // 30%
+  @Deprecated('Use accentOrange15 (identical value)')
+  static const Color orangeSubtle15 = accentOrange15; // 15%
+  @Deprecated('Use accentOrange20 (identical value)')
+  static const Color orangeSubtle20 = accentOrange20; // 20%
+  @Deprecated('Use accentOrange30 (identical value)')
+  static const Color orangeSubtle30 = accentOrange30; // 30%
 
-  // Accent orange opacity variants (for UI elements)
+  // Accent orange opacity variants (for UI elements) — canonical naming.
   static const Color accentOrange15 = Color(0x26FF5E00); // 15%
   static const Color accentOrange20 = Color(0x33FF5E00); // 20%
   static const Color accentOrange30 = Color(0x4DFF5E00); // 30%
@@ -115,9 +150,20 @@ class MonoPulseColors {
   static const Color borderSubtle30 = Color(0x4D222222); // 30%
 
   // ============================================
+  // Interaction State Overlays
+  // ============================================
+  // Used for hover, focus, pressed, and disabled states on both Material and custom surfaces.
+
+  static const Color stateHover = Color(0x0AFFFFFF); // White @ 4% (subtle hover highlight)
+  static const Color stateFocus = Color(0x1EFF5E00); // Orange @ 12% (accent-colored focus ring)
+  static const Color statePressed = Color(0x29FF5E00); // Orange @ 16% (darker press state)
+  static const Color stateDisabled = Color(0x4D555555); // Disabled text color @ 30% (reduced opacity)
+
+  // ============================================
   // Section Colors (for song organization)
   // ============================================
   // 14 visually distinct colors that work on dark background
+  // Intentional exceptions to the monochrome + orange rule, enabling visual grouping in songs.
 
   static const Color section1 = Color(0xFFE91E63); // Pink
   static const Color section2 = Color(0xFF9C27B0); // Purple
@@ -153,12 +199,20 @@ class MonoPulseColors {
   static const Color white = Color(0xFFFFFFFF);
 }
 
-/// Typography - Inter / System SF Pro
+/// Typography - Inter (cross-platform)
 /// Strict 4-point grid scale
 class MonoPulseTypography {
-  // Font Family
-  static const String fontFamily = '.SF Pro Text'; // Falls back to system
-  static const String fontFamilyDisplay = '.SF Pro Display';
+  MonoPulseTypography._();
+
+  // Font Family — Inter, registered at runtime by google_fonts.
+  //
+  // IMPORTANT: keep these as a const String (not a GoogleFonts getter) so the
+  // TextStyles below can stay `const`. The whole app builds `const` widgets
+  // around these styles; making them runtime getters breaks const-ness across
+  // hundreds of call sites. The Inter family is loaded once in the theme via
+  // GoogleFonts.interTextTheme(), after which `fontFamily: 'Inter'` resolves.
+  static const String fontFamily = 'Inter';
+  static const String fontFamilyDisplay = 'Inter';
 
   // Weights
   static const FontWeight regular = FontWeight.w400;
@@ -351,6 +405,14 @@ class MonoPulseIcons {
   static const double strokeWidthBold = 2.0;
 }
 
+/// Border Widths
+/// For dividers, borders, and outlines
+class MonoPulseBorder {
+  static const double thin = 1.0;
+  static const double default_ = 1.5;
+  static const double bold = 2.0;
+}
+
 /// Mono Pulse Dark Theme (ONLY THEME - dark-only)
 class MonoPulseTheme {
   static ThemeData get theme {
@@ -381,7 +443,7 @@ class MonoPulseTheme {
 
         error: MonoPulseColors.error,
         onError: MonoPulseColors.white,
-        errorContainer: MonoPulseColors.errorSubtle,
+        errorContainer: MonoPulseColors.error10,
         onErrorContainer: MonoPulseColors.error,
 
         shadow: MonoPulseColors.black,
@@ -414,6 +476,22 @@ class MonoPulseTheme {
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
           textStyle: MonoPulseTypography.labelLarge,
+        ).copyWith(
+          overlayColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.pressed)) {
+              return MonoPulseColors.statePressed;
+            }
+            if (states.contains(WidgetState.hovered)) {
+              return MonoPulseColors.stateHover;
+            }
+            if (states.contains(WidgetState.focused)) {
+              return MonoPulseColors.stateFocus;
+            }
+            if (states.contains(WidgetState.disabled)) {
+              return MonoPulseColors.stateDisabled;
+            }
+            return null;
+          }),
         ),
       ),
 
@@ -433,6 +511,22 @@ class MonoPulseTheme {
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
           textStyle: MonoPulseTypography.labelLarge,
+        ).copyWith(
+          overlayColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.pressed)) {
+              return MonoPulseColors.statePressed;
+            }
+            if (states.contains(WidgetState.hovered)) {
+              return MonoPulseColors.stateHover;
+            }
+            if (states.contains(WidgetState.focused)) {
+              return MonoPulseColors.stateFocus;
+            }
+            if (states.contains(WidgetState.disabled)) {
+              return MonoPulseColors.stateDisabled;
+            }
+            return null;
+          }),
         ),
       ),
 
@@ -570,7 +664,9 @@ class MonoPulseTheme {
       ),
 
       // Text Theme
-      textTheme: const TextTheme(
+      // Base text theme loads/registers the Inter family at runtime (google_fonts),
+      // then we override slots with our const MonoPulse styles (fontFamily: 'Inter').
+      textTheme: GoogleFonts.interTextTheme(const TextTheme()).copyWith(
         displayLarge: MonoPulseTypography.displayLarge,
         displayMedium: MonoPulseTypography.displayMedium,
         headlineLarge: MonoPulseTypography.headlineLarge,

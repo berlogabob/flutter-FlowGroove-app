@@ -27,22 +27,45 @@ class CustomButton extends StatelessWidget {
   /// Whether the button should expand to fill available width.
   final bool fullWidth;
 
+  /// Optional tooltip shown on hover / long-press.
+  final String? tooltip;
+
+  /// Optional screen-reader label. Falls back to [label].
+  final String? semanticLabel;
+
   const CustomButton({
     super.key,
     required this.label,
-    this.onPressed,
     this.variant = ButtonVariant.primary,
     this.size = ButtonSize.medium,
     this.isLoading = false,
-    this.icon,
     this.fullWidth = false,
+    this.onPressed,
+    this.icon,
+    this.tooltip,
+    this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    final button = _buildButton(context);
+    Widget button = _buildButton(context);
 
-    return fullWidth ? SizedBox(width: double.infinity, child: button) : button;
+    if (fullWidth) {
+      button = SizedBox(width: double.infinity, child: button);
+    }
+
+    button = Semantics(
+      button: true,
+      enabled: onPressed != null && !isLoading,
+      label: semanticLabel ?? label,
+      child: button,
+    );
+
+    if (tooltip != null) {
+      button = Tooltip(message: tooltip!, child: button);
+    }
+
+    return button;
   }
 
   Widget _buildButton(BuildContext context) {
@@ -113,7 +136,7 @@ class CustomButton extends StatelessWidget {
             ),
           ),
         ),
-        if (label.isNotEmpty) ...[const SizedBox(width: 8), Text(label)],
+        if (label.isNotEmpty) ...[SizedBox(width: MonoPulseSpacing.sm), Text(label)],
       ],
     );
 
@@ -156,7 +179,7 @@ class CustomButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: _iconSize),
-          if (label.isNotEmpty) ...[const SizedBox(width: 8), Text(label)],
+          if (label.isNotEmpty) ...[SizedBox(width: MonoPulseSpacing.sm), Text(label)],
         ],
       );
     }
@@ -166,22 +189,31 @@ class CustomButton extends StatelessWidget {
   EdgeInsetsGeometry get _padding {
     switch (size) {
       case ButtonSize.small:
-        return const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
+        return const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.md,
+          vertical: MonoPulseSpacing.sm,
+        );
       case ButtonSize.medium:
-        return const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
+        return const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.xxl,
+          vertical: MonoPulseSpacing.md,
+        );
       case ButtonSize.large:
-        return const EdgeInsets.symmetric(horizontal: 32, vertical: 16);
+        return const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.xxxl,
+          vertical: MonoPulseSpacing.lg,
+        );
     }
   }
 
   double get _iconSize {
     switch (size) {
       case ButtonSize.small:
-        return 16;
+        return MonoPulseIcons.sizeSmall; // 16
       case ButtonSize.medium:
-        return 18;
+        return MonoPulseIcons.sizeMedium; // 20 (consistent with large)
       case ButtonSize.large:
-        return 20;
+        return MonoPulseIcons.sizeMedium; // 20
     }
   }
 }
