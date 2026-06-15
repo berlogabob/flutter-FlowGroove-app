@@ -3,6 +3,8 @@ import 'time_signature.dart';
 import 'beat_mode.dart';
 import 'song.dart';
 import '../models/setlist.dart';
+import 'metronome_runtime_state.dart';
+import 'tempo_ramp.dart';
 
 part 'metronome_state.g.dart';
 
@@ -53,6 +55,17 @@ class MetronomeState {
   // Count-in feature
   @JsonKey(defaultValue: 0)
   final int countInBars;
+  @JsonKey(defaultValue: BpmSource.manual)
+  final BpmSource bpmSource;
+  @JsonKey(defaultValue: MetronomePlaybackPhase.stopped)
+  final MetronomePlaybackPhase playbackPhase;
+  final String? activePresetId;
+  final String? activePresetName;
+  @JsonKey(defaultValue: true)
+  final bool visualFlashEnabled;
+  final TempoRamp? activeTempoRamp;
+  @JsonKey(defaultValue: 0)
+  final int completedBars;
 
   const MetronomeState({
     required this.isPlaying,
@@ -75,6 +88,13 @@ class MetronomeState {
     this.sourceBandId,
     this.currentSetlistIndex = 0,
     this.countInBars = 0,
+    this.bpmSource = BpmSource.manual,
+    this.playbackPhase = MetronomePlaybackPhase.stopped,
+    this.activePresetId,
+    this.activePresetName,
+    this.visualFlashEnabled = true,
+    this.activeTempoRamp,
+    this.completedBars = 0,
   });
 
   /// Creates initial metronome state
@@ -95,6 +115,10 @@ class MetronomeState {
       regularBeats: 1,
       beatModes: [], // Empty = all normal
       countInBars: 0,
+      bpmSource: BpmSource.manual,
+      playbackPhase: MetronomePlaybackPhase.stopped,
+      visualFlashEnabled: true,
+      completedBars: 0,
     );
   }
 
@@ -120,6 +144,13 @@ class MetronomeState {
     Object? sourceBandId = _metronomeStateNoChange,
     int? currentSetlistIndex,
     int? countInBars,
+    BpmSource? bpmSource,
+    MetronomePlaybackPhase? playbackPhase,
+    Object? activePresetId = _metronomeStateNoChange,
+    Object? activePresetName = _metronomeStateNoChange,
+    bool? visualFlashEnabled,
+    Object? activeTempoRamp = _metronomeStateNoChange,
+    int? completedBars,
   }) {
     return MetronomeState(
       isPlaying: isPlaying ?? this.isPlaying,
@@ -148,6 +179,19 @@ class MetronomeState {
           : sourceBandId as String?,
       currentSetlistIndex: currentSetlistIndex ?? this.currentSetlistIndex,
       countInBars: countInBars ?? this.countInBars,
+      bpmSource: bpmSource ?? this.bpmSource,
+      playbackPhase: playbackPhase ?? this.playbackPhase,
+      activePresetId: identical(activePresetId, _metronomeStateNoChange)
+          ? this.activePresetId
+          : activePresetId as String?,
+      activePresetName: identical(activePresetName, _metronomeStateNoChange)
+          ? this.activePresetName
+          : activePresetName as String?,
+      visualFlashEnabled: visualFlashEnabled ?? this.visualFlashEnabled,
+      activeTempoRamp: identical(activeTempoRamp, _metronomeStateNoChange)
+          ? this.activeTempoRamp
+          : activeTempoRamp as TempoRamp?,
+      completedBars: completedBars ?? this.completedBars,
     );
   }
 

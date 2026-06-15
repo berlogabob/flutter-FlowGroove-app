@@ -7,6 +7,10 @@
 /// 4. 50% rollout (all true)
 /// 5. 100% rollout (all true, then remove flags)
 class MetronomeFeatureFlags {
+  /// Use a buffered PCM timeline so audible tick placement is independent of
+  /// Dart and platform timer jitter on every supported platform.
+  static const bool enablePcmTimelineEngine = true;
+
   /// Enable audio pre-initialization and pre-warm
   /// Impact: 10x faster first beat (<50ms vs 500ms)
   /// Risk: LOW - Tested extensively
@@ -39,6 +43,7 @@ class MetronomeFeatureFlags {
 
   /// Check if all features are enabled
   static bool get allEnabled =>
+      enablePcmTimelineEngine &&
       enableOptimizedAudio &&
       enableToneMatrix &&
       enableMonoPulseTheme &&
@@ -48,11 +53,12 @@ class MetronomeFeatureFlags {
 
   /// Get feature status as map for debugging
   static Map<String, bool> get featureStatus => {
-        'enableOptimizedAudio': enableOptimizedAudio,
-        'enableToneMatrix': enableToneMatrix,
-        'enableMonoPulseTheme': enableMonoPulseTheme,
-        'enable2DBeatModes': enable2DBeatModes,
-        'enableAudioFocus': enableAudioFocus,
-        'enableSubdivisionPitch': enableSubdivisionPitch,
-      };
+    'enableOptimizedAudio': enableOptimizedAudio,
+    'enablePcmTimelineEngine': enablePcmTimelineEngine,
+    'enableToneMatrix': enableToneMatrix,
+    'enableMonoPulseTheme': enableMonoPulseTheme,
+    'enable2DBeatModes': enable2DBeatModes,
+    'enableAudioFocus': enableAudioFocus,
+    'enableSubdivisionPitch': enableSubdivisionPitch,
+  };
 }

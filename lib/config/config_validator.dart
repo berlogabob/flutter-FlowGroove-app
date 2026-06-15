@@ -36,11 +36,17 @@ class ConfigValidator {
     final errors = <String>[];
     final warnings = <String>[];
 
-    // Check Firebase configuration (required)
-    if (env.firebaseApiKey.isEmpty) {
-      errors.add('Firebase API key is not configured');
-    } else if (_isPlaceholder(env.firebaseApiKey)) {
+    // Check Firebase configuration.
+    //
+    // On mobile (Android/iOS) the Firebase API key is a non-secret value that is
+    // also bundled in google-services.json / GoogleService-Info.plist, and
+    // DefaultFirebaseOptions falls back to it. So a missing compile-time define is
+    // not fatal there. On web the key must be injected via config.js, so it stays
+    // a hard error.
+    if (env.firebaseApiKey.isNotEmpty && _isPlaceholder(env.firebaseApiKey)) {
       errors.add('Firebase API key appears to be a placeholder value');
+    } else if (env.firebaseApiKey.isEmpty && kIsWeb) {
+      errors.add('Firebase API key is not configured');
     }
 
     // Check Firebase App ID (hardcoded, but verify it's valid format)

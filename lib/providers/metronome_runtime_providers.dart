@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart'
     show
@@ -9,9 +11,11 @@ import 'package:flutter/foundation.dart'
         kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 
 import '../models/beat_mode.dart';
 import '../models/metronome_state.dart';
+import '../config/metronome_feature_flags.dart';
 import '../services/audio/metronome_audio_engine.dart';
 import '../services/audio/wall_clock_scheduler.dart';
 
@@ -158,6 +162,7 @@ class MetronomePlaybackTick {
     required this.isMainBeat,
     required this.shouldPlay,
     required this.frequency,
+    this.isCountIn = false,
   });
 
   final int index;
@@ -166,6 +171,200 @@ class MetronomePlaybackTick {
   final bool isMainBeat;
   final bool shouldPlay;
   final double frequency;
+  final bool isCountIn;
+}
+
+class PcmTimelineMetronomePlaybackClient implements MetronomePlaybackClient {
+  PcmTimelineMetronomePlaybackClient({required this.fallback});
+
+  static const int _sampleRate = 44100;
+  static const int _chunkMilliseconds = 1000;
+  static const int _clickSamples = 1764;
+
+  final MetronomePlaybackClient fallback;
+  final WallClockScheduler _uiScheduler = WallClockScheduler();
+
+  MetronomePlaybackConfig? _config;
+  MetronomePlaybackTickCallback? _onTick;
+  VoidCallback? _onStopped;
+  AudioSource? _stream;
+  SoundHandle? _handle;
+  Timer? _feedTimer;
+  int _audioTick = -1;
+  int _uiTick = -1;
+  int _countInTicksRemaining = 0;
+  int _uiCountInTicksRemaining = 0;
+  int _samplesUntilTick = 0;
+  bool _running = false;
+  bool _usingFallback = false;
+
+  @override
+  Future<void> start(
+    MetronomePlaybackConfig config, {
+    required MetronomePlaybackTickCallback onTick,
+    VoidCallback? onStopped,
+    int initialTick = -1,
+  }) async {
+    await stop();
+    _config = config;
+    _onTick = onTick;
+    _onStopped = onStopped;
+    _audioTick = initialTick;
+    _uiTick = initialTick;
+    _countInTicksRemaining = config.countInBars * config.totalTicks;
+    _uiCountInTicksRemaining = _countInTicksRemaining;
+    _samplesUntilTick = 0;
+    _running = true;
+
+    try {
+      await MetronomeAudioEngine.instance.init();
+      _stream = SoLoud.instance.setBufferStream(
+        maxBufferSizeDuration: const Duration(seconds: 30),
+        bufferingType: BufferingType.released,
+        bufferingTimeNeeds: 0.15,
+        sampleRate: _sampleRate,
+        channels: Channels.mono,
+        format: BufferType.s16le,
+      );
+      _appendChunk();
+      _appendChunk();
+      _handle = await SoLoud.instance.play(_stream!, volume: 1);
+      _feedTimer = Timer.periodic(
+        const Duration(milliseconds: 500),
+        (_) => _appendChunk(),
+      );
+      _uiScheduler.start(config.interval, _handleUiTick);
+    } catch (error) {
+      debugPrint('[MetronomePlayback] PCM timeline failed: $error');
+      _usingFallback = true;
+      await fallback.start(
+        config,
+        onTick: onTick,
+        onStopped: onStopped,
+        initialTick: initialTick,
+      );
+    }
+  }
+
+  @override
+  Future<void> update(MetronomePlaybackConfig config) async {
+    _config = config;
+    if (_usingFallback) {
+      await fallback.update(config);
+      return;
+    }
+    if (_running) _uiScheduler.start(config.interval, _handleUiTick);
+  }
+
+  @override
+  Future<void> resetPhase(MetronomePlaybackConfig config) async {
+    if (!_running) return;
+    final onTick = _onTick;
+    await start(
+      config,
+      onTick: onTick ?? (_) {},
+      onStopped: _onStopped,
+      initialTick: -1,
+    );
+  }
+
+  @override
+  Future<void> stop() async {
+    final wasRunning = _running;
+    _running = false;
+    _feedTimer?.cancel();
+    _feedTimer = null;
+    _uiScheduler.stop();
+    if (_usingFallback) await fallback.stop();
+    _usingFallback = false;
+    final handle = _handle;
+    _handle = null;
+    if (handle != null && SoLoud.instance.isInitialized) {
+      await SoLoud.instance.stop(handle);
+    }
+    final stream = _stream;
+    _stream = null;
+    if (stream != null && SoLoud.instance.isInitialized) {
+      await SoLoud.instance.disposeSource(stream);
+    }
+    _onTick = null;
+    if (wasRunning) _onStopped = null;
+  }
+
+  @override
+  void dispose() {
+    unawaited(stop());
+    _uiScheduler.dispose();
+    fallback.dispose();
+  }
+
+  void _appendChunk() {
+    if (!_running || _usingFallback || _stream == null) return;
+    final config = _config;
+    if (config == null) return;
+    final samples = Int16List(_sampleRate * _chunkMilliseconds ~/ 1000);
+    final intervalSamples = max(
+      1,
+      (_sampleRate * config.interval.inMicroseconds / 1000000).round(),
+    );
+
+    var cursor = 0;
+    while (cursor < samples.length) {
+      if (_samplesUntilTick > 0) {
+        final advance = min(_samplesUntilTick, samples.length - cursor);
+        cursor += advance;
+        _samplesUntilTick -= advance;
+        continue;
+      }
+      _audioTick = (_audioTick + 1) % config.totalTicks;
+      final tick = config.tickForIndex(_audioTick);
+      final isCountIn = _countInTicksRemaining > 0;
+      if (isCountIn) _countInTicksRemaining--;
+      if (tick.shouldPlay) {
+        _mixClick(
+          samples,
+          cursor,
+          isCountIn ? 2100 : tick.frequency,
+          isCountIn ? min(1, config.volume + 0.15) : config.volume,
+        );
+      }
+      _samplesUntilTick = intervalSamples;
+    }
+    SoLoud.instance.addAudioDataStream(_stream!, samples.buffer.asUint8List());
+  }
+
+  void _mixClick(Int16List output, int start, double frequency, double volume) {
+    final count = min(_clickSamples, output.length - start);
+    for (var index = 0; index < count; index++) {
+      final time = index / _sampleRate;
+      final envelope = index < 44
+          ? index / 44
+          : exp(-4 * (index - 44) / max(1, count - 44));
+      final value = sin(2 * pi * frequency * time) * envelope * volume;
+      output[start + index] = (value * 32767).round().clamp(-32768, 32767);
+    }
+  }
+
+  void _handleUiTick() {
+    final config = _config;
+    final onTick = _onTick;
+    if (!_running || config == null || onTick == null) return;
+    _uiTick = (_uiTick + 1) % config.totalTicks;
+    final base = config.tickForIndex(_uiTick);
+    final isCountIn = _uiCountInTicksRemaining > 0;
+    if (isCountIn) _uiCountInTicksRemaining--;
+    onTick(
+      MetronomePlaybackTick(
+        index: base.index,
+        beatIndex: base.beatIndex,
+        subdivisionIndex: base.subdivisionIndex,
+        isMainBeat: base.isMainBeat,
+        shouldPlay: base.shouldPlay,
+        frequency: base.frequency,
+        isCountIn: isCountIn,
+      ),
+    );
+  }
 }
 
 class MetronomePlaybackConfig {
@@ -627,7 +826,10 @@ final metronomePlaybackClientProvider = Provider<MetronomePlaybackClient>((
     audioClient: ref.read(metronomeAudioClientProvider),
     hapticsClient: ref.read(metronomeHapticsProvider),
   );
-  final client = PlatformMetronomePlaybackClient(fallback: fallback);
+  final legacy = PlatformMetronomePlaybackClient(fallback: fallback);
+  final client = MetronomeFeatureFlags.enablePcmTimelineEngine
+      ? PcmTimelineMetronomePlaybackClient(fallback: legacy)
+      : legacy;
   ref.onDispose(client.dispose);
   return client;
 });
