@@ -159,4 +159,14 @@ void main() {
       expect(captured.containsKey('updatedAt'), isTrue);
     });
   });
+
+  group('setAvatarFromGoogle', () {
+    test('throws when the user has no Google photo', () async {
+      when(() => user.photoURL).thenReturn(null);
+      await expectLater(
+        () => service().setAvatarFromGoogle(),
+        throwsA(isA<ApiError>()),
+      );
+    });
+  });
 }
