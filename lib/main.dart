@@ -84,12 +84,31 @@ void main() async {
     return;
   }
 
-  // Initialize Firebase with validated config
+  // Initialize Firebase with validated config.
+  //
+  // On Android/iOS the native FirebaseInitProvider already auto-initializes the
+  // [DEFAULT] app from google-services.json / GoogleService-Info.plist before
+  // Dart runs. Calling initializeApp again with options whose values differ from
+  // that bundled config (e.g. a dart-defined FIREBASE_API_KEY that doesn't match
+  // the key in google-services.json) throws [core/duplicate-app]. When a default
+  // app already exists we reuse it — on mobile the native config is the source of
+  // truth. Only initialize explicitly when no app exists yet (e.g. web).
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
     debugPrint('✅ Firebase initialized');
+  } on FirebaseException catch (e) {
+    if (e.code == 'duplicate-app') {
+      // Native auto-init already created [DEFAULT]; safe to continue.
+      debugPrint('ℹ️  Firebase already initialized natively; reusing [DEFAULT]');
+    } else {
+      debugPrint('❌ Firebase initialization failed: $e');
+      runApp(const FirebaseErrorApp());
+      return;
+    }
   } catch (e) {
     debugPrint('❌ Firebase initialization failed: $e');
     runApp(const FirebaseErrorApp());
