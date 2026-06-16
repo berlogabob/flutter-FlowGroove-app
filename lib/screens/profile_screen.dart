@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../providers/auth/auth_provider.dart';
+import '../../services/avatar_function_service.dart';
+import '../../services/storage_service.dart';
 import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
@@ -28,7 +31,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _version = 'Loading...';
   String? _profilePhotoPath;
   String? _telegramPhotoURL;
-  String _photoSource = 'local'; // 'telegram', 'google', 'local'
+  String _photoSource = 'local'; // 'upload', 'telegram', 'google', 'local'
+  String? _telegramId;
   bool _isEditingName = false;
   late TextEditingController _nameController;
 
@@ -41,45 +45,68 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _loadTelegramProfile();
   }
 
-  /// Load Telegram profile data if user gave consent
+  /// Load profile data: Storage photoURL (authoritative), Telegram linkage,
+  /// and one-time migration of legacy local profile_photo.jpg.
   Future<void> _loadTelegramProfile() async {
     try {
       final user = ref.read(currentUserProvider).value;
-      print('🔍 Loading Telegram profile for user: ${user?.uid}');
-
-      if (user == null) {
-        print('⚠️ No user found');
-        return;
-      }
+      if (user == null) return;
 
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .get();
 
-      print('📄 User doc exists: ${userDoc.exists}');
+      if (!userDoc.exists) return;
 
-      if (userDoc.exists) {
-        final data = userDoc.data();
-        print('📊 User data: $data');
+      final data = userDoc.data();
 
-        if (data != null && data['telegramConsent'] == true) {
-          print('✅ Telegram consent found');
-          setState(() {
-            _telegramPhotoURL = data['telegramPhotoURL'] as String?;
-            print('🖼️ Telegram photo URL: $_telegramPhotoURL');
-            // If no local photo, use Telegram
-            if (_profilePhotoPath == null && _telegramPhotoURL != null) {
-              _photoSource = 'telegram';
-              print('📱 Set photo source to telegram');
-            }
-          });
-        } else {
-          print('⚠️ No telegram consent or data');
+      // Capture telegramId and existing Storage URL outside setState
+      final telegramId = data?['telegramId'] as String?;
+      final existingUrl = data?['photoURL'] as String?;
+      String? newPhotoUrl;
+      String? newPhotoSource;
+
+      if (existingUrl != null) {
+        // Storage URL is authoritative
+        newPhotoUrl = existingUrl;
+        newPhotoSource = (data?['photoSource'] as String?) ?? 'upload';
+      } else {
+        // One-time migration: upload legacy local file if present
+        try {
+          final dir = await getApplicationDocumentsDirectory();
+          final legacy = File('${dir.path}/profile_photo.jpg');
+          if (await legacy.exists()) {
+            final url = await StorageService().uploadProfilePicture(legacy);
+            await legacy.delete();
+            newPhotoUrl = url;
+            newPhotoSource = 'upload';
+          }
+        } catch (e) {
+          debugPrint('Avatar migration skipped: $e');
         }
       }
+
+      if (!mounted) return;
+      setState(() {
+        _telegramId = telegramId;
+        if (newPhotoUrl != null) {
+          _telegramPhotoURL = newPhotoUrl;
+          _photoSource = newPhotoSource ?? 'upload';
+          _profilePhotoPath = null; // prefer network URL
+        } else if (data != null && data['telegramConsent'] == true) {
+          // Legacy: no Storage URL yet, fall back to Telegram URL from Firestore
+          final tgUrl = data['telegramPhotoURL'] as String?;
+          if (tgUrl != null) {
+            _telegramPhotoURL = tgUrl;
+            if (_profilePhotoPath == null) {
+              _photoSource = 'telegram';
+            }
+          }
+        }
+      });
     } catch (e) {
-      print('❌ Error loading Telegram profile: $e');
+      debugPrint('Error loading profile: $e');
     }
   }
 
@@ -153,34 +180,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         maxHeight: 512,
         imageQuality: 85,
       );
+      if (pickedFile == null) return;
 
-      if (pickedFile != null) {
-        final directory = await getApplicationDocumentsDirectory();
-        final savedFile = await File(
-          pickedFile.path,
-        ).copy('${directory.path}/profile_photo.jpg');
-        setState(() {
-          _profilePhotoPath = savedFile.path;
-        });
-      }
+      final url =
+          await StorageService().uploadProfilePicture(File(pickedFile.path));
+      if (!mounted) return;
+      setState(() {
+        _profilePhotoPath = null;
+        _telegramPhotoURL = url;
+        _photoSource = 'upload';
+      });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error picking photo: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error uploading photo: $e')),
+        );
       }
     }
   }
 
   Future<void> _removePhoto() async {
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final photoFile = File('${directory.path}/profile_photo.jpg');
-      if (await photoFile.exists()) {
-        await photoFile.delete();
-      }
+      await StorageService().deleteProfilePicture();
+      if (!mounted) return;
       setState(() {
         _profilePhotoPath = null;
+        _telegramPhotoURL = null;
+        _photoSource = 'upload';
       });
     } catch (e) {
       debugPrint('Error removing photo: $e');
@@ -202,14 +228,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ListTile(
               leading: Icon(
                 Icons.send,
-                color: _telegramPhotoURL != null ? MonoPulseColors.info : MonoPulseColors.textTertiary,
+                color: _telegramId != null
+                    ? MonoPulseColors.info
+                    : MonoPulseColors.textTertiary,
               ),
               title: Text(
-                _telegramPhotoURL != null
-                    ? 'Use Telegram Photo'
-                    : 'Link Telegram',
+                _telegramId != null ? 'Use Telegram Photo' : 'Link Telegram',
               ),
-              subtitle: _telegramPhotoURL != null
+              subtitle: _telegramId != null
                   ? (_photoSource == 'telegram'
                         ? const Text(
                             '✓ Currently using',
@@ -220,24 +246,64 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       'Import photo from Telegram',
                       style: TextStyle(color: MonoPulseColors.textTertiary),
                     ),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                if (_telegramPhotoURL != null) {
-                  // Use Telegram photo
+                if (_telegramId == null) {
+                  _showTelegramLinkDialog();
+                  return;
+                }
+                final messenger = ScaffoldMessenger.of(context);
+                try {
+                  final url =
+                      await AvatarFunctionService().importTelegramAvatar();
+                  if (!mounted) return;
                   setState(() {
+                    _telegramPhotoURL = url;
                     _photoSource = 'telegram';
                     _profilePhotoPath = null;
                   });
-                } else {
-                  // Link Telegram first
-                  _showTelegramLinkDialog();
+                } catch (e) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text('Telegram import failed: $e')),
+                  );
                 }
               },
             ),
+            // Google option - only when google-linked
+            if (FirebaseAuth.instance.currentUser?.providerData
+                    .any((p) => p.providerId == 'google.com') ??
+                false)
+              ListTile(
+                leading: const Icon(Icons.account_circle),
+                title: const Text('Use Google Photo'),
+                subtitle: _photoSource == 'google'
+                    ? const Text(
+                        '✓ Currently using',
+                        style: TextStyle(color: MonoPulseColors.success),
+                      )
+                    : null,
+                onTap: () async {
+                  Navigator.pop(context);
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    final url = await StorageService().setAvatarFromGoogle();
+                    if (!mounted) return;
+                    setState(() {
+                      _telegramPhotoURL = url;
+                      _photoSource = 'google';
+                      _profilePhotoPath = null;
+                    });
+                  } catch (e) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text('Google import failed: $e')),
+                    );
+                  }
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.camera_alt),
               title: const Text('Take Photo'),
-              subtitle: _photoSource == 'local' && _profilePhotoPath != null
+              subtitle: _photoSource == 'upload' && _telegramPhotoURL != null
                   ? const Text(
                       '✓ Currently using',
                       style: TextStyle(color: MonoPulseColors.success),
@@ -251,7 +317,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ListTile(
               leading: const Icon(Icons.photo_library),
               title: const Text('Choose from Gallery'),
-              subtitle: _photoSource == 'local' && _profilePhotoPath != null
+              subtitle: _photoSource == 'upload' && _telegramPhotoURL != null
                   ? const Text(
                       '✓ Currently using',
                       style: TextStyle(color: MonoPulseColors.success),
@@ -262,7 +328,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 _pickPhoto(ImageSource.gallery);
               },
             ),
-            if (_profilePhotoPath != null || _photoSource == 'telegram')
+            if (_telegramPhotoURL != null || _profilePhotoPath != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: MonoPulseColors.error),
                 title: const Text(
@@ -271,10 +337,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  setState(() {
-                    _profilePhotoPath = null;
-                    _photoSource = 'local';
-                  });
+                  _removePhoto();
                 },
               ),
           ],
@@ -387,13 +450,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  /// Get profile image based on source selection
+  /// Get profile image based on source selection.
+  /// Network URL (_telegramPhotoURL) is the authoritative source for all
+  /// Storage-backed sources: 'upload', 'telegram', 'google'.
   ImageProvider? _getProfileImage() {
-    // Telegram photo
-    if (_photoSource == 'telegram' && _telegramPhotoURL != null) {
+    // Any Storage-backed network URL
+    if (_telegramPhotoURL != null) {
       return NetworkImage(_telegramPhotoURL!);
     }
-    // Local photo
+    // Legacy local file (pre-migration fallback)
     if (_profilePhotoPath != null) {
       return FileImage(File(_profilePhotoPath!));
     }
