@@ -89,6 +89,8 @@ analysis_benchmark.json
 .pub-preload-cache/
 .pub/
 /build/
+# Local release artifacts from `make build-all` (FTP web build staged for upload)
+/dist/
 # Flutter screenshots in root (use screenshots/ directory instead)
 flutter_*.png
 linked_*.ds
@@ -183,3 +185,9 @@ script.html
 canvaskit/
 index.html
 flutter_web_debug.log
+
+# Local Claude Code agent state / worktrees
+.claude/
+
+# Vendored nested git repo (separate project, not part of this app's tree)
+Tack/

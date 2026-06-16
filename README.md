@@ -3,7 +3,7 @@
 [![Flutter](https://img.shields.io/badge/Flutter-ready-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.11+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.13.4+184-brightgreen.svg)](https://github.com/berlogabob/flutter-FlowGroove-app/releases)
+[![Version](https://img.shields.io/badge/version-0.14.0+203-brightgreen.svg)](https://github.com/berlogabob/flutter-FlowGroove-app/releases)
 [![Live App](https://img.shields.io/badge/Live%20App-flowgroove.app-blue)](https://flowgroove.app)
 
 FlowGroove is a real-time repertoire and setlist manager for cover bands and gigging musicians. It gives the band one source of truth for songs, setlists, notes, keys, BPM, and rehearsal-ready tools, with instant sync and offline support.
@@ -224,6 +224,6 @@ MIT License. See [LICENSE](LICENSE).
 
 ## Status
 
-- Version: `0.13.4+184`
-- Last updated: June 5, 2026
+- Version: `0.14.0+203`
+- Last updated: June 16, 2026
 - Current project state: active development with `.codex/` as the canonical internal layer and `oldarchive/` for legacy context

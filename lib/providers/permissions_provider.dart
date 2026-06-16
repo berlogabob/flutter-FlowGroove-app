@@ -140,6 +140,10 @@ Provider<bool> canEditBandProvider(String bandId) => Provider<bool>((ref) {
 });
 
 /// Can the current user manage members in this band?
+///
+/// Governed by the **band-level** admin role: any non-demo user who is an
+/// admin of this band can manage its members, regardless of their app-level
+/// access role. (App-level admin/owner is no longer required here.)
 Provider<bool> canManageBandMembersProvider(String bandId) =>
     Provider<bool>((ref) {
       final userAsync = ref.watch(appUserProvider);
@@ -147,9 +151,9 @@ Provider<bool> canManageBandMembersProvider(String bandId) =>
 
       return userAsync.when(
         data: (user) {
-          if (user == null || !_canManageMembers(user)) return false;
+          if (user == null || !_canEdit(user)) return false;
           return bandAsync.when(
-            data: (bands) => _canManageBandMembersIn(bandId, bands),
+            data: (bands) => _canManageBandMembersIn(user.uid, bandId, bands),
             loading: () => false,
             error: (_, _) => false,
           );
@@ -177,8 +181,8 @@ bool _canEditBandIn(String uid, String bandId, List<Band> bands) {
   return band.adminUids.contains(uid) || band.editorUids.contains(uid);
 }
 
-bool _canManageBandMembersIn(String bandId, List<Band> bands) {
+bool _canManageBandMembersIn(String uid, String bandId, List<Band> bands) {
   final band = bands.where((b) => b.id == bandId).firstOrNull;
   if (band == null) return false;
-  return band.adminUids.contains(band.createdBy);
+  return band.adminUids.contains(uid);
 }

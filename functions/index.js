@@ -428,3 +428,8 @@ exports.telegramWebhook = functions.https.onRequest(async (req, res) => {
 // Export canonical song function
 const canonical = require("./src/canonical");
 exports.ensureCanonicalSong = canonical.ensureCanonicalSong;
+
+// Export band membership functions
+const bands = require("./src/bands");
+exports.joinBand = bands.joinBand;
+exports.updateBandMember = bands.updateBandMember;

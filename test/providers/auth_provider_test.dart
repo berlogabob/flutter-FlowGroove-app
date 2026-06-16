@@ -604,7 +604,8 @@ void main() {
         }
       });
 
-      test('sendPasswordResetEmail fails with user-not-found', () async {
+      test('sendPasswordResetEmail swallows user-not-found '
+          '(anti-enumeration)', () async {
         final firebaseAuthException = FirebaseAuthException(
           code: 'user-not-found',
           message: 'User not found',
@@ -616,12 +617,12 @@ void main() {
 
         final notifier = container.read(appUserProvider.notifier);
 
-        try {
-          await notifier.sendPasswordResetEmail('nonexistent@example.com');
-        } catch (e) {
-          expect(e, isA<ApiError>());
-          expect((e as ApiError).isAuth, isTrue);
-        }
+        // Must NOT throw: a non-existent email is treated as success so the UI
+        // shows the same neutral message and does not leak account existence.
+        await expectLater(
+          notifier.sendPasswordResetEmail('nonexistent@example.com'),
+          completes,
+        );
       });
 
       test('sendPasswordResetEmail fails with too-many-requests', () async {

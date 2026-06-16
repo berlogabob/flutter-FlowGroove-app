@@ -1,7 +1,7 @@
 # FlowGroove Architecture
 
-**Last Updated:** April 24, 2026  
-**Version:** 0.13.4+183
+**Last Updated:** June 16, 2026  
+**Version:** 0.14.0+203
 
 ## Overview
 

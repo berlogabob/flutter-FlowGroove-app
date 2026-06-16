@@ -7,6 +7,7 @@ import '../../models/song_suggestion.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
+import '../../utils/song_tags.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/primary_action_bar.dart';
@@ -45,15 +46,19 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   late TextEditingController _ourBpmController;
   late TextEditingController _notesController;
 
-  final List<String> _availableTags = [
-    'ready',
-    'learning',
-    'hard',
-    'slow',
-    'fast',
-  ];
-
   bool get _isEditing => widget.song != null;
+
+  /// Suggested tags: the predefined catalogue plus any tags already used across
+  /// the user's library, so suggestions grow with their own vocabulary.
+  List<String> get _availableTags {
+    final libraryTags = ref
+        .watch(songsProvider)
+        .maybeWhen(
+          data: (songs) => songs.expand((s) => s.tags),
+          orElse: () => const <String>[],
+        );
+    return SongTags.normalizeAll([...SongTags.predefined, ...libraryTags]);
+  }
 
   @override
   void initState() {

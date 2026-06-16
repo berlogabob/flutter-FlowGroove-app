@@ -116,6 +116,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  /// Sign in with Google.
+  Future<void> _loginWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+      _currentError = null;
+    });
+
+    try {
+      await ref.read(appUserProvider.notifier).signInWithGoogle();
+
+      final analytics = ref.read(analyticsClientProvider);
+      await analytics.logLogin(loginMethod: 'google');
+      await analytics.logLoginSuccess(loginMethod: 'google');
+
+      // Honour a pending join code captured before login, same as email login.
+      final pendingJoinCode = await ref
+          .read(pendingJoinCodeStoreProvider)
+          .getAndClearPendingJoinCode();
+      if (!mounted) return;
+
+      if (pendingJoinCode != null) {
+        context.goNamed(
+          'join-band',
+          queryParameters: {'code': pendingJoinCode},
+        );
+      } else {
+        context.go('/main/home');
+      }
+    } on ApiError catch (e) {
+      // Treat user-cancelled sign-in as a no-op, not an error banner.
+      if (e.message == 'Google sign-in was cancelled.') return;
+      _handleError(e);
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleError(error);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   /// Quick-login for demo account (read-only).
   Future<void> _loginDemo() async {
     // Demo credentials — update these when test accounts are created
@@ -244,6 +288,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       )
                     : const Text('Sign In'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _isLoading ? null : _loginWithGoogle,
+                icon: const Icon(Icons.login),
+                label: const Text('Continue with Google'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
               ),
               const SizedBox(height: 16),
               Row(

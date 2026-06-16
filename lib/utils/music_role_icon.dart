@@ -163,7 +163,20 @@ class MusicRoleIcon {
 
   /// Normalize role key for comparison.
   static String _normalize(String role) {
-    return role.toLowerCase().replaceAll(RegExp(r'[\s-]+'), '_');
+    return role.trim().toLowerCase().replaceAll(RegExp(r'[\s-]+'), '_');
+  }
+
+  /// Public, save-time key normaliser: trims, lowercases and snake_cases a
+  /// role, then de-duplicates the list (so a typed "Sound Engineer" matches the
+  /// predefined `sound_engineer`). Preserves first-seen order.
+  static List<String> normalizeKeys(Iterable<String> roles) {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final role in roles) {
+      final key = _normalize(role);
+      if (key.isNotEmpty && seen.add(key)) result.add(key);
+    }
+    return result;
   }
 
   /// Convert snake_case to Title Case.

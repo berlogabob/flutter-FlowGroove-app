@@ -108,49 +108,35 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Check if already a member
-      if (_band!.members.any((m) => m.uid == user.uid)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You are already a member')),
-        );
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      // Add user to band members
-      final updatedBand = _band!.copyWith(
-        members: [
-          ..._band!.members,
-          BandMember(
-            uid: user.uid,
-            role: BandMember.roleEditor,
-            displayName: user.displayName,
-            email: user.email,
-          ),
-        ],
+      // Join is performed server-side (callable Cloud Function): it is atomic,
+      // idempotent (re-joining is a no-op), and keeps the derived member UID
+      // arrays in sync, so it never trips the band's permission rules.
+      final bandService = ref.read(bandFunctionServiceProvider);
+      final result = await bandService.joinBand(
+        code: _codeController.text.trim().toUpperCase(),
+        bandId: _band!.id,
       );
-
-      final service = ref.read(firestoreProvider);
-
-      // Save to global collection
-      await service.saveBandToGlobal(updatedBand);
-
-      // Add to user's bands collection (for quick access)
-      await service.addUserToBand(_band!.id, userId: user.uid);
 
       // Log analytics event
       await AnalyticsService.logBandJoined(
-        bandId: _band!.id,
-        bandName: _band!.name,
+        bandId: result.bandId,
+        bandName: result.bandName.isNotEmpty ? result.bandName : _band!.name,
         inviteCode: _codeController.text.trim().toUpperCase(),
       );
 
       if (mounted) {
         // Invalidate bands provider to ensure UI refresh
         ref.invalidate(bandsProvider);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Joined "${_band!.name}"!')));
+        final name = result.bandName.isNotEmpty ? result.bandName : _band!.name;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.alreadyMember
+                  ? 'You are already a member of "$name"'
+                  : 'Joined "$name"!',
+            ),
+          ),
+        );
         context.goNamed('bands');
       }
     } catch (e) {
