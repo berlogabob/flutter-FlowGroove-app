@@ -1,14 +1,18 @@
+import 'dart:io';
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../models/band.dart';
 import '../../models/user.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
+import '../../services/storage_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
 import '../../widgets/dashboard_grid.dart';
@@ -38,6 +42,7 @@ class TheBandScreen extends ConsumerStatefulWidget {
 }
 
 class _TheBandScreenState extends ConsumerState<TheBandScreen> {
+  late Band _band;
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   bool _isSaving = false;
@@ -45,6 +50,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   @override
   void initState() {
     super.initState();
+    _band = widget.band;
     _nameController = TextEditingController(text: widget.band.name);
     _descriptionController = TextEditingController(
       text: widget.band.description ?? '',
@@ -56,6 +62,18 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  /// Whether the current user is a band admin (avatar edits are admin-only).
+  bool get _isBandAdmin {
+    if (ref.read(isDemoUserProvider)) return false;
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return false;
+    final member = widget.band.members.firstWhere(
+      (m) => m.uid == user.uid,
+      orElse: () => BandMember(uid: '', role: ''),
+    );
+    return member.role == BandMember.roleAdmin;
   }
 
   /// Check if user can edit the band (admin or editor only)
@@ -211,6 +229,43 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
           ],
         ),
       ),
+
+      const PopupMenuDivider(),
+
+      // Change Band Avatar (admin only)
+      PopupMenuItem<void>(
+        enabled: _isBandAdmin,
+        onTap: _isBandAdmin
+            ? () => _runAfterMenuCloses(_handleChangeBandAvatar)
+            : null,
+        child: Row(
+          children: [
+            const Icon(Icons.image, size: 20),
+            const SizedBox(width: 12),
+            Text(
+              'Change Band Avatar',
+              style: TextStyle(
+                color: _isBandAdmin
+                    ? MonoPulseColors.textPrimary
+                    : MonoPulseColors.textTertiary,
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // Remove Band Avatar (admin only, shown only when avatar exists)
+      if (_band.photoURL != null && _isBandAdmin)
+        PopupMenuItem<void>(
+          onTap: () => _runAfterMenuCloses(_handleRemoveBandAvatar),
+          child: const Row(
+            children: [
+              Icon(Icons.delete_outline, size: 20),
+              SizedBox(width: 12),
+              Text('Remove Band Avatar'),
+            ],
+          ),
+        ),
     ];
   }
 
@@ -317,6 +372,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     return GreetingCard(
       userName: widget.band.name,
       subtitle: description ?? 'Ready to rock?',
+      avatarPath: _band.photoURL,
     );
   }
 
@@ -531,5 +587,39 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
     );
+  }
+
+  Future<void> _handleChangeBandAvatar() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+    try {
+      final url =
+          await StorageService().uploadBandAvatar(File(picked.path), _band.id);
+      if (!mounted) return;
+      setState(() => _band = _band.copyWith(photoURL: url));
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Avatar upload failed: $e')),
+      );
+    }
+  }
+
+  Future<void> _handleRemoveBandAvatar() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await StorageService().deleteBandAvatar(_band.id);
+      if (!mounted) return;
+      setState(() => _band = _band.copyWith(photoURL: null));
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Avatar removal failed: $e')),
+      );
+    }
   }
 }
