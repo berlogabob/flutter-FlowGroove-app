@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../models/metronome_tempo_range.dart';
 import '../../providers/data/metronome_provider.dart';
+import 'bpm_input_overlay.dart';
 import 'tempo_dial_scale.dart';
 
 /// Central tempo circle with bounded rotary BPM control.
@@ -60,7 +61,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
                     details.localPosition,
                     dialSize,
                   )) {
-                    _showBpmInput(context, notifier);
+                    showTempoInputSheet(context);
                     return;
                   }
                   _updateTempoFromPosition(details.localPosition, dialSize);
@@ -121,48 +122,6 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
     }
   }
 
-  void _showBpmInput(BuildContext context, MetronomeNotifier notifier) {
-    final controller = TextEditingController(
-      text: ref.read(metronomeProvider).bpm.toString(),
-    );
-
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Set BPM'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: const InputDecoration(
-            helperText:
-                '${MetronomeTempoRange.minimum}-${MetronomeTempoRange.maximum} BPM',
-          ),
-          onSubmitted: (value) {
-            final bpm = int.tryParse(value);
-            if (bpm != null) notifier.setBpm(MetronomeTempoRange.clamp(bpm));
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final bpm = int.tryParse(controller.text);
-              if (bpm != null) {
-                notifier.setBpm(MetronomeTempoRange.clamp(bpm));
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Set'),
-          ),
-        ],
-      ),
-    ).whenComplete(controller.dispose);
-  }
 }
 
 /// Custom painter for the fixed tempo scale and moving BPM indicator.
