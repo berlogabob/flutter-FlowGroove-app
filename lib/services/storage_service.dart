@@ -11,9 +11,17 @@ import '../models/api_error.dart';
 /// Provides methods for uploading, downloading, and deleting files
 /// in Firebase Storage, with a focus on profile pictures.
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  StorageService({
+    FirebaseStorage? storage,
+    FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+  })  : _storage = storage ?? FirebaseStorage.instance,
+        _auth = auth ?? FirebaseAuth.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseStorage _storage;
+  final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
 
   /// Helper method to check if user is authenticated.
   void _requireAuth() {
