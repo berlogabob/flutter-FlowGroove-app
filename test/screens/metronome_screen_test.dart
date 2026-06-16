@@ -3,7 +3,7 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/widgets/metronome/central_tempo_circle.dart';
-import 'package:flowgroove/widgets/metronome/fine_adjustment_buttons.dart';
+import 'package:flowgroove/widgets/metronome/tempo_control_cluster.dart';
 import 'package:flowgroove/widgets/metronome/song_library_block.dart';
 import 'package:flowgroove/widgets/metronome/time_signature_block.dart';
 import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
@@ -153,7 +153,7 @@ void main() {
       expect(find.byType(TimeSignatureBlock), findsOneWidget);
     });
 
-    testWidgets('renders FineAdjustmentButtons', (tester) async {
+    testWidgets('renders TempoControlCluster', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -169,7 +169,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(FineAdjustmentButtons), findsOneWidget);
+      expect(find.byType(TempoControlCluster), findsOneWidget);
     });
 
     testWidgets('renders ToolTransportBar', (tester) async {
@@ -354,7 +354,7 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
       expect(find.byType(TimeSignatureBlock), findsOneWidget);
       expect(find.byType(CentralTempoCircle), findsOneWidget);
-      expect(find.byType(FineAdjustmentButtons), findsOneWidget);
+      expect(find.byType(TempoControlCluster), findsOneWidget);
       expect(find.byType(ToolTransportBar), findsOneWidget);
       expect(find.byType(SongLibraryBlock), findsOneWidget);
       expect(find.text('Haptics'), findsNothing);

@@ -68,29 +68,42 @@ void main() {
       });
     }
 
-    testWidgets('main beat row scrolls above 6 dots', (tester) async {
-      await pumpBlock(tester, width: 320);
-      await tapNTimes(tester, const Key('main-beats-increment'), 3);
+    testWidgets('main beat row keeps all 12 dots visible at 400 px', (
+      tester,
+    ) async {
+      await pumpBlock(tester, width: 400);
+      await tapNTimes(tester, const Key('main-beats-increment'), 8); // 4 -> 12
 
-      expectMainDots(7);
-      expect(find.byKey(const Key('main-beat-strip-scroll')), findsOneWidget);
+      expectMainDots(12);
+      expect(find.byKey(const Key('main-beat-strip-scroll')), findsNothing);
     });
 
-    testWidgets('subdivision row fits 6 dots before scrolling', (tester) async {
+    testWidgets('no main dot is ever dropped, even at 320 px', (tester) async {
       await pumpBlock(tester, width: 320);
-      await tapNTimes(tester, const Key('subdivisions-increment'), 5);
+      await tapNTimes(tester, const Key('main-beats-increment'), 8); // 4 -> 12
+
+      // The design never hides a beat: all 12 stay in the tree (fitting, or
+      // scrollable as the narrow-screen safety net).
+      expectMainDots(12);
+    });
+
+    testWidgets('subdivision row fits 6 dots without scrolling', (tester) async {
+      await pumpBlock(tester, width: 320);
+      await tapNTimes(tester, const Key('subdivisions-increment'), 5); // 1 -> 6
 
       expectSubdivisionDots(6);
       expect(find.byKey(const Key('subdivision_dot_6')), findsNothing);
       expect(find.byKey(const Key('subdivision-strip-scroll')), findsNothing);
     });
 
-    testWidgets('subdivision row scrolls above 6 dots', (tester) async {
-      await pumpBlock(tester, width: 320);
-      await tapNTimes(tester, const Key('subdivisions-increment'), 6);
+    testWidgets('subdivision row keeps all 12 dots visible at 400 px', (
+      tester,
+    ) async {
+      await pumpBlock(tester, width: 400);
+      await tapNTimes(tester, const Key('subdivisions-increment'), 11); // 1->12
 
-      expectSubdivisionDots(7);
-      expect(find.byKey(const Key('subdivision-strip-scroll')), findsOneWidget);
+      expectSubdivisionDots(12);
+      expect(find.byKey(const Key('subdivision-strip-scroll')), findsNothing);
     });
   });
 }
