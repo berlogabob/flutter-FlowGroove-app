@@ -21,6 +21,7 @@ class _MockCollection extends Mock
 class _MockDoc extends Mock implements DocumentReference<Map<String, dynamic>> {}
 class _FakeFile extends Fake implements File {}
 class _FakeSetOptions extends Fake implements SetOptions {}
+class _FakeMetadata extends Fake implements SettableMetadata {}
 
 /// A thin fake UploadTask that wraps a real `Future<TaskSnapshot>` so that
 /// `await task` resolves properly without needing to mock Future internals.
@@ -74,6 +75,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(_FakeFile());
     registerFallbackValue(_FakeSetOptions());
+    registerFallbackValue(_FakeMetadata());
     registerFallbackValue(<String, dynamic>{});
   });
 
@@ -101,7 +103,7 @@ void main() {
     final midRef = _MockRef();
     when(() => storage.ref()).thenReturn(rootRef);
     when(() => rootRef.child('band_avatars')).thenReturn(midRef);
-    when(() => midRef.child('b1.jpg')).thenReturn(ref);
+    when(() => midRef.child('b1')).thenReturn(ref);
 
     when(() => firestore.collection('bands')).thenReturn(bands);
     when(() => bands.doc('b1')).thenReturn(bandDoc);
@@ -115,7 +117,7 @@ void main() {
       final snap = _MockSnapshot();
       // Wrap snap in a _FakeUploadTask so `await ref.putFile(file)` resolves
       // to `snap` without needing to mock Future internals on UploadTask.
-      when(() => ref.putFile(any()))
+      when(() => ref.putFile(any(), any()))
           .thenAnswer((_) => _FakeUploadTask(Future.value(snap)));
       when(() => snap.ref).thenReturn(ref);
       when(() => ref.getDownloadURL())
@@ -133,7 +135,7 @@ void main() {
     });
 
     test('surfaces permission-denied as a permission ApiError', () async {
-      when(() => ref.putFile(any())).thenThrow(
+      when(() => ref.putFile(any(), any())).thenThrow(
           FirebaseException(plugin: 'storage', code: 'permission-denied'));
 
       await expectLater(

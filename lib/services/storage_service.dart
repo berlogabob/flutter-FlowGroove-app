@@ -176,9 +176,13 @@ class StorageService {
   Future<String> uploadBandAvatar(File file, String bandId) async {
     try {
       _requireAuth();
-      final ref =
-          _storage.ref().child('band_avatars').child('$bandId.jpg');
-      final snapshot = await ref.putFile(file);
+      // Stored without a file extension so the Storage rule's {bandId}
+      // wildcard binds to the real band document id for the admin lookup.
+      final ref = _storage.ref().child('band_avatars').child(bandId);
+      final snapshot = await ref.putFile(
+        file,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
       final downloadUrl = await snapshot.ref.getDownloadURL();
       await _firestore.collection('bands').doc(bandId).set({
         'photoURL': downloadUrl,
@@ -206,8 +210,7 @@ class StorageService {
   Future<void> deleteBandAvatar(String bandId) async {
     try {
       _requireAuth();
-      final ref =
-          _storage.ref().child('band_avatars').child('$bandId.jpg');
+      final ref = _storage.ref().child('band_avatars').child(bandId);
       try {
         await ref.delete();
       } on FirebaseException catch (e) {
