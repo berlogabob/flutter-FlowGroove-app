@@ -3,11 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../models/metronome_preset.dart';
 import '../../models/metronome_tempo_range.dart';
 import '../../models/tempo_ramp.dart';
 import '../../providers/data/metronome_provider.dart';
-import '../../providers/metronome_preset_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 /// Shared bottom-sheet launcher for the metronome tool panels.
@@ -371,135 +369,6 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
           icon: const Icon(Icons.trending_up),
           label: const Text('Start ramp'),
           onPressed: _start,
-        ),
-      ],
-    );
-  }
-}
-
-// ===========================================================================
-// PRESETS SHEET
-// ===========================================================================
-
-Future<void> showPresetsSheet(BuildContext context) =>
-    _showSheet(context, const _PresetsSheet());
-
-class _PresetsSheet extends ConsumerWidget {
-  const _PresetsSheet();
-
-  Future<void> _saveCurrent(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Save preset'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Preset name'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(dialogContext, controller.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (name == null || name.isEmpty) return;
-
-    final state = ref.read(metronomeProvider);
-    final preset = MetronomePreset(
-      id: const Uuid().v4(),
-      name: name,
-      bpm: state.bpm,
-      timeSignature: state.timeSignature,
-      waveType: state.waveType,
-      accentEnabled: state.accentEnabled,
-      subdivisions: state.regularBeats,
-      beatModes: state.beatModes,
-      volume: state.volume,
-      countInBars: state.countInBars,
-      visualFlashEnabled: state.visualFlashEnabled,
-      hapticsEnabled: state.hapticsEnabled,
-      createdAt: DateTime.now(),
-    );
-    await ref.read(metronomePresetProvider.notifier).save(preset);
-    ref.read(metronomeProvider.notifier).applyPreset(preset);
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final presets = ref.watch(metronomePresetProvider);
-    return _SheetScaffold(
-      title: 'Presets',
-      children: [
-        FilledButton.icon(
-          style: FilledButton.styleFrom(
-            backgroundColor: MonoPulseColors.accentOrange,
-            foregroundColor: MonoPulseColors.black,
-          ),
-          icon: const Icon(Icons.add),
-          label: const Text('Save current settings'),
-          onPressed: () => _saveCurrent(context, ref),
-        ),
-        const SizedBox(height: MonoPulseSpacing.md),
-        presets.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.all(MonoPulseSpacing.xl),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (_, _) => const _SheetLabel('Could not load presets.'),
-          data: (list) {
-            if (list.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.all(MonoPulseSpacing.lg),
-                child: Text(
-                  'No saved presets yet.',
-                  style: TextStyle(color: MonoPulseColors.textTertiary),
-                ),
-              );
-            }
-            return Column(
-              children: list.map((preset) {
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    preset.name,
-                    style: const TextStyle(
-                      color: MonoPulseColors.textHighEmphasis,
-                    ),
-                  ),
-                  subtitle: Text(
-                    preset.displayName,
-                    style: const TextStyle(
-                      color: MonoPulseColors.textTertiary,
-                    ),
-                  ),
-                  onTap: () {
-                    ref.read(metronomeProvider.notifier).applyPreset(preset);
-                    Navigator.of(context).maybePop();
-                  },
-                  trailing: IconButton(
-                    tooltip: 'Delete',
-                    icon: const Icon(
-                      Icons.delete_outline,
-                      color: MonoPulseColors.textTertiary,
-                    ),
-                    onPressed: () => ref
-                        .read(metronomePresetProvider.notifier)
-                        .delete(preset.id),
-                  ),
-                );
-              }).toList(),
-            );
-          },
         ),
       ],
     );
