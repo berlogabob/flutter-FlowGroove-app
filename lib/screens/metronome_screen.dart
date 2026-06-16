@@ -359,23 +359,21 @@ class _MetronomePerformanceSurface extends StatelessWidget {
         child: const SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
             MonoPulseSpacing.lg,
-            MonoPulseSpacing.md,
+            MonoPulseSpacing.sm,
             MonoPulseSpacing.lg,
-            MonoPulseSpacing.xl,
+            MonoPulseSpacing.md,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _MetronomeContextStatus(),
-              SizedBox(height: MonoPulseSpacing.md),
               TimeSignatureBlock(),
-              SizedBox(height: MonoPulseSpacing.lg),
+              SizedBox(height: MonoPulseSpacing.sm),
               TempoControlCluster(),
-              SizedBox(height: MonoPulseSpacing.lg),
+              SizedBox(height: MonoPulseSpacing.sm),
               _MetronomeTransport(),
-              SizedBox(height: MonoPulseSpacing.lg),
-              _MetronomeToolBar(),
               SizedBox(height: MonoPulseSpacing.md),
+              _MetronomeToolBar(),
+              SizedBox(height: MonoPulseSpacing.sm),
               SongLibraryBlock(),
             ],
           ),
@@ -419,11 +417,6 @@ class _MetronomeToolBar extends ConsumerWidget {
           label: rampActive ? 'Ramp · on' : 'Ramp',
           active: rampActive,
           onTap: () => showRampSheet(context),
-        ),
-        _ToolChip(
-          icon: Icons.bookmark_outline,
-          label: 'Presets',
-          onTap: () => showPresetsSheet(context),
         ),
       ],
     );
@@ -484,50 +477,6 @@ class _ToolChip extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _MetronomeContextStatus extends ConsumerWidget {
-  const _MetronomeContextStatus();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(metronomeProvider);
-    final source = state.bpmSource.name
-        .replaceAllMapped(RegExp('([A-Z])'), (match) => ' ${match.group(1)}')
-        .toUpperCase();
-    final title =
-        state.activeSong?.title ?? state.activePresetName ?? 'Practice Mode';
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Flexible(
-          child: Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: MonoPulseTypography.labelLarge.copyWith(
-              color: MonoPulseColors.textSecondary,
-            ),
-          ),
-        ),
-        const SizedBox(width: MonoPulseSpacing.sm),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: MonoPulseColors.accentOrange.withValues(alpha: 0.16),
-            borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-          ),
-          child: Text(
-            source,
-            style: MonoPulseTypography.labelSmall.copyWith(
-              color: MonoPulseColors.accentOrange,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
