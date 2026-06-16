@@ -12,6 +12,22 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    // Helper function to get user doc and check access role
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.accessRole;
+    }
+
+    // Helper function to check if user is NOT a demo account
+    function isNotDemo(userId) {
+      return getUserRole(userId) != 'demo';
+    }
+
+    // Helper function to check if user is admin or owner
+    function isAdminOrOwner(userId) {
+      let role = getUserRole(userId);
+      return role == 'admin' || role == 'owner';
+    }
+
     // Helper function to get band data from global collection
     function getGlobalBand(bandId) {
       return get(/databases/$(database)/documents/bands/$(bandId)).data;
@@ -40,9 +56,9 @@ service cloud.firestore {
     // NOTE: Handles missing/null fields by checking existence first
     function isGlobalBandEditorOrAdmin(bandId) {
       let band = getGlobalBand(bandId);
-      let isAdmin = band != null && band.adminUids != null && 
+      let isAdmin = band != null && band.adminUids != null &&
                     band.adminUids.hasAny([request.auth.uid]);
-      let isEditor = band != null && band.editorUids != null && 
+      let isEditor = band != null && band.editorUids != null &&
                      band.editorUids.hasAny([request.auth.uid]);
       return isAdmin || isEditor;
     }
@@ -52,20 +68,82 @@ service cloud.firestore {
       return memberUids.hasAny([request.auth.uid]);
     }
 
-    // Helper function to check if user is adding themselves to members
-    // Used for join band flow - user can add themselves but not modify others
-    function isSelfJoinOnly(bandId) {
-      let existingBand = getGlobalBand(bandId);
-      let newMemberUids = request.resource.data.memberUids;
-      // User can only join if:
-      // 1. Band exists
-      // 2. User is not already a member
-      // 3. New members = existing members + current user
-      return existingBand != null &&
-        !existingBand.memberUids.hasAny([request.auth.uid]) &&
-        newMemberUids.hasAll(existingBand.memberUids) &&
-        newMemberUids.hasAll([request.auth.uid]) &&
-        newMemberUids.size() == existingBand.memberUids.size() + 1;
+    function hasCanonicalLink() {
+      return request.resource.data.get('canonicalSongId', '') is string &&
+        request.resource.data.get('canonicalSongId', '').size() > 0;
+    }
+
+    function isValidLibrarySongWrite(ownerType, ownerId) {
+      return !hasCanonicalLink() || (
+        request.resource.data.schemaVersion == 2 &&
+        request.resource.data.canonicalSongId is string &&
+        request.resource.data.ownerType == ownerType &&
+        request.resource.data.ownerId == ownerId &&
+        request.resource.data.baseRevision is int &&
+        request.resource.data.delta is map &&
+        request.resource.data.materialized is map &&
+        request.resource.data.latestCommitId is string
+      );
+    }
+
+    function isValidLinkedSongCommit(authorId) {
+      return request.resource.data.canonicalSongId is string &&
+        request.resource.data.canonicalSongId.size() > 0 &&
+        request.resource.data.baseRevision is int &&
+        request.resource.data.delta is map &&
+        request.resource.data.authorId == authorId &&
+        request.resource.data.clientMutationId is string &&
+        (
+          request.resource.data.operation == 'create' ||
+          request.resource.data.operation == 'update' ||
+          request.resource.data.operation == 'delete' ||
+          request.resource.data.operation == 'revert'
+        );
+    }
+
+    function isValidBandSetlistWrite(bandId, setlistId) {
+      return request.resource.data.id == setlistId &&
+        request.resource.data.bandId == bandId;
+    }
+
+    function isValidUserProfileCreate(userId) {
+      return request.resource.data.uid == userId &&
+        request.resource.data.accessRole == 'member';
+    }
+
+    function canReadTunerPreset(data) {
+      return isAuthenticated() && (
+        (data.scope == 'account' && data.ownerId == request.auth.uid) ||
+        (data.scope == 'band' && isGlobalBandMember(data.bandId)) ||
+        (data.scope == 'song' && (
+          data.ownerId == request.auth.uid ||
+          (data.bandId != null && isGlobalBandMember(data.bandId))
+        ))
+      );
+    }
+
+    function canManageTunerPreset(data) {
+      return isAuthenticated() && isNotDemo(request.auth.uid) &&
+        data.scope != 'local' && (
+          (data.scope == 'account' && data.ownerId == request.auth.uid) ||
+          (data.scope == 'band' && isGlobalBandEditorOrAdmin(data.bandId)) ||
+          (data.scope == 'song' && (
+            (data.bandId == null && data.ownerId == request.auth.uid) ||
+            (data.bandId != null && isGlobalBandEditorOrAdmin(data.bandId))
+          ))
+        );
+    }
+
+    match /tunerPresets/{presetId} {
+      allow read: if canReadTunerPreset(resource.data);
+      allow create: if request.resource.data.id == presetId &&
+        request.resource.data.ownerId == request.auth.uid &&
+        canManageTunerPreset(request.resource.data);
+      allow update: if request.resource.data.id == presetId &&
+        request.resource.data.ownerId == resource.data.ownerId &&
+        canManageTunerPreset(resource.data) &&
+        canManageTunerPreset(request.resource.data);
+      allow delete: if canManageTunerPreset(resource.data);
     }
 
     // ============================================================
@@ -76,19 +154,19 @@ service cloud.firestore {
       // Any authenticated user can read bands (needed for join by code)
       allow read: if isAuthenticated();
 
-      // Create: Any authenticated user can create a band (must be in members list)
+      // Create: Only non-demo authenticated users can create a band
       allow create: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
         isCreatorInMembers(request.resource.data.memberUids);
 
-      // Update: Only band admins can update band details
-      // OR user can add themselves to members (join band flow)
-      allow update: if isAuthenticated() && (
-        isGlobalBandAdmin(bandId) || 
-        isSelfJoinOnly(bandId)
-      );
+      // Update: Only band admins can update band details (non-demo).
+      // Joining a band is handled server-side by the `joinBand` Cloud Function
+      // (admin SDK), so direct client self-join writes are no longer trusted.
+      allow update: if isAuthenticated() && isNotDemo(request.auth.uid) &&
+        isGlobalBandAdmin(bandId);
 
-      // Delete: Only band admins can delete a band
-      allow delete: if isAuthenticated() && isGlobalBandAdmin(bandId);
+      // Delete: Only band admins can delete a band (non-demo)
+      allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);
     }
 
     // ============================================================
@@ -99,47 +177,136 @@ service cloud.firestore {
       // Band members can read
       allow read: if isAuthenticated() && isGlobalBandMember(bandId);
 
-      // Band editors/admins can create
-      allow create: if isAuthenticated() && isGlobalBandEditorOrAdmin(bandId);
+      // Band editors/admins can create (non-demo only)
+      allow create: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandEditorOrAdmin(bandId) &&
+        isValidLibrarySongWrite('band', bandId);
 
-      // Band editors/admins can update
-      allow update: if isAuthenticated() && isGlobalBandEditorOrAdmin(bandId);
+      // Band editors/admins can update (non-demo only)
+      allow update: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandEditorOrAdmin(bandId) &&
+        isValidLibrarySongWrite('band', bandId);
 
-      // Band admins can delete
-      allow delete: if isAuthenticated() && isGlobalBandAdmin(bandId);
+      // Band admins can delete (non-demo only)
+      allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);
+
+      // v2 linked song commit history is append-only from clients.
+      match /commits/{commitId} {
+        allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+        allow create: if isAuthenticated() &&
+          isNotDemo(request.auth.uid) &&
+          isGlobalBandEditorOrAdmin(bandId) &&
+          isValidLinkedSongCommit(request.auth.uid);
+        allow update, delete: if false;
+      }
+    }
+
+    // ============================================================
+    // Band Setlists Subcollection
+    // ============================================================
+    // Setlists stored under bands for collaborative band planning
+    match /bands/{bandId}/setlists/{setlistId} {
+      // Band members can read
+      allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+
+      // Band editors/admins can create and update (non-demo only)
+      allow create, update: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandEditorOrAdmin(bandId) &&
+        isValidBandSetlistWrite(bandId, setlistId);
+
+      // Band admins can delete (non-demo only)
+      allow delete: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandAdmin(bandId);
     }
 
     // ============================================================
     // Users Collection - each user has their own subcollections
     // ============================================================
     match /users/{userId} {
-      // Allow users to read/write their own user document
-      allow read, write: if isAuthenticated() && isOwner(userId);
+      // Users can read their own user document; admins can read any user
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
 
-      // Songs subcollection - only owner can read/write
+      // Users can create their own initial profile, but cannot grant elevated roles.
+      allow create: if isAuthenticated() &&
+        isOwner(userId) &&
+        isValidUserProfileCreate(userId);
+
+      // Users can update their own document (name, photo, musicRoles), but NOT accessRole
+      allow update: if isAuthenticated() && isOwner(userId) &&
+        // Prevent users from escalating their own accessRole
+        (request.resource.data.accessRole == resource.data.accessRole ||
+         request.resource.data.accessRole == 'member');
+
+      // Songs subcollection — owner can manage; demo users read-only
       match /songs/{songId} {
-        allow read, write: if isAuthenticated() && isOwner(userId);
+        allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
+        allow create, update: if isAuthenticated() &&
+          isOwner(userId) &&
+          isNotDemo(userId) &&
+          isValidLibrarySongWrite('user', userId);
+        allow delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+
+        // v2 linked song commit history is append-only from clients.
+        match /commits/{commitId} {
+          allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
+          allow create: if isAuthenticated() &&
+            isOwner(userId) &&
+            isNotDemo(userId) &&
+            isValidLinkedSongCommit(userId);
+          allow update, delete: if false;
+        }
       }
 
       // Bands subcollection - stores references to global bands
-      // Band members can read, owner can write
+      // Band members can read, owner can write (non-demo)
       match /bands/{bandId} {
         allow read: if isAuthenticated() && (isOwner(userId) || isGlobalBandMember(bandId));
-        allow write: if isAuthenticated() && isOwner(userId);
-        allow create: if isAuthenticated() && isOwner(userId);
-        allow delete: if isAuthenticated() && isOwner(userId);
+        allow write: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+        allow create: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+        allow delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
 
         // Band members subcollection (legacy, kept for compatibility)
         match /members/{memberId} {
           allow read: if isAuthenticated() && (isOwner(userId) || isGlobalBandMember(bandId));
-          allow write: if isAuthenticated() && isOwner(userId);
+          allow write: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
         }
       }
 
-      // Setlists subcollection - only owner can read/write
+      // Setlists subcollection — owner can manage (non-demo)
       match /setlists/{setlistId} {
-        allow read, write: if isAuthenticated() && isOwner(userId);
+        allow read: if isAuthenticated() && isOwner(userId);
+        allow write, delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
       }
+
+      match /duplicate_dismissals/{dismissalId} {
+        allow read: if isAuthenticated() && isOwner(userId);
+        allow create, update, delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+      }
+
+      match /song_merges/{mergeId} {
+        allow read: if isAuthenticated() && isOwner(userId);
+        allow create: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+        allow update, delete: if false;
+      }
+    }
+
+    // ============================================================
+    // Canonical Songs Collection (Global Song Database)
+    // ============================================================
+    // Stores canonical song metadata from MusicBrainz and manual entries
+    // This is shared read-only data for all users
+    match /canonical_songs/{songId} {
+      // Any authenticated user can read canonical songs
+      allow read: if isAuthenticated();
+
+      // Write operations restricted to admin/cloud functions only
+      // Regular users cannot modify canonical songs directly
+      // Use Cloud Functions with validation for imports/updates
+      allow create, update, delete: if false;
     }
   }
 }

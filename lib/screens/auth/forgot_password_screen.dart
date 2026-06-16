@@ -1,0 +1,262 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../models/api_error.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../theme/mono_pulse_theme.dart';
+
+/// Forgot Password Screen - Firebase password reset
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
+  
+  const ForgotPasswordScreen({super.key, this.initialEmail});
+  final String? initialEmail;
+
+  @override
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  bool _isLoading = false;
+  bool _emailSent = false;
+  String? _errorMessage;
+  String? _successMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill email if provided from login screen
+    if (widget.initialEmail != null && widget.initialEmail!.isNotEmpty) {
+      _emailController.text = widget.initialEmail!;
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _resetPassword() async {
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    try {
+      await ref
+          .read(appUserProvider.notifier)
+          .sendPasswordResetEmail(_emailController.text.trim());
+
+      if (mounted) {
+        setState(() {
+          _emailSent = true;
+          _successMessage =
+              "If an account exists for that email, we've sent password "
+              'reset instructions. Check your inbox and spam folder.';
+          _isLoading = false;
+        });
+      }
+    } on ApiError catch (error) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = error.message;
+          _isLoading = false;
+        });
+      }
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      if (mounted) {
+        setState(() {
+          _errorMessage = error.message;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Reset Password'),
+        backgroundColor: MonoPulseColors.surface,
+        foregroundColor: MonoPulseColors.textPrimary,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 32),
+              const Icon(
+                Icons.lock_reset,
+                size: 64,
+                color: MonoPulseColors.accentOrange,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Forgot Password?',
+                style: MonoPulseTypography.headlineSmall.copyWith(
+                  color: MonoPulseColors.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "Enter your email address and we'll send you instructions to reset your password.",
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              if (_emailSent && _successMessage != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: MonoPulseColors.successAlt.withValues(alpha: 0.1),
+                    border: Border.all(color: MonoPulseColors.successAlt),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle_outline,
+                        color: MonoPulseColors.successAlt,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _successMessage!,
+                          style: MonoPulseTypography.bodyMedium.copyWith(
+                            color: MonoPulseColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+              if (_errorMessage != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: MonoPulseColors.errorSubtle,
+                    border: Border.all(color: MonoPulseColors.error),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        color: MonoPulseColors.error,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: MonoPulseTypography.bodyMedium.copyWith(
+                            color: MonoPulseColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                enabled: !_isLoading && !_emailSent,
+                style: const TextStyle(color: MonoPulseColors.textPrimary),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: const TextStyle(
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.email_outlined,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                    borderSide: const BorderSide(
+                      color: MonoPulseColors.borderDefault,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                    borderSide: const BorderSide(
+                      color: MonoPulseColors.borderDefault,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                    borderSide: const BorderSide(
+                      color: MonoPulseColors.accentOrange,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: (!_isLoading && !_emailSent) ? _resetPassword : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MonoPulseColors.accentOrange,
+                  foregroundColor: MonoPulseColors.textPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                  ),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: MonoPulseColors.textPrimary,
+                        ),
+                      )
+                    : _emailSent
+                    ? const Text('Email Sent')
+                    : const Text('Send Reset Email'),
+              ),
+              const SizedBox(height: 16),
+              if (_emailSent)
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Back to Login'),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

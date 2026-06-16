@@ -1,0 +1,141 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - second01
+      - 'codex/**'
+
+jobs:
+  flutter-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Analyze (non-fatal infos/warnings)
+        run: flutter analyze lib test integration_test --no-fatal-infos --no-fatal-warnings
+
+      - name: Targeted regression tests
+        run: |
+          flutter test \
+            test/config/env_config_test.dart \
+            test/config/web_config_test.dart \
+            test/services/spotify_service_test.dart \
+            test/services/track_analysis_service_test.dart \
+            test/login_flow_null_check_test.dart \
+            test/screens/songs/song_form_data_test.dart \
+            test/screens/songs/metronome_pattern_editor_test.dart \
+            test/widgets/metronome/song_library_block_test.dart \
+            test/providers/auth_provider_test.dart
+
+      - name: Full Flutter test suite
+        run: flutter test --exclude-tags firebase-emulator
+
+      - name: Security audit
+        run: bash test/security/git_audit_test.sh
+
+      - name: Shell script syntax
+        run: |
+          bash -n scripts/build-mobile-with-env.sh \
+            scripts/generate-web-config.sh \
+            scripts/health-check-prod.sh \
+            scripts/inject-web-config.sh \
+            scripts/load-deploy-env.sh \
+            scripts/preflight-ftp-deploy.sh
+
+      - name: Production deploy dry run
+        run: make -n deploy-stable
+
+  firebase-emulator-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Reclaim disk space for Android emulator
+        run: |
+          echo "Disk usage before cleanup:"
+          df -h /
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY/CodeQL"
+          sudo docker image prune --all --force || true
+          sudo apt-get clean
+          echo "Disk usage after cleanup:"
+          df -h /
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Firebase emulator integration suite
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          script: FIREBASE_EMULATOR_TEST_DEVICE=emulator-5554 make test-firebase-emulator
+
+  functions-checks:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: functions
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install functions dependencies
+        run: npm ci
+
+      - name: Verify installed dependency graph
+        run: npm ls --depth=0
+
+      - name: Audit functions dependencies (high+)
+        run: npm audit --omit=dev --audit-level=high

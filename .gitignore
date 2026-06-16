@@ -4,12 +4,56 @@
 *.log
 *.pyc
 *.swp
+.DS_Store
 .buildlog/
 .history
 
 # Environment variables (contains secrets)
 .env
+.env.*
+.ftp-env
+assets/env.json
+assets/env.json.local
 web/config.js
+web/config.local.js
+
+# Flutter web app build artifacts (in docs/app/)
+docs/app/
+
+# Hugo build output (generated, not tracked)
+site/public/
+
+# Editor temp files (vim, emacs, etc.)
+.*!
+!*~
+\#*\#
+
+# Hugo static assets are tracked; build output is not
+docs/canvaskit/
+docs/flutter.js
+
+# Chat exports (automatically moved to docs/archive/)
+chat-export-*.json
+chat-exports-collection/
+console-export-*.log
+qwen-code-export-*.md
+*-export-*.json
+
+# IDE / local tool state
+.idea/
+*.iml
+.firebase/
+
+# Local archive stays out of git except the index note
+oldarchive/*
+!oldarchive/README.md
+
+# Local production/deploy snapshots
+backup/production-*/
+
+# Local migration dry-run reports
+migration-reports/
+functions/migration-reports/
 
 
 
@@ -44,7 +88,10 @@ analysis_benchmark.json
 .packages
 .pub-preload-cache/
 .pub/
-build/
+/build/
+# Local release artifacts from `make build-all` (FTP web build staged for upload)
+/dist/
+# Flutter screenshots in root (use screenshots/ directory instead)
 flutter_*.png
 linked_*.ds
 unlinked.ds
@@ -60,6 +107,8 @@ unlinked_spec.ds
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
 *.jks
+*.keystore
+**/android/app/release.keystore
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
@@ -120,4 +169,25 @@ app.*.symbols
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
-!/dev/ci/**/Gemfile.lock
+!/dev/ci/**/Gemfile.lock.docs-archive/
+/flutter_metronome_app/
+
+# End of gitignore
+
+# Root Flutter web build artifacts (should NOT be in repo root)
+main.dart.js
+flutter.js
+flutter_bootstrap.js
+flutter_service_worker.js
+manifest.json
+version.json
+script.html
+canvaskit/
+index.html
+flutter_web_debug.log
+
+# Local Claude Code agent state / worktrees
+.claude/
+
+# Vendored nested git repo (separate project, not part of this app's tree)
+Tack/

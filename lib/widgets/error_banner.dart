@@ -5,6 +5,15 @@ import 'package:flutter/material.dart';
 /// This widget provides a consistent error banner that can be used
 /// throughout the app to display error messages with an optional retry action.
 class ErrorBanner extends StatelessWidget {
+
+  const ErrorBanner({
+    required this.message,
+    this.title,
+    this.onRetry,
+    this.showRetry = false,
+    this.style = ErrorBannerStyle.banner,
+    super.key,
+  });
   /// The error message to display.
   final String message;
 
@@ -19,15 +28,6 @@ class ErrorBanner extends StatelessWidget {
 
   /// The style of the error banner.
   final ErrorBannerStyle style;
-
-  const ErrorBanner({
-    super.key,
-    required this.message,
-    this.title,
-    this.onRetry,
-    this.showRetry = false,
-    this.style = ErrorBannerStyle.banner,
-  });
 
   @override
   Widget build(BuildContext context) {

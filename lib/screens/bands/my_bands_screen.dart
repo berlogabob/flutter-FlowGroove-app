@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../models/api_error.dart';
-import '../../providers/data/data_providers.dart';
+import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
-import '../../models/band.dart';
+import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/band_card.dart';
-import '../../widgets/empty_state.dart';
-import '../../widgets/custom_text_field.dart';
 import '../../widgets/confirmation_dialog.dart';
-import '../../widgets/error_banner.dart';
-import '../../widgets/offline_indicator.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
+import '../../widgets/fab_variants.dart';
+import '../../widgets/loading_indicator.dart';
+import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/unified_item/adapters/band_item_adapter.dart';
+import '../../widgets/unified_item/unified_filter_sort_widget.dart';
+import '../../widgets/unified_item/unified_item_list.dart';
+import '../../widgets/unified_item/unified_item_model.dart';
 
-/// Screen for displaying the user's bands with search functionality and error handling.
+/// Screen for displaying the user's bands with search, filter, sort,
+/// swipe-to-delete, and drag-and-drop reordering.
 class MyBandsScreen extends ConsumerStatefulWidget {
   const MyBandsScreen({super.key});
 
@@ -25,18 +32,50 @@ class MyBandsScreen extends ConsumerStatefulWidget {
 
 class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   String _searchQuery = '';
+  SortOption _sortOption = SortOption.manual;
   ApiError? _currentError;
 
-  /// Filter bands based on the search query.
-  List<Band> _filterBands(List<Band> bands) {
-    if (_searchQuery.trim().isEmpty) {
-      return bands;
+  // Store manual order as list (same as songs_list_screen.dart)
+  List<Band>? _manualOrder;
+
+  /// Filter and sort bands based on search query and sort option.
+  List<BandItemAdapter> _filterAndSortBands(List<Band> bands) {
+    // Apply manual order if in manual sort mode
+    List<Band> bandsToUse = bands;
+    if (_sortOption == SortOption.manual && _manualOrder != null) {
+      bandsToUse = _manualOrder!;
     }
 
-    final query = _searchQuery.toLowerCase().trim();
-    return bands.where((band) {
-      return band.name.toLowerCase().contains(query);
-    }).toList();
+    // Convert bands to adapters
+    var adapters = bandsToUse.map(BandItemAdapter.new).toList();
+
+    // Apply search filter
+    if (_searchQuery.trim().isNotEmpty) {
+      final query = _searchQuery.toLowerCase().trim();
+      adapters = adapters.where((adapter) {
+        return adapter.title.toLowerCase().contains(query) ||
+            (adapter.subtitle?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    }
+
+    // Apply sorting (only for non-manual modes)
+    if (_sortOption != SortOption.manual) {
+      switch (_sortOption) {
+        case SortOption.alphabetical:
+          adapters.sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+          );
+        case SortOption.dateAdded:
+          adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        case SortOption.dateModified:
+          // Band model doesn't have updatedAt, fallback to createdAt
+          adapters.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        case SortOption.manual:
+          break; // Already handled above
+      }
+    }
+
+    return adapters;
   }
 
   /// Clears the current error.
@@ -52,40 +91,141 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     setState(() {
       _currentError = apiError;
     });
-    ref.read(errorNotifierProvider.notifier).handleError(apiError);
+    ref.read(errorStateProvider.notifier).handleError(apiError);
+  }
+
+  /// Handle band reordering (manual sort mode).
+  void _handleReorder(int oldIndex, int newIndex) {
+    // Update manual order when reordering (same as songs_list_screen.dart)
+    if (_manualOrder != null &&
+        oldIndex >= 0 &&
+        newIndex >= 0 &&
+        oldIndex < _manualOrder!.length &&
+        newIndex < _manualOrder!.length) {
+      // Create a copy to avoid modifying the original list directly
+      final newOrder = List<Band>.from(_manualOrder!);
+
+      // Move item from oldIndex to newIndex
+      final item = newOrder.removeAt(oldIndex);
+      newOrder.insert(newIndex, item);
+
+      setState(() {
+        _manualOrder = newOrder;
+      });
+    }
+  }
+
+  /// Handle band deletion with confirmation.
+  Future<bool> _handleDelete(int index) async {
+    final bands = ref.read(bandsProvider).value;
+    if (bands == null || index >= bands.length) return false;
+
+    final band = bands[index];
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Leave Band',
+      message: 'Are you sure you want to leave this band?',
+      confirmLabel: 'Leave',
+    );
+
+    if (confirmed) {
+      final userAsync = ref.read(currentUserProvider);
+      final user = userAsync.value;
+      if (user != null) {
+        try {
+          final bandRepo = ref.read(bandRepositoryProvider);
+
+          // Remove user from global band members
+          final updatedMembers = band.members
+              .where((m) => m.uid != user.uid)
+              .toList();
+          final updatedBand = band.copyWith(members: updatedMembers);
+          await bandRepo.saveBandToGlobal(updatedBand);
+
+          // Remove from user's bands collection
+          await bandRepo.removeUserFromBand(band.id, userId: user.uid);
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Successfully left the band')),
+            );
+          }
+          return true;
+        } on ApiError catch (e) {
+          _handleStreamError(e, StackTrace.current);
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.message)));
+          }
+          return false; // Don't dismiss on error
+        } catch (e, stackTrace) {
+          final error = ApiError.fromException(e, stackTrace: stackTrace);
+          _handleStreamError(error, stackTrace);
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(error.message)));
+          }
+          return false; // Don't dismiss on error
+        }
+      }
+    }
+    return confirmed;
+  }
+
+  /// Handle band edit - navigate to edit screen.
+  void _handleEdit(int index) {
+    final bands = ref.read(bandsProvider).value;
+    if (bands == null || index >= bands.length) return;
+
+    final band = bands[index];
+    context.pushNamed(
+      'edit-band',
+      pathParameters: {'id': band.id},
+      extra: band,
+    );
+  }
+
+  /// Handle band tap - navigate to the band screen.
+  void _handleTap(int index) {
+    final bands = ref.read(bandsProvider).value;
+    if (bands == null || index >= bands.length) return;
+
+    final band = bands[index];
+    context.goNamed('the-band', pathParameters: {'id': band.id}, extra: band);
   }
 
   @override
   Widget build(BuildContext context) {
     final bandsAsync = ref.watch(bandsProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Bands'),
-        actions: const [OfflineStatusIcon()],
+    return StandardScreenScaffold(
+      title: 'My Bands',
+      showBackButton: false, // Hide back button for main tabs
+      menuItems: [
+        PopupMenuItem<void>(
+          child: const Text('Create Band'),
+          onTap: () => context.goNamed('create-band'),
+        ),
+        PopupMenuItem<void>(
+          child: const Text('Join Band'),
+          onTap: () => context.goNamed('join-band'),
+        ),
+      ],
+      floatingActionButton: DualFab(
+        primary: FabAction(
+          icon: Icons.add,
+          label: 'Create',
+          onPressed: () => context.goNamed('create-band'),
+        ),
+        secondary: FabAction(
+          icon: Icons.group_add,
+          label: 'Join',
+          onPressed: () => context.goNamed('join-band'),
+        ),
       ),
-      body: Column(
-        children: [
-          const OfflineIndicator(),
-          Expanded(child: _buildBody(bandsAsync)),
-        ],
-      ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton.small(
-            heroTag: 'create',
-            onPressed: () => Navigator.pushNamed(context, '/bands/create'),
-            child: const Icon(Icons.add),
-          ),
-          const SizedBox(height: 8),
-          FloatingActionButton.small(
-            heroTag: 'join',
-            onPressed: () => Navigator.pushNamed(context, '/bands/join'),
-            child: const Icon(Icons.group_add),
-          ),
-        ],
-      ),
+      body: _buildBody(bandsAsync),
     );
   }
 
@@ -98,7 +238,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         }
         return _buildContent(context, ref, bands);
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingIndicator(),
       error: (e, stack) {
         _handleStreamError(e, stack);
         return _buildErrorState();
@@ -110,10 +250,9 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (_currentError != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
           child: ErrorBanner(
-            message: _currentError!.message,
-            title: _currentError!.title,
+            message: _currentError?.message ?? 'An unexpected error occurred',
             onRetry: () {
               _clearError();
               ref.invalidate(bandsProvider);
@@ -128,17 +267,23 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, List<Band> bands) {
-    final filteredBands = _filterBands(bands);
+    final filteredBands = _filterAndSortBands(bands);
+
+    // Initialize manual order when entering manual sort mode for the first time
+    if (_sortOption == SortOption.manual && _manualOrder == null) {
+      setState(() {
+        _manualOrder = List<Band>.from(bands);
+      });
+    }
 
     return Column(
       children: [
         // Inline error banner if there's an error but we have cached data
         if (_currentError != null && filteredBands.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             child: ErrorBanner(
-              message: _currentError!.message,
-              title: _currentError!.title,
+              message: _currentError?.message ?? 'An unexpected error occurred',
               onRetry: () {
                 _clearError();
                 ref.invalidate(bandsProvider);
@@ -148,23 +293,33 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
             ),
           ),
         ],
+        // Unified filter/sort widget
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: CustomTextField(
-            hint: 'Search bands...',
-            prefixIcon: Icons.search,
-            onChanged: (value) => setState(() => _searchQuery = value),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          child: UnifiedFilterSortWidget(
+            currentSort: _sortOption,
+            hintText: 'Search bands...',
+            onSortChanged: (option) {
+              if (option != null) {
+                setState(() => _sortOption = option);
+
+                // Reset manual order when switching away from manual sort
+                if (option != SortOption.manual && _manualOrder != null) {
+                  setState(() {
+                    _manualOrder = null;
+                  });
+                }
+              }
+            },
+            filterText: _searchQuery.isEmpty ? null : _searchQuery,
+            onFilterChanged: (value) =>
+                setState(() => _searchQuery = value ?? ''),
           ),
         ),
         Expanded(
           child: filteredBands.isEmpty
               ? _buildEmptyState(bands.isEmpty)
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: filteredBands.length,
-                  itemBuilder: (context, index) =>
-                      _buildBandCard(context, ref, filteredBands[index]),
-                ),
+              : _buildBandList(filteredBands),
         ),
       ],
     );
@@ -172,89 +327,45 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
-      return EmptyState.bands(
-        onCreate: () => Navigator.pushNamed(context, '/bands/create'),
-      );
+      return EmptyState.bands(onCreate: () => context.goNamed('create-band'));
     }
     return EmptyState.search(query: _searchQuery);
   }
 
-  Widget _buildBandCard(BuildContext context, WidgetRef ref, Band band) {
-    return BandCard(
-      id: band.id,
-      name: band.name,
-      memberCount: band.members.length,
-      description: band.description,
-      onTap: () => _showInviteDialog(context, ref, band),
-      onEdit: () => Navigator.pushNamed(
-        context,
-        '/bands/${band.id}/edit',
-        arguments: band,
-      ),
-      onDelete: () => _confirmDelete(context, ref, band),
+  Widget _buildBandList(List<BandItemAdapter> adapters) {
+    return UnifiedItemList<BandItemAdapter>(
+      items: adapters,
+      enableReorder: _sortOption == SortOption.manual,
+      onReorder: _sortOption == SortOption.manual ? _handleReorder : null,
+      onDelete: _handleDelete,
+      onEdit: _handleEdit,
+      onTap: _handleTap,
+      additionalActionsBuilder: (index) {
+        if (index >= adapters.length) return [];
+        final adapter = adapters[index];
+        return [
+          // View Band Songs button - using inline action
+          _ViewSongsAction(band: adapter.band, onNavigate: _handleViewSongs),
+        ];
+      },
     );
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref, Band band) async {
-    final confirmed = await ConfirmationDialog.showDeleteDialog(
-      context,
-      title: 'Leave Band',
-      message: 'Are you sure you want to leave this band?',
-      confirmLabel: 'Leave',
-    );
-
-    if (confirmed) {
-      final user = ref.read(currentUserProvider);
-      if (user != null) {
-        try {
-          final service = ref.read(firestoreProvider);
-
-          // Remove user from global band members
-          final updatedMembers = band.members
-              .where((m) => m.uid != user.uid)
-              .toList();
-          final updatedBand = band.copyWith(members: updatedMembers);
-          await service.saveBandToGlobal(updatedBand);
-
-          // Remove from user's bands collection
-          await service.removeUserFromBand(band.id, user.uid);
-        } on ApiError catch (e) {
-          _handleStreamError(e, StackTrace.current);
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(e.message)));
-          }
-        } catch (e, stackTrace) {
-          final error = ApiError.fromException(e, stackTrace: stackTrace);
-          _handleStreamError(error, stackTrace);
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(error.message)));
-          }
-        }
-      }
-    }
-  }
-
-  void _showInviteDialog(BuildContext context, WidgetRef ref, Band band) {
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
-
-    showDialog(
-      context: context,
-      builder: (context) =>
-          _InviteMemberDialog(band: band, currentUserId: user.uid),
+  /// Handle view band songs
+  void _handleViewSongs(Band band) {
+    context.pushNamed(
+      'band-songs',
+      pathParameters: {'id': band.id},
+      extra: band,
     );
   }
 }
 
 class _InviteMemberDialog extends ConsumerStatefulWidget {
-  final Band band;
-  final String currentUserId;
 
   const _InviteMemberDialog({required this.band, required this.currentUserId});
+  final Band band;
+  final String currentUserId;
 
   @override
   ConsumerState<_InviteMemberDialog> createState() =>
@@ -279,10 +390,10 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
     setState(() {
       _currentError = error;
     });
-    ref.read(errorNotifierProvider.notifier).handleError(error);
+    ref.read(errorStateProvider.notifier).handleError(error);
   }
 
-  void _generateNewCode() async {
+  Future<void> _generateNewCode() async {
     setState(() {
       _isRegenerating = true;
       _currentError = null;
@@ -293,13 +404,13 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
 
       final updatedBand = widget.band.copyWith(inviteCode: newCode);
 
+      final bandRepo = ref.read(bandRepositoryProvider);
+
       // Save to global collection
-      await ref.read(firestoreProvider).saveBandToGlobal(updatedBand);
+      await bandRepo.saveBandToGlobal(updatedBand);
 
       // Save to user's collection
-      await ref
-          .read(firestoreProvider)
-          .saveBand(updatedBand, widget.currentUserId);
+      await bandRepo.saveBand(updatedBand, uid: widget.currentUserId);
 
       setState(() {
         _inviteCode = newCode;
@@ -320,11 +431,13 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
   }
 
   Future<void> _shareInvite() async {
+    const String domain = 'flowgroove.app';
+
     final message =
-        '🎸 Join my band "${widget.band.name}" on RepSync!\n\n'
+        '🎸 Join my band "${widget.band.name}" on FlowGroove!\n\n'
         'Use code: $_inviteCode\n'
-        'Or click the link to join: repsync.app/join/$_inviteCode\n\n'
-        'Download RepSync: repsync.app';
+        'Or click the link to join: https://$domain/join-band?code=$_inviteCode\n\n'
+        'Download FlowGroove: https://$domain';
 
     final uri = Uri.parse('sms:?body=${Uri.encodeComponent(message)}');
 
@@ -358,7 +471,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
               title: const Text('Share via...'),
               onTap: () {
                 Navigator.pop(context);
-                shareText(message);
+                _shareText(message);
               },
             ),
             ListTile(
@@ -404,7 +517,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
     );
   }
 
-  Future<void> shareText(String text) async {
+  Future<void> _shareText(String text) async {
     try {
       await Clipboard.setData(ClipboardData(text: text));
       if (mounted) {
@@ -468,26 +581,25 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
           // Error banner
           if (_currentError != null) ...[
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(MonoPulseSpacing.md),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.shade200),
+                color: MonoPulseColors.errorSubtle,
+                borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                border: Border.all(color: MonoPulseColors.errorSubtle20),
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.error_outline,
-                    color: Colors.red.shade700,
+                    color: MonoPulseColors.error,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _currentError!.message,
-                      style: TextStyle(
-                        color: Colors.red.shade900,
-                        fontSize: 12,
+                      _currentError?.message ?? 'An unexpected error occurred',
+                      style: MonoPulseTypography.bodySmall.copyWith(
+                        color: MonoPulseColors.textPrimary,
                       ),
                     ),
                   ),
@@ -506,9 +618,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
             ),
             child: Text(
               _isRegenerating ? 'Generating...' : _inviteCode,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+              style: MonoPulseTypography.headlineLarge.copyWith(
                 letterSpacing: 2,
                 color: MonoPulseColors.textPrimary,
               ),
@@ -543,6 +653,23 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
           child: const Text('Close'),
         ),
       ],
+    );
+  }
+}
+
+/// Action class for View Songs button
+class _ViewSongsAction implements UnifiedItemAction {
+
+  _ViewSongsAction({required this.band, required this.onNavigate});
+  final Band band;
+  final void Function(Band) onNavigate;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.music_note, size: 20),
+      onPressed: () => onNavigate(band),
+      tooltip: 'View Songs',
     );
   }
 }

@@ -1,59 +1,30 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show debugPrint;
 
-/// Track Analysis API - Free alternative to Spotify for BPM and key
+/// Client-side RapidAPI track analysis is intentionally disabled.
 ///
-/// This API provides BPM, key, and mode for songs without requiring Premium.
-/// Get API key from: https://rapidapi.com/soundnet-soundnet-default/api/track-analysis
+/// Privileged third-party keys must not be used from the client. Until a
+/// backend proxy exists for this integration, the feature is kept as a
+/// no-op and the UI should guide users to Spotify-backed analysis instead.
 class TrackAnalysisService {
-  // TODO: Replace with your RapidAPI key from https://rapidapi.com/soundnet-soundnet-default/api/track-analysis
-  // For now, using a demo key - replace with your own for production
-  static const String _apiKey = 'demo';
-  static const String _baseUrl = 'https://track-analyses.p.rapidapi.com';
+  static bool get isConfigured => false;
 
-  /// Check if API is configured
-  static bool get isConfigured => _apiKey != 'YOUR_RAPIDAPI_KEY';
-
-  /// Search for track and get BPM/key
+  /// Search for track and get BPM/key.
+  ///
+  /// Returns `null` until this flow is reintroduced behind a backend proxy.
   static Future<TrackAnalysis?> analyzeTrack(
     String title,
     String artist,
   ) async {
-    if (!isConfigured) return null;
     if (title.trim().isEmpty) return null;
-
-    try {
-      final query = '$title $artist'.trim();
-
-      final response = await http.get(
-        Uri.parse('$_baseUrl/track-analysis?track=$query'),
-        headers: {
-          'X-RapidAPI-Key': _apiKey,
-          'X-RapidAPI-Host': 'track-analysis.p.rapidapi.com',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true && data['result'] != null) {
-          return TrackAnalysis.fromJson(data['result']);
-        }
-      }
-    } catch (e) {
-      // API error
-    }
+    debugPrint(
+      'TrackAnalysisService is disabled on the client. '
+      'Use backend analysis or Spotify proxy-backed flows instead.',
+    );
     return null;
   }
 }
 
 class TrackAnalysis {
-  final String? title;
-  final String? artist;
-  final String? key;
-  final String? mode; // major/minor
-  final int? bpm;
-  final double? energy;
-  final double? danceability;
 
   TrackAnalysis({
     this.title,
@@ -76,6 +47,13 @@ class TrackAnalysis {
       danceability: (json['danceability'] as num?)?.toDouble(),
     );
   }
+  final String? title;
+  final String? artist;
+  final String? key;
+  final String? mode; // major/minor
+  final int? bpm;
+  final double? energy;
+  final double? danceability;
 
   String get musicalKey {
     if (key == null) return '';

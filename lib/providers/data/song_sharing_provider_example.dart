@@ -53,10 +53,10 @@ final firestoreServiceProvider = Provider<FirestoreService>((ref) {
 /// This can be used as a reference for implementing song sharing
 /// in your widgets or other services.
 class SongSharingExample {
-  final FirestoreService firestore;
-  final String userId;
 
   SongSharingExample(this.firestore, this.userId);
+  final FirestoreService firestore;
+  final String userId;
 
   /// Example 1: Add a song to a band's collection.
   ///

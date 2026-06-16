@@ -1,211 +1,123 @@
-import 'dart:math' as math;
-import 'dart:typed_data';
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 
-/// Tone Generator service for producing sine wave tones
-///
-/// Uses audioplayers to generate pure sine wave tones
-/// with smooth attack/release envelopes to prevent clicks.
-///
-/// Note: For Stage 2, we generate tones programmatically.
-/// Stage 3 will implement more advanced audio synthesis.
+/// Click-free reference tone generator backed by SoLoud's native oscillator.
 class ToneGenerator {
-  AudioPlayer? _player;
-  bool _isInitialized = false;
+  AudioSource? _source;
+  SoundHandle? _handle;
   double _currentVolume = 0.5;
-  bool _isPlaying = false;
+  double _currentFrequency = 440;
+  bool _disposed = false;
+  int _operationId = 0;
 
-  /// Initialize the audio player
+  bool get isPlaying => _handle != null;
+
   Future<void> _ensureInitialized() async {
-    if (_isInitialized) return;
-
-    try {
-      _player = AudioPlayer();
-
-      // Set up player for low-latency playback
-      await _player!.setReleaseMode(ReleaseMode.stop);
-      await _player!.setVolume(_currentVolume);
-
-      _isInitialized = true;
-    } catch (e) {
-      debugPrint('Error initializing tone generator: $e');
-      rethrow;
-    }
+    if (SoLoud.instance.isInitialized) return;
+    await SoLoud.instance.init(
+      bufferSize: 512,
+      channels: Channels.mono,
+    );
   }
 
-  /// Start playing a sine wave tone at the specified frequency
-  ///
-  /// [frequency] - Frequency in Hz (20-2000 Hz recommended)
-  /// [volume] - Volume level (0.0 to 1.0)
-  Future<void> startTone(double frequency, double volume) async {
-    if (_isPlaying) return;
-
+  Future<AudioSource> _ensureSource() async {
     await _ensureInitialized();
-
-    _currentVolume = volume;
-    _isPlaying = true;
-
-    try {
-      // Set volume
-      await _player!.setVolume(volume);
-
-      // For Stage 2, we'll use a generated tone URL
-      // In production, you would generate PCM data or use pre-generated tone files
-      // For now, we simulate with a placeholder approach
-
-      // Generate and play tone using platform-specific audio
-      await _playGeneratedTone(frequency);
-    } catch (e) {
-      debugPrint('Error starting tone: $e');
-      _isPlaying = false;
-      rethrow;
-    }
+    final existing = _source;
+    if (existing != null) return existing;
+    final source = await SoLoud.instance.loadWaveform(
+      WaveForm.sin,
+      false,
+      1,
+      0,
+    );
+    _source = source;
+    return source;
   }
 
-  /// Play a generated tone using platform audio
-  Future<void> _playGeneratedTone(double frequency) async {
-    if (_player == null) return;
-
-    try {
-      // For Stage 2, we use a simple approach:
-      // Generate WAV bytes with a generated sine wave
-      final wavBytes = _generateWavBytes(frequency, duration: 10.0);
-
-      await _player!.play(BytesSource(wavBytes), volume: _currentVolume);
-    } catch (e) {
-      debugPrint('Error playing generated tone: $e');
-      // Fallback: try to play from assets if available
-      // await _player!.play(Source.asset('assets/sounds/tone.wav'));
-    }
-  }
-
-  /// Generate WAV bytes for a sine wave tone
-  /// This creates a simple sine wave tone
-  Uint8List _generateWavBytes(double frequency, {double duration = 10.0}) {
-    const sampleRate = 44100;
-    const channels = 1;
-    const bitsPerSample = 16;
-
-    final numSamples = (sampleRate * duration).round();
-    final bytesPerSample = bitsPerSample ~/ 8;
-    final byteRate = sampleRate * channels * bytesPerSample;
-    final blockSize = channels * bytesPerSample;
-    final dataSize = numSamples * channels * bytesPerSample;
-    final fileSize = 36 + dataSize;
-
-    // WAV header
-    final header = <int>[];
-
-    // RIFF chunk descriptor
-    header.addAll('RIFF'.codeUnits);
-    header.addAll(_intToLittleEndian(fileSize, 4));
-    header.addAll('WAVE'.codeUnits);
-
-    // fmt sub-chunk
-    header.addAll('fmt '.codeUnits);
-    header.addAll(_intToLittleEndian(16, 4)); // Subchunk1Size (16 for PCM)
-    header.addAll(_intToLittleEndian(1, 2)); // AudioFormat (1 for PCM)
-    header.addAll(_intToLittleEndian(channels, 2));
-    header.addAll(_intToLittleEndian(sampleRate, 4));
-    header.addAll(_intToLittleEndian(byteRate, 4));
-    header.addAll(_intToLittleEndian(blockSize, 2));
-    header.addAll(_intToLittleEndian(bitsPerSample, 2));
-
-    // data sub-chunk
-    header.addAll('data'.codeUnits);
-    header.addAll(_intToLittleEndian(dataSize, 4));
-
-    // Generate sine wave samples with attack/release envelope
-    final attackSamples = (sampleRate * 0.01).round(); // 10ms attack
-    final releaseSamples = (sampleRate * 0.05).round(); // 50ms release
-
-    for (int i = 0; i < numSamples; i++) {
-      final t = i / sampleRate;
-
-      // Calculate sine wave value
-      double sample = math.sin(2 * math.pi * frequency * t);
-
-      // Apply envelope
-      double envelope;
-      if (i < attackSamples) {
-        // Attack: linear fade in over 10ms
-        envelope = i / attackSamples;
-      } else if (i >= numSamples - releaseSamples) {
-        // Release: linear fade out over last 50ms
-        envelope = (numSamples - i) / releaseSamples;
-      } else {
-        envelope = 1.0;
-      }
-
-      // Apply volume and envelope
-      sample *= _currentVolume * envelope;
-
-      // Convert to 16-bit PCM
-      final pcmSample = (sample * 32767).clamp(-32768, 32767).toInt();
-
-      // Add bytes (little-endian)
-      header.add(pcmSample & 0xFF);
-      header.add((pcmSample >> 8) & 0xFF);
-    }
-
-    return Uint8List.fromList(header);
-  }
-
-  /// Convert integer to little-endian bytes
-  List<int> _intToLittleEndian(int value, int bytes) {
-    final result = <int>[];
-    for (int i = 0; i < bytes; i++) {
-      result.add(value & 0xFF);
-      value >>= 8;
-    }
-    return result;
-  }
-
-  /// Stop playing the tone with smooth release
-  Future<void> stopTone() async {
-    if (!_isInitialized || _player == null || !_isPlaying) return;
-
-    try {
-      await _player!.stop();
-      _isPlaying = false;
-    } catch (e) {
-      debugPrint('Error stopping tone: $e');
-    }
-  }
-
-  /// Update volume while playing
-  Future<void> setVolume(double volume) async {
+  Future<void> startTone(double frequency, double volume) async {
+    if (_disposed) throw StateError('ToneGenerator has been disposed');
+    final operationId = ++_operationId;
+    _currentFrequency = frequency.clamp(20.0, 20000.0);
     _currentVolume = volume.clamp(0.0, 1.0);
-    if (_player != null && _isInitialized) {
-      await _player!.setVolume(_currentVolume);
+
+    final source = await _ensureSource();
+    if (operationId != _operationId) return;
+    SoLoud.instance.setWaveformFreq(source, _currentFrequency);
+
+    final existing = _handle;
+    if (existing != null) {
+      SoLoud.instance.fadeVolume(
+        existing,
+        _currentVolume,
+        const Duration(milliseconds: 20),
+      );
+      return;
     }
+
+    final handle = SoLoud.instance.play(source, volume: 0, looping: true);
+    if (operationId != _operationId) {
+      await SoLoud.instance.stop(handle);
+      return;
+    }
+    _handle = handle;
+    SoLoud.instance.fadeVolume(
+      handle,
+      _currentVolume,
+      const Duration(milliseconds: 20),
+    );
   }
 
-  /// Update frequency while playing
-  Future<void> setFrequency(double frequency) async {
-    // Restart tone with new frequency
-    if (_isPlaying) {
-      await stopTone();
-      await startTone(frequency, _currentVolume);
-    }
-  }
+  Future<void> stopTone() async {
+    final operationId = ++_operationId;
+    final handle = _handle;
+    _handle = null;
+    if (handle == null || !SoLoud.instance.isInitialized) return;
 
-  /// Check if currently playing
-  bool get isPlaying => _isPlaying;
-
-  /// Dispose of resources
-  Future<void> dispose() async {
     try {
-      await stopTone();
-      if (_player != null) {
-        await _player!.dispose();
-        _player = null;
+      SoLoud.instance.fadeVolume(handle, 0, const Duration(milliseconds: 25));
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      if (operationId <= _operationId && SoLoud.instance.isInitialized) {
+        await SoLoud.instance.stop(handle);
       }
-      _isInitialized = false;
-      _isPlaying = false;
-    } catch (e) {
-      debugPrint('Error disposing tone generator: $e');
+    } catch (error) {
+      debugPrint('Error stopping tuner tone: $error');
+    }
+  }
+
+  void setVolume(double volume) {
+    _currentVolume = volume.clamp(0.0, 1.0);
+    final handle = _handle;
+    if (handle != null && SoLoud.instance.isInitialized) {
+      SoLoud.instance.fadeVolume(
+        handle,
+        _currentVolume,
+        const Duration(milliseconds: 20),
+      );
+    }
+  }
+
+  void setFrequency(double frequency) {
+    _currentFrequency = frequency.clamp(20.0, 20000.0);
+    final source = _source;
+    if (source != null && SoLoud.instance.isInitialized) {
+      SoLoud.instance.setWaveformFreq(source, _currentFrequency);
+    }
+  }
+
+  Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
+    await stopTone();
+    final source = _source;
+    _source = null;
+    if (source != null && SoLoud.instance.isInitialized) {
+      try {
+        await SoLoud.instance.disposeSource(source);
+      } catch (error) {
+        debugPrint('Error disposing tuner oscillator: $error');
+      }
     }
   }
 }

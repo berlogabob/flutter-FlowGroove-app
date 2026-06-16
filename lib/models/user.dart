@@ -13,30 +13,55 @@ class _Sentinel {
 
 @JsonSerializable()
 class AppUser {
+
+  AppUser({
+    required this.uid,
+    required this.createdAt, this.displayName,
+    this.email,
+    this.photoURL,
+    this.accessRole = 'member',
+    this.musicRoles = const [],
+    this.systemTags = const [],
+    this.bandIds = const [],
+  });
+
+  factory AppUser.fromJson(Map<String, dynamic> json) =>
+      _$AppUserFromJson(json);
   @JsonKey(defaultValue: '')
   final String uid;
   final String? displayName;
   final String? email;
   final String? photoURL;
+
+  /// Access role for the app: 'owner', 'admin', 'member', 'demo'.
+  /// Controls what the user can do app-wide.
+  @JsonKey(defaultValue: 'member')
+  final String accessRole;
+
+  /// Music roles: what this person does musically.
+  /// e.g., ['vocalist', 'guitarist', 'sound_engineer'].
+  /// Shown on personal page and as default when joining bands.
+  @JsonKey(defaultValue: [])
+  final List<String> musicRoles;
+
+  /// System tags: internal labels not shown to users.
+  /// e.g., ['demo', 'test', 'early_adopter'].
+  @JsonKey(defaultValue: [])
+  final List<String> systemTags;
+
   @JsonKey(defaultValue: [])
   final List<String> bandIds;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
-
-  AppUser({
-    required this.uid,
-    this.displayName,
-    this.email,
-    this.photoURL,
-    this.bandIds = const [],
-    required this.createdAt,
-  });
 
   AppUser copyWith({
     String? uid,
     Object? displayName = _sentinel,
     Object? email = _sentinel,
     Object? photoURL = _sentinel,
+    String? accessRole,
+    List<String>? musicRoles,
+    List<String>? systemTags,
     List<String>? bandIds,
     DateTime? createdAt,
   }) {
@@ -47,18 +72,18 @@ class AppUser {
           : displayName as String?,
       email: email == _sentinel ? this.email : email as String?,
       photoURL: photoURL == _sentinel ? this.photoURL : photoURL as String?,
+      accessRole: accessRole ?? this.accessRole,
+      musicRoles: musicRoles ?? this.musicRoles,
+      systemTags: systemTags ?? this.systemTags,
       bandIds: bandIds ?? this.bandIds,
       createdAt: createdAt ?? this.createdAt,
     );
   }
 
   Map<String, dynamic> toJson() => _$AppUserToJson(this);
-
-  factory AppUser.fromJson(Map<String, dynamic> json) =>
-      _$AppUserFromJson(json);
 }
 
-DateTime _parseDateTime(dynamic value) {
+DateTime _parseDateTime(value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   return DateTime.parse(value as String);

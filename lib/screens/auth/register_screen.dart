@@ -1,7 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../providers/auth/auth_provider.dart';
+import '../../theme/mono_pulse_theme.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -26,7 +29,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -40,24 +44,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             password: _passwordController.text,
           );
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/main');
+        context.go('/main/home');
       }
     } on FirebaseAuthException catch (e) {
       String message;
       switch (e.code) {
         case 'email-already-in-use':
           message = 'This email is already registered';
-          break;
         case 'invalid-email':
           message = 'Invalid email address';
-          break;
         case 'weak-password':
           message = 'Password is too weak';
-          break;
         case 'operation-not-allowed':
           message =
               'Email/password auth is not enabled. Go to Firebase Console → Authentication → Sign-in method → enable Email/Password';
-          break;
         default:
           message = 'Error: ${e.code} - ${e.message}';
       }
@@ -107,14 +107,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           Icon(
             isMet ? Icons.check_circle : Icons.circle_outlined,
             size: 16,
-            color: isMet ? Colors.green : Colors.grey[400],
+            color: isMet
+                ? MonoPulseColors.successGreen
+                : MonoPulseColors.textTertiary,
           ),
           const SizedBox(width: 8),
           Text(
             text,
-            style: TextStyle(
-              fontSize: 12,
-              color: isMet ? Colors.green : Colors.grey[600],
+            style: MonoPulseTypography.bodySmall.copyWith(
+              color: isMet
+                  ? MonoPulseColors.successGreen
+                  : MonoPulseColors.textSecondary,
             ),
           ),
         ],
@@ -129,11 +132,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         title: const Text('Create Account'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
         child: Form(
           key: _formKey,
           child: Column(
@@ -141,18 +144,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             children: [
               const SizedBox(height: 32),
               Text(
-                'Join RepSync',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                'Join FlowGroove',
+                style: MonoPulseTypography.headlineMedium.copyWith(
+                  color: MonoPulseColors.textHighEmphasis,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 'Create an account to manage your band repertoire',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
@@ -223,7 +226,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: MonoPulseColors.textPrimary,
                         ),
                       )
                     : const Text('Create Account'),
@@ -234,7 +237,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   const Text('Already have an account?'),
                   TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/login'),
+                    onPressed: () => context.goNamed('login'),
                     child: const Text('Sign In'),
                   ),
                 ],

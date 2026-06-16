@@ -1,0 +1,421 @@
+/* ============================================================
+   FlowGroove — MonoPulse Theme for Hugo/PaperMod
+   Pixel-perfect match with Flutter app theme
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ── MonoPulse Color Variables ── */
+:root {
+  /* Backgrounds */
+  --theme: #000000;              /* MonoPulseColors.black */
+  --entry: #121212;              /* MonoPulseColors.surface */
+  --code-bg: #111111;            /* MonoPulseColors.blackElevated */
+  --hljs-bg: #0A0A0A;            /* MonoPulseColors.blackSurface */
+
+  /* Text */
+  --content: #F5F5F5;            /* MonoPulseColors.textPrimary */
+  --secondary: #A0A0A5;          /* MonoPulseColors.textSecondary */
+  --tertiary: #8A8A8F;           /* MonoPulseColors.textTertiary */
+
+  /* Accent */
+  --primary: #FF5E00;            /* MonoPulseColors.accentOrange */
+  --border: #222222;             /* MonoPulseColors.borderSubtle */
+  --border-strong: #333333;      /* MonoPulseColors.borderDefault */
+}
+
+/* ── Body & Typography ── */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif !important;
+  background: #000000 !important;
+  color: #F5F5F5 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Page Backgrounds ── */
+.main, .list, .page, .post-entry, .first-entry {
+  background: #000000 !important;
+}
+
+/* ── Header / Nav ── */
+.header, .nav {
+  background: #000000 !important;
+  border-bottom: 1px solid #222222 !important;
+}
+
+.logo a {
+  color: #F5F5F5 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.5px !important;
+}
+
+#menu a {
+  color: #A0A0A5 !important;
+  font-weight: 500 !important;
+  transition: color 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+#menu a:hover, #menu a.active {
+  color: #F5F5F5 !important;
+}
+#menu a.active {
+  border-bottom: 2px solid #FF5E00 !important;
+}
+
+/* ── Profile / Hero Mode ── */
+.profile img {
+  border: 2px solid #222222 !important;
+  border-radius: 50% !important;
+}
+
+.profile .title {
+  color: #F5F5F5 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.5px !important;
+}
+
+.profile .subtitle {
+  color: #A0A0A5 !important;
+  font-weight: 400 !important;
+}
+
+.profile .buttons {
+  display: flex !important;
+  gap: 12px !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  margin-top: 20px !important;
+}
+
+.profile .buttons a {
+  display: inline-block !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  letter-spacing: 0.1px !important;
+  text-decoration: none !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Primary button — Flutter ElevatedButton style */
+.profile .buttons a:first-child {
+  background: #FF5E00 !important;
+  color: #000000 !important;
+  border: none !important;
+}
+.profile .buttons a:first-child:hover {
+  background: #FF6B1A !important;
+  box-shadow: 0 0 20px rgba(255, 94, 0, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Secondary button — Flutter OutlinedButton style */
+.profile .buttons a:last-child {
+  background: transparent !important;
+  color: #F5F5F5 !important;
+  border: 1px solid #333333 !important;
+}
+.profile .buttons a:last-child:hover {
+  border-color: #FF5E00 !important;
+  color: #FF5E00 !important;
+  box-shadow: 0 0 15px rgba(255, 94, 0, 0.15) !important;
+}
+
+/* ── Home Info (homeInfoParams content) ── */
+.home-info .entry-content {
+  color: #A0A0A5 !important;
+  line-height: 1.6 !important;
+}
+.home-info .entry-content strong,
+.home-info .entry-content b {
+  color: #F5F5F5 !important;
+}
+
+/* ── First Entry (homeInfo card) ── */
+.first-entry {
+  background: #121212 !important;
+  border: 1px solid #222222 !important;
+  border-radius: 12px !important;
+  min-height: auto !important;
+}
+.first-entry .entry-header h1 {
+  color: #F5F5F5 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.5px !important;
+}
+
+/* ── Post / Page Cards ── */
+.post-entry {
+  background: #121212 !important;
+  border: 1px solid #222222 !important;
+  border-radius: 12px !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.post-entry:hover {
+  border-color: #333333 !important;
+  box-shadow: 0 0 0 1px rgba(255, 94, 0, 0.08);
+  transform: translateY(-2px) !important;
+}
+.post-entry .entry-header h2 {
+  color: #F5F5F5 !important;
+}
+.post-entry .entry-content {
+  color: #A0A0A5 !important;
+}
+.post-entry .entry-footer {
+  color: #8A8A8F !important;
+}
+
+/* ── Single Post Page ── */
+.post-content h1, .post-content h2, .post-content h3 {
+  color: #F5F5F5 !important;
+}
+.post-content p, .post-content li {
+  color: #A0A0A5 !important;
+}
+.post-content a {
+  color: #FF5E00 !important;
+  text-decoration: none !important;
+  border-bottom: 1px solid transparent !important;
+  transition: border-color 0.18s ease !important;
+}
+.post-content a:hover {
+  border-bottom-color: #FF5E00 !important;
+}
+
+/* ── FAQ (details/summary) ── */
+.faq-item, details {
+  background: #1A1A1A !important;
+  border: 1px solid #222222 !important;
+  border-radius: 10px !important;
+  margin-bottom: 8px !important;
+  overflow: hidden;
+  transition: border-color 0.18s ease !important;
+}
+.faq-item:hover, details:hover {
+  border-color: #333333 !important;
+}
+.faq-question, summary {
+  color: #F5F5F5 !important;
+  font-weight: 600 !important;
+  padding: 16px 20px !important;
+  cursor: pointer !important;
+  list-style: none !important;
+}
+.faq-answer, details > *:not(summary) {
+  color: #A0A0A5 !important;
+  padding: 0 20px 16px !important;
+  line-height: 1.6 !important;
+}
+
+/* ── Feature Cards ── */
+.feature-card {
+  background: #121212 !important;
+  border: 1px solid #222222 !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.feature-card:hover {
+  border-color: #333333 !important;
+  box-shadow: 0 0 0 1px rgba(255, 94, 0, 0.1);
+  transform: translateY(-2px) !important;
+}
+.feature-card .feature-title {
+  color: #F5F5F5 !important;
+}
+.feature-card .feature-description {
+  color: #A0A0A5 !important;
+}
+
+/* ── Buttons (shortcode overrides) ── */
+.btn-primary {
+  background: #FF5E00 !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  letter-spacing: 0.1px !important;
+  padding: 12px 24px !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn-primary:hover {
+  background: #FF6B1A !important;
+  box-shadow: 0 0 20px rgba(255, 94, 0, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+.btn-secondary {
+  background: transparent !important;
+  color: #F5F5F5 !important;
+  border: 1px solid #333333 !important;
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  padding: 12px 24px !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn-secondary:hover {
+  border-color: #FF5E00 !important;
+  color: #FF5E00 !important;
+  box-shadow: 0 0 15px rgba(255, 94, 0, 0.15) !important;
+}
+
+.cta-link {
+  color: #FF5E00 !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid transparent !important;
+  transition: border-color 0.18s ease !important;
+}
+.cta-link:hover {
+  border-bottom-color: #FF5E00 !important;
+}
+
+/* ── Sections ── */
+.section {
+  background: transparent !important;
+}
+.section:nth-child(even) {
+  background: transparent !important;
+}
+
+.section-title {
+  color: #F5F5F5 !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.5px !important;
+}
+.section-subtitle {
+  color: #A0A0A5 !important;
+}
+
+/* ── Video Placeholder ── */
+.video-placeholder {
+  background: #121212 !important;
+  border: 2px dashed #222222 !important;
+  border-radius: 12px !important;
+  padding: 48px !important;
+  text-align: center !important;
+}
+.video-placeholder p:first-child {
+  color: #F5F5F5 !important;
+  font-size: 2rem !important;
+}
+.video-caption {
+  color: #A0A0A5 !important;
+}
+
+/* ── Story Section ── */
+.story-section {
+  background: #121212 !important;
+  border: 1px solid #222222 !important;
+  border-radius: 12px !important;
+  padding: 40px !important;
+}
+.story-content {
+  color: #A0A0A5 !important;
+  line-height: 1.8 !important;
+}
+.story-content strong {
+  color: #F5F5F5 !important;
+}
+
+/* ── Support / Ko-fi Section ── */
+.support-content {
+  color: #A0A0A5 !important;
+}
+.support-content strong {
+  color: #F5F5F5 !important;
+}
+
+/* ── TinyLaunch Badge ── */
+.tinylaunch-badge {
+  opacity: 0.7;
+  transition: opacity 0.18s ease !important;
+}
+.tinylaunch-badge:hover {
+  opacity: 1;
+}
+.badge-text {
+  color: #8A8A8F !important;
+}
+.launch-text {
+  color: #A0A0A5 !important;
+}
+
+/* ── Footer ── */
+.footer, footer {
+  background: #000000 !important;
+  border-top: 1px solid #222222 !important;
+  color: #8A8A8F !important;
+}
+.footer a {
+  color: #A0A0A5 !important;
+}
+.footer a:hover {
+  color: #FF5E00 !important;
+}
+
+/* ── Code Blocks ── */
+code {
+  background: #111111 !important;
+  color: #FF5E00 !important;
+  border: 1px solid #222222 !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000000 !important;
+}
+::-webkit-scrollbar-thumb {
+  background: #333333 !important;
+  border-radius: 4px !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #444444 !important;
+}
+
+/* ── Selection ── */
+::selection {
+  background: rgba(255, 94, 0, 0.3) !important;
+  color: #F5F5F5 !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .profile .buttons {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .profile .buttons a {
+    width: 100% !important;
+    max-width: 280px !important;
+    text-align: center !important;
+  }
+  .feature-card {
+    padding: 16px !important;
+  }
+  .story-section {
+    padding: 24px !important;
+  }
+}
+
+/* ── Reduce Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Print ── */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .kofi-widget-container { display: none !important; }
+}

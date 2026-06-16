@@ -1,45 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../models/band.dart';
+import '../../models/setlist.dart';
+import '../../models/song.dart';
+import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../models/song.dart';
-import '../../models/setlist.dart';
+import '../error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 
-/// Song Library Block widget - Mono Pulse design
-///
-/// Compact view: pill (radius 20px, background #121212)
-/// - Text "Song library" 16px Medium #EDEDED
-/// - Note icon left #A0A0A5
-///
-/// Expanded view (tap compact): Slide-up panel from bottom
-/// - Background #1A1A1A, 24px top radius
-/// - "Song Library" section: user/band songs
-/// - "Setlist Library" section: setlists with navigation
-class SongLibraryBlock extends ConsumerStatefulWidget {
+class SongLibraryBlock extends ConsumerWidget {
   const SongLibraryBlock({super.key});
 
   @override
-  ConsumerState<SongLibraryBlock> createState() => _SongLibraryBlockState();
-}
-
-class _SongLibraryBlockState extends ConsumerState<SongLibraryBlock> {
-  bool _isExpanded = false;
-  bool _showSetlists = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(metronomeProvider);
-    final metronome = ref.watch(metronomeProvider.notifier);
+    final notifier = ref.read(metronomeProvider.notifier);
+    final activeSong = state.activeSong;
 
     return Column(
       children: [
-        // Compact pill button
-        if (!_isExpanded)
-          GestureDetector(
+        Semantics(
+          button: true,
+          label: 'Open songs and setlists',
+          child: InkWell(
+            borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
             onTap: () {
               HapticFeedback.lightImpact();
-              setState(() => _isExpanded = true);
+              _openLibrarySheet(context, ref, notifier);
             },
             child: Container(
               padding: const EdgeInsets.symmetric(
@@ -54,14 +43,14 @@ class _SongLibraryBlockState extends ConsumerState<SongLibraryBlock> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.music_note_outlined,
+                  const Icon(
+                    Icons.library_music_outlined,
                     color: MonoPulseColors.textSecondary,
-                    size: 20,
+                    size: MonoPulseIcons.sizeMedium,
                   ),
                   const SizedBox(width: MonoPulseSpacing.md),
                   Text(
-                    'Song Library',
+                    'Songs & Setlists',
                     style: MonoPulseTypography.bodyLarge.copyWith(
                       color: MonoPulseColors.textHighEmphasis,
                       fontWeight: FontWeight.w500,
@@ -71,516 +60,546 @@ class _SongLibraryBlockState extends ConsumerState<SongLibraryBlock> {
               ),
             ),
           ),
-
-        // Loaded content indicator
-        if (!_isExpanded &&
-            (state.loadedSong != null || state.loadedSetlist != null))
-          Padding(
-            padding: const EdgeInsets.only(top: MonoPulseSpacing.md),
-            child: Text(
-              state.loadedSong != null
-                  ? 'Loaded: ${state.loadedSong!.title}'
-                  : 'Loaded: ${state.loadedSetlist!.name} (${state.currentSetlistIndex + 1}/${state.loadedSetlist!.songIds.length})',
-              style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textTertiary,
-              ),
-            ),
+        ),
+        if (activeSong != null) ...[
+          const SizedBox(height: MonoPulseSpacing.sm),
+          _LoadedSongCard(
+            song: activeSong,
+            setlist: state.loadedSetlist,
+            sourceBandId: state.sourceBandId,
+            position: state.currentSetlistIndex + 1,
+            total: state.loadedSetlistSongs.length,
+            onClear: notifier.clearLoadedContent,
           ),
-
-        // Slide-up panel
-        if (_isExpanded)
-          _SlideUpPanel(
-            showSetlists: _showSetlists,
-            onToggleView: () {
-              HapticFeedback.lightImpact();
-              setState(() => _showSetlists = !_showSetlists);
-            },
-            onClose: () {
-              HapticFeedback.lightImpact();
-              setState(() => _isExpanded = false);
-            },
-            onLoadSong: (song) {
-              HapticFeedback.mediumImpact();
-              metronome.loadSongTempo(song);
-              setState(() => _isExpanded = false);
-            },
-            onLoadSetlist: (setlist) {
-              HapticFeedback.mediumImpact();
-              metronome.loadSetlistQueue(setlist);
-              setState(() => _isExpanded = false);
-            },
-          ),
+        ],
       ],
+    );
+  }
+
+  void _openLibrarySheet(
+    BuildContext context,
+    WidgetRef ref,
+    MetronomeNotifier notifier,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: MonoPulseColors.transparent,
+      builder: (sheetContext) => _SongLibrarySheet(
+        onLoadSong: (song, bandId) {
+          HapticFeedback.mediumImpact();
+          notifier.loadSongTempo(song, sourceBandId: bandId);
+          Navigator.of(sheetContext).pop();
+        },
+        onLoadSetlist: (setlist, songs, bandId) {
+          HapticFeedback.mediumImpact();
+          final loaded = notifier.loadSetlistQueue(
+            setlist,
+            availableSongs: songs,
+            sourceBandId: bandId,
+          );
+          if (loaded) {
+            Navigator.of(sheetContext).pop();
+          } else {
+            ScaffoldMessenger.of(sheetContext).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'This setlist is empty or contains unavailable songs.',
+                ),
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 }
 
-class _SlideUpPanel extends StatelessWidget {
-  final bool showSetlists;
-  final VoidCallback onToggleView;
-  final VoidCallback onClose;
-  final Function(Song) onLoadSong;
-  final Function(Setlist) onLoadSetlist;
-
-  const _SlideUpPanel({
-    required this.showSetlists,
-    required this.onToggleView,
-    required this.onClose,
-    required this.onLoadSong,
-    required this.onLoadSetlist,
+class _LoadedSongCard extends ConsumerWidget {
+  const _LoadedSongCard({
+    required this.song,
+    required this.setlist,
+    required this.sourceBandId,
+    required this.position,
+    required this.total,
+    required this.onClear,
   });
 
+  final Song song;
+  final Setlist? setlist;
+  final String? sourceBandId;
+  final int position;
+  final int total;
+  final VoidCallback onClear;
+
   @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Backdrop
-        Positioned.fill(
-          child: GestureDetector(
-            onTap: onClose,
-            child: Container(
-              color: MonoPulseColors.black.withValues(alpha: 0.7),
-            ),
-          ),
-        ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bands = ref.watch(bandsProvider).value ?? const <Band>[];
+    final bandName = bands
+        .where((band) => band.id == sourceBandId)
+        .map((band) => band.name)
+        .firstOrNull;
+    final sourceLabel = bandName ?? 'Personal';
 
-        // Panel
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: AnimatedContainer(
-            duration: MonoPulseAnimation.durationMedium,
-            curve: MonoPulseAnimation.curveCustom,
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.7,
-            ),
-            decoration: BoxDecoration(
-              color: MonoPulseColors.surfaceRaised,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(MonoPulseRadius.massive),
-              ),
-            ),
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(maxWidth: 420),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: MonoPulseColors.surface,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+        border: Border.all(color: MonoPulseColors.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.music_note, color: MonoPulseColors.accentOrange),
+          const SizedBox(width: MonoPulseSpacing.md),
+          Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Handle bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: MonoPulseSpacing.lg,
-                  ),
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: MonoPulseColors.borderDefault,
-                      borderRadius: BorderRadius.circular(
-                        MonoPulseRadius.small,
-                      ),
-                    ),
+                Text(
+                  song.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: MonoPulseTypography.bodyMedium.copyWith(
+                    color: MonoPulseColors.textHighEmphasis,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-
-                // Header with tabs
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: MonoPulseSpacing.xxl,
+                Text(
+                  setlist == null
+                      ? '${song.artist} • $sourceLabel'
+                      : '${setlist!.name} • $position / $total • $sourceLabel',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: MonoPulseColors.textTertiary,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Tab toggle
-                      GestureDetector(
-                        onTap: onToggleView,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: MonoPulseSpacing.lg,
-                            vertical: MonoPulseSpacing.sm,
-                          ),
-                          decoration: BoxDecoration(
-                            color: MonoPulseColors.blackElevated,
-                            borderRadius: BorderRadius.circular(
-                              MonoPulseRadius.huge,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                showSetlists
-                                    ? Icons.playlist_play
-                                    : Icons.music_note,
-                                color: MonoPulseColors.accentOrange,
-                                size: 18,
-                              ),
-                              const SizedBox(width: MonoPulseSpacing.sm),
-                              Text(
-                                showSetlists ? 'Setlists' : 'Songs',
-                                style: MonoPulseTypography.labelLarge.copyWith(
-                                  color: MonoPulseColors.accentOrange,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Close button
-                      GestureDetector(
-                        onTap: onClose,
-                        child: Container(
-                          padding: const EdgeInsets.all(MonoPulseSpacing.sm),
-                          decoration: BoxDecoration(
-                            color: MonoPulseColors.blackElevated,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.close,
-                            color: MonoPulseColors.textSecondary,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: MonoPulseSpacing.lg),
-
-                // Content
-                Expanded(
-                  child: showSetlists
-                      ? _SetlistList(onLoadSetlist: onLoadSetlist)
-                      : _SongList(onLoadSong: onLoadSong),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+          IconButton(
+            tooltip: 'Clear loaded song',
+            onPressed: onClear,
+            icon: const Icon(
+              Icons.close,
+              color: MonoPulseColors.textSecondary,
+              size: 20,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _SongList extends StatelessWidget {
-  final Function(Song) onLoadSong;
+enum _LibraryTab { songs, setlists }
 
-  const _SongList({required this.onLoadSong});
+class _SongLibrarySheet extends ConsumerStatefulWidget {
+  const _SongLibrarySheet({
+    required this.onLoadSong,
+    required this.onLoadSetlist,
+  });
+
+  final void Function(Song song, String? bandId) onLoadSong;
+  final void Function(Setlist setlist, List<Song> songs, String? bandId)
+  onLoadSetlist;
 
   @override
-  Widget build(BuildContext context) {
-    // Placeholder - in real app, fetch from provider
-    final songs = _getSampleSongs();
-
-    if (songs.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.music_note_outlined,
-              color: MonoPulseColors.textDisabled,
-              size: 48,
-            ),
-            const SizedBox(height: MonoPulseSpacing.md),
-            Text(
-              'No songs yet',
-              style: MonoPulseTypography.bodyLarge.copyWith(
-                color: MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.xxl,
-        vertical: MonoPulseSpacing.sm,
-      ),
-      itemCount: songs.length,
-      itemBuilder: (context, index) {
-        final song = songs[index];
-        return _SongCard(song: song, onTap: () => onLoadSong(song));
-      },
-    );
-  }
-
-  List<Song> _getSampleSongs() {
-    // Sample data - replace with actual data from provider
-    return [
-      Song(
-        id: '1',
-        title: 'Wonderwall',
-        artist: 'Oasis',
-        originalBPM: 87,
-        ourBPM: 87,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Song(
-        id: '2',
-        title: 'Sweet Child O\' Mine',
-        artist: 'Guns N\' Roses',
-        originalBPM: 125,
-        ourBPM: 125,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      Song(
-        id: '3',
-        title: 'Hotel California',
-        artist: 'Eagles',
-        originalBPM: 75,
-        ourBPM: 75,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
-  }
+  ConsumerState<_SongLibrarySheet> createState() => _SongLibrarySheetState();
 }
 
-class _SongCard extends StatelessWidget {
-  final Song song;
-  final VoidCallback onTap;
-
-  const _SongCard({required this.song, required this.onTap});
+class _SongLibrarySheetState extends ConsumerState<_SongLibrarySheet> {
+  _LibraryTab _tab = _LibraryTab.songs;
+  String? _bandId;
 
   @override
   Widget build(BuildContext context) {
-    final bpm = song.ourBPM ?? song.originalBPM;
+    final bandsAsync = ref.watch(bandsProvider);
 
-    return GestureDetector(
-      onTap: onTap,
+    return Align(
+      alignment: Alignment.bottomCenter,
       child: Container(
-        margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-        decoration: BoxDecoration(
-          color: MonoPulseColors.blackElevated,
-          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-          border: Border.all(color: MonoPulseColors.borderSubtle),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.78,
         ),
-        child: Row(
+        decoration: const BoxDecoration(
+          color: MonoPulseColors.surfaceRaised,
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(MonoPulseRadius.massive),
+          ),
+        ),
+        child: Column(
           children: [
-            // Note icon
+            const SizedBox(height: MonoPulseSpacing.md),
             Container(
               width: 40,
-              height: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: MonoPulseColors.accentOrange.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-              ),
-              child: Icon(
-                Icons.music_note,
-                color: MonoPulseColors.accentOrange,
-                size: 20,
+                color: MonoPulseColors.borderDefault,
+                borderRadius: BorderRadius.circular(MonoPulseRadius.small),
               ),
             ),
-            const SizedBox(width: MonoPulseSpacing.md),
-
-            // Song info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              child: Row(
                 children: [
-                  Text(
-                    song.title,
-                    style: MonoPulseTypography.bodyLarge.copyWith(
-                      color: MonoPulseColors.textHighEmphasis,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      'Songs & Setlists',
+                      style: MonoPulseTypography.headlineSmall.copyWith(
+                        color: MonoPulseColors.textHighEmphasis,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    song.artist,
-                    style: MonoPulseTypography.bodySmall.copyWith(
+                  IconButton(
+                    tooltip: 'Close',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(
+                      Icons.close,
                       color: MonoPulseColors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-
-            // BPM badge
-            if (bpm != null)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: MonoPulseSpacing.md,
-                  vertical: MonoPulseSpacing.xs,
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
+              ),
+              child: Row(
+                children: _LibraryTab.values
+                    .map(
+                      (tab) => Expanded(
+                        child: _LibraryTabButton(
+                          label: tab == _LibraryTab.songs
+                              ? 'Songs'
+                              : 'Setlists',
+                          icon: tab == _LibraryTab.songs
+                              ? Icons.music_note
+                              : Icons.playlist_play,
+                          selected: _tab == tab,
+                          onTap: () => setState(() => _tab = tab),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                MonoPulseSpacing.lg,
+                MonoPulseSpacing.md,
+                MonoPulseSpacing.lg,
+                MonoPulseSpacing.sm,
+              ),
+              child: bandsAsync.when(
+                loading: () => const LinearProgressIndicator(),
+                error: (_, _) => _SourceDropdown(
+                  bands: const [],
+                  bandId: null,
+                  onChanged: (_) {},
                 ),
-                decoration: BoxDecoration(
-                  color: MonoPulseColors.accentOrange.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-                ),
-                child: Text(
-                  '$bpm BPM',
-                  style: MonoPulseTypography.labelMedium.copyWith(
-                    color: MonoPulseColors.accentOrange,
-                    fontWeight: FontWeight.w600,
-                  ),
+                data: (bands) => _SourceDropdown(
+                  bands: bands,
+                  bandId: _bandId,
+                  onChanged: (value) => setState(() => _bandId = value),
                 ),
               ),
-
-            const SizedBox(width: MonoPulseSpacing.sm),
-            Icon(
-              Icons.chevron_right,
-              color: MonoPulseColors.textTertiary,
-              size: 20,
             ),
+            Expanded(child: _buildContent()),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    final songsAsync = _bandId == null
+        ? ref.watch(songsProvider)
+        : ref.watch(bandSongsProvider(_bandId!));
+
+    if (_tab == _LibraryTab.songs) {
+      return _AsyncSongList(
+        songsAsync: songsAsync,
+        onRetry: () => _bandId == null
+            ? ref.invalidate(songsProvider)
+            : ref.invalidate(bandSongsProvider(_bandId!)),
+        onTap: (song) => widget.onLoadSong(song, _bandId),
+      );
+    }
+
+    final setlistsAsync = _bandId == null
+        ? ref.watch(setlistsProvider)
+        : ref.watch(bandSetlistsProvider(_bandId!));
+    return _AsyncSetlistList(
+      setlistsAsync: setlistsAsync,
+      onRetry: () => _bandId == null
+          ? ref.invalidate(setlistsProvider)
+          : ref.invalidate(bandSetlistsProvider(_bandId!)),
+      onTap: (setlist) {
+        final songs = songsAsync.value ?? const <Song>[];
+        widget.onLoadSetlist(setlist, songs, _bandId);
+      },
+    );
+  }
+}
+
+class _LibraryTabButton extends StatelessWidget {
+  const _LibraryTabButton({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.md),
+          decoration: BoxDecoration(
+            color: selected
+                ? MonoPulseColors.accentOrange.withValues(alpha: 0.16)
+                : MonoPulseColors.blackElevated,
+            border: Border(
+              bottom: BorderSide(
+                color: selected
+                    ? MonoPulseColors.accentOrange
+                    : MonoPulseColors.borderSubtle,
+                width: selected ? 2 : 1,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: selected
+                    ? MonoPulseColors.accentOrange
+                    : MonoPulseColors.textSecondary,
+              ),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              Text(
+                label,
+                style: MonoPulseTypography.labelLarge.copyWith(
+                  color: selected
+                      ? MonoPulseColors.accentOrange
+                      : MonoPulseColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _SetlistList extends StatelessWidget {
-  final Function(Setlist) onLoadSetlist;
+class _SourceDropdown extends StatelessWidget {
+  const _SourceDropdown({
+    required this.bands,
+    required this.bandId,
+    required this.onChanged,
+  });
 
-  const _SetlistList({required this.onLoadSetlist});
+  final List<Band> bands;
+  final String? bandId;
+  final ValueChanged<String?> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    // Placeholder - in real app, fetch from provider
-    final setlists = _getSampleSetlists();
-
-    if (setlists.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.playlist_play_outlined,
-              color: MonoPulseColors.textDisabled,
-              size: 48,
-            ),
-            const SizedBox(height: MonoPulseSpacing.md),
-            Text(
-              'No setlists yet',
-              style: MonoPulseTypography.bodyLarge.copyWith(
-                color: MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.xxl,
-        vertical: MonoPulseSpacing.sm,
+    return DropdownButtonFormField<String?>(
+      initialValue: bandId,
+      dropdownColor: MonoPulseColors.surfaceRaised,
+      decoration: const InputDecoration(
+        labelText: 'Library source',
+        prefixIcon: Icon(Icons.folder_outlined),
+        border: OutlineInputBorder(),
       ),
-      itemCount: setlists.length,
-      itemBuilder: (context, index) {
-        final setlist = setlists[index];
-        return _SetlistCard(
-          setlist: setlist,
-          onTap: () => onLoadSetlist(setlist),
-        );
-      },
+      items: [
+        const DropdownMenuItem<String?>(child: Text('Personal')),
+        ...bands.map(
+          (band) =>
+              DropdownMenuItem<String?>(value: band.id, child: Text(band.name)),
+        ),
+      ],
+      onChanged: onChanged,
     );
   }
+}
 
-  List<Setlist> _getSampleSetlists() {
-    // Sample data - replace with actual data from provider
-    return [
-      Setlist(
-        id: '1',
-        bandId: 'band1',
-        name: 'Summer Tour 2026',
-        description: 'Main setlist for summer shows',
-        songIds: ['1', '2', '3', '4', '5'],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+class _AsyncSongList extends StatelessWidget {
+  const _AsyncSongList({
+    required this.songsAsync,
+    required this.onRetry,
+    required this.onTap,
+  });
+
+  final AsyncValue<List<Song>> songsAsync;
+  final VoidCallback onRetry;
+  final ValueChanged<Song> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return songsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(
+        child: ErrorBanner(
+          message: 'Failed to load songs: $error',
+          onRetry: onRetry,
+          showRetry: true,
+          style: ErrorBannerStyle.card,
+        ),
       ),
-      Setlist(
-        id: '2',
-        bandId: 'band1',
-        name: 'Acoustic Set',
-        description: 'Unplugged performance',
-        songIds: ['6', '7', '8'],
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+      data: (songs) => songs.isEmpty
+          ? const _EmptyLibraryState(
+              icon: Icons.music_note_outlined,
+              label: 'No songs yet',
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              itemCount: songs.length,
+              itemBuilder: (context, index) => _SongCard(
+                song: songs[index],
+                onTap: () => onTap(songs[index]),
+              ),
+            ),
+    );
+  }
+}
+
+class _AsyncSetlistList extends StatelessWidget {
+  const _AsyncSetlistList({
+    required this.setlistsAsync,
+    required this.onRetry,
+    required this.onTap,
+  });
+
+  final AsyncValue<List<Setlist>> setlistsAsync;
+  final VoidCallback onRetry;
+  final ValueChanged<Setlist> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return setlistsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => Center(
+        child: ErrorBanner(
+          message: 'Failed to load setlists: $error',
+          onRetry: onRetry,
+          showRetry: true,
+          style: ErrorBannerStyle.card,
+        ),
       ),
-    ];
+      data: (setlists) => setlists.isEmpty
+          ? const _EmptyLibraryState(
+              icon: Icons.playlist_play_outlined,
+              label: 'No setlists yet',
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              itemCount: setlists.length,
+              itemBuilder: (context, index) => _SetlistCard(
+                setlist: setlists[index],
+                onTap: () => onTap(setlists[index]),
+              ),
+            ),
+    );
+  }
+}
+
+class _EmptyLibraryState extends StatelessWidget {
+  const _EmptyLibraryState({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: MonoPulseColors.textDisabled, size: 48),
+          const SizedBox(height: MonoPulseSpacing.md),
+          Text(
+            label,
+            style: MonoPulseTypography.bodyLarge.copyWith(
+              color: MonoPulseColors.textTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SongCard extends StatelessWidget {
+  const _SongCard({required this.song, required this.onTap});
+
+  final Song song;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final bpm = song.ourBPM ?? song.originalBPM;
+    return Card(
+      color: MonoPulseColors.blackElevated,
+      child: ListTile(
+        onTap: onTap,
+        leading: const Icon(
+          Icons.music_note,
+          color: MonoPulseColors.accentOrange,
+        ),
+        title: Text(song.title),
+        subtitle: Text(song.artist),
+        trailing: bpm == null ? null : Text('$bpm BPM'),
+      ),
+    );
   }
 }
 
 class _SetlistCard extends StatelessWidget {
+  const _SetlistCard({required this.setlist, required this.onTap});
+
   final Setlist setlist;
   final VoidCallback onTap;
 
-  const _SetlistCard({required this.setlist, required this.onTap});
-
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-        decoration: BoxDecoration(
-          color: MonoPulseColors.blackElevated,
-          borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-          border: Border.all(color: MonoPulseColors.borderSubtle),
+    final count = setlist.songIds.length;
+    return Card(
+      color: MonoPulseColors.blackElevated,
+      child: ListTile(
+        onTap: onTap,
+        leading: const Icon(
+          Icons.playlist_play,
+          color: MonoPulseColors.accentOrange,
         ),
-        child: Row(
-          children: [
-            // Playlist icon
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: MonoPulseColors.accentOrange.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-              ),
-              child: Icon(
-                Icons.playlist_play,
-                color: MonoPulseColors.accentOrange,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-
-            // Setlist info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    setlist.name,
-                    style: MonoPulseTypography.bodyLarge.copyWith(
-                      color: MonoPulseColors.textHighEmphasis,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (setlist.description != null &&
-                      setlist.description!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      setlist.description!,
-                      style: MonoPulseTypography.bodySmall.copyWith(
-                        color: MonoPulseColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 4),
-                  Text(
-                    '${setlist.songIds.length} songs',
-                    style: MonoPulseTypography.bodySmall.copyWith(
-                      color: MonoPulseColors.textTertiary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: MonoPulseSpacing.sm),
-            Icon(
-              Icons.chevron_right,
-              color: MonoPulseColors.textTertiary,
-              size: 20,
-            ),
-          ],
+        title: Text(setlist.name),
+        subtitle: Text(
+          setlist.description?.isNotEmpty == true
+              ? '${setlist.description} • $count ${count == 1 ? 'song' : 'songs'}'
+              : '$count ${count == 1 ? 'song' : 'songs'}',
         ),
+        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }

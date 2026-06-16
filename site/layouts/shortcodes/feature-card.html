@@ -1,0 +1,6 @@
+{{/* layouts/shortcodes/feature-card.html */}}
+<div class="feature-card">
+  <div class="feature-icon">{{ .Get "icon" }}</div>
+  <h3 class="feature-title">{{ .Get "title" }}</h3>
+  <p class="feature-description">{{ .Get "description" | markdownify }}</p>
+</div>

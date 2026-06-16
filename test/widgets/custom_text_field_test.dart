@@ -1,13 +1,14 @@
+import 'package:flowgroove/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/custom_text_field.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('CustomTextField', () {
     testWidgets('renders text field without label', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, const CustomTextField(hint: 'Enter text'));
 
@@ -15,7 +16,7 @@ void main() {
       expect(find.byType(TextFormField), findsOneWidget);
     });
 
-    testWidgets('renders text field with label', (WidgetTester tester) async {
+    testWidgets('renders text field with label', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomTextField(label: 'Name', hint: 'Enter your name'),
@@ -27,7 +28,7 @@ void main() {
     });
 
     testWidgets('renders required field indicator', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -41,7 +42,7 @@ void main() {
       expect(richText.text.toPlainText(), contains('*'));
     });
 
-    testWidgets('renders prefix icon', (WidgetTester tester) async {
+    testWidgets('renders prefix icon', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomTextField(prefixIcon: Icons.email),
@@ -50,7 +51,7 @@ void main() {
       expect(findIcon(Icons.email), findsOneWidget);
     });
 
-    testWidgets('renders suffix widget', (WidgetTester tester) async {
+    testWidgets('renders suffix widget', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomTextField(suffix: Icon(Icons.visibility)),
@@ -59,7 +60,7 @@ void main() {
       expect(findIcon(Icons.visibility), findsOneWidget);
     });
 
-    testWidgets('allows entering text', (WidgetTester tester) async {
+    testWidgets('allows entering text', (tester) async {
       await pumpAppWidget(tester, const CustomTextField(hint: 'Enter text'));
 
       await tester.enterText(find.byType(TextFormField), 'Hello World');
@@ -69,7 +70,7 @@ void main() {
     });
 
     testWidgets('calls onChanged when text changes', (
-      WidgetTester tester,
+      tester,
     ) async {
       String? changedValue;
 
@@ -88,7 +89,7 @@ void main() {
     });
 
     testWidgets('calls onSubmitted when user submits', (
-      WidgetTester tester,
+      tester,
     ) async {
       String? submittedValue;
 
@@ -107,7 +108,7 @@ void main() {
       expect(submittedValue, equals('Submitted'));
     });
 
-    testWidgets('validates input with validator', (WidgetTester tester) async {
+    testWidgets('validates input with validator', (tester) async {
       await pumpAppWidget(
         tester,
         CustomTextField(
@@ -131,7 +132,7 @@ void main() {
       expect(formField, findsOneWidget);
     });
 
-    testWidgets('renders email keyboard', (WidgetTester tester) async {
+    testWidgets('renders email keyboard', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomTextField(keyboardType: TextInputType.emailAddress),
@@ -141,7 +142,7 @@ void main() {
       expect(textField.keyboardType, equals(TextInputType.emailAddress));
     });
 
-    testWidgets('renders number keyboard', (WidgetTester tester) async {
+    testWidgets('renders number keyboard', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomTextField(keyboardType: TextInputType.number),
@@ -151,28 +152,28 @@ void main() {
       expect(textField.keyboardType, equals(TextInputType.number));
     });
 
-    testWidgets('obscures text for password', (WidgetTester tester) async {
+    testWidgets('obscures text for password', (tester) async {
       await pumpAppWidget(tester, const CustomTextField(obscureText: true));
 
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.obscureText, isTrue);
     });
 
-    testWidgets('renders multi-line text field', (WidgetTester tester) async {
+    testWidgets('renders multi-line text field', (tester) async {
       await pumpAppWidget(tester, const CustomTextField(maxLines: 3));
 
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.maxLines, equals(3));
     });
 
-    testWidgets('renders read-only text field', (WidgetTester tester) async {
+    testWidgets('renders read-only text field', (tester) async {
       await pumpAppWidget(tester, const CustomTextField(readOnly: true));
 
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.readOnly, isTrue);
     });
 
-    testWidgets('applies input formatters', (WidgetTester tester) async {
+    testWidgets('applies input formatters', (tester) async {
       await pumpAppWidget(
         tester,
         CustomTextField(
@@ -185,7 +186,7 @@ void main() {
     });
 
     testWidgets('calls onFocus when field gains focus', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasFocused = false;
 
@@ -200,7 +201,7 @@ void main() {
       expect(wasFocused, isTrue);
     });
 
-    testWidgets('displays controller text', (WidgetTester tester) async {
+    testWidgets('displays controller text', (tester) async {
       final controller = TextEditingController(text: 'Initial Value');
 
       await pumpAppWidget(tester, CustomTextField(controller: controller));

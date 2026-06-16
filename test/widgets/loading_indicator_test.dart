@@ -1,17 +1,18 @@
+import 'package:flowgroove/widgets/loading_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/loading_indicator.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('LoadingIndicator', () {
-    testWidgets('renders loading spinner', (WidgetTester tester) async {
+    testWidgets('renders loading spinner', (tester) async {
       await pumpAppWidget(tester, const LoadingIndicator());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('renders with default size', (WidgetTester tester) async {
+    testWidgets('renders with default size', (tester) async {
       await pumpAppWidget(tester, const LoadingIndicator());
 
       final spinner = tester.widget<CircularProgressIndicator>(
@@ -22,14 +23,14 @@ void main() {
       expect(spinner.strokeWidth, equals(3));
     });
 
-    testWidgets('renders with custom size', (WidgetTester tester) async {
+    testWidgets('renders with custom size', (tester) async {
       await pumpAppWidget(tester, const LoadingIndicator(size: 60));
 
       // Verify the spinner is rendered
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('renders with message', (WidgetTester tester) async {
+    testWidgets('renders with message', (tester) async {
       await pumpAppWidget(
         tester,
         const LoadingIndicator(message: 'Loading...'),
@@ -39,14 +40,14 @@ void main() {
       expect(findText('Loading...'), findsOneWidget);
     });
 
-    testWidgets('renders without message', (WidgetTester tester) async {
+    testWidgets('renders without message', (tester) async {
       await pumpAppWidget(tester, const LoadingIndicator());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       verifyNotFound(findText('Loading...'));
     });
 
-    testWidgets('renders centered', (WidgetTester tester) async {
+    testWidgets('renders centered', (tester) async {
       await pumpAppWidget(tester, const LoadingIndicator());
 
       // Verify the widget is wrapped in a Center
@@ -54,7 +55,7 @@ void main() {
     });
 
     testWidgets('renders message with default style', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -65,7 +66,7 @@ void main() {
     });
 
     testWidgets('renders message with custom style', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -80,13 +81,13 @@ void main() {
   });
 
   group('LoadingSpinner', () {
-    testWidgets('renders small spinner', (WidgetTester tester) async {
+    testWidgets('renders small spinner', (tester) async {
       await pumpAppWidget(tester, const LoadingSpinner());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('renders with default size', (WidgetTester tester) async {
+    testWidgets('renders with default size', (tester) async {
       await pumpAppWidget(tester, const LoadingSpinner());
 
       final spinner = tester.widget<CircularProgressIndicator>(
@@ -97,21 +98,21 @@ void main() {
       expect(spinner.strokeWidth, equals(2));
     });
 
-    testWidgets('renders with custom size', (WidgetTester tester) async {
+    testWidgets('renders with custom size', (tester) async {
       await pumpAppWidget(tester, const LoadingSpinner(size: 24));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
     testWidgets('renders with white color by default', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(tester, const LoadingSpinner());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('renders with custom color', (WidgetTester tester) async {
+    testWidgets('renders with custom color', (tester) async {
       await pumpAppWidget(tester, const LoadingSpinner(color: Colors.red));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);

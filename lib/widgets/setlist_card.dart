@@ -6,6 +6,19 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent card layout for displaying setlist
 /// details including name, song count, and associated band.
 class SetlistCard extends StatelessWidget {
+
+  const SetlistCard({
+    required this.id,
+    required this.name,
+    required this.songCount,
+    this.bandName,
+    this.date,
+    this.onTap,
+    this.onEdit,
+    this.onDelete,
+    this.onExportPdf,
+    super.key,
+  });
   /// The setlist ID.
   final String id;
 
@@ -32,19 +45,6 @@ class SetlistCard extends StatelessWidget {
 
   /// Callback when the export PDF button is pressed.
   final VoidCallback? onExportPdf;
-
-  const SetlistCard({
-    super.key,
-    required this.id,
-    required this.name,
-    required this.songCount,
-    this.bandName,
-    this.date,
-    this.onTap,
-    this.onEdit,
-    this.onDelete,
-    this.onExportPdf,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +157,11 @@ class SetlistCard extends StatelessWidget {
 
 /// A compact setlist card for list views.
 class CompactSetlistCard extends StatelessWidget {
+
+  const CompactSetlistCard({
+    required this.id, required this.name, required this.songCount, super.key,
+    this.onTap,
+  });
   /// The setlist ID.
   final String id;
 
@@ -169,14 +174,6 @@ class CompactSetlistCard extends StatelessWidget {
   /// Callback when the card is tapped.
   final VoidCallback? onTap;
 
-  const CompactSetlistCard({
-    super.key,
-    required this.id,
-    required this.name,
-    required this.songCount,
-    this.onTap,
-  });
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -185,9 +182,9 @@ class CompactSetlistCard extends StatelessWidget {
         vertical: MonoPulseSpacing.sm,
       ),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: MonoPulseColors.surfaceRaised,
-          child: const Icon(
+          child: Icon(
             Icons.playlist_play,
             size: 20,
             color: MonoPulseColors.accentOrange,

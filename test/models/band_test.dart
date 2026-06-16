@@ -1,5 +1,5 @@
+import 'package:flowgroove/models/band.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/models/band.dart';
 
 void main() {
   group('BandMember Model', () {
@@ -143,7 +143,7 @@ void main() {
 
   group('Band Model', () {
     // Test data
-    final testDate = DateTime(2024, 3, 20, 14, 0, 0);
+    final testDate = DateTime(2024, 3, 20, 14);
     final testMembers = [
       BandMember(
         uid: 'user-1',
@@ -531,13 +531,13 @@ void main() {
         final band = Band(
           id: 'band-id-18',
           name: 'Band & Orchestra "Ensemble"',
-          description: 'Description with special: @#\$%^&*()',
+          description: r'Description with special: @#$%^&*()',
           createdBy: 'user-18',
           createdAt: testDate,
         );
 
         expect(band.name, contains('&'));
-        expect(band.description, contains('@#\$%^&*()'));
+        expect(band.description, contains(r'@#$%^&*()'));
       });
 
       test('handles unicode characters', () {

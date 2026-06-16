@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../models/api_error.dart';
+import '../../../models/song_suggestion.dart';
 import '../../../providers/auth/error_provider.dart';
-import '../../../services/api/spotify_service.dart';
+import '../../../services/api/spotify_proxy_service.dart';
 import '../../../services/api/track_analysis_service.dart';
-import '../components/spotify_search_section.dart';
 import '../components/musicbrainz_search_section.dart';
+import '../components/spotify_search_section.dart';
 import '../models/song_form_data.dart';
 
 /// Mixin providing helper methods for the AddSongScreen.
@@ -35,6 +37,9 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
   /// Reference to WidgetRef for provider access.
   WidgetRef get ref;
 
+  /// Apply a MusicBrainz recording through the canonical suggestion flow.
+  void applyMusicBrainzSuggestion(SongSuggestion suggestion, {int? bpm});
+
   /// BuildContext for the state.
   BuildContext get stateContext => context;
 
@@ -46,13 +51,21 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
   /// Handles an error by updating state and notifying error provider.
   void handleError(ApiError error) {
     currentError = error;
-    ref.read(errorNotifierProvider.notifier).handleError(error);
+    ref.read(errorStateProvider.notifier).handleError(error);
   }
 
   /// Fetch track analysis from external API.
   Future<void> fetchTrackAnalysis() async {
     if (formData.title.trim().isEmpty) {
       showMessage('Enter a song title');
+      return;
+    }
+
+    if (!TrackAnalysisService.isConfigured) {
+      showMessage(
+        'Direct track analysis is disabled. Use Spotify search or backend analysis instead.',
+        duration: const Duration(seconds: 4),
+      );
       return;
     }
 
@@ -72,7 +85,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
           if (result.key != null) {
             final key = result.key!;
             formData.originalKeyBase = key
-                .replaceAll(RegExp(r'[#bm]'), '')
+                .replaceAll(RegExp('[#bm]'), '')
                 .substring(0, 1);
             formData.originalKeyModifier = key.contains('#')
                 ? '#'
@@ -119,19 +132,33 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
           query: query,
           scrollController: scrollController,
           onSelect: (recording) {
-            setState(() {
-              if (recording.title != null && formData.title.isEmpty) {
-                formData.updateTitle(recording.title!);
-              }
-              if (recording.artist != null && formData.artist.isEmpty) {
-                formData.updateArtist(recording.artist!);
-              }
-              if (recording.bpm != null && formData.originalBpm.isEmpty) {
-                formData.updateOriginalBpm(recording.bpm.toString());
-              }
-            });
+            final title = (recording.title?.trim().isNotEmpty ?? false)
+                ? recording.title!.trim()
+                : formData.title.trim();
+            final artist = (recording.artist?.trim().isNotEmpty ?? false)
+                ? recording.artist!.trim()
+                : formData.artist.trim();
+
+            if (title.isEmpty || artist.isEmpty) {
+              showMessage('MusicBrainz result is missing title or artist');
+              return;
+            }
+
+            final fallbackId = '${title.toLowerCase()}-${artist.toLowerCase()}'
+                .replaceAll(RegExp('[^a-z0-9]+'), '-')
+                .replaceAll(RegExp(r'^-+|-+$'), '');
+            final suggestion = SongSuggestion.fromMusicBrainz(
+              id: recording.id ?? fallbackId,
+              title: title,
+              artist: artist,
+              musicBrainzId: recording.id,
+              durationMs: recording.durationMs,
+              album: recording.release,
+            );
+
+            applyMusicBrainzSuggestion(suggestion, bpm: recording.bpm);
             Navigator.pop(context);
-            showMessage('Added: ${recording.title} - ${recording.artist}');
+            showMessage('Added: $title - $artist');
           },
         ),
       ),
@@ -140,9 +167,10 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
 
   /// Show Spotify search bottom sheet.
   void showSpotifySearch() {
-    if (!SpotifyService.isConfigured) {
+    if (!SpotifyProxyService.isConfigured) {
       showMessage(
-        'Spotify API not configured. Edit lib/services/spotify_service.dart',
+        'Spotify search is not configured. '
+        'Use SPOTIFY_PROXY_URL for web or direct credentials for non-web dev builds.',
         duration: const Duration(seconds: 4),
       );
       return;
@@ -198,7 +226,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
     if (keyParts.isNotEmpty) {
       final key = keyParts[0];
       formData.originalKeyBase = key
-          .replaceAll(RegExp(r'[#b]'), '')
+          .replaceAll(RegExp('[#b]'), '')
           .substring(0, 1);
       formData.originalKeyModifier = key.contains('#')
           ? '#'
@@ -251,7 +279,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
   }
 
   /// Open a URL in external browser.
-  void openUrl(String url) async {
+  Future<void> openUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

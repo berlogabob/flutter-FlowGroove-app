@@ -7,12 +7,13 @@
 ///
 /// Note: For real integration tests with Firebase Emulators,
 /// configure the emulator settings and remove mock behaviors.
+library;
 
+import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/link.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/models/song.dart';
-import 'package:flutter_repsync_app/models/band.dart';
-import 'package:flutter_repsync_app/models/setlist.dart';
-import 'package:flutter_repsync_app/models/link.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
@@ -236,14 +237,14 @@ void main() {
         bandId: 'test-band-id',
         songIds: ['song-1', 'song-2', 'song-3'],
         description: 'Test setlist for integration testing',
-        eventDate: '2024-06-15',
+        eventDateTime: DateTime(2024, 6, 15),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
       expect(setlist.name, equals('Test Setlist'));
       expect(setlist.songIds.length, equals(3));
-      expect(setlist.eventDate, equals('2024-06-15'));
+      expect(setlist.eventDateTime, equals(DateTime(2024, 6, 15)));
     });
 
     test('reads a setlist', () async {
@@ -329,12 +330,12 @@ void main() {
         name: 'Gig Setlist',
         bandId: 'test-band-id',
         songIds: [],
-        eventDate: '2024-12-31',
+        eventDateTime: DateTime(2024, 12, 31),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      expect(setlist.eventDate, equals('2024-12-31'));
+      expect(setlist.eventDateTime, equals(DateTime(2024, 12, 31)));
     });
   });
 
@@ -344,7 +345,7 @@ void main() {
         id: 'test-id',
         title: 'Test Song',
         artist: 'Test Artist',
-        createdAt: DateTime(2024, 1, 1),
+        createdAt: DateTime(2024),
         updatedAt: DateTime(2024, 1, 2),
       );
 
@@ -361,7 +362,7 @@ void main() {
         name: 'Test Band',
         createdBy: testUserId,
         members: [BandMember(uid: testUserId, role: BandMember.roleAdmin)],
-        createdAt: DateTime(2024, 1, 1),
+        createdAt: DateTime(2024),
       );
 
       final json = band.toJson();
@@ -376,7 +377,7 @@ void main() {
         name: 'Test Setlist',
         bandId: 'test-band-id',
         songIds: ['song-1', 'song-2'],
-        createdAt: DateTime(2024, 1, 1),
+        createdAt: DateTime(2024),
         updatedAt: DateTime(2024, 1, 2),
       );
 

@@ -1,0 +1,46 @@
+# TinyLaunch Launch Tracking
+launch_date: "2026-05-01"
+status: "pre-launch"  # pre-launch, active, completed
+
+# Friend Boost List (15 people for Day 1 upvotes)
+boost_list:
+  - name: "Friend 1"
+    email: "friend1@example.com"
+    contacted: false
+    confirmed: false
+  - name: "Friend 2"
+    email: "friend2@example.com"
+    contacted: false
+    confirmed: false
+  - name: "Friend 3"
+    email: "friend3@example.com"
+    contacted: false
+    confirmed: false
+  # Add 12 more...
+
+# Launch Checklist
+checklist:
+  - item: "Prepare launch post for X/Twitter"
+    done: false
+  - item: "Prepare Reddit post (r/FlutterDev, r/SomebodyMakeThis)"
+    done: false
+  - item: "Email announcement draft"
+    done: false
+  - item: "TinyLaunch profile completed"
+    done: false
+  - item: "Premium launch ($39) configured"
+    done: false
+  - item: "Social media graphics ready"
+    done: false
+  - item: "Demo video uploaded"
+    done: false
+  - item: "Ko-fi goals set ($50, $200)"
+    done: false
+
+# Post-Launch Actions
+post_launch:
+  - "Respond to every comment within 24 hours"
+  - "Track upvotes and engagement"
+  - "Monitor Ko-fi donations"
+  - "Update badge on homepage after launch"
+  - "Send thank you emails to boost list"

@@ -12,9 +12,9 @@ import '../../theme/mono_pulse_theme.dart';
 ///
 /// This is a STATIC widget (Stage 1 - no interactivity).
 class TickMarks extends StatelessWidget {
-  final double size;
 
-  const TickMarks({super.key, required this.size});
+  const TickMarks({required this.size, super.key});
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +27,9 @@ class TickMarks extends StatelessWidget {
 }
 
 class _TickMarksPainter extends CustomPainter {
-  final double size;
 
   _TickMarksPainter({required this.size});
+  final double size;
 
   @override
   void paint(Canvas canvas, Size canvasSize) {
@@ -65,9 +65,9 @@ class _TickMarksPainter extends CustomPainter {
     ];
 
     for (final tick in tickData) {
-      final angleDeg = tick['angle'] as double;
-      final label = tick['label'] as String;
-      final subLabel = tick['subLabel'] as String;
+      final angleDeg = tick['angle']! as double;
+      final label = tick['label']! as String;
+      final subLabel = tick['subLabel']! as String;
       final angleRad = angleDeg * (math.pi / 180);
 
       // Determine if this is a major tick (has non-empty label)

@@ -6,6 +6,16 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent confirmation dialog for destructive
 /// actions like deletions or irreversible operations.
 class ConfirmationDialog extends StatelessWidget {
+
+  const ConfirmationDialog({
+    required this.title,
+    required this.message,
+    this.confirmLabel = 'Confirm',
+    this.cancelLabel = 'Cancel',
+    this.icon,
+    this.isDestructive = true,
+    super.key,
+  });
   /// The title of the dialog.
   final String title;
 
@@ -23,16 +33,6 @@ class ConfirmationDialog extends StatelessWidget {
 
   /// Whether the action is destructive (e.g., delete).
   final bool isDestructive;
-
-  const ConfirmationDialog({
-    super.key,
-    required this.title,
-    required this.message,
-    this.confirmLabel = 'Confirm',
-    this.cancelLabel = 'Cancel',
-    this.icon,
-    this.isDestructive = true,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +90,6 @@ class ConfirmationDialog extends StatelessWidget {
         title: title,
         message: message,
         confirmLabel: confirmLabel,
-        isDestructive: true,
       ),
     ).then((value) => value ?? false);
   }

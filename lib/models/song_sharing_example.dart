@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'song.dart';
 
 /// Example usage of the Song model with sharing fields.
@@ -12,7 +13,6 @@ void main() {
     artist: 'Oasis',
     originalKey: 'Em',
     originalBPM: 87,
-    links: const [],
     tags: ['rock', '90s'],
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),
@@ -46,7 +46,7 @@ void main() {
     'artist': 'The Beatles',
     'originalKey': 'F',
     'links': [],
-    'tags': ['classic'],
+    'tags': <String>['classic'],
     'createdAt': DateTime.now().toIso8601String(),
     'updatedAt': DateTime.now().toIso8601String(),
   };
@@ -66,9 +66,9 @@ void main() {
   }
 
   // Use the examples to avoid unused warnings
-  print('Band Song: ${bandSong.title}');
-  print('Old Format Song: ${oldFormatSong.title}');
-  print('Is from personal bank: ${isFromPersonalBank(bandSong)}');
-  print('Original owner: ${getOriginalOwner(bandSong)}');
-  print('JSON keys: ${json.keys.join(', ')}');
+  debugPrint('Band Song: ${bandSong.title}');
+  debugPrint('Old Format Song: ${oldFormatSong.title}');
+  debugPrint('Is from personal bank: ${isFromPersonalBank(bandSong)}');
+  debugPrint('Original owner: ${getOriginalOwner(bandSong)}');
+  debugPrint('JSON keys: ${json.keys.join(', ')}');
 }

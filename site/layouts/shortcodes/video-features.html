@@ -1,0 +1,10 @@
+{{/* layouts/shortcodes/video-features.html */}}
+<ul class="video-features">
+  {{ $lines := split .Inner "\n" }}
+  {{ range $lines }}
+    {{ $line := trim . " " }}
+    {{ if and $line (hasPrefix $line "- ") }}
+      <li>{{ strings.TrimPrefix "- " $line | markdownify }}</li>
+    {{ end }}
+  {{ end }}
+</ul>

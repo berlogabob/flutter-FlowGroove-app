@@ -1,5 +1,5 @@
+import 'package:flowgroove/models/link.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/models/link.dart';
 
 void main() {
   group('Link Model', () {

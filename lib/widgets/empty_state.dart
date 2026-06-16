@@ -5,29 +5,8 @@ import 'package:flutter/material.dart';
 /// This widget provides a consistent empty state layout for when there
 /// is no data to display, with an optional call-to-action button.
 class EmptyState extends StatelessWidget {
-  /// The icon to display.
-  final IconData icon;
-
-  /// The main message to display.
-  final String message;
-
-  /// A secondary hint message.
-  final String? hint;
-
-  /// The label for the action button.
-  final String? actionLabel;
-
-  /// Callback when the action button is pressed.
-  final VoidCallback? onAction;
-
-  /// The color of the icon.
-  final Color? iconColor;
-
-  /// The size of the icon.
-  final double iconSize;
 
   const EmptyState({
-    super.key,
     required this.icon,
     required this.message,
     this.hint,
@@ -35,41 +14,8 @@ class EmptyState extends StatelessWidget {
     this.onAction,
     this.iconColor,
     this.iconSize = 80,
+    super.key,
   });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: iconSize, color: iconColor ?? Colors.grey),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            textAlign: TextAlign.center,
-          ),
-          if (hint != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              hint!,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-          ],
-          if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: onAction,
-              icon: const Icon(Icons.add),
-              label: Text(actionLabel!),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
 
   /// Create an empty state for songs.
   factory EmptyState.songs({VoidCallback? onAdd}) {
@@ -112,6 +58,60 @@ class EmptyState extends StatelessWidget {
       hint: query != null
           ? 'Try searching for "$query"'
           : 'Try different keywords',
+    );
+  }
+  /// The icon to display.
+  final IconData icon;
+
+  /// The main message to display.
+  final String message;
+
+  /// A secondary hint message.
+  final String? hint;
+
+  /// The label for the action button.
+  final String? actionLabel;
+
+  /// Callback when the action button is pressed.
+  final VoidCallback? onAction;
+
+  /// The color of the icon.
+  final Color? iconColor;
+
+  /// The size of the icon.
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: iconSize, color: iconColor ?? Colors.grey),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            textAlign: TextAlign.center,
+          ),
+          if (hint != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              hint!,
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.add),
+              label: Text(actionLabel!),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

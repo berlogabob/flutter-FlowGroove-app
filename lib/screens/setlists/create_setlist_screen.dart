@@ -1,17 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../providers/data/data_providers.dart';
-import '../../providers/auth/auth_provider.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../models/setlist.dart';
 import '../../models/song.dart';
+import '../../models/tuner_launch_context.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../providers/data/data_providers.dart';
+import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_app_bar.dart';
+import '../../widgets/primary_action_bar.dart';
+
+enum SetlistStorageScope { personal, band }
 
 class CreateSetlistScreen extends ConsumerStatefulWidget {
-  final Setlist? setlist;
+  const CreateSetlistScreen({
+    super.key,
+    this.setlist,
+    this.bandId,
+    this.storageScope = SetlistStorageScope.personal,
+  });
 
-  const CreateSetlistScreen({super.key, this.setlist});
+  final Setlist? setlist;
+  final String? bandId;
+  final SetlistStorageScope storageScope;
 
   @override
   ConsumerState<CreateSetlistScreen> createState() =>
@@ -22,46 +37,135 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _eventDateController = TextEditingController();
+  late final String _setlistId;
+  DateTime? _eventDate;
   final _eventLocationController = TextEditingController();
   List<Song> _selectedSongs = [];
+  List<SetlistItem> _selectedItems = [];
+  bool _hasUnsavedChanges = false;
+  bool _isSaving = false;
 
   bool get _isEditing => widget.setlist != null;
+  bool get _isBandScope => widget.storageScope == SetlistStorageScope.band;
+
+  String? get _effectiveBandId {
+    final rawBandId = _isEditing ? widget.setlist!.bandId : widget.bandId;
+    final bandId = rawBandId?.trim();
+    return bandId == null || bandId.isEmpty ? null : bandId;
+  }
+
+  AsyncValue<List<Song>> _watchAvailableSongs() {
+    final bandId = _effectiveBandId;
+    return bandId == null
+        ? ref.watch(songsProvider)
+        : ref.watch(bandSongsProvider(bandId));
+  }
+
+  AsyncValue<List<Song>> _readAvailableSongs() {
+    final bandId = _effectiveBandId;
+    return bandId == null
+        ? ref.read(songsProvider)
+        : ref.read(bandSongsProvider(bandId));
+  }
+
+  void _markAsChanged() {
+    if (!_hasUnsavedChanges) {
+      setState(() => _hasUnsavedChanges = true);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _setlistId = widget.setlist?.id ?? const Uuid().v4();
     if (_isEditing) {
       final setlist = widget.setlist!;
       _nameController.text = setlist.name;
       _descriptionController.text = setlist.description ?? '';
-      _eventDateController.text = setlist.eventDate ?? '';
+      _eventDate = setlist.eventDateTime;
       _eventLocationController.text = setlist.eventLocation ?? '';
-      _loadSongsForEditing(setlist.songIds);
+      _loadSongsForEditing(setlist);
     }
   }
 
-  void _loadSongsForEditing(List<String> songIds) {
+  void _loadSongsForEditing(Setlist setlist) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final songsAsync = ref.read(songsProvider);
+      final songsAsync = _readAvailableSongs();
       final allSongs = songsAsync.value ?? [];
+      final songsById = <String, Song>{
+        for (final song in allSongs) song.id: song,
+      };
+      final items = setlist.effectiveItems;
+      if (!mounted) return;
       setState(() {
-        _selectedSongs = allSongs.where((s) => songIds.contains(s.id)).toList();
+        _selectedSongs = [
+          for (final item in items)
+            ?songsById[item.songId],
+        ];
+        _selectedItems = [
+          for (final item in items)
+            if (songsById.containsKey(item.songId)) item,
+        ];
       });
     });
+  }
+
+  List<SetlistItem> _reconcileItems(List<Song> songs) {
+    final available = List<SetlistItem>.from(_selectedItems);
+    return [
+      for (final song in songs)
+        if (available.indexWhere((item) => item.songId == song.id)
+            case final index when index >= 0)
+          available.removeAt(index)
+        else
+          SetlistItem(id: const Uuid().v4(), songId: song.id),
+    ];
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _eventDateController.dispose();
     _eventLocationController.dispose();
     super.dispose();
   }
 
-  void _showSongPicker() async {
-    final songsAsync = ref.read(songsProvider);
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _eventDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: MonoPulseColors.accentOrange,
+              onPrimary: Colors.white,
+              onSurface: MonoPulseColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _eventDate = picked;
+        _markAsChanged();
+      });
+    }
+  }
+
+  void _clearDate() {
+    setState(() {
+      _eventDate = null;
+      _markAsChanged();
+    });
+  }
+
+  Future<void> _showSongPicker() async {
+    final songsAsync = _readAvailableSongs();
     final songs = songsAsync.value ?? [];
 
     final result = await showModalBottomSheet<List<Song>>(
@@ -77,19 +181,31 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           selectedSongs: _selectedSongs,
           scrollController: scrollController,
           onConfirm: (selected) {
-            setState(() => _selectedSongs = selected);
+            setState(() {
+              _selectedItems = _reconcileItems(selected);
+              _selectedSongs = selected;
+              _markAsChanged();
+            });
             Navigator.pop(context);
           },
         ),
       ),
     );
-    if (result != null) setState(() => _selectedSongs = result);
+    if (result != null) {
+      setState(() {
+        _selectedItems = _reconcileItems(result);
+        _selectedSongs = result;
+      });
+    }
   }
 
   Future<void> _saveSetlist() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_isSaving) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
-    final user = ref.read(currentUserProvider);
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
     if (user == null) {
       ScaffoldMessenger.of(
         context,
@@ -97,243 +213,457 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       return;
     }
 
+    final bandId = _effectiveBandId;
+    if (_isBandScope && bandId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Band is required for shared setlists')),
+      );
+      return;
+    }
+
+    final items = _reconcileItems(_selectedSongs);
     final setlist = Setlist(
-      id: _isEditing ? widget.setlist!.id : const Uuid().v4(),
-      bandId: _isEditing ? widget.setlist!.bandId : '',
+      id: _setlistId,
+      bandId: bandId ?? '',
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
           : null,
-      eventDate: _eventDateController.text.trim().isNotEmpty
-          ? _eventDateController.text.trim()
-          : null,
+      eventDateTime: _eventDate,
       eventLocation: _eventLocationController.text.trim().isNotEmpty
           ? _eventLocationController.text.trim()
           : null,
       songIds: _selectedSongs.map((s) => s.id).toList(),
+      items: items,
+      totalDuration: widget.setlist?.totalDuration,
+      assignments: widget.setlist?.assignments ?? const {},
       createdAt: _isEditing ? widget.setlist!.createdAt : DateTime.now(),
       updatedAt: DateTime.now(),
     );
 
-    await ref.read(firestoreProvider).saveSetlist(setlist, user.uid);
-    if (mounted) {
-      Navigator.pop(context);
+    setState(() => _isSaving = true);
+    try {
+      if (_isBandScope) {
+        await ref.read(firestoreProvider).saveBandSetlist(setlist, bandId!);
+      } else {
+        await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
+      }
+
+      await AnalyticsService.logSetlistCreatedFromSetlist(setlist);
+
+      if (!mounted) return;
+      // Invalidate the setlists provider to ensure UI refresh
+      if (_isBandScope) {
+        ref.invalidate(bandSetlistsProvider(bandId!));
+      } else {
+        ref.invalidate(setlistsProvider);
+      }
+
+      // Show snackbar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Setlist "${setlist.name}" ${_isEditing ? 'updated' : 'created'}',
+            '${_isBandScope ? 'Band setlist' : 'Setlist'} "${setlist.name}" ${_isEditing ? 'updated' : 'created'}',
           ),
         ),
       );
+
+      // Clear unsaved changes flag after successful save
+      setState(() => _hasUnsavedChanges = false);
+
+      // Small delay to allow provider to refresh before navigating back
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isBandScope
+                ? 'Could not save the shared setlist. Check your band permissions and try again.'
+                : 'Could not save the setlist. Please try again.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
+  }
+
+  Future<bool> _showDiscardChangesDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard Changes?'),
+            content: const Text(
+              'You have unsaved changes. Are you sure you want to discard them?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Setlist' : 'Create Setlist'),
-        actions: [
-          TextButton(
-            onPressed: _saveSetlist,
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Setlist Name *',
-                prefixIcon: Icon(Icons.queue_music),
-              ),
-              textInputAction: TextInputAction.next,
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _eventDateController,
-              decoration: const InputDecoration(
-                labelText: 'Event Date',
-                prefixIcon: Icon(Icons.calendar_today),
-              ),
-              textInputAction: TextInputAction.next,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _eventLocationController,
-              decoration: const InputDecoration(
-                labelText: 'Event Location',
-                prefixIcon: Icon(Icons.location_on),
-              ),
-              textInputAction: TextInputAction.done,
-              onFieldSubmitted: (_) => _saveSetlist(),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(labelText: 'Description'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Songs (${_selectedSongs.length})',
-                  style: Theme.of(context).textTheme.titleMedium,
+    final availableSongsAsync = _watchAvailableSongs();
+
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return; // Already popped
+
+        if (_hasUnsavedChanges) {
+          final confirm = await _showDiscardChangesDialog();
+          if (confirm && context.mounted) {
+            if (context.mounted) {
+              Navigator.pop(context); // Allow pop
+            }
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: CustomAppBar.build(
+          context,
+          title: _isEditing
+              ? (_isBandScope ? 'Edit Band Setlist' : 'Edit Setlist')
+              : (_isBandScope ? 'Create Band Setlist' : 'Create Setlist'),
+        ),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Setlist Name *',
+                  prefixIcon: Icon(Icons.queue_music),
                 ),
-                TextButton.icon(
-                  onPressed: _showSongPicker,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add'),
+                textInputAction: TextInputAction.next,
+                onChanged: (_) => _markAsChanged(),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: MonoPulseColors.surfaceRaised,
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+                  ),
+                  child: const Icon(
+                    Icons.calendar_today,
+                    color: MonoPulseColors.textSecondary,
+                  ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (_selectedSongs.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(MonoPulseSpacing.xxxl),
-                decoration: BoxDecoration(
-                  border: Border.all(color: MonoPulseColors.borderDefault),
-                  borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                title: Text(
+                  'Event Date',
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: MonoPulseColors.textSecondary,
+                  ),
                 ),
-                child: const Column(
+                subtitle: Text(
+                  _eventDate != null
+                      ? '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}'
+                      : 'Tap to select date',
+                  style: MonoPulseTypography.bodyLarge.copyWith(
+                    color: _eventDate != null
+                        ? MonoPulseColors.textPrimary
+                        : MonoPulseColors.textTertiary,
+                  ),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.music_note,
-                      size: 48,
-                      color: MonoPulseColors.textTertiary,
-                    ),
-                    SizedBox(height: MonoPulseSpacing.md),
-                    Text(
-                      'No songs added',
-                      style: TextStyle(color: MonoPulseColors.textSecondary),
+                    if (_eventDate != null)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.clear,
+                          color: MonoPulseColors.textSecondary,
+                        ),
+                        onPressed: _clearDate,
+                      ),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: MonoPulseColors.textSecondary,
                     ),
                   ],
                 ),
-              )
-            else
-              ReorderableListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _selectedSongs.length,
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    if (newIndex > oldIndex) newIndex--;
-                    final song = _selectedSongs.removeAt(oldIndex);
-                    _selectedSongs.insert(newIndex, song);
-                  });
-                },
-                itemBuilder: (context, index) {
-                  final song = _selectedSongs[index];
-                  return Card(
-                    key: ValueKey(song.id),
-                    margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
-                    child: ListTile(
-                      leading: ReorderableDragStartListener(
-                        index: index,
-                        child: const Icon(
-                          Icons.drag_handle,
-                          color: MonoPulseColors.textTertiary,
-                        ),
-                      ),
-                      title: Text(
-                        song.title,
-                        style: const TextStyle(
-                          color: MonoPulseColors.textPrimary,
-                        ),
-                      ),
-                      subtitle: Text(
-                        song.artist,
-                        style: const TextStyle(
-                          color: MonoPulseColors.textSecondary,
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: MonoPulseSpacing.md,
-                              vertical: MonoPulseSpacing.xs,
-                            ),
-                            decoration: BoxDecoration(
-                              color: MonoPulseColors.accentOrangeSubtle,
-                              borderRadius: BorderRadius.circular(
-                                MonoPulseRadius.small,
-                              ),
-                            ),
-                            child: Text(
-                              song.ourKey ?? '-',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: MonoPulseColors.accentOrange,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (song.ourBPM != null)
-                            Text(
-                              '${song.ourBPM}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          if (song.spotifyUrl != null) ...[
-                            const SizedBox(width: 4),
-                            InkWell(
-                              onTap: () async {
-                                final uri = Uri.parse(song.spotifyUrl!);
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(
-                                    uri,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
-                              },
-                              child: const Icon(
-                                Icons.play_circle_fill,
-                                color: Colors.green,
-                                size: 24,
-                              ),
-                            ),
-                          ],
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 20),
-                            onPressed: () =>
-                                setState(() => _selectedSongs.removeAt(index)),
-                          ),
-                        ],
+                onTap: _pickDate,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _eventLocationController,
+                decoration: const InputDecoration(
+                  labelText: 'Event Location',
+                  prefixIcon: Icon(Icons.location_on),
+                ),
+                textInputAction: TextInputAction.done,
+                onChanged: (_) => _markAsChanged(),
+                onFieldSubmitted: (_) => _saveSetlist(),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLines: 2,
+                onChanged: (_) => _markAsChanged(),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Songs (${_selectedSongs.length})',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  TextButton.icon(
+                    onPressed: availableSongsAsync.isLoading
+                        ? null
+                        : _showSongPicker,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (availableSongsAsync.hasError) ...[
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Band songs could not be loaded.',
+                        style: TextStyle(color: MonoPulseColors.error),
                       ),
                     ),
-                  );
-                },
-              ),
-          ],
+                    TextButton(
+                      onPressed: () =>
+                          ref.invalidate(bandSongsProvider(_effectiveBandId!)),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (_selectedSongs.isEmpty)
+                Container(
+                  padding: const EdgeInsets.all(MonoPulseSpacing.xxxl),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: MonoPulseColors.borderDefault),
+                    borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                  ),
+                  child: const Column(
+                    children: [
+                      Icon(
+                        Icons.music_note,
+                        size: 48,
+                        color: MonoPulseColors.textTertiary,
+                      ),
+                      SizedBox(height: MonoPulseSpacing.md),
+                      Text(
+                        'No songs added',
+                        style: TextStyle(color: MonoPulseColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _selectedSongs.length,
+                  onReorder: (oldIndex, newIndex) {
+                    var adjustedIndex = newIndex;
+                    setState(() {
+                      if (adjustedIndex > oldIndex) adjustedIndex--;
+                      final song = _selectedSongs.removeAt(oldIndex);
+                      final item = _selectedItems.removeAt(oldIndex);
+                      _selectedSongs.insert(adjustedIndex, song);
+                      _selectedItems.insert(adjustedIndex, item);
+                      _markAsChanged();
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    final song = _selectedSongs[index];
+                    return Card(
+                      key: ValueKey(song.id),
+                      margin: const EdgeInsets.only(
+                        bottom: MonoPulseSpacing.md,
+                      ),
+                      child: ListTile(
+                        leading: ReorderableDragStartListener(
+                          index: index,
+                          child: const Icon(
+                            Icons.drag_handle,
+                            color: MonoPulseColors.textTertiary,
+                          ),
+                        ),
+                        title: Text(
+                          song.title,
+                          style: const TextStyle(
+                            color: MonoPulseColors.textPrimary,
+                          ),
+                        ),
+                        subtitle: Text(
+                          song.artist,
+                          style: const TextStyle(
+                            color: MonoPulseColors.textSecondary,
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: MonoPulseSpacing.md,
+                                vertical: MonoPulseSpacing.xs,
+                              ),
+                              decoration: BoxDecoration(
+                                color: MonoPulseColors.accentOrangeSubtle,
+                                borderRadius: BorderRadius.circular(
+                                  MonoPulseRadius.small,
+                                ),
+                              ),
+                              child: Text(
+                                song.ourKey ?? '-',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: MonoPulseColors.accentOrange,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (song.ourBPM != null)
+                              Text(
+                                '${song.ourBPM}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            if (song.spotifyUrl != null) ...[
+                              const SizedBox(width: 4),
+                              InkWell(
+                                onTap: () async {
+                                  final uri = Uri.parse(song.spotifyUrl!);
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(
+                                      uri,
+                                      mode: LaunchMode.externalApplication,
+                                    );
+                                  }
+                                },
+                                child: const Icon(
+                                  Icons.play_circle_fill,
+                                  color: MonoPulseColors.beatModeAccent,
+                                  size: 24,
+                                ),
+                              ),
+                            ],
+                            IconButton(
+                              icon: const Icon(Icons.tune, size: 20),
+                              tooltip: 'Open in Tuner',
+                              onPressed: () => _openTunerForItem(index),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: () => setState(() {
+                                _selectedSongs.removeAt(index);
+                                _selectedItems.removeAt(index);
+                                _markAsChanged();
+                              }),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
         ),
+        bottomNavigationBar: PrimaryActionBar(
+          label: _isSaving
+              ? 'Saving...'
+              : (_isEditing ? 'Save Changes' : 'Create Setlist'),
+          onPressed: !_isSaving ? _saveSetlist : null,
+          isLoading: _isSaving,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openTunerForItem(int index) async {
+    if (index < 0 ||
+        index >= _selectedSongs.length ||
+        index >= _selectedItems.length) {
+      return;
+    }
+    final song = _selectedSongs[index];
+    final draft = Setlist(
+      id: _setlistId,
+      bandId: _effectiveBandId ?? '',
+      name: _nameController.text.trim(),
+      description: _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
+      eventDateTime: _eventDate,
+      eventLocation: _eventLocationController.text.trim().isEmpty
+          ? null
+          : _eventLocationController.text.trim(),
+      songIds: _selectedSongs.map((value) => value.id).toList(),
+      items: _selectedItems,
+      totalDuration: widget.setlist?.totalDuration,
+      assignments: widget.setlist?.assignments ?? const {},
+      createdAt: widget.setlist?.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    await context.pushNamed<void>(
+      'tuner',
+      extra: TunerLaunchContext(
+        song: song,
+        setlist: draft,
+        setlistItemId: _selectedItems[index].id,
+        bandId: _effectiveBandId,
+        saveSetlist: (updatedSetlist) async {
+          if (!mounted) return;
+          setState(() {
+            _selectedItems = updatedSetlist.effectiveItems;
+            _hasUnsavedChanges = true;
+          });
+        },
       ),
     );
   }
 }
 
 class _SongPickerSheet extends StatefulWidget {
-  final List<Song> songs;
-  final List<Song> selectedSongs;
-  final ScrollController scrollController;
-  final Function(List<Song>) onConfirm;
-
   const _SongPickerSheet({
     required this.songs,
     required this.selectedSongs,
     required this.scrollController,
     required this.onConfirm,
   });
+
+  final List<Song> songs;
+  final List<Song> selectedSongs;
+  final ScrollController scrollController;
+  final ValueChanged<List<Song>> onConfirm;
 
   @override
   State<_SongPickerSheet> createState() => _SongPickerSheetState();
@@ -363,7 +693,7 @@ class _SongPickerSheetState extends State<_SongPickerSheet> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

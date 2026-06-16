@@ -1,131 +1,164 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/mono_pulse_theme.dart';
-import 'home_screen.dart';
-import 'songs/songs_list_screen.dart';
-import 'bands/my_bands_screen.dart';
-import 'setlists/setlists_list_screen.dart';
-import 'profile_screen.dart';
-
-/// Provider to track the current bottom navigation index.
-final bottomNavIndexProvider = NotifierProvider<BottomNavNotifier, int>(() {
-  return BottomNavNotifier();
-});
-
-class BottomNavNotifier extends Notifier<int> {
-  @override
-  int build() => 0;
-
-  void setIndex(int index) {
-    state = index;
-  }
-
-  void reset() {
-    state = 0;
-  }
-}
+import '../widgets/demo_mode_banner.dart';
 
 /// Main application shell with bottom navigation.
+/// Works with StatefulShellRoute.indexedStack for proper tab switching.
 ///
-/// Uses IndexedStack to preserve state of each tab.
+/// Features:
+/// - Single tap: Navigate to tab or show next screen in branch
+/// - Double tap: Navigate to root screen of each branch
 class MainShell extends ConsumerStatefulWidget {
-  const MainShell({super.key});
+
+  const MainShell({required this.navigationShell, super.key});
+  final StatefulNavigationShell navigationShell;
 
   @override
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    SongsListScreen(),
-    MyBandsScreen(),
-    SetlistsListScreen(),
-    ProfileScreen(),
-  ];
+  DateTime? _lastTapTime;
+  int? _lastTappedIndex;
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop && _currentIndex != 0) {
-          setState(() => _currentIndex = 0);
-        }
-      },
-      child: Scaffold(
-        body: IndexedStack(index: _currentIndex, children: _screens),
-        bottomNavigationBar: Container(
-          decoration: const BoxDecoration(
-            color: MonoPulseColors.black,
-            border: Border(
-              top: BorderSide(color: MonoPulseColors.borderSubtle, width: 1),
+    // Clamp selectedIndex to prevent assertion errors when router has more
+    // branches than bottom nav destinations (e.g., Tools branch).
+    final currentIndex = widget.navigationShell.currentIndex;
+    final safeIndex =
+        currentIndex >= 0 && currentIndex < 5 ? currentIndex : 0;
+
+    return Scaffold(
+      body: DemoModeBanner(child: widget.navigationShell),
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: MonoPulseColors.black,
+          border: Border(
+            top: BorderSide(color: MonoPulseColors.borderSubtle),
+          ),
+        ),
+        child: NavigationBar(
+          backgroundColor: MonoPulseColors.black,
+          indicatorColor: MonoPulseColors.accentOrangeSubtle,
+          selectedIndex: safeIndex,
+          onDestinationSelected: (index) => _onTap(context, index),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: const [
+            NavigationDestination(
+              icon: Tooltip(
+                message: 'Home',
+                child: Icon(
+                  Icons.home_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
+              ),
+              selectedIcon: Icon(
+                Icons.home,
+                color: MonoPulseColors.accentOrange,
+              ),
+              label: 'Home',
             ),
-          ),
-          child: NavigationBar(
-            backgroundColor: MonoPulseColors.black,
-            indicatorColor: MonoPulseColors.accentOrangeSubtle,
-            selectedIndex: _currentIndex,
-            onDestinationSelected: _onDestinationSelected,
-            labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-            destinations: [
-              _buildDestination(Icons.home_outlined, Icons.home, 'Home', 0),
-              _buildDestination(
-                Icons.music_note_outlined,
+            NavigationDestination(
+              icon: Tooltip(
+                message: 'Songs',
+                child: Icon(
+                  Icons.music_note_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
+              ),
+              selectedIcon: Icon(
                 Icons.music_note,
-                'Songs',
-                1,
+                color: MonoPulseColors.accentOrange,
               ),
-              _buildDestination(
-                Icons.groups_outlined,
+              label: 'Songs',
+            ),
+            NavigationDestination(
+              icon: Tooltip(
+                message: 'Bands',
+                child: Icon(
+                  Icons.groups_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
+              ),
+              selectedIcon: Icon(
                 Icons.groups,
-                'Bands',
-                2,
+                color: MonoPulseColors.accentOrange,
               ),
-              _buildDestination(
-                Icons.queue_music_outlined,
+              label: 'Bands',
+            ),
+            NavigationDestination(
+              icon: Tooltip(
+                message: 'Setlists',
+                child: Icon(
+                  Icons.queue_music_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
+              ),
+              selectedIcon: Icon(
                 Icons.queue_music,
-                'Setlists',
-                3,
+                color: MonoPulseColors.accentOrange,
               ),
-              _buildDestination(
-                Icons.person_outlined,
+              label: 'Setlists',
+            ),
+            NavigationDestination(
+              icon: Tooltip(
+                message: 'Profile',
+                child: Icon(
+                  Icons.person_outlined,
+                  color: MonoPulseColors.textTertiary,
+                ),
+              ),
+              selectedIcon: Icon(
                 Icons.person,
-                'Profile',
-                4,
+                color: MonoPulseColors.accentOrange,
               ),
-            ],
-          ),
+              label: 'Profile',
+            ),
+          ],
         ),
       ),
     );
   }
 
-  NavigationDestination _buildDestination(
-    IconData icon,
-    IconData selectedIcon,
-    String label,
-    int index,
-  ) {
-    final isSelected = _currentIndex == index;
-    return NavigationDestination(
-      icon: Icon(
-        icon,
-        color: isSelected
-            ? MonoPulseColors.accentOrange
-            : MonoPulseColors.textTertiary,
-      ),
-      selectedIcon: Icon(selectedIcon, color: MonoPulseColors.accentOrange),
-      label: label,
-    );
+  void _onTap(BuildContext context, int index) {
+    final now = DateTime.now();
+
+    // Check for double-tap on the same tab
+    if (_lastTappedIndex == index &&
+        _lastTapTime != null &&
+        now.difference(_lastTapTime!).inMilliseconds < 300) {
+      // Double-tap detected - navigate to root of branch
+      _navigateToRootOfBranch(context, index);
+      _lastTapTime = null;
+      _lastTappedIndex = null;
+      return;
+    }
+
+    // Single tap - normal navigation
+    _lastTapTime = now;
+    _lastTappedIndex = index;
+    widget.navigationShell.goBranch(index);
   }
 
-  void _onDestinationSelected(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-    ref.read(bottomNavIndexProvider.notifier).setIndex(index);
+  /// Navigate to the root screen of the specified branch.
+  /// Works on both web and mobile by directly navigating to the branch root URL.
+  void _navigateToRootOfBranch(BuildContext context, int branchIndex) {
+    // Direct URL navigation - most reliable for web
+    // These URLs correspond to the root of each StatefulShellRoute branch
+    switch (branchIndex) {
+      case 0: // Home
+        context.go('/main/home');
+      case 1: // Songs
+        context.go('/main/songs');
+      case 2: // Bands
+        context.go('/main/bands');
+      case 3: // Setlists
+        context.go('/main/setlists');
+      case 4: // Profile
+        context.go('/main/profile');
+    }
   }
 }

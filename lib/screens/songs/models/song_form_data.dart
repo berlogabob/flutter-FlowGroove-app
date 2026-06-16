@@ -1,5 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
+
+import '../../../models/beat_mode.dart';
 import '../../../models/link.dart';
+import '../../../models/section.dart';
 import '../../../models/song.dart';
 
 part 'song_form_data.g.dart';
@@ -11,6 +14,58 @@ part 'song_form_data.g.dart';
 /// separately from the UI logic.
 @JsonSerializable()
 class SongFormData {
+
+  /// Creates a new SongFormData instance.
+  SongFormData({
+    this.title = '',
+    this.artist = '',
+    this.originalBpm = '',
+    this.ourBpm = '',
+    this.notes = '',
+    List<Link>? links,
+    List<String>? selectedTags,
+    this.originalKeyBase = 'C',
+    this.originalKeyModifier = '',
+    this.ourKeyBase = 'C',
+    this.ourKeyModifier = '',
+    this.spotifyUrl,
+    this.accentBeats = 4,
+    this.regularBeats = 1,
+    List<List<BeatMode>>? beatModes,
+    List<Section>? sections,
+  }) : links = links ?? [],
+       selectedTags = selectedTags ?? [],
+       beatModes = beatModes ?? [],
+       sections = sections ?? [];
+
+  /// Creates a new SongFormData instance from an existing Song.
+  factory SongFormData.fromSong(Song song) {
+    final data = SongFormData(
+      title: song.title,
+      artist: song.artist,
+      originalBpm: song.originalBPM?.toString() ?? '',
+      ourBpm: song.ourBPM?.toString() ?? '',
+      notes: song.notes ?? '',
+      links: List.from(song.links),
+      selectedTags: List.from(song.tags),
+      spotifyUrl: song.spotifyUrl,
+      accentBeats: song.accentBeats,
+      regularBeats: song.regularBeats,
+      beatModes: song.beatModes.isNotEmpty
+          ? song.beatModes
+                .map((row) => row.map((mode) => mode).toList())
+                .toList()
+          : [],
+      sections: List.from(song.sections),
+    );
+    data._parseKey(song.originalKey, isOriginal: true);
+    data._parseKey(song.ourKey, isOriginal: false);
+
+    return data;
+  }
+
+  factory SongFormData.fromJson(Map<String, dynamic> json) =>
+      _$SongFormDataFromJson(json);
   /// The song title.
   String title;
 
@@ -47,38 +102,55 @@ class SongFormData {
   /// The Spotify URL if linked.
   String? spotifyUrl;
 
-  /// Creates a new SongFormData instance.
-  SongFormData({
-    this.title = '',
-    this.artist = '',
-    this.originalBpm = '',
-    this.ourBpm = '',
-    this.notes = '',
+  /// Metronome: Number of beats per measure (1-16, default 4).
+  int accentBeats;
+
+  /// Metronome: Number of subdivisions per beat (1-8, default 1).
+  int regularBeats;
+
+  /// Metronome: 2D list of beat modes (beats × subdivisions).
+  final List<List<BeatMode>> beatModes;
+
+  /// The song structure sections.
+  final List<Section> sections;
+
+  /// Creates a copy of this SongFormData with the given fields replaced.
+  SongFormData copyWith({
+    String? title,
+    String? artist,
+    String? originalBpm,
+    String? ourBpm,
+    String? notes,
     List<Link>? links,
     List<String>? selectedTags,
-    this.originalKeyBase = 'C',
-    this.originalKeyModifier = '',
-    this.ourKeyBase = 'C',
-    this.ourKeyModifier = '',
-    this.spotifyUrl,
-  }) : links = links ?? [],
-       selectedTags = selectedTags ?? [];
-
-  /// Creates SongFormData from an existing Song.
-  factory SongFormData.fromSong(Song song) {
-    final data = SongFormData(
-      title: song.title,
-      artist: song.artist,
-      originalBpm: song.originalBPM?.toString() ?? '',
-      ourBpm: song.ourBPM?.toString() ?? '',
-      notes: song.notes ?? '',
-      links: List.from(song.links),
-      selectedTags: List.from(song.tags),
-      spotifyUrl: song.spotifyUrl,
+    String? originalKeyBase,
+    String? originalKeyModifier,
+    String? ourKeyBase,
+    String? ourKeyModifier,
+    String? spotifyUrl,
+    int? accentBeats,
+    int? regularBeats,
+    List<List<BeatMode>>? beatModes,
+    List<Section>? sections,
+  }) {
+    return SongFormData(
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      originalBpm: originalBpm ?? this.originalBpm,
+      ourBpm: ourBpm ?? this.ourBpm,
+      notes: notes ?? this.notes,
+      links: links ?? List.from(this.links),
+      selectedTags: selectedTags ?? List.from(this.selectedTags),
+      originalKeyBase: originalKeyBase ?? this.originalKeyBase,
+      originalKeyModifier: originalKeyModifier ?? this.originalKeyModifier,
+      ourKeyBase: ourKeyBase ?? this.ourKeyBase,
+      ourKeyModifier: ourKeyModifier ?? this.ourKeyModifier,
+      spotifyUrl: spotifyUrl ?? this.spotifyUrl,
+      accentBeats: accentBeats ?? this.accentBeats,
+      regularBeats: regularBeats ?? this.regularBeats,
+      beatModes: beatModes ?? this.beatModes.map((row) => row.map((mode) => mode).toList()).toList(),
+      sections: sections ?? List.from(this.sections),
     );
-    data._parseKey(song.originalKey, isOriginal: true);
-    data._parseKey(song.ourKey, isOriginal: false);
-    return data;
   }
 
   /// Parse a key string into base and modifier components.
@@ -86,17 +158,17 @@ class SongFormData {
     if (key == null || key.isEmpty) return;
 
     final setKey = isOriginal
-        ? (base, modifier) {
+        ? (String base, String modifier) {
             originalKeyBase = base;
             originalKeyModifier = modifier;
           }
-        : (base, modifier) {
+        : (String base, String modifier) {
             ourKeyBase = base;
             ourKeyModifier = modifier;
           };
 
     if (key.length > 1 && key.endsWith('m')) {
-      setKey(key[0].toUpperCase(), 'm');
+      setKey(key[0].toUpperCase(), key.substring(1));
     } else if (key.length > 1) {
       setKey(key[0].toUpperCase(), key.substring(1));
     } else {
@@ -137,6 +209,10 @@ class SongFormData {
     ourKeyBase = 'C';
     ourKeyModifier = '';
     spotifyUrl = null;
+    accentBeats = 4;
+    regularBeats = 1;
+    beatModes.clear();
+    sections.clear();
   }
 
   /// Create a Song object from this form data.
@@ -168,7 +244,18 @@ class SongFormData {
       contributedBy: contributedBy,
       isCopy: isCopy,
       contributedAt: contributedAt,
+      accentBeats: accentBeats,
+      regularBeats: regularBeats,
+      beatModes: _copyBeatModes(),
+      sections: sections,
     );
+  }
+
+  /// Create a detached copy of the current beat modes grid.
+  List<List<BeatMode>> _copyBeatModes() {
+    return beatModes
+        .map((row) => row.map((mode) => mode).toList())
+        .toList();
   }
 
   /// Parse BPM string to int, returns null if empty or invalid.
@@ -212,8 +299,65 @@ class SongFormData {
   /// Update the Spotify URL.
   void updateSpotifyUrl(String? url) => spotifyUrl = url;
 
-  Map<String, dynamic> toJson() => _$SongFormDataToJson(this);
+  /// Update the accent beats (beats per measure).
+  void updateAccentBeats(int value) => accentBeats = value;
 
-  factory SongFormData.fromJson(Map<String, dynamic> json) =>
-      _$SongFormDataFromJson(json);
+  /// Update the regular beats (subdivisions per beat).
+  void updateRegularBeats(int value) => regularBeats = value;
+
+  /// Update a beat mode at the specified position.
+  void updateBeatMode(int beatIndex, int subdivisionIndex, BeatMode mode) {
+    // Ensure the 2D list is large enough
+    while (beatModes.length <= beatIndex) {
+      beatModes.add([]);
+    }
+    while (beatModes[beatIndex].length <= subdivisionIndex) {
+      beatModes[beatIndex].add(BeatMode.normal);
+    }
+    beatModes[beatIndex][subdivisionIndex] = mode;
+  }
+
+  /// Initialize beat modes grid with default values.
+  void initializeBeatModes() {
+    beatModes.clear();
+    for (int i = 0; i < accentBeats; i++) {
+      final row = <BeatMode>[];
+      for (int j = 0; j < regularBeats; j++) {
+        // First beat of each measure is accent by default
+        row.add(i == 0 ? BeatMode.accent : BeatMode.normal);
+      }
+      beatModes.add(row);
+    }
+  }
+
+  /// Add a section.
+  void addSection(Section section) => sections.add(section);
+
+  /// Remove a section at the specified index.
+  void removeSection(int index) => sections.removeAt(index);
+
+  /// Update a section at the specified index.
+  void updateSection(int index, Section section) {
+    if (index >= 0 && index < sections.length) {
+      sections[index] = section;
+    }
+  }
+
+  /// Reorder sections (for drag and drop).
+  void reorderSection(int oldIndex, int newIndex) {
+    var adjustedIndex = newIndex;
+    if (adjustedIndex > oldIndex) {
+      adjustedIndex -= 1;
+    }
+    final section = sections.removeAt(oldIndex);
+    sections.insert(adjustedIndex, section);
+  }
+
+  /// Set all sections.
+  void setSections(List<Section> newSections) {
+    sections.clear();
+    sections.addAll(newSections);
+  }
+
+  Map<String, dynamic> toJson() => _$SongFormDataToJson(this);
 }

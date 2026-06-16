@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../models/link.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../utils/song_tags.dart';
+import '../../../widgets/tag_input_dialog.dart';
 import 'bpm_selector.dart';
 import 'links_editor.dart';
 
@@ -13,6 +15,30 @@ import 'links_editor.dart';
 /// - Notes field
 /// - Tags selection
 class SongForm extends StatelessWidget {
+
+  const SongForm({
+    required this.formKey,
+    required this.titleController,
+    required this.artistController,
+    required this.originalBpmController,
+    required this.ourBpmController,
+    required this.notesController,
+    required this.links,
+    required this.selectedTags,
+    required this.availableTags,
+    required this.originalKeyBase,
+    required this.originalKeyModifier,
+    required this.ourKeyBase,
+    required this.ourKeyModifier,
+    required this.onOriginalKeyChanged,
+    required this.onOurKeyChanged,
+    required this.onAddLink,
+    required this.onRemoveLink,
+    required this.onTagChanged,
+    required this.isEditing,
+    this.onCopyFromOriginal,
+    super.key,
+  });
   /// Form key for validation.
   final GlobalKey<FormState> formKey;
 
@@ -72,30 +98,6 @@ class SongForm extends StatelessWidget {
 
   /// Whether we are in edit mode (vs. add mode).
   final bool isEditing;
-
-  const SongForm({
-    super.key,
-    required this.formKey,
-    required this.titleController,
-    required this.artistController,
-    required this.originalBpmController,
-    required this.ourBpmController,
-    required this.notesController,
-    required this.links,
-    required this.selectedTags,
-    required this.availableTags,
-    required this.originalKeyBase,
-    required this.originalKeyModifier,
-    required this.ourKeyBase,
-    required this.ourKeyModifier,
-    required this.onOriginalKeyChanged,
-    required this.onOurKeyChanged,
-    required this.onAddLink,
-    required this.onRemoveLink,
-    required this.onTagChanged,
-    this.onCopyFromOriginal,
-    required this.isEditing,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -180,25 +182,58 @@ class SongForm extends StatelessWidget {
           const SizedBox(height: MonoPulseSpacing.md),
           Wrap(
             spacing: MonoPulseSpacing.md,
-            children: availableTags
-                .map(
-                  (tag) => FilterChip(
-                    label: Text(
-                      tag,
-                      style: const TextStyle(
-                        color: MonoPulseColors.textPrimary,
-                      ),
+            runSpacing: MonoPulseSpacing.sm,
+            children: [
+              // Predefined suggestions plus any custom tags already selected.
+              for (final tag in {...availableTags, ...selectedTags})
+                FilterChip(
+                  label: Text(
+                    tag,
+                    style: const TextStyle(
+                      color: MonoPulseColors.textPrimary,
                     ),
-                    selected: selectedTags.contains(tag),
-                    onSelected: (selected) => onTagChanged(tag, selected),
-                    selectedColor: MonoPulseColors.accentOrangeSubtle,
-                    checkmarkColor: MonoPulseColors.accentOrange,
                   ),
-                )
-                .toList(),
+                  selected: selectedTags.contains(tag),
+                  onSelected: (selected) => onTagChanged(tag, selected),
+                  selectedColor: MonoPulseColors.accentOrangeSubtle,
+                  checkmarkColor: MonoPulseColors.accentOrange,
+                ),
+              ActionChip(
+                avatar: const Icon(
+                  Icons.add,
+                  size: 18,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                label: const Text('Add tag'),
+                onPressed: () => _editTags(context),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  /// Opens the tag editor so the user can add custom tags or remove existing
+  /// ones, then reconciles the result through [onTagChanged].
+  Future<void> _editTags(BuildContext context) async {
+    final result = await TagInputDialog.show(
+      context,
+      initialTags: selectedTags,
+      title: 'Tags',
+      hintText: 'Add a tag',
+      suggestions: availableTags,
+    );
+    if (result == null) return;
+
+    final normalized = SongTags.normalizeAll(result);
+    // Remove tags the user deselected.
+    for (final tag in List<String>.from(selectedTags)) {
+      if (!normalized.contains(tag)) onTagChanged(tag, false);
+    }
+    // Add newly entered tags.
+    for (final tag in normalized) {
+      if (!selectedTags.contains(tag)) onTagChanged(tag, true);
+    }
   }
 }

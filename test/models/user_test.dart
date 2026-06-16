@@ -1,10 +1,10 @@
+import 'package:flowgroove/models/user.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/models/user.dart';
 
 void main() {
   group('AppUser Model', () {
     // Test data
-    final testDate = DateTime(2024, 4, 5, 12, 0, 0);
+    final testDate = DateTime(2024, 4, 5, 12);
     final testBandIds = ['band-1', 'band-2', 'band-3'];
 
     group('Constructor', () {

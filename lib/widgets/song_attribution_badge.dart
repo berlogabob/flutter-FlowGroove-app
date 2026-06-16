@@ -8,6 +8,17 @@ import '../theme/mono_pulse_theme.dart';
 /// - Contributor (who added it to the band)
 /// - Copy indicator (if this is a band's copy of a personal song)
 class SongAttributionBadge extends StatelessWidget {
+
+  const SongAttributionBadge({
+    this.originalOwnerName,
+    this.contributorName,
+    this.isCopy = false,
+    this.size = BadgeSize.small,
+    this.showOriginalOwner = true,
+    this.showContributor = true,
+    this.showCopyIndicator = true,
+    super.key,
+  });
   /// The display name of the original owner.
   final String? originalOwnerName;
 
@@ -28,17 +39,6 @@ class SongAttributionBadge extends StatelessWidget {
 
   /// Whether to show the copy indicator.
   final bool showCopyIndicator;
-
-  const SongAttributionBadge({
-    super.key,
-    this.originalOwnerName,
-    this.contributorName,
-    this.isCopy = false,
-    this.size = BadgeSize.small,
-    this.showOriginalOwner = true,
-    this.showContributor = true,
-    this.showCopyIndicator = true,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +65,7 @@ class SongAttributionBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrangeSubtle,
         borderRadius: BorderRadius.circular(_borderRadius),
-        border: Border.all(color: MonoPulseColors.accentOrange, width: 1),
+        border: Border.all(color: MonoPulseColors.accentOrange),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -97,7 +97,7 @@ class SongAttributionBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrangeSubtle,
         borderRadius: BorderRadius.circular(_borderRadius),
-        border: Border.all(color: MonoPulseColors.accentOrange, width: 1),
+        border: Border.all(color: MonoPulseColors.accentOrange),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -132,7 +132,7 @@ class SongAttributionBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: MonoPulseColors.surfaceOverlay,
         borderRadius: BorderRadius.circular(_borderRadius),
-        border: Border.all(color: MonoPulseColors.borderDefault, width: 1),
+        border: Border.all(color: MonoPulseColors.borderDefault),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -221,17 +221,17 @@ class SongAttributionBadge extends StatelessWidget {
 
 /// A compact attribution badge for use in list items.
 class CompactAttributionBadge extends StatelessWidget {
+
+  const CompactAttributionBadge({
+    required this.isCopy,
+    this.contributorName,
+    super.key,
+  });
   /// Whether this is a copy.
   final bool isCopy;
 
   /// The contributor name.
   final String? contributorName;
-
-  const CompactAttributionBadge({
-    super.key,
-    required this.isCopy,
-    this.contributorName,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -287,6 +287,13 @@ enum BadgeSize {
 
 /// A widget that displays attribution information in a ListTile subtitle.
 class AttributionSubtitle extends StatelessWidget {
+
+  const AttributionSubtitle({
+    required this.subtitle, super.key,
+    this.originalOwnerName,
+    this.contributorName,
+    this.isCopy = false,
+  });
   /// The primary subtitle text (e.g., artist name).
   final String subtitle;
 
@@ -299,14 +306,6 @@ class AttributionSubtitle extends StatelessWidget {
   /// Whether this is a copy.
   final bool isCopy;
 
-  const AttributionSubtitle({
-    super.key,
-    required this.subtitle,
-    this.originalOwnerName,
-    this.contributorName,
-    this.isCopy = false,
-  });
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -318,10 +317,7 @@ class AttributionSubtitle extends StatelessWidget {
           originalOwnerName: originalOwnerName,
           contributorName: contributorName,
           isCopy: isCopy,
-          size: BadgeSize.small,
           showOriginalOwner: false, // Hide in compact view
-          showContributor: true,
-          showCopyIndicator: true,
         ),
       ],
     );

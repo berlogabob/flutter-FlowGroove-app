@@ -6,6 +6,17 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a reusable button with support for different
 /// variants (primary, secondary, outline, text) and loading states.
 class CustomButton extends StatelessWidget {
+
+  const CustomButton({
+    required this.label,
+    this.onPressed,
+    this.variant = ButtonVariant.primary,
+    this.size = ButtonSize.medium,
+    this.isLoading = false,
+    this.icon,
+    this.fullWidth = false,
+    super.key,
+  });
   /// The text displayed on the button.
   final String label;
 
@@ -26,17 +37,6 @@ class CustomButton extends StatelessWidget {
 
   /// Whether the button should expand to fill available width.
   final bool fullWidth;
-
-  const CustomButton({
-    super.key,
-    required this.label,
-    this.onPressed,
-    this.variant = ButtonVariant.primary,
-    this.size = ButtonSize.medium,
-    this.isLoading = false,
-    this.icon,
-    this.fullWidth = false,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +73,6 @@ class CustomButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(MonoPulseRadius.large),
               side: const BorderSide(
                 color: MonoPulseColors.accentOrange,
-                width: 1,
               ),
             ),
           ),

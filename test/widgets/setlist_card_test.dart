@@ -1,11 +1,12 @@
+import 'package:flowgroove/widgets/setlist_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/setlist_card.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('SetlistCard', () {
-    testWidgets('renders setlist card with name', (WidgetTester tester) async {
+    testWidgets('renders setlist card with name', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -18,7 +19,7 @@ void main() {
       expect(findText('Test Setlist'), findsOneWidget);
     });
 
-    testWidgets('renders playlist icon', (WidgetTester tester) async {
+    testWidgets('renders playlist icon', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -31,7 +32,7 @@ void main() {
       expect(findIcon(Icons.playlist_play), findsOneWidget);
     });
 
-    testWidgets('renders song count', (WidgetTester tester) async {
+    testWidgets('renders song count', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -45,7 +46,7 @@ void main() {
     });
 
     testWidgets('renders song count singular for one song', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -59,7 +60,7 @@ void main() {
       expect(find.text('1 song'), findsOneWidget);
     });
 
-    testWidgets('renders band name when provided', (WidgetTester tester) async {
+    testWidgets('renders band name when provided', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -74,7 +75,7 @@ void main() {
     });
 
     testWidgets('does not render band name when null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -82,7 +83,6 @@ void main() {
           id: 'test-setlist',
           name: 'Test Setlist',
           songCount: 10,
-          bandName: null,
         ),
       );
 
@@ -90,7 +90,7 @@ void main() {
     });
 
     testWidgets('does not render band name when empty', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -105,7 +105,7 @@ void main() {
       verifyNotFound(find.text(''));
     });
 
-    testWidgets('renders date when provided', (WidgetTester tester) async {
+    testWidgets('renders date when provided', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -119,21 +119,20 @@ void main() {
       expect(find.text('Jun 15, 2024'), findsOneWidget);
     });
 
-    testWidgets('does not render date when null', (WidgetTester tester) async {
+    testWidgets('does not render date when null', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
           id: 'test-setlist',
           name: 'Test Setlist',
           songCount: 10,
-          date: null,
         ),
       );
 
       verifyNotFound(find.text('Jun 15, 2024'));
     });
 
-    testWidgets('renders edit button', (WidgetTester tester) async {
+    testWidgets('renders edit button', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -147,7 +146,7 @@ void main() {
       expect(findIcon(Icons.edit), findsOneWidget);
     });
 
-    testWidgets('renders delete button', (WidgetTester tester) async {
+    testWidgets('renders delete button', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -162,7 +161,7 @@ void main() {
     });
 
     testWidgets('does not render edit button when onEdit is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -177,7 +176,7 @@ void main() {
     });
 
     testWidgets('does not render delete button when onDelete is null', (
-      WidgetTester tester,
+      tester,
     ) async {
       await pumpAppWidget(
         tester,
@@ -191,7 +190,7 @@ void main() {
       verifyNotFound(findIcon(Icons.delete));
     });
 
-    testWidgets('calls onTap when card is tapped', (WidgetTester tester) async {
+    testWidgets('calls onTap when card is tapped', (tester) async {
       bool wasTapped = false;
 
       await pumpAppWidget(
@@ -211,7 +210,7 @@ void main() {
     });
 
     testWidgets('calls onEdit when edit button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasEdited = false;
 
@@ -232,7 +231,7 @@ void main() {
     });
 
     testWidgets('calls onDelete when delete button is tapped', (
-      WidgetTester tester,
+      tester,
     ) async {
       bool wasDeleted = false;
 
@@ -252,7 +251,7 @@ void main() {
       expect(wasDeleted, isTrue);
     });
 
-    testWidgets('renders as Card widget', (WidgetTester tester) async {
+    testWidgets('renders as Card widget', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -265,7 +264,7 @@ void main() {
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('renders as ListTile', (WidgetTester tester) async {
+    testWidgets('renders as ListTile', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -278,7 +277,7 @@ void main() {
       expect(find.byType(ListTile), findsOneWidget);
     });
 
-    testWidgets('formats date correctly', (WidgetTester tester) async {
+    testWidgets('formats date correctly', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -292,7 +291,7 @@ void main() {
       expect(find.text('Jan 1, 2024'), findsOneWidget);
     });
 
-    testWidgets('handles invalid date gracefully', (WidgetTester tester) async {
+    testWidgets('handles invalid date gracefully', (tester) async {
       await pumpAppWidget(
         tester,
         const SetlistCard(
@@ -308,7 +307,7 @@ void main() {
   });
 
   group('CompactSetlistCard', () {
-    testWidgets('renders compact card with name', (WidgetTester tester) async {
+    testWidgets('renders compact card with name', (tester) async {
       await pumpAppWidget(
         tester,
         const CompactSetlistCard(
@@ -321,7 +320,7 @@ void main() {
       expect(findText('Compact Setlist'), findsOneWidget);
     });
 
-    testWidgets('renders song count', (WidgetTester tester) async {
+    testWidgets('renders song count', (tester) async {
       await pumpAppWidget(
         tester,
         const CompactSetlistCard(
@@ -334,7 +333,7 @@ void main() {
       expect(find.text('5 songs'), findsOneWidget);
     });
 
-    testWidgets('renders playlist icon', (WidgetTester tester) async {
+    testWidgets('renders playlist icon', (tester) async {
       await pumpAppWidget(
         tester,
         const CompactSetlistCard(
@@ -347,7 +346,7 @@ void main() {
       expect(findIcon(Icons.playlist_play), findsOneWidget);
     });
 
-    testWidgets('calls onTap when card is tapped', (WidgetTester tester) async {
+    testWidgets('calls onTap when card is tapped', (tester) async {
       bool wasTapped = false;
 
       await pumpAppWidget(
@@ -366,7 +365,7 @@ void main() {
       expect(wasTapped, isTrue);
     });
 
-    testWidgets('renders as Card widget', (WidgetTester tester) async {
+    testWidgets('renders as Card widget', (tester) async {
       await pumpAppWidget(
         tester,
         const CompactSetlistCard(
@@ -379,7 +378,7 @@ void main() {
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('renders as ListTile', (WidgetTester tester) async {
+    testWidgets('renders as ListTile', (tester) async {
       await pumpAppWidget(
         tester,
         const CompactSetlistCard(

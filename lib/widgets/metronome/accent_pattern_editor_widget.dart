@@ -60,7 +60,7 @@ class AccentPatternEditorWidget extends ConsumerWidget {
                       textStyle: MonoPulseTypography.bodySmall.copyWith(
                         color: MonoPulseColors.textSecondary,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.help_outline,
                         size: 16,
                         color: MonoPulseColors.textTertiary,
@@ -82,7 +82,7 @@ class AccentPatternEditorWidget extends ConsumerWidget {
                         MonoPulseRadius.medium,
                       ),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.refresh,
                       size: 18,
                       color: MonoPulseColors.textSecondary,
@@ -130,15 +130,15 @@ class AccentPatternEditorWidget extends ConsumerWidget {
 }
 
 class _AccentToggleButton extends StatefulWidget {
-  final int beatNumber;
-  final bool isAccent;
-  final VoidCallback onTap;
 
   const _AccentToggleButton({
     required this.beatNumber,
     required this.isAccent,
     required this.onTap,
   });
+  final int beatNumber;
+  final bool isAccent;
+  final VoidCallback onTap;
 
   @override
   State<_AccentToggleButton> createState() => _AccentToggleButtonState();
@@ -157,7 +157,7 @@ class _AccentToggleButtonState extends State<_AccentToggleButton>
       duration: MonoPulseAnimation.durationShort,
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
+    _pulseAnimation = Tween<double>(begin: 1, end: 1.08).animate(
       CurvedAnimation(
         parent: _pulseController,
         curve: MonoPulseAnimation.curveCustom,

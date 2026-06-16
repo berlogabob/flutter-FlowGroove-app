@@ -7,20 +7,38 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:703941154390:android:43dfeaf2f6a0495e004df7",
+        "mobilesdk_app_id": "1:703941154390:android:452fa16f90a8ec3d004df7",
         "android_client_info": {
-          "package_name": "com.example.flutter_repsync_app"
+          "package_name": "com.flowgroove.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "703941154390-2tcu3jf5of5e0853mroie1vapd1ho9m1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.flowgroove.app",
+            "certificate_hash": "b4547bee6f41827669194b95e75b3256d4b342b4"
+          }
+        },
+        {
+          "client_id": "703941154390-kq214etvh0r0ka6ahs01gbi5hhd5ii66.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyAxQ53DQzyEkKXjo3Ry2B9pcTMvcyk4d5o"
+          "current_key": "AIzaSyBBmMazakzn-C6eveJdMyhUpeJWYcLowjk"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "703941154390-kq214etvh0r0ka6ahs01gbi5hhd5ii66.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

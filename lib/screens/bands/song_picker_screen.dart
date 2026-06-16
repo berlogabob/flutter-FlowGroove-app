@@ -1,0 +1,279 @@
+/// Screen for selecting songs from personal library to add to a band.
+/// Supports multi-select for adding multiple songs at once.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../models/band.dart';
+import '../../../models/song.dart';
+import '../../../providers/auth/auth_provider.dart';
+import '../../../providers/data/data_providers.dart';
+import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/empty_state.dart';
+import '../../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
+import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../../widgets/unified_item/unified_filter_sort_widget.dart';
+
+/// Screen for selecting songs to add to a band.
+class SongPickerScreen extends ConsumerStatefulWidget {
+
+  const SongPickerScreen({required this.band, super.key});
+  /// The band to add songs to.
+  final Band band;
+
+  @override
+  ConsumerState<SongPickerScreen> createState() => _SongPickerScreenState();
+}
+
+class _SongPickerScreenState extends ConsumerState<SongPickerScreen> {
+  String _searchQuery = '';
+  SortOption _sortOption = SortOption.alphabetical;
+  final Set<String> _selectedSongIds = {};
+
+  /// Get current user's personal songs.
+  List<Song> _filterSongs(List<Song> allSongs) {
+    var filtered = allSongs;
+
+    // Apply search filter
+    if (_searchQuery.trim().isNotEmpty) {
+      final query = _searchQuery.toLowerCase().trim();
+      filtered = filtered.where((song) {
+        final titleMatch = song.title.toLowerCase().contains(query);
+        final artistMatch = song.artist.toLowerCase().contains(query);
+        final tagsMatch = song.tags.any(
+          (tag) => tag.toLowerCase().contains(query),
+        );
+        return titleMatch || artistMatch || tagsMatch;
+      }).toList();
+    }
+
+    // Apply sorting
+    switch (_sortOption) {
+      case SortOption.alphabetical:
+        filtered.sort((a, b) => a.title.compareTo(b.title));
+      case SortOption.dateAdded:
+        filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case SortOption.manual:
+      case SortOption.dateModified:
+        break;
+    }
+
+    return filtered;
+  }
+
+  /// Add selected songs to band.
+  Future<void> _addSelectedToBand() async {
+    if (_selectedSongIds.isEmpty) {
+      Navigator.pop(context);
+      return;
+    }
+
+    final userAsync = ref.read(currentUserProvider);
+    final user = userAsync.value;
+    if (user == null) return;
+
+    if (!mounted) return;
+    // Show loading indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  MonoPulseColors.textPrimary,
+                ),
+              ),
+            ),
+            SizedBox(width: 16),
+            Text('Adding songs to band...'),
+          ],
+        ),
+        duration: Duration(seconds: 2),
+        backgroundColor: MonoPulseColors.accentOrange,
+      ),
+    );
+
+    try {
+      final songRepo = ref.read(songRepositoryProvider);
+      int successCount = 0;
+      int failCount = 0;
+
+      // Add each selected song to band
+      for (final songId in _selectedSongIds) {
+        try {
+          await songRepo.addSongToBandById(songId, widget.band.id);
+          successCount++;
+        } catch (e) {
+          failCount++;
+          debugPrint('❌ Failed to add song $songId to band: $e');
+        }
+      }
+
+      if (!mounted) return;
+
+      if (successCount > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              failCount > 0
+                  ? 'Added $successCount song(s). $failCount failed.'
+                  : 'Successfully added $successCount song(s) to ${widget.band.name}!',
+            ),
+            backgroundColor: failCount > 0
+                ? MonoPulseColors.warning
+                : MonoPulseColors.successGreen,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+
+      if (failCount == 0) {
+        Navigator.pop(context, true); // Indicate success
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      String errorMessage = 'Failed to add songs. ';
+
+      // Check for timeout or network error
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('timeout')) {
+        errorMessage =
+            'Request timed out. Please check your internet connection and try again.';
+      } else if (errorStr.contains('permission')) {
+        errorMessage = 'You do not have permission to add songs to this band.';
+      } else if (errorStr.contains('network') ||
+          errorStr.contains('connection')) {
+        errorMessage =
+            'Network error. Please check your connection and try again.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: MonoPulseColors.error,
+          action: SnackBarAction(
+            label: 'RETRY',
+            textColor: MonoPulseColors.textPrimary,
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final songsAsync = ref.watch(songsProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add Songs to ${widget.band.name}'),
+        actions: [
+          if (_selectedSongIds.isNotEmpty)
+            TextButton(
+              onPressed: _addSelectedToBand,
+              child: Text(
+                'Add (${_selectedSongIds.length})',
+                style: const TextStyle(
+                  color: MonoPulseColors.accentOrange,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
+      ),
+      body: songsAsync.when(
+        data: (songs) => _buildContent(context, songs),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: ErrorBanner(
+            message: e.toString(),
+            onRetry: () => ref.invalidate(songsProvider),
+            showRetry: true,
+            style: ErrorBannerStyle.card,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, List<Song> songs) {
+    final filteredSongs = _filterSongs(songs);
+
+    return Column(
+      children: [
+        // Search and sort
+        Padding(
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          child: UnifiedFilterSortWidget(
+            currentSort: _sortOption,
+            onSortChanged: (option) {
+              if (option != null) {
+                setState(() => _sortOption = option);
+              }
+            },
+            filterText: _searchQuery.isEmpty ? null : _searchQuery,
+            onFilterChanged: (value) {
+              setState(() => _searchQuery = value ?? '');
+            },
+          ),
+        ),
+        // Songs list with checkboxes
+        Expanded(
+          child: filteredSongs.isEmpty
+              ? _buildEmptyState(songs.isEmpty)
+              : ListView.builder(
+                  itemCount: filteredSongs.length,
+                  itemBuilder: (context, index) {
+                    final song = filteredSongs[index];
+                    final isSelected = _selectedSongIds.contains(song.id);
+                    final adapter = SongItemAdapter(song);
+
+                    return CheckboxListTile(
+                      value: isSelected,
+                      onChanged: (selected) {
+                        setState(() {
+                          if (selected == true) {
+                            _selectedSongIds.add(song.id);
+                          } else {
+                            _selectedSongIds.remove(song.id);
+                          }
+                        });
+                      },
+                      title: Text(adapter.title),
+                      subtitle: adapter.subtitle != null
+                          ? Text(adapter.subtitle!)
+                          : null,
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState(bool isEmpty) {
+    if (isEmpty) {
+      return EmptyState(
+        icon: Icons.music_note,
+        message: 'No songs available',
+        hint: 'Create some songs in your personal library first.',
+        actionLabel: 'Create Song',
+        onAction: () => context.goNamed(
+          'add-song',
+          queryParameters: {'bandId': widget.band.id},
+        ),
+      );
+    }
+    return EmptyState.search(query: _searchQuery);
+  }
+}

@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/song.dart';
+
 import '../../../models/band.dart';
+import '../../../models/song.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
-import '../../../widgets/song_attribution_badge.dart';
-import '../../../widgets/empty_state.dart';
-import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/confirmation_dialog.dart';
+import '../../../widgets/custom_text_field.dart';
+import '../../../widgets/empty_state.dart';
+import '../../../widgets/song_attribution_badge.dart';
 
 /// Screen for displaying a band's shared songs.
 ///
 /// This screen shows all songs that have been shared to the band's
 /// song bank, with filtering by contributor and attribution badges.
 class BandSongsScreen extends ConsumerStatefulWidget {
+
+  const BandSongsScreen({required this.band, super.key});
   /// The band whose songs to display.
   final Band band;
-
-  const BandSongsScreen({super.key, required this.band});
 
   @override
   ConsumerState<BandSongsScreen> createState() => _BandSongsScreenState();
@@ -30,11 +31,10 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
 
   /// Get the current user's role in the band.
   String? get _userRole {
-    final user = ref.read(currentUserProvider);
-    if (user == null) return null;
+    final user = ref.read(currentUserProvider).value;
 
     final member = widget.band.members.firstWhere(
-      (m) => m.uid == user.uid,
+      (m) => m.uid == user?.uid,
       orElse: () => BandMember(uid: '', role: ''),
     );
     return member.role;
@@ -204,7 +204,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         icon: Icons.music_note,
         message: 'No songs yet',
         hint: _canEdit
-            ? 'Add songs to your band\'s collection'
+            ? "Add songs to your band's collection"
             : 'No songs have been shared to this band yet',
         actionLabel: _canEdit ? 'Add Song' : null,
         onAction: _canEdit ? () => _addSongToBand(context, ref) : null,
@@ -225,7 +225,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       ),
       confirmDismiss: (direction) async {
         if (!_canEdit) return false;
-        return await ConfirmationDialog.showDeleteDialog(
+        return ConfirmationDialog.showDeleteDialog(
           context,
           title: 'Remove from Band',
           message: 'Are you sure you want to remove this song from the band?',
@@ -234,12 +234,9 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       },
       onDismissed: (direction) async {
         if (!_canEdit) return;
-        final user = ref.read(currentUserProvider);
-        if (user != null) {
-          await ref
-              .read(firestoreProvider)
-              .deleteBandSong(widget.band.id, song.id);
-        }
+        await ref
+            .read(firestoreProvider)
+            .deleteBandSong(widget.band.id, song.id);
       },
       child: _buildSongTile(context, ref, song),
     );

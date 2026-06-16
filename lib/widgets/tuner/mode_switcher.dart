@@ -52,15 +52,15 @@ class ModeSwitcher extends ConsumerWidget {
 }
 
 class _ModePill extends StatefulWidget {
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
 
   const _ModePill({
     required this.label,
     required this.isActive,
     required this.onTap,
   });
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
 
   @override
   State<_ModePill> createState() => _ModePillState();
@@ -142,7 +142,7 @@ class _ModePillState extends State<_ModePill>
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-              border: Border.all(color: borderColor, width: 1),
+              border: Border.all(color: borderColor),
             ),
             child: Center(
               child: Text(
@@ -150,7 +150,6 @@ class _ModePillState extends State<_ModePill>
                 style: MonoPulseTypography.bodyLarge.copyWith(
                   color: textColor,
                   fontWeight: MonoPulseTypography.medium,
-                  fontSize: 18,
                 ),
               ),
             ),

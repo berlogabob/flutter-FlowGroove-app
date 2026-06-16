@@ -3,14 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import 'settings_sheet.dart';
 
 /// Bottom Transport Bar widget for Tuner screen
 ///
 /// Horizontal row at bottom (64-80px height):
 /// - Center: Large oval Play/Stop button (radius 32px vertical, background #FF5E00)
 ///   - White icon 48px (▶ / ■)
-/// - Left: Volume icon with slider
-/// - Right: Settings icon (placeholder)
+/// - Left: Volume icon with 3-state cycle (0% → 50% → 100%)
+/// - Right: Music Mode cycle button (cycles through scales: Chromatic, Ionian, Dorian, etc.)
 ///
 /// INTERACTIVE (Stage 2):
 /// - Generate Mode: Play/Stop button controls tone generation
@@ -33,10 +34,13 @@ class TransportBar extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Volume icon with slider (left)
-          _VolumeControl(
-            volume: state.volume,
-            onVolumeChanged: (vol) => notifier.setVolume(vol),
-          ),
+          if (state.mode == TunerMode.generate)
+            _VolumeControl(
+              volume: state.volume,
+              onVolumeChanged: notifier.setVolume,
+            )
+          else
+            _InputLevelIndicator(levelDb: state.inputLevelDb),
           const SizedBox(width: MonoPulseSpacing.xxl),
 
           // Play/Stop or Start/Stop button (center)
@@ -45,25 +49,29 @@ class TransportBar extends ConsumerWidget {
             isActive: state.mode == TunerMode.generate
                 ? state.isPlaying
                 : state.isListening,
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              if (state.mode == TunerMode.generate) {
-                notifier.togglePlaying();
-              } else {
-                notifier.toggleListening();
-              }
-            },
+            isStarting: state.isStarting,
+            onTap: state.isStarting
+                ? null
+                : () {
+                    HapticFeedback.mediumImpact();
+                    if (state.mode == TunerMode.generate) {
+                      notifier.togglePlaying();
+                    } else {
+                      notifier.toggleListening();
+                    }
+                  },
           ),
 
           const SizedBox(width: MonoPulseSpacing.xxl),
 
-          // Settings icon (right, placeholder)
-          _IconButton(
-            icon: Icons.tune_outlined,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              // Placeholder for settings
-            },
+          _CalibrationButton(
+            referenceHz: state.referenceA4,
+            onTap: () => showModalBottomSheet<void>(
+              context: context,
+              backgroundColor: Colors.transparent,
+              isScrollControlled: true,
+              builder: (context) => const TunerSettingsSheet(),
+            ),
           ),
         ],
       ),
@@ -72,15 +80,17 @@ class TransportBar extends ConsumerWidget {
 }
 
 class _MainActionButton extends StatelessWidget {
-  final TunerMode mode;
-  final bool isActive;
-  final VoidCallback onTap;
-
   const _MainActionButton({
     required this.mode,
     required this.isActive,
+    required this.isStarting,
     required this.onTap,
   });
+
+  final TunerMode mode;
+  final bool isActive;
+  final bool isStarting;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +127,17 @@ class _MainActionButton extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Icon(icon, color: MonoPulseColors.white, size: 44),
+            if (isStarting)
+              const SizedBox(
+                width: 30,
+                height: 30,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: MonoPulseColors.white,
+                ),
+              )
+            else
+              Icon(icon, color: MonoPulseColors.white, size: 44),
             if (label != null)
               Positioned(
                 bottom: -18,
@@ -125,7 +145,6 @@ class _MainActionButton extends StatelessWidget {
                   label,
                   style: MonoPulseTypography.labelSmall.copyWith(
                     color: MonoPulseColors.textSecondary,
-                    fontSize: 10,
                   ),
                 ),
               ),
@@ -137,29 +156,49 @@ class _MainActionButton extends StatelessWidget {
 }
 
 class _VolumeControl extends StatefulWidget {
-  final double volume;
-  final Function(double) onVolumeChanged;
-
   const _VolumeControl({required this.volume, required this.onVolumeChanged});
+
+  final double volume;
+  final void Function(double) onVolumeChanged;
 
   @override
   State<_VolumeControl> createState() => _VolumeControlState();
 }
 
 class _VolumeControlState extends State<_VolumeControl> {
-  bool _isSliderVisible = false;
+  /// Cycle through 3 volume states: 0% → 50% → 100% → 0%
+  void _cycleVolume() {
+    double newVolume;
+    if (widget.volume == 0) {
+      newVolume = 0.5;
+    } else if (widget.volume < 1.0) {
+      newVolume = 1.0;
+    } else {
+      newVolume = 0;
+    }
+    widget.onVolumeChanged(newVolume);
+    HapticFeedback.lightImpact();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isSliderVisible = !_isSliderVisible;
-        });
-        HapticFeedback.lightImpact();
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Container(
+    final volumeLabel = widget.volume == 0
+        ? 'Mute'
+        : widget.volume < 1.0
+            ? 'Volume down (50%)'
+            : 'Volume up (100%)';
+
+    return Semantics(
+      button: true,
+      enabled: true,
+      label: volumeLabel,
+      onTap: _cycleVolume,
+      child: Tooltip(
+        message: 'Cycle volume: Mute → 50% → 100%',
+        child: GestureDetector(
+          onTap: _cycleVolume,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
         width: 56,
         height: 56,
         decoration: BoxDecoration(
@@ -171,13 +210,15 @@ class _VolumeControlState extends State<_VolumeControl> {
           children: [
             Icon(
               _getVolumeIcon(),
-              color: MonoPulseColors.textSecondary,
+              color: widget.volume == 0
+                  ? MonoPulseColors.textTertiary
+                  : MonoPulseColors.textSecondary,
               size: 28,
             ),
-            // Volume level indicator
+            // Volume level indicator bar
             if (widget.volume > 0)
               Positioned(
-                bottom: 4,
+                bottom: 6,
                 child: Container(
                   width: 20,
                   height: 3,
@@ -187,7 +228,20 @@ class _VolumeControlState extends State<_VolumeControl> {
                   ),
                 ),
               ),
+            // Mute indicator X overlay
+            if (widget.volume == 0)
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: MonoPulseColors.textTertiary.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                ),
+              ),
           ],
+        ),
+          ),
         ),
       ),
     );
@@ -196,7 +250,7 @@ class _VolumeControlState extends State<_VolumeControl> {
   IconData _getVolumeIcon() {
     if (widget.volume == 0) {
       return Icons.volume_off_outlined;
-    } else if (widget.volume < 0.5) {
+    } else if (widget.volume < 1.0) {
       return Icons.volume_down_outlined;
     } else {
       return Icons.volume_up_outlined;
@@ -204,25 +258,87 @@ class _VolumeControlState extends State<_VolumeControl> {
   }
 }
 
-class _IconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
+class _CalibrationButton extends StatelessWidget {
+  const _CalibrationButton({required this.referenceHz, required this.onTap});
 
-  const _IconButton({required this.icon, required this.onTap});
+  final double referenceHz;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Semantics(
+      button: true,
+      enabled: true,
+      label: 'Calibration settings (A4 ${referenceHz.round()} Hz)',
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
+      child: Tooltip(
+        message: 'Adjust tuner calibration frequency',
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
         width: 56,
         height: 56,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: MonoPulseColors.borderSubtle, width: 1.5),
         ),
-        child: Icon(icon, color: MonoPulseColors.textSecondary, size: 28),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const Icon(
+              Icons.tune,
+              color: MonoPulseColors.accentOrange,
+              size: 22,
+            ),
+            Positioned(
+              bottom: 4,
+              child: Text(
+                'A4 ${referenceHz.round()}',
+                style: MonoPulseTypography.labelSmall.copyWith(
+                  color: MonoPulseColors.accentOrange,
+                  fontSize: 7,
+                  fontWeight: MonoPulseTypography.medium,
+                ),
+              ),
+            ),
+          ],
+        ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InputLevelIndicator extends StatelessWidget {
+  const _InputLevelIndicator({required this.levelDb});
+
+  final double levelDb;
+
+  @override
+  Widget build(BuildContext context) {
+    final normalized = ((levelDb + 70) / 50).clamp(0.0, 1.0);
+    return Container(
+      width: 56,
+      height: 56,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: MonoPulseColors.borderSubtle, width: 1.5),
+      ),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: FractionallySizedBox(
+          heightFactor: normalized,
+          child: Container(
+            width: 12,
+            decoration: BoxDecoration(
+              color: MonoPulseColors.accentOrange,
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,0 +1,6 @@
+{{/* layouts/shortcodes/section.html */}}
+<section id="{{ .Get "id" }}" class="section {{ with .Get "class" }}{{ . }}{{ end }}">
+  <div class="section-container">
+    {{ .Inner }}
+  </div>
+</section>

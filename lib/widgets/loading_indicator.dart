@@ -5,7 +5,18 @@ import '../theme/mono_pulse_theme.dart';
 ///
 /// This widget provides a consistent loading indicator that can be used
 /// throughout the app with optional text message.
+///
+/// Includes semantic label for screen readers.
 class LoadingIndicator extends StatelessWidget {
+
+  const LoadingIndicator({
+    super.key,
+    this.size = 40,
+    this.semanticsLabel = 'Loading',
+    this.color,
+    this.message,
+    this.messageStyle,
+  });
   /// The size of the loading spinner.
   final double size;
 
@@ -18,44 +29,39 @@ class LoadingIndicator extends StatelessWidget {
   /// The style for the message text.
   final TextStyle? messageStyle;
 
-  const LoadingIndicator({
-    super.key,
-    this.size = 40,
-    this.color,
-    this.message,
-    this.messageStyle,
-  });
+  /// Semantic label for screen readers. Defaults to 'Loading'.
+  final String semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: size,
-            height: size,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                color ?? MonoPulseColors.accentOrange,
+    return Semantics(
+      label: semanticsLabel,
+      enabled: true,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: size,
+              height: size,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  color ?? MonoPulseColors.accentOrange,
+                ),
+                semanticsLabel: semanticsLabel,
               ),
             ),
-          ),
-          if (message != null) ...[
-            const SizedBox(height: MonoPulseSpacing.lg),
-            Text(
-              message!,
-              style:
-                  messageStyle ??
-                  const TextStyle(
-                    color: MonoPulseColors.textPrimary,
-                    fontSize: 14,
-                  ),
-              textAlign: TextAlign.center,
-            ),
+            if (message != null) ...[
+              const SizedBox(height: MonoPulseSpacing.lg),
+              Text(
+                message!,
+                style: messageStyle ?? MonoPulseTypography.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -63,13 +69,13 @@ class LoadingIndicator extends StatelessWidget {
 
 /// A small inline loading indicator for buttons and compact spaces.
 class LoadingSpinner extends StatelessWidget {
+
+  const LoadingSpinner({super.key, this.size = 16, this.color});
   /// The size of the spinner.
   final double size;
 
   /// The color of the spinner.
   final Color? color;
-
-  const LoadingSpinner({super.key, this.size = 16, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +84,9 @@ class LoadingSpinner extends StatelessWidget {
       height: size,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(color ?? Colors.white),
+        valueColor: AlwaysStoppedAnimation<Color>(
+          color ?? MonoPulseColors.accentOrange,
+        ),
       ),
     );
   }

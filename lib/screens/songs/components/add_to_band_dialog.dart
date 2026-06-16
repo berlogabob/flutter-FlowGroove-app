@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/song.dart';
+
 import '../../../models/band.dart';
+import '../../../models/song.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/custom_button.dart';
 
@@ -12,13 +13,13 @@ import '../../../widgets/custom_button.dart';
 /// - View a preview of the song
 /// - Confirm the addition
 class AddToBandDialog extends ConsumerStatefulWidget {
+
+  const AddToBandDialog({required this.song, required this.bands, super.key});
   /// The song to add to a band.
   final Song song;
 
   /// List of bands the user can add the song to.
   final List<Band> bands;
-
-  const AddToBandDialog({super.key, required this.song, required this.bands});
 
   /// Show the add to band dialog.
   ///
@@ -69,7 +70,6 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
         ),
         CustomButton(
           label: 'Add to Band',
-          variant: ButtonVariant.primary,
           onPressed: _selectedBand != null ? _confirm : null,
         ),
       ],
@@ -261,6 +261,13 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
 ///
 /// This is an alternative to the dialog for inline band selection.
 class BandSelectorField extends StatelessWidget {
+
+  const BandSelectorField({
+    required this.bands, super.key,
+    this.value,
+    this.onChanged,
+    this.enabled = true,
+  });
   /// The list of bands to choose from.
   final List<Band> bands;
 
@@ -272,14 +279,6 @@ class BandSelectorField extends StatelessWidget {
 
   /// Whether the field is enabled.
   final bool enabled;
-
-  const BandSelectorField({
-    super.key,
-    required this.bands,
-    this.value,
-    this.onChanged,
-    this.enabled = true,
-  });
 
   @override
   Widget build(BuildContext context) {

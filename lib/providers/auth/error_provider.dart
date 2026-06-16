@@ -1,9 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../models/api_error.dart';
+
+part 'error_provider.g.dart';
 
 /// Represents the current state of error handling.
 class ErrorState {
+
+  const ErrorState({this.error, List<ApiError>? errorHistory})
+    : errorHistory = errorHistory ?? const [],
+      hasError = error != null;
   /// The current error, if any.
   final ApiError? error;
 
@@ -12,10 +19,6 @@ class ErrorState {
 
   /// Whether an error is currently being displayed.
   final bool hasError;
-
-  const ErrorState({this.error, List<ApiError>? errorHistory})
-    : errorHistory = errorHistory ?? const [],
-      hasError = error != null;
 
   /// Creates a copy of this state with the given fields replaced.
   ErrorState copyWith({ApiError? error, List<ApiError>? errorHistory}) {
@@ -48,16 +51,17 @@ class ErrorState {
 /// Usage:
 /// ```dart
 /// // In a widget
-/// final errorNotifier = ref.read(errorNotifierProvider.notifier);
+/// final errorNotifier = ref.read(errorStateProvider.notifier);
 /// errorNotifier.handleError(ApiError.network());
 ///
 /// // Watch for errors
-/// final errorState = ref.watch(errorNotifierProvider);
+/// final errorState = ref.watch(errorStateProvider);
 /// if (errorState.hasError) {
 ///   showErrorBanner(errorState.error!);
 /// }
 /// ```
-class ErrorNotifier extends Notifier<ErrorState> {
+@riverpod
+class ErrorStateNotifier extends _$ErrorStateNotifier {
   @override
   ErrorState build() {
     return const ErrorState();
@@ -123,34 +127,25 @@ class ErrorNotifier extends Notifier<ErrorState> {
   }
 }
 
-/// Provider for the [ErrorNotifier].
-///
-/// This is a singleton provider that maintains application-wide error state.
-final errorNotifierProvider = NotifierProvider<ErrorNotifier, ErrorState>(() {
-  return ErrorNotifier();
-});
-
 /// Extension on [WidgetRef] for convenient error handling.
 extension ErrorHandlingExtension on WidgetRef {
-  /// Handles an error using the [ErrorNotifier].
+  /// Handles an error using the [ErrorStateNotifier].
   void handleError(ApiError error) {
-    read(errorNotifierProvider.notifier).handleError(error);
+    read(errorStateProvider.notifier).handleError(error);
   }
 
-  /// Handles an exception using the [ErrorNotifier].
+  /// Handles an exception using the [ErrorStateNotifier].
   void handleException(Object exception, {StackTrace? stackTrace}) {
-    read(
-      errorNotifierProvider.notifier,
-    ).handleException(exception, stackTrace: stackTrace);
+    read(errorStateProvider.notifier).handleException(exception, stackTrace: stackTrace);
   }
 
   /// Clears the current error.
   void clearError() {
-    read(errorNotifierProvider.notifier).clearError();
+    read(errorStateProvider.notifier).clearError();
   }
 
   /// Watches the current error state.
-  ErrorState get errorState => watch(errorNotifierProvider);
+  ErrorState get errorState => watch(errorStateProvider);
 
   /// Gets the current error, if any.
   ApiError? get currentError => errorState.error;

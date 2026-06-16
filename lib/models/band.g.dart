@@ -11,6 +11,11 @@ BandMember _$BandMemberFromJson(Map<String, dynamic> json) => BandMember(
   role: json['role'] as String? ?? 'viewer',
   displayName: json['displayName'] as String?,
   email: json['email'] as String?,
+  musicRoles:
+      (json['musicRoles'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      [],
 );
 
 Map<String, dynamic> _$BandMemberToJson(BandMember instance) =>
@@ -19,6 +24,7 @@ Map<String, dynamic> _$BandMemberToJson(BandMember instance) =>
       'role': instance.role,
       'displayName': instance.displayName,
       'email': instance.email,
+      'musicRoles': instance.musicRoles,
     };
 
 Band _$BandFromJson(Map<String, dynamic> json) => Band(
@@ -40,6 +46,8 @@ Band _$BandFromJson(Map<String, dynamic> json) => Band(
           ?.map((e) => e as String)
           .toList() ??
       [],
+  tags:
+      (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
   inviteCode: json['inviteCode'] as String?,
   createdAt: _parseDateTime(json['createdAt']),
 );
@@ -53,6 +61,7 @@ Map<String, dynamic> _$BandToJson(Band instance) => <String, dynamic>{
   'memberUids': instance.memberUids,
   'adminUids': instance.adminUids,
   'editorUids': instance.editorUids,
+  'tags': instance.tags,
   'inviteCode': instance.inviteCode,
   'createdAt': _dateTimeToJson(instance.createdAt),
 };

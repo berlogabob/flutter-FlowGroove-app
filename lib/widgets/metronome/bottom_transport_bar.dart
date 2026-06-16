@@ -96,10 +96,6 @@ class BottomTransportBar extends ConsumerWidget {
 }
 
 class _PlayButton extends StatefulWidget {
-  final bool isPlaying;
-  final VoidCallback onTap;
-  final double buttonWidth;
-  final double buttonHeight;
 
   const _PlayButton({
     required this.isPlaying,
@@ -107,6 +103,10 @@ class _PlayButton extends StatefulWidget {
     this.buttonWidth = 80.0,
     this.buttonHeight = 64.0,
   });
+  final bool isPlaying;
+  final VoidCallback onTap;
+  final double buttonWidth;
+  final double buttonHeight;
 
   @override
   State<_PlayButton> createState() => _PlayButtonState();
@@ -126,7 +126,7 @@ class _PlayButtonState extends State<_PlayButton>
       vsync: this,
     );
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
+    _pulseAnimation = Tween<double>(begin: 1, end: 1.08).animate(
       CurvedAnimation(
         parent: _pulseController,
         curve: MonoPulseAnimation.curveCustom,
@@ -193,11 +193,6 @@ class _PlayButtonState extends State<_PlayButton>
 }
 
 class _NavigationButton extends StatefulWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool isEnabled;
-  final double buttonSize;
-  final double iconSize;
 
   const _NavigationButton({
     required this.icon,
@@ -206,6 +201,11 @@ class _NavigationButton extends StatefulWidget {
     this.buttonSize = 56.0,
     this.iconSize = 32.0,
   });
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool isEnabled;
+  final double buttonSize;
+  final double iconSize;
 
   @override
   State<_NavigationButton> createState() => _NavigationButtonState();

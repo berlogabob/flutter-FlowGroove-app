@@ -2,18 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../models/api_error.dart';
-import '../../providers/data/data_providers.dart';
+import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
-import '../../models/band.dart';
-import '../../widgets/error_banner.dart';
+import '../../providers/data/data_providers.dart';
+import '../../services/analytics_service.dart';
+import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/custom_app_bar.dart';
+import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
+import '../../widgets/primary_action_bar.dart';
 
 /// Screen for creating or editing a band with comprehensive error handling.
 class CreateBandScreen extends ConsumerStatefulWidget {
-  final Band? band;
 
   const CreateBandScreen({super.key, this.band});
+  final Band? band;
 
   @override
   ConsumerState<CreateBandScreen> createState() => _CreateBandScreenState();
@@ -25,8 +30,15 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
   final _descriptionController = TextEditingController();
   bool _isLoading = false;
   ApiError? _currentError;
+  bool _hasUnsavedChanges = false;
 
   bool get _isEditing => widget.band != null;
+
+  void _markAsChanged() {
+    if (!_hasUnsavedChanges) {
+      setState(() => _hasUnsavedChanges = true);
+    }
+  }
 
   @override
   void initState() {
@@ -49,7 +61,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
     setState(() {
       _currentError = error;
     });
-    ref.read(errorNotifierProvider.notifier).handleError(error);
+    ref.read(errorStateProvider.notifier).handleError(error);
   }
 
   /// Generates a unique invite code with collision detection.
@@ -77,7 +89,8 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
   }
 
   Future<void> _saveBand() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -85,7 +98,8 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
     });
 
     try {
-      final user = ref.read(currentUserProvider);
+      final userAsync = ref.read(currentUserProvider);
+      final user = userAsync.value;
       if (user == null) {
         _handleError(ApiError.auth(message: 'Please login to create a band.'));
         return;
@@ -123,7 +137,10 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
       await service.saveBandToGlobal(band);
 
       // Save to user's collection (for quick access and listing)
-      await service.saveBand(band, user.uid);
+      await service.saveBand(band, uid: user.uid);
+
+      // Log analytics event
+      await AnalyticsService.logBandCreatedFromBand(band);
 
       if (mounted) {
         // Show invite code dialog for new bands
@@ -137,6 +154,8 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
               ),
             ),
           );
+          // Clear unsaved changes flag after successful save
+          setState(() => _hasUnsavedChanges = false);
           Navigator.pop(context);
         }
       }
@@ -164,6 +183,29 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
     }
   }
 
+  Future<bool> _showDiscardChangesDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard Changes?'),
+            content: const Text(
+              'You have unsaved changes. Are you sure you want to discard them?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
   /// Shows a dialog with the invite code and a copy button.
   void _showInviteCodeDialog(String inviteCode) {
     showDialog(
@@ -177,24 +219,23 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
           children: [
             const Text(
               'Share this invite code with your bandmates:',
-              style: TextStyle(fontSize: 14),
+              style: MonoPulseTypography.bodyMedium,
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(MonoPulseSpacing.md),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                       border: Border.all(color: Colors.grey[300]!),
                     ),
                     child: Text(
                       inviteCode,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      style: MonoPulseTypography.headlineSmall.copyWith(
+                        fontWeight: FontWeight.w700,
                         fontFamily: 'monospace',
                       ),
                       textAlign: TextAlign.center,
@@ -231,72 +272,88 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Band' : 'Create Band')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                _isEditing ? 'Edit band details' : 'Create a new band',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return; // Already popped
+
+        if (_hasUnsavedChanges) {
+          final confirm = await _showDiscardChangesDialog();
+          if (confirm && context.mounted) {
+            if (context.mounted) {
+              Navigator.pop(context); // Allow pop
+            }
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: CustomAppBar.build(
+          context,
+          title: _isEditing ? 'Edit Band' : 'Create Band',
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  _isEditing ? 'Edit band details' : 'Create a new band',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _isEditing
-                    ? 'Update band information'
-                    : 'Invite your bandmates',
-                style: TextStyle(color: Colors.grey[600]),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              // Error banner
-              if (_currentError != null) ...[
-                ErrorBanner(
-                  message: _currentError!.message,
-                  title: _currentError!.title,
-                  onRetry: _saveBand,
-                  showRetry: _currentError!.isNetwork,
-                  style: ErrorBannerStyle.banner,
+                const SizedBox(height: 8),
+                Text(
+                  _isEditing
+                      ? 'Update band information'
+                      : 'Invite your bandmates',
+                  style: const TextStyle(color: MonoPulseColors.textSecondary),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
+                // Error banner
+                if (_currentError != null) ...[
+                  ErrorBanner(
+                    message:
+                        _currentError?.message ??
+                        'An unexpected error occurred',
+                    onRetry: _saveBand,
+                    showRetry: _currentError!.isNetwork,
+                    style: ErrorBannerStyle.card,
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Band Name *',
+                    prefixIcon: Icon(Icons.groups),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) => _markAsChanged(),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                  textInputAction: TextInputAction.done,
+                  onChanged: (_) => _markAsChanged(),
+                  onFieldSubmitted: (_) => _saveBand(),
+                  maxLines: 3,
+                ),
               ],
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Band Name *',
-                  prefixIcon: Icon(Icons.groups),
-                ),
-                textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                textInputAction: TextInputAction.done,
-                onFieldSubmitted: (_) => _saveBand(),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveBand,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(_isEditing ? 'Save Changes' : 'Create Band'),
-              ),
-            ],
+            ),
           ),
+        ),
+        bottomNavigationBar: PrimaryActionBar(
+          label: _isEditing ? 'Save Changes' : 'Create Band',
+          onPressed: _isLoading ? null : _saveBand,
+          isLoading: _isLoading,
         ),
       ),
     );

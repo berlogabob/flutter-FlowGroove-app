@@ -1,136 +1,335 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+import 'analytics/metronome_analytics.dart';
+import 'config/config_validator.dart';
 import 'firebase_options.dart';
-import 'theme/mono_pulse_theme.dart';
+import 'models/user.dart';
 import 'providers/auth/auth_provider.dart';
-import 'screens/login_screen.dart';
-import 'screens/auth/register_screen.dart';
-import 'screens/main_shell.dart';
-import 'screens/songs/songs_list_screen.dart';
-import 'screens/songs/add_song_screen.dart';
-import 'screens/bands/my_bands_screen.dart';
-import 'screens/bands/create_band_screen.dart';
-import 'screens/bands/join_band_screen.dart';
-import 'screens/bands/band_songs_screen.dart';
-import 'screens/setlists/setlists_list_screen.dart';
-import 'screens/setlists/create_setlist_screen.dart';
-import 'screens/profile_screen.dart';
-import 'screens/metronome_screen.dart';
-import 'screens/tuner_screen.dart';
-import 'models/song.dart';
-import 'models/setlist.dart';
-import 'models/band.dart';
+import 'providers/metronome_runtime_providers.dart';
+import 'repositories/metronome_session_repository.dart';
+import 'router/app_router.dart';
+import 'services/analytics_service.dart';
+import 'services/metronome_preferences.dart';
+import 'theme/mono_pulse_theme.dart';
+import 'utils/analytics_debug.dart';
+import 'widgets/config_error_widget.dart';
+import 'widgets/loading_indicator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Global error widget for graceful degradation (prevents full red screen)
+  ErrorWidget.builder = (details) {
+    debugPrint('⚠️ Widget error: ${details.exception}');
+    debugPrint('   Stack: ${details.stack}');
+    return Material(
+      color: MonoPulseColors.black,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 48,
+                color: MonoPulseColors.error,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Something went wrong',
+                style: MonoPulseTypography.headlineSmall.copyWith(
+                  color: MonoPulseColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                kDebugMode
+                    ? details.exception.toString()
+                    : 'Please restart the app or contact support.',
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  };
+
   // Initialize Hive for offline caching
   await Hive.initFlutter();
+  await Hive.openBox<dynamic>(MetronomeSessionRepository.boxName);
+  await Hive.openBox<dynamic>('metronome_presets_v1');
+  MetronomeSessionRepository.storageReady = true;
+  MetronomePreferences.storageReady = true;
 
-  // Load environment variables
-  // For web, .env file is optional - use default values if not found
+  // Validate configuration BEFORE Firebase initialization
+  // This ensures we have valid credentials before proceeding
   try {
-    await dotenv.load(fileName: '.env');
-  } catch (e) {
-    // For web development, environment variables can be set via other means
-    // This allows the app to run even if .env file is not present
-    debugPrint(
-      'Note: .env file not loaded. Using environment variables if available.',
-    );
+    await ConfigValidator.validateOrThrow();
+    debugPrint('✅ Configuration validated successfully');
+  } on ConfigValidationException catch (e) {
+    debugPrint('❌ Configuration validation failed: ${e.message}');
+    // Run error app with validation error
+    runApp(ConfigErrorApp(exception: e));
+    return;
   }
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const ProviderScope(child: RepSyncApp()));
+  // Initialize Firebase with validated config
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('✅ Firebase initialized');
+  } catch (e) {
+    debugPrint('❌ Firebase initialization failed: $e');
+    runApp(const FirebaseErrorApp());
+    return;
+  }
+
+  // Initialize Firebase Analytics ONLY on mobile (not web)
+  FirebaseAnalytics? analytics;
+  if (!kIsWeb) {
+    analytics = FirebaseAnalytics.instance;
+    debugPrint('📊 Firebase Analytics initialized');
+
+    // Initialize Analytics Service
+    await AnalyticsService.initialize();
+
+    // Enable analytics collection (explicitly)
+    await analytics.setAnalyticsCollectionEnabled(true);
+    debugPrint('📊 Analytics collection enabled');
+
+    // Enable debug mode for development
+    AnalyticsDebug.enableDebugMode();
+
+    // Test analytics connection
+    await AnalyticsDebug.testConnection();
+
+    // Log app open event
+    await AnalyticsDebug.logAppOpen();
+    debugPrint('📊 App open event logged');
+  } else {
+    debugPrint('ℹ️  Web platform - skipping Analytics initialization');
+  }
+
+  // Enable Firebase Auth persistence for Android
+  try {
+    await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+  } catch (_) {}
+
+  // Suppress expected but non-critical Google Play Services errors in debug mode
+  // These errors don't affect app functionality
+  if (kDebugMode) {
+    // GoogleApiManager DEVELOPER_ERROR is expected when:
+    // - Debug build without proper SHA-1 fingerprint in Firebase console
+    // - Emulator without Google Play Services fully configured
+    // This doesn't block Firestore, Auth, or Analytics
+    debugPrint('ℹ️  Note: Google Play Services errors in debug are expected');
+    debugPrint("   They don't affect core app functionality");
+  }
+
+  final rootContainer = ProviderContainer();
+
+  // Pre-initialize audio engine for instant first beat (deferred to avoid blocking startup)
+  if (!kIsWeb) {
+    // Defer audio initialization to after first frame
+    // This prevents blocking the app startup and reduces initial jank
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final stopwatch = Stopwatch()..start();
+      Duration duration = Duration.zero;
+
+      try {
+        final audioClient = rootContainer.read(metronomeAudioClientProvider);
+        await audioClient.initialize();
+        await audioClient.preWarmPlayers();
+
+        duration = stopwatch.elapsed;
+        debugPrint('✅ Audio pre-initialized in ${duration.inMilliseconds}ms');
+
+        // Log analytics
+        await MetronomeAnalytics.logAudioInitialization(
+          success: true,
+          duration: duration,
+        );
+      } catch (e) {
+        duration = stopwatch.elapsed;
+        debugPrint('⚠️ Audio pre-initialization failed: $e');
+        // Graceful degradation - will initialize on first use
+        await MetronomeAnalytics.logAudioInitialization(
+          success: false,
+          duration: duration,
+          error: e.toString(),
+        );
+      }
+    });
+  }
+
+  // Check if user is already logged in (from previous session)
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser != null) {
+    debugPrint(
+      '🔑 AUTH RESTORED: User ${currentUser.email} found from previous session',
+    );
+    debugPrint('   UID: ${currentUser.uid}');
+    debugPrint('   Email verified: ${currentUser.emailVerified}');
+
+    // Log login event for existing user
+    await analytics?.logLogin(loginMethod: 'auto');
+  } else {
+    debugPrint('🔑 NO USER: No user found from previous session');
+  }
+
+  runApp(
+    UncontrolledProviderScope(
+      container: rootContainer,
+      child: FlowGrooveApp(analytics: analytics),
+    ),
+  );
 }
 
-class RepSyncApp extends ConsumerWidget {
-  const RepSyncApp({super.key});
+class FlowGrooveApp extends ConsumerWidget {
+  const FlowGrooveApp({super.key, this.analytics});
+
+  final FirebaseAnalytics? analytics;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch auth state
     final userAsync = ref.watch(appUserProvider);
 
-    return MaterialApp(
-      title: 'RepSync',
+    // Set up auth state listener for navigation with logging
+    ref.listen<AsyncValue<AppUser?>>(appUserProvider, (previous, next) {
+      next.whenOrNull(
+        data: (user) {
+          if (user != null && previous?.value == null) {
+            // User just logged in - navigate to home
+            debugPrint('🔑 Auth Event: USER_LOGIN - email=${user.email}');
+            // Use the global appRouter directly (not from context)
+            appRouter.go('/main/home');
+          } else if (user == null && previous?.value != null) {
+            // User just logged out - navigate to login
+            debugPrint('🔑 Auth Event: USER_LOGOUT - previous user logged out');
+            appRouter.go('/login');
+          } else if (user != null) {
+            // Auth state restored (app resume/refresh)
+            debugPrint('🔑 Auth Event: AUTH_RESTORED - email=${user.email}');
+          }
+        },
+      );
+    });
+
+    return MaterialApp.router(
+      title: 'FlowGroove',
       debugShowCheckedModeBanner: false,
       theme: MonoPulseTheme.theme,
       darkTheme: MonoPulseTheme.theme,
-      themeMode: ThemeMode.dark, // Dark-only as per brandbook
-      // Show splash screen while checking auth
-      home: userAsync.when(
-        data: (user) => user != null ? const MainShell() : const LoginScreen(),
-        loading: () =>
-            const Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (error, stack) => const LoginScreen(),
+      themeMode: ThemeMode.dark,
+      routerConfig: appRouter,
+      builder: (context, child) {
+        // Handle loading state
+        // Note: child can be null during initial route resolution
+        return userAsync.when(
+          data: (user) {
+            debugPrint('🟢 Auth state: DATA - user=${user?.email ?? "NULL"}');
+            return child ?? const SizedBox.shrink();
+          },
+          loading: () {
+            debugPrint('🟡 Auth state: LOADING');
+            return const Scaffold(body: Center(child: LoadingIndicator()));
+          },
+          error: (error, stack) {
+            debugPrint('🔴 Auth state: ERROR - $error');
+            debugPrint('Stack: $stack');
+            return child ?? const SizedBox.shrink();
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Error app displayed when configuration validation fails
+class ConfigErrorApp extends StatelessWidget {
+  const ConfigErrorApp({required this.exception, super.key});
+
+  final ConfigValidationException exception;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Configuration Error',
+      debugShowCheckedModeBanner: false,
+      theme: MonoPulseTheme.theme,
+      darkTheme: MonoPulseTheme.theme,
+      themeMode: ThemeMode.dark,
+      home: ConfigErrorWidget(
+        exception: exception,
+        onRetry: () {
+          // Reload the app
+          // Note: This is a simple reload - in production you might want more sophisticated handling
+          debugPrint('Retry requested - reloading app');
+        },
       ),
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/main': (context) => const MainShell(),
-        '/songs': (context) => const SongsListScreen(),
-        '/songs/add': (context) => const AddSongScreen(),
-        '/bands': (context) => const MyBandsScreen(),
-        '/bands/create': (context) => const CreateBandScreen(),
-        '/bands/join': (context) => const JoinBandScreen(),
-        '/setlists': (context) => const SetlistsListScreen(),
-        '/setlists/create': (context) => const CreateSetlistScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        '/metronome': (context) => const MetronomeScreen(),
-        '/tuner': (context) => const TunerScreen(),
-      },
-      onGenerateRoute: (settings) {
-        // Handle dynamic routes with arguments
-        final uri = Uri.parse(settings.name ?? '');
+    );
+  }
+}
 
-        // Edit song route: /songs/:id/edit
-        if (uri.pathSegments.length == 3 &&
-            uri.pathSegments[0] == 'songs' &&
-            uri.pathSegments[2] == 'edit') {
-          final song = settings.arguments as Song?;
-          return MaterialPageRoute(builder: (_) => AddSongScreen(song: song));
-        }
+/// Error app displayed when Firebase initialization fails
+class FirebaseErrorApp extends StatelessWidget {
+  const FirebaseErrorApp({super.key});
 
-        // Edit band route: /bands/:id/edit
-        if (uri.pathSegments.length == 3 &&
-            uri.pathSegments[0] == 'bands' &&
-            uri.pathSegments[2] == 'edit') {
-          final band = settings.arguments as Band?;
-          return MaterialPageRoute(
-            builder: (_) => CreateBandScreen(band: band),
-          );
-        }
-
-        // Edit setlist route: /setlists/:id/edit
-        if (uri.pathSegments.length == 3 &&
-            uri.pathSegments[0] == 'setlists' &&
-            uri.pathSegments[2] == 'edit') {
-          final setlist = settings.arguments as Setlist?;
-          return MaterialPageRoute(
-            builder: (_) => CreateSetlistScreen(setlist: setlist),
-          );
-        }
-
-        // Band songs route: /bands/:id/songs
-        if (uri.pathSegments.length == 3 &&
-            uri.pathSegments[0] == 'bands' &&
-            uri.pathSegments[2] == 'songs') {
-          final band = settings.arguments as Band?;
-          if (band == null) {
-            return MaterialPageRoute(
-              builder: (_) => const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Firebase Error',
+      debugShowCheckedModeBanner: false,
+      theme: MonoPulseTheme.theme,
+      darkTheme: MonoPulseTheme.theme,
+      themeMode: ThemeMode.dark,
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 80,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Firebase Initialization Error',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'The app could not connect to Firebase. '
+                    'Please check your internet connection and try again.',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-            );
-          }
-          return MaterialPageRoute(builder: (_) => BandSongsScreen(band: band));
-        }
-
-        return null;
-      },
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

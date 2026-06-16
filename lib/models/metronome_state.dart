@@ -1,20 +1,67 @@
 import 'package:json_annotation/json_annotation.dart';
+
+import 'beat_mode.dart';
+import 'metronome_runtime_state.dart';
+import 'setlist.dart';
+import 'song.dart';
+import 'tempo_ramp.dart';
 import 'time_signature.dart';
-import '../models/song.dart';
-import '../models/setlist.dart';
 
 part 'metronome_state.g.dart';
 
-/// Beat mode for individual beat customization
-enum BeatMode {
-  normal, // Default (normal sound)
-  accent, // +300 Hz
-  silent, // No sound, visual only
-}
+const Object _metronomeStateNoChange = Object();
 
 /// Immutable state class for MetronomeNotifier
 @JsonSerializable()
 class MetronomeState {
+  const MetronomeState({
+    required this.isPlaying,
+    required this.bpm,
+    required this.currentBeat,
+    required this.timeSignature,
+    required this.waveType,
+    required this.volume,
+    required this.accentEnabled,
+    required this.accentFrequency,
+    required this.beatFrequency,
+    required this.accentPattern,
+    this.hapticsEnabled = true,
+    this.accentBeats = 4,
+    this.regularBeats = 1,
+    this.beatModes = const [], // Empty = all normal (2D: beats × subdivisions)
+    this.loadedSong,
+    this.loadedSetlist,
+    this.loadedSetlistSongs = const [],
+    this.sourceBandId,
+    this.currentSetlistIndex = 0,
+    this.countInBars = 0,
+    this.bpmSource = BpmSource.manual,
+    this.playbackPhase = MetronomePlaybackPhase.stopped,
+    this.activePresetId,
+    this.activePresetName,
+    this.visualFlashEnabled = true,
+    this.activeTempoRamp,
+    this.completedBars = 0,
+  });
+
+  factory MetronomeState.initial() {
+    return const MetronomeState(
+      isPlaying: false,
+      bpm: 120,
+      currentBeat: 0,
+      timeSignature: TimeSignature.commonTime,
+      waveType: 'sine',
+      volume: 0.5,
+      accentEnabled: true,
+      accentFrequency: 1600,
+      beatFrequency: 800,
+      accentPattern: [true, false, false, false],
+    );
+  }
+
+  factory MetronomeState.fromJson(Map<String, dynamic> json) =>
+      _$MetronomeStateFromJson(json);
+
   @JsonKey(defaultValue: false)
   final bool isPlaying;
   @JsonKey(defaultValue: 120)
@@ -32,6 +79,8 @@ class MetronomeState {
   final double accentFrequency;
   @JsonKey(defaultValue: 800)
   final double beatFrequency;
+  @JsonKey(defaultValue: true)
+  final bool hapticsEnabled;
   @JsonKey(defaultValue: [])
   final List<bool> accentPattern;
 
@@ -42,52 +91,29 @@ class MetronomeState {
   final int regularBeats; // SUBDIVISIONS per beat (bottom row)
   @JsonKey(defaultValue: [])
   final List<List<BeatMode>> beatModes; // 2D: beats × subdivisions (independent modes)
-  @JsonKey(defaultValue: null)
   final Song? loadedSong;
-  @JsonKey(defaultValue: null)
   final Setlist? loadedSetlist;
+  @JsonKey(defaultValue: [])
+  final List<Song> loadedSetlistSongs;
+  final String? sourceBandId;
   @JsonKey(defaultValue: 0)
   final int currentSetlistIndex;
 
-  const MetronomeState({
-    required this.isPlaying,
-    required this.bpm,
-    required this.currentBeat,
-    required this.timeSignature,
-    required this.waveType,
-    required this.volume,
-    required this.accentEnabled,
-    required this.accentFrequency,
-    required this.beatFrequency,
-    required this.accentPattern,
-    this.accentBeats = 4,
-    this.regularBeats = 1,
-    this.beatModes = const [], // Empty = all normal (2D: beats × subdivisions)
-    this.loadedSong,
-    this.loadedSetlist,
-    this.currentSetlistIndex = 0,
-  });
+  // Count-in feature
+  @JsonKey(defaultValue: 0)
+  final int countInBars;
+  @JsonKey(defaultValue: BpmSource.manual)
+  final BpmSource bpmSource;
+  @JsonKey(defaultValue: MetronomePlaybackPhase.stopped)
+  final MetronomePlaybackPhase playbackPhase;
+  final String? activePresetId;
+  final String? activePresetName;
+  @JsonKey(defaultValue: true)
+  final bool visualFlashEnabled;
+  final TempoRamp? activeTempoRamp;
+  @JsonKey(defaultValue: 0)
+  final int completedBars;
 
-  /// Creates initial metronome state
-  factory MetronomeState.initial() {
-    return MetronomeState(
-      isPlaying: false,
-      bpm: 120,
-      currentBeat: 0,
-      timeSignature: TimeSignature.commonTime,
-      waveType: 'sine',
-      volume: 0.5,
-      accentEnabled: true,
-      accentFrequency: 1600,
-      beatFrequency: 800,
-      accentPattern: const [true, false, false, false],
-      accentBeats: 4,
-      regularBeats: 1,
-      beatModes: const [], // Empty = all normal
-    );
-  }
-
-  /// Creates a copy of this state with the given fields replaced
   MetronomeState copyWith({
     bool? isPlaying,
     int? bpm,
@@ -98,13 +124,24 @@ class MetronomeState {
     bool? accentEnabled,
     double? accentFrequency,
     double? beatFrequency,
+    bool? hapticsEnabled,
     List<bool>? accentPattern,
     int? accentBeats,
     int? regularBeats,
     List<List<BeatMode>>? beatModes,
-    Song? loadedSong,
-    Setlist? loadedSetlist,
+    Object? loadedSong = _metronomeStateNoChange,
+    Object? loadedSetlist = _metronomeStateNoChange,
+    List<Song>? loadedSetlistSongs,
+    Object? sourceBandId = _metronomeStateNoChange,
     int? currentSetlistIndex,
+    int? countInBars,
+    BpmSource? bpmSource,
+    MetronomePlaybackPhase? playbackPhase,
+    Object? activePresetId = _metronomeStateNoChange,
+    Object? activePresetName = _metronomeStateNoChange,
+    bool? visualFlashEnabled,
+    Object? activeTempoRamp = _metronomeStateNoChange,
+    int? completedBars,
   }) {
     return MetronomeState(
       isPlaying: isPlaying ?? this.isPlaying,
@@ -116,26 +153,61 @@ class MetronomeState {
       accentEnabled: accentEnabled ?? this.accentEnabled,
       accentFrequency: accentFrequency ?? this.accentFrequency,
       beatFrequency: beatFrequency ?? this.beatFrequency,
+      hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       accentPattern: accentPattern ?? this.accentPattern,
       accentBeats: accentBeats ?? this.accentBeats,
       regularBeats: regularBeats ?? this.regularBeats,
       beatModes: beatModes ?? this.beatModes,
-      loadedSong: loadedSong ?? this.loadedSong,
-      loadedSetlist: loadedSetlist ?? this.loadedSetlist,
+      loadedSong: identical(loadedSong, _metronomeStateNoChange)
+          ? this.loadedSong
+          : loadedSong as Song?,
+      loadedSetlist: identical(loadedSetlist, _metronomeStateNoChange)
+          ? this.loadedSetlist
+          : loadedSetlist as Setlist?,
+      loadedSetlistSongs: loadedSetlistSongs ?? this.loadedSetlistSongs,
+      sourceBandId: identical(sourceBandId, _metronomeStateNoChange)
+          ? this.sourceBandId
+          : sourceBandId as String?,
       currentSetlistIndex: currentSetlistIndex ?? this.currentSetlistIndex,
+      countInBars: countInBars ?? this.countInBars,
+      bpmSource: bpmSource ?? this.bpmSource,
+      playbackPhase: playbackPhase ?? this.playbackPhase,
+      activePresetId: identical(activePresetId, _metronomeStateNoChange)
+          ? this.activePresetId
+          : activePresetId as String?,
+      activePresetName: identical(activePresetName, _metronomeStateNoChange)
+          ? this.activePresetName
+          : activePresetName as String?,
+      visualFlashEnabled: visualFlashEnabled ?? this.visualFlashEnabled,
+      activeTempoRamp: identical(activeTempoRamp, _metronomeStateNoChange)
+          ? this.activeTempoRamp
+          : activeTempoRamp as TempoRamp?,
+      completedBars: completedBars ?? this.completedBars,
     );
   }
 
-  /// Convert from JSON
-  factory MetronomeState.fromJson(Map<String, dynamic> json) =>
-      _$MetronomeStateFromJson(json);
-
-  /// Convert to JSON
   Map<String, dynamic> toJson() => _$MetronomeStateToJson(this);
 
   // Backward compatibility getters
   /// Returns beats per measure (alias for accentBeats)
   int get beatsPerMeasure => accentBeats;
+
+  Song? get currentSetlistSong {
+    if (currentSetlistIndex < 0 ||
+        currentSetlistIndex >= loadedSetlistSongs.length) {
+      return null;
+    }
+    return loadedSetlistSongs[currentSetlistIndex];
+  }
+
+  Song? get activeSong => currentSetlistSong ?? loadedSong;
+
+  bool get canGoToPreviousSetlistSong =>
+      loadedSetlist != null && currentSetlistIndex > 0;
+
+  bool get canGoToNextSetlistSong =>
+      loadedSetlist != null &&
+      currentSetlistIndex < loadedSetlistSongs.length - 1;
 
   /// Check if a beat index should be accented based on accentPattern
   bool isAccentBeat(int beatIndex) {

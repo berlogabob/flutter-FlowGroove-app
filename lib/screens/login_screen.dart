@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
+import '../theme/mono_pulse_theme.dart';
 import '../widgets/error_banner.dart';
+import 'auth/forgot_password_screen.dart';
+import 'songs/models/inputs/email_input.dart';
+import 'songs/models/inputs/password_input.dart';
 
-/// Login screen with comprehensive error handling.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -17,6 +22,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  Email _email = const Email.pure();
+  Password _password = const Password.pure();
   bool _isLoading = false;
   ApiError? _currentError;
 
@@ -27,24 +34,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  /// Clears the current error.
+  void _onEmailChanged(String value) {
+    setState(() {
+      _email = Email.dirty(value);
+    });
+  }
+
+  void _onPasswordChanged(String value) {
+    setState(() {
+      _password = Password.dirty(value);
+    });
+  }
+
   void _clearError() {
+    if (!mounted) return;
     setState(() {
       _currentError = null;
     });
-    ref.read(errorNotifierProvider.notifier).clearError();
+    ref.read(errorStateProvider.notifier).clearError();
   }
 
-  /// Handles an error by updating state and showing a message.
   void _handleError(ApiError error) {
+    if (!mounted) return;
     setState(() {
       _currentError = error;
     });
-    ref.read(errorNotifierProvider.notifier).handleError(error);
+    ref.read(errorStateProvider.notifier).handleError(error);
   }
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _email = Email.dirty(_emailController.text.trim());
+      _password = Password.dirty(_passwordController.text);
+    });
+
+    // Validate using Formz
+    if (!_email.isValid || !_password.isValid) return;
 
     setState(() {
       _isLoading = true;
@@ -54,13 +79,109 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final authNotifier = ref.read(appUserProvider.notifier);
       await authNotifier.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+        email: _email.value,
+        password: _password.value,
       );
 
+      // Log successful login
+      final analytics = ref.read(analyticsClientProvider);
+      await analytics.logLogin(loginMethod: 'email');
+      await analytics.logLoginSuccess(loginMethod: 'email');
+
+      // Check if there's a pending join code from before login.
+      final pendingJoinCode = await ref
+          .read(pendingJoinCodeStoreProvider)
+          .getAndClearPendingJoinCode();
+      if (!mounted) return;
+
+      if (pendingJoinCode != null) {
+        context.goNamed(
+          'join-band',
+          queryParameters: {'code': pendingJoinCode},
+        );
+      } else {
+        context.go('/main/home');
+      }
+    } on ApiError catch (e) {
+      _handleError(e);
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleError(error);
+    } finally {
       if (mounted) {
-        // Navigate to main shell after successful login
-        Navigator.pushReplacementNamed(context, '/main');
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  /// Sign in with Google.
+  Future<void> _loginWithGoogle() async {
+    setState(() {
+      _isLoading = true;
+      _currentError = null;
+    });
+
+    try {
+      await ref.read(appUserProvider.notifier).signInWithGoogle();
+
+      final analytics = ref.read(analyticsClientProvider);
+      await analytics.logLogin(loginMethod: 'google');
+      await analytics.logLoginSuccess(loginMethod: 'google');
+
+      // Honour a pending join code captured before login, same as email login.
+      final pendingJoinCode = await ref
+          .read(pendingJoinCodeStoreProvider)
+          .getAndClearPendingJoinCode();
+      if (!mounted) return;
+
+      if (pendingJoinCode != null) {
+        context.goNamed(
+          'join-band',
+          queryParameters: {'code': pendingJoinCode},
+        );
+      } else {
+        context.go('/main/home');
+      }
+    } on ApiError catch (e) {
+      // Treat user-cancelled sign-in as a no-op, not an error banner.
+      if (e.message == 'Google sign-in was cancelled.') return;
+      _handleError(e);
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleError(error);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  /// Quick-login for demo account (read-only).
+  Future<void> _loginDemo() async {
+    // Demo credentials — update these when test accounts are created
+    const demoEmail = 'demo@flowgroove.app';
+    const demoPassword = 'demo1234';
+
+    setState(() {
+      _isLoading = true;
+      _currentError = null;
+    });
+
+    try {
+      final authNotifier = ref.read(appUserProvider.notifier);
+      await authNotifier.signInWithEmailAndPassword(
+        email: demoEmail,
+        password: demoPassword,
+      );
+
+      await ref.read(analyticsClientProvider).logDemoLogin();
+
+      if (mounted) {
+        context.go('/main/home');
       }
     } on ApiError catch (e) {
       _handleError(e);
@@ -79,15 +200,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Welcome Back'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
         child: Form(
           key: _formKey,
           child: Column(
@@ -95,76 +209,65 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               const SizedBox(height: 48),
               Text(
-                'RepSync',
+                'FlowGroove',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 'Sign in to manage your band',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              // Error banner
               if (_currentError != null) ...[
                 ErrorBanner(
-                  message: _currentError!.message,
-                  title: _currentError!.title,
+                  message:
+                      _currentError?.message ?? 'An unexpected error occurred',
                   onRetry: _clearError,
-                  showRetry: true,
-                  style: ErrorBannerStyle.banner,
                 ),
                 const SizedBox(height: 24),
               ],
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                onChanged: _onEmailChanged,
                 decoration: InputDecoration(
                   labelText: 'Email',
                   prefixIcon: const Icon(Icons.email_outlined),
-                  errorText:
-                      _currentError?.isValidation == true &&
-                          _currentError!.message.toLowerCase().contains('email')
-                      ? _currentError!.message
-                      : null,
+                  errorText: !_email.isPure ? _email.errorMessage : null,
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
                 textInputAction: TextInputAction.done,
+                onChanged: _onPasswordChanged,
                 onFieldSubmitted: (_) => _login(),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outlined),
+                  prefixIcon: const Icon(Icons.lock_outlined),
+                  errorText: !_password.isPure ? _password.errorMessage : null,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
               ),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    // Forgot password not implemented yet
+                    debugPrint('🔑 Forgot Password button tapped');
+                    debugPrint('🔑 Email from login: $_email.value');
+                    // Use Navigator to push the route with email
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ForgotPasswordScreen(initialEmail: _email.value),
+                      ),
+                    );
                   },
                   child: const Text('Forgot Password?'),
                 ),
@@ -181,10 +284,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: MonoPulseColors.textPrimary,
                         ),
                       )
                     : const Text('Sign In'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _isLoading ? null : _loginWithGoogle,
+                icon: const Icon(Icons.login),
+                label: const Text('Continue with Google'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
               ),
               const SizedBox(height: 16),
               Row(
@@ -192,10 +304,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const Text("Don't have an account?"),
                   TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/register'),
+                    onPressed: () => context.goNamed('register'),
                     child: const Text('Sign Up'),
                   ),
                 ],
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              Text(
+                'Just looking around?',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: _isLoading ? null : _loginDemo,
+                icon: const Icon(Icons.visibility_outlined),
+                label: const Text('Try Demo Account'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  foregroundColor: MonoPulseColors.accentOrange,
+                  side: const BorderSide(color: MonoPulseColors.accentOrange),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Read-only access to explore all features',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: MonoPulseColors.textTertiary,
+                  fontSize: 11,
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

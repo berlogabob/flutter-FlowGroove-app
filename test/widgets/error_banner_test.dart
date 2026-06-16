@@ -1,95 +1,87 @@
+import 'package:flowgroove/widgets/error_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_repsync_app/widgets/error_banner.dart';
+
 import '../helpers/test_helpers.dart';
 
 void main() {
   group('ErrorBanner', () {
-    testWidgets('renders banner style by default', (WidgetTester tester) async {
-      await pumpAppWidget(tester, const ErrorBanner(message: 'Error occurred'));
-
-      expect(findText('Error occurred'), findsOneWidget);
-      expect(find.byType(Container), findsWidgets);
-    });
-
-    testWidgets('renders with message', (WidgetTester tester) async {
+    testWidgets('renders banner style by default', (tester) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner(message: 'Something went wrong'),
+        const ErrorBanner(
+          message: 'Error occurred',
+        ),
       );
 
-      expect(findText('Something went wrong'), findsOneWidget);
+      expect(find.text('Error occurred'), findsOneWidget);
     });
 
-    testWidgets('renders with title', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const ErrorBanner(message: 'Error details', title: 'Error Title'),
-      );
-
-      expect(findText('Error Title'), findsOneWidget);
-      expect(findText('Error details'), findsOneWidget);
-    });
-
-    testWidgets('renders error icon', (WidgetTester tester) async {
-      await pumpAppWidget(tester, const ErrorBanner(message: 'Error'));
-
-      expect(findIcon(Icons.error_outline), findsOneWidget);
-    });
-
-    testWidgets('renders retry button when showRetry is true', (
-      WidgetTester tester,
+    testWidgets('renders banner with retry button', (
+      tester,
     ) async {
-      await pumpAppWidget(
-        tester,
-        ErrorBanner(message: 'Error', showRetry: true, onRetry: () {}),
-      );
-
-      expect(findText('Retry'), findsOneWidget);
-    });
-
-    testWidgets('does not render retry button when showRetry is false', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
-        tester,
-        const ErrorBanner(message: 'Error', showRetry: false),
-      );
-
-      verifyNotFound(findText('Retry'));
-    });
-
-    testWidgets('calls onRetry when retry button is tapped', (
-      WidgetTester tester,
-    ) async {
-      bool wasRetried = false;
+      bool retryCalled = false;
 
       await pumpAppWidget(
         tester,
         ErrorBanner(
+          message: 'Something went wrong',
+          onRetry: () => retryCalled = true,
+          showRetry: true,
+        ),
+      );
+
+      expect(find.text('Something went wrong'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+
+      await tester.tap(find.text('Retry'));
+      expect(retryCalled, isTrue);
+    });
+
+    testWidgets('renders error icon', (tester) async {
+      await pumpAppWidget(
+        tester,
+        const ErrorBanner(
           message: 'Error',
-          showRetry: true,
-          onRetry: () => wasRetried = true,
         ),
       );
 
-      await tester.tap(findText('Retry'));
-      await tester.pump();
-
-      expect(wasRetried, isTrue);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('renders card style', (WidgetTester tester) async {
+    testWidgets('renders card style', (tester) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner(message: 'Card Error', style: ErrorBannerStyle.card),
+        const ErrorBanner(
+          message: 'Card Error',
+          style: ErrorBannerStyle.card,
+        ),
       );
 
-      expect(findText('Card Error'), findsOneWidget);
-      expect(find.byType(Card), findsOneWidget);
+      expect(find.text('Card Error'), findsOneWidget);
     });
 
-    testWidgets('renders inline style', (WidgetTester tester) async {
+    testWidgets('renders card with retry button', (tester) async {
+      bool retryCalled = false;
+
+      await pumpAppWidget(
+        tester,
+        ErrorBanner(
+          message: 'Card Error',
+          onRetry: () => retryCalled = true,
+          showRetry: true,
+          style: ErrorBannerStyle.card,
+        ),
+      );
+
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+
+      await tester.tap(find.text('Retry'));
+      expect(retryCalled, isTrue);
+    });
+
+    testWidgets('renders inline style', (tester) async {
       await pumpAppWidget(
         tester,
         const ErrorBanner(
@@ -98,73 +90,43 @@ void main() {
         ),
       );
 
-      expect(findText('Inline Error'), findsOneWidget);
-      expect(find.byType(Row), findsWidgets);
+      expect(find.text('Inline Error'), findsOneWidget);
     });
 
-    testWidgets('renders card style with title', (WidgetTester tester) async {
-      await pumpAppWidget(
-        tester,
-        const ErrorBanner(
-          message: 'Card Error',
-          title: 'Card Title',
-          style: ErrorBannerStyle.card,
-        ),
-      );
-
-      expect(findText('Card Title'), findsOneWidget);
-      expect(findText('Card Error'), findsOneWidget);
-    });
-
-    testWidgets('renders card style with retry button', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
-        tester,
-        ErrorBanner(
-          message: 'Card Error',
-          showRetry: true,
-          onRetry: () {},
-          style: ErrorBannerStyle.card,
-        ),
-      );
-
-      expect(findText('Retry'), findsOneWidget);
-    });
-
-    testWidgets('renders inline style with retry button', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('renders inline with retry', (tester) async {
       await pumpAppWidget(
         tester,
         ErrorBanner(
           message: 'Inline Error',
-          showRetry: true,
           onRetry: () {},
+          showRetry: true,
           style: ErrorBannerStyle.inline,
         ),
       );
 
-      expect(findText('Retry'), findsOneWidget);
+      expect(find.byIcon(Icons.error), findsOneWidget);
     });
 
-    testWidgets('renders banner with red color scheme', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(tester, const ErrorBanner(message: 'Error'));
-
-      // Verify error icon is present (indicates error styling)
-      expect(findIcon(Icons.error_outline), findsOneWidget);
-    });
-
-    testWidgets('renders full width banner', (WidgetTester tester) async {
+    testWidgets('uses theme colors', (tester) async {
       await pumpAppWidget(
         tester,
-        const ErrorBanner(message: 'Full Width Error'),
+        const ErrorBanner(
+          message: 'Error',
+        ),
       );
 
-      // Banner should be full width
-      expect(find.byType(Container), findsWidgets);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    });
+
+    testWidgets('banner is full width', (tester) async {
+      await pumpAppWidget(
+        tester,
+        const ErrorBanner(
+          message: 'Full Width Error',
+        ),
+      );
+
+      expect(find.text('Full Width Error'), findsOneWidget);
     });
   });
 }

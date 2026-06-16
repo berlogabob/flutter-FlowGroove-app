@@ -1,0 +1,138 @@
+# FlowGroove - Dual Deploy Makefile
+# =====================================
+# Hugo Landing Page + Flutter Web App
+# Architecture: docs/ root = Hugo, docs/app/ = Flutter
+#
+# Quick Start:
+#   make hugo-build    → Build Hugo landing page to docs/
+#   make app-build     → Build Flutter app to docs/app/
+#   make deploy-all    → Build both + deploy to GitHub Pages
+#   make serve         → Run Hugo local dev server
+
+.PHONY: help hugo-build app-build deploy-all serve clean clean-app
+
+# =============================================================================
+# HELP
+# =============================================================================
+
+help:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         FlowGroove - Dual Deploy Commands                 ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🚀 Quick Start:"
+	@echo ""
+	@echo "  make hugo-build    # Build Hugo landing page → docs/"
+	@echo "  make app-build     # Build Flutter app → docs/app/"
+	@echo "  make deploy-all    # Build both + deploy to GitHub Pages"
+	@echo "  make serve         # Hugo local dev server"
+	@echo ""
+	@echo "📋 Architecture:"
+	@echo ""
+	@echo "  docs/              ← Hugo landing page (root)"
+	@echo "  docs/app/          ← Flutter web app (subfolder)"
+	@echo ""
+	@echo "📝 Documentation:"
+	@echo ""
+	@echo "  ARCHITECTURE.md    - Full project architecture"
+	@echo "  site/README.md     - Hugo site documentation"
+	@echo ""
+
+# =============================================================================
+# HUGO LANDING PAGE
+# =============================================================================
+
+hugo-build:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Building Hugo Landing Page → docs/                ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@cd site && hugo --minify
+	@echo "✅ Hugo build complete!"
+	@echo "📊 Size: $$(du -sh docs/ | cut -f1)"
+	@echo ""
+
+# =============================================================================
+# FLUTTER WEB APP
+# =============================================================================
+
+app-build:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Building Flutter App → docs/app/                  ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📝 Updating version.json..."
+	@./scripts/update-version-json.sh
+	@echo ""
+	@cp web/config.demo.js web/config.js
+	@echo "🔨 Building Flutter web app..."
+	@echo "   Base href: /app/ (subfolder in docs/)"
+	@flutter build web --release --base-href "/flutter-FlowGroove-app/app/"
+	@echo ""
+	@echo "📦 Copying to docs/app/..."
+	@mkdir -p docs/app
+	@rm -rf docs/app/*
+	@cp -r build/web/* docs/app/
+	@cp web/config.js docs/app/config.js 2>/dev/null || true
+	@echo "✅ Flutter build complete!"
+	@echo "📊 Size: $$(du -sh docs/app/ | cut -f1)"
+	@echo ""
+
+# =============================================================================
+# DEPLOY BOTH TO GITHUB PAGES
+# =============================================================================
+
+deploy-all: hugo-build app-build
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Deploying to GitHub Pages                         ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📦 Adding docs/ and version metadata to git..."
+	@git add docs/ web/version.json
+	@git commit -m "deploy: hugo landing + flutter app $$(cat web/version.json 2>/dev/null | head -1)" || echo "No changes to commit"
+	@echo ""
+	@echo "🚀 Pushing to $(CURRENT_BRANCH) branch..."
+	@git push origin $(CURRENT_BRANCH)
+	@echo ""
+	@echo "✅ Deploy complete!"
+	@echo "🌐 Landing Page: https://berlogabob.github.io/flutter-FlowGroove-app/"
+	@echo "🌐 Flutter App:  https://berlogabob.github.io/flutter-FlowGroove-app/app/"
+	@echo "⏱️  GitHub Pages build: 1-2 minutes"
+	@echo ""
+
+# =============================================================================
+# DEVELOPMENT SERVER
+# =============================================================================
+
+serve:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Starting Hugo Dev Server                          ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🌐 URL: http://localhost:1313/"
+	@echo ""
+	@cd site && hugo server -D
+
+# =============================================================================
+# CLEAN
+# =============================================================================
+
+clean:
+	@echo "🧹 Cleaning Hugo build (docs/ root)..."
+	@rm -rf docs/*.html docs/categories docs/tags docs/blog docs/about docs/faq docs/privacy docs/terms docs/tinylaunch docs/404 docs/assets docs/images
+	@echo "✅ Hugo clean complete!"
+
+clean-app:
+	@echo "🧹 Cleaning Flutter app (docs/app/)..."
+	@rm -rf docs/app/
+	@echo "✅ Flutter app clean complete!"
+
+clean-all: clean clean-app
+	@rm -rf site/public site/resources
+	@echo "✅ All clean!"
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)

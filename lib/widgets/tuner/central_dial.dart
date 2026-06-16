@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import 'note_scale_ruler.dart';
 import 'tick_marks.dart';
 
 /// Central Dial widget for Tuner screen
@@ -43,6 +44,9 @@ class CentralDial extends ConsumerWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
+                // Note scale ruler around the perimeter
+                const NoteScaleRuler(dialSize: 320),
+
                 // Tick marks around the circle
                 TickMarks(size: clampedSize),
 
@@ -53,7 +57,29 @@ class CentralDial extends ConsumerWidget {
                   frequency: state.frequency,
                   cents: cents,
                   mode: state.mode,
-                  onFrequencyChanged: (freq) => notifier.updateFrequency(freq),
+                  hasValidPitch: state.hasValidPitch,
+                  isInTune: state.isInTune,
+                  isListening: state.isListening,
+                  isStarting: state.isStarting,
+                  signalLabel: switch (state.signalState.name) {
+                    'noSignal' => 'No signal',
+                    'unstable' => 'Hold the note steady',
+                    _ => 'Tap Listen to start',
+                  },
+                  targetNoteIndex: state.mode == TunerMode.listen
+                      ? (() {
+                          final noteName = state.note.replaceAll(
+                            RegExp(r'\d'),
+                            '',
+                          );
+                          final idx = _noteNameToIndex(noteName);
+                          debugPrint(
+                            '🎵 Dial: state.note=${state.note}, noteName=$noteName, index=$idx',
+                          );
+                          return idx;
+                        }).call()
+                      : null,
+                  onFrequencyChanged: notifier.updateFrequency,
                 ),
               ],
             ),
@@ -65,21 +91,33 @@ class CentralDial extends ConsumerWidget {
 }
 
 class _InteractiveDial extends StatefulWidget {
-  final double size;
-  final String note;
-  final double frequency;
-  final int cents;
-  final TunerMode mode;
-  final Function(double) onFrequencyChanged;
-
   const _InteractiveDial({
     required this.size,
     required this.note,
     required this.frequency,
     required this.cents,
     required this.mode,
+    required this.hasValidPitch,
+    required this.isInTune,
+    required this.isListening,
+    required this.isStarting,
+    required this.signalLabel,
     required this.onFrequencyChanged,
+    this.targetNoteIndex,
   });
+
+  final double size;
+  final String note;
+  final double frequency;
+  final int cents;
+  final TunerMode mode;
+  final bool hasValidPitch;
+  final bool isInTune;
+  final bool isListening;
+  final bool isStarting;
+  final String signalLabel;
+  final int? targetNoteIndex; // For manual mode: which note is selected (0-11)
+  final void Function(double) onFrequencyChanged;
 
   @override
   State<_InteractiveDial> createState() => _InteractiveDialState();
@@ -88,10 +126,6 @@ class _InteractiveDial extends StatefulWidget {
 class _InteractiveDialState extends State<_InteractiveDial> {
   double _startAngle = 0;
   bool _isDragging = false;
-
-  // Frequency range
-  static const double minFrequency = 20.0;
-  static const double maxFrequency = 2000.0;
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +139,7 @@ class _InteractiveDialState extends State<_InteractiveDial> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: MonoPulseColors.surface,
-          border: Border.all(color: MonoPulseColors.borderSubtle, width: 1),
+          border: Border.all(color: MonoPulseColors.borderSubtle),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -117,16 +151,31 @@ class _InteractiveDialState extends State<_InteractiveDial> {
               cents: widget.cents,
               mode: widget.mode,
               size: widget.size,
+              hasValidPitch: widget.hasValidPitch,
+              isInTune: widget.isInTune,
+              isListening: widget.isListening,
+              isStarting: widget.isStarting,
+              signalLabel: widget.signalLabel,
             ),
+
+            // Radial gradient overlay for lens effect
+            _RadialGradientOverlay(size: widget.size),
 
             // Handle or needle based on mode
             if (widget.mode == TunerMode.generate)
-              // Generate mode: rotating handle
+              // Generate mode: rotating handle based on frequency
               Transform.rotate(
                 angle: _angleForFrequency(widget.frequency),
                 child: _EdgeHandle(size: widget.size),
               )
-            else
+            else if (widget.mode == TunerMode.listen &&
+                widget.targetNoteIndex != null)
+              // Manual mode: handle points to selected note position (chromatic)
+              Transform.rotate(
+                angle: _angleForNoteIndex(widget.targetNoteIndex!),
+                child: _EdgeHandle(size: widget.size),
+              )
+            else if (widget.hasValidPitch)
               // Listen mode: needle indicator for cents
               _NeedleIndicator(cents: widget.cents, size: widget.size),
           ],
@@ -141,20 +190,31 @@ class _InteractiveDialState extends State<_InteractiveDial> {
     });
     HapticFeedback.lightImpact();
 
-    final renderBox = context.findRenderObject() as RenderBox;
+    final renderObject = context.findRenderObject();
+    if (renderObject is! RenderBox) return;
     final center = Offset(widget.size / 2, widget.size / 2);
-    final localPosition = renderBox.globalToLocal(details.globalPosition);
-    _startAngle =
-        _angleForFrequency(widget.frequency) -
-        (localPosition - center).direction;
+    final localPosition = renderObject.globalToLocal(details.globalPosition);
+
+    // Calculate current note index from frequency (same as note ruler)
+    const referenceFrequency = 440.0;
+    const referenceNoteIndex = 69;
+    final midiNote =
+        referenceNoteIndex +
+        12 * math.log(widget.frequency / referenceFrequency) / math.ln2;
+    final chromaticIndex =
+        ((midiNote.round() % 12) + 12) % 12; // Ensure positive
+    final currentAngle = _angleForNoteIndex(chromaticIndex);
+
+    _startAngle = currentAngle - (localPosition - center).direction;
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
     if (!_isDragging) return;
 
-    final renderBox = context.findRenderObject() as RenderBox;
+    final renderObject = context.findRenderObject();
+    if (renderObject is! RenderBox) return;
     final center = Offset(widget.size / 2, widget.size / 2);
-    final localPosition = renderBox.globalToLocal(details.globalPosition);
+    final localPosition = renderObject.globalToLocal(details.globalPosition);
     final angle = (localPosition - center).direction + _startAngle;
 
     // Convert angle to frequency
@@ -175,44 +235,81 @@ class _InteractiveDialState extends State<_InteractiveDial> {
   }
 
   /// Convert frequency to angle (radians)
-  /// Maps 20-2000 Hz to 0-2π (full circle)
+  /// MUST match note_scale_ruler.dart: -90° + (chromaticIndex * 30°)
   double _angleForFrequency(double frequency) {
-    final normalized =
-        (frequency - minFrequency) / (maxFrequency - minFrequency);
-    // Start from top (-π/2) and go clockwise
-    return -math.pi / 2 + normalized * 2 * math.pi;
+    // Convert frequency to MIDI note number
+    const referenceFrequency = 440.0; // A4
+    const referenceNoteIndex = 69; // A4 in MIDI
+    final midiNote =
+        referenceNoteIndex +
+        12 * math.log(frequency / referenceFrequency) / math.ln2;
+
+    // Get chromatic index (0-11, C-B), ensure positive
+    final chromaticIndex = ((midiNote.round() % 12) + 12) % 12;
+
+    // Match note ruler: -90° + (index * 30°)
+    return (-math.pi / 2) + (chromaticIndex * 30.0) * (math.pi / 180);
   }
 
   /// Convert angle (radians) to frequency
+  /// MUST match note_scale_ruler.dart: angle = -90° + (index * 30°)
   double _frequencyForAngle(double angle) {
-    // Normalize angle to 0-2π range
-    var normalizedAngle = angle + math.pi / 2;
-    while (normalizedAngle < 0) {
-      normalizedAngle += 2 * math.pi;
-    }
-    while (normalizedAngle >= 2 * math.pi) {
-      normalizedAngle -= 2 * math.pi;
-    }
+    // Reverse the ruler formula: angle = -90° + (index * 30°)
+    // So: index = (angle + 90°) / 30°
+    final angleDeg = angle * 180 / math.pi;
+    final chromaticIndex = (((angleDeg + 90) / 30).round() % 12 + 12) % 12;
 
-    final normalized = normalizedAngle / (2 * math.pi);
-    return minFrequency + normalized * (maxFrequency - minFrequency);
+    // Convert note index to frequency (4th octave)
+    const noteFrequencies = [
+      261.63, // C4
+      277.18, // C#4
+      293.66, // D4
+      311.13, // D#4
+      329.63, // E4
+      349.23, // F4
+      369.99, // F#4
+      392.00, // G4
+      415.30, // G#4
+      440.00, // A4
+      466.16, // A#4
+      493.88, // B4
+    ];
+
+    return noteFrequencies[chromaticIndex];
+  }
+
+  /// Convert note chromatic index (0-11) to angle for dial handle
+  /// MUST match note_scale_ruler.dart: -90° + (index * 30°)
+  double _angleForNoteIndex(int noteIndex) {
+    // Match the note ruler exactly: -90° + (index * 30°)
+    return (-math.pi / 2) + (noteIndex * 30.0) * (math.pi / 180);
   }
 }
 
 class _FrequencyDisplay extends StatelessWidget {
-  final String note;
-  final double frequency;
-  final int cents;
-  final TunerMode mode;
-  final double size;
-
   const _FrequencyDisplay({
     required this.note,
     required this.frequency,
     required this.cents,
     required this.mode,
     required this.size,
+    required this.hasValidPitch,
+    required this.isInTune,
+    required this.isListening,
+    required this.isStarting,
+    required this.signalLabel,
   });
+
+  final String note;
+  final double frequency;
+  final int cents;
+  final TunerMode mode;
+  final double size;
+  final bool hasValidPitch;
+  final bool isInTune;
+  final bool isListening;
+  final bool isStarting;
+  final String signalLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -225,13 +322,13 @@ class _FrequencyDisplay extends StatelessWidget {
       children: [
         // Large note display (e.g., "A4") - 72px Bold
         Text(
-          note,
+          mode == TunerMode.listen && !hasValidPitch ? '--' : note,
           style: TextStyle(
             fontSize: noteFontSize,
             fontWeight: MonoPulseTypography.bold,
             color: MonoPulseColors.textHighEmphasis,
             letterSpacing: -2,
-            height: 1.0,
+            height: 1,
           ),
         ),
         const SizedBox(height: 8),
@@ -246,25 +343,48 @@ class _FrequencyDisplay extends StatelessWidget {
               fontSize: subFontSize,
             ),
           )
-        else
-          // Listen mode: show cents deviation
-          _CentsDisplay(cents: cents, fontSize: subFontSize),
+        else ...[
+          Text(
+            hasValidPitch
+                ? '${frequency.toStringAsFixed(1)} Hz'
+                : isStarting
+                ? 'Starting microphone…'
+                : signalLabel,
+            style: MonoPulseTypography.bodyLarge.copyWith(
+              color: MonoPulseColors.textTertiary,
+              fontWeight: MonoPulseTypography.medium,
+              fontSize: subFontSize,
+            ),
+          ),
+          const SizedBox(height: 4),
+          if (hasValidPitch)
+            _CentsDisplay(
+              cents: cents,
+              fontSize: subFontSize,
+              isInTune: isInTune,
+            ),
+        ],
       ],
     );
   }
 }
 
 class _CentsDisplay extends StatelessWidget {
+  const _CentsDisplay({
+    required this.cents,
+    required this.fontSize,
+    required this.isInTune,
+  });
+
   final int cents;
   final double fontSize;
-
-  const _CentsDisplay({required this.cents, required this.fontSize});
+  final bool isInTune;
 
   @override
   Widget build(BuildContext context) {
     // Color based on how close to zero (in tune)
     Color centsColor;
-    if (cents == 0) {
+    if (isInTune) {
       centsColor = MonoPulseColors.accentOrange;
     } else if (cents.abs() <= 10) {
       centsColor = MonoPulseColors.textHighEmphasis;
@@ -275,7 +395,7 @@ class _CentsDisplay extends StatelessWidget {
     }
 
     final sign = cents > 0 ? '+' : '';
-    final centsText = cents == 0 ? 'In Tune' : '$sign${cents} cents';
+    final centsText = isInTune ? 'In Tune' : '$sign$cents cents';
 
     return Text(
       centsText,
@@ -289,9 +409,9 @@ class _CentsDisplay extends StatelessWidget {
 }
 
 class _EdgeHandle extends StatelessWidget {
-  final double size;
-
   const _EdgeHandle({required this.size});
+
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -303,7 +423,7 @@ class _EdgeHandle extends StatelessWidget {
       child: Container(
         width: handleSize,
         height: handleSize,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: MonoPulseColors.accentOrange,
           shape: BoxShape.circle,
         ),
@@ -313,10 +433,10 @@ class _EdgeHandle extends StatelessWidget {
 }
 
 class _NeedleIndicator extends StatelessWidget {
+  const _NeedleIndicator({required this.cents, required this.size});
+
   final int cents;
   final double size;
-
-  const _NeedleIndicator({required this.cents, required this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -343,4 +463,48 @@ class _NeedleIndicator extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Radial gradient overlay to create lens/physical dial effect
+class _RadialGradientOverlay extends StatelessWidget {
+  const _RadialGradientOverlay({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          radius: 0.9,
+          colors: [
+            Color(0xFF1A1A1A), // Lighter center
+            Color(0xFF0D0D0D), // Darker edges
+          ],
+          stops: [0.0, 1.0],
+        ),
+      ),
+    );
+  }
+}
+
+/// Convert note name to chromatic index (C=0, C#=1, ... B=11)
+int _noteNameToIndex(String noteName) {
+  const notes = [
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
+  ];
+  final idx = notes.indexOf(noteName);
+  return idx >= 0 ? idx : 0;
 }

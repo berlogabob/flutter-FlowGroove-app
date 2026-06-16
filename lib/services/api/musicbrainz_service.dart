@@ -10,7 +10,7 @@ import '../../models/api_error.dart';
 /// All methods throw [ApiError] exceptions for proper error handling.
 class MusicBrainzService {
   static const String _baseUrl = 'https://musicbrainz.org/ws/2';
-  static const String _userAgent = 'RepSync/1.0.0 (berloga@example.com)';
+  static const String _userAgent = 'FlowGroove/1.0.0 (berloga@example.com)';
 
   /// Searches for recordings on MusicBrainz.
   ///
@@ -89,13 +89,9 @@ class MusicBrainzService {
 }
 
 class MusicBrainzRecording {
-  final String? title;
-  final String? artist;
-  final String? release;
-  final int? durationMs; // in milliseconds
-  final int? bpm;
 
   MusicBrainzRecording({
+    this.id,
     this.title,
     this.artist,
     this.release,
@@ -119,8 +115,8 @@ class MusicBrainzRecording {
     String? releaseName;
     final releases = json['releases'] as List<dynamic>?;
     if (releases != null && releases.isNotEmpty) {
-      final firstRelease = releases[0] as Map<String, dynamic>?;
-      if (firstRelease != null) {
+      final firstRelease = releases[0];
+      if (firstRelease is Map<String, dynamic>) {
         releaseName = firstRelease['title'] as String?;
       }
     }
@@ -139,6 +135,7 @@ class MusicBrainzRecording {
     }
 
     return MusicBrainzRecording(
+      id: json['id'] as String?,
       title: json['title'] as String?,
       artist: artistName,
       release: releaseName,
@@ -146,6 +143,12 @@ class MusicBrainzRecording {
       bpm: calculatedBpm,
     );
   }
+  final String? id;
+  final String? title;
+  final String? artist;
+  final String? release;
+  final int? durationMs; // in milliseconds
+  final int? bpm;
 
   String get displayInfo {
     final parts = <String>[];

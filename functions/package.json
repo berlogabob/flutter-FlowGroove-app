@@ -1,0 +1,44 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "migration:dry-run": "node scripts/library-migration-dry-run.js",
+    "migration:write-run": "node scripts/library-migration-write-run.js",
+    "test": "npm run test:callables && npm run test:rules && npm run test:migration:dry-run && npm run test:migration:write-run",
+    "test:callables": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:callables:run\"",
+    "test:callables:run": "mocha \"test/callable-*.test.js\"",
+    "test:migration:dry-run": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:migration:dry-run:run\"",
+    "test:migration:dry-run:run": "mocha \"test/migration-dry-run.test.js\"",
+    "test:migration:write-run": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:migration:write-run:run\"",
+    "test:migration:write-run:run": "mocha \"test/migration-write-run.test.js\"",
+    "test:rules": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:rules:run\"",
+    "test:rules:run": "mocha \"test/firestore-rules-*.test.js\""
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^13.8.0",
+    "firebase-functions": "^7.2.5",
+    "telegraf": "^4.16.3"
+  },
+  "overrides": {
+    "brace-expansion": "^2.0.3",
+    "fast-xml-builder": "^1.1.7",
+    "fast-xml-parser": "^5.7.0",
+    "path-to-regexp": "0.1.13",
+    "protobufjs": "^7.5.8"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.1",
+    "firebase-functions-test": "^3.4.1",
+    "mocha": "^11.7.5"
+  },
+  "private": true
+}

@@ -1,12 +1,17 @@
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 
 class PdfService {
   static Future<void> exportSetlist(Setlist setlist, List<Song> songs) async {
     final pdf = pw.Document();
+
+    // Load font that supports Cyrillic characters (Roboto)
+    final font = await PdfGoogleFonts.robotoRegular();
+    final fontBold = await PdfGoogleFonts.robotoBold();
 
     final songWidgets = <pw.Widget>[];
 
@@ -17,7 +22,7 @@ class PdfService {
           margin: const pw.EdgeInsets.only(bottom: 12),
           padding: const pw.EdgeInsets.all(12),
           decoration: pw.BoxDecoration(
-            border: pw.Border.all(color: PdfColors.grey300),
+            border: pw.Border.all(color: PdfColor.fromHex('E0E0E0')),
             borderRadius: pw.BorderRadius.circular(8),
           ),
           child: pw.Row(
@@ -26,16 +31,16 @@ class PdfService {
               pw.Container(
                 width: 30,
                 height: 30,
-                decoration: const pw.BoxDecoration(
-                  color: PdfColors.blue100,
+                decoration: pw.BoxDecoration(
+                  color: PdfColor.fromHex('E3F2FD'),
                   shape: pw.BoxShape.circle,
                 ),
                 child: pw.Center(
                   child: pw.Text(
                     '${i + 1}',
                     style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.blue900,
+                      font: fontBold,
+                      color: PdfColor.fromHex('0D47A1'),
                     ),
                   ),
                 ),
@@ -48,16 +53,17 @@ class PdfService {
                     pw.Text(
                       song.title,
                       style: pw.TextStyle(
+                        font: fontBold,
                         fontSize: 14,
-                        fontWeight: pw.FontWeight.bold,
                       ),
                     ),
                     pw.SizedBox(height: 4),
                     pw.Text(
                       song.artist,
-                      style: const pw.TextStyle(
+                      style: pw.TextStyle(
+                        font: font,
                         fontSize: 12,
-                        color: PdfColors.grey700,
+                        color: PdfColor.fromHex('B0B0B0'),
                       ),
                     ),
                   ],
@@ -73,14 +79,14 @@ class PdfService {
                         vertical: 4,
                       ),
                       decoration: pw.BoxDecoration(
-                        color: PdfColors.green100,
+                        color: PdfColor.fromHex('E8F5E9'),
                         borderRadius: pw.BorderRadius.circular(4),
                       ),
                       child: pw.Text(
                         song.ourKey!,
                         style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold,
-                          color: PdfColors.green900,
+                          font: fontBold,
+                          color: PdfColor.fromHex('1B5E20'),
                         ),
                       ),
                     ),
@@ -89,9 +95,9 @@ class PdfService {
                     pw.Text(
                       '${song.ourBPM} BPM',
                       style: pw.TextStyle(
+                        font: fontBold,
                         fontSize: 12,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.orange800,
+                        color: PdfColor.fromHex('E65100'),
                       ),
                     ),
                   ],
@@ -112,40 +118,38 @@ class PdfService {
           children: [
             pw.Text(
               setlist.name,
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(
+                font: fontBold,
+                fontSize: 24,
+              ),
             ),
             if (setlist.description != null) ...[
               pw.SizedBox(height: 4),
               pw.Text(
                 setlist.description!,
-                style: const pw.TextStyle(
+                style: pw.TextStyle(
+                  font: font,
                   fontSize: 12,
-                  color: PdfColors.grey600,
+                  color: PdfColor.fromHex('757575'),
                 ),
               ),
             ],
-            if (setlist.eventDate != null || setlist.eventLocation != null) ...[
+            if (setlist.eventLocation != null) ...[
               pw.SizedBox(height: 8),
               pw.Row(
                 children: [
-                  if (setlist.eventDate != null)
-                    pw.Text(
-                      '📅 ${setlist.eventDate}',
-                      style: const pw.TextStyle(fontSize: 10),
+                  pw.Text(
+                    '📍 ${setlist.eventLocation}',
+                    style: pw.TextStyle(
+                      font: font,
+                      fontSize: 10,
                     ),
-                  if (setlist.eventDate != null &&
-                      setlist.eventLocation != null)
-                    pw.Text('  •  ', style: const pw.TextStyle(fontSize: 10)),
-                  if (setlist.eventLocation != null)
-                    pw.Text(
-                      '📍 ${setlist.eventLocation}',
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
+                  ),
                 ],
               ),
             ],
             pw.SizedBox(height: 20),
-            pw.Divider(color: PdfColors.grey300),
+            pw.Divider(color: PdfColor.fromHex('E0E0E0')),
             pw.SizedBox(height: 20),
           ],
         ),
@@ -154,15 +158,27 @@ class PdfService {
           children: [
             pw.Text(
               '${songs.length} songs',
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+              style: pw.TextStyle(
+                font: font,
+                fontSize: 10,
+                color: PdfColor.fromHex('757575'),
+              ),
             ),
             pw.Text(
-              'Generated by RepSync',
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+              'Generated by FlowGroove',
+              style: pw.TextStyle(
+                font: font,
+                fontSize: 10,
+                color: PdfColor.fromHex('757575'),
+              ),
             ),
             pw.Text(
               'Page ${context.pageNumber} of ${context.pagesCount}',
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+              style: pw.TextStyle(
+                font: font,
+                fontSize: 10,
+                color: PdfColor.fromHex('757575'),
+              ),
             ),
           ],
         ),

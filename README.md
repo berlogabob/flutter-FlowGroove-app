@@ -1,88 +1,229 @@
 # FlowGroove
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.19+-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.3+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-ready-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.11+-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.11.1+29-brightgreen.svg)](https://github.com/berlogabob/flutter-FlowGroove-app/releases)
-[![Live Demo](https://img.shields.io/badge/Live%20App-flowgroove.app-blue)](https://flowgroove.app)
+[![Version](https://img.shields.io/badge/version-0.14.0+203-brightgreen.svg)](https://github.com/berlogabob/flutter-FlowGroove-app/releases)
+[![Live App](https://img.shields.io/badge/Live%20App-flowgroove.app-blue)](https://flowgroove.app)
 
-**Real-time repertoire & setlist manager built specifically for cover bands and gigging musicians.**
+FlowGroove is a real-time repertoire and setlist manager for cover bands and gigging musicians. It gives the band one source of truth for songs, setlists, notes, keys, BPM, and rehearsal-ready tools, with instant sync and offline support.
 
-Tired of chaotic WhatsApp groups and outdated Google Docs?  
-FlowGroove gives your entire band **one single source of truth** for songs and setlists — with instant sync and full offline support.
+Try it live: [https://flowgroove.app](https://flowgroove.app)
 
-**Try it live right now:** [https://flowgroove.app](https://flowgroove.app)
+This repository also contains the Hugo marketing site, a Telegram support bot, Firebase functions, the active `.codex/` internal workspace, and an `oldarchive/` area for legacy materials.
 
----
+## Quick Start
 
-## ✨ Key Features
-
-- **Shared Song Library** with unique IDs
-- **Drag & Drop Setlists** — per-gig overrides (key, BPM, notes, custom order)
-- **Multiple Bands** — one account, many groups
-- **Real-time Sync** powered by Firestore
-- **Full Offline Mode** (Hive) with automatic sync
-- **Professional PDF Export**
-- **Built-in Audio Player + Metronome** (perfect for rehearsals)
-- **Mobile-friendly** — works perfectly in any browser (iPhone & Android)
-
-## 🚀 Quick Start (30 seconds)
+### Use The Live App
 
 1. Open [flowgroove.app](https://flowgroove.app)
-2. Sign up with Google or Email
+2. Sign up with Google or email
 3. Create a band and add your first song
-4. Invite bandmates — everything syncs instantly
+4. Invite bandmates; updates sync automatically
+
+### GitHub Pages Preview: Safe Dual Deploy
+
+This is the safe path for previewing the Hugo site and Flutter app together:
+
+```bash
+make -f Makefile.hugo deploy-all
+```
+
+URLs:
+
+- Landing page: `https://berlogabob.github.io/flutter-FlowGroove-app/`
+- Flutter app: `https://berlogabob.github.io/flutter-FlowGroove-app/app/`
+
+### Flutter-Only GitHub Pages Publish
+
+This path publishes only the Flutter app and overwrites `docs/` root output:
+
+```bash
+make deploy-test
+```
+
+Use it only when you intentionally want a Flutter-only publish.
+
+### Android Release
+
+```bash
+make release
+```
+
+Builds APK + AAB, tags the current version, and attempts to create a GitHub Release.
+
+### Production FTP Deploy
+
+1. Prepare local non-tracked env sources:
+
+```bash
+cp .env.example .env
+cp .ftp-env.example .ftp-env  # optional FTP-only override
+```
+
+2. Replace all `REPLACE_ME_*` placeholders with real local values.
+3. Run the production deploy:
+
+```bash
+make deploy-stable
+```
+
+`make deploy-stable` runs a preflight gate before any backup or upload. It validates local env files, blocks tracked `web/config.js`, and refuses deploys when secret-bearing archive/backup paths are staged.
+
+Deploy target:
+
+- Hugo to `https://flowgroove.app/`
+- Flutter web to `https://flowgroove.app/app/`
+
+## Features
+
+### Core App
+
+- Shared song library with metadata, links, unique IDs, and structure editing
+- Band management with membership and invite/join flows
+- Drag-and-drop setlists with per-gig overrides for key, BPM, notes, and order
+- Offline-first data flow with Hive-backed local caching
+- Firebase Auth, Firestore, and Storage integration
+- CSV import/export and PDF export
+- Responsive desktop/mobile layout
+
+### Music Tools
+
+- Metronome with custom time signatures, accent patterns, presets, and transport controls
+- Tuner with generate/listen modes and YIN-based pitch detection
+- Regional instruments and multiple tunings
+- Custom in-session tuning editor
+- Auto/manual note detection
+- Stage mode overlay
+- Haptic feedback and A4 calibration
+- Wakelock during tool usage
+
+### Access And Workflow
+
+- Demo account quick login
+- Demo mode banner and read-only behavior
+- Role-aware permission helpers
+- Song autocomplete and BPM lookup provider layer
+- Telegram support bot codebase included in `telegram_bot/`
 
 ## Tech Stack
 
-- Flutter (Web-first + Android/iOS ready)
-- Firebase (Auth + Firestore Realtime)
-- Hive (offline-first storage)
-- Riverpod (state management)
-- go_router
-- pdf + printing
-- audioplayers + flutter_sound
+- Flutter web with Android/iOS-ready build paths
+- Firebase Auth, Firestore, Storage, and Functions
+- Hive offline storage
+- Riverpod state management
+- go_router navigation
+- PDF and printing support
+- Audio player, metronome, and tuner tooling
+
+## Repository Layout
+
+### Main Areas
+
+- `lib/` - Flutter application code
+- `test/` - Flutter test suite
+- `site/` - Hugo landing page source
+- `docs/` - generated GitHub Pages output plus project reports
+- `telegram_bot/` - Telegram support bot
+- `functions/` - Firebase Functions source
+- `.codex/` - active internal workspace for agents, rules, memory, tasks, and session control
+- `memory/` - protected project memory bank retained at the repo root
+- `oldarchive/` - archived Qwen context, exports, reports, snapshots, and legacy support files
+
+### Current File Counts
+
+- `lib/`: 240 Dart files
+- `test/`: 97 Dart test files
+- `site/`: 247 files
+- `docs/`: 127 files
+- `telegram_bot/`: 14 files
+
+## Common Commands
+
+| Command | Purpose | Notes |
+|---|---|---|
+| `make -f Makefile.hugo serve` | Run Hugo locally | Local landing-page development |
+| `make -f Makefile.hugo deploy-all` | GitHub Pages dual deploy | Safe preview path |
+| `make deploy-test` | Flutter-only GitHub Pages publish | Overwrites `docs/` root |
+| `make deploy-stable` | Production FTP deploy | Hugo root + Flutter `/app/` |
+| `make build-android` | Build APK | Demo config by default |
+| `make release` | Build APK + AAB + release flow | Uses current git branch/tag |
+| `flutter test` | Run the full Flutter suite | Not run in full during this audit pass |
+| `bash test/security/git_audit_test.sh` | Security audit | Passes with warnings; history still needs periodic review |
 
 ## Documentation
 
-- [Platform Guide](docs/PLATFORMS.md)
-- [Makefile Commands](MAKEFILE_GUIDE.md)
-- [Changelog](CHANGELOG.md)
+### Core Docs
+
+- [README.md](README.md)
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+- [docs/README.md](docs/README.md)
+- [docs/project-audit-2026-04-24.md](docs/project-audit-2026-04-24.md)
+- [docs/PLATFORMS.md](docs/PLATFORMS.md)
+- [MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md)
+- [CHANGELOG.md](CHANGELOG.md)
+
+### Supporting Docs
+
+- [site/README.md](site/README.md)
+- [telegram_bot/README.md](telegram_bot/README.md)
+- [memory/README.md](memory/README.md)
+- [memory/CRITICAL_PROBLEMS.md](memory/CRITICAL_PROBLEMS.md)
+- [.codex/README.md](.codex/README.md)
+
+### Existing Reports
+
+- [docs/fix-verification-report.md](docs/fix-verification-report.md)
+- [docs/performance-fixes-summary.md](docs/performance-fixes-summary.md)
+- [docs/tuner-debug-report.md](docs/tuner-debug-report.md)
+- [docs/tuner-testing-summary.md](docs/tuner-testing-summary.md)
+- [docs/tuner-ux-enhancement-summary.md](docs/tuner-ux-enhancement-summary.md)
 
 ## Roadmap
 
-**✅ Done (v0.11+)**  
-- Real-time sync, offline mode, PDF export, built-in audio player + metronome  
-- Stable web version
-
-**🔨 Planning / Next**  
-- Spotify Integration (auto BPM + key fetch)
+- Spotify integration for automatic BPM and key lookup
 - Smart song auto-fill
 - Premium features
-- Native mobile apps (App Store & Play Store)
+- Native app store releases
 - Gig calendar integration
 
-## ❤️ Support Development
+## Validation Snapshot
 
-FlowGroove is still in active development.  
-If the app already saves you time and nerves — you can buy me a coffee and help me develop it faster.
+Historical audit snapshot before the April 24, 2026 FTP hardening pass:
 
-[☕ Buy Me a Coffee on Ko-fi](https://ko-fi.com/flowgrooveapp)
+- `flutter test test/config/`: 62 passed
+- `bash test/security/git_audit_test.sh`: failed at that time on tracked `web/config.js`
+- `flutter analyze`: 4411 issues across the whole repo before archival cleanup
+- `flutter analyze lib test`: 3996 issues across live app/test code, dominated by lint backlog
+
+See the dated audit report for details and prioritized findings. Legacy archived material now lives under `oldarchive/` and is excluded from analyzer scope.
+
+## Security Notes
+
+- Firebase configuration is runtime-injected for web and passed via compile-time defines for non-web builds
+- Web runtime config is public-only: generated `web/config.js` should contain only `FIREBASE_API_KEY` and optional proxy URLs
+- Spotify web access must go through `SPOTIFY_PROXY_URL`; direct client-credential mode is intentionally disabled on web
+- Client-side Telegram Bot API methods are disabled; privileged Telegram actions belong in `functions/` or other backend paths
+- Non-web builds no longer read `assets/env.json`; use compile-time `--dart-define` inputs instead
+- Client-side RapidAPI track analysis is disabled until it moves behind a backend proxy
+- `web/config.js` is a generated artifact and should stay untracked
+- Demo Firebase keys are present in tracked demo config files
+- Android/AAB build targets source demo or local `.env` values through [scripts/build-mobile-with-env.sh](scripts/build-mobile-with-env.sh)
+- If FTP credentials were ever stored in tracked files, rotate them before the next real production deploy
+
+## Support Development
+
+FlowGroove is in active development. If the app saves your band time, you can support continued work through Ko-fi:
+
+[Buy Me a Coffee on Ko-fi](https://ko-fi.com/flowgrooveapp)
 
 ## License
 
-MIT License — free to use, fork, and contribute.
+MIT License. See [LICENSE](LICENSE).
 
----
+## Status
 
-**Built with love by a musician for musicians ❤️**
-
-Created because I was tired of the same pain in cover bands for 10+ years.
-
-**Feedback is extremely welcome!**  
-Try the app and tell me what’s missing or what you love. Open an Issue or just DM me.
-
-
-❤️ Support the project
-If FlowGroove saves you time and nerves — you can buy me a coffee. Every donation helps me keep developing it faster.
-[Buy Me a Coffee](https://buymeacoffee.com/andreyflowgroove)
+- Version: `0.14.0+203`
+- Last updated: June 16, 2026
+- Current project state: active development with `.codex/` as the canonical internal layer and `oldarchive/` for legacy context

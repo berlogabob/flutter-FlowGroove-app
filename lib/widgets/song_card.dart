@@ -8,6 +8,16 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent card layout for displaying song
 /// details including title, artist, BPM, key, and action buttons.
 class SongCard extends StatelessWidget {
+
+  const SongCard({
+    required this.song,
+    this.onEdit,
+    this.onDelete,
+    this.onPlaySpotify,
+    this.onOpenMetronome,
+    this.showSpotifyButton = true,
+    super.key,
+  });
   /// The song to display.
   final Song song;
 
@@ -20,17 +30,11 @@ class SongCard extends StatelessWidget {
   /// Callback when the Spotify play button is pressed.
   final VoidCallback? onPlaySpotify;
 
+  /// Callback when the metronome button is pressed.
+  final VoidCallback? onOpenMetronome;
+
   /// Whether to show the Spotify play button.
   final bool showSpotifyButton;
-
-  const SongCard({
-    super.key,
-    required this.song,
-    this.onEdit,
-    this.onDelete,
-    this.onPlaySpotify,
-    this.showSpotifyButton = true,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +85,13 @@ class SongCard extends StatelessWidget {
             },
             tooltip: 'Play on Spotify',
           ),
+        if (song.ourBPM != null && onOpenMetronome != null)
+          IconButton(
+            key: const ValueKey('song-card-open-metronome'),
+            icon: const Icon(Icons.music_note, size: 20),
+            onPressed: onOpenMetronome,
+            tooltip: 'Open in Metronome',
+          ),
         if (song.ourBPM != null) _buildBpmBadge(),
         if (song.ourKey != null) ...[
           const SizedBox(width: 8),
@@ -122,13 +133,21 @@ class SongCard extends StatelessWidget {
 
 /// A compact song card for list views.
 class CompactSongCard extends StatelessWidget {
+
+  const CompactSongCard({
+    required this.song,
+    this.onTap,
+    this.onOpenMetronome,
+    super.key,
+  });
   /// The song to display.
   final Song song;
 
   /// Callback when the card is tapped.
   final VoidCallback? onTap;
 
-  const CompactSongCard({super.key, required this.song, this.onTap});
+  /// Callback when the metronome button is pressed.
+  final VoidCallback? onOpenMetronome;
 
   @override
   Widget build(BuildContext context) {
@@ -138,9 +157,9 @@ class CompactSongCard extends StatelessWidget {
         vertical: MonoPulseSpacing.sm,
       ),
       child: ListTile(
-        leading: CircleAvatar(
+        leading: const CircleAvatar(
           backgroundColor: MonoPulseColors.surfaceRaised,
-          child: const Icon(
+          child: Icon(
             Icons.music_note,
             size: 20,
             color: MonoPulseColors.accentOrange,
@@ -160,6 +179,13 @@ class CompactSongCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (song.ourBPM != null && onOpenMetronome != null)
+              IconButton(
+                key: const ValueKey('compact-song-card-open-metronome'),
+                icon: const Icon(Icons.music_note, size: 18),
+                onPressed: onOpenMetronome,
+                tooltip: 'Open in Metronome',
+              ),
             if (song.ourKey != null)
               Text(
                 song.ourKey!,

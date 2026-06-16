@@ -5,6 +5,14 @@ import 'package:flutter/material.dart';
 /// This widget provides a text field specifically designed for
 /// entering tempo values with numeric keyboard and validation.
 class BpmSelector extends StatelessWidget {
+
+  const BpmSelector({
+    required this.controller,
+    this.label,
+    this.hintText,
+    this.onChanged,
+    super.key,
+  });
   /// Controller for the BPM text field.
   final TextEditingController controller;
 
@@ -16,14 +24,6 @@ class BpmSelector extends StatelessWidget {
 
   /// Callback when BPM value changes.
   final ValueChanged<String>? onChanged;
-
-  const BpmSelector({
-    super.key,
-    required this.controller,
-    this.label,
-    this.hintText,
-    this.onChanged,
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +56,12 @@ class BpmSelector extends StatelessWidget {
 ///
 /// This is useful for song forms where key and tempo are related.
 class KeyBpmSelector extends StatelessWidget {
+
+  const KeyBpmSelector({
+    required this.base, required this.modifier, required this.bpmController, required this.label, required this.onKeyChanged, super.key,
+    this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+    this.keyModifiers = const ['', '#', 'b', 'm'],
+  });
   /// The selected base note.
   final String base;
 
@@ -76,17 +82,6 @@ class KeyBpmSelector extends StatelessWidget {
 
   /// Available modifiers.
   final List<String> keyModifiers;
-
-  const KeyBpmSelector({
-    super.key,
-    required this.base,
-    required this.modifier,
-    required this.bpmController,
-    required this.label,
-    required this.onKeyChanged,
-    this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
-    this.keyModifiers = const ['', '#', 'b', 'm'],
-  });
 
   @override
   Widget build(BuildContext context) {

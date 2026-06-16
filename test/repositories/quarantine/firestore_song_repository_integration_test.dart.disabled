@@ -1,0 +1,250 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/repositories/firestore_song_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import '../helpers/firebase_emulator_harness.dart';
+
+void main() {
+  group('FirestoreSongRepository — интеграционные тесты', () {
+    late FirebaseEmulatorHarness harness;
+    late FirestoreSongRepository repo;
+
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      await Firebase.initializeApp(
+        options: const FirebaseOptions(
+          apiKey: 'demo-api-key',
+          appId: '1:703941154390:ios:test-harness',
+          messagingSenderId: '703941154390',
+          projectId: 'repsync-app-8685c',
+        ),
+      );
+    });
+
+    setUp(() async {
+      harness = await FirebaseEmulatorHarness.bootstrap();
+      await harness.createAndSeedUser();
+      repo = FirestoreSongRepository(
+        firestore: harness.firestore,
+        auth: harness.auth,
+      );
+    });
+
+    tearDown(() async {
+      await harness.deleteCurrentUser();
+    });
+
+    // ========== LEGACY ПУТЬ (canonicalSongId == null) ==========
+    group('Legacy путь (без canonicalSongId)', () {
+      test('saveSong — создаёт документ в users/{uid}/songs/{id}', () async {
+        final song = Song(
+          id: 'legacy-1',
+          title: 'Legacy Song',
+          artist: 'Legacy Artist',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await repo.saveSong(song);
+
+        final doc = await harness.firestore
+            .collection('users')
+            .doc(harness.auth.currentUser!.uid)
+            .collection('songs')
+            .doc('legacy-1')
+            .get();
+
+        expect(doc.exists, isTrue);
+        expect(doc.data()!['title'], 'Legacy Song');
+        expect(doc.data()!['schemaVersion'], isNull);
+      });
+
+      test('updateSong — обновляет существующий документ', () async {
+        final song = Song(
+          id: 'legacy-upd',
+          title: 'Original',
+          artist: 'Artist',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await repo.saveSong(song);
+
+        final updated = song.copyWith(title: 'Updated', updatedAt: DateTime.now());
+        await repo.updateSong(updated);
+
+        final doc = await harness.firestore
+            .collection('users')
+            .doc(harness.auth.currentUser!.uid)
+            .collection('songs')
+            .doc('legacy-upd')
+            .get();
+
+        expect(doc.data()!['title'], 'Updated');
+      });
+
+      test('deleteSong — удаляет документ', () async {
+        final song = Song(
+          id: 'legacy-del',
+          title: 'ToDelete',
+          artist: 'Artist',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await repo.saveSong(song);
+
+        await repo.deleteSong('legacy-del');
+
+        final doc = await harness.firestore
+            .collection('users')
+            .doc(harness.auth.currentUser!.uid)
+            .collection('songs')
+            .doc('legacy-del')
+            .get();
+
+        expect(doc.exists, isFalse);
+      });
+    });
+
+    // ========== V2 ПУТЬ (с canonicalSongId) ==========
+    group('V2 путь (с canonicalSongId)', () {
+      Future<String> seedCanonical({String title = 'Canonical', String artist = 'Canonical Artist'}) async {
+        final canonId = 'canonical_${DateTime.now().microsecondsSinceEpoch}';
+        await harness.firestore.collection('canonical_songs').doc(canonId).set({
+          'canonicalSongId': canonId,
+          'canonicalRevision': 1,
+          'title': title,
+          'artist': artist,
+          'normalizedTitle': title.toLowerCase(),
+          'normalizedArtist': artist.toLowerCase(),
+          'schemaVersion': 1,
+          'source': 'manual',
+          'status': 'active',
+          'createdBy': harness.auth.currentUser!.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        return canonId;
+      }
+
+      test('saveSong — создаёт v2 LibrarySong с delta и materialized', () async {
+        final canonId = await seedCanonical(title: 'V2 Canonical');
+
+        final song = Song(
+          id: 'v2-1',
+          canonicalSongId: canonId,
+          title: 'V2 Title',
+          artist: 'V2 Artist',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await repo.saveSong(song);
+
+        final doc = await harness.firestore
+            .collection('users')
+            .doc(harness.auth.currentUser!.uid)
+            .collection('songs')
+            .doc('v2-1')
+            .get();
+
+        expect(doc.exists, isTrue);
+        expect(doc.data()!['canonicalSongId'], canonId);
+        expect(doc.data()!['delta'], isNotNull);
+        expect(doc.data()!['materialized'], isNotNull);
+      });
+
+      test('updateSong — сохраняет delta + создаёт commit', () async {
+        final canonId = await seedCanonical(title: 'V2 Upd Canonical');
+
+        final song = Song(
+          id: 'v2-upd',
+          canonicalSongId: canonId,
+          title: 'V2 Song',
+          artist: 'Artist',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await repo.saveSong(song);
+
+        final updated = song.copyWith(ourKey: 'D', updatedAt: DateTime.now());
+        await repo.updateSong(updated);
+
+        final commitsSnap = await harness.firestore
+            .collection('users')
+            .doc(harness.auth.currentUser!.uid)
+            .collection('songs')
+            .doc('v2-upd')
+            .collection('commits')
+            .get();
+
+        expect(commitsSnap.docs.length, greaterThan(0));
+        expect(commitsSnap.docs.first.data()['canonicalSongId'], canonId);
+        expect(commitsSnap.docs.first.data()['operation'], 'update');
+      });
+    });
+
+    // ========== BAND SONG ==========
+    group('Band songs', () {
+      test('saveBandSong — сохраняет песню в коллекции бэнда', () async {
+        final bandId = 'band_${DateTime.now().microsecondsSinceEpoch}';
+        await harness.firestore.collection('bands').doc(bandId).set({
+          'name': 'Test Band',
+          'createdBy': harness.auth.currentUser!.uid,
+          'members': [
+            {'uid': harness.auth.currentUser!.uid, 'role': 'admin'}
+          ],
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        final song = Song(
+          id: 'band-song-1',
+          title: 'Band Song',
+          artist: 'Band Artist',
+          bandId: bandId,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await repo.saveBandSong(song, bandId);
+
+        final doc = await harness.firestore
+            .collection('bands')
+            .doc(bandId)
+            .collection('songs')
+            .doc('band-song-1')
+            .get();
+
+        expect(doc.exists, isTrue);
+        expect(doc.data()!['title'], 'Band Song');
+      });
+    });
+
+    // ========== WATCH (Stream) ==========
+    group('Stream наблюдение', () {
+      test('watchSongs — эмитит все песни пользователя', () async {
+        final song1 = Song(
+          id: 'watch-1',
+          title: 'Watch 1',
+          artist: 'Artist',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        final song2 = Song(
+          id: 'watch-2',
+          title: 'Watch 2',
+          artist: 'Artist',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await repo.saveSong(song1);
+        await repo.saveSong(song2);
+
+        final songs = await repo.watchSongs(harness.auth.currentUser!.uid).first;
+
+        expect(songs.length, 2);
+        expect(songs.map((s) => s.id), containsAll(['watch-1', 'watch-2']));
+      });
+    });
+  });
+}

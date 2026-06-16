@@ -1,0 +1,9 @@
+{{/* layouts/shortcodes/hero-cta-primary.html */}}
+{{- $href := .Get "href" -}}
+{{- $isExternal := or (strings.HasPrefix $href "http") (strings.HasPrefix $href "mailto:") (strings.HasPrefix $href "tel:") -}}
+{{- if not $isExternal -}}
+  {{- $href = $href | absURL -}}
+{{- end -}}
+<a href="{{ $href }}" class="btn btn-primary" {{ if $isExternal }}target="_blank" rel="noopener"{{ end }}>
+  {{ .Get "text" }}
+</a>

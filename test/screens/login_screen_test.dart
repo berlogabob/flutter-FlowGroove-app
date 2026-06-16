@@ -1,278 +1,273 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flutter_repsync_app/screens/login_screen.dart';
-import 'package:flutter_repsync_app/providers/auth/auth_provider.dart';
-import '../helpers/test_helpers.dart';
-import '../helpers/mocks.dart';
+
 import '../helpers/mocks.mocks.dart';
+import '../helpers/routed_test_harness.dart';
+import '../helpers/test_helpers.dart';
 
 void main() {
   group('LoginScreen', () {
     late MockFirebaseAuth mockAuth;
+    late FakeAnalyticsClient analytics;
+    late FakePendingJoinCodeStore pendingJoinCodeStore;
+
+    List<dynamic> overrides() => [
+      firebaseAuthProvider.overrideWithValue(mockAuth),
+      analyticsClientProvider.overrideWithValue(analytics),
+      pendingJoinCodeStoreProvider.overrideWithValue(pendingJoinCodeStore),
+      appUserProvider.overrideWith(() => TestAppUserNotifier(null)),
+    ];
 
     setUp(() {
       mockAuth = MockFirebaseAuth();
+      analytics = FakeAnalyticsClient();
+      pendingJoinCodeStore = FakePendingJoinCodeStore();
     });
 
-    testWidgets('renders login screen with all elements', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
+    testWidgets('renders login screen with all elements', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/login',
+        overrides: overrides(),
       );
 
-      // Verify screen title
-      expect(find.text('Welcome Back'), findsOneWidget);
-
-      // Verify app name
-      expect(find.text('RepSync'), findsOneWidget);
-
-      // Verify subtitle
+      expect(find.text('FlowGroove'), findsOneWidget);
       expect(find.text('Sign in to manage your band'), findsOneWidget);
-
-      // Verify email field
       expect(find.text('Email'), findsOneWidget);
-
-      // Verify password field
       expect(find.text('Password'), findsOneWidget);
-
-      // Verify sign in button
-      expect(find.text('Sign In'), findsOneWidget);
-
-      // Verify sign up link
+      expect(find.widgetWithText(ElevatedButton, 'Sign In'), findsOneWidget);
       expect(find.text("Don't have an account?"), findsOneWidget);
       expect(find.text('Sign Up'), findsOneWidget);
+      expect(find.text('Try Demo Account'), findsOneWidget);
     });
 
-    testWidgets('displays email icon and password icon', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
+    testWidgets('displays email and password icons', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/login',
+        overrides: overrides(),
       );
 
-      expect(findIcon(Icons.email_outlined), findsOneWidget);
-      expect(findIcon(Icons.lock_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.email_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.lock_outlined), findsOneWidget);
     });
 
-    testWidgets('allows entering email and password', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
+    testWidgets('allows entering email and password', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/login',
+        overrides: overrides(),
       );
 
-      // Find text fields
-      final emailField = find.byType(TextFormField).first;
-      final passwordField = find.byType(TextFormField).last;
-
-      // Enter email
-      await tester.enterText(emailField, 'test@example.com');
+      await tester.enterText(
+        find.byType(TextFormField).at(0),
+        'test@example.com',
+      );
+      await tester.enterText(find.byType(TextFormField).at(1), 'Password123');
       await tester.pump();
 
-      // Enter password
-      await tester.enterText(passwordField, 'password123');
-      await tester.pump();
-
-      // Verify text was entered
       expect(find.text('test@example.com'), findsOneWidget);
     });
 
-    testWidgets('shows validation error for empty email', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
+    testWidgets('shows validation errors for empty submit', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/login',
+        overrides: overrides(),
       );
 
-      // Tap sign in button without entering data
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pump();
 
-      // Verify validation message appears
-      expect(find.text('Please enter your email'), findsOneWidget);
+      expect(find.text('Email is required'), findsOneWidget);
+      expect(find.text('Password is required'), findsOneWidget);
+      verifyNever(
+        mockAuth.signInWithEmailAndPassword(
+          email: anyNamed('email'),
+          password: anyNamed('password'),
+        ),
+      );
     });
 
-    testWidgets('shows validation error for empty password', (
-      WidgetTester tester,
-    ) async {
-      await pumpAppWidget(
+    testWidgets('shows password validation after email entry', (tester) async {
+      await pumpRoutedTestApp(
         tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/login',
+        overrides: overrides(),
       );
 
-      // Enter email only
-      final emailField = find.byType(TextFormField).first;
-      await tester.enterText(emailField, 'test@example.com');
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'test@example.com',
+      );
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pump();
 
-      // Tap sign in button
-      await tester.tap(find.text('Sign In'));
-      await tester.pump();
-
-      // Verify validation message appears
-      expect(find.text('Please enter your password'), findsOneWidget);
+      expect(find.text('Password is required'), findsOneWidget);
     });
 
-    testWidgets('shows loading indicator when logging in', (
-      WidgetTester tester,
+    testWidgets('shows loading indicator while login is pending', (
+      tester,
     ) async {
-      // Setup mock to simulate async login
+      final completer = Completer<UserCredential>();
       when(
         mockAuth.signInWithEmailAndPassword(
           email: 'test@example.com',
-          password: 'password123',
+          password: 'Password123',
+        ),
+      ).thenAnswer((_) => completer.future);
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/login',
+        overrides: overrides(),
+      );
+
+      await tester.enterText(
+        find.byType(TextFormField).at(0),
+        'test@example.com',
+      );
+      await tester.enterText(find.byType(TextFormField).at(1), 'Password123');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      completer.complete(createMockUserCredential());
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('navigates to register with GoRouter when tapping Sign Up', (
+      tester,
+    ) async {
+      final router = await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/login',
+        overrides: overrides(),
+      );
+
+      await tester.tap(find.text('Sign Up'));
+      await tester.pumpAndSettle();
+
+      expect(currentRouterUri(router).path, '/register');
+      expect(find.text('Join FlowGroove'), findsOneWidget);
+    });
+
+    testWidgets('successful login logs analytics and navigates home', (
+      tester,
+    ) async {
+      when(
+        mockAuth.signInWithEmailAndPassword(
+          email: 'test@example.com',
+          password: 'Password123',
         ),
       ).thenAnswer((_) async => createMockUserCredential());
 
-      await pumpAppWidget(
+      final router = await pumpRoutedTestApp(
         tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/login',
+        overrides: overrides(),
       );
 
-      // Enter credentials
-      final emailField = find.byType(TextFormField).first;
-      final passwordField = find.byType(TextFormField).last;
-      await tester.enterText(emailField, 'test@example.com');
-      await tester.enterText(passwordField, 'password123');
-      await tester.pump();
-
-      // Tap sign in button
-      await tester.tap(find.text('Sign In'));
-      await tester.pump();
-
-      // Verify loading indicator appears
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    });
-
-    testWidgets('navigates to register screen when tapping Sign Up', (
-      WidgetTester tester,
-    ) async {
-      bool didNavigate = false;
-
-      await pumpAppWidget(
-        tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
-        navigatorObservers: [
-          MockNavigatorObserver(onPush: (_) => didNavigate = true),
-        ],
+      await tester.enterText(
+        find.byType(TextFormField).at(0),
+        'test@example.com',
       );
-
-      // Tap Sign Up button
-      await tester.tap(find.text('Sign Up'));
-      await tester.pump();
-
-      // Verify navigation occurred
-      expect(didNavigate, isTrue);
-    });
-
-    testWidgets('displays error message for invalid credentials', (
-      WidgetTester tester,
-    ) async {
-      // Setup mock to throw auth error
-      when(
-        mockAuth.signInWithEmailAndPassword(
-          email: 'test@example.com',
-          password: 'password123',
-        ),
-      ).thenThrow(FirebaseAuthException(code: 'user-not-found'));
-
-      await pumpAppWidget(
-        tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
-      );
-
-      // Enter credentials
-      final emailField = find.byType(TextFormField).first;
-      final passwordField = find.byType(TextFormField).last;
-      await tester.enterText(emailField, 'test@example.com');
-      await tester.enterText(passwordField, 'password123');
-      await tester.pump();
-
-      // Tap sign in button
-      await tester.tap(find.text('Sign In'));
+      await tester.enterText(find.byType(TextFormField).at(1), 'Password123');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pumpAndSettle();
 
-      // Verify error message appears
-      expect(find.text('No user found with this email'), findsOneWidget);
+      expect(currentRouterUri(router).path, '/main/home');
+      expect(analytics.loginMethods, ['email']);
+      expect(analytics.loginSuccessMethods, ['email']);
+      expect(pendingJoinCodeStore.readCount, 1);
     });
 
-    testWidgets('displays error message for wrong password', (
-      WidgetTester tester,
+    testWidgets(
+      'successful login with pending join code navigates to join band',
+      (tester) async {
+        pendingJoinCodeStore.pendingCode = 'ABC123';
+        when(
+          mockAuth.signInWithEmailAndPassword(
+            email: 'test@example.com',
+            password: 'Password123',
+          ),
+        ).thenAnswer((_) async => createMockUserCredential());
+
+        final router = await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/login',
+          overrides: overrides(),
+        );
+
+        await tester.enterText(
+          find.byType(TextFormField).at(0),
+          'test@example.com',
+        );
+        await tester.enterText(find.byType(TextFormField).at(1), 'Password123');
+        await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
+        await tester.pumpAndSettle();
+
+        expect(currentRouterUri(router).path, '/main/join-band');
+        expect(currentRouterUri(router).queryParameters['code'], 'ABC123');
+        expect(find.text('route:join-band'), findsOneWidget);
+      },
+    );
+
+    testWidgets('demo login uses injected analytics and navigates home', (
+      tester,
     ) async {
-      // Setup mock to throw auth error
+      when(
+        mockAuth.signInWithEmailAndPassword(
+          email: 'demo@flowgroove.app',
+          password: 'demo1234',
+        ),
+      ).thenAnswer((_) async => createMockUserCredential());
+
+      final router = await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/login',
+        overrides: overrides(),
+      );
+
+      await tester.tap(find.text('Try Demo Account'));
+      await tester.pumpAndSettle();
+
+      expect(currentRouterUri(router).path, '/main/home');
+      expect(analytics.demoLoginCount, 1);
+    });
+
+    testWidgets('displays auth error messages', (tester) async {
       when(
         mockAuth.signInWithEmailAndPassword(
           email: 'test@example.com',
-          password: 'password123',
+          password: 'Password123',
         ),
       ).thenThrow(FirebaseAuthException(code: 'wrong-password'));
 
-      await pumpAppWidget(
+      await pumpRoutedTestApp(
         tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+        initialLocation: '/login',
+        overrides: overrides(),
       );
 
-      // Enter credentials
-      final emailField = find.byType(TextFormField).first;
-      final passwordField = find.byType(TextFormField).last;
-      await tester.enterText(emailField, 'test@example.com');
-      await tester.enterText(passwordField, 'password123');
-      await tester.pump();
-
-      // Tap sign in button
-      await tester.tap(find.text('Sign In'));
-      await tester.pumpAndSettle();
-
-      // Verify error message appears
-      expect(find.text('Wrong password'), findsOneWidget);
-    });
-
-    testWidgets('displays error message for invalid email', (
-      WidgetTester tester,
-    ) async {
-      // Setup mock to throw auth error
-      when(
-        mockAuth.signInWithEmailAndPassword(
-          email: 'test@example.com',
-          password: 'password123',
-        ),
-      ).thenThrow(FirebaseAuthException(code: 'invalid-email'));
-
-      await pumpAppWidget(
-        tester,
-        const LoginScreen(),
-        overrides: [firebaseAuthProvider.overrideWithValue(mockAuth)],
+      await tester.enterText(
+        find.byType(TextFormField).at(0),
+        'test@example.com',
       );
-
-      // Enter credentials
-      final emailField = find.byType(TextFormField).first;
-      final passwordField = find.byType(TextFormField).last;
-      await tester.enterText(emailField, 'test@example.com');
-      await tester.enterText(passwordField, 'password123');
-      await tester.pump();
-
-      // Tap sign in button
-      await tester.tap(find.text('Sign In'));
+      await tester.enterText(find.byType(TextFormField).at(1), 'Password123');
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
       await tester.pumpAndSettle();
 
-      // Verify error message appears
-      expect(find.text('Invalid email address'), findsOneWidget);
+      expect(
+        find.text('Incorrect password. Please try again.'),
+        findsOneWidget,
+      );
     });
   });
 }

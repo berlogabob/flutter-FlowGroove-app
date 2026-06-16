@@ -1,40 +1,144 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../models/song.dart';
-import '../models/setlist.dart';
+
 import '../models/band.dart';
-import '../screens/login_screen.dart';
+import '../models/setlist.dart';
+import '../models/song.dart';
+import '../models/tuner_launch_context.dart';
+import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
-import '../screens/home_screen.dart';
-import '../screens/main_shell.dart';
-import '../screens/songs/songs_list_screen.dart';
-import '../screens/songs/add_song_screen.dart';
-import '../screens/bands/my_bands_screen.dart';
+import '../screens/bands/band_about_screen.dart';
+import '../screens/bands/band_setlists_screen.dart';
+import '../screens/bands/band_songs_screen.dart';
 import '../screens/bands/create_band_screen.dart';
 import '../screens/bands/join_band_screen.dart';
-import '../screens/bands/band_songs_screen.dart';
-import '../screens/setlists/setlists_list_screen.dart';
-import '../screens/setlists/create_setlist_screen.dart';
-import '../screens/profile_screen.dart';
+import '../screens/bands/my_bands_screen.dart';
+import '../screens/bands/the_band_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/login_screen.dart';
+import '../screens/main_shell.dart';
 import '../screens/metronome_screen.dart';
+import '../screens/profile_screen.dart';
+import '../screens/setlists/create_setlist_screen.dart';
+import '../screens/setlists/setlists_list_screen.dart';
+import '../screens/songs/add_song_screen.dart';
+import '../screens/songs/models/song_form_data.dart';
+import '../screens/songs/song_duplicates_screen.dart';
+import '../screens/songs/songs_list_screen.dart';
+import '../screens/tuner_screen.dart';
+import '../widgets/desktop_shell.dart';
 
-/// GoRouter configuration for type-safe navigation.
+/// Minimal auth surface needed by the app router.
+abstract class AuthRouterClient {
+  Stream<User?> authStateChanges();
+
+  User? get currentUser;
+}
+
+/// Production auth adapter for GoRouter redirects.
+class FirebaseAuthRouterClient implements AuthRouterClient {
+  FirebaseAuthRouterClient([FirebaseAuth? auth])
+    : _auth = auth ?? FirebaseAuth.instance;
+
+  final FirebaseAuth _auth;
+
+  @override
+  Stream<User?> authStateChanges() => _auth.authStateChanges();
+
+  @override
+  User? get currentUser => _auth.currentUser;
+}
+
+/// Stream that notifies listeners when auth state changes.
+/// Used to refresh GoRouter redirect logic.
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen((_) {
+      notifyListeners();
+    });
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
+/// Root navigator key for GoRouter.
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+/// Production GoRouter configuration for FlowGroove.
+final GoRouter appRouter = createAppRouter();
+
+/// Creates a GoRouter with injectable auth and route configuration.
+GoRouter createAppRouter({
+  AuthRouterClient? authClient,
+  String initialLocation = '/login',
+  GlobalKey<NavigatorState>? navigatorKey,
+  List<RouteBase>? routes,
+  bool enableAuthRedirect = true,
+}) {
+  final resolvedAuthClient = authClient ?? FirebaseAuthRouterClient();
+
+  return GoRouter(
+    navigatorKey: navigatorKey ?? _rootNavigatorKey,
+    initialLocation: initialLocation,
+    refreshListenable: enableAuthRedirect
+        ? GoRouterRefreshStream(resolvedAuthClient.authStateChanges())
+        : null,
+    redirect: enableAuthRedirect
+        ? (context, state) {
+            final isLoggedIn = resolvedAuthClient.currentUser != null;
+            final isLoggingIn = state.matchedLocation == '/login';
+            final isRegistering = state.matchedLocation == '/register';
+            final isOnMain = state.matchedLocation.startsWith('/main');
+
+            // Not logged in and not on auth pages -> go to login
+            if (!isLoggedIn && !isLoggingIn && !isRegistering) {
+              return '/login';
+            }
+
+            // Logged in and on auth pages -> go to main
+            if (isLoggedIn && (isLoggingIn || isRegistering)) {
+              return '/main/home';
+            }
+
+            // Logged in but on /main without child route -> go to home
+            if (isLoggedIn && isOnMain && state.matchedLocation == '/main') {
+              return '/main/home';
+            }
+
+            return null;
+          }
+        : null,
+    routes: routes ?? _buildAppRoutes(),
+  );
+}
+
+/// GoRouter routes for FlowGroove.
 ///
-/// All routes are defined here with support for:
-/// - Type-safe path parameters
-/// - Deep linking
-/// - Nested routes
-final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
-  routes: [
-    // Root route - shows home or login based on auth state
-    GoRoute(
-      path: '/',
-      name: 'home',
-      builder: (context, state) => const HomeScreen(),
-    ),
-
-    // Auth routes
+/// Features:
+/// - Type-safe navigation with path parameters
+/// - Deep linking support via flowgroove:// scheme and https://flowgroove.app
+/// - Nested routes for main app shell
+/// - Auth state redirect on startup
+///
+/// Usage:
+/// ```dart
+/// // In widgets:
+/// context.goSongs();
+/// context.goEditSong(song);
+/// ```
+List<RouteBase> _buildAppRoutes() {
+  return [
+    // Auth routes (public)
     GoRoute(
       path: '/login',
       name: 'login',
@@ -45,122 +149,311 @@ final GoRouter appRouter = GoRouter(
       name: 'register',
       builder: (context, state) => const RegisterScreen(),
     ),
-
-    // Main shell (authenticated navigation)
     GoRoute(
-      path: '/main',
-      name: 'main',
-      builder: (context, state) => const MainShell(),
+      path: '/forgot-password',
+      name: 'forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
     ),
 
-    // Songs routes
-    GoRoute(
-      path: '/songs',
-      name: 'songs',
-      builder: (context, state) => const SongsListScreen(),
-    ),
-    GoRoute(
-      path: '/songs/add',
-      name: 'add-song',
-      builder: (context, state) => const AddSongScreen(),
-    ),
-    GoRoute(
-      path: '/songs/:id/edit',
-      name: 'edit-song',
-      builder: (context, state) {
-        final song = state.extra as Song?;
-        return AddSongScreen(song: song);
+    // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return DesktopShell(child: MainShell(navigationShell: navigationShell));
       },
+      branches: [
+        // Home branch
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/main/home',
+              name: 'home',
+              builder: (context, state) => const HomeScreen(),
+            ),
+          ],
+        ),
+        // Songs branch
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/main/songs',
+              name: 'songs',
+              builder: (context, state) => const SongsListScreen(),
+              routes: [
+                GoRoute(
+                  path: 'duplicates',
+                  name: 'song-duplicates',
+                  builder: (context, state) => const SongDuplicatesScreen(),
+                ),
+                GoRoute(
+                  path: 'add',
+                  name: 'add-song',
+                  builder: (context, state) {
+                    final bandId = state.uri.queryParameters['bandId'];
+                    return AddSongScreen(
+                      bandId: bandId,
+                      initialFormData: state.extra is SongFormData
+                          ? state.extra! as SongFormData
+                          : null,
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: ':id/edit',
+                  name: 'edit-song',
+                  builder: (context, state) {
+                    final extra = state.extra;
+                    Song? song;
+                    String? bandId;
+                    if (extra is Song) {
+                      song = extra;
+                    } else if (extra is Map) {
+                      song = extra['song'] as Song?;
+                      bandId = extra['bandId'] as String?;
+                    }
+                    return AddSongScreen(song: song, bandId: bandId);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        // Bands branch
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/main/bands',
+              name: 'bands',
+              builder: (context, state) => const MyBandsScreen(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  name: 'the-band',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    if (band == null) {
+                      return Scaffold(
+                        appBar: AppBar(title: const Text('Error')),
+                        body: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Failed to load band data'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => context.pop(),
+                                child: const Text('Go Back'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return TheBandScreen(band: band);
+                  },
+                ),
+                GoRoute(
+                  path: 'create',
+                  name: 'create-band',
+                  builder: (context, state) => const CreateBandScreen(),
+                ),
+                GoRoute(
+                  path: ':id/edit',
+                  name: 'edit-band',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    return CreateBandScreen(band: band);
+                  },
+                ),
+                GoRoute(
+                  path: ':id/songs',
+                  name: 'band-songs',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    if (band == null) {
+                      // Show error instead of infinite spinner
+                      return Scaffold(
+                        appBar: AppBar(title: const Text('Error')),
+                        body: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Failed to load band data'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => context.pop(),
+                                child: const Text('Go Back'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return BandSongsScreen(band: band);
+                  },
+                ),
+                GoRoute(
+                  path: ':id/setlists',
+                  name: 'band-setlists',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    if (band == null) {
+                      return Scaffold(
+                        appBar: AppBar(title: const Text('Error')),
+                        body: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Failed to load band data'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => context.pop(),
+                                child: const Text('Go Back'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return BandSetlistsScreen(band: band);
+                  },
+                ),
+                GoRoute(
+                  path: ':id/about',
+                  name: 'band-about',
+                  builder: (context, state) {
+                    final band = state.extra as Band?;
+                    if (band == null) {
+                      // Show error instead of infinite spinner
+                      return Scaffold(
+                        appBar: AppBar(title: const Text('Error')),
+                        body: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Failed to load band data'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () => context.pop(),
+                                child: const Text('Go Back'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return BandAboutScreen(band: band);
+                  },
+                ),
+              ],
+            ),
+            GoRoute(
+              path: '/main/join-band',
+              name: 'join-band',
+              builder: (context, state) {
+                final code = state.uri.queryParameters['code'];
+                return JoinBandScreen(inviteCode: code);
+              },
+            ),
+          ],
+        ),
+        // Setlists branch
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/main/setlists',
+              name: 'setlists',
+              builder: (context, state) => const SetlistsListScreen(),
+              routes: [
+                GoRoute(
+                  path: 'create',
+                  name: 'create-setlist',
+                  builder: (context, state) {
+                    final bandId = state.uri.queryParameters['bandId'];
+                    final scope =
+                        state.uri.queryParameters['scope'] ==
+                            SetlistStorageScope.band.name
+                        ? SetlistStorageScope.band
+                        : SetlistStorageScope.personal;
+                    return CreateSetlistScreen(
+                      bandId: bandId,
+                      storageScope: scope,
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: ':id/edit',
+                  name: 'edit-setlist',
+                  builder: (context, state) {
+                    final setlist = state.extra as Setlist?;
+                    final scope =
+                        state.uri.queryParameters['scope'] ==
+                            SetlistStorageScope.band.name
+                        ? SetlistStorageScope.band
+                        : SetlistStorageScope.personal;
+                    final bandId = state.uri.queryParameters['bandId'];
+                    return CreateSetlistScreen(
+                      setlist: setlist,
+                      bandId: bandId,
+                      storageScope: scope,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+        // Profile branch
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/main/profile',
+              name: 'profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
+          ],
+        ),
+        // Tools branch (not in bottom nav)
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/main/metronome',
+              name: 'metronome',
+              builder: (context, state) => const MetronomeScreen(),
+            ),
+            GoRoute(
+              path: '/main/tuner',
+              name: 'tuner',
+              builder: (context, state) => TunerScreen(
+                launchContext: state.extra is TunerLaunchContext
+                    ? state.extra! as TunerLaunchContext
+                    : null,
+              ),
+            ),
+          ],
+        ),
+      ],
     ),
-
-    // Bands routes
-    GoRoute(
-      path: '/bands',
-      name: 'bands',
-      builder: (context, state) => const MyBandsScreen(),
-    ),
-    GoRoute(
-      path: '/bands/create',
-      name: 'create-band',
-      builder: (context, state) => const CreateBandScreen(),
-    ),
-    GoRoute(
-      path: '/bands/:id/edit',
-      name: 'edit-band',
-      builder: (context, state) {
-        final band = state.extra as Band?;
-        return CreateBandScreen(band: band);
-      },
-    ),
-    GoRoute(
-      path: '/bands/join',
-      name: 'join-band',
-      builder: (context, state) => const JoinBandScreen(),
-    ),
-    GoRoute(
-      path: '/bands/:id/songs',
-      name: 'band-songs',
-      builder: (context, state) {
-        final band = state.extra as Band?;
-        if (band == null) {
-          // If no band provided, navigate back to bands list
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.go('/bands');
-          });
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        return BandSongsScreen(band: band);
-      },
-    ),
-
-    // Setlists routes
-    GoRoute(
-      path: '/setlists',
-      name: 'setlists',
-      builder: (context, state) => const SetlistsListScreen(),
-    ),
-    GoRoute(
-      path: '/setlists/create',
-      name: 'create-setlist',
-      builder: (context, state) => const CreateSetlistScreen(),
-    ),
-    GoRoute(
-      path: '/setlists/:id/edit',
-      name: 'edit-setlist',
-      builder: (context, state) {
-        final setlist = state.extra as Setlist?;
-        return CreateSetlistScreen(setlist: setlist);
-      },
-    ),
-
-    // Profile route
-    GoRoute(
-      path: '/profile',
-      name: 'profile',
-      builder: (context, state) => const ProfileScreen(),
-    ),
-
-    // Metronome route
-    GoRoute(
-      path: '/metronome',
-      name: 'metronome',
-      builder: (context, state) => const MetronomeScreen(),
-    ),
-  ],
-);
+  ];
+}
 
 /// Extension on BuildContext for type-safe navigation.
 ///
 /// Provides convenient methods for navigating to named routes
 /// with proper type handling for path parameters and extra data.
 extension GoRouterExtension on BuildContext {
+  /// Navigate to home/dashboard.
+  void goHome() => goNamed('home');
+
   /// Navigate to songs list.
   void goSongs() => goNamed('songs');
 
   /// Navigate to add song screen.
-  void goAddSong() => goNamed('add-song');
+  void goAddSong({String? bandId, SongFormData? initialFormData}) {
+    final Map<String, dynamic> params = bandId != null
+        ? {'bandId': bandId}
+        : {};
+    goNamed('add-song', queryParameters: params, extra: initialFormData);
+  }
 
   /// Navigate to edit song screen.
   void goEditSong(Song song) =>
@@ -176,6 +469,10 @@ extension GoRouterExtension on BuildContext {
   void goEditBand(Band band) =>
       goNamed('edit-band', pathParameters: {'id': band.id}, extra: band);
 
+  /// Navigate to the band screen (band details page).
+  void goTheBand(Band band) =>
+      goNamed('the-band', pathParameters: {'id': band.id}, extra: band);
+
   /// Navigate to join band screen.
   void goJoinBand() => goNamed('join-band');
 
@@ -183,11 +480,34 @@ extension GoRouterExtension on BuildContext {
   void goBandSongs(Band band) =>
       goNamed('band-songs', pathParameters: {'id': band.id}, extra: band);
 
+  /// Navigate to band setlists screen.
+  void goBandSetlists(Band band) =>
+      goNamed('band-setlists', pathParameters: {'id': band.id}, extra: band);
+
+  /// Navigate to band about screen.
+  void goBandAbout(Band band) =>
+      goNamed('band-about', pathParameters: {'id': band.id}, extra: band);
+
   /// Navigate to setlists list.
   void goSetlists() => goNamed('setlists');
 
   /// Navigate to create setlist screen.
-  void goCreateSetlist() => goNamed('create-setlist');
+  void goCreateSetlist({
+    String? bandId,
+    SetlistStorageScope storageScope = SetlistStorageScope.personal,
+  }) {
+    final Map<String, dynamic> params = {};
+    if (bandId != null) params['bandId'] = bandId;
+    if (storageScope == SetlistStorageScope.band) {
+      params['scope'] = SetlistStorageScope.band.name;
+    }
+    goNamed('create-setlist', queryParameters: params);
+  }
+
+  /// Navigate to create shared band setlist screen.
+  void goCreateBandSetlist(Band band) {
+    goCreateSetlist(bandId: band.id, storageScope: SetlistStorageScope.band);
+  }
 
   /// Navigate to edit setlist screen.
   void goEditSetlist(Setlist setlist) => goNamed(
@@ -202,12 +522,16 @@ extension GoRouterExtension on BuildContext {
   /// Navigate to metronome screen.
   void goMetronome() => goNamed('metronome');
 
+  /// Navigate to tuner screen.
+  void goTuner({TunerLaunchContext? launchContext}) =>
+      goNamed('tuner', extra: launchContext);
+
   /// Navigate to login screen.
   void goLogin() => goNamed('login');
 
   /// Navigate to register screen.
   void goRegister() => goNamed('register');
 
-  /// Navigate to main shell.
-  void goMain() => goNamed('main');
+  /// Navigate to forgot password screen.
+  void goForgotPassword() => goNamed('forgot-password');
 }

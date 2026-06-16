@@ -1,0 +1,168 @@
+baseURL = "https://berlogabob.github.io/flutter-FlowGroove-app/"
+title = "FlowGroove"
+theme = "PaperMod"
+languageCode = "en-us"
+defaultContentLanguage = "en"
+enableRobotsTXT = true
+enableEmoji = true
+
+# Performance
+paginate = 6
+summaryLength = 20
+timeout = 30000
+
+[params]
+  env = "production"
+  description = "Real-time setlist sync for cover bands. Built by a musician, for musicians."
+  keywords = ["band rehearsal", "setlist sync", "BPM detection", "music app", "cover bands", "rehearsal organizer"]
+  author = "Sounding Doubts - Unipessoal Lda"
+  DateFormat = "January 2, 2006"
+
+  # Dark-only theme (musicians need AMOLED black, not light mode on stage)
+  defaultTheme = "dark"
+  disableThemeToggle = true
+  disableSpecial1stPost = true
+  disableScrollToTop = false
+  ShowReadingTime = false
+  ShowShareButtons = false
+  ShowPostNavLinks = false
+  ShowBreadCrumbs = false
+  ShowCodeCopyButtons = false
+
+  # Landing page — profile/hero mode
+  [params.homeInfoParams]
+    Title = "I Built FlowGroove to End My Band's Rehearsal Chaos 🎸"
+    Content = """
+Paper setlists. Lost BPM notes. Messenger chaos. I've been there for 10 years in cover bands.
+
+So I built FlowGroove — a simple, real-time sync tool for your whole band's setlists.
+Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie musicians.**"""
+
+  # Profile mode for homepage (makes it look like a landing, not a blog)
+  [params.profileMode]
+    enabled = true
+    title = "FlowGroove"
+    subtitle = "Real-time setlist sync for cover bands. Built by a musician, for musicians."
+    imageUrl = "images/logo_clean.png"
+    imageWidth = 120
+    imageHeight = 120
+
+    [[params.profileMode.buttons]]
+      name = "Open App"
+      url = "app/"
+
+    [[params.profileMode.buttons]]
+      name = "Support the Dev ☕"
+      url = "https://ko-fi.com/flowgroove"
+
+  # Social icons (footer)
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/berlogabob/flutter-FlowGroove-app"
+
+  [[params.socialIcons]]
+    name = "kofi"
+    url = "https://ko-fi.com/flowgroove"
+
+  [[params.socialIcons]]
+    name = "x"
+    url = "https://x.com/berlogabob"
+
+  # Analytics
+  [params.analytics]
+    ga4_id = "G-T6YBX0M53W"
+    clarity_id = "w8h5eswdua"
+
+  # Footer
+  [params.footer]
+    hideCredits = true
+    hideThemeCopyright = true
+    customText = "© 2026 Sounding Doubts — Unipessoal Lda · Amadora, Portugal · NIF: 518200736"
+
+  # Label (top bar)
+  [params.label]
+    text = "FlowGroove"
+    icon = "images/favicon.svg"
+    iconHeight = 24
+
+  # Assets — disable what we don't need
+  [params.assets]
+    disableHLJS = true
+    disableFingerprinting = false
+    favicon = "images/favicon.svg"
+    favicon16x16 = "favicon-16x16.png"
+    favicon32x32 = "favicon-32x32.png"
+    apple_touch_icon = "apple-touch-icon.png"
+    safari_pinned_tab = "safari-pinned-tab.svg"
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
+[outputs]
+  home = ["HTML", "RSS"]
+  page = ["HTML"]
+  section = ["HTML"]
+  taxonomy = ["HTML"]
+  term = ["HTML"]
+
+# Menu
+[[menu.main]]
+  identifier = "home"
+  name = "Home"
+  url = "/"
+  weight = 1
+
+[[menu.main]]
+  identifier = "about"
+  name = "About"
+  url = "/about/"
+  weight = 2
+
+[[menu.main]]
+  identifier = "faq"
+  name = "FAQ"
+  url = "/faq/"
+  weight = 3
+
+[[menu.main]]
+  identifier = "blog"
+  name = "Blog"
+  url = "/blog/"
+  weight = 4
+
+[[menu.main]]
+  identifier = "app"
+  name = "Open App"
+  url = "app/"
+  weight = 5
+
+# Markdown renderer
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    noClasses = false
+    style = "dracula"
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+    ordered = false
+
+# Sitemap
+[sitemap]
+  changefreq = "weekly"
+  filename = "sitemap.xml"
+  priority = 0.5
+
+# Security
+[security]
+  enableInlineShortcodes = false
+  [security.exec]
+    allow = ['^dart-sass-embedded$', '^go$', '^npx$', '^postcss$']
+  [security.funcs]
+    getenv = ['^HUGO_']
+  [security.http]
+    methods = ['(?i)GET|POST']
+    urls = ['.*']
