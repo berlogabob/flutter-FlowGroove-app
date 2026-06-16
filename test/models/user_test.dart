@@ -569,4 +569,19 @@ void main() {
       });
     });
   });
+
+  group('AppUser.photoSource', () {
+    test('round-trips and copyWith clears via null', () {
+      final user = AppUser(
+        uid: 'u1',
+        createdAt: DateTime.utc(2026),
+        photoURL: 'https://example.com/u1.jpg',
+        photoSource: 'telegram',
+      );
+      expect(user.toJson()['photoSource'], 'telegram');
+      expect(AppUser.fromJson(user.toJson()).photoSource, 'telegram');
+      expect(user.copyWith(photoSource: 'upload').photoSource, 'upload');
+      expect(user.copyWith(photoSource: null).photoSource, isNull);
+    });
+  });
 }

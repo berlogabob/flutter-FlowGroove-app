@@ -19,6 +19,7 @@ class AppUser {
     required this.createdAt, this.displayName,
     this.email,
     this.photoURL,
+    this.photoSource,
     this.accessRole = 'member',
     this.musicRoles = const [],
     this.systemTags = const [],
@@ -32,6 +33,7 @@ class AppUser {
   final String? displayName;
   final String? email;
   final String? photoURL;
+  final String? photoSource;
 
   /// Access role for the app: 'owner', 'admin', 'member', 'demo'.
   /// Controls what the user can do app-wide.
@@ -59,6 +61,7 @@ class AppUser {
     Object? displayName = _sentinel,
     Object? email = _sentinel,
     Object? photoURL = _sentinel,
+    Object? photoSource = _sentinel,
     String? accessRole,
     List<String>? musicRoles,
     List<String>? systemTags,
@@ -72,6 +75,9 @@ class AppUser {
           : displayName as String?,
       email: email == _sentinel ? this.email : email as String?,
       photoURL: photoURL == _sentinel ? this.photoURL : photoURL as String?,
+      photoSource: photoSource == _sentinel
+          ? this.photoSource
+          : photoSource as String?,
       accessRole: accessRole ?? this.accessRole,
       musicRoles: musicRoles ?? this.musicRoles,
       systemTags: systemTags ?? this.systemTags,

@@ -8,9 +8,11 @@ part of 'user.dart';
 
 AppUser _$AppUserFromJson(Map<String, dynamic> json) => AppUser(
   uid: json['uid'] as String? ?? '',
+  createdAt: _parseDateTime(json['createdAt']),
   displayName: json['displayName'] as String?,
   email: json['email'] as String?,
   photoURL: json['photoURL'] as String?,
+  photoSource: json['photoSource'] as String?,
   accessRole: json['accessRole'] as String? ?? 'member',
   musicRoles:
       (json['musicRoles'] as List<dynamic>?)
@@ -25,7 +27,6 @@ AppUser _$AppUserFromJson(Map<String, dynamic> json) => AppUser(
   bandIds:
       (json['bandIds'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       [],
-  createdAt: _parseDateTime(json['createdAt']),
 );
 
 Map<String, dynamic> _$AppUserToJson(AppUser instance) => <String, dynamic>{
@@ -33,6 +34,7 @@ Map<String, dynamic> _$AppUserToJson(AppUser instance) => <String, dynamic>{
   'displayName': instance.displayName,
   'email': instance.email,
   'photoURL': instance.photoURL,
+  'photoSource': instance.photoSource,
   'accessRole': instance.accessRole,
   'musicRoles': instance.musicRoles,
   'systemTags': instance.systemTags,
