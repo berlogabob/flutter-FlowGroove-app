@@ -170,8 +170,9 @@ class StorageService {
     }
   }
 
-  /// Upload a band avatar to `band_avatars/{bandId}.jpg` and store the
-  /// download URL on the band document. Caller must be a band admin
+  /// Upload a band avatar to `band_avatars/{bandId}` (extension-less, so the
+  /// Storage rule's {bandId} wildcard binds to the real band document id) and
+  /// store the download URL on the band document. Caller must be a band admin
   /// (enforced by Storage + Firestore rules).
   Future<String> uploadBandAvatar(File file, String bandId) async {
     try {
