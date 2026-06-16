@@ -19,20 +19,24 @@ function buildSubject(overrides = {}) {
       save: async (buf, opts) => { saved.push({ buf, opts }); },
     }),
   };
+  const requestedFileIds = [];
   const fakeTelegram = {
     getUserProfilePhotos: async () => ({
       total_count: 1,
-      photos: [[{ file_id: "file-1" }]],
+      photos: [[{ file_id: "small" }, { file_id: "medium" }, { file_id: "large" }]],
     }),
-    getFileLink: async () => "https://telegram/file-1.jpg",
+    getFileLink: async (fileId) => {
+      requestedFileIds.push(fileId);
+      return "https://telegram/file.jpg";
+    },
   };
   const fn = makeImportTelegramAvatar({
     getTelegram: () => overrides.telegram || fakeTelegram,
     getBucket: () => overrides.bucket || fakeBucket,
     fetchImpl: overrides.fetchImpl ||
-      (async () => ({ arrayBuffer: async () => new ArrayBuffer(4) })),
+      (async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(4) })),
   });
-  return { fn: functionsTest.wrap(fn), saved };
+  return { fn: functionsTest.wrap(fn), saved, requestedFileIds };
 }
 
 async function clearUsers() {
@@ -75,7 +79,7 @@ describe("importTelegramAvatar callable", function () {
 
   it("mirrors the photo and updates the user doc", async () => {
     await db.collection("users").doc("u1").set({ telegramId: "123" });
-    const { fn, saved } = buildSubject();
+    const { fn, saved, requestedFileIds } = buildSubject();
     const result = await fn({}, { auth: { uid: "u1" } });
 
     assert.equal(saved.length, 1);
@@ -84,5 +88,6 @@ describe("importTelegramAvatar callable", function () {
     assert.equal(doc.data().photoSource, "telegram");
     assert.equal(doc.data().photoURL, result.photoURL);
     assert.equal(doc.data().telegramPhotoURL, undefined);
+    assert.deepEqual(requestedFileIds, ["large"]);
   });
 });

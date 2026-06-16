@@ -22,6 +22,9 @@ function defaultBucket() {
 /**
  * Builds the `importTelegramAvatar` callable. Dependencies are injectable for
  * testing; production uses the real bot token / default bucket.
+ *
+ * getTelegram/getBucket are invoked lazily at request time so the real ones
+ * don't call TELEGRAM_BOT_TOKEN.value() / admin.storage() at module load.
  */
 function makeImportTelegramAvatar({ getTelegram, getBucket, fetchImpl } = {}) {
   return functions.https.onCall(async (data, context) => {
@@ -53,10 +56,19 @@ function makeImportTelegramAvatar({ getTelegram, getBucket, fetchImpl } = {}) {
       );
     }
 
-    const fileId = photos.photos[0][0].file_id;
+    // Telegram returns each photo as a PhotoSize[] sorted ascending by size;
+    // the last element is the highest resolution.
+    const sizes = photos.photos[0];
+    const fileId = sizes[sizes.length - 1].file_id;
     const fileLink = await telegram.getFileLink(fileId);
     const fetchFn = fetchImpl || fetch;
     const res = await fetchFn(fileLink.toString());
+    if (!res.ok) {
+      throw new functions.https.HttpsError(
+        "internal",
+        `Failed to fetch Telegram file: ${res.status}`,
+      );
+    }
     const buffer = Buffer.from(await res.arrayBuffer());
 
     const bucket = (getBucket || defaultBucket)();
