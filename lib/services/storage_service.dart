@@ -168,6 +168,64 @@ class StorageService {
     }
   }
 
+  /// Upload a band avatar to `band_avatars/{bandId}.jpg` and store the
+  /// download URL on the band document. Caller must be a band admin
+  /// (enforced by Storage + Firestore rules).
+  Future<String> uploadBandAvatar(File file, String bandId) async {
+    try {
+      _requireAuth();
+      final ref =
+          _storage.ref().child('band_avatars').child('$bandId.jpg');
+      final snapshot = await ref.putFile(file);
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      await _firestore.collection('bands').doc(bandId).set({
+        'photoURL': downloadUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return downloadUrl;
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'Only band admins can change the band avatar.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Delete a band avatar and clear `photoURL` on the band document.
+  Future<void> deleteBandAvatar(String bandId) async {
+    try {
+      _requireAuth();
+      final ref =
+          _storage.ref().child('band_avatars').child('$bandId.jpg');
+      try {
+        await ref.delete();
+      } on FirebaseException catch (e) {
+        if (e.code != 'not-found') rethrow;
+      }
+      await _firestore.collection('bands').doc(bandId).set({
+        'photoURL': null,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'Only band admins can change the band avatar.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
   /// Upload a file to a custom path in Firebase Storage.
   ///
   /// Use this for other file types beyond profile pictures.
