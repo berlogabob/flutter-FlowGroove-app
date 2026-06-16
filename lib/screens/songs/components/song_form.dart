@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../models/link.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../utils/song_tags.dart';
+import '../../../widgets/tag_input_dialog.dart';
 import 'bpm_selector.dart';
 import 'links_editor.dart';
 
@@ -180,25 +182,58 @@ class SongForm extends StatelessWidget {
           const SizedBox(height: MonoPulseSpacing.md),
           Wrap(
             spacing: MonoPulseSpacing.md,
-            children: availableTags
-                .map(
-                  (tag) => FilterChip(
-                    label: Text(
-                      tag,
-                      style: const TextStyle(
-                        color: MonoPulseColors.textPrimary,
-                      ),
+            runSpacing: MonoPulseSpacing.sm,
+            children: [
+              // Predefined suggestions plus any custom tags already selected.
+              for (final tag in {...availableTags, ...selectedTags})
+                FilterChip(
+                  label: Text(
+                    tag,
+                    style: const TextStyle(
+                      color: MonoPulseColors.textPrimary,
                     ),
-                    selected: selectedTags.contains(tag),
-                    onSelected: (selected) => onTagChanged(tag, selected),
-                    selectedColor: MonoPulseColors.accentOrangeSubtle,
-                    checkmarkColor: MonoPulseColors.accentOrange,
                   ),
-                )
-                .toList(),
+                  selected: selectedTags.contains(tag),
+                  onSelected: (selected) => onTagChanged(tag, selected),
+                  selectedColor: MonoPulseColors.accentOrangeSubtle,
+                  checkmarkColor: MonoPulseColors.accentOrange,
+                ),
+              ActionChip(
+                avatar: const Icon(
+                  Icons.add,
+                  size: 18,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                label: const Text('Add tag'),
+                onPressed: () => _editTags(context),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  /// Opens the tag editor so the user can add custom tags or remove existing
+  /// ones, then reconciles the result through [onTagChanged].
+  Future<void> _editTags(BuildContext context) async {
+    final result = await TagInputDialog.show(
+      context,
+      initialTags: selectedTags,
+      title: 'Tags',
+      hintText: 'Add a tag',
+      suggestions: availableTags,
+    );
+    if (result == null) return;
+
+    final normalized = SongTags.normalizeAll(result);
+    // Remove tags the user deselected.
+    for (final tag in List<String>.from(selectedTags)) {
+      if (!normalized.contains(tag)) onTagChanged(tag, false);
+    }
+    // Add newly entered tags.
+    for (final tag in normalized) {
+      if (!selectedTags.contains(tag)) onTagChanged(tag, true);
+    }
   }
 }

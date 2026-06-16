@@ -12,6 +12,7 @@ import '../repositories/song_repository.dart';
 import '../screens/songs/models/song_form_data.dart';
 import '../services/analytics_service.dart';
 import '../services/matching/fuzzy_matcher.dart';
+import '../utils/song_tags.dart';
 import 'data/data_providers.dart';
 
 /// Provider for managing song form state.
@@ -229,20 +230,22 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     markAsChanged();
   }
 
-  /// Toggle tag.
+  /// Toggle tag. Tags are normalised (trimmed, lowercase) before storage so
+  /// custom and predefined tags stay consistent and de-duplicated.
   void toggleTag(String tag, bool selected) {
+    final normalized = SongTags.normalize(tag);
+    if (normalized.isEmpty) return;
+
+    final current = List<String>.from(state.formData.selectedTags);
     if (selected) {
-      final newTags = List<String>.from(state.formData.selectedTags)..add(tag);
-      state = state.copyWith(
-        formData: state.formData.copyWith(selectedTags: newTags),
-      );
+      if (current.contains(normalized)) return;
+      current.add(normalized);
     } else {
-      final newTags = List<String>.from(state.formData.selectedTags)
-        ..remove(tag);
-      state = state.copyWith(
-        formData: state.formData.copyWith(selectedTags: newTags),
-      );
+      current.remove(normalized);
     }
+    state = state.copyWith(
+      formData: state.formData.copyWith(selectedTags: current),
+    );
     markAsChanged();
   }
 

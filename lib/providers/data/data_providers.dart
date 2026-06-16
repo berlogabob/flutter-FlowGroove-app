@@ -8,6 +8,7 @@ import '../../models/canonical_song.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../repositories/repositories.dart';
+import '../../services/band_function_service.dart';
 import '../../services/cache_service.dart';
 import '../../services/canonical_song_function_service.dart';
 import '../../services/firestore_service.dart';
@@ -83,6 +84,11 @@ final canonicalSongFunctionServiceProvider =
     Provider<CanonicalSongFunctionService>((ref) {
       return CanonicalSongFunctionService();
     });
+
+/// Callable Cloud Function wrapper for band membership (join) operations.
+final bandFunctionServiceProvider = Provider<BandFunctionService>((ref) {
+  return BandFunctionService();
+});
 
 /// Searches the canonical song catalog by title/artist query.
 final canonicalSongSearchProvider =

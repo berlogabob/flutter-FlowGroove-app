@@ -16,7 +16,7 @@ class DefaultFirebaseOptions {
   /// hiding the key. Used as a fallback so the app boots in every build mode even
   /// when no compile-time `--dart-define=FIREBASE_API_KEY` is supplied.
   static const String _mobileFallbackApiKey =
-      'AIzaSyAxQ53DQzyEkKXjo3Ry2B9pcTMvcyk4d5o';
+      'AIzaSyBBmMazakzn-C6eveJdMyhUpeJWYcLowjk';
 
   /// Resolves the effective Firebase API key for mobile: prefers an explicit
   /// compile-time/runtime value, otherwise falls back to the bundled public key.
@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
   static FirebaseOptions get android {
     return FirebaseOptions(
       apiKey: _mobileApiKey,
-      appId: '1:703941154390:android:43dfeaf2f6a0495e004df7',
+      appId: '1:703941154390:android:452fa16f90a8ec3d004df7',
       messagingSenderId: '703941154390',
       projectId: 'repsync-app-8685c',
       authDomain: 'repsync-app-8685c.firebaseapp.com',

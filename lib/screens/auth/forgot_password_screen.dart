@@ -58,7 +58,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         setState(() {
           _emailSent = true;
           _successMessage =
-              'Password reset email sent! Check your inbox and follow the instructions.';
+              "If an account exists for that email, we've sent password "
+              'reset instructions. Check your inbox and spam folder.';
           _isLoading = false;
         });
       }

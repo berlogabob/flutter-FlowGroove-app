@@ -68,22 +68,6 @@ service cloud.firestore {
       return memberUids.hasAny([request.auth.uid]);
     }
 
-    // Helper function to check if user is adding themselves to members
-    // Used for join band flow - user can add themselves but not modify others
-    function isSelfJoinOnly(bandId) {
-      let existingBand = getGlobalBand(bandId);
-      let newMemberUids = request.resource.data.memberUids;
-      // User can only join if:
-      // 1. Band exists
-      // 2. User is not already a member
-      // 3. New members = existing members + current user
-      return existingBand != null &&
-        !existingBand.memberUids.hasAny([request.auth.uid]) &&
-        newMemberUids.hasAll(existingBand.memberUids) &&
-        newMemberUids.hasAll([request.auth.uid]) &&
-        newMemberUids.size() == existingBand.memberUids.size() + 1;
-    }
-
     function hasCanonicalLink() {
       return request.resource.data.get('canonicalSongId', '') is string &&
         request.resource.data.get('canonicalSongId', '').size() > 0;
@@ -175,13 +159,11 @@ service cloud.firestore {
         isNotDemo(request.auth.uid) &&
         isCreatorInMembers(request.resource.data.memberUids);
 
-      // Update: Only band admins can update band details
-      // OR user can add themselves to members (join band flow)
-      // Demo users cannot update bands
-      allow update: if isAuthenticated() && isNotDemo(request.auth.uid) && (
-        isGlobalBandAdmin(bandId) ||
-        isSelfJoinOnly(bandId)
-      );
+      // Update: Only band admins can update band details (non-demo).
+      // Joining a band is handled server-side by the `joinBand` Cloud Function
+      // (admin SDK), so direct client self-join writes are no longer trusted.
+      allow update: if isAuthenticated() && isNotDemo(request.auth.uid) &&
+        isGlobalBandAdmin(bandId);
 
       // Delete: Only band admins can delete a band (non-demo)
       allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);

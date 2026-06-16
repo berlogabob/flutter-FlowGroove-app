@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../models/api_error.dart';
 import '../../models/user.dart';
@@ -9,6 +10,7 @@ import '../../services/analytics_service.dart';
 import '../../services/cache_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/secure_storage_service.dart';
+import '../../utils/music_role_icon.dart';
 
 /// Provider for the FirebaseAuth instance.
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
@@ -339,6 +341,79 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
+  /// Signs in with Google.
+  ///
+  /// On web this uses Firebase's popup flow; on mobile it uses the
+  /// `google_sign_in` plugin to obtain an OAuth credential. After sign-in it
+  /// ensures a Firestore user document exists (security rules read
+  /// `users/{uid}.accessRole`, so a missing doc would block all writes).
+  ///
+  /// Throws [ApiError] if sign in fails or is cancelled.
+  Future<UserCredential> signInWithGoogle() async {
+    try {
+      final auth = _readFirebaseAuthOrThrow();
+      late final UserCredential credential;
+
+      if (kIsWeb) {
+        credential = await auth.signInWithPopup(GoogleAuthProvider());
+      } else {
+        final googleUser = await GoogleSignIn().signIn();
+        if (googleUser == null) {
+          // User aborted the Google sign-in sheet.
+          throw ApiError.auth(message: 'Google sign-in was cancelled.');
+        }
+        final googleAuth = await googleUser.authentication;
+        final oauthCredential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        credential = await auth.signInWithCredential(oauthCredential);
+      }
+
+      await _ensureUserDocument(credential.user);
+      return credential;
+    } on FirebaseAuthException catch (e, stackTrace) {
+      final apiError = _mapFirebaseAuthException(e);
+      state = AsyncValue.error(apiError, stackTrace);
+      throw apiError;
+    } on ApiError {
+      rethrow;
+    } catch (e, stackTrace) {
+      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
+      state = AsyncValue.error(apiError, stackTrace);
+      throw apiError;
+    }
+  }
+
+  /// Ensures a Firestore user document exists for [user], creating a default
+  /// one (accessRole `member`) on first social sign-in.
+  Future<void> _ensureUserDocument(User? user) async {
+    if (user == null) return;
+    final firestore = _readFirestoreIfAvailable();
+    if (firestore == null) return;
+    try {
+      final docRef = firestore.collection('users').doc(user.uid);
+      final doc = await docRef.get();
+      if (doc.exists) return;
+
+      final fallbackName = user.email?.split('@').first;
+      final appUser = AppUser(
+        uid: user.uid,
+        email: user.email,
+        displayName: (user.displayName?.isNotEmpty ?? false)
+            ? user.displayName
+            : (fallbackName?.isNotEmpty ?? false)
+            ? fallbackName
+            : 'User',
+        photoURL: user.photoURL,
+        createdAt: DateTime.now(),
+      );
+      await docRef.set(appUser.toJson());
+    } catch (e) {
+      debugPrint('Error ensuring user document: $e');
+    }
+  }
+
   /// Checks for a pending join code stored before login redirect.
   ///
   /// Returns the join code if one was stored, null otherwise.
@@ -375,13 +450,16 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
 
   /// Sends a password reset email.
   ///
-  /// Throws [ApiError] if the request fails.
+  /// To avoid account enumeration, a `user-not-found` result is treated as
+  /// success (no error): the caller always shows the same neutral message.
+  /// Genuine failures (network, rate-limit, invalid email) still throw
+  /// [ApiError] so the user can act on them.
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _readFirebaseAuthOrThrow().sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      final apiError = _mapFirebaseAuthException(e);
-      throw apiError;
+      if (e.code == 'user-not-found') return;
+      throw _mapFirebaseAuthException(e);
     } catch (e, stackTrace) {
       final apiError = ApiError.fromException(e, stackTrace: stackTrace);
       throw apiError;
@@ -398,7 +476,9 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
 
     try {
-      final updatedUser = currentUser.copyWith(musicRoles: roles);
+      final updatedUser = currentUser.copyWith(
+        musicRoles: MusicRoleIcon.normalizeKeys(roles),
+      );
       final firestore = FirestoreService();
       await firestore.saveUser(updatedUser);
       state = AsyncValue.data(updatedUser);

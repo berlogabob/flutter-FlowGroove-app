@@ -84,7 +84,6 @@ class Band {
            editorUids ??
            members
                .where((m) => m.role == BandMember.roleEditor)
-               .where((m) => m.role != BandMember.roleAdmin)
                .map((m) => m.uid)
                .toList();
 
@@ -146,7 +145,6 @@ class Band {
         editorUids ??
         newMembers
             .where((m) => m.role == BandMember.roleEditor)
-            .where((m) => m.role != BandMember.roleAdmin)
             .map((m) => m.uid)
             .toList();
 

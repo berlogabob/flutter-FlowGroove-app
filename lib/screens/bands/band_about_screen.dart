@@ -4,9 +4,11 @@ import 'package:share_plus/share_plus.dart';
 import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/role_picker_widget.dart';
 
 class BandAboutScreen extends ConsumerStatefulWidget {
 
@@ -78,6 +80,9 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canManageMembers = ref.watch(
+      canManageBandMembersProvider(_band.id),
+    );
     return Scaffold(
       appBar: CustomAppBar.build(
         context,
@@ -129,7 +134,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
           const SizedBox(height: 24),
           _buildTagsSection(),
           const SizedBox(height: 24),
-          _buildMembersSection(),
+          _buildMembersSection(canManageMembers),
         ],
       ),
     );
@@ -340,7 +345,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     );
   }
 
-  Widget _buildMembersSection() {
+  Widget _buildMembersSection(bool canManageMembers) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
@@ -380,13 +385,27 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
             else
               ...List.generate(_band.members.length, (index) {
                 final member = _band.members[index];
-                return _buildMemberTile(member);
+                return _buildMemberTile(member, index, canManageMembers);
               }),
+            if (canManageMembers) ...[
+              const SizedBox(height: 4),
+              Text(
+                'You are an admin — tap a member to manage their role.',
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: MonoPulseColors.textTertiary,
+                ),
+              ),
+            ],
           ],
         ),
       ),
     );
   }
+
+  /// Number of admins currently in the band (used to prevent removing/demoting
+  /// the last admin and locking everyone out of management).
+  int get _adminCount =>
+      _band.members.where((m) => m.role == BandMember.roleAdmin).length;
 
   /// Get member initials safely (handles empty strings).
   String _getMemberInitials(BandMember member) {
@@ -398,9 +417,14 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     return text.isNotEmpty ? text[0] : '?';
   }
 
-  Widget _buildMemberTile(BandMember member) {
+  Widget _buildMemberTile(
+    BandMember member,
+    int index,
+    bool canManageMembers,
+  ) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
+      onTap: canManageMembers ? () => _showMemberActions(index) : null,
       leading: CircleAvatar(
         backgroundColor: MonoPulseColors.accentOrange,
         child: Text(
@@ -448,14 +472,219 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
           ],
         ],
       ),
-      trailing: member.role == BandMember.roleAdmin
-          ? const Icon(
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (member.role == BandMember.roleAdmin)
+            const Icon(
               Icons.star,
               color: MonoPulseColors.accentOrange,
               size: 20,
-            )
-          : null,
+            ),
+          if (canManageMembers) ...[
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.more_vert,
+              color: MonoPulseColors.textSecondary,
+              size: 20,
+            ),
+          ],
+        ],
+      ),
     );
+  }
+
+  /// Shows the admin management sheet for the member at [index].
+  Future<void> _showMemberActions(int index) async {
+    final member = _band.members[index];
+    final name = member.displayName ?? member.email ?? 'this member';
+
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                child: Text(
+                  name,
+                  style: MonoPulseTypography.headlineSmall.copyWith(
+                    color: MonoPulseColors.textPrimary,
+                  ),
+                ),
+              ),
+              for (final role in const [
+                BandMember.roleAdmin,
+                BandMember.roleEditor,
+                BandMember.roleViewer,
+              ])
+                ListTile(
+                  leading: Icon(
+                    member.role == role
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
+                    color: member.role == role
+                        ? MonoPulseColors.accentOrange
+                        : MonoPulseColors.textSecondary,
+                  ),
+                  title: Text('${_formatRole(role)} role'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    _changeMemberRole(index, role);
+                  },
+                ),
+              ListTile(
+                leading: const Icon(Icons.music_note_outlined),
+                title: const Text('Edit music roles'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _editMemberMusicRoles(index);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.person_remove_outlined,
+                  color: MonoPulseColors.error,
+                ),
+                title: const Text(
+                  'Remove from band',
+                  style: TextStyle(color: MonoPulseColors.error),
+                ),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _removeMember(index);
+                },
+              ),
+              const SizedBox(height: MonoPulseSpacing.sm),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _changeMemberRole(int index, String newRole) async {
+    final member = _band.members[index];
+    if (member.role == newRole) return;
+
+    // Don't allow demoting the last admin (would lock out member management).
+    if (member.role == BandMember.roleAdmin &&
+        newRole != BandMember.roleAdmin &&
+        _adminCount <= 1) {
+      _showMessage('A band must keep at least one admin.');
+      return;
+    }
+
+    await _applyMemberChange(
+      () => ref.read(bandFunctionServiceProvider).setMemberRole(
+        bandId: _band.id,
+        targetUid: member.uid,
+        role: newRole,
+      ),
+      _band.copyWith(
+        members: List<BandMember>.from(_band.members)
+          ..[index] = member.copyWith(role: newRole),
+      ),
+      'Updated role to ${_formatRole(newRole)}',
+    );
+  }
+
+  Future<void> _editMemberMusicRoles(int index) async {
+    final member = _band.members[index];
+    final result = await showRolePicker(
+      context: context,
+      currentRoles: member.musicRoles,
+      title: 'Music roles',
+    );
+    if (result == null) return;
+
+    final normalized = MusicRoleIcon.normalizeKeys(result);
+    await _applyMemberChange(
+      () => ref.read(bandFunctionServiceProvider).setMemberMusicRoles(
+        bandId: _band.id,
+        targetUid: member.uid,
+        musicRoles: normalized,
+      ),
+      _band.copyWith(
+        members: List<BandMember>.from(_band.members)
+          ..[index] = member.copyWith(musicRoles: normalized),
+      ),
+      'Updated music roles',
+    );
+  }
+
+  Future<void> _removeMember(int index) async {
+    final member = _band.members[index];
+
+    if (member.role == BandMember.roleAdmin && _adminCount <= 1) {
+      _showMessage('You cannot remove the last admin.');
+      return;
+    }
+
+    final name = member.displayName ?? member.email ?? 'this member';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove member'),
+        content: Text('Remove $name from "${_band.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text(
+              'Remove',
+              style: TextStyle(color: MonoPulseColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await _applyMemberChange(
+      () => ref.read(bandFunctionServiceProvider).removeMember(
+        bandId: _band.id,
+        targetUid: member.uid,
+      ),
+      _band.copyWith(
+        members: List<BandMember>.from(_band.members)..removeAt(index),
+      ),
+      'Removed $name',
+    );
+  }
+
+  /// Runs an admin member mutation server-side (callable Cloud Function), then
+  /// optimistically reflects [updatedBand] locally and refreshes the band list.
+  ///
+  /// The function rewrites the shared `bands/{id}` doc and its derived UID
+  /// arrays atomically, and (for removals) cleans up the member's personal
+  /// band reference — which client-side rules would not permit cross-user.
+  Future<void> _applyMemberChange(
+    Future<void> Function() action,
+    Band updatedBand,
+    String successMessage,
+  ) async {
+    try {
+      await action();
+      if (mounted) {
+        setState(() => _band = updatedBand);
+        ref.invalidate(bandsProvider);
+        _showMessage(successMessage);
+      }
+    } catch (e) {
+      if (mounted) _showMessage('Error: $e');
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _toggleEdit() {
