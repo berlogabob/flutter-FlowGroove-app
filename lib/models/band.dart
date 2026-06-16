@@ -67,6 +67,7 @@ class Band {
     required this.createdBy,
     required this.createdAt,
     this.description,
+    this.photoURL,
     this.members = const [],
     List<String>? memberUids,
     List<String>? adminUids,
@@ -102,6 +103,7 @@ class Band {
   @JsonKey(defaultValue: '')
   final String name;
   final String? description;
+  final String? photoURL;
   @JsonKey(defaultValue: '')
   final String createdBy;
   @JsonKey(defaultValue: [], fromJson: _membersFromJson, toJson: _membersToJson)
@@ -122,6 +124,7 @@ class Band {
     String? id,
     String? name,
     Object? description = _sentinel,
+    Object? photoURL = _sentinel,
     String? createdBy,
     List<BandMember>? members,
     List<String>? memberUids,
@@ -154,6 +157,7 @@ class Band {
       description: description == _sentinel
           ? this.description
           : description as String?,
+      photoURL: photoURL == _sentinel ? this.photoURL : photoURL as String?,
       createdBy: createdBy ?? this.createdBy,
       members: newMembers,
       memberUids: newMemberUids,
