@@ -30,7 +30,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _version = 'Loading...';
   String? _profilePhotoPath;
-  String? _telegramPhotoURL;
+  String? _avatarUrl;
   String _photoSource = 'local'; // 'upload', 'telegram', 'google', 'local'
   String? _telegramId;
   bool _isEditingName = false;
@@ -91,14 +91,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       setState(() {
         _telegramId = telegramId;
         if (newPhotoUrl != null) {
-          _telegramPhotoURL = newPhotoUrl;
+          _avatarUrl = newPhotoUrl;
           _photoSource = newPhotoSource ?? 'upload';
           _profilePhotoPath = null; // prefer network URL
         } else if (data != null && data['telegramConsent'] == true) {
           // Legacy: no Storage URL yet, fall back to Telegram URL from Firestore
           final tgUrl = data['telegramPhotoURL'] as String?;
           if (tgUrl != null) {
-            _telegramPhotoURL = tgUrl;
+            _avatarUrl = tgUrl;
             if (_profilePhotoPath == null) {
               _photoSource = 'telegram';
             }
@@ -162,8 +162,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final directory = await getApplicationDocumentsDirectory();
       final photoFile = File('${directory.path}/profile_photo.jpg');
       if (await photoFile.exists()) {
+        if (!mounted) return;
         setState(() {
-          _profilePhotoPath = photoFile.path;
+          if (_avatarUrl == null) {
+            _profilePhotoPath = photoFile.path;
+          }
         });
       }
     } catch (e) {
@@ -187,7 +190,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (!mounted) return;
       setState(() {
         _profilePhotoPath = null;
-        _telegramPhotoURL = url;
+        _avatarUrl = url;
         _photoSource = 'upload';
       });
     } catch (e) {
@@ -205,8 +208,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (!mounted) return;
       setState(() {
         _profilePhotoPath = null;
-        _telegramPhotoURL = null;
-        _photoSource = 'upload';
+        _avatarUrl = null;
+        _photoSource = 'local';
       });
     } catch (e) {
       debugPrint('Error removing photo: $e');
@@ -258,7 +261,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       await AvatarFunctionService().importTelegramAvatar();
                   if (!mounted) return;
                   setState(() {
-                    _telegramPhotoURL = url;
+                    _avatarUrl = url;
                     _photoSource = 'telegram';
                     _profilePhotoPath = null;
                   });
@@ -289,7 +292,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     final url = await StorageService().setAvatarFromGoogle();
                     if (!mounted) return;
                     setState(() {
-                      _telegramPhotoURL = url;
+                      _avatarUrl = url;
                       _photoSource = 'google';
                       _profilePhotoPath = null;
                     });
@@ -303,7 +306,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ListTile(
               leading: const Icon(Icons.camera_alt),
               title: const Text('Take Photo'),
-              subtitle: _photoSource == 'upload' && _telegramPhotoURL != null
+              subtitle: _photoSource == 'upload' && _avatarUrl != null
                   ? const Text(
                       '✓ Currently using',
                       style: TextStyle(color: MonoPulseColors.success),
@@ -317,7 +320,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ListTile(
               leading: const Icon(Icons.photo_library),
               title: const Text('Choose from Gallery'),
-              subtitle: _photoSource == 'upload' && _telegramPhotoURL != null
+              subtitle: _photoSource == 'upload' && _avatarUrl != null
                   ? const Text(
                       '✓ Currently using',
                       style: TextStyle(color: MonoPulseColors.success),
@@ -328,7 +331,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 _pickPhoto(ImageSource.gallery);
               },
             ),
-            if (_telegramPhotoURL != null || _profilePhotoPath != null)
+            if (_avatarUrl != null || _profilePhotoPath != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: MonoPulseColors.error),
                 title: const Text(
@@ -451,12 +454,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   /// Get profile image based on source selection.
-  /// Network URL (_telegramPhotoURL) is the authoritative source for all
+  /// Network URL (_avatarUrl) is the authoritative source for all
   /// Storage-backed sources: 'upload', 'telegram', 'google'.
   ImageProvider? _getProfileImage() {
     // Any Storage-backed network URL
-    if (_telegramPhotoURL != null) {
-      return NetworkImage(_telegramPhotoURL!);
+    if (_avatarUrl != null) {
+      return NetworkImage(_avatarUrl!);
     }
     // Legacy local file (pre-migration fallback)
     if (_profilePhotoPath != null) {

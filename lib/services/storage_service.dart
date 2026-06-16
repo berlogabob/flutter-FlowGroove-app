@@ -72,7 +72,7 @@ class StorageService {
       // Update Firestore user document with the new photo URL
       await _firestore.collection('users').doc(uid).set({
         'photoURL': downloadUrl,
-        'photoSource': 'firebase',
+        'photoSource': 'upload',
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
