@@ -433,3 +433,7 @@ exports.ensureCanonicalSong = canonical.ensureCanonicalSong;
 const bands = require("./src/bands");
 exports.joinBand = bands.joinBand;
 exports.updateBandMember = bands.updateBandMember;
+
+// Export avatar functions
+const avatars = require("./src/avatars");
+exports.importTelegramAvatar = avatars.importTelegramAvatar;
