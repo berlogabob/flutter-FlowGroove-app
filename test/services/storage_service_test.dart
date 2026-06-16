@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flowgroove/models/api_error.dart';
 import 'package:flowgroove/services/storage_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -128,6 +129,18 @@ void main() {
           verify(() => bandDoc.set(captureAny(), any())).captured.single
               as Map<String, dynamic>;
       expect(captured['photoURL'], 'https://dl/b1.jpg');
+      expect(captured.containsKey('updatedAt'), isTrue);
+    });
+
+    test('surfaces permission-denied as a permission ApiError', () async {
+      when(() => ref.putFile(any())).thenThrow(
+          FirebaseException(plugin: 'storage', code: 'permission-denied'));
+
+      await expectLater(
+        () => service().uploadBandAvatar(_FakeFile(), 'b1'),
+        throwsA(isA<ApiError>().having(
+            (e) => e.type, 'type', ErrorType.permission)),
+      );
     });
   });
 
@@ -143,6 +156,7 @@ void main() {
           verify(() => bandDoc.set(captureAny(), any())).captured.single
               as Map<String, dynamic>;
       expect(captured['photoURL'], isNull);
+      expect(captured.containsKey('updatedAt'), isTrue);
     });
   });
 }

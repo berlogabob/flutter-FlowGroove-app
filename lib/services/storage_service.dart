@@ -9,7 +9,7 @@ import '../models/api_error.dart';
 /// Service for handling Firebase Storage operations.
 ///
 /// Provides methods for uploading, downloading, and deleting files
-/// in Firebase Storage, with a focus on profile pictures.
+/// in Firebase Storage (profile pictures, band avatars, and custom paths).
 class StorageService {
   StorageService({
     FirebaseStorage? storage,
@@ -197,7 +197,10 @@ class StorageService {
     }
   }
 
-  /// Delete a band avatar and clear `photoURL` on the band document.
+  /// Delete a band avatar from Storage and clear `photoURL` on the band document.
+  ///
+  /// If the file does not exist in Storage the deletion is skipped silently.
+  /// Throws [ApiError] if the caller lacks permission or another error occurs.
   Future<void> deleteBandAvatar(String bandId) async {
     try {
       _requireAuth();
