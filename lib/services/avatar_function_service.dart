@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '../models/api_error.dart';
@@ -42,5 +45,52 @@ class AvatarFunctionService {
       }
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
+  }
+
+  /// Sets a band's avatar by sending the (already resized) image to the
+  /// server-authoritative `setBandAvatar` callable, which verifies band-admin
+  /// status and writes to Storage via the Admin SDK. Returns the new
+  /// `photoURL`. Throws [ApiError] (e.g. permission) on failure.
+  Future<String> setBandAvatar(File file, String bandId) async {
+    try {
+      final bytes = await file.readAsBytes();
+      final callable = _functions.httpsCallable('setBandAvatar');
+      final result = await callable.call<Map<String, dynamic>>({
+        'bandId': bandId,
+        'imageBase64': base64Encode(bytes),
+      });
+      final url = result.data['photoURL'] as String?;
+      if (url == null) {
+        throw ApiError.unknown(message: 'No photo URL was returned.');
+      }
+      return url;
+    } on FirebaseFunctionsException catch (e, stackTrace) {
+      throw _mapBandAvatarError(e, stackTrace);
+    }
+  }
+
+  /// Removes a band's avatar via the server-authoritative `removeBandAvatar`
+  /// callable (band-admin only).
+  Future<void> removeBandAvatar(String bandId) async {
+    try {
+      final callable = _functions.httpsCallable('removeBandAvatar');
+      await callable.call<Map<String, dynamic>>({'bandId': bandId});
+    } on FirebaseFunctionsException catch (e, stackTrace) {
+      throw _mapBandAvatarError(e, stackTrace);
+    }
+  }
+
+  ApiError _mapBandAvatarError(
+    FirebaseFunctionsException e,
+    StackTrace stackTrace,
+  ) {
+    if (e.code == 'permission-denied') {
+      return ApiError.permission(
+        message: 'Only band admins can change the band avatar.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    }
+    return ApiError.fromException(e, stackTrace: stackTrace);
   }
 }

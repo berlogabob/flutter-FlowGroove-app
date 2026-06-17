@@ -21,6 +21,11 @@ const bands = require("./src/bands");
 exports.joinBand = bands.joinBand;
 exports.updateBandMember = bands.updateBandMember;
 
+// Band avatar (server-authoritative; admin verified server-side)
+const bandAvatar = require("./src/band_avatar");
+exports.setBandAvatar = bandAvatar.setBandAvatar;
+exports.removeBandAvatar = bandAvatar.removeBandAvatar;
+
 // Avatars
 const avatars = require("./src/avatars");
 exports.importTelegramAvatar = avatars.importTelegramAvatar;

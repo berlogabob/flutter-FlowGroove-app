@@ -12,7 +12,7 @@ import '../../models/user.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
-import '../../services/storage_service.dart';
+import '../../services/avatar_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
 import '../../widgets/dashboard_grid.dart';
@@ -599,8 +599,8 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     );
     if (picked == null) return;
     try {
-      final url =
-          await StorageService().uploadBandAvatar(File(picked.path), _band.id);
+      final url = await AvatarFunctionService()
+          .setBandAvatar(File(picked.path), _band.id);
       if (!mounted) return;
       setState(() => _band = _band.copyWith(photoURL: url));
     } catch (e) {
@@ -613,7 +613,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   Future<void> _handleRemoveBandAvatar() async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await StorageService().deleteBandAvatar(_band.id);
+      await AvatarFunctionService().removeBandAvatar(_band.id);
       if (!mounted) return;
       setState(() => _band = _band.copyWith(photoURL: null));
     } catch (e) {
