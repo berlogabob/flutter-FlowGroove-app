@@ -83842,7 +83842,7 @@ a2=o.pop()
 d=A.H(a2)
 if(d instanceof A.dB){h=d
 g=A.a_(a2)
-if(h.c==="permission-denied")throw A.c(A.ie(h,"You do not have permission to upload a profile picture.",g))
+if(h.c==="permission-denied"||h.c==="unauthorized")throw A.c(A.ie(h,"You do not have permission to upload a profile picture.",g))
 throw A.c(A.bN(h,g))}else{f=d
 e=A.a_(a2)
 d=A.bN(f,e)
@@ -83898,7 +83898,7 @@ a0=p.pop()
 g=A.H(a0)
 if(g instanceof A.dB){k=g
 j=A.a_(a0)
-if(k.c==="permission-denied")throw A.c(A.ie(k,"You do not have permission to delete the profile picture.",j))
+if(k.c==="permission-denied"||k.c==="unauthorized")throw A.c(A.ie(k,"You do not have permission to delete the profile picture.",j))
 throw A.c(A.bN(k,j))}else{i=g
 h=A.a_(a0)
 g=A.bN(i,h)
@@ -83947,7 +83947,7 @@ b=o.pop()
 f=A.H(b)
 if(f instanceof A.dB){j=f
 i=A.a_(b)
-if(j.c==="permission-denied")throw A.c(A.ie(j,u.v,i))
+if(j.c==="permission-denied"||j.c==="unauthorized")throw A.c(A.ie(j,u.v,i))
 throw A.c(A.bN(j,i))}else{h=f
 g=A.a_(b)
 f=A.bN(h,g)
@@ -83999,7 +83999,7 @@ c=p.pop()
 h=A.H(c)
 if(h instanceof A.dB){l=h
 k=A.a_(c)
-if(l.c==="permission-denied")throw A.c(A.ie(l,u.v,k))
+if(l.c==="permission-denied"||l.c==="unauthorized")throw A.c(A.ie(l,u.v,k))
 throw A.c(A.bN(l,k))}else{j=h
 i=A.a_(c)
 h=A.bN(j,i)
