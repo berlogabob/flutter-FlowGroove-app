@@ -12,8 +12,10 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 const TELEGRAM_BOT_TOKEN = defineString("TELEGRAM_BOT_TOKEN");
-const SUPPORT_GROUP_ID_PARAM = defineString("SUPPORT_GROUP_ID");
-const ADMIN_IDS_PARAM = defineString("ADMIN_IDS");
+// Optional params default to "" so deploy never prompts for them; the getters
+// below already treat empty as "not configured".
+const SUPPORT_GROUP_ID_PARAM = defineString("SUPPORT_GROUP_ID", { default: "" });
+const ADMIN_IDS_PARAM = defineString("ADMIN_IDS", { default: "" });
 
 function getSupportGroupId() {
   try {

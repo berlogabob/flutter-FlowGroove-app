@@ -404,7 +404,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               final opened = await telegramService.openBotChat(userId);
               if (!opened && mounted) {
                 // Try copying link to clipboard as fallback
-                final link = 'https://t.me/flowgroovebot?start=link_$userId';
+                final link =
+                    'https://t.me/${TelegramService.botUsername}?start=link_$userId';
                 await Clipboard.setData(ClipboardData(text: link));
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
