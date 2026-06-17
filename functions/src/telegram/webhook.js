@@ -11,7 +11,11 @@
 const functions = require("firebase-functions");
 const { defineString } = require("firebase-functions/params");
 
-const TELEGRAM_WEBHOOK_SECRET = defineString("TELEGRAM_WEBHOOK_SECRET");
+// Default "" keeps the param optional: deploy never prompts for it, and the
+// secret check stays a no-op until a real value is configured.
+const TELEGRAM_WEBHOOK_SECRET = defineString("TELEGRAM_WEBHOOK_SECRET", {
+  default: "",
+});
 
 function getConfiguredSecret() {
   try {
