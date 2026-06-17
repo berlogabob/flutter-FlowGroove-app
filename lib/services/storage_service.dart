@@ -81,7 +81,7 @@ class StorageService {
 
       return downloadUrl;
     } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message: 'You do not have permission to upload a profile picture.',
           exception: e,
@@ -126,7 +126,7 @@ class StorageService {
       // Update Firebase Auth profile
       await _auth.currentUser!.updatePhotoURL(null);
     } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message:
               'You do not have permission to delete the profile picture.',
@@ -191,7 +191,7 @@ class StorageService {
       }, SetOptions(merge: true));
       return downloadUrl;
     } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message: 'Only band admins can change the band avatar.',
           exception: e,
@@ -222,7 +222,7 @@ class StorageService {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message: 'Only band admins can change the band avatar.',
           exception: e,
@@ -287,7 +287,7 @@ class StorageService {
       // Get the download URL
       return await snapshot.ref.getDownloadURL();
     } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message: 'You do not have permission to upload this file.',
           exception: e,
@@ -317,7 +317,7 @@ class StorageService {
         // File doesn't exist, nothing to do
         return;
       }
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message: 'You do not have permission to delete this file.',
           exception: e,
