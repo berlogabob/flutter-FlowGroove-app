@@ -9,6 +9,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/role_picker_widget.dart';
+import '../../widgets/user_avatar.dart';
 
 class BandAboutScreen extends ConsumerStatefulWidget {
 
@@ -407,16 +408,6 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   int get _adminCount =>
       _band.members.where((m) => m.role == BandMember.roleAdmin).length;
 
-  /// Get member initials safely (handles empty strings).
-  String _getMemberInitials(BandMember member) {
-    final text = member.displayName != null && member.displayName!.isNotEmpty
-        ? member.displayName!
-        : member.email != null && member.email!.isNotEmpty
-        ? member.email!
-        : '?';
-    return text.isNotEmpty ? text[0] : '?';
-  }
-
   Widget _buildMemberTile(
     BandMember member,
     int index,
@@ -425,12 +416,11 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       onTap: canManageMembers ? () => _showMemberActions(index) : null,
-      leading: CircleAvatar(
+      leading: UserAvatar(
+        photoURL: null,
+        displayName: member.displayName ?? member.email,
+        radius: 20,
         backgroundColor: MonoPulseColors.accentOrange,
-        child: Text(
-          _getMemberInitials(member).toUpperCase(),
-          style: const TextStyle(color: MonoPulseColors.textPrimary),
-        ),
       ),
       title: Text(
         member.displayName ?? member.email ?? 'Unknown',

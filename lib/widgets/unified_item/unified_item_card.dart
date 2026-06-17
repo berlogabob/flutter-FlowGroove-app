@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/mono_pulse_theme.dart';
+import '../band_avatar.dart';
 import 'adapters/band_item_adapter.dart';
 import 'adapters/setlist_item_adapter.dart';
 import 'adapters/song_item_adapter.dart';
@@ -66,6 +67,15 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       icon = Icons.music_note;
       isShared = (item as SongItemAdapter).isShared;
     } else if (item is BandItemAdapter) {
+      // Show the band's avatar when it has one, falling back to initials.
+      final band = (item as BandItemAdapter).band;
+      if (band.photoURL != null) {
+        return BandAvatar(
+          photoURL: band.photoURL,
+          bandName: band.name,
+          radius: 20,
+        );
+      }
       icon = Icons.groups;
     } else if (item is SetlistItemAdapter) {
       icon = Icons.playlist_play;

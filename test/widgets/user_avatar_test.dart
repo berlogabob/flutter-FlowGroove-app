@@ -43,4 +43,16 @@ void main() {
     ));
     expect(find.text('?'), findsOneWidget);
   });
+
+  testWidgets('applies backgroundColor when provided', (tester) async {
+    await tester.pumpWidget(host(
+      const UserAvatar(
+        photoURL: null,
+        displayName: 'Andre',
+        backgroundColor: Colors.orange,
+      ),
+    ));
+    final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+    expect(avatar.backgroundColor, Colors.orange);
+  });
 }
