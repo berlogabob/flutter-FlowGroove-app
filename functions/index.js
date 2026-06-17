@@ -24,3 +24,11 @@ exports.updateBandMember = bands.updateBandMember;
 // Avatars
 const avatars = require("./src/avatars");
 exports.importTelegramAvatar = avatars.importTelegramAvatar;
+
+// Telegram sharing + notifications
+const telegramShare = require("./src/telegram/share");
+exports.shareToTelegram = telegramShare.shareToTelegram;
+
+const telegramReminders = require("./src/telegram/reminders");
+exports.onBandSetlistCreated = telegramReminders.onBandSetlistCreated;
+exports.dailyEventReminder = telegramReminders.dailyEventReminder;
