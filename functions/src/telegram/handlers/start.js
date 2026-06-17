@@ -5,30 +5,27 @@
  * persisted to Firestore.
  */
 const { db, admin, cleanUserId } = require("../config");
+const { t, pickLang } = require("../i18n");
 const { handleLink } = require("./link");
 
 function register(bot) {
   bot.start(async (ctx) => {
+    const lang = pickLang(ctx);
     const userId = ctx.startPayload;
-
-    const welcomeMessage =
-      `👋 *Привет! Я FlowGroove бот.*\n\n` +
-      `Помогу привязать Telegram к FlowGroove и импортировать имя и фото.\n\n` +
-      `Разрешаете импортировать профиль?`;
 
     const keyboard = {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: "✅ Да", callback_data: "consent_allow" },
-            { text: "❌ Нет", callback_data: "consent_deny" },
+            { text: t(lang, "btn_yes"), callback_data: "consent_allow" },
+            { text: t(lang, "btn_no"), callback_data: "consent_deny" },
           ],
         ],
       },
       parse_mode: "Markdown",
     };
 
-    await ctx.reply(welcomeMessage, keyboard);
+    await ctx.reply(t(lang, "start_welcome"), keyboard);
 
     if (userId) {
       await handleLink(ctx, cleanUserId(userId));
@@ -36,14 +33,11 @@ function register(bot) {
   });
 
   bot.action("consent_allow", async (ctx) => {
+    const lang = pickLang(ctx);
     const userId = ctx.from.id.toString();
     const telegramUsername = ctx.from.username || ctx.from.first_name;
 
     try {
-      // Note: the Telegram profile photo is no longer fetched or stored here.
-      // Storing the api.telegram.org/file/bot<TOKEN>/... URL leaked the bot
-      // token into Firestore. The photo is now imported on demand, server-side,
-      // by the `importTelegramAvatar` callable (which never persists the token).
       const userDoc = await db
         .collection("users")
         .where("telegramId", "==", userId)
@@ -57,38 +51,25 @@ function register(bot) {
           telegramUsername: telegramUsername,
         });
 
-        await ctx.answerCbQuery("✅ Принято!");
-
-        const replyMsg =
-          `✅ *Готово!*\n\nИмпортируем:\n• Имя: \`${telegramUsername}\`\n\n` +
-          `Фото можно импортировать в приложении: Profile → Avatar → Use Telegram Photo.\n\n` +
-          `Есть вопросы? Пишите в поддержку!`;
-
-        await ctx.reply(replyMsg, { parse_mode: "Markdown" });
+        await ctx.answerCbQuery(t(lang, "consent_cb_accepted"));
+        await ctx.reply(t(lang, "consent_done", { username: telegramUsername }), {
+          parse_mode: "Markdown",
+        });
       } else {
-        await ctx.answerCbQuery("⚠️ Сначала /link");
-        await ctx.reply(
-          `⚠️ *Сначала привяжите аккаунт*\n\n` +
-            `/link <your_user_id>\n\n` +
-            `FlowGroove → Profile → Link Telegram`,
-          { parse_mode: "Markdown" },
-        );
+        await ctx.answerCbQuery(t(lang, "consent_cb_need_link"));
+        await ctx.reply(t(lang, "consent_need_link"), { parse_mode: "Markdown" });
       }
     } catch (error) {
       console.error(`❌ consent_allow error for user ${userId}:`, error);
-      await ctx.answerCbQuery("❌ Error");
-      await ctx.reply("❌ Ошибка. Попробуйте позже.");
+      await ctx.answerCbQuery(t(lang, "consent_cb_error"));
+      await ctx.reply(t(lang, "consent_error"));
     }
   });
 
   bot.action("consent_deny", async (ctx) => {
-    await ctx.answerCbQuery("❌ Отказано");
-    await ctx.reply(
-      `❌ *Понял*\n\n` +
-        `Профиль не импортируем.\n\n` +
-        `Если передумаете - напишите /start`,
-      { parse_mode: "Markdown" },
-    );
+    const lang = pickLang(ctx);
+    await ctx.answerCbQuery(t(lang, "consent_denied_cb"));
+    await ctx.reply(t(lang, "consent_denied"), { parse_mode: "Markdown" });
   });
 }
 

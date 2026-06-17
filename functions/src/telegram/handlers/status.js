@@ -1,8 +1,10 @@
 /** /status — reports whether the caller's Telegram is linked to FlowGroove. */
 const { db } = require("../config");
+const { t, pickLang } = require("../i18n");
 
 function register(bot) {
   bot.command("status", async (ctx) => {
+    const lang = pickLang(ctx);
     const telegramId = ctx.from.id.toString();
 
     const userSnapshot = await db
@@ -12,9 +14,7 @@ function register(bot) {
       .get();
 
     if (userSnapshot.empty) {
-      await ctx.reply(`❌ *Не привязан*\n\n` + `/link <your_user_id>`, {
-        parse_mode: "Markdown",
-      });
+      await ctx.reply(t(lang, "status_not_linked"), { parse_mode: "Markdown" });
       return;
     }
 
@@ -22,11 +22,11 @@ function register(bot) {
     const userData = userDoc.data();
 
     await ctx.reply(
-      `✅ *Статус*\n\n` +
-        `ID: \`${userDoc.id}\`\n` +
-        `Имя: ${userData.displayName || "N/A"}\n` +
-        `Email: ${userData.email || "N/A"}\n` +
-        `Telegram: привязан`,
+      t(lang, "status_ok", {
+        id: userDoc.id,
+        name: userData.displayName || "N/A",
+        email: userData.email || "N/A",
+      }),
       { parse_mode: "Markdown" },
     );
   });
