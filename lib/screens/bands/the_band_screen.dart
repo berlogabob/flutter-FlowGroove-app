@@ -76,6 +76,20 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     return member.role == BandMember.roleAdmin;
   }
 
+  /// The band as currently stored (from the live bands stream), falling back to
+  /// the optimistic local copy then the passed-in band. Reading from the stream
+  /// keeps the avatar (and other live fields) correct after tab switches, since
+  /// the passed-in widget.band is only a snapshot from navigation time.
+  Band _liveBand() {
+    final bands = ref.watch(bandsProvider).asData?.value;
+    if (bands != null) {
+      for (final b in bands) {
+        if (b.id == widget.band.id) return b;
+      }
+    }
+    return _band;
+  }
+
   /// Check if user can edit the band (admin or editor only)
   bool get _canEdit {
     if (ref.read(isDemoUserProvider)) return false;
@@ -255,7 +269,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       ),
 
       // Remove Band Avatar (admin only, shown only when avatar exists)
-      if (_band.photoURL != null && _isBandAdmin)
+      if (_liveBand().photoURL != null && _isBandAdmin)
         PopupMenuItem<void>(
           onTap: () => _runAfterMenuCloses(_handleRemoveBandAvatar),
           child: const Row(
@@ -372,7 +386,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     return GreetingCard(
       userName: widget.band.name,
       subtitle: description ?? 'Ready to rock?',
-      avatarPath: _band.photoURL,
+      avatarPath: _liveBand().photoURL,
     );
   }
 
