@@ -31,17 +31,17 @@ describe("ensureCanonicalSong callable", function () {
 
   it("rejects unauthenticated callers", async () => {
     await assert.rejects(
-      () => wrappedEnsureCanonicalSong({ title: "Song", artist: "Artist" }),
+      () => wrappedEnsureCanonicalSong({ data: { title: "Song", artist: "Artist" } }),
       (error) => error.code === "unauthenticated",
     );
   });
 
   it("rejects demo users", async () => {
     await assert.rejects(
-      () => wrappedEnsureCanonicalSong(
-        { title: "Song", artist: "Artist" },
-        authContext("demo-user", { demo: true }),
-      ),
+      () => wrappedEnsureCanonicalSong({
+        data: { title: "Song", artist: "Artist" },
+        ...authContext("demo-user", { demo: true }),
+      }),
       (error) => error.code === "failed-precondition",
     );
   });
@@ -50,10 +50,10 @@ describe("ensureCanonicalSong callable", function () {
     await db.collection("users").doc("demo-user").set({ accessRole: "demo" });
 
     await assert.rejects(
-      () => wrappedEnsureCanonicalSong(
-        { title: "Song", artist: "Artist" },
-        authContext("demo-user"),
-      ),
+      () => wrappedEnsureCanonicalSong({
+        data: { title: "Song", artist: "Artist" },
+        ...authContext("demo-user"),
+      }),
       (error) => error.code === "failed-precondition",
     );
   });
@@ -233,7 +233,7 @@ function authContext(uid, token = {}) {
 }
 
 function callEnsure(payload) {
-  return wrappedEnsureCanonicalSong(payload, authContext("user-1"));
+  return wrappedEnsureCanonicalSong({ data: payload, ...authContext("user-1") });
 }
 
 function isDuplicateCanonicalError(error) {

@@ -13,6 +13,9 @@ const db = admin.firestore();
 
 const b64 = (s) => Buffer.from(s).toString("base64");
 
+// Build a gen-2 CallableRequest ({ data, auth }); omit auth for unauthenticated.
+const req = (data, uid) => (uid ? { data, auth: { uid } } : { data });
+
 function buildSet() {
   const saved = [];
   const fakeBucket = {
@@ -53,7 +56,7 @@ describe("setBandAvatar / removeBandAvatar callables", function () {
   it("rejects unauthenticated callers", async () => {
     const { fn } = buildSet();
     await assert.rejects(
-      () => fn({ bandId: "b1", imageBase64: b64("x") }, {}),
+      () => fn(req({ bandId: "b1", imageBase64: b64("x") })),
       (e) => e.code === "unauthenticated",
     );
   });
@@ -62,7 +65,7 @@ describe("setBandAvatar / removeBandAvatar callables", function () {
     await db.collection("bands").doc("b1").set({ adminUids: ["admin1"] });
     const { fn } = buildSet();
     await assert.rejects(
-      () => fn({ bandId: "b1", imageBase64: b64("img") }, { auth: { uid: "nope" } }),
+      () => fn(req({ bandId: "b1", imageBase64: b64("img") }, "nope")),
       (e) => e.code === "permission-denied",
     );
   });
@@ -70,7 +73,7 @@ describe("setBandAvatar / removeBandAvatar callables", function () {
   it("requires bandId and imageBase64", async () => {
     const { fn } = buildSet();
     await assert.rejects(
-      () => fn({ bandId: "b1" }, { auth: { uid: "admin1" } }),
+      () => fn(req({ bandId: "b1" }, "admin1")),
       (e) => e.code === "invalid-argument",
     );
   });
@@ -79,8 +82,7 @@ describe("setBandAvatar / removeBandAvatar callables", function () {
     await db.collection("bands").doc("b1").set({ adminUids: ["admin1"] });
     const { fn, saved } = buildSet();
     const result = await fn(
-      { bandId: "b1", imageBase64: b64("imagedata") },
-      { auth: { uid: "admin1" } },
+      req({ bandId: "b1", imageBase64: b64("imagedata") }, "admin1"),
     );
     assert.match(result.photoURL, /firebasestorage\.googleapis\.com/);
     assert.equal(saved.length, 1);
@@ -94,7 +96,7 @@ describe("setBandAvatar / removeBandAvatar callables", function () {
       photoURL: "https://example.com/old",
     });
     const { fn } = buildRemove();
-    const result = await fn({ bandId: "b1" }, { auth: { uid: "admin1" } });
+    const result = await fn(req({ bandId: "b1" }, "admin1"));
     assert.deepEqual(result, { ok: true });
     const doc = await db.collection("bands").doc("b1").get();
     assert.equal(doc.data().photoURL, null);

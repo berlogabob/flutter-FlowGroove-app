@@ -37,7 +37,7 @@ describe("shareToTelegram callable", function () {
   it("rejects unauthenticated callers", async () => {
     const { fn } = build();
     await assert.rejects(
-      () => fn({ text: "hi" }, {}),
+      () => fn({ data: { text: "hi" } }),
       (e) => e.code === "unauthenticated",
     );
   });
@@ -45,7 +45,7 @@ describe("shareToTelegram callable", function () {
   it("rejects empty text", async () => {
     const { fn } = build();
     await assert.rejects(
-      () => fn({ text: "   " }, { auth: { uid: "u1" } }),
+      () => fn({ data: { text: "   " }, auth: { uid: "u1" } }),
       (e) => e.code === "invalid-argument",
     );
   });
@@ -54,7 +54,7 @@ describe("shareToTelegram callable", function () {
     await db.collection("users").doc("u1").set({ displayName: "A" });
     const { fn } = build();
     await assert.rejects(
-      () => fn({ text: "hi" }, { auth: { uid: "u1" } }),
+      () => fn({ data: { text: "hi" }, auth: { uid: "u1" } }),
       (e) => e.code === "failed-precondition",
     );
   });
@@ -62,7 +62,7 @@ describe("shareToTelegram callable", function () {
   it("sends the text to the caller's linked chat", async () => {
     await db.collection("users").doc("u1").set({ telegramId: "123" });
     const { fn, sent } = build();
-    const result = await fn({ text: "hello band" }, { auth: { uid: "u1" } });
+    const result = await fn({ data: { text: "hello band" }, auth: { uid: "u1" } });
     assert.deepEqual(result, { ok: true });
     assert.equal(sent.length, 1);
     assert.equal(sent[0].telegramId, "123");

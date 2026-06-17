@@ -43,7 +43,9 @@ function deriveUidArrays(members) {
  *   under users/{uid}/bands/{bandId}.
  * - Demo users are rejected.
  */
-exports.joinBand = functions.https.onCall(async (data, context) => {
+exports.joinBand = functions.https.onCall(async (request) => {
+  const data = request.data || {};
+  const context = { auth: request.auth };
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -155,7 +157,9 @@ const VALID_ROLES = ["admin", "editor", "viewer"];
  * memberUids/adminUids/editorUids arrays are rewritten atomically; removing a
  * member also deletes their users/{uid}/bands/{bandId} reference.
  */
-exports.updateBandMember = functions.https.onCall(async (data, context) => {
+exports.updateBandMember = functions.https.onCall(async (request) => {
+  const data = request.data || {};
+  const context = { auth: request.auth };
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",

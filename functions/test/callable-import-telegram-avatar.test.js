@@ -51,7 +51,7 @@ describe("importTelegramAvatar callable", function () {
 
   it("rejects unauthenticated callers", async () => {
     const { fn } = buildSubject();
-    await assert.rejects(() => fn({}, {}),
+    await assert.rejects(() => fn({}),
       (e) => e.code === "unauthenticated");
   });
 
@@ -59,7 +59,7 @@ describe("importTelegramAvatar callable", function () {
     await db.collection("users").doc("u1").set({ displayName: "A" });
     const { fn } = buildSubject();
     await assert.rejects(
-      () => fn({}, { auth: { uid: "u1" } }),
+      () => fn({ auth: { uid: "u1" } }),
       (e) => e.code === "failed-precondition",
     );
   });
@@ -72,7 +72,7 @@ describe("importTelegramAvatar callable", function () {
       },
     });
     await assert.rejects(
-      () => fn({}, { auth: { uid: "u1" } }),
+      () => fn({ auth: { uid: "u1" } }),
       (e) => e.code === "not-found",
     );
   });
@@ -80,7 +80,7 @@ describe("importTelegramAvatar callable", function () {
   it("mirrors the photo and updates the user doc", async () => {
     await db.collection("users").doc("u1").set({ telegramId: "123" });
     const { fn, saved, requestedFileIds } = buildSubject();
-    const result = await fn({}, { auth: { uid: "u1" } });
+    const result = await fn({ auth: { uid: "u1" } });
 
     assert.equal(saved.length, 1);
     assert.match(result.photoURL, /firebasestorage\.googleapis\.com/);

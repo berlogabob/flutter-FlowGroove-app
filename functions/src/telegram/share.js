@@ -12,7 +12,9 @@ const MAX_LEN = 4096; // Telegram message limit
 
 /** Builds the callable; `getSend` is injectable for testing. */
 function makeShareToTelegram({ getSend } = {}) {
-  return functions.https.onCall(async (data, context) => {
+  return functions.https.onCall(async (request) => {
+    const data = request.data || {};
+    const context = { auth: request.auth };
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",

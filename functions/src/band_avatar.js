@@ -35,7 +35,9 @@ async function assertBandAdmin(bandId, uid) {
 
 /** Builds the setBandAvatar callable; `getBucket` is injectable for testing. */
 function makeSetBandAvatar({ getBucket } = {}) {
-  return functions.https.onCall(async (data, context) => {
+  return functions.https.onCall(async (request) => {
+    const data = request.data || {};
+    const context = { auth: request.auth };
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
@@ -90,7 +92,9 @@ function makeSetBandAvatar({ getBucket } = {}) {
 
 /** Builds the removeBandAvatar callable; `getBucket` is injectable for testing. */
 function makeRemoveBandAvatar({ getBucket } = {}) {
-  return functions.https.onCall(async (data, context) => {
+  return functions.https.onCall(async (request) => {
+    const data = request.data || {};
+    const context = { auth: request.auth };
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",

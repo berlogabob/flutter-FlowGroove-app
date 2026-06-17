@@ -123,7 +123,9 @@ function canonicalSongData({
   };
 }
 
-exports.ensureCanonicalSong = functions.https.onCall(async (data, context) => {
+exports.ensureCanonicalSong = functions.https.onCall(async (request) => {
+  const data = request.data || {};
+  const context = { auth: request.auth };
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",

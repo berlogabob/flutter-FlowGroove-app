@@ -27,7 +27,9 @@ function defaultBucket() {
  * don't call TELEGRAM_BOT_TOKEN.value() / admin.storage() at module load.
  */
 function makeImportTelegramAvatar({ getTelegram, getBucket, fetchImpl } = {}) {
-  return functions.https.onCall(async (data, context) => {
+  return functions.https.onCall(async (request) => {
+    const data = request.data || {};
+    const context = { auth: request.auth };
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
