@@ -7,6 +7,7 @@ const { isAdmin, getSupportGroupId } = require("../config");
 
 function register(bot) {
   bot.command("get_id", (ctx) => {
+    if (!isAdmin(ctx.from.id)) return;
     const chatId = ctx.chat.id;
     const chatType = ctx.chat.type;
     const chatTitle = ctx.chat.title || "Private Chat";
