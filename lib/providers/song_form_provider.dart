@@ -566,12 +566,16 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     bool isEditing = false,
     Song? existingSong,
   }) async {
-    // Check for duplicates
-    final duplicate = await checkForDuplicates(
-      songRepo: songRepo,
-      uid: uid,
-      bandId: bandId,
-    );
+    // Duplicate detection only applies when adding a new song. When editing an
+    // existing song it would match the song against itself and falsely block
+    // the save with a "Similar Song Exists" warning.
+    final duplicate = isEditing
+        ? null
+        : await checkForDuplicates(
+            songRepo: songRepo,
+            uid: uid,
+            bandId: bandId,
+          );
 
     // If duplicate found and not already using suggestion, show warning
     if (duplicate != null && !state.isUsingSuggestion) {

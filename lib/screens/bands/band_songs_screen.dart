@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../models/band.dart';
 import '../../../models/song.dart';
@@ -327,7 +328,14 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
     if (!_canEdit) return;
 
-    Navigator.pushNamed(context, '/songs/${song.id}/edit', arguments: song);
+    // Edit the band's copy: pass bandId so the save targets the band song
+    // (updateBandSong) instead of the user's personal library. Uses the
+    // go_router named route — the app is driven by go_router, not Navigator.
+    context.pushNamed(
+      'edit-song',
+      pathParameters: {'id': song.id},
+      extra: {'song': song, 'bandId': widget.band.id},
+    );
   }
 }
 

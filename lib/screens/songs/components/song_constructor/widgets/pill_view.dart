@@ -6,16 +6,8 @@ import '../core/theme/app_colors.dart';
 /// Shows colored blocks proportional to section durations.
 class PillView extends StatelessWidget {
 
-  const PillView({required this.sections, super.key, this.height, this.padding});
-
+  const PillView({required this.sections, super.key});
   final List<Section> sections;
-
-  /// Overall pill height. Defaults to [AppDimensions.pillHeight]; pass a small
-  /// value (e.g. on a list card) for a compact strip.
-  final double? height;
-
-  /// Inner padding around the colored blocks. Defaults to 4.
-  final double? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +23,14 @@ class PillView extends StatelessWidget {
     }
 
     return Container(
-      height: height ?? AppDimensions.pillHeight,
+      height: AppDimensions.pillHeight,
       decoration: BoxDecoration(
         color: Theme.of(
           context,
         ).colorScheme.primaryContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppDimensions.pillBorderRadius),
       ),
-      padding: EdgeInsets.all(padding ?? 4),
+      padding: const EdgeInsets.all(4),
       child: Row(
         children: sections.map((section) {
           return Expanded(

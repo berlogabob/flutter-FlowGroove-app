@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../screens/songs/components/song_constructor/widgets/pill_view.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../band_avatar.dart';
 import 'adapters/band_item_adapter.dart';
@@ -159,18 +158,6 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
 
       if (badges.isNotEmpty) {
         subtitleWidgets.add(Row(children: badges));
-      }
-
-      // Song structure ("scheme") preview as a compact pill strip.
-      final sections = song.song.sections;
-      if (sections.isNotEmpty) {
-        subtitleWidgets.add(const SizedBox(height: 6));
-        subtitleWidgets.add(
-          SizedBox(
-            width: double.infinity,
-            child: PillView(sections: sections, height: 12, padding: 2),
-          ),
-        );
       }
 
       // Add attribution badge for copied songs

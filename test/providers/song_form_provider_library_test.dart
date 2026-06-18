@@ -180,6 +180,39 @@ void main() {
         expect(updated.album, isNull);
       },
     );
+
+    test('editing a band song updates the band copy, not the library', () async {
+      final existing = Song(
+        id: 'band-song-1',
+        title: 'Wonderwall',
+        artist: 'Oasis',
+        ourBPM: 87,
+        bandId: 'band-1',
+        isCopy: true,
+        createdAt: DateTime(2026, 5),
+        updatedAt: DateTime(2026, 5, 2),
+      );
+
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..initFromSong(existing)
+        ..updateOurBpm('140');
+
+      final success = await notifier.saveSong(
+        songRepo: repository,
+        uid: 'user-1',
+        bandId: 'band-1',
+        isEditing: true,
+        existingSong: existing,
+      );
+
+      expect(success, isTrue);
+      expect(repository.updatedBandSong, isNotNull);
+      expect(repository.updatedBandSong!.id, 'band-song-1');
+      expect(repository.updatedBandSong!.ourBPM, 140);
+      // The personal library must not be touched.
+      expect(repository.updatedSong, isNull);
+      expect(repository.savedSong, isNull);
+    });
   });
 }
 
