@@ -18,6 +18,7 @@ import '../models/beat_mode.dart';
 import '../models/metronome_state.dart';
 import '../services/audio/metronome_audio_engine.dart';
 import '../services/audio/wall_clock_scheduler.dart';
+import '../services/audio/web_audio_engine.dart';
 
 abstract class MetronomeAudioClient {
   Future<void> initialize();
@@ -78,6 +79,48 @@ class AudioEngineMetronomeAudioClient implements MetronomeAudioClient {
   Future<void> dispose() {
     return MetronomeAudioEngine.instance.dispose();
   }
+}
+
+/// Web metronome audio client backed by the browser Web Audio API.
+///
+/// On web, `flutter_soloud` (used by [AudioEngineMetronomeAudioClient] and the
+/// PCM timeline client) is unreliable and produces no sound without a dedicated
+/// SoLoud web worker setup. This client routes clicks through the lightweight,
+/// browser-safe [AudioEngine] instead, which lazily creates an `AudioContext`
+/// on the first click (after a user gesture).
+class WebAudioMetronomeAudioClient implements MetronomeAudioClient {
+  WebAudioMetronomeAudioClient();
+
+  final AudioEngine _engine = AudioEngine();
+
+  @override
+  Future<void> initialize() => _engine.initialize();
+
+  @override
+  Future<void> preWarmPlayers() => _engine.preWarmPlayers();
+
+  @override
+  Future<void> playClick({
+    required bool isAccent,
+    required String waveType,
+    required double volume,
+    double? accentFrequency,
+    double? beatFrequency,
+  }) {
+    return _engine.playClick(
+      isAccent: isAccent,
+      waveType: waveType,
+      volume: volume,
+      accentFrequency: accentFrequency,
+      beatFrequency: beatFrequency,
+    );
+  }
+
+  @override
+  Future<void> playTest() => _engine.playTest();
+
+  @override
+  Future<void> dispose() async => _engine.dispose();
 }
 
 abstract class MetronomeHapticsClient {
@@ -142,7 +185,10 @@ class SystemMetronomeHapticsClient implements MetronomeHapticsClient {
 }
 
 final metronomeAudioClientProvider = Provider<MetronomeAudioClient>((ref) {
-  final client = AudioEngineMetronomeAudioClient();
+  // Web has no working flutter_soloud path; use the Web Audio API engine.
+  final MetronomeAudioClient client = kIsWeb
+      ? WebAudioMetronomeAudioClient()
+      : AudioEngineMetronomeAudioClient();
   ref.onDispose(client.dispose);
   return client;
 });
@@ -821,6 +867,12 @@ final metronomePlaybackClientProvider = Provider<MetronomePlaybackClient>((
     audioClient: ref.read(metronomeAudioClientProvider),
     hapticsClient: ref.read(metronomeHapticsProvider),
   );
+  // Web: the flutter_soloud PCM timeline and the Android platform channel are
+  // both unavailable, so drive ticks through the Web Audio scheduler directly.
+  if (kIsWeb) {
+    ref.onDispose(fallback.dispose);
+    return fallback;
+  }
   final legacy = PlatformMetronomePlaybackClient(fallback: fallback);
   final client = MetronomeFeatureFlags.enablePcmTimelineEngine
       ? PcmTimelineMetronomePlaybackClient(fallback: legacy)

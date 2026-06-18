@@ -70,8 +70,9 @@ class AudioEngine {
       gainNode.connect(_audioContext!.destination);
 
       // Play short click (40ms like Reaper)
-      oscillator.start(now);
-      oscillator.stop(now + 0.04);
+      oscillator
+        ..start(now)
+        ..stop(now + 0.04);
     } catch (e) {
       debugPrint('Error playing click: $e');
     }
@@ -86,7 +87,7 @@ class AudioEngine {
       accentFrequency: 1600,
       beatFrequency: 800,
     );
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
     await playClick(
       isAccent: false,
       waveType: 'sine',
