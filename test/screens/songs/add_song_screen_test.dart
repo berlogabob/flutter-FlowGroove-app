@@ -99,7 +99,7 @@ void main() {
       expect(find.text('Notes'), findsOneWidget);
     });
 
-    testWidgets('displays save button in app bar', (tester) async {
+    testWidgets('displays save button', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpAppWidget(
@@ -114,12 +114,8 @@ void main() {
         ],
       );
 
-      // Save button is in a PopupMenuButton - tap the more_horiz icon to open menu
-      await tester.tap(find.byIcon(Icons.more_horiz));
-      await tester.pumpAndSettle();
-
-      // Verify save button in popup menu
-      expect(find.text('Save'), findsOneWidget);
+      // Save lives in the bottom PrimaryActionBar (add-mode label).
+      expect(find.text('Save Song'), findsOneWidget);
     });
 
     testWidgets('allows entering song title and artist', (
@@ -204,12 +200,8 @@ void main() {
         ],
       );
 
-      // Tap to expand Notes collapsible section
-      await tester.tap(find.text('Notes'));
-      await tester.pumpAndSettle();
-
-      // Find notes field
-      final notesField = find.widgetWithText(TextFormField, 'Add notes about this song...');
+      // Notes field is always visible (no longer a collapsible section).
+      final notesField = find.widgetWithText(TextFormField, 'Notes...');
       await tester.enterText(notesField, 'Test notes');
       await tester.pump();
 
@@ -390,12 +382,8 @@ void main() {
         ],
       );
 
-      // Tap the more_horiz icon to open popup menu
-      await tester.tap(find.byIcon(Icons.more_horiz));
-      await tester.pumpAndSettle();
-
-      // Tap save button
-      await tester.tap(find.text('Save'));
+      // Tap the save button in the bottom PrimaryActionBar.
+      await tester.tap(find.text('Save Song'));
       await tester.pumpAndSettle();
 
       // Verify validation message appears (form validation should prevent save)
@@ -519,7 +507,8 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(Wrap), findsOneWidget);
+      // Tags and the search-button row both use Wrap.
+      expect(find.byType(Wrap), findsWidgets);
     });
 
     testWidgets('displays search icons', (tester) async {
@@ -636,7 +625,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Wrap (containing search buttons) is found
-      expect(find.byType(Wrap), findsOneWidget);
+      expect(find.byType(Wrap), findsWidgets);
     });
 
     testWidgets('handles null song for add mode', (tester) async {

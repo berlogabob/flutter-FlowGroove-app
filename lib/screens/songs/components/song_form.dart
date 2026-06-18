@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../models/beat_mode.dart';
 import '../../../models/link.dart';
 import '../../../models/section.dart';
+import '../../../models/song_suggestion.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/song_tags.dart';
+import '../../../widgets/autocomplete_type_ahead.dart';
 import '../../../widgets/tag_input_dialog.dart';
 import 'bpm_selector.dart';
 import 'collapsible_section.dart';
@@ -50,6 +52,8 @@ class SongForm extends StatelessWidget {
     required this.onRegularBeatsChanged,
     required this.isEditing,
     this.onCopyFromOriginal,
+    this.onSuggestionSelected,
+    this.bandId,
     super.key,
   });
   /// Form key for validation.
@@ -137,12 +141,29 @@ class SongForm extends StatelessWidget {
   /// Whether we are in edit mode (vs. add mode).
   final bool isEditing;
 
+  /// Callback when a song suggestion is picked from the title autocomplete.
+  /// When null, the autocomplete search box is hidden.
+  final ValueChanged<SongSuggestion>? onSuggestionSelected;
+
+  /// Band context for scoping song suggestions.
+  final String? bandId;
+
   @override
   Widget build(BuildContext context) {
     return Form(
       key: formKey,
       child: Column(
         children: [
+          // Song search autocomplete: type to find an existing song and
+          // autofill the form. Only shown when a handler is wired (add flow).
+          if (onSuggestionSelected != null && !isEditing) ...[
+            AutocompleteTypeAhead(
+              onSuggestionSelected: onSuggestionSelected!,
+              bandId: bandId,
+              hint: 'Search a song to autofill…',
+            ),
+            const SizedBox(height: 16),
+          ],
           // Title field
           TextFormField(
             controller: titleController,

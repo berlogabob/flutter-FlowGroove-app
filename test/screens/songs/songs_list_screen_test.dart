@@ -321,9 +321,9 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Import Songs from CSV'), findsOneWidget);
-      expect(find.text('Select CSV File'), findsOneWidget);
-      expect(find.text('Paste from Clipboard'), findsOneWidget);
+      expect(find.text('Import songs from CSV'), findsOneWidget);
+      expect(find.text('Select CSV file'), findsOneWidget);
+      expect(find.text('Paste from clipboard'), findsOneWidget);
     });
 
     testWidgets('opens CSV export dialog from app bar menu', (tester) async {

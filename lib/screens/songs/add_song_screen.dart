@@ -400,6 +400,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                 notifier.updateBeatMode(beatIndex, subdivisionIndex, mode);
                 notifier.markAsChanged();
               },
+              onSuggestionSelected: _handleSuggestionSelected,
+              bandId: widget.bandId,
               isEditing: _isEditing,
             ),
             const SizedBox(height: 24),
