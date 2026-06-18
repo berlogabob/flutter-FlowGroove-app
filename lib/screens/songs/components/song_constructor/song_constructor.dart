@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -34,7 +35,24 @@ class _SongConstructorState extends State<SongConstructor> {
   @override
   void initState() {
     super.initState();
-    _sections = widget.initialSections ?? [];
+    _sections = List<Section>.from(widget.initialSections ?? const []);
+  }
+
+  @override
+  void didUpdateWidget(SongConstructor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The host form loads the song's sections one frame after first build
+    // (provider init is deferred to a post-frame callback). Adopt the incoming
+    // sections when they actually change, so previously-saved song maps are not
+    // stuck on the empty snapshot captured in initState. Section equality is by
+    // id, so in-progress content edits (rename/duration/colour) won't clobber.
+    final incoming = widget.initialSections ?? const <Section>[];
+    final previous = oldWidget.initialSections ?? const <Section>[];
+    if (!listEquals(previous, incoming) && !listEquals(_sections, incoming)) {
+      setState(() {
+        _sections = List<Section>.from(incoming);
+      });
+    }
   }
 
   void _notifyChange() {
