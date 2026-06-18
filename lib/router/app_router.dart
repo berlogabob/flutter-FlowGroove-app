@@ -262,6 +262,16 @@ List<RouteBase> _buildAppRoutes() {
               name: 'bands',
               builder: (context, state) => const MyBandsScreen(),
               routes: [
+                // NOTE: the literal 'create' route MUST be declared before the
+                // parameterized ':id' route. go_router matches child routes in
+                // declaration order, so if ':id' came first it would greedily
+                // match '/main/bands/create' as a band with id="create" and
+                // show "Failed to load band data" instead of the create screen.
+                GoRoute(
+                  path: 'create',
+                  name: 'create-band',
+                  builder: (context, state) => const CreateBandScreen(),
+                ),
                 GoRoute(
                   path: ':id',
                   name: 'the-band',
@@ -270,11 +280,6 @@ List<RouteBase> _buildAppRoutes() {
                     extra: state.extra as Band?,
                     builder: (band) => TheBandScreen(band: band),
                   ),
-                ),
-                GoRoute(
-                  path: 'create',
-                  name: 'create-band',
-                  builder: (context, state) => const CreateBandScreen(),
                 ),
                 GoRoute(
                   path: ':id/edit',
