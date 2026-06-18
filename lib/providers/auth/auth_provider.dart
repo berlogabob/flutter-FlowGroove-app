@@ -341,14 +341,32 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
+  /// OAuth **Web** client ID used as the `serverClientId` for google_sign_in v7.
+  ///
+  /// Unlike v6, the v7 Android plugin does NOT auto-read the
+  /// google-services-generated `default_web_client_id`, so without this the
+  /// returned account has a null ID token and Firebase sign-in silently fails
+  /// (account picker shows, then bounces back to the login screen). This is the
+  /// public Web client from `google-services.json` (`client_type: 3`); override
+  /// per environment with `--dart-define=GOOGLE_WEB_CLIENT_ID=...`.
+  static const String _googleServerClientId = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+    defaultValue:
+        '703941154390-kq214etvh0r0ka6ahs01gbi5hhd5ii66.apps.googleusercontent.com',
+  );
+
   /// google_sign_in v7 requires a one-time [GoogleSignIn.initialize] before
-  /// any authentication call. On Android the serverClientId is read from the
-  /// google-services-generated `default_web_client_id`; on iOS from the plist.
+  /// any authentication call. We pass [serverClientId] so the returned account
+  /// carries an ID token whose audience Firebase accepts.
   static bool _googleSignInInitialized = false;
 
   Future<void> _ensureGoogleSignInInitialized(GoogleSignIn googleSignIn) async {
     if (_googleSignInInitialized) return;
-    await googleSignIn.initialize();
+    await googleSignIn.initialize(
+      serverClientId: _googleServerClientId.isEmpty
+          ? null
+          : _googleServerClientId,
+    );
     _googleSignInInitialized = true;
   }
 
