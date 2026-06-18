@@ -15,7 +15,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: help test-fast test-firebase-emulator deploy-stable deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+.PHONY: help test-fast test-firebase-emulator deploy-rules deploy-stable deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
@@ -386,11 +386,29 @@ build-all: check-env-prod build-web-prod
 	@echo "ℹ️  Nothing was deployed. To publish all three, run: make release-all"
 	@echo ""
 
+# Deploy Firestore + Storage security rules to Firebase.
+# These are committed by the release flow but NOT auto-deployed, so production
+# rules can drift behind the code. Deploy them here so a release never ships an
+# app build whose required rules aren't live yet. Hard-fails if the firebase CLI
+# is missing so a release can't silently skip rules. Uses the .firebaserc default
+# project (repsync-app-8685c).
+deploy-rules:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Deploying Firestore + Storage Rules              ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@command -v firebase >/dev/null 2>&1 || { \
+		echo "❌ firebase CLI not installed — cannot deploy rules. Aborting release."; \
+		exit 1; \
+	}
+	firebase deploy --only firestore:rules,storage
+	@echo "✅ Firestore + Storage rules deployed"
+
 # Deploy all three release channels — OUTWARD-FACING and largely irreversible.
+#   0. Rules   → Firestore + Storage security rules (deployed FIRST)
 #   1. FTP     → flowgroove.app (Hugo root + Flutter /app/, with backup + health check)
 #   2. Pages   → GitHub Pages (Hugo + Flutter), git commit + push
 #   3. Android → version bump + git tag + push + GitHub Release (APK + AAB)
-release-all: deploy-stable
+release-all: deploy-rules deploy-stable
 	@$(MAKE) -f Makefile.hugo deploy-all
 	@$(MAKE) release
 	@echo ""
@@ -463,7 +481,7 @@ release:
 					--title "Release $$NEW_VERSION" \
 					--notes "Release $$NEW_VERSION - $$(date +%Y-%m-%d)" \
 					--target "$$(git rev-parse --abbrev-ref HEAD)" \
-					build/app/outputs/flutter-apk/app-release.apk#android-apk \
+					build/app/outputs/flutter-apk/app-release.apk#flowgroove-android.apk \
 					build/app/outputs/bundle/release/app-release.aab#aab && \
 				echo "✅ GitHub Release created!"; \
 			fi; \

@@ -329,6 +329,10 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     try {
       final credential = await _readFirebaseAuthOrThrow()
           .signInWithEmailAndPassword(email: email, password: password);
+      // Security rules read users/{uid}.accessRole; a missing doc blocks band
+      // create/join and other writes. Backfill it for accounts created before
+      // this was ensured.
+      await _ensureUserDocument(credential.user);
       return credential;
     } on FirebaseAuthException catch (e, stackTrace) {
       final apiError = _mapFirebaseAuthException(e);
@@ -478,6 +482,9 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     try {
       final credential = await _readFirebaseAuthOrThrow()
           .createUserWithEmailAndPassword(email: email, password: password);
+      // Create the users/{uid} doc up front so security rules (which read
+      // accessRole) allow band create/join and other writes.
+      await _ensureUserDocument(credential.user);
       return credential;
     } on FirebaseAuthException catch (e, stackTrace) {
       final apiError = _mapFirebaseAuthException(e);

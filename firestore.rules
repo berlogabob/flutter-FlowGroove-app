@@ -12,9 +12,17 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // Helper function to get user doc and check access role
+    // Helper function to get user doc and check access role.
+    // Guarded against a missing user document or absent accessRole field:
+    // an unguarded get().data on a non-existent doc errors and DENIES the rule,
+    // which was blocking band create/join (and all writes) for users whose
+    // users/{uid} doc was never created (e.g. email/password sign-ups). A
+    // legitimate authenticated user with no doc is treated as 'member'; only an
+    // explicit 'demo' accessRole is restricted.
     function getUserRole(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.accessRole;
+      return exists(/databases/$(database)/documents/users/$(userId))
+        ? get(/databases/$(database)/documents/users/$(userId)).data.get('accessRole', 'member')
+        : 'member';
     }
 
     // Helper function to check if user is NOT a demo account
