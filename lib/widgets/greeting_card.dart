@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/responsive_breakpoints.dart';
@@ -116,7 +117,9 @@ class GreetingCard extends StatelessWidget {
     if (avatarPath == null || avatarPath!.isEmpty) return null;
 
     if (avatarPath!.startsWith('http')) {
-      return NetworkImage(avatarPath!);
+      // Disk-cached so the home avatar loads instantly after the first fetch
+      // (no re-download on every rebuild / tab switch).
+      return CachedNetworkImageProvider(avatarPath!);
     }
 
     try {

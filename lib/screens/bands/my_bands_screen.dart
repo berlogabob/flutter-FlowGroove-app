@@ -433,10 +433,17 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
   Future<void> _shareInvite() async {
     const String domain = 'flowgroove.app';
 
+    // Path-based join link: opens the installed app directly via Android App
+    // Links (intent-filter pathPrefix /join + /.well-known/assetlinks.json),
+    // and in a browser the /join/ page redirects into the web app. A hash-
+    // fragment URL can't be used here because Android App Links never receive
+    // the URL fragment.
+    final joinLink = 'https://$domain/join/?code=$_inviteCode';
+
     final message =
         '🎸 Join my band "${widget.band.name}" on FlowGroove!\n\n'
         'Use code: $_inviteCode\n'
-        'Or click the link to join: https://$domain/join-band?code=$_inviteCode\n\n'
+        'Or click the link to join: $joinLink\n\n'
         'Download FlowGroove: https://$domain';
 
     final uri = Uri.parse('sms:?body=${Uri.encodeComponent(message)}');

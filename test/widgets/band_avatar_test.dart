@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flowgroove/widgets/band_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +13,9 @@ void main() {
     expect(find.text('N'), findsOneWidget);
   });
 
-  testWidgets('uses NetworkImage when photoURL is set', (tester) async {
+  testWidgets('uses a cached network image when photoURL is set', (
+    tester,
+  ) async {
     // Suppress the expected network-load failure from the test HTTP client.
     final List<dynamic> imageErrors = [];
     final savedHandler = FlutterError.onError;
@@ -32,7 +35,7 @@ void main() {
       ),
     ));
     final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
-    expect(avatar.backgroundImage, isA<NetworkImage>());
+    expect(avatar.backgroundImage, isA<CachedNetworkImageProvider>());
 
     FlutterError.onError = savedHandler;
   });

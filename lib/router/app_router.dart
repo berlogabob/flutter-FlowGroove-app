@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/band.dart';
 import '../models/setlist.dart';
 import '../models/song.dart';
 import '../models/tuner_launch_context.dart';
+import '../providers/auth/auth_provider.dart';
+import '../providers/data/data_providers.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/bands/band_about_screen.dart';
@@ -99,9 +102,34 @@ GoRouter createAppRouter({
             final isLoggingIn = state.matchedLocation == '/login';
             final isRegistering = state.matchedLocation == '/register';
             final isOnMain = state.matchedLocation.startsWith('/main');
+            final joinCode = state.uri.queryParameters['code'];
 
-            // Not logged in and not on auth pages -> go to login
+            // External join App Link / web deep link (/join or /join/) — map it
+            // to the in-app join flow. When logged out, stash the code so login
+            // can resume the join.
+            final isExternalJoin =
+                state.matchedLocation == '/join' ||
+                state.matchedLocation == '/join/';
+            if (isExternalJoin) {
+              if (joinCode == null || joinCode.isEmpty) {
+                return isLoggedIn ? '/main/bands' : '/login';
+              }
+              if (isLoggedIn) {
+                return '/main/join-band?code=$joinCode';
+              }
+              unawaited(PendingJoinCodeStore().setPendingJoinCode(joinCode));
+              return '/login';
+            }
+
+            // Not logged in and not on auth pages -> go to login.
+            // If a join link (with ?code=) was opened while logged out, stash
+            // the code so the login flow can resume the join afterwards.
             if (!isLoggedIn && !isLoggingIn && !isRegistering) {
+              if (state.matchedLocation == '/main/join-band' &&
+                  joinCode != null &&
+                  joinCode.isNotEmpty) {
+                unawaited(PendingJoinCodeStore().setPendingJoinCode(joinCode));
+              }
               return '/login';
             }
 
@@ -153,6 +181,15 @@ List<RouteBase> _buildAppRoutes() {
       path: '/forgot-password',
       name: 'forgot-password',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    // External join deep link target (App Link / web). The global redirect
+    // always routes this onward (to join-band or login), so this builder is
+    // only a brief placeholder.
+    GoRoute(
+      path: '/join',
+      name: 'join-deeplink',
+      builder: (context, state) =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
     ),
 
     // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav
@@ -228,28 +265,11 @@ List<RouteBase> _buildAppRoutes() {
                 GoRoute(
                   path: ':id',
                   name: 'the-band',
-                  builder: (context, state) {
-                    final band = state.extra as Band?;
-                    if (band == null) {
-                      return Scaffold(
-                        appBar: AppBar(title: const Text('Error')),
-                        body: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('Failed to load band data'),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () => context.pop(),
-                                child: const Text('Go Back'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    return TheBandScreen(band: band);
-                  },
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    extra: state.extra as Band?,
+                    builder: (band) => TheBandScreen(band: band),
+                  ),
                 ),
                 GoRoute(
                   path: 'create',
@@ -259,90 +279,38 @@ List<RouteBase> _buildAppRoutes() {
                 GoRoute(
                   path: ':id/edit',
                   name: 'edit-band',
-                  builder: (context, state) {
-                    final band = state.extra as Band?;
-                    return CreateBandScreen(band: band);
-                  },
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    extra: state.extra as Band?,
+                    builder: (band) => CreateBandScreen(band: band),
+                  ),
                 ),
                 GoRoute(
                   path: ':id/songs',
                   name: 'band-songs',
-                  builder: (context, state) {
-                    final band = state.extra as Band?;
-                    if (band == null) {
-                      // Show error instead of infinite spinner
-                      return Scaffold(
-                        appBar: AppBar(title: const Text('Error')),
-                        body: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('Failed to load band data'),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () => context.pop(),
-                                child: const Text('Go Back'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    return BandSongsScreen(band: band);
-                  },
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    extra: state.extra as Band?,
+                    builder: (band) => BandSongsScreen(band: band),
+                  ),
                 ),
                 GoRoute(
                   path: ':id/setlists',
                   name: 'band-setlists',
-                  builder: (context, state) {
-                    final band = state.extra as Band?;
-                    if (band == null) {
-                      return Scaffold(
-                        appBar: AppBar(title: const Text('Error')),
-                        body: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('Failed to load band data'),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () => context.pop(),
-                                child: const Text('Go Back'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    return BandSetlistsScreen(band: band);
-                  },
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    extra: state.extra as Band?,
+                    builder: (band) => BandSetlistsScreen(band: band),
+                  ),
                 ),
                 GoRoute(
                   path: ':id/about',
                   name: 'band-about',
-                  builder: (context, state) {
-                    final band = state.extra as Band?;
-                    if (band == null) {
-                      // Show error instead of infinite spinner
-                      return Scaffold(
-                        appBar: AppBar(title: const Text('Error')),
-                        body: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('Failed to load band data'),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () => context.pop(),
-                                child: const Text('Go Back'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    return BandAboutScreen(band: band);
-                  },
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    extra: state.extra as Band?,
+                    builder: (band) => BandAboutScreen(band: band),
+                  ),
                 ),
               ],
             ),
@@ -534,4 +502,61 @@ extension GoRouterExtension on BuildContext {
 
   /// Navigate to forgot password screen.
   void goForgotPassword() => goNamed('forgot-password');
+}
+
+/// Resolves the [Band] for band detail routes.
+///
+/// go_router does NOT persist `state.extra` across app restarts or deep links,
+/// so a band route opened by route restoration (e.g. after an app update) has a
+/// null Band and previously showed "Failed to load band data". This widget
+/// falls back to looking the band up by its id from the user's loaded bands.
+class BandRouteResolver extends ConsumerWidget {
+  const BandRouteResolver({
+    required this.bandId,
+    required this.builder,
+    this.extra,
+    super.key,
+  });
+
+  final String? bandId;
+  final Band? extra;
+  final Widget Function(Band band) builder;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final band = extra;
+    if (band != null) return builder(band);
+
+    final bandsAsync = ref.watch(bandsProvider);
+    return bandsAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (_, _) => _bandLoadError(context),
+      data: (bands) {
+        for (final candidate in bands) {
+          if (candidate.id == bandId) return builder(candidate);
+        }
+        return _bandLoadError(context);
+      },
+    );
+  }
+
+  Widget _bandLoadError(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Error')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Failed to load band data'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.pop(),
+              child: const Text('Go Back'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

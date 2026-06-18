@@ -1,9 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 /// Renders a user's avatar from [photoURL], falling back to the first letter
 /// of [displayName]. Always reads from a network URL — local-file avatars are
 /// no longer used (everything is mirrored to Firebase Storage).
-class UserAvatar extends StatelessWidget {
+///
+/// If the network image fails to load (expired URL, offline, blocked), the
+/// avatar falls back to the initial instead of rendering a blank circle.
+class UserAvatar extends StatefulWidget {
   const UserAvatar({
     required this.photoURL,
     required this.displayName,
@@ -20,25 +24,51 @@ class UserAvatar extends StatelessWidget {
   /// loads). Defaults to the theme's [CircleAvatar] background.
   final Color? backgroundColor;
 
+  @override
+  State<UserAvatar> createState() => _UserAvatarState();
+}
+
+class _UserAvatarState extends State<UserAvatar> {
+  bool _imageFailed = false;
+
+  @override
+  void didUpdateWidget(UserAvatar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Retry loading when the URL changes (e.g. a new avatar was uploaded).
+    if (oldWidget.photoURL != widget.photoURL) {
+      _imageFailed = false;
+    }
+  }
+
   String get _initial {
-    final name = displayName?.trim() ?? '';
+    final name = widget.displayName?.trim() ?? '';
     return name.isEmpty ? '?' : name.characters.first.toUpperCase();
   }
 
-  bool get _hasPhoto => photoURL != null && photoURL!.startsWith('http');
+  bool get _showPhoto =>
+      !_imageFailed &&
+      widget.photoURL != null &&
+      widget.photoURL!.startsWith('http');
 
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-      radius: radius,
-      backgroundColor: backgroundColor,
-      backgroundImage: _hasPhoto ? NetworkImage(photoURL!) : null,
-      child: _hasPhoto
+      radius: widget.radius,
+      backgroundColor: widget.backgroundColor,
+      backgroundImage: _showPhoto
+          ? CachedNetworkImageProvider(widget.photoURL!)
+          : null,
+      onBackgroundImageError: _showPhoto
+          ? (_, _) {
+              if (mounted) setState(() => _imageFailed = true);
+            }
+          : null,
+      child: _showPhoto
           ? null
           : Text(
               _initial,
               style: TextStyle(
-                fontSize: radius * 0.8,
+                fontSize: widget.radius * 0.8,
                 fontWeight: FontWeight.w700,
               ),
             ),

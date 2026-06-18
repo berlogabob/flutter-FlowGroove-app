@@ -57,6 +57,13 @@ final analyticsClientProvider = Provider<AnalyticsClient>((ref) {
 
 /// Storage boundary for pending invite codes captured before auth.
 class PendingJoinCodeStore {
+  /// Persists an invite code captured before the user authenticated (e.g. from
+  /// a shared join link opened while logged out), so the login flow can resume
+  /// the join afterwards.
+  Future<void> setPendingJoinCode(String code) async {
+    await secureStorage.write(key: 'pending_join_code', value: code);
+  }
+
   Future<String?> getAndClearPendingJoinCode() async {
     final code = await secureStorage.read(key: 'pending_join_code');
     if (code != null) {
