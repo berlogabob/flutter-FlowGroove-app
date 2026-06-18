@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../../models/beat_mode.dart';
 import '../../../models/link.dart';
+import '../../../models/section.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/song_tags.dart';
 import '../../../widgets/tag_input_dialog.dart';
 import 'bpm_selector.dart';
+import 'collapsible_section.dart';
 import 'links_editor.dart';
+import 'metronome_pattern_editor.dart';
+import 'song_constructor/song_constructor.dart';
 
 /// A comprehensive form widget for adding or editing songs.
 ///
@@ -35,6 +40,14 @@ class SongForm extends StatelessWidget {
     required this.onAddLink,
     required this.onRemoveLink,
     required this.onTagChanged,
+    required this.sections,
+    required this.onSectionsChanged,
+    required this.accentBeats,
+    required this.regularBeats,
+    required this.beatModes,
+    required this.onBeatModeChanged,
+    required this.onAccentBeatsChanged,
+    required this.onRegularBeatsChanged,
     required this.isEditing,
     this.onCopyFromOriginal,
     super.key,
@@ -92,6 +105,31 @@ class SongForm extends StatelessWidget {
 
   /// Callback when a tag selection changes.
   final Function(String tag, bool selected) onTagChanged;
+
+  /// Current song structure sections (the "song scheme").
+  final List<Section> sections;
+
+  /// Callback when the song structure changes.
+  final Function(List<Section>) onSectionsChanged;
+
+  /// Beats per measure (metronome grid rows).
+  final int accentBeats;
+
+  /// Subdivisions per beat (metronome grid columns).
+  final int regularBeats;
+
+  /// 2D beat-mode grid (beats × subdivisions).
+  final List<List<BeatMode>> beatModes;
+
+  /// Callback when a single cell in the beat grid changes.
+  final Function(int beatIndex, int subdivisionIndex, BeatMode mode)
+  onBeatModeChanged;
+
+  /// Callback when the beats-per-measure count changes.
+  final ValueChanged<int> onAccentBeatsChanged;
+
+  /// Callback when the subdivisions-per-beat count changes.
+  final ValueChanged<int> onRegularBeatsChanged;
 
   /// Callback when copy from original is triggered.
   final VoidCallback? onCopyFromOriginal;
@@ -162,6 +200,23 @@ class SongForm extends StatelessWidget {
             onRemoveLink: onRemoveLink,
           ),
           const SizedBox(height: 24),
+          // Song structure ("scheme") editor
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Song Structure',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: MonoPulseColors.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SongConstructor(
+            initialSections: sections,
+            onChange: onSectionsChanged,
+          ),
+          const SizedBox(height: 24),
           // Notes field
           const Text('Notes', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
@@ -208,6 +263,21 @@ class SongForm extends StatelessWidget {
                 onPressed: () => _editTags(context),
               ),
             ],
+          ),
+          const SizedBox(height: MonoPulseSpacing.xxxl),
+          // Metronome beat-grid editor (collapsible)
+          CollapsibleSection(
+            title: 'Metronome Settings',
+            icon: Icons.music_note,
+            initiallyExpanded: false,
+            child: MetronomePatternEditor(
+              accentBeats: accentBeats,
+              regularBeats: regularBeats,
+              beatModes: beatModes,
+              onBeatModeChanged: onBeatModeChanged,
+              onAccentBeatsChanged: onAccentBeatsChanged,
+              onRegularBeatsChanged: onRegularBeatsChanged,
+            ),
           ),
         ],
       ),

@@ -174,7 +174,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
 
     // Initialize beat modes for new songs or songs without metronome settings
     if (formData.beatModes.isEmpty) {
-      ref.read(songFormStateProvider.notifier).setSections(formData.sections);
+      ref.read(songFormStateProvider.notifier).initializeBeatModes();
     }
   }
 
@@ -372,6 +372,33 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                 ref.read(songFormStateProvider.notifier).copyFromOriginal();
                 _ourBpmController.text = _originalBpmController.text;
                 ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              sections: formData.sections,
+              onSectionsChanged: (newSections) {
+                ref
+                    .read(songFormStateProvider.notifier)
+                    .setSections(newSections);
+                ref.read(songFormStateProvider.notifier).markAsChanged();
+              },
+              accentBeats: formData.accentBeats,
+              regularBeats: formData.regularBeats,
+              beatModes: formData.beatModes,
+              onAccentBeatsChanged: (value) {
+                final notifier = ref.read(songFormStateProvider.notifier);
+                notifier.updateAccentBeats(value);
+                notifier.initializeBeatModes();
+                notifier.markAsChanged();
+              },
+              onRegularBeatsChanged: (value) {
+                final notifier = ref.read(songFormStateProvider.notifier);
+                notifier.updateRegularBeats(value);
+                notifier.initializeBeatModes();
+                notifier.markAsChanged();
+              },
+              onBeatModeChanged: (beatIndex, subdivisionIndex, mode) {
+                final notifier = ref.read(songFormStateProvider.notifier);
+                notifier.updateBeatMode(beatIndex, subdivisionIndex, mode);
+                notifier.markAsChanged();
               },
               isEditing: _isEditing,
             ),
