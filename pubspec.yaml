@@ -1,7 +1,7 @@
 name: flowgroove
 description: "FlowGroove - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.14.1+216
+version: 0.14.1+217
 
 environment:
   sdk: ^3.12.0
@@ -19,7 +19,7 @@ dependencies:
   firebase_storage: ^13.1.0
 
   # Google Sign-In (social auth)
-  google_sign_in: ^6.2.1
+  google_sign_in: ^7.2.0
 
   # State Management (Updated)
   flutter_riverpod: ^3.3.2
@@ -75,7 +75,9 @@ dependencies:
   image_picker: ^1.1.2
 
   # File picker for import/export
-  file_picker: ^12.0.0-beta.5
+  # Pinned: 12.0.0-beta.7 ships broken Android sources (unresolved FileUtils);
+  # keep the last known-good beta until a fixed release lands.
+  file_picker: 12.0.0-beta.5
   share_plus: ^13.1.0
 
   permission_handler: ^12.0.1

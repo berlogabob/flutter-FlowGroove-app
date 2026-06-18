@@ -341,6 +341,17 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
+  /// google_sign_in v7 requires a one-time [GoogleSignIn.initialize] before
+  /// any authentication call. On Android the serverClientId is read from the
+  /// google-services-generated `default_web_client_id`; on iOS from the plist.
+  static bool _googleSignInInitialized = false;
+
+  Future<void> _ensureGoogleSignInInitialized(GoogleSignIn googleSignIn) async {
+    if (_googleSignInInitialized) return;
+    await googleSignIn.initialize();
+    _googleSignInInitialized = true;
+  }
+
   /// Signs in with Google.
   ///
   /// On web this uses Firebase's popup flow; on mobile it uses the
@@ -357,16 +368,29 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       if (kIsWeb) {
         credential = await auth.signInWithPopup(GoogleAuthProvider());
       } else {
-        final googleUser = await GoogleSignIn().signIn();
-        if (googleUser == null) {
-          // User aborted the Google sign-in sheet.
-          throw ApiError.auth(message: 'Google sign-in was cancelled.');
+        // google_sign_in v7: singleton + initialize() + authenticate().
+        final googleSignIn = GoogleSignIn.instance;
+        await _ensureGoogleSignInInitialized(googleSignIn);
+
+        final GoogleSignInAccount googleUser;
+        try {
+          googleUser = await googleSignIn.authenticate();
+        } on GoogleSignInException catch (e) {
+          if (e.code == GoogleSignInExceptionCode.canceled) {
+            // User aborted the Google sign-in sheet.
+            throw ApiError.auth(message: 'Google sign-in was cancelled.');
+          }
+          rethrow;
         }
-        final googleAuth = await googleUser.authentication;
-        final oauthCredential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
+
+        // v7 only exposes an ID token here; that is sufficient for Firebase.
+        final idToken = googleUser.authentication.idToken;
+        if (idToken == null) {
+          throw ApiError.auth(
+            message: 'Google sign-in failed: missing ID token.',
+          );
+        }
+        final oauthCredential = GoogleAuthProvider.credential(idToken: idToken);
         credential = await auth.signInWithCredential(oauthCredential);
       }
 
