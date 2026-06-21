@@ -9,7 +9,17 @@
 class MetronomeFeatureFlags {
   /// Use a buffered PCM timeline so audible tick placement is independent of
   /// Dart and platform timer jitter on every supported platform.
-  static const bool enablePcmTimelineEngine = true;
+  ///
+  /// DISABLED 2026-06-21 (Phase 0, concert-safe stabilization — see
+  /// docs/superpowers/plans/2026-06-21-metronome-robustness.md). The PCM
+  /// timeline feeds a SoLoud `setBufferStream` whose miniaudio output device is
+  /// bound once at init and does NOT follow audio-route changes, so connecting
+  /// Bluetooth headphones mid-play kills the stream permanently. Setting this to
+  /// false routes Android through the native SoundPool engine
+  /// (`AndroidMetronomeEngine`), which plays on USAGE_MEDIA and follows the
+  /// system route automatically (survives Bluetooth). Re-enable only after
+  /// stream-disconnect recovery is implemented (plan Phase 2.2/2.3).
+  static const bool enablePcmTimelineEngine = false;
 
   /// Enable audio pre-initialization and pre-warm
   /// Impact: 10x faster first beat (<50ms vs 500ms)
