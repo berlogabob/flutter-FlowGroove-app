@@ -101,11 +101,21 @@ class NativeSoLoudSink implements AudioSink {
       // Re-init at the CURRENT device's native rate. The scheduler re-pumps
       // from `atFrame`, so this sink only needs to rebuild cleanly; it does
       // not replay any audio itself.
+      // `deinit()` tears down the SoLoud singleton process-wide, so this sink
+      // and the legacy MetronomeAudioEngine must never be active at the same
+      // time (deinit() here would yank the audio out from under the other).
       if (SoLoud.instance.isInitialized) {
         SoLoud.instance.deinit();
       }
       await open(sampleRate: _sampleRate, channels: _channels);
-      _events.add(const SinkEvent(SinkEventType.deviceChanged));
+      // `open()` swallows its own failures (sets `_open = false` and emits
+      // `SinkEventType.error`) instead of throwing, so this await never
+      // throws on failure. Only report success to the scheduler when the
+      // reopen actually left the sink usable; otherwise the `error` event
+      // already emitted by `open()` is the right (and only) signal.
+      if (_open) {
+        _events.add(const SinkEvent(SinkEventType.deviceChanged));
+      }
     } catch (e) {
       _events.add(SinkEvent(SinkEventType.error, e));
     }
