@@ -21,6 +21,14 @@ class MetronomeFeatureFlags {
   /// stream-disconnect recovery is implemented (plan Phase 2.2/2.3).
   static const bool enablePcmTimelineEngine = false;
 
+  /// Route metronome playback through the new unified sample-accurate engine
+  /// ([UnifiedEnginePlaybackClient]: MetronomeScheduler + PcmClickRenderer +
+  /// NativeSoLoudSink + AudioRouteMonitor). This is mutually exclusive with the
+  /// legacy SoLoud chain (the unified sink calls a process-wide SoLoud.deinit()
+  /// on recover/close), so when true the provider must NOT also build the legacy
+  /// clients. Default false; flipped after review.
+  static const bool enableUnifiedEngine = false;
+
   /// Enable audio pre-initialization and pre-warm
   /// Impact: 10x faster first beat (<50ms vs 500ms)
   /// Risk: LOW - Tested extensively

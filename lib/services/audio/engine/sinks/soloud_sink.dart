@@ -36,6 +36,14 @@ class NativeSoLoudSink implements AudioSink {
   /// The sample rate the sink is currently (or was most recently) opened at.
   int get deviceSampleRate => _sampleRate;
 
+  /// Push a `deviceChanged` event onto [events] so an external observer (e.g.
+  /// [AudioRouteMonitor] surfacing a Bluetooth/wired switch) can trigger the
+  /// scheduler's recovery path, which calls [recover] to rebuild the engine on
+  /// the new default device. Kept minimal: this only signals; the scheduler
+  /// owns the actual recover() call.
+  void signalDeviceChanged() =>
+      _events.add(const SinkEvent(SinkEventType.deviceChanged));
+
   @override
   Future<void> open({required int sampleRate, required int channels}) async {
     _sampleRate = sampleRate;

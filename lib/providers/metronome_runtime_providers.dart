@@ -16,6 +16,7 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import '../config/metronome_feature_flags.dart';
 import '../models/beat_mode.dart';
 import '../models/metronome_state.dart';
+import '../services/audio/engine/unified_engine_playback_client.dart';
 import '../services/audio/metronome_audio_engine.dart';
 import '../services/audio/wall_clock_scheduler.dart';
 import '../services/audio/web_audio_engine.dart';
@@ -872,6 +873,14 @@ final metronomePlaybackClientProvider = Provider<MetronomePlaybackClient>((
   if (kIsWeb) {
     ref.onDispose(fallback.dispose);
     return fallback;
+  }
+  // Unified engine branch: built BEFORE the legacy chain so we never init the
+  // legacy SoLoud-backed MetronomeAudioEngine alongside the unified sink (whose
+  // recover()/close() call a process-wide SoLoud.deinit()). Mutually exclusive.
+  if (MetronomeFeatureFlags.enableUnifiedEngine) {
+    final c = UnifiedEnginePlaybackClient();
+    ref.onDispose(c.dispose);
+    return c;
   }
   final legacy = PlatformMetronomePlaybackClient(fallback: fallback);
   final client = MetronomeFeatureFlags.enablePcmTimelineEngine
