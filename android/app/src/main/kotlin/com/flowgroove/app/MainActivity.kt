@@ -2,6 +2,8 @@ package com.flowgroove.app
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.SoundPool
 import android.media.ToneGenerator
@@ -14,6 +16,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
@@ -26,6 +29,7 @@ import kotlin.math.sin
 
 class MainActivity : FlutterActivity() {
     private var metronomeEngine: AndroidMetronomeEngine? = null
+    private var audioRouteEmitter: AudioRouteEmitter? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -50,6 +54,13 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        val routeChannel = EventChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "com.flowgroove/audio_route"
+        )
+        audioRouteEmitter = AudioRouteEmitter(this)
+        routeChannel.setStreamHandler(audioRouteEmitter)
     }
 
     override fun onPause() {
@@ -60,6 +71,8 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         metronomeEngine?.dispose()
         metronomeEngine = null
+        audioRouteEmitter?.dispose()
+        audioRouteEmitter = null
         super.onDestroy()
     }
 
@@ -80,6 +93,79 @@ class MainActivity : FlutterActivity() {
         } catch (error: Exception) {
             result.error("metronome_error", error.message, null)
         }
+    }
+}
+
+/**
+ * Emits the active audio output route ("bluetooth" | "wired" | "speaker") over an
+ * [EventChannel] whenever the set of connected audio devices changes, so the Dart
+ * metronome scheduler can recover its stream when Bluetooth connects/disconnects.
+ */
+private class AudioRouteEmitter(
+    private val context: Context
+) : EventChannel.StreamHandler {
+    private val mainHandler = Handler(context.mainLooper)
+    private val callbackThread = HandlerThread("FlowGrooveAudioRoute").also { it.start() }
+    private val callbackHandler = Handler(callbackThread.looper)
+    private var deviceCallback: AudioDeviceCallback? = null
+
+    override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        if (audioManager == null) {
+            mainHandler.post { events.success("speaker") }
+            return
+        }
+
+        val callback = object : AudioDeviceCallback() {
+            override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
+                emitCurrentRoute(audioManager, events)
+            }
+
+            override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
+                emitCurrentRoute(audioManager, events)
+            }
+        }
+        deviceCallback = callback
+        audioManager.registerAudioDeviceCallback(callback, callbackHandler)
+
+        emitCurrentRoute(audioManager, events)
+    }
+
+    override fun onCancel(arguments: Any?) {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        deviceCallback?.let { callback ->
+            audioManager?.unregisterAudioDeviceCallback(callback)
+        }
+        deviceCallback = null
+    }
+
+    fun dispose() {
+        callbackThread.quitSafely()
+    }
+
+    private fun emitCurrentRoute(audioManager: AudioManager, events: EventChannel.EventSink) {
+        val route = classifyRoute(audioManager)
+        mainHandler.post { events.success(route) }
+    }
+
+    private fun classifyRoute(audioManager: AudioManager): String {
+        val outputs = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+
+        val isBluetooth = outputs.any { device ->
+            device.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                device.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+        }
+        if (isBluetooth) return "bluetooth"
+
+        val isWired = outputs.any { device ->
+            device.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                device.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+                device.type == AudioDeviceInfo.TYPE_USB_HEADSET ||
+                device.type == AudioDeviceInfo.TYPE_USB_DEVICE
+        }
+        if (isWired) return "wired"
+
+        return "speaker"
     }
 }
 
