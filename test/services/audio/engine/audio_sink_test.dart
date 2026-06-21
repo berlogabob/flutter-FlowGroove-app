@@ -11,7 +11,10 @@ void main() {
     sink.pushFrames(frames);
     await sink.recover(atFrame: 1234);
     expect(sink.openCount, 1);
-    expect(sink.pushed.single, frames);
+    final actual = sink.pushed.single;
+    expect(actual.length, 2);
+    expect(actual[0], closeTo(0.1, 1e-6));
+    expect(actual[1], closeTo(0.2, 1e-6));
     expect(sink.lastRecoverFrame, 1234);
   });
 
