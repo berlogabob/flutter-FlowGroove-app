@@ -32,10 +32,10 @@ void main() {
     final c = cfg(bpm: 120, sub: 2); // 0.25s per tick => 12000 frames
     final pcm = r.renderChunk(config: c, startFrame: 0, frameCount: 48000).toList();
     // clicks expected at frames 0, 12000, 24000, 36000 (+/- a couple frames of attack)
-    expect((firstOnset(pcm, 0)).abs() <= 6, isTrue);
-    expect((firstOnset(pcm, 11990) - 12000).abs() <= 6, isTrue);
-    expect((firstOnset(pcm, 23990) - 24000).abs() <= 6, isTrue);
-    expect((firstOnset(pcm, 35990) - 36000).abs() <= 6, isTrue);
+    expect((firstOnset(pcm, 0)).abs() <= 5, isTrue);
+    expect((firstOnset(pcm, 11990) - 12000).abs() <= 5, isTrue);
+    expect((firstOnset(pcm, 23990) - 24000).abs() <= 5, isTrue);
+    expect((firstOnset(pcm, 35990) - 36000).abs() <= 5, isTrue);
   });
 
   test('latency offset shifts every click earlier by exactly latencyOffsetFrames', () {
@@ -43,6 +43,18 @@ void main() {
     final c = cfg(bpm: 120, sub: 1, latency: 480); // 10ms @48k
     final pcm = r.renderChunk(config: c, startFrame: 0, frameCount: 48000).toList();
     // tick 1 at 24000, shifted to 23520
-    expect((firstOnset(pcm, 23500) - 23520).abs() <= 6, isTrue);
+    expect((firstOnset(pcm, 23500) - 23520).abs() <= 5, isTrue);
+  });
+
+  test('no accumulating drift: click at tick 100 lands at the exact frame', () {
+    final r = PcmClickRenderer(sampleRate: sr);
+    final c = cfg(bpm: 120, sub: 1); // 24000 frames per tick
+    const tick = 100;
+    final expected = r.frameForTick(c, tick); // 2,400,000
+    // render a window around the far tick
+    final pcm = r.renderChunk(config: c, startFrame: expected - 100, frameCount: 200).toList();
+    final onset = firstOnset(pcm, 0); // index within the window
+    // onset is (expected - (expected-100)) = 100, plus the 4-frame accent attack
+    expect((onset - 100).abs() <= 5, isTrue);
   });
 }
