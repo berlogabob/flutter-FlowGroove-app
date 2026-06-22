@@ -39,11 +39,28 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   List<Band>? _manualOrder;
 
   /// Filter and sort bands based on search query and sort option.
+  /// Manual order reconciled with the live band list: saved order first (using
+  /// the live band objects), newly created bands appended, and left/deleted
+  /// bands dropped. Without this the saved snapshot drifts from the live stream
+  /// — a created band wouldn't appear and a left band wouldn't disappear, even
+  /// though the home count (which reads the live stream) already changed.
+  List<Band> _orderedBands(List<Band> bands) {
+    if (_manualOrder == null) return List<Band>.from(bands);
+    final byId = {for (final b in bands) b.id: b};
+    final ordered = <Band>[];
+    for (final saved in _manualOrder!) {
+      final live = byId.remove(saved.id);
+      if (live != null) ordered.add(live);
+    }
+    ordered.addAll(byId.values); // bands created since the order was saved
+    return ordered;
+  }
+
   List<BandItemAdapter> _filterAndSortBands(List<Band> bands) {
     // Apply manual order if in manual sort mode
     List<Band> bandsToUse = bands;
     if (_sortOption == SortOption.manual && _manualOrder != null) {
-      bandsToUse = _manualOrder!;
+      bandsToUse = _orderedBands(bands);
     }
 
     // Convert bands to adapters
@@ -133,17 +150,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       final user = userAsync.value;
       if (user != null) {
         try {
-          final bandRepo = ref.read(bandRepositoryProvider);
-
-          // Remove user from global band members
-          final updatedMembers = band.members
-              .where((m) => m.uid != user.uid)
-              .toList();
-          final updatedBand = band.copyWith(members: updatedMembers);
-          await bandRepo.saveBandToGlobal(updatedBand);
-
-          // Remove from user's bands collection
-          await bandRepo.removeUserFromBand(band.id, userId: user.uid);
+          // Leaving is server-authoritative: updateBandMember rewrites the
+          // band's memberUids and deletes the personal band ref atomically, so
+          // the bands stream (which watches global memberUids) updates the list
+          // and home count in lockstep. A direct client write to the global
+          // band doc is admin-gated and would be denied for ordinary members.
+          await ref
+              .read(bandFunctionServiceProvider)
+              .removeMember(bandId: band.id, targetUid: user.uid);
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -269,10 +283,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   Widget _buildContent(BuildContext context, WidgetRef ref, List<Band> bands) {
     final filteredBands = _filterAndSortBands(bands);
 
-    // Initialize manual order when entering manual sort mode for the first time
-    if (_sortOption == SortOption.manual && _manualOrder == null) {
-      setState(() {
-        _manualOrder = List<Band>.from(bands);
+    // Keep the manual-order hint aligned with the live set (first build, plus
+    // whenever a band was created or left) so reorder indices match what's
+    // shown. Reconcile after the frame to avoid setState during build.
+    if (_sortOption == SortOption.manual &&
+        (_manualOrder == null || _manualOrder!.length != bands.length)) {
+      final reconciled = _orderedBands(bands);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _manualOrder = reconciled);
       });
     }
 

@@ -1,5 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 
+import '../models/api_error.dart';
+
 /// Result of a [BandFunctionService.joinBand] call.
 class JoinBandResult {
   const JoinBandResult({
@@ -86,15 +88,53 @@ class BandFunctionService {
     List<String>? musicRoles,
   }) async {
     final callable = _functions.httpsCallable('updateBandMember', options: _callableOptions);
-    await callable.call<Map<String, dynamic>>(
-      _withoutNullValues({
-        'action': action,
-        'bandId': bandId,
-        'targetUid': targetUid,
-        'role': role,
-        'musicRoles': musicRoles,
-      }),
-    );
+    try {
+      await callable.call<Map<String, dynamic>>(
+        _withoutNullValues({
+          'action': action,
+          'bandId': bandId,
+          'targetUid': targetUid,
+          'role': role,
+          'musicRoles': musicRoles,
+        }),
+      );
+    } on FirebaseFunctionsException catch (e, st) {
+      // Surface the function's own message (e.g. "Cannot remove the last
+      // admin") instead of letting a raw exception fall through to the generic
+      // "Network error" classification in ApiError.fromException.
+      throw _toApiError(e, st);
+    }
+  }
+
+  ApiError _toApiError(FirebaseFunctionsException e, StackTrace st) {
+    final msg = e.message?.isNotEmpty == true ? e.message! : null;
+    switch (e.code) {
+      case 'deadline-exceeded':
+      case 'unavailable':
+        return ApiError.network(
+          message: 'Request timed out. Please check your connection and try again.',
+          exception: e,
+          stackTrace: st,
+        );
+      case 'unauthenticated':
+        return ApiError.auth(
+          message: 'Your session expired. Please sign in again.',
+          exception: e,
+          stackTrace: st,
+        );
+      case 'permission-denied':
+        return ApiError.permission(
+          message: msg ?? 'You do not have permission to do that.',
+          exception: e,
+          stackTrace: st,
+        );
+      default:
+        return ApiError.unknown(
+          message: msg ?? 'Could not complete the request. Please try again.',
+          exception: e,
+          stackTrace: st,
+        );
+    }
   }
 
   JoinBandResult _parseResult(Map<String, dynamic> data) {

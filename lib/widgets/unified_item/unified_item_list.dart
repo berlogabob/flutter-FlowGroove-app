@@ -56,12 +56,15 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
             if (direction == DismissDirection.endToStart &&
                 widget.onDelete != null) {
               await widget.onDelete!(index);
-              return true;
             }
+            // Always return false: these lists are stream/provider-backed, so
+            // the row is removed reactively when the data updates. Returning
+            // true would make Dismissible drop the widget immediately, but the
+            // async delete (e.g. the band-leave Cloud Function) hasn't yet
+            // updated `items`, so the dismissed widget would still be in the
+            // tree on the next build → "dismissed Dismissible still part of the
+            // tree" assertion. Letting the data drive removal avoids that.
             return false;
-          },
-          onDismissed: (direction) {
-            // Already handled in confirmDismiss - do nothing here
           },
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,

@@ -220,11 +220,13 @@ exports.updateBandMember = functions.https.onCall(async (request) => {
     const band = bandDoc.data() || {};
     const members = Array.isArray(band.members) ? [...band.members] : [];
 
-    // Authorize: caller must be an admin of this band.
+    // Authorize: admins can manage any member. A non-admin member may still
+    // remove *themselves* (leave the band) — the only self-service action.
     const callerIsAdmin = members.some(
       (m) => m && m.uid === callerUid && m.role === "admin",
     );
-    if (!callerIsAdmin) {
+    const isSelfRemoval = action === "remove" && targetUid === callerUid;
+    if (!callerIsAdmin && !isSelfRemoval) {
       throw new functions.https.HttpsError(
         "permission-denied",
         "Only band admins can manage members.",
@@ -243,10 +245,21 @@ exports.updateBandMember = functions.https.onCall(async (request) => {
     const target = { ...members[targetIndex] };
 
     if (action === "remove") {
+      // Last member leaving dissolves the band: delete the band document and
+      // the leaver's personal ref atomically. Without this a sole admin could
+      // never get rid of their band — removeMember would hit the "last admin"
+      // guard below forever, surfacing as an error on every leave attempt.
+      // ponytail: band subcollections (songs/setlists/commits) are not cascaded
+      // here; add a recursiveDelete if orphaned empty-band data shows up.
+      if (members.length === 1 && targetUid === callerUid) {
+        transaction.delete(bandRef);
+        transaction.delete(targetPersonalRef);
+        return;
+      }
       if (target.role === "admin" && adminCount <= 1) {
         throw new functions.https.HttpsError(
           "failed-precondition",
-          "Cannot remove the last admin.",
+          "Cannot remove the last admin. Assign another admin first.",
         );
       }
       members.splice(targetIndex, 1);
