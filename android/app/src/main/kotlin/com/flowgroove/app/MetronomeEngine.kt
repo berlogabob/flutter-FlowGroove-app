@@ -11,6 +11,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.exp
@@ -138,48 +139,58 @@ internal class AndroidMetronomeEngine(
     private val renderer = ClickRenderer(sampleRate)
     private val chunkFrames = max(256, sampleRate / 50) // ~20 ms
 
-    private var config: NativeMetronomeConfig? = null
     @Volatile private var pendingConfig: NativeMetronomeConfig? = null
-    @Volatile private var playing = false
-    private var audioTrack: AudioTrack? = null
+    // Per-session running flag captured by the render thread, which is the sole
+    // releaser of its own track. A new start() can't revive an old thread, and
+    // stop() never races a track release against a blocked write.
+    @Volatile private var running: AtomicBoolean? = null
     private var renderThread: Thread? = null
+
+    private val vibrator: Vibrator by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+    }
 
     fun start(args: Map<*, *>) {
         stop(notifyFlutter = false)
         val parsed = NativeMetronomeConfig.from(args)
-        config = parsed
         pendingConfig = null
         val track = buildTrack() ?: run {
             Log.e(TAG, "AudioTrack init failed")
             return
         }
-        audioTrack = track
-        playing = true
-        renderThread = Thread({ renderLoop(parsed) }, "FlowGrooveMetronomeAudio").also {
-            it.start()
-        }
+        val sessionRunning = AtomicBoolean(true)
+        running = sessionRunning
+        renderThread = Thread(
+            { renderLoop(track, sessionRunning, parsed) },
+            "FlowGrooveMetronomeAudio"
+        ).also { it.start() }
     }
 
     fun update(args: Map<*, *>) {
-        val parsed = NativeMetronomeConfig.from(args)
-        config = parsed
-        if (playing) {
+        if (running?.get() == true) {
             // Picked up at the next chunk boundary; keeps playback gapless.
-            pendingConfig = parsed
+            pendingConfig = NativeMetronomeConfig.from(args)
         }
     }
 
     fun stop(notifyFlutter: Boolean) {
-        playing = false
+        running?.set(false)
+        running = null
         renderThread?.let { thread ->
             try {
-                thread.join(500)
+                thread.join(800)
             } catch (_: InterruptedException) {
                 Thread.currentThread().interrupt()
             }
         }
         renderThread = null
-        releaseTrack()
+        // The render thread releases its own track in renderLoop's finally; stop()
+        // never touches the track, so a timed-out join can't race a release.
         if (notifyFlutter) {
             mainHandler.post { onStopped() }
         }
@@ -189,8 +200,11 @@ internal class AndroidMetronomeEngine(
         stop(notifyFlutter = false)
     }
 
-    private fun renderLoop(initial: NativeMetronomeConfig) {
-        val track = audioTrack ?: return
+    private fun renderLoop(
+        track: AudioTrack,
+        running: AtomicBoolean,
+        initial: NativeMetronomeConfig
+    ) {
         val scratch = DoubleArray(chunkFrames)
         val pcm = ShortArray(chunkFrames)
         // (audibleFrame, tickIndex, shouldVibrate) for ticks awaiting UI dispatch.
@@ -203,13 +217,8 @@ internal class AndroidMetronomeEngine(
 
         try {
             track.play()
-        } catch (e: IllegalStateException) {
-            Log.e(TAG, "AudioTrack play failed", e)
-            return
-        }
-
-        while (playing) {
-            pendingConfig?.let { pend ->
+            while (running.get()) {
+                pendingConfig?.let { pend ->
                 pendingConfig = null
                 active = pend
                 intervalFrames = active.intervalMicros * sampleRate / 1_000_000.0
@@ -260,14 +269,21 @@ internal class AndroidMetronomeEngine(
             }
             framesWritten += chunkFrames
 
-            // Fire UI ticks + haptics once the audible head reaches them, so the
-            // beat highlight and vibration line up with what is actually playing.
-            val head = track.playbackHeadPosition.toLong() and 0xFFFFFFFFL
-            while (uiQueue.isNotEmpty() && uiQueue.first().first <= head) {
-                val (_, index, vibrate) = uiQueue.removeFirst()
-                mainHandler.post { onTick(index) }
-                if (vibrate) vibrate()
+                // Fire UI ticks + haptics once the audible head reaches them, so
+                // the beat highlight and vibration line up with what is playing.
+                // ponytail: 32-bit head masked; sync would only hiccup after ~24h
+                // continuous play (audio unaffected). Wrap accounting if anyone cares.
+                val head = track.playbackHeadPosition.toLong() and 0xFFFFFFFFL
+                while (uiQueue.isNotEmpty() && uiQueue.first().first <= head) {
+                    val (_, index, vibrate) = uiQueue.removeFirst()
+                    mainHandler.post { onTick(index) }
+                    if (vibrate) vibrate()
+                }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "render loop error", e)
+        } finally {
+            releaseTrack(track)
         }
     }
 
@@ -314,29 +330,19 @@ internal class AndroidMetronomeEngine(
         }
     }
 
-    private fun releaseTrack() {
-        audioTrack?.let { track ->
-            try {
-                if (track.playState != AudioTrack.PLAYSTATE_STOPPED) track.stop()
-                track.flush()
-            } catch (e: IllegalStateException) {
-                Log.e(TAG, "AudioTrack stop failed", e)
-            }
-            track.release()
+    private fun releaseTrack(track: AudioTrack) {
+        try {
+            if (track.playState != AudioTrack.PLAYSTATE_STOPPED) track.stop()
+            track.flush()
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "AudioTrack stop failed", e)
         }
-        audioTrack = null
+        track.release()
     }
 
     @Suppress("DEPRECATION")
     private fun vibrate() {
         val durationMillis = 8L
-        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            manager.defaultVibrator
-        } else {
-            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             vibrator.vibrate(
                 VibrationEffect.createOneShot(
