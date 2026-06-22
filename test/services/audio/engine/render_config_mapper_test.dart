@@ -14,6 +14,7 @@ MetronomePlaybackConfig _config({
   double beatFrequency = 800,
   double volume = 0.8,
   int countInBars = 1,
+  String waveType = 'sine',
   List<List<BeatMode>>? beatModes,
 }) {
   return MetronomePlaybackConfig(
@@ -25,7 +26,7 @@ MetronomePlaybackConfig _config({
           accentBeats,
           (_) => List<BeatMode>.filled(regularBeats, BeatMode.normal),
         ),
-    waveType: 'sine',
+    waveType: waveType,
     volume: volume,
     accentEnabled: accentEnabled,
     accentFrequency: accentFrequency,
@@ -55,6 +56,7 @@ void main() {
     expect(cfg.beatFrequency, 800);
     expect(cfg.volume, 0.8);
     expect(cfg.countInBars, 1);
+    expect(renderConfigFromPlayback(_config(waveType: 'square'), route: AudioRoute.speaker, cal: cal, sampleRate: 48000).waveType, 'square');
     expect(cfg.beatModes.length, 4);
     expect(cfg.beatModes.first.length, 2);
   });

@@ -14,6 +14,7 @@ class RenderConfig {
     required this.volume,
     required this.countInBars,
     required this.latencyOffsetFrames,
+    this.waveType = 'sine',
   });
 
   final int bpm;
@@ -26,6 +27,7 @@ class RenderConfig {
   final double volume;
   final int countInBars;
   final int latencyOffsetFrames;
+  final String waveType;      // 'sine' | 'square' | 'triangle' | 'sawtooth'
 
   int get safeBeats => beats.clamp(1, 12);
   int get safeSubdivisions => subdivisions.clamp(1, 12);

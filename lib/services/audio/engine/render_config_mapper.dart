@@ -28,5 +28,6 @@ RenderConfig renderConfigFromPlayback(
     volume: c.volume,
     countInBars: c.countInBars,
     latencyOffsetFrames: cal.effectiveOffsetFrames(route, sampleRate),
+    waveType: c.waveType,
   );
 }

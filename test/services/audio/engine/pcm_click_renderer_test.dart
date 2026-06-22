@@ -3,11 +3,23 @@ import 'package:flowgroove/models/beat_mode.dart';
 import 'package:flowgroove/services/audio/engine/render_config.dart';
 import 'package:flowgroove/services/audio/engine/pcm_click_renderer.dart';
 
-RenderConfig cfg({int bpm = 120, int beats = 4, int sub = 1, int latency = 0}) => RenderConfig(
+RenderConfig cfg({int bpm = 120, int beats = 4, int sub = 1, int latency = 0, String wave = 'sine'}) => RenderConfig(
       bpm: bpm, beats: beats, subdivisions: sub, beatModes: const [],
       accentEnabled: true, accentFrequency: 1600, beatFrequency: 800,
-      volume: 1.0, countInBars: 0, latencyOffsetFrames: latency,
+      volume: 1.0, countInBars: 0, latencyOffsetFrames: latency, waveType: wave,
     );
+
+// fraction of a click's samples driven to near full scale (|v| > 0.9)
+double fullScaleFraction(List<double> pcm) {
+  var loud = 0, total = 0;
+  for (final v in pcm) {
+    if (v.abs() > 0.001) {
+      total++;
+      if (v.abs() > 0.9) loud++;
+    }
+  }
+  return total == 0 ? 0 : loud / total;
+}
 
 // index of first frame whose |sample| exceeds a small threshold at/after `from`
 int firstOnset(List<double> pcm, int from) {
@@ -56,5 +68,24 @@ void main() {
     final onset = firstOnset(pcm, 0); // index within the window
     // onset is (expected - (expected-100)) = 100, plus the 4-frame accent attack
     expect((onset - 100).abs() <= 5, isTrue);
+  });
+
+  test('waveType changes the rendered waveform', () {
+    final r = PcmClickRenderer(sampleRate: sr);
+    final sine = r.renderChunk(config: cfg(), startFrame: 0, frameCount: 4000).toList();
+    final square = r.renderChunk(config: cfg(wave: 'square'), startFrame: 0, frameCount: 4000).toList();
+    final saw = r.renderChunk(config: cfg(wave: 'sawtooth'), startFrame: 0, frameCount: 4000).toList();
+    // Different waveforms produce different buffers.
+    expect(sine, isNot(equals(square)));
+    expect(sine, isNot(equals(saw)));
+    // Square is gain-clipped to near full scale far more than sine.
+    expect(fullScaleFraction(square) > fullScaleFraction(sine), isTrue);
+  });
+
+  test('output gain makes a volume-1.0 click reach near full scale', () {
+    final r = PcmClickRenderer(sampleRate: sr);
+    final pcm = r.renderChunk(config: cfg(), startFrame: 0, frameCount: 4000).toList();
+    final peak = pcm.map((v) => v.abs()).reduce((a, b) => a > b ? a : b);
+    expect(peak > 0.95, isTrue); // gain drives the click to ~full scale, not a quiet sine
   });
 }
