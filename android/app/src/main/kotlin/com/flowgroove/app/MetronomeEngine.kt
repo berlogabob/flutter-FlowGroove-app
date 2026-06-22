@@ -2,22 +2,22 @@ package com.flowgroove.app
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioFormat
 import android.media.AudioManager
-import android.media.SoundPool
-import android.media.ToneGenerator
+import android.media.AudioTrack
 import android.os.Build
 import android.os.Handler
-import android.os.HandlerThread
-import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import java.io.File
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import android.util.Log
 import kotlin.math.PI
-import kotlin.math.abs
+import kotlin.math.asin
 import kotlin.math.exp
+import kotlin.math.floor
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 internal data class NativeMetronomeTick(
@@ -66,57 +66,120 @@ internal data class NativeMetronomeConfig(
     }
 }
 
+/**
+ * Sample-accurate click renderer — a Kotlin port of the Dart `PcmClickRenderer`
+ * (lib/services/audio/engine/pcm_click_renderer.dart). Generates a 40 ms
+ * exp-decayed click at a given frequency and wave type so the native
+ * background engine sounds identical to the foreground engine.
+ */
+internal class ClickRenderer(private val sampleRate: Int) {
+    /** 40 ms click length in samples. */
+    val voiceLen: Int = (sampleRate * 0.04).roundToInt().coerceAtLeast(1)
+
+    // Output gain applied before clamping so a full-scale click is perceptibly
+    // loud at volume 1.0 (a bare decaying sine peaks at 1.0 only momentarily).
+    private val outputGain = 2.2
+
+    private fun oscillator(waveType: String, phase: Double): Double = when (waveType) {
+        "square" -> if (sin(phase) >= 0) 1.0 else -1.0
+        "triangle" -> 2.0 / PI * asin(sin(phase))
+        "sawtooth" -> {
+            val cycles = phase / (2 * PI)
+            2.0 * (cycles - floor(cycles + 0.5))
+        }
+        else -> sin(phase)
+    }
+
+    /**
+     * Mix one 40 ms click into [out] (mono scratch, samples in [-1, 1]) starting
+     * at sample [at]. [at] may be negative when the click began in a previous
+     * chunk and only its tail lands here.
+     */
+    fun mixVoice(
+        out: DoubleArray,
+        at: Int,
+        frequency: Double,
+        volume: Double,
+        waveType: String
+    ) {
+        val start = max(0, at)
+        val count = min(voiceLen, out.size - start)
+        if (count <= 0) return
+        val skip = start - at // when the click began before this chunk
+        for (i in 0 until count) {
+            val k = i + skip
+            val env = if (k < 44) {
+                k / 44.0
+            } else {
+                exp(-4.0 * (k - 44) / max(1, voiceLen - 44))
+            }
+            val phase = 2 * PI * frequency * k / sampleRate
+            val v = oscillator(waveType, phase) * env * volume * outputGain
+            out[start + i] = (out[start + i] + v).coerceIn(-1.0, 1.0)
+        }
+    }
+}
+
+/**
+ * Drives metronome playback through a single [AudioTrack] in MODE_STREAM. A
+ * worker thread renders a continuous PCM timeline with every click placed at its
+ * exact sample offset and writes it with blocking writes, so playback timing is
+ * the audio sample clock — no Handler/SoundPool jitter, no drift, and no
+ * SoundPool resampling noise. AudioTrack on USAGE_MEDIA follows the system
+ * output route (Bluetooth/wired) automatically.
+ */
 internal class AndroidMetronomeEngine(
     private val context: Context,
     private val onTick: (Int) -> Unit,
     private val onStopped: () -> Unit
 ) {
     private val mainHandler = Handler(context.mainLooper)
-    private val workerThread = HandlerThread("FlowGrooveMetronome").also { it.start() }
-    private val workerHandler = Handler(workerThread.looper)
-    private val sampleGenerator = ClickSampleGenerator()
+    private val sampleRate = resolveSampleRate(context)
+    private val renderer = ClickRenderer(sampleRate)
+    private val chunkFrames = max(256, sampleRate / 50) // ~20 ms
 
-    private var soundPool: SoundPool? = null
-    private var fallbackTone: ToneGenerator? = null
-    private val soundIdsByFrequency = mutableMapOf<Double, Int>()
-    private val frequenciesBySoundId = mutableMapOf<Int, Double>()
-    private val failedFrequencies = mutableSetOf<Double>()
     private var config: NativeMetronomeConfig? = null
-    private var tickIndex = -1
-    private var nextTickAtNanos = 0L
+    @Volatile private var pendingConfig: NativeMetronomeConfig? = null
     @Volatile private var playing = false
+    private var audioTrack: AudioTrack? = null
+    private var renderThread: Thread? = null
 
     fun start(args: Map<*, *>) {
-        val parsedConfig = NativeMetronomeConfig.from(args)
         stop(notifyFlutter = false)
-        config = parsedConfig
-        tickIndex = parsedConfig.initialTick
-        prepareSounds(parsedConfig) {
-            playing = true
-            nextTickAtNanos = SystemClock.elapsedRealtimeNanos()
-            workerHandler.post(tickRunnable)
+        val parsed = NativeMetronomeConfig.from(args)
+        config = parsed
+        pendingConfig = null
+        val track = buildTrack() ?: run {
+            Log.e(TAG, "AudioTrack init failed")
+            return
+        }
+        audioTrack = track
+        playing = true
+        renderThread = Thread({ renderLoop(parsed) }, "FlowGrooveMetronomeAudio").also {
+            it.start()
         }
     }
 
     fun update(args: Map<*, *>) {
-        val wasPlaying = playing
-        val parsedConfig = NativeMetronomeConfig.from(args)
-        stop(notifyFlutter = false)
-        config = parsedConfig
-        tickIndex = parsedConfig.initialTick
-        if (wasPlaying) {
-            prepareSounds(parsedConfig) {
-                playing = true
-                nextTickAtNanos = SystemClock.elapsedRealtimeNanos()
-                workerHandler.post(tickRunnable)
-            }
+        val parsed = NativeMetronomeConfig.from(args)
+        config = parsed
+        if (playing) {
+            // Picked up at the next chunk boundary; keeps playback gapless.
+            pendingConfig = parsed
         }
     }
 
     fun stop(notifyFlutter: Boolean) {
         playing = false
-        workerHandler.removeCallbacksAndMessages(null)
-        releaseSoundPool()
+        renderThread?.let { thread ->
+            try {
+                thread.join(500)
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
+        }
+        renderThread = null
+        releaseTrack()
         if (notifyFlutter) {
             mainHandler.post { onStopped() }
         }
@@ -124,104 +187,144 @@ internal class AndroidMetronomeEngine(
 
     fun dispose() {
         stop(notifyFlutter = false)
-        workerThread.quitSafely()
     }
 
-    private val tickRunnable = object : Runnable {
-        override fun run() {
-            val activeConfig = config ?: return
-            if (!playing || activeConfig.ticks.isEmpty()) return
+    private fun renderLoop(initial: NativeMetronomeConfig) {
+        val track = audioTrack ?: return
+        val scratch = DoubleArray(chunkFrames)
+        val pcm = ShortArray(chunkFrames)
+        // (audibleFrame, tickIndex, shouldVibrate) for ticks awaiting UI dispatch.
+        val uiQueue = ArrayDeque<Triple<Long, Int, Boolean>>()
 
-            tickIndex = (tickIndex + 1).floorMod(activeConfig.ticks.size)
-            val tick = activeConfig.ticks[tickIndex]
+        var active = initial
+        var intervalFrames = active.intervalMicros * sampleRate / 1_000_000.0
+        var framesWritten = 0L
+        var epochFrame = 0L
 
-            if (tick.shouldPlay) {
-                playTick(activeConfig, tick)
-                if (activeConfig.hapticsEnabled) {
-                    vibrate()
-                }
-            }
-
-            mainHandler.post { onTick(tick.index) }
-
-            nextTickAtNanos += activeConfig.intervalMicros * 1_000L
-            val delayMillis = ((nextTickAtNanos - SystemClock.elapsedRealtimeNanos()) / 1_000_000L)
-                .coerceAtLeast(0L)
-            workerHandler.postDelayed(this, delayMillis)
-        }
-    }
-
-    private fun prepareSounds(config: NativeMetronomeConfig, onReady: () -> Unit) {
-        releaseSoundPool()
-
-        val frequencies = config.ticks
-            .filter { it.shouldPlay }
-            .map { it.frequency }
-            .distinct()
-
-        if (frequencies.isEmpty()) {
-            onReady()
+        try {
+            track.play()
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "AudioTrack play failed", e)
             return
         }
 
-        val pool = SoundPool.Builder()
-            .setMaxStreams(2)
+        while (playing) {
+            pendingConfig?.let { pend ->
+                pendingConfig = null
+                active = pend
+                intervalFrames = active.intervalMicros * sampleRate / 1_000_000.0
+                epochFrame = framesWritten // restart the tick grid here, gaplessly
+            }
+
+            java.util.Arrays.fill(scratch, 0.0)
+            val chunkStart = framesWritten
+            val chunkEnd = framesWritten + chunkFrames
+
+            if (active.ticks.isNotEmpty() && intervalFrames > 0) {
+                val size = active.ticks.size
+                val firstJ = floor(
+                    (chunkStart - epochFrame - renderer.voiceLen) / intervalFrames
+                ).toLong().coerceAtLeast(0L)
+                val lastJ = floor((chunkEnd - epochFrame) / intervalFrames).toLong()
+                var j = firstJ
+                while (j <= lastJ) {
+                    val tickFrame = epochFrame + Math.round(j * intervalFrames)
+                    if (tickFrame + renderer.voiceLen > chunkStart && tickFrame < chunkEnd) {
+                        val listIndex = ((active.initialTick + 1 + j).mod(size.toLong())).toInt()
+                        val tick = active.ticks[listIndex]
+                        if (tick.shouldPlay) {
+                            renderer.mixVoice(
+                                scratch,
+                                (tickFrame - chunkStart).toInt(),
+                                tick.frequency,
+                                active.volume.toDouble(),
+                                active.waveType
+                            )
+                            // Enqueue UI/haptic dispatch only for the onset chunk.
+                            if (tickFrame >= chunkStart) {
+                                uiQueue.addLast(Triple(tickFrame, tick.index, active.hapticsEnabled))
+                            }
+                        }
+                    }
+                    j++
+                }
+            }
+
+            for (i in 0 until chunkFrames) {
+                pcm[i] = (scratch[i].coerceIn(-1.0, 1.0) * 32767.0).toInt().toShort()
+            }
+            val written = track.write(pcm, 0, chunkFrames)
+            if (written < 0) {
+                Log.e(TAG, "AudioTrack write error: $written")
+                break
+            }
+            framesWritten += chunkFrames
+
+            // Fire UI ticks + haptics once the audible head reaches them, so the
+            // beat highlight and vibration line up with what is actually playing.
+            val head = track.playbackHeadPosition.toLong() and 0xFFFFFFFFL
+            while (uiQueue.isNotEmpty() && uiQueue.first().first <= head) {
+                val (_, index, vibrate) = uiQueue.removeFirst()
+                mainHandler.post { onTick(index) }
+                if (vibrate) vibrate()
+            }
+        }
+    }
+
+    private fun buildTrack(): AudioTrack? {
+        val minBuf = AudioTrack.getMinBufferSize(
+            sampleRate,
+            AudioFormat.CHANNEL_OUT_MONO,
+            AudioFormat.ENCODING_PCM_16BIT
+        )
+        if (minBuf <= 0) return null
+        val bufferBytes = max(minBuf, chunkFrames * 2 * 4) // ~4 chunks of 16-bit mono
+
+        val builder = AudioTrack.Builder()
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build()
             )
-            .build()
-        soundPool = pool
-        fallbackTone = ToneGenerator(AudioManager.STREAM_MUSIC, (config.volume * 100).toInt())
-
-        var pendingLoads = frequencies.size
-        pool.setOnLoadCompleteListener { _, sampleId, status ->
-            val frequency = frequenciesBySoundId[sampleId]
-            if (status != 0 && frequency != null) {
-                failedFrequencies.add(frequency)
-            }
-            pendingLoads -= 1
-            if (pendingLoads <= 0) {
-                workerHandler.post { onReady() }
-            }
-        }
-
-        frequencies.forEach { frequency ->
-            val sampleFile = File(
-                context.cacheDir,
-                "metronome_${config.waveType}_${frequency.toInt()}.wav"
+            .setAudioFormat(
+                AudioFormat.Builder()
+                    .setSampleRate(sampleRate)
+                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                    .build()
             )
-            sampleFile.writeBytes(sampleGenerator.generateWav(frequency, config.waveType))
-            val soundId = pool.load(sampleFile.absolutePath, 1)
-            soundIdsByFrequency[frequency] = soundId
-            frequenciesBySoundId[soundId] = frequency
+            .setBufferSizeInBytes(bufferBytes)
+            .setTransferMode(AudioTrack.MODE_STREAM)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
+        }
+
+        return try {
+            val track = builder.build()
+            if (track.state != AudioTrack.STATE_INITIALIZED) {
+                track.release()
+                null
+            } else {
+                track
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "AudioTrack build failed", e)
+            null
         }
     }
 
-    private fun playTick(config: NativeMetronomeConfig, tick: NativeMetronomeTick) {
-        val pool = soundPool ?: run {
-            playFallbackTone()
-            return
+    private fun releaseTrack() {
+        audioTrack?.let { track ->
+            try {
+                if (track.playState != AudioTrack.PLAYSTATE_STOPPED) track.stop()
+                track.flush()
+            } catch (e: IllegalStateException) {
+                Log.e(TAG, "AudioTrack stop failed", e)
+            }
+            track.release()
         }
-        val soundId = soundIdsByFrequency[tick.frequency] ?: run {
-            playFallbackTone()
-            return
-        }
-        if (failedFrequencies.contains(tick.frequency)) {
-            playFallbackTone()
-            return
-        }
-
-        val streamId = pool.play(soundId, config.volume, config.volume, 1, 0, 1f)
-        if (streamId == 0) {
-            playFallbackTone()
-        }
-    }
-
-    private fun playFallbackTone() {
-        fallbackTone?.startTone(ToneGenerator.TONE_PROP_BEEP, 35)
+        audioTrack = null
     }
 
     @Suppress("DEPRECATION")
@@ -246,73 +349,15 @@ internal class AndroidMetronomeEngine(
         }
     }
 
-    private fun releaseSoundPool() {
-        soundPool?.release()
-        soundPool = null
-        fallbackTone?.release()
-        fallbackTone = null
-        soundIdsByFrequency.clear()
-        frequenciesBySoundId.clear()
-        failedFrequencies.clear()
+    private fun resolveSampleRate(context: Context): Int {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        val rate = audioManager
+            ?.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
+            ?.toIntOrNull()
+        return rate?.takeIf { it > 0 } ?: 48_000
     }
 
-    private fun Int.floorMod(modulus: Int): Int {
-        val result = this % modulus
-        return if (result < 0) result + modulus else result
-    }
-}
-
-internal class ClickSampleGenerator {
-    private val sampleRate = 44_100
-    private val clickDurationSeconds = 0.04
-
-    fun generateWav(frequency: Double, waveType: String): ByteArray {
-        val sampleCount = (sampleRate * clickDurationSeconds).toInt()
-        val dataSize = sampleCount * 2
-        val buffer = ByteBuffer.allocate(44 + dataSize)
-        buffer.order(ByteOrder.LITTLE_ENDIAN)
-
-        buffer.put("RIFF".toByteArray(Charsets.US_ASCII))
-        buffer.putInt(36 + dataSize)
-        buffer.put("WAVE".toByteArray(Charsets.US_ASCII))
-        buffer.put("fmt ".toByteArray(Charsets.US_ASCII))
-        buffer.putInt(16)
-        buffer.putShort(1)
-        buffer.putShort(1)
-        buffer.putInt(sampleRate)
-        buffer.putInt(sampleRate * 2)
-        buffer.putShort(2)
-        buffer.putShort(16)
-        buffer.put("data".toByteArray(Charsets.US_ASCII))
-        buffer.putInt(dataSize)
-
-        for (i in 0 until sampleCount) {
-            val time = i.toDouble() / sampleRate
-            val phase = (frequency * time) % 1.0
-            val sample = wave(phase, waveType) * envelope(time)
-            val pcm = (sample.coerceIn(-1.0, 1.0) * Short.MAX_VALUE).toInt().toShort()
-            buffer.putShort(pcm)
-        }
-
-        return buffer.array()
-    }
-
-    private fun wave(phase: Double, waveType: String): Double {
-        return when (waveType.lowercase()) {
-            "square" -> if (phase < 0.5) 1.0 else -1.0
-            "triangle" -> 4.0 * abs(phase - 0.5) - 1.0
-            "sawtooth" -> 2.0 * phase - 1.0
-            else -> sin(2.0 * PI * phase)
-        }
-    }
-
-    private fun envelope(time: Double): Double {
-        val attackSeconds = 0.001
-        val decaySeconds = 0.039
-        return if (time < attackSeconds) {
-            time / attackSeconds
-        } else {
-            exp(-3.0 * ((time - attackSeconds) / decaySeconds))
-        }
+    companion object {
+        private const val TAG = "FlowGrooveMetronome"
     }
 }
