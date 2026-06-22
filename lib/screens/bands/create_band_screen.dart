@@ -143,6 +143,8 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
       await AnalyticsService.logBandCreatedFromBand(band);
 
       if (mounted) {
+        // Clear unsaved changes flag so PopScope lets the screen pop after save
+        setState(() => _hasUnsavedChanges = false);
         // Show invite code dialog for new bands
         if (!_isEditing) {
           _showInviteCodeDialog(band.inviteCode!);
@@ -154,8 +156,6 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
               ),
             ),
           );
-          // Clear unsaved changes flag after successful save
-          setState(() => _hasUnsavedChanges = false);
           Navigator.pop(context);
         }
       }
