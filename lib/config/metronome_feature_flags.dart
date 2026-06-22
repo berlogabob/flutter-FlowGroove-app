@@ -27,7 +27,7 @@ class MetronomeFeatureFlags {
   /// legacy SoLoud chain (the unified sink calls a process-wide SoLoud.deinit()
   /// on recover/close), so when true the provider must NOT also build the legacy
   /// clients. Default false; flipped after review.
-  static const bool enableUnifiedEngine = false;
+  static const bool enableUnifiedEngine = true;
 
   /// Enable audio pre-initialization and pre-warm
   /// Impact: 10x faster first beat (<50ms vs 500ms)
