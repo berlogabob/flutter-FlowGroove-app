@@ -465,13 +465,24 @@ class FirestoreService {
           .collection('bands')
           .where('inviteCode', isEqualTo: code)
           .limit(1)
-          .get();
+          .get()
+          .timeout(_firestoreTimeout);
 
       if (snapshot.docs.isEmpty) return null;
       final doc = snapshot.docs.first;
       final data = doc.data();
       data['id'] = doc.id; // Set the document ID
       return Band.fromJson(data);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: getBandByInviteCode timed out after ${_firestoreTimeout.inSeconds}s',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'not-found') {
         return null;
@@ -490,8 +501,19 @@ class FirestoreService {
           .collection('bands')
           .where('inviteCode', isEqualTo: code)
           .limit(1)
-          .get();
+          .get()
+          .timeout(_firestoreTimeout);
       return snapshot.docs.isNotEmpty;
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: isInviteCodeTaken timed out after ${_firestoreTimeout.inSeconds}s',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {

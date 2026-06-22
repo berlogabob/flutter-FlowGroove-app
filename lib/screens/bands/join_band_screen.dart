@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -143,11 +144,33 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text(_joinErrorMessage(e))));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  /// Maps a join failure to a message a bandmate can act on, instead of dumping
+  /// a raw exception. The timeout case is the one that previously looked like a
+  /// frozen screen (the callable now fails fast via a client deadline).
+  String _joinErrorMessage(Object e) {
+    if (e is FirebaseFunctionsException) {
+      switch (e.code) {
+        case 'deadline-exceeded':
+        case 'unavailable':
+          return 'Joining timed out. Check your connection and try again.';
+        case 'unauthenticated':
+          return 'Your session expired. Please sign in again.';
+        case 'not-found':
+          return 'That band no longer exists.';
+        default:
+          return e.message?.isNotEmpty == true
+              ? e.message!
+              : 'Could not join the band. Please try again.';
+      }
+    }
+    return 'Could not join the band. Please try again.';
   }
 
   @override

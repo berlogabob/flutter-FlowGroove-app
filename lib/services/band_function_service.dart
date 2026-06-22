@@ -26,12 +26,20 @@ class BandFunctionService {
 
   final FirebaseFunctions _functions;
 
+  /// Client-side ceiling for callable invocations. The default is 70s, long
+  /// enough to look like a frozen UI; 30s comfortably covers a cold start while
+  /// surfacing a real failure quickly. On expiry the SDK throws a
+  /// `FirebaseFunctionsException` with code `deadline-exceeded`.
+  static final _callableOptions = HttpsCallableOptions(
+    timeout: const Duration(seconds: 30),
+  );
+
   /// Joins the band identified by [code] (invite code) or [bandId].
   ///
   /// Idempotent: if the caller is already a member, returns a result with
   /// [JoinBandResult.alreadyMember] set to true instead of throwing.
   Future<JoinBandResult> joinBand({String? code, String? bandId}) async {
-    final callable = _functions.httpsCallable('joinBand');
+    final callable = _functions.httpsCallable('joinBand', options: _callableOptions);
     final result = await callable.call<Map<String, dynamic>>(
       _withoutNullValues({'code': code, 'bandId': bandId}),
     );
@@ -77,7 +85,7 @@ class BandFunctionService {
     String? role,
     List<String>? musicRoles,
   }) async {
-    final callable = _functions.httpsCallable('updateBandMember');
+    final callable = _functions.httpsCallable('updateBandMember', options: _callableOptions);
     await callable.call<Map<String, dynamic>>(
       _withoutNullValues({
         'action': action,
