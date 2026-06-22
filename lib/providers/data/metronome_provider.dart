@@ -421,6 +421,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     _syncPlaybackConfig();
   }
 
+  /// Set the marked-accent (cyan) cell frequency.
+  void setAccentBeatFrequency(double frequency) {
+    state = state.copyWith(accentBeatFrequency: frequency);
+    _syncPlaybackConfig();
+  }
+
   /// Toggle synchronized haptic feedback during playback.
   void toggleHaptics() {
     setHapticsEnabled(!state.hapticsEnabled);

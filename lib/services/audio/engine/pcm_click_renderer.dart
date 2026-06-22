@@ -80,9 +80,16 @@ class PcmClickRenderer {
     for (var n = max(0, firstTick); n <= lastTick; n++) {
       final beat = (n ~/ config.safeSubdivisions) % config.safeBeats;
       final sub = n % config.safeSubdivisions;
-      if (_modeFor(config, beat, sub) == BeatMode.silent) continue;
-      final isMain = sub == 0;
-      final freq = isMain && config.accentEnabled ? config.accentFrequency : config.beatFrequency;
+      final mode = _modeFor(config, beat, sub);
+      if (mode == BeatMode.silent) continue;
+      final freq = resolveClickFrequency(
+        mode: mode,
+        isMainBeat: sub == 0,
+        accentEnabled: config.accentEnabled,
+        primaryFrequency: config.accentFrequency,
+        subdivisionFrequency: config.beatFrequency,
+        accentFrequency: config.accentBeatFrequency,
+      );
       final mixAt = frameForTick(config, n) - config.latencyOffsetFrames - startFrame;
       if (mixAt > frameCount) continue;
       _mixVoice(out, mixAt, freq, config.volume, config.waveType);

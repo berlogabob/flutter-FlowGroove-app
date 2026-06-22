@@ -8,6 +8,7 @@ import '../../../helpers/fake_audio_sink.dart';
 RenderConfig cfg() => const RenderConfig(
       bpm: 120, beats: 4, subdivisions: 2, beatModes: [],
       accentEnabled: true, accentFrequency: 1600, beatFrequency: 800,
+      accentBeatFrequency: 2000,
       volume: 1.0, countInBars: 0, latencyOffsetFrames: 0);
 
 void main() {

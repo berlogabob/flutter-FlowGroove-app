@@ -12,6 +12,7 @@ MetronomePlaybackConfig _config({
   bool accentEnabled = true,
   double accentFrequency = 1000,
   double beatFrequency = 800,
+  double accentBeatFrequency = 2000,
   double volume = 0.8,
   int countInBars = 1,
   String waveType = 'sine',
@@ -31,6 +32,7 @@ MetronomePlaybackConfig _config({
     accentEnabled: accentEnabled,
     accentFrequency: accentFrequency,
     beatFrequency: beatFrequency,
+    accentBeatFrequency: accentBeatFrequency,
     hapticsEnabled: false,
     countInBars: countInBars,
   );
@@ -54,6 +56,7 @@ void main() {
     expect(cfg.accentEnabled, isTrue);
     expect(cfg.accentFrequency, 1000);
     expect(cfg.beatFrequency, 800);
+    expect(cfg.accentBeatFrequency, 2000);
     expect(cfg.volume, 0.8);
     expect(cfg.countInBars, 1);
     expect(renderConfigFromPlayback(_config(waveType: 'square'), route: AudioRoute.speaker, cal: cal, sampleRate: 48000).waveType, 'square');

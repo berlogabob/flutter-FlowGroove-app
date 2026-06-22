@@ -422,6 +422,7 @@ class MetronomePlaybackConfig {
     required this.accentEnabled,
     required this.accentFrequency,
     required this.beatFrequency,
+    required this.accentBeatFrequency,
     required this.hapticsEnabled,
     this.countInBars = 0,
   });
@@ -437,6 +438,7 @@ class MetronomePlaybackConfig {
       accentEnabled: state.accentEnabled,
       accentFrequency: state.accentFrequency,
       beatFrequency: state.beatFrequency,
+      accentBeatFrequency: state.accentBeatFrequency,
       hapticsEnabled: state.hapticsEnabled,
       countInBars: state.countInBars,
     );
@@ -449,8 +451,9 @@ class MetronomePlaybackConfig {
   final String waveType;
   final double volume;
   final bool accentEnabled;
-  final double accentFrequency;
-  final double beatFrequency;
+  final double accentFrequency; // primary / main-beat pitch
+  final double beatFrequency; // subdivision pitch
+  final double accentBeatFrequency; // marked-accent (cyan) pitch
   final bool hapticsEnabled;
   final int countInBars;
 
@@ -475,12 +478,14 @@ class MetronomePlaybackConfig {
     final isMainBeat = subdivisionIndex == 0;
     final mode = _modeFor(beatIndex, subdivisionIndex);
     final shouldPlay = mode != BeatMode.silent;
-    final baseFrequency = isMainBeat && accentEnabled
-        ? accentFrequency
-        : beatFrequency;
-    final frequency = mode == BeatMode.accent
-        ? baseFrequency + 300.0
-        : baseFrequency;
+    final frequency = resolveClickFrequency(
+      mode: mode,
+      isMainBeat: isMainBeat,
+      accentEnabled: accentEnabled,
+      primaryFrequency: accentFrequency,
+      subdivisionFrequency: beatFrequency,
+      accentFrequency: accentBeatFrequency,
+    );
 
     return MetronomePlaybackTick(
       index: normalizedIndex,

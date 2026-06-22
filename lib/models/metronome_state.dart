@@ -25,6 +25,7 @@ class MetronomeState {
     required this.accentFrequency,
     required this.beatFrequency,
     required this.accentPattern,
+    this.accentBeatFrequency = 2000,
     this.hapticsEnabled = true,
     this.accentBeats = 4,
     this.regularBeats = 1,
@@ -75,10 +76,21 @@ class MetronomeState {
   final double volume;
   @JsonKey(defaultValue: true)
   final bool accentEnabled;
+
+  /// Pitch of the main beat (first subdivision of each beat / "downbeat").
+  /// Surfaced in the UI as the "Primary pitch" control.
   @JsonKey(defaultValue: 1600)
   final double accentFrequency;
+
+  /// Pitch of every non-main subdivision. Surfaced as the "Subdivision pitch"
+  /// control.
   @JsonKey(defaultValue: 800)
   final double beatFrequency;
+
+  /// Pitch of cells explicitly marked [BeatMode.accent] in the beat map
+  /// (rendered cyan). Surfaced as the "Accent pitch" control.
+  @JsonKey(defaultValue: 2000)
+  final double accentBeatFrequency;
   @JsonKey(defaultValue: true)
   final bool hapticsEnabled;
   @JsonKey(defaultValue: [])
@@ -124,6 +136,7 @@ class MetronomeState {
     bool? accentEnabled,
     double? accentFrequency,
     double? beatFrequency,
+    double? accentBeatFrequency,
     bool? hapticsEnabled,
     List<bool>? accentPattern,
     int? accentBeats,
@@ -153,6 +166,7 @@ class MetronomeState {
       accentEnabled: accentEnabled ?? this.accentEnabled,
       accentFrequency: accentFrequency ?? this.accentFrequency,
       beatFrequency: beatFrequency ?? this.beatFrequency,
+      accentBeatFrequency: accentBeatFrequency ?? this.accentBeatFrequency,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       accentPattern: accentPattern ?? this.accentPattern,
       accentBeats: accentBeats ?? this.accentBeats,

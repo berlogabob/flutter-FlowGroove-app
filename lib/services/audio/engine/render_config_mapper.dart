@@ -25,6 +25,7 @@ RenderConfig renderConfigFromPlayback(
     accentEnabled: c.accentEnabled,
     accentFrequency: c.accentFrequency,
     beatFrequency: c.beatFrequency,
+    accentBeatFrequency: c.accentBeatFrequency,
     volume: c.volume,
     countInBars: c.countInBars,
     latencyOffsetFrames: cal.effectiveOffsetFrames(route, sampleRate),

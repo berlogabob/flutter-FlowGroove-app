@@ -11,6 +11,7 @@ class RenderConfig {
     required this.accentEnabled,
     required this.accentFrequency,
     required this.beatFrequency,
+    required this.accentBeatFrequency,
     required this.volume,
     required this.countInBars,
     required this.latencyOffsetFrames,
@@ -22,8 +23,9 @@ class RenderConfig {
   final int subdivisions;     // per beat
   final List<List<BeatMode>> beatModes;
   final bool accentEnabled;
-  final double accentFrequency;
-  final double beatFrequency;
+  final double accentFrequency;       // primary / main-beat pitch
+  final double beatFrequency;         // subdivision pitch
+  final double accentBeatFrequency;   // marked-accent (cyan) pitch
   final double volume;
   final int countInBars;
   final int latencyOffsetFrames;

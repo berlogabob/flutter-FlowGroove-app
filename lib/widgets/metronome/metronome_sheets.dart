@@ -143,7 +143,7 @@ class _SoundSheet extends ConsumerWidget {
           onChanged: notifier.setVolume,
         ),
         _SliderRow(
-          label: 'Accent pitch',
+          label: 'Primary pitch',
           value: state.accentFrequency.clamp(400, 2000),
           min: 400,
           max: 2000,
@@ -151,12 +151,21 @@ class _SoundSheet extends ConsumerWidget {
           onChanged: notifier.setAccentFrequency,
         ),
         _SliderRow(
-          label: 'Beat pitch',
+          label: 'Subdivision pitch',
           value: state.beatFrequency.clamp(200, 1500),
           min: 200,
           max: 1500,
           display: '${state.beatFrequency.round()} Hz',
           onChanged: notifier.setBeatFrequency,
+        ),
+        _SliderRow(
+          label: 'Accent pitch',
+          value: state.accentBeatFrequency.clamp(400, 3000),
+          min: 400,
+          max: 3000,
+          display: '${state.accentBeatFrequency.round()} Hz',
+          onChanged: notifier.setAccentBeatFrequency,
+          accentColor: MonoPulseColors.beatModeAccent,
         ),
         const Divider(color: MonoPulseColors.borderSubtle, height: 1),
         _SwitchRow(
@@ -402,6 +411,7 @@ class _SliderRow extends StatelessWidget {
     required this.max,
     required this.display,
     required this.onChanged,
+    this.accentColor,
   });
 
   final String label;
@@ -411,8 +421,14 @@ class _SliderRow extends StatelessWidget {
   final String display;
   final ValueChanged<double> onChanged;
 
+  /// Active color for the value readout and slider track. Defaults to the
+  /// standard orange accent; the marked-accent pitch row passes the cyan
+  /// beat-map color so the control reads as the accent control.
+  final Color? accentColor;
+
   @override
   Widget build(BuildContext context) {
+    final color = accentColor ?? MonoPulseColors.accentOrange;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -428,7 +444,7 @@ class _SliderRow extends StatelessWidget {
             Text(
               display,
               style: MonoPulseTypography.labelMedium.copyWith(
-                color: MonoPulseColors.accentOrange,
+                color: color,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -438,7 +454,7 @@ class _SliderRow extends StatelessWidget {
           value: value.clamp(min, max),
           min: min,
           max: max,
-          activeColor: MonoPulseColors.accentOrange,
+          activeColor: color,
           onChanged: onChanged,
         ),
       ],
