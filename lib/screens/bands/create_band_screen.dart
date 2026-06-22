@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/api_error.dart';
@@ -260,8 +261,12 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
         actions: [
           TextButton(
             onPressed: () {
+              // The dialog lives on the root navigator (showDialog defaults to
+              // useRootNavigator: true). A second Navigator.pop here would pop
+              // the whole app shell → black screen. Close the dialog, then route
+              // back to the bands list within the shell branch via go_router.
               Navigator.pop(context);
-              Navigator.pop(context);
+              context.goNamed('bands');
             },
             child: const Text('Done'),
           ),
