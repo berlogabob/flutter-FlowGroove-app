@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Binder
@@ -47,7 +46,7 @@ class MetronomeForegroundService : Service() {
             }
             else -> startForegroundNotification()
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     fun startPlayback(args: Map<*, *>) {
