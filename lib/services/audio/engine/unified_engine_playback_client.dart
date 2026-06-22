@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show VoidCallback, debugPrint;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../models/beat_mode.dart';
 import '../../../providers/metronome_runtime_providers.dart'
     show
+        MetronomeHapticsClient,
         MetronomePlaybackClient,
         MetronomePlaybackConfig,
+        MetronomePlaybackTick,
         MetronomePlaybackTickCallback;
 import '../wall_clock_scheduler.dart';
 import 'audio_route_monitor.dart';
@@ -26,13 +29,26 @@ import 'sinks/soloud_sink.dart';
 ///   - Audio is rendered ahead of time by the scheduler/sink (sample accurate).
 ///   - The visual `onTick` is driven by a separate [WallClockScheduler] at
 ///     `config.interval`, mirroring `FlutterMetronomePlaybackClient`'s
-///     index/count-in bookkeeping. The UI tick path NEVER plays audio.
+///     index/count-in bookkeeping (including haptics, fired via the optional
+///     [MetronomeHapticsClient]). The UI tick path NEVER plays audio.
 ///
 /// Route changes are bridged into recovery: when [AudioRouteMonitor] reports a
-/// new route we (a) tell the sink via [NativeSoLoudSink.signalDeviceChanged],
-/// which the scheduler observes and turns into a `recover()` (rebuilding the
-/// SoLoud engine on the new default device), and (b) push an updated
-/// [RenderConfig] with the new route's latency offset.
+/// route change (after the first emission) we (a) tell the sink via
+/// [NativeSoLoudSink.signalDeviceChanged], which the scheduler observes and
+/// turns into a `recover()` (rebuilding the SoLoud engine on the new default
+/// device), and (b) push an updated [RenderConfig] with the new route's
+/// latency offset.
+///
+/// [AudioRouteMonitor.routeChanges] emits the CURRENT route immediately on
+/// listen (not just on subsequent changes), so the very first emission after
+/// (re)subscribing is treated specially: it just resolves the actual starting
+/// route (recomputing the [RenderConfig] for the correct latency) without
+/// signalling a device change, since there is nothing to recover from at
+/// start-of-playback. Only emissions that differ from the previously known
+/// route trigger `signalDeviceChanged()`. Until that first emission lands,
+/// the very first rendered chunk(s) use the default ([AudioRoute.speaker])
+/// latency offset; this is corrected within about one chunk once the route
+/// arrives, which is well inside the scheduler's buffer-ahead window.
 ///
 /// IMPORTANT: [NativeSoLoudSink.recover]/close call a process-wide
 /// `SoLoud.deinit()`, so this client must never be alive at the same time as
@@ -43,6 +59,7 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
     PcmClickRenderer? renderer,
     NativeSoLoudSink? sink,
     AudioRouteMonitor? routeMonitor,
+    this.haptics,
     int sampleRate = 48000,
   })  : _sampleRate = sampleRate,
         _renderer = renderer ?? PcmClickRenderer(sampleRate: sampleRate),
@@ -60,6 +77,10 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
   final PcmClickRenderer _renderer;
   final NativeSoLoudSink _sink;
   final AudioRouteMonitor _routeMonitor;
+
+  /// Optional haptics client. When non-null, [_handleUiTick] fires haptics
+  /// mirroring `FlutterMetronomePlaybackClient._handleTick`'s logic.
+  final MetronomeHapticsClient? haptics;
   late final MetronomeScheduler _scheduler;
 
   final WallClockScheduler _uiScheduler = WallClockScheduler();
@@ -75,6 +96,12 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
   MetronomePlaybackTickCallback? _onTick;
   VoidCallback? _onStopped;
   StreamSubscription<AudioRoute>? _routeSub;
+
+  /// Whether we've seen the first `routeChanges` emission since the last
+  /// (re)subscribe. The first emission only reports the current route (no
+  /// recovery needed); only later emissions represent an actual device
+  /// switch. Reset in [start]/[stop] so each playback session starts fresh.
+  bool _sawFirstRoute = false;
 
   int _tickIndex = -1;
   int _countInTicks = 0;
@@ -115,6 +142,7 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
     _onStopped = onStopped;
     _tickIndex = initialTick;
     _countInTicks = 0;
+    _sawFirstRoute = false;
 
     await _scheduler.start(_renderConfig(config));
     _startUiTick(config);
@@ -146,6 +174,7 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
     _uiScheduler.stop();
     await _routeSub?.cancel();
     _routeSub = null;
+    _sawFirstRoute = false;
     await _scheduler.stop();
     final onStopped = _onStopped;
     _onTick = null;
@@ -161,9 +190,26 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
 
   void _subscribeRoute() {
     _routeSub ??= _routeMonitor.routeChanges.listen((route) {
+      // The platform route emitter sends the CURRENT route immediately on
+      // listen, not only on changes. Treating that first emission as a
+      // device change would trigger a spurious recover() (SoLoud
+      // deinit+reopen) on every start(), causing an audible glitch.
+      if (!_sawFirstRoute) {
+        _sawFirstRoute = true;
+        _route = route;
+        // Resolve the real starting route's latency promptly (well within
+        // the buffer-ahead window), without signalling recovery: nothing
+        // has changed yet, there is nothing to recover from.
+        final config = _config;
+        if (config != null) {
+          _scheduler.update(_renderConfig(config));
+        }
+        return;
+      }
+      if (route == _route) return;
       _route = route;
-      // Bridge route change -> scheduler recovery (rebuilds the engine on the
-      // new default output device).
+      // Bridge a real route change -> scheduler recovery (rebuilds the
+      // engine on the new default output device).
       _sink.signalDeviceChanged();
       // Re-push render config so the renderer uses the new route's latency.
       final config = _config;
@@ -178,8 +224,8 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
   }
 
   /// Visual-only tick. Mirrors `FlutterMetronomePlaybackClient._handleTick`
-  /// index/count-in bookkeeping but performs NO audio playback (audio is owned
-  /// by the scheduler/sink).
+  /// index/count-in bookkeeping and haptics firing, but performs NO audio
+  /// playback (audio is owned by the scheduler/sink).
   void _handleUiTick() {
     try {
       final config = _config;
@@ -196,9 +242,41 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
       if (isCountIn) {
         _countInTicks++;
       }
+      _fireHaptics(config, base);
       onTick(base);
     } catch (error, stackTrace) {
       debugPrint('[UnifiedEngine] ui tick error: $error\n$stackTrace');
+    }
+  }
+
+  /// Mirrors `FlutterMetronomePlaybackClient._handleTick`'s haptics
+  /// conditions: only when `config.hapticsEnabled` and the tick
+  /// `shouldPlay`; subdivision ticks get a light `tick()`, main-beat ticks
+  /// are dispatched by `BeatMode` (accent/normal/silent). Fires regardless of
+  /// count-in, same as the legacy client.
+  void _fireHaptics(MetronomePlaybackConfig config, MetronomePlaybackTick tick) {
+    final client = haptics;
+    if (client == null || !config.hapticsEnabled || !tick.shouldPlay) {
+      return;
+    }
+    final beatIndex = tick.beatIndex;
+    final subdivisionIndex = tick.subdivisionIndex;
+    if (subdivisionIndex > 0) {
+      client.tick();
+      return;
+    }
+    final mode =
+        (beatIndex < config.beatModes.length &&
+            subdivisionIndex < config.beatModes[beatIndex].length)
+        ? config.beatModes[beatIndex][subdivisionIndex]
+        : BeatMode.normal;
+    switch (mode) {
+      case BeatMode.accent:
+        client.heavyClick();
+      case BeatMode.normal:
+        client.mediumClick();
+      case BeatMode.silent:
+        break;
     }
   }
 

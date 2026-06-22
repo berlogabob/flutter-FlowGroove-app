@@ -864,6 +864,20 @@ class PlatformMetronomePlaybackClient implements MetronomePlaybackClient {
 final metronomePlaybackClientProvider = Provider<MetronomePlaybackClient>((
   ref,
 ) {
+  // Unified engine branch: built BEFORE the legacy chain so we never init the
+  // legacy SoLoud-backed MetronomeAudioEngine alongside the unified sink (whose
+  // recover()/close() call a process-wide SoLoud.deinit()). Mutually exclusive.
+  // Checked first (even ahead of the web branch's fallback construction)
+  // so the legacy `FlutterMetronomePlaybackClient` fallback is never
+  // needlessly allocated when the unified engine is active.
+  if (!kIsWeb && MetronomeFeatureFlags.enableUnifiedEngine) {
+    final c = UnifiedEnginePlaybackClient(
+      haptics: ref.read(metronomeHapticsProvider),
+    );
+    ref.onDispose(c.dispose);
+    return c;
+  }
+
   final fallback = FlutterMetronomePlaybackClient(
     audioClient: ref.read(metronomeAudioClientProvider),
     hapticsClient: ref.read(metronomeHapticsProvider),
@@ -873,14 +887,6 @@ final metronomePlaybackClientProvider = Provider<MetronomePlaybackClient>((
   if (kIsWeb) {
     ref.onDispose(fallback.dispose);
     return fallback;
-  }
-  // Unified engine branch: built BEFORE the legacy chain so we never init the
-  // legacy SoLoud-backed MetronomeAudioEngine alongside the unified sink (whose
-  // recover()/close() call a process-wide SoLoud.deinit()). Mutually exclusive.
-  if (MetronomeFeatureFlags.enableUnifiedEngine) {
-    final c = UnifiedEnginePlaybackClient();
-    ref.onDispose(c.dispose);
-    return c;
   }
   final legacy = PlatformMetronomePlaybackClient(fallback: fallback);
   final client = MetronomeFeatureFlags.enablePcmTimelineEngine
