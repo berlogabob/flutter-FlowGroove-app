@@ -57,12 +57,13 @@ class NativeSoLoudSink implements AudioSink {
       }
       _stream = SoLoud.instance.setBufferStream(
         maxBufferSizeDuration: const Duration(seconds: 30),
-        // `preserved` keeps already-played data in the buffer instead of
-        // freeing it; `released` is the mode that caused permanent silence
-        // on underrun (the stream becomes unplayable after it empties out).
-        // This matches the API default, but is kept explicit deliberately.
-        // ignore: avoid_redundant_argument_values
-        bufferingType: BufferingType.preserved,
+        // `released` frees already-played samples so the buffer stays bounded
+        // for indefinite playback. `preserved` accumulates every played sample
+        // and hits maxBufferSizeDuration after ~30s, stopping the metronome
+        // (~60 beats at 120 BPM). The underrun-on-route-change case that once
+        // motivated `preserved` is now handled by explicit device-change
+        // recovery (AudioRouteMonitor -> signalDeviceChanged -> recover()).
+        bufferingType: BufferingType.released,
         bufferingTimeNeeds: 0.1,
         sampleRate: sampleRate,
         channels: channels > 1 ? Channels.stereo : Channels.mono,

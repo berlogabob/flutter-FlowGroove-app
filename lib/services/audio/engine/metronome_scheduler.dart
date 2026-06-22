@@ -30,6 +30,10 @@ class MetronomeScheduler {
   bool _recovering = false;
   Timer? _pump;
 
+  /// Look-ahead chunks primed at start so a late pump can't underrun the
+  /// released buffer stream (3 * chunk = ~600ms at the 200ms default).
+  static const int _primeChunks = 3;
+
   int get currentFrame => _frame;
   int get _chunkFrames => (_sampleRate * chunk.inMilliseconds / 1000).round();
 
@@ -40,7 +44,12 @@ class MetronomeScheduler {
     await _sink.open(sampleRate: _sampleRate, channels: 1);
     if (!_testMode) {
       _pump = Timer.periodic(chunk, (_) => _pumpOnce());
-      _pumpOnce(); // prime
+      // Prime several chunks of look-ahead so a late timer tick (GC/jank)
+      // can't underrun the released buffer stream and end playback. With the
+      // released buffer this stays bounded (~_primeChunks ahead) in steady state.
+      for (var i = 0; i < _primeChunks; i++) {
+        _pumpOnce();
+      }
     }
   }
 
