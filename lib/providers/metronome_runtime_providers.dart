@@ -305,11 +305,7 @@ class PcmTimelineMetronomePlaybackClient implements MetronomePlaybackClient {
   Future<void> resetPhase(MetronomePlaybackConfig config) async {
     if (!_running) return;
     final onTick = _onTick;
-    await start(
-      config,
-      onTick: onTick ?? (_) {},
-      onStopped: _onStopped,
-    );
+    await start(config, onTick: onTick ?? (_) {}, onStopped: _onStopped);
   }
 
   @override
@@ -866,9 +862,34 @@ class PlatformMetronomePlaybackClient implements MetronomePlaybackClient {
   }
 }
 
+/// Android plays through the native foreground service
+/// ([PlatformMetronomePlaybackClient]) so the metronome survives backgrounding,
+/// screen-off, and calls. All other native platforms keep the Dart unified
+/// engine; web uses the Flutter/Web Audio fallback.
+bool useNativeAndroidPlayback({
+  required bool isWeb,
+  required TargetPlatform platform,
+}) => !isWeb && platform == TargetPlatform.android;
+
 final metronomePlaybackClientProvider = Provider<MetronomePlaybackClient>((
   ref,
 ) {
+  // Android: route through the native foreground service so playback survives
+  // backgrounding, screen-off, and calls. Checked first so the unified engine
+  // (flutter_soloud) is never constructed on Android.
+  if (useNativeAndroidPlayback(
+    isWeb: kIsWeb,
+    platform: defaultTargetPlatform,
+  )) {
+    final fallback = FlutterMetronomePlaybackClient(
+      audioClient: ref.read(metronomeAudioClientProvider),
+      hapticsClient: ref.read(metronomeHapticsProvider),
+    );
+    final client = PlatformMetronomePlaybackClient(fallback: fallback);
+    ref.onDispose(client.dispose);
+    return client;
+  }
+
   // Unified engine branch: built BEFORE the legacy chain so we never init the
   // legacy SoLoud-backed MetronomeAudioEngine alongside the unified sink (whose
   // recover()/close() call a process-wide SoLoud.deinit()). Mutually exclusive.

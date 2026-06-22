@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/beat_mode.dart';
@@ -27,7 +28,6 @@ import '../../services/wakelock_controller.dart';
 /// Manages metronome state and provides methods to control it.
 /// Uses Riverpod Notifier pattern for state management.
 class MetronomeNotifier extends Notifier<MetronomeState> {
-
   /// Default constructor
   MetronomeNotifier();
   late MetronomeAudioClient _audioClient;
@@ -560,6 +560,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   Future<void> _startPlaybackSafely({required int initialTick}) async {
     try {
+      await _ensureNotificationPermission();
       await _playbackClient.start(
         MetronomePlaybackConfig.fromState(state),
         onTick: _handlePlaybackTick,
@@ -568,6 +569,26 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       );
     } catch (error) {
       debugPrint('[MetronomeNotifier] Playback start failed: $error');
+    }
+  }
+
+  /// Best-effort: ask for POST_NOTIFICATIONS on Android 13+ so the foreground
+  /// service notification is visible. A denied permission does NOT block
+  /// playback — the service still runs. Any plugin/platform failure (e.g. no
+  /// platform binding in a unit test, or a transient channel error) is
+  /// swallowed here so it never prevents `_playbackClient.start(...)` from
+  /// running.
+  Future<void> _ensureNotificationPermission() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      final status = await Permission.notification.status;
+      if (status.isDenied) {
+        await Permission.notification.request();
+      }
+    } catch (error) {
+      debugPrint(
+        '[MetronomeNotifier] Notification permission check failed: $error',
+      );
     }
   }
 
