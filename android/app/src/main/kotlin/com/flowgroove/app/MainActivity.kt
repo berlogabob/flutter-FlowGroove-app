@@ -1,9 +1,11 @@
 package com.flowgroove.app
 
 import android.content.Context
+import android.content.Intent
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import io.flutter.embedding.android.FlutterActivity
@@ -13,35 +15,63 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private var metronomeEngine: AndroidMetronomeEngine? = null
     private var audioRouteEmitter: AudioRouteEmitter? = null
+    private var channel: MethodChannel? = null
+    private var service: MetronomeForegroundService? = null
+    // True from the moment bindService is requested until unbind, so we never
+    // double-bind (which would require matched double-unbind).
+    private var bound = false
+    // Args captured when 'start' arrives before the service has connected; applied
+    // in onServiceConnected. Closes the start/connect race.
+    private var pendingStartArgs: Map<*, *>? = null
+
+    private val connection = object : android.content.ServiceConnection {
+        override fun onServiceConnected(name: android.content.ComponentName?, binder: android.os.IBinder?) {
+            val svc = (binder as? MetronomeForegroundService.MetronomeBinder)?.getService()
+            service = svc
+            svc?.tickListener = { index ->
+                runOnUiThread { channel?.invokeMethod("tick", mapOf("index" to index)) }
+            }
+            svc?.stoppedListener = {
+                runOnUiThread { channel?.invokeMethod("stopped", null) }
+            }
+            pendingStartArgs?.let { args ->
+                svc?.startPlayback(args)
+                pendingStartArgs = null
+            }
+        }
+
+        override fun onServiceDisconnected(name: android.content.ComponentName?) {
+            service = null
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        val channel = MethodChannel(
+        val ch = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "com.flowgroove/metronome"
         )
-        metronomeEngine = AndroidMetronomeEngine(
-            context = this,
-            onTick = { index ->
-                channel.invokeMethod("tick", mapOf("index" to index))
-            },
-            onStopped = {
-                channel.invokeMethod("stopped", null)
-            }
-        )
-        channel.setMethodCallHandler { call, result ->
+        channel = ch
+        ch.setMethodCallHandler { call, result ->
             when (call.method) {
                 "start" -> handleMetronomeCall(call, result) { args ->
-                    metronomeEngine?.start(args)
+                    ensureServiceStartedAndBound()
+                    val svc = service
+                    if (svc != null) {
+                        svc.startPlayback(args)
+                    } else {
+                        // Service not connected yet — apply on connect.
+                        pendingStartArgs = args
+                    }
                 }
                 "update" -> handleMetronomeCall(call, result) { args ->
-                    metronomeEngine?.update(args)
+                    service?.updatePlayback(args)
                 }
                 "stop" -> {
-                    metronomeEngine?.stop(notifyFlutter = false)
+                    pendingStartArgs = null
+                    service?.stopPlayback()
                     result.success(null)
                 }
                 else -> result.notImplemented()
@@ -56,16 +86,49 @@ class MainActivity : FlutterActivity() {
         routeChannel.setStreamHandler(audioRouteEmitter)
     }
 
-    override fun onPause() {
-        metronomeEngine?.stop(notifyFlutter = true)
-        super.onPause()
+    private fun bindIfNeeded() {
+        if (bound) return
+        val intent = Intent(this, MetronomeForegroundService::class.java)
+        bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        bound = true
+    }
+
+    private fun ensureServiceStartedAndBound() {
+        // Make it a *started* service so it outlives this Activity's binding and
+        // keeps playing in the background.
+        val intent = Intent(this, MetronomeForegroundService::class.java)
+            .setAction(MetronomeForegroundService.ACTION_START)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+        bindIfNeeded()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Re-bind on return to foreground so tick callbacks reach the UI again
+        // (reattaches to a service that may still be playing in the background).
+        bindIfNeeded()
+    }
+
+    override fun onStop() {
+        // Unbind (do NOT stop the service) so playback continues in background.
+        if (bound) {
+            service?.tickListener = null
+            service?.stoppedListener = null
+            unbindService(connection)
+            bound = false
+            service = null
+        }
+        super.onStop()
     }
 
     override fun onDestroy() {
-        metronomeEngine?.dispose()
-        metronomeEngine = null
         audioRouteEmitter?.dispose()
         audioRouteEmitter = null
+        channel = null
         super.onDestroy()
     }
 
