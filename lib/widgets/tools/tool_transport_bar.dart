@@ -130,9 +130,18 @@ class _PlayPauseButton extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: MonoPulseColors.accentOrange,
+          // Orange glow — brighter while playing (Mono Pulse transport).
+          boxShadow: [
+            BoxShadow(
+              color: MonoPulseColors.accentOrange.withValues(
+                alpha: isPlaying ? 0.55 : 0.35,
+              ),
+              blurRadius: isPlaying ? 30 : 18,
+            ),
+          ],
         ),
         child: Icon(
           isPlaying ? Icons.pause : Icons.play_arrow,

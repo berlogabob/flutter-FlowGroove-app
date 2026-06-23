@@ -37,12 +37,33 @@ class UserAvatar extends StatefulWidget {
 class _UserAvatarState extends State<UserAvatar> {
   bool _imageFailed = false;
 
+  /// The last real (http) photo URL we accepted. Sticky on purpose: some
+  /// providers (e.g. `appUserProvider`) briefly drop photoURL to null on a
+  /// rebuild before an async profile load re-supplies it, which made the
+  /// avatar blink between the photo and the initial. We keep showing the last
+  /// good photo and only switch when a *different* http URL arrives.
+  // ponytail: a permanent photo removal (URL → null) keeps showing the old
+  // image until a new URL or app restart; acceptable vs. the blink.
+  String? _url;
+
+  @override
+  void initState() {
+    super.initState();
+    _adopt(widget.photoURL);
+  }
+
   @override
   void didUpdateWidget(UserAvatar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Retry loading when the URL changes (e.g. a new avatar was uploaded).
-    if (oldWidget.photoURL != widget.photoURL) {
-      _imageFailed = false;
+    _adopt(widget.photoURL);
+  }
+
+  void _adopt(String? candidate) {
+    if (candidate != null &&
+        candidate.startsWith('http') &&
+        candidate != _url) {
+      _url = candidate;
+      _imageFailed = false; // new avatar uploaded → retry.
     }
   }
 
@@ -51,10 +72,7 @@ class _UserAvatarState extends State<UserAvatar> {
     return name.isEmpty ? '?' : name.characters.first.toUpperCase();
   }
 
-  bool get _showPhoto =>
-      !_imageFailed &&
-      widget.photoURL != null &&
-      widget.photoURL!.startsWith('http');
+  bool get _showPhoto => !_imageFailed && _url != null;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +88,7 @@ class _UserAvatarState extends State<UserAvatar> {
         backgroundColor:
             widget.backgroundColor ?? MonoPulseColors.surfaceRaised,
         backgroundImage: _showPhoto
-            ? CachedNetworkImageProvider(widget.photoURL!)
+            ? CachedNetworkImageProvider(_url!)
             : null,
         onBackgroundImageError: _showPhoto
             ? (_, _) {

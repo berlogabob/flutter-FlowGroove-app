@@ -78,55 +78,52 @@ class _MainShellState extends ConsumerState<MainShell> {
             top: BorderSide(color: MonoPulseColors.borderSubtle),
           ),
         ),
-        child: NavigationBar(
-          backgroundColor: MonoPulseColors.black,
-          indicatorColor: MonoPulseColors.accentOrange10,
-          selectedIndex: safeIndex,
-          onDestinationSelected: (index) => _onTap(context, index),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: [
-            for (final item in _navItems)
-              NavigationDestination(
-                icon: Icon(item.icon, color: MonoPulseColors.textTertiary),
-                selectedIcon: Icon(
-                  item.selectedIcon,
-                  color: MonoPulseColors.accentOrange,
-                ),
-                label: item.label,
-              ),
-          ],
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: MonoPulseSpacing.sm,
+              vertical: MonoPulseSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                for (var i = 0; i < _navItems.length; i++)
+                  Expanded(
+                    child: _NavTab(
+                      item: _navItems[i],
+                      selected: i == safeIndex,
+                      onTap: () => _onTap(context, i),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildRail(BuildContext context, int safeIndex) {
-    return NavigationRail(
-      backgroundColor: MonoPulseColors.black,
-      selectedIndex: safeIndex,
-      onDestinationSelected: (index) => _onTap(context, index),
-      labelType: NavigationRailLabelType.all,
-      indicatorColor: MonoPulseColors.accentOrange10,
-      selectedIconTheme: const IconThemeData(
-        color: MonoPulseColors.accentOrange,
+    return Container(
+      width: 76,
+      color: MonoPulseColors.blackSurface,
+      // Scrollable so the five tabs never overflow on a short landscape height.
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
+        child: Column(
+          children: [
+            for (var i = 0; i < _navItems.length; i++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: MonoPulseSpacing.lg),
+                child: _NavTab(
+                  item: _navItems[i],
+                  selected: i == safeIndex,
+                  onTap: () => _onTap(context, i),
+                ),
+              ),
+          ],
+        ),
       ),
-      unselectedIconTheme: const IconThemeData(
-        color: MonoPulseColors.textTertiary,
-      ),
-      selectedLabelTextStyle: MonoPulseTypography.labelSmall.copyWith(
-        color: MonoPulseColors.accentOrange,
-      ),
-      unselectedLabelTextStyle: MonoPulseTypography.labelSmall.copyWith(
-        color: MonoPulseColors.textTertiary,
-      ),
-      destinations: [
-        for (final item in _navItems)
-          NavigationRailDestination(
-            icon: Icon(item.icon),
-            selectedIcon: Icon(item.selectedIcon),
-            label: Text(item.label),
-          ),
-      ],
     );
   }
 
@@ -167,5 +164,75 @@ class _MainShellState extends ConsumerState<MainShell> {
       case 4: // Profile
         context.go('/main/profile');
     }
+  }
+}
+
+/// A single navigation tab (Mono Pulse): icon on top, label below. When
+/// selected the icon + label turn orange and the label gets a rounded pill
+/// background. Shared by the bottom bar (portrait) and the side rail
+/// (landscape). Keeps a ≥48px tap target.
+class _NavTab extends StatelessWidget {
+  const _NavTab({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _NavItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected
+        ? MonoPulseColors.accentOrange
+        : MonoPulseColors.textTertiary;
+
+    final label = Text(
+      item.label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: MonoPulseTypography.labelSmall.copyWith(
+        color: color,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+      ),
+    );
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: item.label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(selected ? item.selectedIcon : item.icon, color: color, size: 22),
+              const SizedBox(height: MonoPulseSpacing.xs),
+              // Pill behind the label only when selected (per the doc's tab bar).
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: selected
+                      ? MonoPulseColors.accentOrange15
+                      : MonoPulseColors.transparent,
+                  borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: MonoPulseSpacing.sm,
+                    vertical: 2,
+                  ),
+                  child: label,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

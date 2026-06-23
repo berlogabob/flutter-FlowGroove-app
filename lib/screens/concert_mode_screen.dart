@@ -157,30 +157,11 @@ class _Readout extends StatelessWidget {
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
         ],
-        // Pulsing downbeat dot — "thumps" larger on each beat, settling back.
-        AnimatedBuilder(
-          animation: pulse,
-          builder: (context, _) {
-            final t = isPlaying ? (1 - pulse.value) : 0.0;
-            return Container(
-              width: 22 + 10 * t,
-              height: 22 + 10 * t,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: MonoPulseColors.accentOrange,
-                boxShadow: [
-                  BoxShadow(
-                    color: MonoPulseColors.accentOrange.withValues(
-                      alpha: 0.35 + 0.4 * t,
-                    ),
-                    blurRadius: 26 + 12 * t,
-                    spreadRadius: 4 * t,
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+        // Pulsing downbeat dot. The animation only scales/repaints the dot —
+        // it lives in a fixed-size slot and grows via Transform.scale (which
+        // doesn't affect layout), wrapped in a RepaintBoundary, so the rest of
+        // the screen never reflows or jumps on each beat.
+        _PulseDot(pulse: pulse, isPlaying: isPlaying),
         const SizedBox(height: MonoPulseSpacing.xl),
         FittedBox(
           fit: BoxFit.scaleDown,
@@ -210,6 +191,61 @@ class _Readout extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Downbeat dot that pulses without disturbing layout.
+///
+/// The dot occupies a constant [_slot]×[_slot] box; the per-beat "thump" is a
+/// [Transform.scale] (paint-only, no relayout) applied to a fixed-size base
+/// dot. A [RepaintBoundary] keeps the repaint local so siblings never repaint
+/// or shift. The glow is part of the scaled child, so it breathes with the dot
+/// but, being a shadow, also never affects layout.
+class _PulseDot extends StatelessWidget {
+  const _PulseDot({required this.pulse, required this.isPlaying});
+
+  final Animation<double> pulse;
+  final bool isPlaying;
+
+  static const double _slot = 36;
+  static const double _base = 22;
+
+  @override
+  Widget build(BuildContext context) {
+    final dot = Container(
+      width: _base,
+      height: _base,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: MonoPulseColors.accentOrange,
+        boxShadow: [
+          BoxShadow(
+            color: MonoPulseColors.accentOrange.withValues(alpha: 0.5),
+            blurRadius: 28,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+    );
+
+    return RepaintBoundary(
+      child: SizedBox(
+        width: _slot,
+        height: _slot,
+        child: Center(
+          child: AnimatedBuilder(
+            animation: pulse,
+            // The base dot is built once and passed as `child`; only the scale
+            // is recomputed each frame.
+            child: dot,
+            builder: (context, child) {
+              final t = isPlaying ? (1 - pulse.value) : 0.0;
+              return Transform.scale(scale: 1 + 0.5 * t, child: child);
+            },
+          ),
+        ),
+      ),
     );
   }
 }
