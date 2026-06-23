@@ -162,6 +162,98 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
 
     items.add(const PopupMenuDivider(height: 1));
 
+    // Sound / Count-in / Ramp live here instead of on the main screen, so the
+    // metronome stays clean (Mono Pulse: "main window stays clean").
+    PopupMenuItem<void> settingRow({
+      required IconData icon,
+      required String label,
+      required String trailing,
+      required bool active,
+      required VoidCallback onTap,
+    }) {
+      return PopupMenuItem<void>(
+        onTap: onTap,
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: active
+                  ? MonoPulseColors.accentOrange
+                  : MonoPulseColors.textSecondary,
+              size: 20,
+            ),
+            const SizedBox(width: MonoPulseSpacing.md),
+            Expanded(
+              child: Text(
+                label,
+                style: MonoPulseTypography.bodyMedium.copyWith(
+                  color: MonoPulseColors.textHighEmphasis,
+                ),
+              ),
+            ),
+            Text(
+              trailing,
+              style: MonoPulseTypography.labelMedium.copyWith(
+                color: active
+                    ? MonoPulseColors.accentOrange
+                    : MonoPulseColors.textTertiary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    items.add(
+      settingRow(
+        icon: Icons.graphic_eq,
+        label: 'Sound',
+        trailing: 'Click ›',
+        active: false,
+        onTap: () => showSoundSheet(context),
+      ),
+    );
+
+    items.add(const PopupMenuDivider(height: 1));
+
+    items.add(
+      PopupMenuItem<void>(
+        enabled: false,
+        height: 28,
+        child: Text(
+          'PRACTICE',
+          style: MonoPulseTypography.labelSmall.copyWith(
+            color: MonoPulseColors.textTertiary,
+            letterSpacing: 1.2,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+
+    items.add(
+      settingRow(
+        icon: Icons.timer_outlined,
+        label: 'Count-in',
+        trailing: state.countInBars > 0 ? '${state.countInBars} bars ›' : 'Off ›',
+        active: state.countInBars > 0,
+        onTap: () => showCountInSheet(context),
+      ),
+    );
+
+    items.add(
+      settingRow(
+        icon: Icons.trending_up,
+        label: 'Ramp',
+        trailing: state.activeTempoRamp != null ? 'On ›' : 'Off ›',
+        active: state.activeTempoRamp != null,
+        onTap: () => showRampSheet(context),
+      ),
+    );
+
+    items.add(const PopupMenuDivider(height: 1));
+
     items.add(
       PopupMenuItem<void>(
         onTap: metronome.toggleHaptics,
@@ -417,11 +509,9 @@ class _MetronomePortrait extends StatelessWidget {
               TimeSignatureBlock(),
               SizedBox(height: MonoPulseSpacing.sm),
               TempoControlCluster(),
-              SizedBox(height: MonoPulseSpacing.sm),
+              SizedBox(height: MonoPulseSpacing.md),
               _MetronomeTransport(),
               SizedBox(height: MonoPulseSpacing.md),
-              _MetronomeToolBar(),
-              SizedBox(height: MonoPulseSpacing.sm),
               SongLibraryBlock(),
             ],
           ),
@@ -460,112 +550,12 @@ class _MetronomeLandscape extends StatelessWidget {
                   SizedBox(height: MonoPulseSpacing.sm),
                   _MetronomeTransport(),
                   SizedBox(height: MonoPulseSpacing.md),
-                  _MetronomeToolBar(),
-                  SizedBox(height: MonoPulseSpacing.sm),
                   SongLibraryBlock(),
                 ],
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Row of tool chips opening the metronome's secondary panels as bottom sheets.
-class _MetronomeToolBar extends ConsumerWidget {
-  const _MetronomeToolBar();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final countInBars = ref.watch(
-      metronomeProvider.select((s) => s.countInBars),
-    );
-    final rampActive = ref.watch(
-      metronomeProvider.select((s) => s.activeTempoRamp != null),
-    );
-
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: MonoPulseSpacing.sm,
-      runSpacing: MonoPulseSpacing.sm,
-      children: [
-        _ToolChip(
-          icon: Icons.graphic_eq,
-          label: 'Sound',
-          onTap: () => showSoundSheet(context),
-        ),
-        _ToolChip(
-          icon: Icons.timer_outlined,
-          label: countInBars > 0 ? 'Count-in · $countInBars' : 'Count-in',
-          active: countInBars > 0,
-          onTap: () => showCountInSheet(context),
-        ),
-        _ToolChip(
-          icon: Icons.trending_up,
-          label: rampActive ? 'Ramp · on' : 'Ramp',
-          active: rampActive,
-          onTap: () => showRampSheet(context),
-        ),
-      ],
-    );
-  }
-}
-
-class _ToolChip extends StatelessWidget {
-  const _ToolChip({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.active = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = active
-        ? MonoPulseColors.accentOrange
-        : MonoPulseColors.textSecondary;
-    return Material(
-      color: active ? MonoPulseColors.accentOrange10 : MonoPulseColors.surface,
-      borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-        onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 44),
-          padding: const EdgeInsets.symmetric(
-            horizontal: MonoPulseSpacing.lg,
-            vertical: MonoPulseSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-            border: Border.all(
-              color: active
-                  ? MonoPulseColors.accentOrange
-                  : MonoPulseColors.borderSubtle,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 18, color: color),
-              const SizedBox(width: MonoPulseSpacing.sm),
-              Text(
-                label,
-                style: MonoPulseTypography.labelMedium.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

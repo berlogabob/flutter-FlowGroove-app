@@ -64,8 +64,13 @@ class ToolButton extends StatelessWidget {
     final isEnabled = onTap != null;
     final iconSize = ResponsiveSizes.iconSize(breakpoint);
     final fontSize = ResponsiveSizes.buttonFontSize(breakpoint);
-    final minSize = ResponsiveSizes.minCardHeight(breakpoint);
 
+    final accent = isEnabled
+        ? MonoPulseColors.accentOrange
+        : MonoPulseColors.textTertiary;
+
+    // Mono Pulse tile: a uniform horizontal row (icon left, label right) that
+    // fills its grid cell, matching Quick Actions for consistent density (A9).
     return Material(
       color: isEnabled
           ? MonoPulseColors.surface
@@ -75,9 +80,9 @@ class ToolButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: isCompact ? MonoPulseSpacing.md : MonoPulseSpacing.lg,
-            vertical: isCompact ? MonoPulseSpacing.xs : MonoPulseSpacing.sm,
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.md,
+            vertical: MonoPulseSpacing.md,
           ),
           decoration: BoxDecoration(
             color: isEnabled
@@ -86,37 +91,24 @@ class ToolButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             border: Border.all(color: MonoPulseColors.borderSubtle),
           ),
-          constraints: BoxConstraints(
-            minWidth: minSize,
-            minHeight: minSize,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
-              Icon(
-                icon,
-                color: isEnabled
-                    ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textTertiary,
-                size: iconSize,
-              ),
-              SizedBox(height: isCompact ? 2 : MonoPulseSpacing.xs),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: isEnabled
-                      ? MonoPulseColors.accentOrange
-                      : MonoPulseColors.textTertiary,
-                  fontSize: fontSize,
-                  height: 1.2,
+              Icon(icon, color: accent, size: iconSize),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w600,
+                    fontSize: fontSize,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
-              if (!isEnabled) ...[
-                SizedBox(height: isCompact ? 2 : MonoPulseSpacing.xs),
+              if (!isEnabled)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: MonoPulseSpacing.sm,
@@ -134,7 +126,6 @@ class ToolButton extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
             ],
           ),
         ),

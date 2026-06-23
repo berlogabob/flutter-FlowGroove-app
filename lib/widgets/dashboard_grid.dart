@@ -203,12 +203,27 @@ class DashboardGrid extends StatelessWidget {
     );
   }
 
+  // Fixed cell heights (Mono Pulse A9): tiles fill their cell width and share a
+  // constant height per section, so the grid is uniform and aligned and never
+  // overflows when a column gets narrow (e.g. the landscape two-pane split).
+  double _statCardHeight(ScreenBreakpoint breakpoint) => switch (breakpoint) {
+    ScreenBreakpoint.mobile => 92,
+    ScreenBreakpoint.tablet => 100,
+    ScreenBreakpoint.desktop => 108,
+  };
+
+  double _tileHeight(ScreenBreakpoint breakpoint) => switch (breakpoint) {
+    ScreenBreakpoint.mobile => 56,
+    ScreenBreakpoint.tablet => 60,
+    ScreenBreakpoint.desktop => 64,
+  };
+
   Widget _buildResponsiveStatisticsGrid(ScreenBreakpoint breakpoint) {
     // Always 3 columns for statistics (Songs, Bands, Setlists in 1 row)
     return _buildFixedGrid(
       children: statistics,
       crossAxisCount: 3,
-      aspectRatio: ResponsiveSizes.statCardAspectRatio(breakpoint),
+      cellHeight: _statCardHeight(breakpoint),
     );
   }
 
@@ -218,6 +233,7 @@ class DashboardGrid extends StatelessWidget {
     return _buildFixedGrid(
       children: quickActions,
       crossAxisCount: crossAxisCount,
+      cellHeight: _tileHeight(breakpoint),
     );
   }
 
@@ -232,39 +248,33 @@ class DashboardGrid extends StatelessWidget {
     return _buildFixedGrid(
       children: tools,
       crossAxisCount: crossAxisCount,
+      cellHeight: _tileHeight(breakpoint),
     );
   }
 
-  /// Builds a responsive grid with specified number of columns using GridView.
+  /// Builds a uniform grid: [crossAxisCount] columns, each cell a fixed
+  /// [cellHeight] tall and filling its width. Tiles are placed directly (no
+  /// FittedBox shrink-wrap) so the grid reads as an aligned set (audit A9).
   Widget _buildFixedGrid({
     required List<Widget> children,
     required int crossAxisCount,
-    double? aspectRatio,
+    required double cellHeight,
   }) {
     if (children.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final breakpoint = getBreakpoint(constraints.maxWidth);
-        final gridAspectRatio = aspectRatio ?? ResponsiveSizes.cardAspectRatio(breakpoint);
-
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: MonoPulseSpacing.md,
-            mainAxisSpacing: MonoPulseSpacing.md,
-            childAspectRatio: gridAspectRatio,
-          ),
-          itemCount: children.length,
-          itemBuilder: (context, index) => FittedBox(
-            child: children[index],
-          ),
-        );
-      },
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: MonoPulseSpacing.md,
+        mainAxisSpacing: MonoPulseSpacing.md,
+        mainAxisExtent: cellHeight,
+      ),
+      itemCount: children.length,
+      itemBuilder: (context, index) => children[index],
     );
   }
 }

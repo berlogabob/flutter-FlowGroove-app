@@ -626,7 +626,9 @@ void main() {
       await tester.pump();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Count-in'), findsOneWidget);
+      // Sound / Count-in / Ramp now live in the ⋯ menu (Mono Pulse: "main
+      // window stays clean"); the on-screen controls are the dial + transport.
+      expect(find.byKey(const Key('tempo-dial')), findsOneWidget);
     });
 
     testWidgets('has correct screen dimensions handling', (
