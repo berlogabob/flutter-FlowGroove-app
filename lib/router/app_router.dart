@@ -55,17 +55,24 @@ class FirebaseAuthRouterClient implements AuthRouterClient {
   User? get currentUser => _auth.currentUser;
 }
 
-/// Stream that notifies listeners when auth state changes.
-/// Used to refresh GoRouter redirect logic.
+/// Refresh listenable for the router that also tracks whether the first auth
+/// state has arrived.
+///
+/// On cold start Firebase Auth reports `currentUser == null` until it restores
+/// the persisted session. [resolved] lets the redirect avoid making a
+/// logged-out decision during that gap — which otherwise sends an
+/// already-authenticated user to /login and orphans an incoming join deep link.
 class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListeners();
-    _subscription = stream.asBroadcastStream().listen((_) {
+  GoRouterRefreshStream(AuthRouterClient client) {
+    resolved = client.currentUser != null;
+    _subscription = client.authStateChanges().listen((_) {
+      resolved = true;
       notifyListeners();
     });
   }
 
-  late final StreamSubscription<dynamic> _subscription;
+  bool resolved = false;
+  late final StreamSubscription<User?> _subscription;
 
   @override
   void dispose() {
@@ -89,13 +96,14 @@ GoRouter createAppRouter({
   bool enableAuthRedirect = true,
 }) {
   final resolvedAuthClient = authClient ?? FirebaseAuthRouterClient();
+  final authRefresh = enableAuthRedirect
+      ? GoRouterRefreshStream(resolvedAuthClient)
+      : null;
 
   return GoRouter(
     navigatorKey: navigatorKey ?? _rootNavigatorKey,
     initialLocation: initialLocation,
-    refreshListenable: enableAuthRedirect
-        ? GoRouterRefreshStream(resolvedAuthClient.authStateChanges())
-        : null,
+    refreshListenable: authRefresh,
     redirect: enableAuthRedirect
         ? (context, state) {
             final isLoggedIn = resolvedAuthClient.currentUser != null;
@@ -111,6 +119,12 @@ GoRouter createAppRouter({
                 state.matchedLocation == '/join' ||
                 state.matchedLocation == '/join/';
             if (isExternalJoin) {
+              // On cold start Firebase Auth has not restored the session yet, so
+              // currentUser is briefly null. Deciding now would treat an
+              // authenticated user as logged out and orphan the join. Hold on the
+              // /join spinner until the first auth state is known — the
+              // refreshListenable re-runs this redirect once it is.
+              if (authRefresh != null && !authRefresh.resolved) return null;
               if (joinCode == null || joinCode.isEmpty) {
                 return isLoggedIn ? '/main/bands' : '/login';
               }
