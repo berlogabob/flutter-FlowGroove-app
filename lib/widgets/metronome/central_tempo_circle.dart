@@ -163,9 +163,6 @@ class TempoDialPainter extends CustomPainter {
       ..strokeWidth = stroke
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
-    if (isPlaying) {
-      progressPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    }
     if (progressSweep > 0) {
       canvas.drawArc(
         rect,
