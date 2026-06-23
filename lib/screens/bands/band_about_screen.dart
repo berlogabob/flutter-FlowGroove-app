@@ -730,7 +730,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     final shareText =
         'Join my band "${_band.name}" on FlowGroove!\n\n'
         'Use invite code: $inviteCode\n\n'
-        'Or click the link: https://$domain/join-band?code=$inviteCode';
+        'Or click the link: https://$domain/join?code=$inviteCode';
 
     await SharePlus.instance.share(
       ShareParams(
