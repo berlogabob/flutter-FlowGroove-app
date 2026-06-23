@@ -104,10 +104,8 @@ void main() {
         await tester.enterText(artistField, 'Test Artist');
         await tester.pump();
 
-        // Tap the more_horiz icon to open popup menu, then tap Save
-        await tester.tap(find.byIcon(Icons.more_horiz));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Save'));
+        // Tap the save button in the bottom action bar
+        await tester.tap(find.text('Save Song'));
         await tester.pumpAndSettle();
 
         // Assert: Form validation should show title required error
@@ -221,10 +219,8 @@ void main() {
             ],
           );
 
-          // Act: Try to save without title - open menu first
-          await tester.tap(find.byIcon(Icons.more_horiz));
-          await tester.pumpAndSettle();
-          await tester.tap(find.text('Save'));
+          // Act: Try to save without title via the bottom action bar
+          await tester.tap(find.text('Save Song'));
           await tester.pumpAndSettle();
 
           // Assert: Validation error

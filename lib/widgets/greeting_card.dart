@@ -1,9 +1,7 @@
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/responsive_breakpoints.dart';
+import 'user_avatar.dart';
 
 /// Greeting card widget for dashboard and other screens.
 ///
@@ -56,7 +54,6 @@ class GreetingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final breakpoint = context.breakpoint;
     final avatarRadius = ResponsiveSizes.avatarRadius(breakpoint);
-    final initial = userName.isNotEmpty ? userName[0].toUpperCase() : 'U';
 
     return Container(
       padding: EdgeInsets.all(
@@ -69,20 +66,10 @@ class GreetingCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
+          UserAvatar(
+            photoURL: avatarPath,
+            displayName: userName,
             radius: avatarRadius,
-            backgroundColor: MonoPulseColors.surfaceRaised,
-            backgroundImage: _buildAvatarImage(),
-            child: avatarPath == null || avatarPath!.isEmpty
-                ? Text(
-                    initial,
-                    style: MonoPulseTypography.headlineSmall.copyWith(
-                      color: MonoPulseColors.accentOrange,
-                      fontWeight: FontWeight.w700,
-                      fontSize: avatarRadius * 0.75,
-                    ),
-                  )
-                : null,
           ),
           SizedBox(width: isCompact ? MonoPulseSpacing.md : MonoPulseSpacing.lg),
           Expanded(
@@ -110,23 +97,6 @@ class GreetingCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  /// Build avatar image provider from URL or file path.
-  ImageProvider? _buildAvatarImage() {
-    if (avatarPath == null || avatarPath!.isEmpty) return null;
-
-    if (avatarPath!.startsWith('http')) {
-      // Disk-cached so the home avatar loads instantly after the first fetch
-      // (no re-download on every rebuild / tab switch).
-      return CachedNetworkImageProvider(avatarPath!);
-    }
-
-    try {
-      return FileImage(File(avatarPath!));
-    } catch (e) {
-      return null;
-    }
   }
 
   /// Get greeting text style based on breakpoint.

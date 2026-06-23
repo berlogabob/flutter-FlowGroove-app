@@ -63,6 +63,45 @@ class DashboardGrid extends StatelessWidget {
         final breakpoint = getBreakpoint(constraints.maxWidth);
         final padding = _getPaddingForBreakpoint(breakpoint);
         final sectionSpacing = _getSectionSpacing(breakpoint);
+        final isLandscape =
+            MediaQuery.of(context).orientation == Orientation.landscape;
+
+        if (isLandscape) {
+          // Two-pane split: greeting + library + tools on the left, quick
+          // actions on the right, so everything fits one screen.
+          return SingleChildScrollView(
+            padding: padding,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (greetingCard != null) ...[
+                        greetingCard!,
+                        const SizedBox(height: MonoPulseSpacing.xl),
+                      ],
+                      ..._statisticsSection(context, breakpoint),
+                      if (statistics.isNotEmpty && tools.isNotEmpty)
+                        const SizedBox(height: MonoPulseSpacing.xl),
+                      ..._toolsSection(context, breakpoint, constraints.maxWidth),
+                    ],
+                  ),
+                ),
+                SizedBox(width: sectionSpacing),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: _quickActionsSection(context, breakpoint),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
 
         return SingleChildScrollView(
           padding: padding,
@@ -70,35 +109,15 @@ class DashboardGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Greeting card
               if (greetingCard != null) ...[
                 greetingCard!,
                 SizedBox(height: sectionSpacing),
               ],
-
-              // Statistics section
-              if (statistics.isNotEmpty) ...[
-                _buildSectionTitle(context, 'My Library', breakpoint),
-                const SizedBox(height: MonoPulseSpacing.md),
-                _buildResponsiveStatisticsGrid(breakpoint),
-                SizedBox(height: sectionSpacing),
-              ],
-
-              // Quick actions section
-              if (quickActions.isNotEmpty) ...[
-                _buildSectionTitle(context, 'Quick Actions', breakpoint),
-                const SizedBox(height: MonoPulseSpacing.md),
-                _buildResponsiveQuickActionsGrid(breakpoint),
-                SizedBox(height: sectionSpacing),
-              ],
-
-              // Tools section
-              if (tools.isNotEmpty) ...[
-                _buildSectionTitle(context, 'Tools', breakpoint),
-                const SizedBox(height: MonoPulseSpacing.md),
-                _buildResponsiveToolsGrid(breakpoint, constraints.maxWidth),
-              ],
-
+              ..._statisticsSection(context, breakpoint),
+              if (statistics.isNotEmpty) SizedBox(height: sectionSpacing),
+              ..._quickActionsSection(context, breakpoint),
+              if (quickActions.isNotEmpty) SizedBox(height: sectionSpacing),
+              ..._toolsSection(context, breakpoint, constraints.maxWidth),
               // Bottom spacing to prevent top-weighted layout on tall screens
               SizedBox(height: sectionSpacing),
             ],
@@ -106,6 +125,43 @@ class DashboardGrid extends StatelessWidget {
         );
       },
     );
+  }
+
+  List<Widget> _statisticsSection(
+    BuildContext context,
+    ScreenBreakpoint breakpoint,
+  ) {
+    if (statistics.isEmpty) return const [];
+    return [
+      _buildSectionTitle(context, 'My Library', breakpoint),
+      const SizedBox(height: MonoPulseSpacing.md),
+      _buildResponsiveStatisticsGrid(breakpoint),
+    ];
+  }
+
+  List<Widget> _quickActionsSection(
+    BuildContext context,
+    ScreenBreakpoint breakpoint,
+  ) {
+    if (quickActions.isEmpty) return const [];
+    return [
+      _buildSectionTitle(context, 'Quick Actions', breakpoint),
+      const SizedBox(height: MonoPulseSpacing.md),
+      _buildResponsiveQuickActionsGrid(breakpoint),
+    ];
+  }
+
+  List<Widget> _toolsSection(
+    BuildContext context,
+    ScreenBreakpoint breakpoint,
+    double maxWidth,
+  ) {
+    if (tools.isEmpty) return const [];
+    return [
+      _buildSectionTitle(context, 'Tools', breakpoint),
+      const SizedBox(height: MonoPulseSpacing.md),
+      _buildResponsiveToolsGrid(breakpoint, maxWidth),
+    ];
   }
 
   /// Get padding based on breakpoint.

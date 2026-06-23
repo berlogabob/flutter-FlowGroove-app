@@ -68,8 +68,23 @@ class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
       musicBrainz: MusicBrainzService(),
       userId: _userId ?? '',
       bandId: _bandId,
+      bandName: _resolveBandName(),
     );
     return _service!;
+  }
+
+  /// Looks up the band's display name from the user's loaded bands.
+  /// Returns null if the bands list hasn't loaded or the id isn't found;
+  /// the service falls back to a generic label in that case.
+  String? _resolveBandName() {
+    final id = _bandId;
+    if (id == null) return null;
+    final bands = ref.read(bandsProvider).value;
+    if (bands == null) return null;
+    for (final b in bands) {
+      if (b.id == id) return b.name;
+    }
+    return null;
   }
 
   /// Initialize with user/band context.

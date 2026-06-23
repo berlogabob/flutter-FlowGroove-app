@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/mono_pulse_theme.dart';
+
 /// A widget for entering BPM (Beats Per Minute) value.
 ///
 /// This widget provides a text field specifically designed for
@@ -133,21 +135,26 @@ class KeyBpmSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.shade300),
+        color: MonoPulseColors.surfaceRaised,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+        border: Border.all(color: MonoPulseColors.borderDefault),
       ),
       child: DropdownButton<String>(
         value: value,
         isDense: true,
         underline: const SizedBox(),
+        dropdownColor: MonoPulseColors.surfaceOverlay,
+        iconEnabledColor: MonoPulseColors.textSecondary,
         items: items
             .map(
               (k) => DropdownMenuItem(
                 value: k,
                 child: Text(
                   k.isEmpty ? '-' : k,
-                  style: const TextStyle(fontSize: 13),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: MonoPulseColors.textPrimary,
+                  ),
                 ),
               ),
             )

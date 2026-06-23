@@ -420,7 +420,6 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
         photoURL: null,
         displayName: member.displayName ?? member.email,
         radius: 20,
-        backgroundColor: MonoPulseColors.accentOrange,
       ),
       title: Text(
         member.displayName ?? member.email ?? 'Unknown',

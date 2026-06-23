@@ -16,6 +16,7 @@ import '../widgets/metronome/metronome_sheets.dart';
 import '../widgets/metronome/song_library_block.dart';
 import '../widgets/metronome/tempo_control_cluster.dart';
 import '../widgets/metronome/time_signature_block.dart';
+import 'concert_mode_screen.dart';
 import 'songs/models/song_form_data.dart';
 
 /// Metronome Screen - ToolScreenScaffold Migration (Sprint 5)
@@ -128,6 +129,38 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     required bool canEditSource,
   }) {
     final items = <PopupMenuEntry<dynamic>>[];
+
+    // Concert Mode — full-screen stage view (Mono Pulse).
+    items.add(
+      PopupMenuItem<void>(
+        onTap: () => Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const ConcertModeScreen(),
+            fullscreenDialog: true,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.theaters_outlined,
+              color: MonoPulseColors.accentOrange,
+              size: 20,
+            ),
+            const SizedBox(width: MonoPulseSpacing.md),
+            Expanded(
+              child: Text(
+                'Concert Mode',
+                style: MonoPulseTypography.bodyMedium.copyWith(
+                  color: MonoPulseColors.textHighEmphasis,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    items.add(const PopupMenuDivider(height: 1));
 
     items.add(
       PopupMenuItem<void>(
@@ -344,12 +377,27 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
   }
 }
 
-/// Single adaptive layout used on every screen size: a centered, max-width,
-/// scrollable column. Phone fills the width; web/tablet centers with gutters.
-/// Replaces the old compact/scroll/wide branches that hid features and
-/// overflowed on the web.
+/// Adaptive metronome layout (Mono Pulse audit A6).
+///
+/// Portrait: a centered, max-width, scrollable column — phone fills the width,
+/// web/tablet centers with gutters. Landscape: the dial moves to the left and
+/// the beat map / transport / tools / library stack on the right, so the dial
+/// no longer clips under the app bar on short heights.
 class _MetronomePerformanceSurface extends StatelessWidget {
   const _MetronomePerformanceSurface();
+
+  @override
+  Widget build(BuildContext context) {
+    return OrientationBuilder(
+      builder: (context, orientation) => orientation == Orientation.landscape
+          ? const _MetronomeLandscape()
+          : const _MetronomePortrait(),
+    );
+  }
+}
+
+class _MetronomePortrait extends StatelessWidget {
+  const _MetronomePortrait();
 
   @override
   Widget build(BuildContext context) {
@@ -378,6 +426,48 @@ class _MetronomePerformanceSurface extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MetronomeLandscape extends StatelessWidget {
+  const _MetronomeLandscape();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          // Left: the dial, scaled to fit the available height.
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(child: TempoControlCluster()),
+            ),
+          ),
+          SizedBox(width: MonoPulseSpacing.xl),
+          // Right: beat map, transport, tools, library.
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TimeSignatureBlock(),
+                  SizedBox(height: MonoPulseSpacing.sm),
+                  _MetronomeTransport(),
+                  SizedBox(height: MonoPulseSpacing.md),
+                  _MetronomeToolBar(),
+                  SizedBox(height: MonoPulseSpacing.sm),
+                  SongLibraryBlock(),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

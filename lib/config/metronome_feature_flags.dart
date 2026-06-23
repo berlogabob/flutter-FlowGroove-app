@@ -59,18 +59,9 @@ class MetronomeFeatureFlags {
   /// Risk: LOW - Pure logic change
   static const bool enableSubdivisionPitch = true;
 
-  /// Check if all features are enabled
-  static bool get allEnabled =>
-      enablePcmTimelineEngine &&
-      enableOptimizedAudio &&
-      enableToneMatrix &&
-      enableMonoPulseTheme &&
-      enable2DBeatModes &&
-      enableAudioFocus &&
-      enableSubdivisionPitch;
-
   /// Get feature status as map for debugging
   static Map<String, bool> get featureStatus => {
+    'enableUnifiedEngine': enableUnifiedEngine,
     'enableOptimizedAudio': enableOptimizedAudio,
     'enablePcmTimelineEngine': enablePcmTimelineEngine,
     'enableToneMatrix': enableToneMatrix,

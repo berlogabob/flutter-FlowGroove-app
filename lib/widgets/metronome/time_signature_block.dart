@@ -287,7 +287,7 @@ class _BeatsRow extends StatelessWidget {
                       subdivisions > 0 &&
                       (currentBeat ~/ subdivisions) == beatIndex;
 
-                  return _BeatCircleWithMode(
+                  return _BeatModeCircle(
                     key: Key('main_beat_dot_$beatIndex'),
                     semanticLabel: 'Main beat ${beatIndex + 1}',
                     isActive: isBeatActive,
@@ -389,9 +389,9 @@ class _SubdivisionsRow extends StatelessWidget {
                       currentBeat >= 0 &&
                       (currentBeat % count) == subdivisionIndex;
 
-                  return _SubdivisionCircleWithMode(
+                  return _BeatModeCircle(
                     key: Key('subdivision_dot_$subdivisionIndex'),
-                    subdivisionIndex: subdivisionIndex,
+                    semanticLabel: 'Subdivision ${subdivisionIndex + 1}',
                     isActive: isSubdivisionActive,
                     mode: mode,
                     containerSize: metrics.containerSize,
@@ -424,32 +424,98 @@ class _SubdivisionsRow extends StatelessWidget {
 }
 
 // ============================================================================
-// BEAT CIRCLE WITH MODE (TAPPABLE)
+// BEAT MODE CIRCLE (TAPPABLE) — Mono Pulse audit A5
 // ============================================================================
-class _BeatCircleWithMode extends StatelessWidget {
+// Tinted fill + bright ring + per-state glyph so Normal / Accent / Silent read
+// at a glance instead of blurring into muddy solid fills. The currently-playing
+// cell intensifies to a solid fill + glow.
+//
+// Shared by both the main-beat strip and the subdivision strip (they previously
+// duplicated identical color/indicator logic).
 
-  const _BeatCircleWithMode({
+/// Resolved visuals for one beat-mode cell.
+class _BeatCellStyle {
+  const _BeatCellStyle({
+    required this.fill,
+    required this.ring,
+    required this.glyphColor,
+    this.glyph,
+  });
+
+  final Color fill;
+  final Color ring;
+  final Color glyphColor;
+
+  /// Glyph for Accent (★) / Silent (⊘). Normal uses a small filled dot instead.
+  final IconData? glyph;
+}
+
+_BeatCellStyle _beatCellStyle(BeatMode mode, bool isActive) {
+  switch (mode) {
+    case BeatMode.normal:
+      return isActive
+          ? const _BeatCellStyle(
+              fill: MonoPulseColors.beatModeNormalBright,
+              ring: MonoPulseColors.beatModeNormalBright,
+              glyphColor: MonoPulseColors.black,
+            )
+          : const _BeatCellStyle(
+              fill: MonoPulseColors.accentOrange15,
+              ring: MonoPulseColors.beatModeNormal,
+              glyphColor: MonoPulseColors.beatModeNormal,
+            );
+    case BeatMode.accent:
+      return isActive
+          ? const _BeatCellStyle(
+              fill: MonoPulseColors.beatModeAccentBright,
+              ring: MonoPulseColors.beatModeAccentBright,
+              glyphColor: MonoPulseColors.black,
+              glyph: Icons.star,
+            )
+          : _BeatCellStyle(
+              fill: MonoPulseColors.beatModeAccent.withValues(alpha: 0.16),
+              ring: MonoPulseColors.beatModeAccentBright,
+              glyphColor: MonoPulseColors.beatModeAccentBright,
+              glyph: Icons.star,
+            );
+    case BeatMode.silent:
+      // ponytail: solid grey ring, not the doc's dashed ring — a dashed circle
+      // needs a CustomPainter; the ⊘ glyph already reads as "muted". Swap to a
+      // dashed-border painter if the dashed look is specifically wanted.
+      return const _BeatCellStyle(
+        fill: MonoPulseColors.transparent,
+        ring: MonoPulseColors.textDisabled,
+        glyphColor: MonoPulseColors.textDisabled,
+        glyph: Icons.block,
+      );
+  }
+}
+
+class _BeatModeCircle extends StatelessWidget {
+  const _BeatModeCircle({
     required this.isActive,
     required this.mode,
-    required this.onTap,
     required this.containerSize,
     required this.semanticLabel,
     super.key,
+    this.onTap,
     this.isSmallScreen = false,
   });
+
   final bool isActive;
   final BeatMode mode;
-  final VoidCallback onTap;
   final double containerSize;
   final String semanticLabel;
+  final VoidCallback? onTap;
   final bool isSmallScreen;
 
   @override
   Widget build(BuildContext context) {
-    // Visible dot scales with the container but never exceeds the design size.
+    // Visible cell scales with the container but never exceeds the design size.
     final circleSize = math
         .min(isSmallScreen ? 16.0 : 20.0, containerSize - 8)
         .clamp(8.0, 20.0);
+    final style = _beatCellStyle(mode, isActive);
 
     return Semantics(
       label: semanticLabel,
@@ -468,24 +534,21 @@ class _BeatCircleWithMode extends StatelessWidget {
               height: circleSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _getColorForMode(),
-                border: Border.all(
-                  color: _getBorderColorForMode(),
-                  width: 1.5,
-                ),
+                color: style.fill,
+                border: Border.all(color: style.ring, width: 2),
                 boxShadow: isActive
                     ? [
                         BoxShadow(
-                          color: _getColorForMode().withValues(alpha: 0.3),
-                          blurRadius: 8,
+                          color: style.ring.withValues(alpha: 0.6),
+                          blurRadius: 12,
                           spreadRadius: 2,
                         ),
                       ]
-                    : [],
+                    : const [],
               ),
               child: Transform.scale(
                 scale: isActive ? 1.08 : 1.0,
-                child: _buildModeIndicator(),
+                child: _glyph(style, circleSize),
               ),
             ),
           ),
@@ -494,174 +557,25 @@ class _BeatCircleWithMode extends StatelessWidget {
     );
   }
 
-  Color _getColorForMode() {
-    switch (mode) {
-      case BeatMode.normal:
-        return isActive
-            ? MonoPulseColors.beatModeNormalBright
-            : MonoPulseColors.beatModeNormal;
-      case BeatMode.accent:
-        return isActive
-            ? MonoPulseColors.beatModeAccentBright
-            : MonoPulseColors.beatModeAccent;
-      case BeatMode.silent:
-        return isActive
-            ? MonoPulseColors.beatModeSilentBright
-            : MonoPulseColors.beatModeSilent;
+  Widget _glyph(_BeatCellStyle style, double circleSize) {
+    if (style.glyph != null) {
+      return Center(
+        child: Icon(
+          style.glyph,
+          size: circleSize * 0.6,
+          color: style.glyphColor,
+        ),
+      );
     }
-  }
-
-  Color _getBorderColorForMode() {
-    switch (mode) {
-      case BeatMode.normal:
-        return isActive
-            ? MonoPulseColors.beatModeNormalBright
-            : MonoPulseColors.beatModeNormal.withValues(alpha: 0.7);
-      case BeatMode.accent:
-        return isActive
-            ? MonoPulseColors.beatModeAccentBright
-            : MonoPulseColors.beatModeAccent.withValues(alpha: 0.7);
-      case BeatMode.silent:
-        return isActive
-            ? MonoPulseColors.beatModeSilentBright
-            : MonoPulseColors.beatModeSilent.withValues(alpha: 0.7);
-    }
-  }
-
-  Widget _buildModeIndicator() {
-    if (mode == BeatMode.normal) {
-      return const SizedBox.shrink();
-    }
-
+    // Normal: a small centered dot (·).
+    final dot = (circleSize * 0.28).clamp(4.0, 7.0);
     return Center(
       child: Container(
-        width: mode == BeatMode.accent ? 8 : 6,
-        height: mode == BeatMode.accent ? 8 : 6,
-        decoration: const BoxDecoration(
+        width: dot,
+        height: dot,
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// SUBDIVISION CIRCLE WITH MODE (TAPPABLE)
-// ============================================================================
-class _SubdivisionCircleWithMode extends StatelessWidget {
-
-  const _SubdivisionCircleWithMode({
-    required this.subdivisionIndex,
-    required this.isActive,
-    required this.mode,
-    required this.containerSize,
-    super.key,
-    this.onTap,
-    this.isSmallScreen = false,
-  });
-  final int subdivisionIndex;
-  final bool isActive;
-  final BeatMode mode;
-  final double containerSize;
-  final VoidCallback? onTap;
-  final bool isSmallScreen;
-
-  @override
-  Widget build(BuildContext context) {
-    final circleSize = math
-        .min(isSmallScreen ? 16.0 : 20.0, containerSize - 8)
-        .clamp(8.0, 20.0);
-
-    return Semantics(
-      label: 'Subdivision ${subdivisionIndex + 1}',
-      button: true,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          width: containerSize,
-          height: containerSize,
-          child: Center(
-            child: AnimatedContainer(
-              duration: MonoPulseAnimation.durationShort,
-              curve: MonoPulseAnimation.curveCustom,
-              width: circleSize,
-              height: circleSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _getColorForMode(),
-                border: Border.all(
-                  color: _getBorderColorForMode(),
-                  width: 1.5,
-                ),
-                boxShadow: isActive
-                    ? [
-                        BoxShadow(
-                          color: _getColorForMode().withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Transform.scale(
-                scale: isActive ? 1.08 : 1.0,
-                child: _buildModeIndicator(),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Color _getColorForMode() {
-    switch (mode) {
-      case BeatMode.normal:
-        return isActive
-            ? MonoPulseColors.beatModeNormalBright
-            : MonoPulseColors.beatModeNormal;
-      case BeatMode.accent:
-        return isActive
-            ? MonoPulseColors.beatModeAccentBright
-            : MonoPulseColors.beatModeAccent;
-      case BeatMode.silent:
-        return isActive
-            ? MonoPulseColors.beatModeSilentBright
-            : MonoPulseColors.beatModeSilent;
-    }
-  }
-
-  Color _getBorderColorForMode() {
-    switch (mode) {
-      case BeatMode.normal:
-        return isActive
-            ? MonoPulseColors.beatModeNormalBright
-            : MonoPulseColors.beatModeNormal.withValues(alpha: 0.7);
-      case BeatMode.accent:
-        return isActive
-            ? MonoPulseColors.beatModeAccentBright
-            : MonoPulseColors.beatModeAccent.withValues(alpha: 0.7);
-      case BeatMode.silent:
-        return isActive
-            ? MonoPulseColors.beatModeSilentBright
-            : MonoPulseColors.beatModeSilent.withValues(alpha: 0.7);
-    }
-  }
-
-  Widget _buildModeIndicator() {
-    if (mode == BeatMode.normal) {
-      return const SizedBox.shrink();
-    }
-
-    return Center(
-      child: Container(
-        width: mode == BeatMode.accent ? 8 : 6,
-        height: mode == BeatMode.accent ? 8 : 6,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
+          color: style.glyphColor,
         ),
       ),
     );

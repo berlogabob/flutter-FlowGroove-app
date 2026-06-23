@@ -14,6 +14,7 @@ import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
+import '../../widgets/invite_code_field.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/unified_item/adapters/band_item_adapter.dart';
@@ -635,19 +636,9 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
           ],
           const Text('Share this code with band members:'),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-            decoration: BoxDecoration(
-              color: MonoPulseColors.surface,
-              borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-            ),
-            child: Text(
-              _isRegenerating ? 'Generating...' : _inviteCode,
-              style: MonoPulseTypography.headlineLarge.copyWith(
-                letterSpacing: 2,
-                color: MonoPulseColors.textPrimary,
-              ),
-            ),
+          InviteCodeField(
+            code: _isRegenerating ? '' : _inviteCode,
+            placeholder: 'Generating…',
           ),
           const SizedBox(height: 16),
           Row(

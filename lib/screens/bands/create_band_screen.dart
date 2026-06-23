@@ -13,6 +13,7 @@ import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
+import '../../widgets/invite_code_field.dart';
 import '../../widgets/primary_action_bar.dart';
 
 /// Screen for creating or editing a band with comprehensive error handling.
@@ -225,24 +226,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(MonoPulseSpacing.md),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Text(
-                      inviteCode,
-                      style: MonoPulseTypography.headlineSmall.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'monospace',
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
+                Expanded(child: InviteCodeField(code: inviteCode)),
                 const SizedBox(width: 8),
                 IconButton(
                   onPressed: () {

@@ -33,12 +33,14 @@ class SongSuggestionService {
     required this._userId,
     this._canonicalRepo,
     this._bandId,
+    this._bandName,
   });
   final SongRepository _songRepo;
   final CanonicalSongRepository? _canonicalRepo;
   final MusicBrainzService _musicBrainz;
   final String _userId;
   final String? _bandId;
+  final String? _bandName;
 
   /// Get suggestions as user types
   ///
@@ -205,7 +207,7 @@ class SongSuggestionService {
               title: song.title,
               artist: song.artist,
               bandId: bandId,
-              bandName: 'Band', // TODO: Get actual band name
+              bandName: _bandName ?? 'your band',
               bpm: (song.originalBPM ?? song.ourBPM)?.toString(),
               key: song.originalKey ?? song.ourKey,
               canonicalSongId: song.canonicalSongId,

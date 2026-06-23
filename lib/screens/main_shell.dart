@@ -4,10 +4,27 @@ import 'package:go_router/go_router.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/demo_mode_banner.dart';
 
-/// Main application shell with bottom navigation.
+/// One navigation destination, shared by the portrait [NavigationBar] and the
+/// landscape [NavigationRail] (Mono Pulse: "nav moves to a side rail").
+typedef _NavItem = ({IconData icon, IconData selectedIcon, String label});
+
+const List<_NavItem> _navItems = [
+  (icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home'),
+  (icon: Icons.music_note_outlined, selectedIcon: Icons.music_note, label: 'Songs'),
+  (icon: Icons.groups_outlined, selectedIcon: Icons.groups, label: 'Bands'),
+  (
+    icon: Icons.queue_music_outlined,
+    selectedIcon: Icons.queue_music,
+    label: 'Setlists',
+  ),
+  (icon: Icons.person_outlined, selectedIcon: Icons.person, label: 'Profile'),
+];
+
+/// Main application shell with adaptive navigation.
 /// Works with StatefulShellRoute.indexedStack for proper tab switching.
 ///
 /// Features:
+/// - Portrait: bottom navigation bar. Landscape: left navigation rail.
 /// - Single tap: Navigate to tab or show next screen in branch
 /// - Double tap: Navigate to root screen of each branch
 class MainShell extends ConsumerStatefulWidget {
@@ -30,9 +47,30 @@ class _MainShellState extends ConsumerState<MainShell> {
     final currentIndex = widget.navigationShell.currentIndex;
     final safeIndex =
         currentIndex >= 0 && currentIndex < 5 ? currentIndex : 0;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final content = DemoModeBanner(child: widget.navigationShell);
+
+    if (isLandscape) {
+      return Scaffold(
+        body: SafeArea(
+          child: Row(
+            children: [
+              _buildRail(context, safeIndex),
+              const VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: MonoPulseColors.borderSubtle,
+              ),
+              Expanded(child: content),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
-      body: DemoModeBanner(child: widget.navigationShell),
+      body: content,
       bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
           color: MonoPulseColors.black,
@@ -42,84 +80,53 @@ class _MainShellState extends ConsumerState<MainShell> {
         ),
         child: NavigationBar(
           backgroundColor: MonoPulseColors.black,
-          indicatorColor: MonoPulseColors.accentOrangeSubtle,
+          indicatorColor: MonoPulseColors.accentOrange10,
           selectedIndex: safeIndex,
           onDestinationSelected: (index) => _onTap(context, index),
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: const [
-            NavigationDestination(
-              icon: Tooltip(
-                message: 'Home',
-                child: Icon(
-                  Icons.home_outlined,
-                  color: MonoPulseColors.textTertiary,
+          destinations: [
+            for (final item in _navItems)
+              NavigationDestination(
+                icon: Icon(item.icon, color: MonoPulseColors.textTertiary),
+                selectedIcon: Icon(
+                  item.selectedIcon,
+                  color: MonoPulseColors.accentOrange,
                 ),
+                label: item.label,
               ),
-              selectedIcon: Icon(
-                Icons.home,
-                color: MonoPulseColors.accentOrange,
-              ),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Tooltip(
-                message: 'Songs',
-                child: Icon(
-                  Icons.music_note_outlined,
-                  color: MonoPulseColors.textTertiary,
-                ),
-              ),
-              selectedIcon: Icon(
-                Icons.music_note,
-                color: MonoPulseColors.accentOrange,
-              ),
-              label: 'Songs',
-            ),
-            NavigationDestination(
-              icon: Tooltip(
-                message: 'Bands',
-                child: Icon(
-                  Icons.groups_outlined,
-                  color: MonoPulseColors.textTertiary,
-                ),
-              ),
-              selectedIcon: Icon(
-                Icons.groups,
-                color: MonoPulseColors.accentOrange,
-              ),
-              label: 'Bands',
-            ),
-            NavigationDestination(
-              icon: Tooltip(
-                message: 'Setlists',
-                child: Icon(
-                  Icons.queue_music_outlined,
-                  color: MonoPulseColors.textTertiary,
-                ),
-              ),
-              selectedIcon: Icon(
-                Icons.queue_music,
-                color: MonoPulseColors.accentOrange,
-              ),
-              label: 'Setlists',
-            ),
-            NavigationDestination(
-              icon: Tooltip(
-                message: 'Profile',
-                child: Icon(
-                  Icons.person_outlined,
-                  color: MonoPulseColors.textTertiary,
-                ),
-              ),
-              selectedIcon: Icon(
-                Icons.person,
-                color: MonoPulseColors.accentOrange,
-              ),
-              label: 'Profile',
-            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRail(BuildContext context, int safeIndex) {
+    return NavigationRail(
+      backgroundColor: MonoPulseColors.black,
+      selectedIndex: safeIndex,
+      onDestinationSelected: (index) => _onTap(context, index),
+      labelType: NavigationRailLabelType.all,
+      indicatorColor: MonoPulseColors.accentOrange10,
+      selectedIconTheme: const IconThemeData(
+        color: MonoPulseColors.accentOrange,
+      ),
+      unselectedIconTheme: const IconThemeData(
+        color: MonoPulseColors.textTertiary,
+      ),
+      selectedLabelTextStyle: MonoPulseTypography.labelSmall.copyWith(
+        color: MonoPulseColors.accentOrange,
+      ),
+      unselectedLabelTextStyle: MonoPulseTypography.labelSmall.copyWith(
+        color: MonoPulseColors.textTertiary,
+      ),
+      destinations: [
+        for (final item in _navItems)
+          NavigationRailDestination(
+            icon: Icon(item.icon),
+            selectedIcon: Icon(item.selectedIcon),
+            label: Text(item.label),
+          ),
+      ],
     );
   }
 
