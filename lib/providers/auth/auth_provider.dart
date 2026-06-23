@@ -156,7 +156,12 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
                     telegramData['telegramUsername'] != null) {
                   displayName = telegramData['telegramUsername'] as String;
                 }
-                photoURL = telegramData['telegramPhotoURL'] as String?;
+                // Avatar precedence matches the Profile screen: the doc's
+                // photoURL is the user's chosen avatar (any photoSource) and
+                // is authoritative; fall back to Telegram, then auth photo.
+                photoURL = (telegramData['photoURL'] as String?) ??
+                    (telegramData['telegramPhotoURL'] as String?) ??
+                    photoURL;
 
                 state = AsyncValue.data(
                   AppUser(
@@ -245,7 +250,9 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     return _readFirestoreIfAvailable() != null;
   }
 
-  /// Load Telegram profile data if user gave consent
+  /// Load profile data from the user doc: the authoritative chosen avatar
+  /// (`photoURL`, written by the Profile screen) plus Telegram fields when the
+  /// user gave consent. Returns null only if the doc is missing/empty.
   Future<Map<String, dynamic>?> _loadTelegramProfile(String uid) async {
     final firestore = _readFirestoreIfAvailable();
     if (firestore == null) {
@@ -257,10 +264,13 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
 
       if (userDoc.exists) {
         final data = userDoc.data();
-        if (data != null && data['telegramConsent'] == true) {
+        if (data != null) {
           return {
-            'telegramUsername': data['telegramUsername'],
-            'telegramPhotoURL': data['telegramPhotoURL'],
+            'photoURL': data['photoURL'],
+            if (data['telegramConsent'] == true) ...{
+              'telegramUsername': data['telegramUsername'],
+              'telegramPhotoURL': data['telegramPhotoURL'],
+            },
           };
         }
       }
