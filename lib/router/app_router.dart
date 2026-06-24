@@ -32,7 +32,6 @@ import '../screens/songs/models/song_form_data.dart';
 import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
-import '../widgets/desktop_shell.dart';
 
 /// Minimal auth surface needed by the app router.
 abstract class AuthRouterClient {
@@ -209,7 +208,7 @@ List<RouteBase> _buildAppRoutes() {
     // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
-        return DesktopShell(child: MainShell(navigationShell: navigationShell));
+        return MainShell(navigationShell: navigationShell);
       },
       branches: [
         // Home branch

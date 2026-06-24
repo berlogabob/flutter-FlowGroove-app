@@ -18,8 +18,10 @@ import 'services/analytics_service.dart';
 import 'services/metronome_preferences.dart';
 import 'theme/mono_pulse_theme.dart';
 import 'utils/analytics_debug.dart';
+import 'utils/responsive_breakpoints.dart';
 import 'widgets/config_error_widget.dart';
 import 'widgets/loading_indicator.dart';
+import 'widgets/wiki_panel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -260,7 +262,7 @@ class FlowGrooveApp extends ConsumerWidget {
         return userAsync.when(
           data: (user) {
             debugPrint('🟢 Auth state: DATA - user=${user?.email ?? "NULL"}');
-            return child ?? const SizedBox.shrink();
+            return _withDesktopWiki(context, child ?? const SizedBox.shrink());
           },
           loading: () {
             debugPrint('🟡 Auth state: LOADING');
@@ -269,12 +271,39 @@ class FlowGrooveApp extends ConsumerWidget {
           error: (error, stack) {
             debugPrint('🔴 Auth state: ERROR - $error');
             debugPrint('Stack: $stack');
-            return child ?? const SizedBox.shrink();
+            return _withDesktopWiki(context, child ?? const SizedBox.shrink());
           },
         );
       },
     );
   }
+}
+
+/// On desktop, render the app in a fixed 480px phone-width column with the
+/// wiki panel on the right. `app` is the root navigator (the builder's
+/// `child`), so all its dialogs/menus/overlays stay inside the left column.
+Widget _withDesktopWiki(BuildContext context, Widget app) {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      if (getBreakpoint(constraints.maxWidth) != ScreenBreakpoint.desktop) {
+        return app;
+      }
+      final mq = MediaQuery.of(context);
+      return Row(
+        children: [
+          SizedBox(
+            width: 480,
+            child: MediaQuery(
+              data: mq.copyWith(size: Size(480, mq.size.height)),
+              child: app,
+            ),
+          ),
+          Container(width: 1, color: MonoPulseColors.borderSubtle),
+          const Expanded(child: WikiPanel()),
+        ],
+      );
+    },
+  );
 }
 
 /// Error app displayed when configuration validation fails
