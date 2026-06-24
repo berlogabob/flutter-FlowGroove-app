@@ -78,10 +78,11 @@ class DesktopShell extends ConsumerWidget {
   }
 
   /// Hugo site (single source of truth) embedded in the sidebar.
+  /// Same origin as the app in production (flowgroove.app), where the FTP
+  /// deploy publishes embed.html. GitHub Pages is a separate/stale host.
   /// ponytail: start on /faq/. Swap to a route→page map when per-screen
   /// Hugo pages exist; until then one page covers it.
-  static const String docsUrl =
-      'https://berlogabob.github.io/flutter-FlowGroove-app/faq/embed.html';
+  static const String docsUrl = 'https://flowgroove.app/faq/embed.html';
 
   Widget _buildSidebar(BuildContext context, WidgetRef ref) {
     debugPrint('📝 DesktopShell: Building docs sidebar');
