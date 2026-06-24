@@ -184,6 +184,9 @@ version.json
 script.html
 canvaskit/
 index.html
+# ...but the bare rule above is for Flutter web build output; Hugo blog pages
+# under docs/ are the GitHub Pages deploy and MUST be tracked, or posts 404.
+!docs/blog/**/index.html
 flutter_web_debug.log
 
 # Local Claude Code agent state / worktrees
