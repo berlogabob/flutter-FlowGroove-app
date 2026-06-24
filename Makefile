@@ -413,9 +413,15 @@ deploy-rules:
 #   1. FTP     → flowgroove.app (Hugo root + Flutter /app/, with backup + health check)
 #   2. Pages   → GitHub Pages (Hugo + Flutter), git commit + push
 #   3. Android → version bump + git tag + push + GitHub Release (APK + AAB)
-release-all: deploy-rules deploy-stable
+# Bump ONCE up front so every channel (FTP web, GitHub Pages, Android) ships the
+# SAME build number. The bump must run before deploy-stable builds the web app,
+# so deploy-rules/deploy-stable are invoked in the recipe (not as prerequisites,
+# which Make would run before the bump). release is told to skip its own bump.
+release-all:
+	@./scripts/bump-build-number.sh $(LEVEL)
+	@$(MAKE) deploy-rules deploy-stable
 	@$(MAKE) -f Makefile.hugo deploy-all
-	@$(MAKE) release
+	@$(MAKE) release SKIP_BUMP=1
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         🎉 All Release Channels Deployed                  ║"
@@ -444,8 +450,12 @@ bump-version:
 # then build APK + AAB, tag, push, and create the GitHub Release.
 # Override the bump with: make release LEVEL=patch|minor|major
 release:
-	@echo "🔢 Bumping version before build..."
-	@./scripts/bump-build-number.sh $(LEVEL)
+	@if [ -z "$(SKIP_BUMP)" ]; then \
+		echo "🔢 Bumping version before build..."; \
+		./scripts/bump-build-number.sh $(LEVEL); \
+	else \
+		echo "🔢 Skipping bump (already bumped by release-all)."; \
+	fi
 	@$(MAKE) build-android
 	@$(MAKE) build-appbundle
 	@echo ""
