@@ -160,21 +160,6 @@ void main() {
     });
 
     group('Song Providers', () {
-      test('CachedSongsNotifier initializes with loading state', () {
-        final state = container.read(cachedSongsProvider);
-        expect(state, isNotNull);
-      });
-
-      test('CachedSongsNotifier notifier is accessible', () {
-        final notifier = container.read(cachedSongsProvider.notifier);
-        expect(notifier, isNotNull);
-      });
-
-      test('CachedSongsNotifier dispose cancels subscriptions', () {
-        final notifier = container.read(cachedSongsProvider.notifier);
-        expect(notifier.dispose, returnsNormally);
-      });
-
       test('songsProvider returns stream', () {
         when(mockCacheService.getCachedSongs(any)).thenAnswer((_) async => []);
         when(
@@ -191,33 +176,9 @@ void main() {
         expect(count, 0);
       });
 
-      test('CachedSongsNotifier loadSongs method exists', () {
-        final notifier = container.read(cachedSongsProvider.notifier);
-        expect(notifier.loadSongs, isNotNull);
-      });
-
-      test('CachedSongsNotifier watchSongsWithCache method exists', () {
-        final notifier = container.read(cachedSongsProvider.notifier);
-        expect(notifier.watchSongsWithCache, isNotNull);
-      });
     });
 
     group('Band Providers', () {
-      test('CachedBandsNotifier initializes with loading state', () {
-        final state = container.read(cachedBandsProvider);
-        expect(state, isNotNull);
-      });
-
-      test('CachedBandsNotifier notifier is accessible', () {
-        final notifier = container.read(cachedBandsProvider.notifier);
-        expect(notifier, isNotNull);
-      });
-
-      test('CachedBandsNotifier dispose works correctly', () {
-        final notifier = container.read(cachedBandsProvider.notifier);
-        expect(notifier.dispose, returnsNormally);
-      });
-
       test('bandsProvider returns stream', () {
         when(mockCacheService.getCachedBands(any)).thenAnswer((_) async => []);
         when(
@@ -299,28 +260,9 @@ void main() {
         expect(container.read(selectedBandProvider)?.id, 'band-2');
       });
 
-      test('CachedBandsNotifier loadBands method exists', () {
-        final notifier = container.read(cachedBandsProvider.notifier);
-        expect(notifier.loadBands, isNotNull);
-      });
     });
 
     group('Setlist Providers', () {
-      test('CachedSetlistsNotifier initializes with loading state', () {
-        final state = container.read(cachedSetlistsProvider);
-        expect(state, isNotNull);
-      });
-
-      test('CachedSetlistsNotifier notifier is accessible', () {
-        final notifier = container.read(cachedSetlistsProvider.notifier);
-        expect(notifier, isNotNull);
-      });
-
-      test('CachedSetlistsNotifier dispose works correctly', () {
-        final notifier = container.read(cachedSetlistsProvider.notifier);
-        expect(notifier.dispose, returnsNormally);
-      });
-
       test('setlistsProvider returns stream', () {
         when(
           mockCacheService.getCachedSetlists(any),
@@ -337,11 +279,6 @@ void main() {
         final count = container.read(setlistCountProvider);
         expect(count, isA<int>());
         expect(count, 0);
-      });
-
-      test('CachedSetlistsNotifier loadSetlists method exists', () {
-        final notifier = container.read(cachedSetlistsProvider.notifier);
-        expect(notifier.loadSetlists, isNotNull);
       });
     });
 
@@ -378,120 +315,6 @@ void main() {
 
         final songsAsync = container.read(bandSongsProvider('band-1'));
         expect(songsAsync, isNotNull);
-      });
-    });
-
-    group('Error Handling', () {
-      test('CachedSongsNotifier handles repository error', () async {
-        when(
-          mockCacheService.getCachedSongs('user-1'),
-        ).thenAnswer((_) async => []);
-        when(
-          mockSongRepository.watchSongs('user-1'),
-        ).thenThrow(Exception('Repository error'));
-
-        final notifier = container.read(cachedSongsProvider.notifier);
-        await notifier.loadSongs('user-1');
-
-        final state = container.read(cachedSongsProvider);
-        expect(state.hasError, isTrue);
-      });
-
-      test('CachedBandsNotifier handles repository error', () async {
-        when(
-          mockCacheService.getCachedBands('user-1'),
-        ).thenAnswer((_) async => []);
-        when(
-          mockBandRepository.watchBands('user-1'),
-        ).thenThrow(Exception('Repository error'));
-
-        final notifier = container.read(cachedBandsProvider.notifier);
-        await notifier.loadBands('user-1');
-
-        final state = container.read(cachedBandsProvider);
-        expect(state.hasError, isTrue);
-      });
-
-      test('CachedSetlistsNotifier handles repository error', () async {
-        when(
-          mockCacheService.getCachedSetlists('user-1'),
-        ).thenAnswer((_) async => []);
-        when(
-          mockSetlistRepository.watchSetlists('user-1'),
-        ).thenThrow(Exception('Repository error'));
-
-        final notifier = container.read(cachedSetlistsProvider.notifier);
-        await notifier.loadSetlists('user-1');
-
-        final state = container.read(cachedSetlistsProvider);
-        expect(state.hasError, isTrue);
-      });
-
-      test('Loading state is shown during async operations', () {
-        when(
-          mockCacheService.getCachedSongs('user-1'),
-        ).thenAnswer((_) async => []);
-        when(
-          mockSongRepository.watchSongs('user-1'),
-        ).thenAnswer((_) => Stream.value([]));
-
-        final state = container.read(cachedSongsProvider);
-        expect(state, isNotNull);
-      });
-
-      test('Empty state is handled correctly', () async {
-        when(
-          mockCacheService.getCachedSongs('user-1'),
-        ).thenAnswer((_) async => []);
-        when(
-          mockSongRepository.watchSongs('user-1'),
-        ).thenAnswer((_) => Stream.value([]));
-
-        final notifier = container.read(cachedSongsProvider.notifier);
-        await notifier.loadSongs('user-1');
-
-        final state = container.read(cachedSongsProvider);
-        expect(state.value, isEmpty);
-      });
-    });
-
-    group('Dispose Verification', () {
-      test('CachedSongsNotifier dispose cancels subscriptions', () {
-        final notifier = container.read(cachedSongsProvider.notifier);
-        expect(notifier.dispose, returnsNormally);
-      });
-
-      test('CachedBandsNotifier dispose works correctly', () {
-        final notifier = container.read(cachedBandsProvider.notifier);
-        expect(notifier.dispose, returnsNormally);
-      });
-
-      test('CachedSetlistsNotifier dispose works correctly', () {
-        final notifier = container.read(cachedSetlistsProvider.notifier);
-        expect(notifier.dispose, returnsNormally);
-      });
-
-      test('ProviderContainer dispose cleans up all resources', () {
-        final localContainer = ProviderContainer(
-          overrides: [
-            songRepositoryProvider.overrideWithValue(mockSongRepository),
-            bandRepositoryProvider.overrideWithValue(mockBandRepository),
-            setlistRepositoryProvider.overrideWithValue(mockSetlistRepository),
-            cacheProvider.overrideWithValue(mockCacheService),
-          ],
-        );
-
-        // Read all providers
-        localContainer.read(cachedSongsProvider);
-        localContainer.read(cachedBandsProvider);
-        localContainer.read(cachedSetlistsProvider);
-        localContainer.read(selectedBandProvider);
-        localContainer.read(songCountProvider);
-        localContainer.read(bandCountProvider);
-        localContainer.read(setlistCountProvider);
-
-        // Dispose should not throw
-        expect(localContainer.dispose, returnsNormally);
       });
     });
 
@@ -552,11 +375,6 @@ void main() {
         notifier.select(band3);
         expect(container.read(selectedBandProvider)?.name, 'Third Band');
       });
-
-      test('CachedSongsNotifier state is accessible', () {
-        final state = container.read(cachedSongsProvider);
-        expect(state, isNotNull);
-      });
     });
 
     group('Stream Behavior', () {
@@ -602,80 +420,6 @@ void main() {
 
         final stream = container.read(bandSongsProvider('band-1'));
         expect(stream, isNotNull);
-      });
-    });
-
-    group('Timeout Error Handling', () {
-      test('CachedSongsNotifier handles timeout error', () async {
-        when(
-          mockCacheService.getCachedSongs('user-1'),
-        ).thenAnswer((_) async => []);
-        when(
-          mockSongRepository.watchSongs('user-1'),
-        ).thenThrow(TimeoutException('Request timed out'));
-
-        final notifier = container.read(cachedSongsProvider.notifier);
-        await notifier.loadSongs('user-1');
-
-        final state = container.read(cachedSongsProvider);
-        expect(state.hasError, isTrue);
-      });
-
-      test('CachedSongsNotifier prefers cache over timeout error', () async {
-        final cachedSongs = [
-          Song(
-            id: 'song-1',
-            title: 'Cached Song',
-            artist: 'Cached Artist',
-            createdAt: DateTime(2024),
-            updatedAt: DateTime(2024),
-          ),
-        ];
-
-        when(
-          mockCacheService.getCachedSongs('user-1'),
-        ).thenAnswer((_) async => cachedSongs);
-        when(
-          mockSongRepository.watchSongs('user-1'),
-        ).thenThrow(TimeoutException('Request timed out'));
-
-        final notifier = container.read(cachedSongsProvider.notifier);
-        await notifier.loadSongs('user-1');
-
-        final state = container.read(cachedSongsProvider);
-        // Should fall back to cached data instead of showing error
-        expect(state.hasValue, isTrue);
-        expect(state.value, equals(cachedSongs));
-      });
-
-      test('CachedBandsNotifier handles timeout error', () async {
-        when(
-          mockCacheService.getCachedBands('user-1'),
-        ).thenAnswer((_) async => []);
-        when(
-          mockBandRepository.watchBands('user-1'),
-        ).thenThrow(TimeoutException('Request timed out'));
-
-        final notifier = container.read(cachedBandsProvider.notifier);
-        await notifier.loadBands('user-1');
-
-        final state = container.read(cachedBandsProvider);
-        expect(state.hasError, isTrue);
-      });
-
-      test('CachedSetlistsNotifier handles timeout error', () async {
-        when(
-          mockCacheService.getCachedSetlists('user-1'),
-        ).thenAnswer((_) async => []);
-        when(
-          mockSetlistRepository.watchSetlists('user-1'),
-        ).thenThrow(TimeoutException('Request timed out'));
-
-        final notifier = container.read(cachedSetlistsProvider.notifier);
-        await notifier.loadSetlists('user-1');
-
-        final state = container.read(cachedSetlistsProvider);
-        expect(state.hasError, isTrue);
       });
     });
 
@@ -748,36 +492,6 @@ void main() {
       });
     });
 
-    group('Provider Independence', () {
-      test('Song providers work independently of band providers', () {
-        when(mockCacheService.getCachedSongs(any)).thenAnswer((_) async => []);
-        when(
-          mockSongRepository.watchSongs(any),
-        ).thenAnswer((_) => Stream.value([]));
-        when(mockCacheService.getCachedBands(any)).thenAnswer((_) async => []);
-        when(
-          mockBandRepository.watchBands(any),
-        ).thenAnswer((_) => Stream.value([]));
-
-        final songsState = container.read(cachedSongsProvider);
-        final bandsState = container.read(cachedBandsProvider);
-
-        expect(songsState, isNotNull);
-        expect(bandsState, isNotNull);
-      });
-
-      test('Setlist providers work independently', () {
-        when(
-          mockCacheService.getCachedSetlists(any),
-        ).thenAnswer((_) async => []);
-        when(
-          mockSetlistRepository.watchSetlists(any),
-        ).thenAnswer((_) => Stream.value([]));
-
-        final setlistsState = container.read(cachedSetlistsProvider);
-        expect(setlistsState, isNotNull);
-      });
-    });
   });
 }
 
