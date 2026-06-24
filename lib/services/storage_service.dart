@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -45,12 +46,16 @@ class StorageService {
 
   /// Upload a profile picture to Firebase Storage.
   ///
-  /// The file is stored at: profile_pictures/{uid}.jpg
+  /// The image is stored at: profile_pictures/{uid}.jpg
+  ///
+  /// Takes raw [bytes] (not a File) and uploads via `putData`, because
+  /// `putFile` is not implemented on web. Callers read bytes cross-platform
+  /// via `XFile.readAsBytes()` / `File.readAsBytes()`.
   ///
   /// Returns the download URL of the uploaded file.
   ///
   /// Throws [ApiError] if upload fails or user is not authenticated.
-  Future<String> uploadProfilePicture(File file) async {
+  Future<String> uploadProfilePicture(Uint8List bytes) async {
     try {
       _requireAuth();
       final uid = _currentUserId;
@@ -58,11 +63,11 @@ class StorageService {
       // Create a reference to the file location
       final ref = _storage.ref().child('profile_pictures').child('$uid.jpg');
 
-      // Upload the file
-      final uploadTask = ref.putFile(file);
-
-      // Wait for upload to complete
-      final snapshot = await uploadTask;
+      // putData works on web and mobile; putFile is web-unimplemented.
+      final snapshot = await ref.putData(
+        bytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
 
       // Get the download URL
       final downloadUrl = await snapshot.ref.getDownloadURL();

@@ -77,7 +77,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           final dir = await getApplicationDocumentsDirectory();
           final legacy = File('${dir.path}/profile_photo.jpg');
           if (await legacy.exists()) {
-            final url = await StorageService().uploadProfilePicture(legacy);
+            final url = await StorageService()
+                .uploadProfilePicture(await legacy.readAsBytes());
             await legacy.delete();
             newPhotoUrl = url;
             newPhotoSource = 'upload';
@@ -185,8 +186,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       );
       if (pickedFile == null) return;
 
-      final url =
-          await StorageService().uploadProfilePicture(File(pickedFile.path));
+      // readAsBytes() works on web (blob) and mobile; File(path) + putFile does not.
+      final url = await StorageService()
+          .uploadProfilePicture(await pickedFile.readAsBytes());
       if (!mounted) return;
       setState(() {
         _profilePhotoPath = null;
