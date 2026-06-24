@@ -102,6 +102,17 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
                     onAdjust: (d) => ref
                         .read(metronomeProvider.notifier)
                         .adjustTempoFine(d),
+                    onPrevious: state.canGoToPreviousSetlistSong
+                        ? () => ref
+                              .read(metronomeProvider.notifier)
+                              .previousSetlistSong()
+                        : null,
+                    onNext: state.canGoToNextSetlistSong
+                        ? () => ref
+                              .read(metronomeProvider.notifier)
+                              .nextSetlistSong()
+                        : null,
+                    hasSetlist: state.loadedSetlist != null,
                   );
 
                   if (orientation == Orientation.landscape) {
@@ -258,6 +269,9 @@ class _Controls extends StatelessWidget {
     required this.currentBeat,
     required this.onToggle,
     required this.onAdjust,
+    required this.onPrevious,
+    required this.onNext,
+    required this.hasSetlist,
   });
 
   final bool isPlaying;
@@ -265,6 +279,9 @@ class _Controls extends StatelessWidget {
   final int currentBeat;
   final VoidCallback onToggle;
   final ValueChanged<int> onAdjust;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+  final bool hasSetlist;
 
   @override
   Widget build(BuildContext context) {
@@ -297,28 +314,43 @@ class _Controls extends StatelessWidget {
           }),
         ),
         const SizedBox(height: MonoPulseSpacing.huge),
-        // Big play/pause.
-        GestureDetector(
-          onTap: onToggle,
-          child: Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: MonoPulseColors.accentOrange,
-              boxShadow: [
-                BoxShadow(
-                  color: MonoPulseColors.accentOrange.withValues(alpha: 0.55),
-                  blurRadius: 60,
+        // Big play/pause, flanked by setlist prev/next when a setlist is loaded.
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasSetlist) ...[
+              _SkipButton(icon: Icons.skip_previous, onTap: onPrevious),
+              const SizedBox(width: MonoPulseSpacing.xl),
+            ],
+            GestureDetector(
+              onTap: onToggle,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: MonoPulseColors.accentOrange,
+                  boxShadow: [
+                    BoxShadow(
+                      color: MonoPulseColors.accentOrange.withValues(
+                        alpha: 0.55,
+                      ),
+                      blurRadius: 60,
+                    ),
+                  ],
                 ),
-              ],
+                child: Icon(
+                  isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: MonoPulseColors.black,
+                  size: 56,
+                ),
+              ),
             ),
-            child: Icon(
-              isPlaying ? Icons.pause : Icons.play_arrow,
-              color: MonoPulseColors.black,
-              size: 56,
-            ),
-          ),
+            if (hasSetlist) ...[
+              const SizedBox(width: MonoPulseSpacing.xl),
+              _SkipButton(icon: Icons.skip_next, onTap: onNext),
+            ],
+          ],
         ),
         const SizedBox(height: MonoPulseSpacing.huge),
         // Tempo nudges.
@@ -332,6 +364,39 @@ class _Controls extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Setlist prev/next. Dimmed and inert when [onTap] is null (no adjacent song).
+class _SkipButton extends StatelessWidget {
+  const _SkipButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 64,
+        height: 64,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: MonoPulseColors.surfaceRaised,
+          border: Border.all(color: MonoPulseColors.borderDefault),
+        ),
+        child: Icon(
+          icon,
+          color: enabled
+              ? MonoPulseColors.textSecondary
+              : MonoPulseColors.textTertiary,
+          size: 32,
+        ),
+      ),
     );
   }
 }
