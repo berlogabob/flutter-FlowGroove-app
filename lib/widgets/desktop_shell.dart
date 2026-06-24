@@ -6,6 +6,7 @@ import '../providers/auth/auth_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/responsive_breakpoints.dart';
 import 'dashboard_welcome_widget.dart';
+// ignore: unused_import — kept for the one-line re-enable of the docs panel.
 import 'docs_panel.dart';
 
 /// Desktop shell wrapper that adds a sidebar with welcome widget on wide screens.
@@ -97,12 +98,14 @@ class DesktopShell extends ConsumerWidget {
     final userAsync = ref.watch(appUserProvider);
     final userName = userAsync.value?.displayName ?? 'User';
 
+    // DIAGNOSTIC (debugging the web freeze): the iframe HtmlElementView
+    // platform view is the prime suspect for the dimmed-dialog / dead-button /
+    // home-blank symptoms. Render the native sidebar to confirm the app
+    // recovers without the platform view. Re-enable by swapping back to
+    // DocsPanel(url: docsUrl, fallback: ...). docsUrl/DocsPanel kept intact.
     return ColoredBox(
       color: MonoPulseColors.surface,
-      child: DocsPanel(
-        url: docsUrl,
-        fallback: DashboardWelcomeWidget.sidebar(userName: userName),
-      ),
+      child: DashboardWelcomeWidget.sidebar(userName: userName),
     );
   }
 }
