@@ -228,17 +228,17 @@ class FlowGrooveApp extends ConsumerWidget {
 
     // Set up auth state listener for navigation with logging
     ref.listen<AsyncValue<AppUser?>>(appUserProvider, (previous, next) {
+      // Log-only: navigation is owned by the router redirect (refreshListenable
+      // re-runs on every authStateChanges) and the login/register screens. This
+      // listener must NOT call appRouter.go(...) — doing so on cold-start auth
+      // restore raced and clobbered the /join deep-link redirect, dumping users
+      // on Home instead of the Join Band screen.
       next.whenOrNull(
         data: (user) {
           if (user != null && previous?.value == null) {
-            // User just logged in - navigate to home
             debugPrint('🔑 Auth Event: USER_LOGIN - email=${user.email}');
-            // Use the global appRouter directly (not from context)
-            appRouter.go('/main/home');
           } else if (user == null && previous?.value != null) {
-            // User just logged out - navigate to login
             debugPrint('🔑 Auth Event: USER_LOGOUT - previous user logged out');
-            appRouter.go('/login');
           } else if (user != null) {
             // Auth state restored (app resume/refresh)
             debugPrint('🔑 Auth Event: AUTH_RESTORED - email=${user.email}');
