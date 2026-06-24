@@ -34,40 +34,10 @@ class MetronomeFeatureFlags {
   /// Risk: LOW - Tested extensively
   static const bool enableOptimizedAudio = true;
 
-  /// Enable tone matrix system with 6 frequency controls
-  /// Impact: Professional-grade sound customization
-  /// Risk: MEDIUM - New feature, needs user testing
-  static const bool enableToneMatrix = true;
-
-  /// Enable Mono Pulse design system
-  /// Impact: Premium visual design
-  /// Risk: LOW - Visual only, no functional changes
-  static const bool enableMonoPulseTheme = false; // Gradual rollout
-
-  /// Enable 2D beat mode grid editor
-  /// Impact: Complex rhythm patterns
-  /// Risk: MEDIUM - UX complexity
-  static const bool enable2DBeatModes = true;
-
-  /// Enable audio focus management
-  /// Impact: Proper behavior during phone calls
-  /// Risk: MEDIUM - Platform-specific code
-  static const bool enableAudioFocus = true;
-
-  /// Enable subdivision-based pitch patterns (H/l)
-  /// Impact: Better rhythm clarity
-  /// Risk: LOW - Pure logic change
-  static const bool enableSubdivisionPitch = true;
-
   /// Get feature status as map for debugging
   static Map<String, bool> get featureStatus => {
     'enableUnifiedEngine': enableUnifiedEngine,
     'enableOptimizedAudio': enableOptimizedAudio,
     'enablePcmTimelineEngine': enablePcmTimelineEngine,
-    'enableToneMatrix': enableToneMatrix,
-    'enableMonoPulseTheme': enableMonoPulseTheme,
-    'enable2DBeatModes': enable2DBeatModes,
-    'enableAudioFocus': enableAudioFocus,
-    'enableSubdivisionPitch': enableSubdivisionPitch,
   };
 }
