@@ -1,13 +1,12 @@
 import 'package:flowgroove/screens/main_shell.dart' show MainShell;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/auth/auth_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/responsive_breakpoints.dart';
 import 'dashboard_welcome_widget.dart';
-// ignore: unused_import — kept for the one-line re-enable of the docs panel.
-import 'docs_panel.dart';
 
 /// Desktop shell wrapper that adds a sidebar with welcome widget on wide screens.
 ///
@@ -31,10 +30,10 @@ import 'docs_panel.dart';
 /// )
 /// ```
 
-/// Resolves the Hugo embed URL as a sibling of the app's base href. Pure so it
-/// can be tested without the real (web-only) [Uri.base].
-String resolveDocsUrl(Uri appBase) =>
-    appBase.resolve('../faq/embed.html').toString();
+/// Resolves the Hugo help page as a sibling of the app's base href
+/// (`<root>/app/` → `<root>/faq/`), so it works on any host without a hardcoded
+/// URL. Pure so it can be tested without the real (web-only) [Uri.base].
+String resolveDocsUrl(Uri appBase) => appBase.resolve('../faq/').toString();
 
 class DesktopShell extends ConsumerWidget {
 
@@ -84,28 +83,32 @@ class DesktopShell extends ConsumerWidget {
     );
   }
 
-  /// Hugo embed (single source of truth) shown in the sidebar.
-  /// Host-agnostic: resolved as a sibling of the app's base href
-  /// (`<root>/app/` → `<root>/faq/embed.html`), so it works on flowgroove.app
-  /// (root) and GitHub Pages (/flutter-FlowGroove-app/) with no hardcoded host.
-  /// ponytail: one page for now. Swap to a route→page map when per-screen
-  /// Hugo pages exist.
-  static String get docsUrl => resolveDocsUrl(Uri.base);
-
   Widget _buildSidebar(BuildContext context, WidgetRef ref) {
-    debugPrint('📝 DesktopShell: Building docs sidebar');
-    // Get user name for the non-web fallback.
     final userAsync = ref.watch(appUserProvider);
     final userName = userAsync.value?.displayName ?? 'User';
 
-    // DIAGNOSTIC (debugging the web freeze): the iframe HtmlElementView
-    // platform view is the prime suspect for the dimmed-dialog / dead-button /
-    // home-blank symptoms. Render the native sidebar to confirm the app
-    // recovers without the platform view. Re-enable by swapping back to
-    // DocsPanel(url: docsUrl, fallback: ...). docsUrl/DocsPanel kept intact.
+    // Native sidebar + a link to the Hugo docs (single source of truth) opened
+    // in a new tab. We deliberately do NOT embed an iframe: an HtmlElementView
+    // platform view composites above Flutter's overlay on web, which froze the
+    // app (dimmed dialogs, dead buttons, blank home).
     return ColoredBox(
       color: MonoPulseColors.surface,
-      child: DashboardWelcomeWidget.sidebar(userName: userName),
+      child: Column(
+        children: [
+          Expanded(child: DashboardWelcomeWidget.sidebar(userName: userName)),
+          Padding(
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+            child: OutlinedButton.icon(
+              onPressed: () => launchUrl(
+                Uri.parse(resolveDocsUrl(Uri.base)),
+                mode: LaunchMode.externalApplication,
+              ),
+              icon: const Icon(Icons.open_in_new, size: 18),
+              label: const Text('Open Help & FAQ'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
