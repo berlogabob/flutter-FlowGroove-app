@@ -29,6 +29,12 @@ import 'docs_panel.dart';
 ///   child: MainShell(navigationShell: navigationShell),
 /// )
 /// ```
+
+/// Resolves the Hugo embed URL as a sibling of the app's base href. Pure so it
+/// can be tested without the real (web-only) [Uri.base].
+String resolveDocsUrl(Uri appBase) =>
+    appBase.resolve('../faq/embed.html').toString();
+
 class DesktopShell extends ConsumerWidget {
 
   const DesktopShell({required this.child, super.key});
@@ -77,12 +83,13 @@ class DesktopShell extends ConsumerWidget {
     );
   }
 
-  /// Hugo site (single source of truth) embedded in the sidebar.
-  /// Same origin as the app in production (flowgroove.app), where the FTP
-  /// deploy publishes embed.html. GitHub Pages is a separate/stale host.
-  /// ponytail: start on /faq/. Swap to a route→page map when per-screen
-  /// Hugo pages exist; until then one page covers it.
-  static const String docsUrl = 'https://flowgroove.app/faq/embed.html';
+  /// Hugo embed (single source of truth) shown in the sidebar.
+  /// Host-agnostic: resolved as a sibling of the app's base href
+  /// (`<root>/app/` → `<root>/faq/embed.html`), so it works on flowgroove.app
+  /// (root) and GitHub Pages (/flutter-FlowGroove-app/) with no hardcoded host.
+  /// ponytail: one page for now. Swap to a route→page map when per-screen
+  /// Hugo pages exist.
+  static String get docsUrl => resolveDocsUrl(Uri.base);
 
   Widget _buildSidebar(BuildContext context, WidgetRef ref) {
     debugPrint('📝 DesktopShell: Building docs sidebar');
