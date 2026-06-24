@@ -29,6 +29,7 @@ exports.removeBandAvatar = bandAvatar.removeBandAvatar;
 // Avatars
 const avatars = require("./src/avatars");
 exports.importTelegramAvatar = avatars.importTelegramAvatar;
+exports.importGoogleAvatar = avatars.importGoogleAvatar;
 
 // Telegram sharing + notifications
 const telegramShare = require("./src/telegram/share");

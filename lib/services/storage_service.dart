@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 
 import '../models/api_error.dart';
 
@@ -233,35 +231,6 @@ class StorageService {
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
-  }
-
-  /// Mirror the signed-in user's Google account photo into our bucket so the
-  /// avatar has a stable URL we own. Sets photoSource = 'google'.
-  Future<String> setAvatarFromGoogle() async {
-    _requireAuth();
-    final googleUrl = _auth.currentUser?.photoURL;
-    if (googleUrl == null || googleUrl.isEmpty || !googleUrl.startsWith('http')) {
-      throw ApiError.validation(
-        message: 'No Google profile photo is available to import.',
-      );
-    }
-    final response = await http
-        .get(Uri.parse(googleUrl))
-        .timeout(const Duration(seconds: 30));
-    if (response.statusCode != 200) {
-      throw ApiError.network(
-        message: 'Could not download your Google photo. Please try again.',
-      );
-    }
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/google_avatar.jpg');
-    await file.writeAsBytes(response.bodyBytes);
-    final url = await uploadProfilePicture(file);
-    await _firestore.collection('users').doc(_currentUserId).set({
-      'photoSource': 'google',
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-    return url;
   }
 
   /// Upload a file to a custom path in Firebase Storage.

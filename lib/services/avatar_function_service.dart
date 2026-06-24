@@ -47,6 +47,30 @@ class AvatarFunctionService {
     }
   }
 
+  /// Imports the signed-in user's Google account photo server-side (avoids the
+  /// browser CORS wall that breaks a client fetch on web) and returns the new
+  /// `photoURL`. Throws [ApiError] when no Google photo is available.
+  Future<String> importGoogleAvatar() async {
+    try {
+      final callable = _functions.httpsCallable('importGoogleAvatar');
+      final result = await callable.call<Map<String, dynamic>>();
+      final url = result.data['photoURL'] as String?;
+      if (url == null) {
+        throw ApiError.unknown(message: 'No photo URL was returned.');
+      }
+      return url;
+    } on FirebaseFunctionsException catch (e, stackTrace) {
+      if (e.code == 'not-found') {
+        throw ApiError.validation(
+          message: 'No Google profile photo is available to import.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
   /// Sets a band's avatar by sending the (already resized) image to the
   /// server-authoritative `setBandAvatar` callable, which verifies band-admin
   /// status and writes to Storage via the Admin SDK. Returns the new

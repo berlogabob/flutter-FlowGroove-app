@@ -289,7 +289,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Navigator.pop(context);
                   final messenger = ScaffoldMessenger.of(context);
                   try {
-                    final url = await StorageService().setAvatarFromGoogle();
+                    final url = await AvatarFunctionService().importGoogleAvatar();
                     if (!mounted) return;
                     setState(() {
                       _avatarUrl = url;
@@ -563,10 +563,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          displayName,
-                          style: MonoPulseTypography.headlineLarge.copyWith(
-                            color: MonoPulseColors.textPrimary,
+                        // audit A3: truncate long/Cyrillic names so they never
+                        // overflow the RenderFlex; edit button stays visible.
+                        Flexible(
+                          child: Text(
+                            displayName,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: MonoPulseTypography.headlineLarge.copyWith(
+                              color: MonoPulseColors.textPrimary,
+                            ),
                           ),
                         ),
                         IconButton(

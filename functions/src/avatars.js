@@ -96,5 +96,72 @@ function makeImportTelegramAvatar({ getTelegram, getBucket, fetchImpl } = {}) {
   });
 }
 
+/**
+ * Builds the `importGoogleAvatar` callable: mirrors the signed-in user's Google
+ * account photo into our bucket server-side. Doing the download server-side
+ * avoids the browser CORS wall that breaks a client-side fetch on web, and
+ * sidesteps dart:io File (unavailable on web) entirely.
+ *
+ * getAuth/getBucket/fetchImpl are injectable for testing.
+ */
+function makeImportGoogleAvatar({ getAuth, getBucket, fetchImpl } = {}) {
+  return functions.https.onCall(async (request) => {
+    const context = { auth: request.auth };
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Request must be authenticated.",
+      );
+    }
+    const uid = context.auth.uid;
+
+    const auth = (getAuth || (() => admin.auth()))();
+    const userRecord = await auth.getUser(uid);
+    const googleProvider = (userRecord.providerData || []).find(
+      (p) => p.providerId === "google.com",
+    );
+    const googleUrl =
+      (googleProvider && googleProvider.photoURL) || userRecord.photoURL;
+    if (!googleUrl) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "No Google profile photo is available to import.",
+      );
+    }
+
+    const fetchFn = fetchImpl || fetch;
+    const res = await fetchFn(googleUrl);
+    if (!res.ok) {
+      throw new functions.https.HttpsError(
+        "internal",
+        `Failed to fetch Google photo: ${res.status}`,
+      );
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+
+    const bucket = (getBucket || defaultBucket)();
+    const filePath = `profile_pictures/${uid}.jpg`;
+    const token = crypto.randomUUID();
+    await bucket.file(filePath).save(buffer, {
+      contentType: "image/jpeg",
+      metadata: { metadata: { firebaseStorageDownloadTokens: token } },
+    });
+
+    const photoURL =
+      `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/` +
+      `${encodeURIComponent(filePath)}?alt=media&token=${token}`;
+
+    await db.collection("users").doc(uid).set({
+      photoURL,
+      photoSource: "google",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    return { photoURL };
+  });
+}
+
 exports.makeImportTelegramAvatar = makeImportTelegramAvatar;
 exports.importTelegramAvatar = makeImportTelegramAvatar();
+exports.makeImportGoogleAvatar = makeImportGoogleAvatar;
+exports.importGoogleAvatar = makeImportGoogleAvatar();
