@@ -6,7 +6,7 @@ import '../providers/auth/auth_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/responsive_breakpoints.dart';
 import 'dashboard_welcome_widget.dart';
-import 'loading_indicator.dart';
+import 'docs_panel.dart';
 
 /// Desktop shell wrapper that adds a sidebar with welcome widget on wide screens.
 ///
@@ -83,20 +83,23 @@ class DesktopShell extends ConsumerWidget {
     );
   }
 
+  /// Hugo site (single source of truth) embedded in the sidebar.
+  /// ponytail: start on /faq/. Swap to a route→page map when per-screen
+  /// Hugo pages exist; until then one page covers it.
+  static const String docsUrl =
+      'https://berlogabob.github.io/flutter-FlowGroove-app/faq/';
+
   Widget _buildSidebar(BuildContext context, WidgetRef ref) {
-    debugPrint('📝 DesktopShell: Building welcome sidebar');
-    // Get user name from auth provider
+    debugPrint('📝 DesktopShell: Building docs sidebar');
+    // Get user name for the non-web fallback.
     final userAsync = ref.watch(appUserProvider);
+    final userName = userAsync.value?.displayName ?? 'User';
 
     return ColoredBox(
       color: MonoPulseColors.surface,
-      child: userAsync.when(
-        data: (user) {
-          final userName = user?.displayName ?? 'User';
-          return DashboardWelcomeWidget.sidebar(userName: userName);
-        },
-        loading: () => const Center(child: LoadingIndicator()),
-        error: (_, _) => DashboardWelcomeWidget.sidebar(userName: 'User'),
+      child: DocsPanel(
+        url: docsUrl,
+        fallback: DashboardWelcomeWidget.sidebar(userName: userName),
       ),
     );
   }
