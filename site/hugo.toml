@@ -65,8 +65,12 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
     url = "https://ko-fi.com/flowgroove"
 
   [[params.socialIcons]]
-    name = "x"
-    url = "https://x.com/berlogabob"
+    name = "telegram"
+    url = "https://t.me/flowgrooveapp"
+
+  [[params.socialIcons]]
+    name = "reddit"
+    url = "https://www.reddit.com/r/flowgroove/"
 
   # Analytics
   [params.analytics]
@@ -101,10 +105,17 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
 
 [outputs]
   home = ["HTML", "RSS"]
-  page = ["HTML"]
+  page = ["HTML", "embed"]
   section = ["HTML"]
   taxonomy = ["HTML"]
   term = ["HTML"]
+
+# Stripped in-app embed: every page also renders <page>/embed.html (no nav/header).
+[outputFormats.embed]
+  mediaType = "text/html"
+  isHTML = true
+  baseName = "embed"
+  notAlternative = true
 
 # Menu
 [[menu.main]]
