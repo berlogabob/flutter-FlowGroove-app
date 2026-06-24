@@ -55,12 +55,22 @@ class DesktopShell extends ConsumerWidget {
         // Only show sidebar on desktop
         if (breakpoint == ScreenBreakpoint.desktop) {
           debugPrint('✅ DesktopShell: Showing sidebar (desktop mode)');
+          final mq = MediaQuery.of(context);
           return Row(
             children: [
-              // Main app: fixed phone-width column, pinned left (no dead margin).
+              // Main app: a phone-width column that renders exactly like the
+              // mobile app. MainShell/HomeScreen branch on MediaQuery (orientation
+              // + width); on a wide window they'd read "landscape desktop" and
+              // show the side-rail layout. Override the subtree's MediaQuery to a
+              // portrait 480-wide phone so it matches the Mono Pulse phone screens.
               SizedBox(
                 width: maxMainAppWidth,
-                child: child,
+                child: MediaQuery(
+                  data: mq.copyWith(
+                    size: Size(maxMainAppWidth, mq.size.height),
+                  ),
+                  child: child,
+                ),
               ),
               // Sidebar divider
               Container(
