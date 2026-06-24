@@ -218,7 +218,7 @@ health-check-prod:
 auto-rollback:
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║         🚨 AUTO-ROLLBACK INITIATED                       ║"
+	@echo "║         🚨 AUTO-ROLLBACK INITIATED                        ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
 	@if [ -f $(BACKUP_INFO_FILE) ]; then \
@@ -399,7 +399,7 @@ build-all: check-env-prod build-web-prod
 # project (repsync-app-8685c).
 deploy-rules:
 	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║         Deploying Firestore + Storage Rule                "
+	@echo "║         Deploying Firestore + Storage Rule                ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@command -v firebase >/dev/null 2>&1 || { \
 		echo "❌ firebase CLI not installed — cannot deploy rules. Aborting release."; \
