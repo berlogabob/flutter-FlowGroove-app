@@ -51,16 +51,10 @@ class DesktopShell extends ConsumerWidget {
           debugPrint('✅ DesktopShell: Showing sidebar (desktop mode)');
           return Row(
             children: [
-              // Main app (preserves mobile phone layout) - centered
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: maxMainAppWidth,
-                    ),
-                    child: child,
-                  ),
-                ),
+              // Main app: fixed phone-width column, pinned left (no dead margin).
+              SizedBox(
+                width: maxMainAppWidth,
+                child: child,
               ),
               // Sidebar divider
               Container(
@@ -68,7 +62,7 @@ class DesktopShell extends ConsumerWidget {
                 height: double.infinity,
                 color: MonoPulseColors.borderSubtle,
               ),
-              // Welcome sidebar - takes all remaining space
+              // Docs panel - takes all remaining space
               Expanded(
                 child: _buildSidebar(context, ref),
               ),
@@ -87,7 +81,7 @@ class DesktopShell extends ConsumerWidget {
   /// ponytail: start on /faq/. Swap to a route→page map when per-screen
   /// Hugo pages exist; until then one page covers it.
   static const String docsUrl =
-      'https://berlogabob.github.io/flutter-FlowGroove-app/faq/';
+      'https://berlogabob.github.io/flutter-FlowGroove-app/faq/embed.html';
 
   Widget _buildSidebar(BuildContext context, WidgetRef ref) {
     debugPrint('📝 DesktopShell: Building docs sidebar');
