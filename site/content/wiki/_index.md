@@ -15,3 +15,7 @@ Short guides for each screen of the app.
 - [Metronome](metronome/) — practice to a steady beat
 - [Tuner](tuner/) — tune your instrument
 - [Concert Mode](concert-mode/) — perform live
+
+---
+
+- [Changelog & Archive](changelog/) — what shipped, when, and why
