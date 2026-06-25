@@ -2,7 +2,6 @@ const crypto = require("crypto");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { defineString } = require("firebase-functions/params");
-const { Telegram } = require("telegraf");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -12,6 +11,9 @@ const db = admin.firestore();
 const TELEGRAM_BOT_TOKEN = defineString("TELEGRAM_BOT_TOKEN");
 
 function defaultTelegram() {
+  // Required lazily so a cold start that never imports a telegram avatar (e.g.
+  // joining a band) doesn't pay to load the telegraf bot framework.
+  const { Telegram } = require("telegraf");
   return new Telegram(TELEGRAM_BOT_TOKEN.value());
 }
 

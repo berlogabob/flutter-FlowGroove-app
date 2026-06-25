@@ -3,12 +3,17 @@
  * share callable). Uses a lazily-created Telegram client so importing this
  * module does not require the bot token until a message is actually sent.
  */
-const { Telegram } = require("telegraf");
 const { db, TELEGRAM_BOT_TOKEN } = require("../config");
 
 let _client;
 function telegramClient() {
-  if (!_client) _client = new Telegram(TELEGRAM_BOT_TOKEN.value());
+  // Required lazily so importing this module (pulled in transitively on every
+  // cold start via share/reminders) doesn't load the telegraf framework until a
+  // message is actually sent.
+  if (!_client) {
+    const { Telegram } = require("telegraf");
+    _client = new Telegram(TELEGRAM_BOT_TOKEN.value());
+  }
   return _client;
 }
 

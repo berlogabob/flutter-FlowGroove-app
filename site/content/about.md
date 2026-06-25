@@ -11,61 +11,58 @@ featuredImage: "images/og-cover.svg"
 
 # The Story Behind FlowGroove
 
-Hi, I'm a solo developer who's played in cover bands for 10 years.
+I'm one person. I write code for a living, and I've played in cover bands for about ten years. FlowGroove is what happens when those two things collide.
 
-## The Problem
+## The problem
 
-Every rehearsal was the same:
+Honestly, every rehearsal started the same way — with us *not* playing music:
 
-- Paper setlists that got lost or coffee-stained
-- Someone forgetting to write down the BPM
-- Arguing over key changes ("Was it F#m or Gm?")
-- Switching songs taking 5 minutes while the band stood around
-- No sync between my phone, the guitarist's tablet, and the drummer's laptop
+- A paper setlist that someone lost, or spilled coffee on, or left at home
+- Nobody remembering the BPM we agreed on last week
+- The usual "wait, is this in F#m or Gm?" argument
+- Five minutes of standing around between songs while we sorted out who had the right version
 
-The chaos was killing our vibe. We spent more time organizing than playing.
+We spent more time organizing than playing. After a while that stops being funny.
 
-## The Solution
+## So I built the thing I wanted
 
-So I built FlowGroove.
+FlowGroove is just the tool I kept wishing existed:
 
-It's the tool I wished we had:
+- **Add a song in a few seconds.** If it's fiddly, nobody uses it.
+- **Real-time sync.** Change it on my phone, everyone's screen updates.
+- **Works offline.** Most rehearsal rooms have terrible signal anyway.
+- **Auto BPM & key.** Type the song name and it fills in what it can.
+- **Dark mode that's actually dark.** For dim stages, not for showing off.
 
-✅ **Simple** — Add songs in 3 seconds  
-✅ **Fast** — Real-time sync across all devices (<500ms)  
-✅ **Works offline** — No internet? No problem  
-✅ **Auto BPM & key detection** — Type the song name, get the data  
-✅ **Stage-ready dark mode** — High-contrast for dim venues  
+It's free for indie musicians, because we're all a little broke and I remember being broker.
 
-## Why I Did This
+## How it's made
 
-No venture capital. No corporate team. Just a developer who plays in a band and got tired of the chaos.
+No investors, no team, no roadmap meeting. I built it on late nights and weekends, in between rehearsals and my day job, fueled by an unreasonable amount of coffee. Some features exist because they're "right." Most exist because something annoyed me at a specific rehearsal.
 
-I built FlowGroove between rehearsals and my day job. Late nights. Weekends. Lots of coffee.
+## The boring-but-important part
 
-Now you can use it too. **Free for indie musicians.**
-
-## The Legal Side
-
-FlowGroove is owned and operated by **Sounding Doubts - Unipessoal Lda**, my company based in Amadora, Portugal.
+FlowGroove is owned and run by **Sounding Doubts - Unipessoal Lda**, my company in Amadora, Portugal.
 
 - **NIF:** 518200736
 - **Address:** Amadora, Portugal
 
-They handle the legal stuff so I can focus on building.
+It handles the paperwork so I can stay on the building side.
 
-## What's Next
+## What I'm working on next
 
-- iOS app (working on the Apple Developer License)
-- More integrations (Spotify, YouTube for auto-metadata)
-- Advanced setlist features (transposition, capo support)
-- Band collaboration tools (shared libraries, comments)
+These aren't promises with dates — just what's on my list:
 
-## Support the Development
+- An iOS build (sorting out the Apple Developer License)
+- Pulling metadata from more sources (Spotify, YouTube)
+- Transposition and capo helpers
+- Better band collaboration — shared libraries, comments
 
-If FlowGroove helps your band, consider supporting development on Ko-fi. Every donation keeps the servers running and the coffee flowing.
+## If it helps your band
 
-[**Support the Dev on Ko-fi**](https://ko-fi.com/flowgroove)
+You can throw a few euros at it on Ko-fi. It keeps the servers on and the coffee flowing, and it genuinely makes my week.
+
+[**Support the dev on Ko-fi**](https://ko-fi.com/flowgroove)
 
 ---
 

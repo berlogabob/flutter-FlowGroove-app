@@ -21,7 +21,7 @@ FlowGroove is operated by **Sounding Doubts - Unipessoal Lda** ("we", "us", "our
 - **Company:** Sounding Doubts - Unipessoal Lda
 - **Address:** Amadora, Portugal
 - **NIF:** 518200736
-- **Website:** https://flowgroove.app
+- **Website:** [flowgroove.app](https://flowgroove.app)
 
 ---
 
@@ -88,7 +88,7 @@ FlowGroove (code, design, branding) is protected by copyright and owned by Sound
 
 ## Privacy
 
-Your privacy is important to us. See our [Privacy Policy](privacy/) for details on how we collect, use, and protect your data.
+Your privacy is important to us. See our [Privacy Policy](/privacy/) for details on how we collect, use, and protect your data.
 
 ---
 

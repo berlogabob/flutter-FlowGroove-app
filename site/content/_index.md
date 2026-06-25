@@ -18,7 +18,7 @@ summary: "End your band's rehearsal chaos with FlowGroove — free real-time set
   {{< feature-card
     icon="⚡"
     title="Real-Time Sync"
-    description="Change a song on your phone, it updates on the band's tablets before you finish strumming the first chord. Under 500ms delay."
+    description="Change a song on your phone and it updates on the band's tablets before you finish strumming the first chord. No refresh, no waiting."
   >}}
 
   {{< feature-card
@@ -40,6 +40,42 @@ summary: "End your band's rehearsal chaos with FlowGroove — free real-time set
   >}}
 {{< /section >}}
 
+<!-- Screenshots Section -->
+{{< section id="screenshots" class="screenshots-grid" >}}
+  {{< section-title >}}See It In Action{{< /section-title >}}
+  {{< section-subtitle >}}Real screens from the app — not mockups{{< /section-subtitle >}}
+
+  {{< screenshot-card
+    src="images/shot-home.png"
+    alt="FlowGroove home dashboard showing songs, bands and setlists counts"
+    caption="Home — your band at a glance"
+  >}}
+
+  {{< screenshot-card
+    src="images/shot-songs.png"
+    alt="FlowGroove songs library list with keys and BPM"
+    caption="Songs — your library, with keys & BPM"
+  >}}
+
+  {{< screenshot-card
+    src="images/shot-setlists.png"
+    alt="FlowGroove setlists list for rehearsals and gigs"
+    caption="Setlists — built for rehearsals and gigs"
+  >}}
+
+  {{< screenshot-card
+    src="images/shot-tuner.png"
+    alt="FlowGroove built-in chromatic tuner"
+    caption="Tuner — built in, no extra app"
+  >}}
+
+  {{< screenshot-card
+    src="images/shot-metronome.png"
+    alt="FlowGroove metronome with adjustable BPM and time signature"
+    caption="Metronome — practice to a steady beat"
+  >}}
+{{< /section >}}
+
 <!-- The Story Section -->
 {{< section id="story" class="story-section" >}}
   {{< section-title >}}The Story Behind FlowGroove{{< /section-title >}}
@@ -56,7 +92,7 @@ No venture capital. No corporate team. Just a developer who plays in a band and 
 
 Now you can use it too. **Free for indie musicians.**
   {{< /story-content >}}
-  {{< cta-link href="about/" text="Read the Full Story →" >}}
+  {{< cta-link href="/about/" text="Read the Full Story →" >}}
 {{< /section >}}
 
 <!-- FAQ Section -->
@@ -80,7 +116,7 @@ Now you can use it too. **Free for indie musicians.**
 
   {{< faq-item
     question="How fast is the sync?"
-    answer="Under 500ms. Change a song on your phone, it updates on the band's tablets before you finish strumming the first chord. Tested on 3G, WiFi, and everything in between."
+    answer="Fast enough that you won't notice the wait. Change a song on your phone and it lands on the band's tablets about as quick as you can look up — and it holds up on flaky venue WiFi and phone data too."
   >}}
 
   {{< faq-item

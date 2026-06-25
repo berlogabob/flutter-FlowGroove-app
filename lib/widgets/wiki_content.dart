@@ -29,9 +29,11 @@ const _sections = [
 ];
 
 /// Maps a router [path] to a wiki key, or `_index` when nothing matches.
+/// Matches `/main/<key>` anywhere in [path] (not just the start) so a leading
+/// base-href/fragment prefix (e.g. `/app/main/home`) still resolves correctly.
 String wikiKeyForPath(String path) {
   for (final key in _sections) {
-    if (path.startsWith('/main/$key')) return key;
+    if (path.contains('/main/$key')) return key;
   }
   return '_index';
 }

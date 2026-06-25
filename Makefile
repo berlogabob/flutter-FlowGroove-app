@@ -15,7 +15,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: help test-fast test-firebase-emulator deploy-rules deploy-stable deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+.PHONY: help test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo ftp-upload-hugo backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
@@ -56,6 +56,7 @@ help:
 	@echo ""
 	@echo "  make deploy-test     - Deploy Flutter-only build to GitHub Pages"
 	@echo "  make deploy-stable   - Deploy Hugo + Flutter to FTP (flowgroove.app)"
+	@echo "  make deploy-hugo     - Deploy ONLY Hugo site/blog/wiki to FTP (no app rebuild)"
 	@echo "  make release         - Build Android APK + AAB + GitHub Release"
 	@echo "  make build-release-artifacts - Build GitHub Pages web + Android APK"
 	@echo "  make build-github-pages - Build GitHub Pages web artifact only"
@@ -155,6 +156,17 @@ hugo-build-prod:
 # STABLE DEPLOYMENT - FTP (flowgroove.app)
 # =============================================================================
 
+deploy-hugo: preflight-prod hugo-build-prod backup-production-hugo ftp-upload-hugo health-check-prod
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         ✅ Hugo-only FTP Deployment Complete!             ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🌐 Live URL: https://flowgroove.app/  (Flutter /app/ left untouched)"
+	@echo "💾 Backup saved to: $(BACKUP_DIR)/"
+	@echo "📝 To rollback: make rollback-production"
+	@echo ""
+
 deploy-stable: check-env-prod hugo-build-prod build-web-prod backup-production ftp-upload health-check-prod
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
@@ -172,6 +184,23 @@ deploy-stable: check-env-prod hugo-build-prod build-web-prod backup-production f
 	@echo ""
 
 # Backup current production before deploying
+backup-production-hugo:
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Creating Production Backup (Hugo only, no /app/)  ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@mkdir -p $(BACKUP_DIR)
+	@echo "📦 Downloading current production files (excluding app/**)..."
+	@source ./scripts/load-deploy-env.sh && \
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; lcd $(BACKUP_DIR); mirror --exclude-glob app/** . .; bye"
+	@echo "✅ Backup created at $(BACKUP_DIR)/ (app/ not included — Hugo deploy never touches it)"
+	@echo ""
+	@# Save latest backup path for auto-rollback
+	@echo "$(BACKUP_DIR)" > $(BACKUP_INFO_FILE)
+	@echo "💾 Latest backup: $(BACKUP_DIR)/"
+	@echo ""
+
 backup-production:
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
@@ -190,6 +219,23 @@ backup-production:
 	@echo ""
 
 # Upload to FTP with SSL support
+ftp-upload-hugo:
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Uploading Hugo only → FTP (flowgroove.app)        ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📤 Uploading Hugo (site/public/) → / (root)... (app/** preserved)"
+	@source ./scripts/load-deploy-env.sh && \
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse --delete --exclude-glob .well-known/** --exclude-glob app/** site/public/ .; bye"
+	@echo "📤 Uploading .well-known/ (Android App Links assetlinks.json) → /.well-known/ (merge, no delete)..."
+	@source ./scripts/load-deploy-env.sh && \
+		if [ -d site/public/.well-known ]; then \
+			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p .well-known; mirror --reverse site/public/.well-known/ .well-known/; bye"; \
+		fi
+	@echo "✅ Hugo upload complete (Flutter /app/ left as-is)"
+	@echo ""
+
 ftp-upload:
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"

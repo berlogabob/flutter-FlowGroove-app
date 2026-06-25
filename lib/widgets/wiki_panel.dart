@@ -40,7 +40,11 @@ class _WikiPanelState extends State<WikiPanel> {
   void _onRouteChanged() => setState(_sync);
 
   void _sync() {
-    final path = appRouter.routeInformationProvider.value.uri.path;
+    // Use go_router's RESOLVED location, not the raw platform URI. Under the
+    // default hash strategy the raw `routeInformationProvider.value.uri` is the
+    // whole browser URL (`/app/#/main/home`) whose `.path` is `/app/`, so the
+    // mapping always fell back to `_index`. `appRouter.state.uri` is `/main/home`.
+    final path = appRouter.state.uri.path;
     final key = wikiKeyForPath(path);
     if (key == _key && _content != null) return;
     _key = key;

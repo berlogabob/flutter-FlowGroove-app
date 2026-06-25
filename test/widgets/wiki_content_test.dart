@@ -23,9 +23,15 @@ void main() {
       expect(wikiKeyForPath('/main/home'), 'home');
       expect(wikiKeyForPath('/main/metronome'), 'metronome');
     });
+    test('resolves even with a base-href/fragment prefix', () {
+      // Regression: hash strategy leaked `/app/...` paths that broke startsWith.
+      expect(wikiKeyForPath('/app/main/home'), 'home');
+      expect(wikiKeyForPath('/app/main/songs/123'), 'songs');
+    });
     test('falls back to _index for unknown paths', () {
       expect(wikiKeyForPath('/login'), '_index');
       expect(wikiKeyForPath('/'), '_index');
+      expect(wikiKeyForPath('/app/'), '_index');
     });
   });
 
