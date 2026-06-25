@@ -40,3 +40,39 @@ String wikiKeyForPath(String path) {
 
 /// Asset path for a wiki [key] (single source shared with Hugo).
 String wikiAssetForKey(String key) => 'site/content/wiki/$key.md';
+
+/// All bundled wiki page slugs. Superset of [_sections] — includes pages that
+/// have no dedicated app route (e.g. `concert-mode`) but are reachable as links.
+const _pages = <String>{
+  'home',
+  'songs',
+  'bands',
+  'setlists',
+  'profile',
+  'metronome',
+  'tuner',
+  'concert-mode',
+};
+
+/// Maps a markdown link [href] to a bundled wiki key, or `null` when the link is
+/// external/unknown (the caller should open those in a new browser tab instead
+/// of swapping panel content). Internal wiki links in the bundled markdown are
+/// relative slugs like `home/`, `concert-mode/`, or `songs.md`.
+String? wikiKeyForHref(String href) {
+  final h = href.trim();
+  if (h.isEmpty) return null;
+  final lower = h.toLowerCase();
+  if (lower.startsWith('http://') ||
+      lower.startsWith('https://') ||
+      lower.startsWith('mailto:') ||
+      lower.startsWith('//')) {
+    return null; // external — open in a new tab
+  }
+  var s = h.split('#').first.split('?').first;
+  if (s.endsWith('.md')) s = s.substring(0, s.length - 3);
+  s = s.replaceAll(RegExp(r'/+$'), '');
+  if (s.isEmpty) return '_index';
+  final seg = s.split('/').last;
+  if (seg == '_index' || seg == 'index') return '_index';
+  return _pages.contains(seg) ? seg : null;
+}

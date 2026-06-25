@@ -39,4 +39,27 @@ void main() {
     expect(wikiAssetForKey('songs'), 'site/content/wiki/songs.md');
     expect(wikiAssetForKey('_index'), 'site/content/wiki/_index.md');
   });
+
+  group('wikiKeyForHref', () {
+    test('maps internal relative slugs to keys', () {
+      expect(wikiKeyForHref('home/'), 'home');
+      expect(wikiKeyForHref('songs.md'), 'songs');
+      expect(wikiKeyForHref('concert-mode/'), 'concert-mode');
+      expect(wikiKeyForHref('./tuner'), 'tuner');
+    });
+    test('strips query and fragment', () {
+      expect(wikiKeyForHref('bands/?x=1#top'), 'bands');
+    });
+    test('index variants resolve to _index', () {
+      expect(wikiKeyForHref('_index/'), '_index');
+      expect(wikiKeyForHref('index.md'), '_index');
+    });
+    test('external and unknown links return null (open in new tab)', () {
+      expect(wikiKeyForHref('https://flowgroove.app/faq/'), null);
+      expect(wikiKeyForHref('mailto:hi@x.com'), null);
+      expect(wikiKeyForHref('../faq/'), null); // valid Hugo page, but not a wiki key
+      expect(wikiKeyForHref('nope/'), null);
+      expect(wikiKeyForHref(''), null);
+    });
+  });
 }

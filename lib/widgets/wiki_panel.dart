@@ -24,6 +24,10 @@ class _WikiPanelState extends State<WikiPanel> {
   String _key = '';
   Future<String>? _content;
 
+  /// When pinned, the panel stays on the user-chosen page and stops following
+  /// app screen changes. Auto-enabled when the user taps an internal wiki link.
+  bool _pinned = false;
+
   @override
   void initState() {
     super.initState();
@@ -37,7 +41,17 @@ class _WikiPanelState extends State<WikiPanel> {
     super.dispose();
   }
 
-  void _onRouteChanged() => setState(_sync);
+  void _onRouteChanged() {
+    if (_pinned) return; // user is reading a pinned page; don't yank it away
+    setState(_sync);
+  }
+
+  void _togglePin() {
+    setState(() {
+      _pinned = !_pinned;
+      if (!_pinned) _sync(); // back to mirroring: resync to the current screen
+    });
+  }
 
   void _sync() {
     // Use go_router's RESOLVED location, not the raw platform URI. Under the
@@ -62,33 +76,79 @@ class _WikiPanelState extends State<WikiPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
+    // Material ancestor: the panel is a sibling of the app navigator (see
+    // main.dart `_withDesktopWiki`), so it has no Scaffold/Material of its own —
+    // the toolbar button would assert without this.
+    return Material(
       color: MonoPulseColors.surface,
-      child: FutureBuilder<String>(
-        future: _content,
-        builder: (context, snap) {
-          if (!snap.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return Markdown(
-            data: snap.data!,
-            padding: const EdgeInsets.all(MonoPulseSpacing.xl),
-            styleSheet: MarkdownStyleSheet(
-              h1: MonoPulseTypography.headlineSmall
-                  .copyWith(color: MonoPulseColors.textPrimary),
-              p: MonoPulseTypography.bodyMedium
-                  .copyWith(color: MonoPulseColors.textSecondary),
-              listBullet: MonoPulseTypography.bodyMedium
-                  .copyWith(color: MonoPulseColors.textSecondary),
-              a: const TextStyle(color: MonoPulseColors.accentOrange),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: _togglePin,
+                  icon: Icon(
+                    _pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                    size: 16,
+                  ),
+                  label: Text(_pinned ? 'Pinned' : 'Following app'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: _pinned
+                        ? MonoPulseColors.accentOrange
+                        : MonoPulseColors.textSecondary,
+                  ),
+                ),
+              ],
             ),
-            onTapLink: (text, href, title) {
-              if (href != null) {
-                launchUrl(Uri.parse(href), mode: LaunchMode.externalApplication);
-              }
-            },
-          );
-        },
+          ),
+          Expanded(
+            child: FutureBuilder<String>(
+              future: _content,
+              builder: (context, snap) {
+                if (!snap.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return Markdown(
+                  data: snap.data!,
+                  padding: const EdgeInsets.all(MonoPulseSpacing.xl),
+                  styleSheet: MarkdownStyleSheet(
+                    h1: MonoPulseTypography.headlineSmall
+                        .copyWith(color: MonoPulseColors.textPrimary),
+                    p: MonoPulseTypography.bodyMedium
+                        .copyWith(color: MonoPulseColors.textSecondary),
+                    listBullet: MonoPulseTypography.bodyMedium
+                        .copyWith(color: MonoPulseColors.textSecondary),
+                    a: const TextStyle(color: MonoPulseColors.accentOrange),
+                  ),
+                  onTapLink: (text, href, title) {
+                    if (href == null) return;
+                    final key = wikiKeyForHref(href);
+                    if (key != null) {
+                      // Internal wiki link → swap panel content in place and pin
+                      // so changing app screens won't yank the page away.
+                      setState(() {
+                        _pinned = true;
+                        _key = key;
+                        _content = _load(key);
+                      });
+                    } else {
+                      // External/unknown → new tab; resolve relative links
+                      // against the current URL so `../faq/` etc. still work.
+                      launchUrl(
+                        Uri.base.resolve(href),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
