@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
@@ -189,12 +190,22 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 _buildInfoChip(
                   icon: Icons.people_outline,
                   label: '${_band.members.length} members',
+                  onTap: () => context.pushNamed(
+                    'band-members',
+                    pathParameters: {'id': _band.id},
+                    extra: _band,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 if (_band.inviteCode != null && _band.inviteCode!.isNotEmpty)
                   _buildInfoChip(
                     icon: Icons.qr_code,
                     label: 'Invite: ${_band.inviteCode}',
+                    onTap: () => context.pushNamed(
+                      'band-invite',
+                      pathParameters: {'id': _band.id},
+                      extra: _band,
+                    ),
                   ),
               ],
             ),
@@ -204,8 +215,12 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     );
   }
 
-  Widget _buildInfoChip({required IconData icon, required String label}) {
-    return Container(
+  Widget _buildInfoChip({
+    required IconData icon,
+    required String label,
+    VoidCallback? onTap,
+  }) {
+    final chip = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrangeSubtle,
@@ -223,8 +238,19 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
+          if (onTap != null) ...[
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right,
+                size: 16, color: MonoPulseColors.accentOrange),
+          ],
         ],
       ),
+    );
+    if (onTap == null) return chip;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
+      child: chip,
     );
   }
 

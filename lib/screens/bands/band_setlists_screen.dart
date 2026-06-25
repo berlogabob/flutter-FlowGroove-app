@@ -8,6 +8,7 @@ import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
 import '../../theme/mono_pulse_theme.dart';
@@ -266,16 +267,16 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
               onPressed: () => _editSetlist(setlist),
             ),
           _SetlistIconAction(
-            icon: Icons.link,
-            tooltip: 'Copy links',
+            icon: Icons.av_timer,
+            tooltip: 'Open in metronome',
             color: MonoPulseColors.textSecondary,
-            onPressed: () => _shareAsLinks(setlist),
+            onPressed: () => _openInMetronome(setlist),
           ),
-          _SetlistIconAction(
-            icon: Icons.picture_as_pdf,
-            tooltip: 'Export PDF',
-            color: MonoPulseColors.error,
-            onPressed: () => _exportPdf(setlist),
+          OverflowMenuAction(
+            entries: [
+              ('Copy links', Icons.link, () => _shareAsLinks(setlist)),
+              ('Export PDF', Icons.picture_as_pdf, () => _exportPdf(setlist)),
+            ],
           ),
         ];
       },
@@ -289,6 +290,20 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
         .map((songId) => songsById[songId])
         .whereType<Song>()
         .toList();
+  }
+
+  void _openInMetronome(Setlist setlist) {
+    final songs = _songsForSetlist(setlist);
+    final loaded = ref
+        .read(metronomeProvider.notifier)
+        .loadSetlistQueue(setlist, availableSongs: songs, sourceBandId: widget.band.id);
+    if (!loaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This setlist is empty or has unavailable songs.')),
+      );
+      return;
+    }
+    context.goNamed('metronome');
   }
 
   Future<void> _exportPdf(Setlist setlist) async {

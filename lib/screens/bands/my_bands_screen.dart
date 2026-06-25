@@ -114,6 +114,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   /// Handle band reordering (manual sort mode).
   void _handleReorder(int oldIndex, int newIndex) {
+    // Displayed indices only map onto _manualOrder in manual mode with no
+    // active search filter; otherwise a reorder would corrupt the saved order.
+    if (_sortOption != SortOption.manual || _searchQuery.trim().isNotEmpty) {
+      return;
+    }
     // Update manual order when reordering (same as songs_list_screen.dart)
     if (_manualOrder != null &&
         oldIndex >= 0 &&
@@ -136,9 +141,12 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   /// Handle band deletion with confirmation.
   Future<bool> _handleDelete(int index) async {
     final bands = ref.read(bandsProvider).value;
-    if (bands == null || index >= bands.length) return false;
+    if (bands == null) return false;
+    // Resolve via the same filtered/sorted list the UI shows, not the raw list.
+    final adapters = _filterAndSortBands(bands);
+    if (index >= adapters.length) return false;
 
-    final band = bands[index];
+    final band = adapters[index].band;
     final confirmed = await ConfirmationDialog.showDeleteDialog(
       context,
       title: 'Leave Band',
@@ -192,9 +200,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   /// Handle band edit - navigate to edit screen.
   void _handleEdit(int index) {
     final bands = ref.read(bandsProvider).value;
-    if (bands == null || index >= bands.length) return;
+    if (bands == null) return;
+    final adapters = _filterAndSortBands(bands);
+    if (index >= adapters.length) return;
 
-    final band = bands[index];
+    final band = adapters[index].band;
     context.pushNamed(
       'edit-band',
       pathParameters: {'id': band.id},
@@ -205,9 +215,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   /// Handle band tap - navigate to the band screen.
   void _handleTap(int index) {
     final bands = ref.read(bandsProvider).value;
-    if (bands == null || index >= bands.length) return;
+    if (bands == null) return;
+    final adapters = _filterAndSortBands(bands);
+    if (index >= adapters.length) return;
 
-    final band = bands[index];
+    final band = adapters[index].band;
     context.goNamed('the-band', pathParameters: {'id': band.id}, extra: band);
   }
 

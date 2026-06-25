@@ -576,19 +576,19 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     );
   }
 
-  /// Handle edit members - navigate to band about screen
+  /// Handle edit members - navigate to the band members screen
   void _handleEditMembers() {
     context.goNamed(
-      'band-about',
+      'band-members',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
     );
   }
 
-  /// Handle add member - navigate to band about screen for member management
+  /// Handle add member - go straight to the invite/share screen
   void _handleAddMember() {
     context.goNamed(
-      'band-about',
+      'band-invite',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
     );

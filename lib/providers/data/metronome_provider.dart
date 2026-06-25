@@ -253,6 +253,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     Setlist setlist, {
     List<Song>? availableSongs,
     String? sourceBandId,
+    int startIndex = 0,
   }) {
     if (setlist.songIds.isEmpty) return false;
 
@@ -274,17 +275,18 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     if (queue.any((song) => song == null)) return false;
 
     final resolvedQueue = queue.cast<Song>();
+    final index = startIndex.clamp(0, resolvedQueue.length - 1);
     state = state.copyWith(
       loadedSong: null,
       loadedSetlist: setlist,
       loadedSetlistSongs: List.unmodifiable(resolvedQueue),
       sourceBandId: sourceBandId,
-      currentSetlistIndex: 0,
+      currentSetlistIndex: index,
       bpmSource: BpmSource.setlist,
       activePresetId: null,
       activePresetName: null,
     );
-    _applySongSettings(resolvedQueue.first, resetPhase: true);
+    _applySongSettings(resolvedQueue[index], resetPhase: true);
     return true;
   }
 

@@ -7,6 +7,7 @@ import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/data/metronome_provider.dart';
 import '../../services/export/pdf_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/empty_state.dart';
@@ -225,21 +226,49 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       onTap: _handleTap,
       onEdit: _handleEdit,
       additionalActionsBuilder: (index) {
+        final setlist = adapters[index].setlist;
         return [
-          _PdfExportAction(
-            onPressed: () => _exportPdf(adapters[index].setlist),
+          IconAction(
+            icon: Icons.av_timer,
+            tooltip: 'Open in metronome',
+            color: MonoPulseColors.textSecondary,
+            onPressed: () => _openInMetronome(setlist),
+          ),
+          OverflowMenuAction(
+            entries: [
+              ('Copy links', Icons.link, () => _copyLinks(setlist)),
+              ('Export PDF', Icons.picture_as_pdf, () => _exportPdf(setlist)),
+            ],
           ),
         ];
       },
     );
   }
 
+  List<Song> _songsForSetlist(Setlist setlist) {
+    final allSongs = ref.read(songsProvider).value ?? [];
+    return allSongs.where((s) => setlist.songIds.contains(s.id)).toList();
+  }
+
+  void _openInMetronome(Setlist setlist) {
+    final loaded = ref
+        .read(metronomeProvider.notifier)
+        .loadSetlistQueue(setlist, availableSongs: _songsForSetlist(setlist));
+    if (!loaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This setlist is empty or has unavailable songs.')),
+      );
+      return;
+    }
+    context.goNamed('metronome');
+  }
+
+  void _copyLinks(Setlist setlist) {
+    _shareAsLinks(context, setlist, _songsForSetlist(setlist));
+  }
+
   Future<void> _exportPdf(Setlist setlist) async {
-    final songsAsync = ref.read(songsProvider);
-    final allSongs = songsAsync.value ?? [];
-    final setlistSongs = allSongs
-        .where((s) => setlist.songIds.contains(s.id))
-        .toList();
+    final setlistSongs = _songsForSetlist(setlist);
     try {
       await PdfService.exportSetlist(setlist, setlistSongs);
     } catch (e) {
@@ -249,55 +278,6 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
-  }
-
-  void _showExportOptions(
-    BuildContext context,
-    WidgetRef ref,
-    Setlist setlist,
-  ) {
-    final songsAsync = ref.read(songsProvider);
-    final allSongs = songsAsync.value ?? [];
-    final setlistSongs = allSongs
-        .where((s) => setlist.songIds.contains(s.id))
-        .toList();
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: const Text('Export as PDF'),
-              subtitle: const Text('Generate printable PDF document'),
-              onTap: () async {
-                Navigator.pop(context);
-                try {
-                  await PdfService.exportSetlist(setlist, setlistSongs);
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                  }
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.link),
-              title: const Text('Share as Links'),
-              subtitle: const Text('Copy song links to share'),
-              onTap: () {
-                Navigator.pop(context);
-                _shareAsLinks(context, setlist, setlistSongs);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   void _shareAsLinks(BuildContext context, Setlist setlist, List<Song> songs) {
@@ -321,23 +301,6 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Setlist links copied to clipboard!')),
-    );
-  }
-}
-
-class _PdfExportAction implements UnifiedItemAction {
-  _PdfExportAction({this.onPressed});
-  final VoidCallback? onPressed;
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(
-        Icons.picture_as_pdf,
-        size: 20,
-        color: MonoPulseColors.error,
-      ),
-      onPressed: onPressed,
-      tooltip: 'Export PDF',
     );
   }
 }

@@ -9,6 +9,7 @@ import '../../models/song.dart';
 import '../../models/tuner_launch_context.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/data/metronome_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -357,7 +358,30 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
+              // Date / place / description collapsed by default to keep the
+              // top of the screen compact; name stays visible above.
+              Theme(
+                data: Theme.of(context)
+                    .copyWith(dividerColor: MonoPulseColors.transparent),
+                child: ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  childrenPadding: EdgeInsets.zero,
+                  title: const Text('Event details (optional)'),
+                  subtitle: _eventDate != null || _eventLocationController.text.isNotEmpty
+                      ? Text(
+                          [
+                            if (_eventDate != null)
+                              '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}',
+                            if (_eventLocationController.text.trim().isNotEmpty)
+                              _eventLocationController.text.trim(),
+                          ].join(' · '),
+                          style: MonoPulseTypography.bodySmall.copyWith(
+                            color: MonoPulseColors.textTertiary,
+                          ),
+                        )
+                      : null,
+                  children: [
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Container(
@@ -424,6 +448,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 decoration: const InputDecoration(labelText: 'Description'),
                 maxLines: 2,
                 onChanged: (_) => _markAsChanged(),
+              ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -501,8 +528,25 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   },
                   itemBuilder: (context, index) {
                     final song = _selectedSongs[index];
-                    return Card(
+                    return Dismissible(
                       key: ValueKey(song.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
+                        padding: const EdgeInsets.only(right: 20),
+                        decoration: BoxDecoration(
+                          color: MonoPulseColors.error,
+                          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                        ),
+                        child: const Icon(Icons.delete, color: MonoPulseColors.textPrimary),
+                      ),
+                      onDismissed: (_) => setState(() {
+                        _selectedSongs.removeAt(index);
+                        _selectedItems.removeAt(index);
+                        _markAsChanged();
+                      }),
+                      child: Card(
                       margin: const EdgeInsets.only(
                         bottom: MonoPulseSpacing.md,
                       ),
@@ -581,15 +625,13 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                               onPressed: () => _openTunerForItem(index),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close, size: 20),
-                              onPressed: () => setState(() {
-                                _selectedSongs.removeAt(index);
-                                _selectedItems.removeAt(index);
-                                _markAsChanged();
-                              }),
+                              icon: const Icon(Icons.av_timer, size: 20),
+                              tooltip: 'Open in metronome',
+                              onPressed: () => _openInMetronome(index),
                             ),
                           ],
                         ),
+                      ),
                       ),
                     );
                   },
@@ -606,6 +648,28 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
         ),
       ),
     );
+  }
+
+  void _openInMetronome(int index) {
+    if (index < 0 || index >= _selectedSongs.length) return;
+    // Build a draft from current (possibly unsaved) state so the metronome
+    // loads exactly what's on screen, positioned at the tapped song.
+    final draft = Setlist(
+      id: _setlistId,
+      bandId: _effectiveBandId ?? '',
+      name: _nameController.text.trim(),
+      songIds: _selectedSongs.map((value) => value.id).toList(),
+      items: _selectedItems,
+      createdAt: widget.setlist?.createdAt ?? DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    final loaded = ref.read(metronomeProvider.notifier).loadSetlistQueue(
+          draft,
+          availableSongs: _selectedSongs,
+          sourceBandId: _effectiveBandId,
+          startIndex: index,
+        );
+    if (loaded) context.goNamed('metronome');
   }
 
   Future<void> _openTunerForItem(int index) async {

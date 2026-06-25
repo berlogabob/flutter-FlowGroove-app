@@ -14,6 +14,8 @@ import '../providers/data/data_providers.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/bands/band_about_screen.dart';
+import '../screens/bands/band_invite_screen.dart';
+import '../screens/bands/band_members_screen.dart';
 import '../screens/bands/band_setlists_screen.dart';
 import '../screens/bands/band_songs_screen.dart';
 import '../screens/bands/create_band_screen.dart';
@@ -328,6 +330,24 @@ List<RouteBase> _buildAppRoutes() {
                     bandId: state.pathParameters['id'],
                     extra: state.extra as Band?,
                     builder: (band) => BandAboutScreen(band: band),
+                  ),
+                ),
+                GoRoute(
+                  path: ':id/invite',
+                  name: 'band-invite',
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    extra: state.extra as Band?,
+                    builder: (band) => BandInviteScreen(band: band),
+                  ),
+                ),
+                GoRoute(
+                  path: ':id/members',
+                  name: 'band-members',
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    extra: state.extra as Band?,
+                    builder: (band) => BandMembersScreen(band: band),
                   ),
                 ),
               ],
