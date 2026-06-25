@@ -64,6 +64,56 @@ void main() {
     });
   });
 
+  group('noise robustness', () {
+    // Mid-range strings/notes should survive moderate noise within ±5 cents.
+    for (final frequency in <double>[82.4069, 110, 329.6276, 440]) {
+      test('${frequency.toStringAsFixed(1)} Hz at ~20 dB SNR within ±5 cents',
+          () {
+        final result = PitchAnalysisResult.fromMap(
+          analysePitchFrame(<String, Object?>{
+            'bytes': _noisySine(frequency, noiseAmplitude: 0.03),
+            'sampleRate': 44100.0,
+            'noiseFloorDb': -55.0,
+            'minFrequency': 35.0,
+            'maxFrequency': 2100.0,
+          }),
+        );
+
+        expect(result.frequencyHz, isNotNull, reason: 'lost under noise');
+        expect(_centsBetween(result.frequencyHz!, frequency).abs(), lessThan(5));
+      });
+    }
+
+    test('pure noise returns no pitch', () {
+      final result = PitchAnalysisResult.fromMap(
+        analysePitchFrame(<String, Object?>{
+          'bytes': _noisySine(0, amplitude: 0, noiseAmplitude: 0.3),
+          'sampleRate': 44100.0,
+          'noiseFloorDb': -55.0,
+          'minFrequency': 35.0,
+          'maxFrequency': 2100.0,
+        }),
+      );
+
+      expect(result.frequencyHz, isNull);
+    });
+
+    test('bass E1 with bass-only range stays on the fundamental', () {
+      final result = PitchAnalysisResult.fromMap(
+        analysePitchFrame(<String, Object?>{
+          'bytes': _sineWave(41.2034, sampleRate: 44100),
+          'sampleRate': 44100.0,
+          'noiseFloorDb': -55.0,
+          'minFrequency': 35.0,
+          'maxFrequency': 400.0,
+        }),
+      );
+
+      expect(result.frequencyHz, isNotNull);
+      expect((result.frequencyHz! - 41.2034).abs() / 41.2034, lessThan(0.03));
+    });
+  });
+
   group('note math', () {
     test('uses base-2 pitch conversion', () {
       expect(TunerNoteMath.midiForFrequency(440, 440), 69);
@@ -86,6 +136,25 @@ Uint8List _sineWave(double frequency, {required int sampleRate}) {
   for (var index = 0; index < sampleCount; index++) {
     final value = math.sin(2 * math.pi * frequency * index / sampleRate);
     data.setInt16(index * 2, (value * 28000).round(), Endian.little);
+  }
+  return bytes;
+}
+
+Uint8List _noisySine(
+  double frequency, {
+  double amplitude = 0.3,
+  double noiseAmplitude = 0,
+  int seed = 7,
+}) {
+  const sampleCount = 4096;
+  final rng = math.Random(seed);
+  final bytes = Uint8List(sampleCount * 2);
+  final data = ByteData.sublistView(bytes);
+  for (var index = 0; index < sampleCount; index++) {
+    var value = amplitude * math.sin(2 * math.pi * frequency * index / 44100);
+    if (noiseAmplitude > 0) value += noiseAmplitude * (rng.nextDouble() * 2 - 1);
+    data.setInt16(index * 2, (value.clamp(-1.0, 1.0) * 32767).round(),
+        Endian.little);
   }
   return bytes;
 }

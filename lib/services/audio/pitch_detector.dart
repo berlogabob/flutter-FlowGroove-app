@@ -165,6 +165,8 @@ class PitchDetector {
   bool _isListening = false;
   bool _disposed = false;
   double _noiseFloorDb = -55;
+  double _minFrequency = 35;
+  double _maxFrequency = 2100;
   DateTime? _signalStartedAt;
   DateTime _lastEmission = DateTime.fromMillisecondsSinceEpoch(0);
 
@@ -179,6 +181,19 @@ class PitchDetector {
   void setSensitivity(double sensitivity) {
     final normalized = sensitivity.clamp(0.0, 100.0) / 100;
     _noiseFloorDb = -40 - (30 * normalized);
+  }
+
+  /// Narrow detection to the active instrument's range so bass octaves and
+  /// high-string overtones don't drag the estimate. Falls back to the full
+  /// 35–2100 Hz window for chromatic/voice when [min]/[max] are out of order.
+  void setFrequencyRange(double min, double max) {
+    if (max <= min || min < 20 || max > 5000) {
+      _minFrequency = 35;
+      _maxFrequency = 2100;
+      return;
+    }
+    _minFrequency = min;
+    _maxFrequency = max;
   }
 
   Future<TunerPermissionState> permissionStatus() {
@@ -256,8 +271,8 @@ class PitchDetector {
       'bytes': frame,
       'sampleRate': sampleRate,
       'noiseFloorDb': _noiseFloorDb,
-      'minFrequency': 35.0,
-      'maxFrequency': 2100.0,
+      'minFrequency': _minFrequency,
+      'maxFrequency': _maxFrequency,
     });
     if (!_isListening) return;
 

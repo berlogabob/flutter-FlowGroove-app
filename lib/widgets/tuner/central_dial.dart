@@ -62,8 +62,12 @@ class CentralDial extends ConsumerWidget {
                   isListening: state.isListening,
                   isStarting: state.isStarting,
                   signalLabel: switch (state.signalState.name) {
-                    'noSignal' => 'No signal',
-                    'unstable' => 'Hold the note steady',
+                    // Below the noise floor but with audible input → ask for
+                    // a louder note rather than implying nothing is heard.
+                    'noSignal' => state.inputLevelDb > -70
+                        ? 'Too quiet — play one note louder'
+                        : 'Play a note',
+                    'unstable' => 'Let the note ring',
                     _ => 'Tap Listen to start',
                   },
                   targetNoteIndex: state.mode == TunerMode.listen

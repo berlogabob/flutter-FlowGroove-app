@@ -463,6 +463,7 @@ class TunerNotifier extends Notifier<TunerState> {
     }
     try {
       _resetStability();
+      _applyDetectionRange();
       await _pitchDetector.startListening();
       state = state.copyWith(
         isListening: true,
@@ -703,7 +704,36 @@ class TunerNotifier extends Notifier<TunerState> {
       selectedTuning: tuning,
       manualTargetStringIndex: null,
     );
+    _applyDetectionRange();
     _rememberPreset(instrument, tuning);
+  }
+
+  /// Narrow pitch detection to the selected tuning's note span (with margins)
+  /// so bass octaves and high-string overtones don't pull the estimate. Tunings
+  /// with fewer than two notes (chromatic/voice) keep the full default window.
+  void _applyDetectionRange() {
+    final notes = state.selectedTuning?.notes ?? const <String>[];
+    if (notes.length < 2) {
+      _pitchDetector.setFrequencyRange(35, 2100);
+      return;
+    }
+    try {
+      var lowest = double.infinity;
+      var highest = 0.0;
+      for (final note in notes) {
+        final freq = TunerNoteMath.frequencyForNote(note, state.referenceA4);
+        if (freq < lowest) lowest = freq;
+        if (freq > highest) highest = freq;
+      }
+      // ponytail: −3 / +12 semitone margins are a comfort knob; widen if real
+      // instruments clip at the edges.
+      _pitchDetector.setFrequencyRange(
+        lowest * math.pow(2, -3 / 12),
+        highest * 2,
+      );
+    } catch (_) {
+      _pitchDetector.setFrequencyRange(35, 2100);
+    }
   }
 
   void selectTuning(Tuning tuning) {
@@ -718,6 +748,7 @@ class TunerNotifier extends Notifier<TunerState> {
       unawaited(_preferences.saveReferenceHz(preset.referenceHz));
       unawaited(_preferences.saveTolerance(preset.centsTolerance));
     }
+    _applyDetectionRange();
     final instrument = state.selectedInstrument;
     if (instrument != null) _rememberPreset(instrument, tuning);
   }
