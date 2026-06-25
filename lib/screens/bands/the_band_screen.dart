@@ -576,10 +576,12 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     );
   }
 
-  /// Handle edit members - navigate to the band members screen
+  /// Handle edit members - navigate to band about screen (member management
+  /// lives there: role changes, remove, etc.). The read-only band-members
+  /// screen is reached via the members chip on the About screen.
   void _handleEditMembers() {
     context.goNamed(
-      'band-members',
+      'band-about',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
     );

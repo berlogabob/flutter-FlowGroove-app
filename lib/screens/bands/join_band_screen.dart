@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../services/secure_storage_service.dart';
 import '../../theme/mono_pulse_theme.dart';
@@ -85,6 +86,16 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
   }
 
   Future<void> _joinBand() async {
+    // The demo account is shared and read-only; it must never become a member
+    // of a real band. Server-side join rules are the real boundary, but block
+    // it here too so the demo UI can't even attempt it.
+    if (ref.read(isDemoUserProvider)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Demo accounts cannot join bands. Sign up to join.')),
+      );
+      return;
+    }
+
     final userAsync = ref.read(currentUserProvider);
     final user = userAsync.value;
 
@@ -177,6 +188,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
   Widget build(BuildContext context) {
     final userAsync = ref.watch(currentUserProvider);
     final isLoggedIn = userAsync.value != null;
+    final isDemo = ref.watch(isDemoUserProvider);
 
     return Scaffold(
       appBar: CustomAppBar.buildSimple(context, title: 'Join Band'),
@@ -262,7 +274,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                   // Join button (if band is loaded)
                   if (_band != null) ...[
                     ElevatedButton(
-                      onPressed: _isLoading ? null : _joinBand,
+                      onPressed: (_isLoading || isDemo) ? null : _joinBand,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: MonoPulseColors.accentOrange,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -272,7 +284,16 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                           : Text(isLoggedIn ? 'Join Band' : 'Login to Join'),
                     ),
 
-                    if (!isLoggedIn) ...[
+                    if (isDemo) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        'Demo accounts cannot join bands. Sign up to join.',
+                        style: MonoPulseTypography.bodySmall.copyWith(
+                          color: MonoPulseColors.textTertiary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ] else if (!isLoggedIn) ...[
                       const SizedBox(height: 16),
                       Text(
                         'You need to create an account to join this band',

@@ -45,6 +45,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   List<SetlistItem> _selectedItems = [];
   bool _hasUnsavedChanges = false;
   bool _isSaving = false;
+  bool _showEventDetails = false;
 
   bool get _isEditing => widget.setlist != null;
   bool get _isBandScope => widget.storageScope == SetlistStorageScope.band;
@@ -347,41 +348,39 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           child: ListView(
             padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Setlist Name *',
-                  prefixIcon: Icon(Icons.queue_music),
-                ),
-                textInputAction: TextInputAction.next,
-                onChanged: (_) => _markAsChanged(),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              // Name + the expand/collapse arrow share one row; event details
+              // (date/place/description) reveal below when expanded.
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Setlist Name *',
+                        prefixIcon: Icon(Icons.queue_music),
+                      ),
+                      textInputAction: TextInputAction.next,
+                      onChanged: (_) => _markAsChanged(),
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: _showEventDetails
+                        ? 'Hide event details'
+                        : 'Show event details',
+                    icon: Icon(
+                      _showEventDetails ? Icons.expand_less : Icons.expand_more,
+                      color: MonoPulseColors.textSecondary,
+                    ),
+                    onPressed: () => setState(
+                      () => _showEventDetails = !_showEventDetails,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              // Date / place / description collapsed by default to keep the
-              // top of the screen compact; name stays visible above.
-              Theme(
-                data: Theme.of(context)
-                    .copyWith(dividerColor: MonoPulseColors.transparent),
-                child: ExpansionTile(
-                  tilePadding: EdgeInsets.zero,
-                  childrenPadding: EdgeInsets.zero,
-                  title: const Text('Event details (optional)'),
-                  subtitle: _eventDate != null || _eventLocationController.text.isNotEmpty
-                      ? Text(
-                          [
-                            if (_eventDate != null)
-                              '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}',
-                            if (_eventLocationController.text.trim().isNotEmpty)
-                              _eventLocationController.text.trim(),
-                          ].join(' · '),
-                          style: MonoPulseTypography.bodySmall.copyWith(
-                            color: MonoPulseColors.textTertiary,
-                          ),
-                        )
-                      : null,
-                  children: [
+              if (_showEventDetails) ...[
+                const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Container(
@@ -449,9 +448,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                 maxLines: 2,
                 onChanged: (_) => _markAsChanged(),
               ),
-                  ],
-                ),
-              ),
+              ],
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
