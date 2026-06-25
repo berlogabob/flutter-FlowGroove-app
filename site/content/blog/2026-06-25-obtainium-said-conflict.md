@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T21:00:00+01:00'
-draft: false
+draft: true
 slug: obtainium-said-conflict
 summary: "Users updating the app through Obtainium kept hitting \"Conflict.\" The cause was that every CI build signed itself with a different random key."
 tags:

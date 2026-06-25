@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T21:30:00+01:00'
-draft: false
+draft: true
 slug: posting-the-devlog-everywhere
 summary: "Writing a devlog is half the work; getting it seen is the other half. A tiny CLI pushes posts to Telegram, and a Devvit bot crossposts to Reddit."
 tags:

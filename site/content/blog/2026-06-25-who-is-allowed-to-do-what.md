@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T18:30:00+01:00'
-draft: false
+draft: true
 slug: who-is-allowed-to-do-what
 summary: "Letting clients write band membership directly is how you end up with someone adding themselves as admin. Membership moved to the server, where it belongs."
 tags:

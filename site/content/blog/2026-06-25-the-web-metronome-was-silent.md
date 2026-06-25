@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T07:00:00+01:00'
-draft: false
+draft: true
 slug: the-web-metronome-was-silent
 summary: "The metronome worked perfectly on Android and made zero sound on the web. The audio library simply had no web in it."
 tags:

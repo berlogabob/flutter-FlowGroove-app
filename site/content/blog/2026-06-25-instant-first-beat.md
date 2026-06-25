@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T08:00:00+01:00'
-draft: false
+draft: true
 slug: instant-first-beat
 summary: "Hit play and the very first beat was a hair late. Fixing it meant doing the slow work before you ever press the button."
 tags:

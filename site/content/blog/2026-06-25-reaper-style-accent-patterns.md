@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T07:15:00+01:00'
-draft: false
+draft: true
 slug: reaper-style-accent-patterns
 summary: "A metronome that only goes \"tick tick tick\" is useless for anything in 7/8. Stealing the accent grid from a DAW fixed that."
 tags:

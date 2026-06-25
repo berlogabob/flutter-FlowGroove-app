@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T07:30:00+01:00'
-draft: false
+draft: true
 slug: the-tone-matrix
 summary: "Accents tell you which beats are loud. The Tone Matrix lets each beat have its own voice — and it's the feature I'm quietly proudest of."
 tags:

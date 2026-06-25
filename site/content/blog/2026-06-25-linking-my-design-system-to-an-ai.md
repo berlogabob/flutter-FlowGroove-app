@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T22:45:00+01:00'
-draft: false
+draft: true
 slug: linking-my-design-system-to-an-ai
 summary: "An AI that doesn't know your design system invents its own. I connected mine so the help it gives stays on-brand instead of generically off."
 tags:

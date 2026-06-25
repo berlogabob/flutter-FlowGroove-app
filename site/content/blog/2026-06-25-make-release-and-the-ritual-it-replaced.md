@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T20:30:00+01:00'
-draft: false
+draft: true
 slug: make-release-and-the-ritual-it-replaced
 summary: "Releasing used to be a sequence of steps I'd half-remember at midnight. Now it's one command — and a hook that stops me leaking secrets."
 tags:

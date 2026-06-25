@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T08:30:00+01:00'
-draft: false
+draft: true
 slug: readable-on-a-dark-stage
 summary: "Stages are dark and you're looking from three meters away. The metronome's visual polish is really about being readable at a glance."
 tags:

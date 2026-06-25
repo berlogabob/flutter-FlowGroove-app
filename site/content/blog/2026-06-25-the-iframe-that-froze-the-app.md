@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T12:00:00+01:00'
-draft: false
+draft: true
 slug: the-iframe-that-froze-the-app
 summary: "Embedding the help docs inside the web app seemed obvious. It quietly froze the entire interface — here's why, and what I did instead."
 tags:

@@ -133,9 +133,16 @@ def find_why(subject):
     return ""
 
 
+# The 2026-06-25 series is written but held as drafts until the coordinated launch
+# (waiting on subreddit approval). Flip to True on launch day, then regenerate.
+SERIES_LIVE = False
+
+
 def find_blog(subject):
     for key, (status, ref) in BLOG.items():
         if key.lower() in subject.lower():
+            if status == "published" and not SERIES_LIVE and "/2026-06-25-" in ref:
+                return "drafted", ref  # written, not yet live
             return status, ref
     return "idea", ""
 

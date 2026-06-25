@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T14:00:00+01:00'
-draft: false
+draft: true
 slug: avatars-that-wouldnt-upload-on-web
 summary: "Profile photo upload worked on Android and silently failed on the web. One method call was the whole difference."
 tags:

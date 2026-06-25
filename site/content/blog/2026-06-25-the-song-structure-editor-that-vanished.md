@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T09:45:00+01:00'
-draft: false
+draft: true
 slug: the-song-structure-editor-that-vanished
 summary: "A whole feature — the song structure editor — quietly disappeared in a release. Nobody removed it on purpose, which is what made it scary."
 tags:

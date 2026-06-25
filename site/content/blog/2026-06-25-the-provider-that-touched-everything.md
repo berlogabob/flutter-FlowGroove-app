@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T15:00:00+01:00'
-draft: false
+draft: true
 slug: the-provider-that-touched-everything
 summary: "I turned the codebase into a graph to ask a simple question — why does one provider connect to thirty other things? — and found coupling I couldn't see by reading files."
 tags:

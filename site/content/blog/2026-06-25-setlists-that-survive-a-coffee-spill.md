@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T18:00:00+01:00'
-draft: false
+draft: true
 slug: setlists-that-survive-a-coffee-spill
 summary: "The whole app started because we lost a paper setlist. So setlists had to be the thing paper never could be — shared, reorderable, and impossible to misplace."
 tags:

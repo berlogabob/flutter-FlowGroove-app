@@ -26,7 +26,7 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-02-19** `v0.9.0+1` ✨ Add Phase 5 completion summary
 - **2026-02-19** `v0.9.0+1` ✨ Add final summaries and MrLogger documentation
 - **2026-02-20** `v0.9.0+1` 🔧 Fix: Permission denied error when adding song to band
-- **2026-02-20** `v0.9.0+1` ✨ Add comprehensive debug and fix tools for permission error ([blog](/blog/permission-denied-on-a-new-account/))
+- **2026-02-20** `v0.9.0+1` ✨ Add comprehensive debug and fix tools for permission error
 - **2026-02-20** `v0.9.0+1` 🔧 Fix: Add null checks to Firestore rules
 - **2026-02-20** `v0.9.0+1` 🔧 Fix: Add to Band button now shows band list
 - **2026-02-20** `v0.9.0+1` ✨ Add deployment complete summary
@@ -53,13 +53,13 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-02-20** `v0.10.0+1` ✨ Add metronome roadmap
 - **2026-02-20** `v0.10.0+1` ✨ feat: Simplify metronome to working MVP
 - **2026-02-20** `v0.10.0+1` 🔧 fix: Add dart:async import for Timer
-- **2026-02-20** `v0.10.0+1` ✨ feat: Add Web Audio API sound synthesis — _flutter_soloud has no web path (silent on web), so web needs the Web Audio engine._ ([blog](/blog/the-web-metronome-was-silent/))
+- **2026-02-20** `v0.10.0+1` ✨ feat: Add Web Audio API sound synthesis — _flutter_soloud has no web path (silent on web), so web needs the Web Audio engine._
 - **2026-02-20** `v0.10.0+1` ✨ feat: Add sound controls to metronome UI
 - **2026-02-20** `v0.10.0+1` 🔧 fix: Remove .toJS from oscillator.type
 - **2026-02-20** `v0.10.0+1` 🔧 fix: Complete all ToDo.md tasks
-- **2026-02-20** `v0.10.0+1` ✨ feat: Phase 3 - Accent Pattern (Reaper DAW style) ([blog](/blog/reaper-style-accent-patterns/))
+- **2026-02-20** `v0.10.0+1` ✨ feat: Phase 3 - Accent Pattern (Reaper DAW style)
 - **2026-02-20** `v0.10.0+1` 🔧 fix: Add _accentPatternController declaration
-- **2026-02-20** `v0.10.1+3` ✨ feat: Metronome Phase 4 - Visual Polish ([blog](/blog/readable-on-a-dark-stage/))
+- **2026-02-20** `v0.10.1+3` ✨ feat: Metronome Phase 4 - Visual Polish
 - **2026-02-20** `v0.10.1+3` ✨ feat: Subdivisions + Tap BPM (Priority 1)
 - **2026-02-21** `v0.10.1+3` ✨ feat: Song Integration + Presets (Priority 1 COMPLETE!)
 - **2026-02-22** `v0.10.1+3` ⚙️ build
@@ -72,7 +72,7 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-02-23** `v0.11.2+35` 🔧 fix: resolve all compilation errors in unified item system
 - **2026-02-23** `v0.11.2+35` 🔧 fix: final compilation fixes in unified item system
 - **2026-02-23** `v0.11.2+35` ✨ feat: integrate unified item system into all list screens
-- **2026-02-23** `v0.11.2+35` 🔧 fix: comprehensive design system audit and fixes ([blog](/blog/linking-my-design-system-to-an-ai/))
+- **2026-02-23** `v0.11.2+35` 🔧 fix: comprehensive design system audit and fixes
 - **2026-02-23** `v0.11.2+35` 🔧 fix: implement critical production-ready features
 - **2026-02-23** `v0.11.2+35` 🔧 fix: resolve all compilation errors
 - **2026-02-23** `v0.11.2+37` 🔧 fix: resolve test compilation errors
@@ -80,7 +80,7 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-02-23** `v0.11.2+38` 🔧 fix: resolve ALL production code warnings
 - **2026-02-23** `v0.11.2+38` 🔧 fix: begin removing dangerous null assertions (!)
 - **2026-02-23** `v0.11.2+40` 🔧 fix: CRITICAL fixes for unified item system
-- **2026-02-24** `v0.11.2+40` 🔧 fix: offline indicator import path ([blog](/blog/real-time-sync-on-bad-wifi/))
+- **2026-02-24** `v0.11.2+40` 🔧 fix: offline indicator import path
 - **2026-02-25** `v0.11.2+69` 🔧 fix: song addition timeout + error handling
 - **2026-02-26** `v0.11.2+69` 🔧 fix: null check operator errors on web
 - **2026-02-26** `v0.11.2+69` 🚀 Deploy web build with null check fixes
@@ -100,7 +100,7 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-02-26** `v0.11.2+69` 🔧 Fix: app_router redirect to use goNamed
 - **2026-02-26** `v0.11.2+69` 🔧 Fix: Unify AppBar across all screens
 - **2026-02-26** `v0.11.2+69` ✨ Feat: Unified custom AppBar across all screens
-- **2026-02-26** `v0.11.2+69` 🔧 Fix: Revert version to 0.11.2+68 ([blog](/blog/the-v1-that-never-was/))
+- **2026-02-26** `v0.11.2+69` 🔧 Fix: Revert version to 0.11.2+68
 - **2026-02-26** `v0.11.2+69` 🔧 Fix: Firebase Auth persistence to keep user logged in
 - **2026-02-26** `v0.11.2+69` 🚀 Deploy: Auth persistence fix (web only)
 - **2026-02-26** `v0.11.2+70` 🔧 Fix: White screen on startup - add error handling
@@ -129,7 +129,7 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-03-11** `v0.13.1+147` 🔧 Revert to working version - fix white screen
 - **2026-03-11** `v0.13.1+147` 🔧 Fix white screen: update docs with correct base-href build
 - **2026-03-11** `v0.13.1+147` ✨ Add deploy-stable command and fix version.json
-- **2026-03-11** `v0.13.1+151` ✨ Add flowgroove.app deployment with FTP and make release-stable command — _Codify the release ritual (Android + GitHub Release) into one command to stop manual mistakes._ ([blog](/blog/two-deploy-channels-one-repo/))
+- **2026-03-11** `v0.13.1+151` ✨ Add flowgroove.app deployment with FTP and make release-stable command — _Codify the release ritual (Android + GitHub Release) into one command to stop manual mistakes._
 - **2026-03-11** `v0.13.1+151` ✨ Add quick setup guide for deployment
 - **2026-03-11** `v0.13.1+151` ✨ Add deployment ready summary
 - **2026-03-11** `v0.13.1+151` ✨ Add Makefile maintenance report
@@ -137,11 +137,11 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 
 ## Tooling + Memory
 
-- **2026-03-14** `v0.13.2+167` ✨ feat: Add Memory System with Mr. Memory agent ([blog](/blog/a-memory-that-survives-clear/))
+- **2026-03-14** `v0.13.2+167` ✨ feat: Add Memory System with Mr. Memory agent
 - **2026-03-14** `v0.13.2+167` ✨ add task files with colors and metronome comparision
 - **2026-03-14** `v0.13.2+167` ✨ add frontmatter for user md files
 - **2026-03-14** `v0.13.2+167` ✨ feat: Auto-update version.json before web build
-- **2026-03-14** `v0.13.2+167` ✨ feat: Add 'make release' command for Android + GitHub Release — _Codify the release ritual (Android + GitHub Release) into one command to stop manual mistakes._ ([blog](/blog/make-release-and-the-ritual-it-replaced/))
+- **2026-03-14** `v0.13.2+167` ✨ feat: Add 'make release' command for Android + GitHub Release — _Codify the release ritual (Android + GitHub Release) into one command to stop manual mistakes._
 - **2026-03-14** `v0.13.2+169` 🔧 fix: Add build-appbundle to release command
 - **2026-03-15** `v0.13.2+170` 🔧 fixed quick actions wigdet
 - **2026-03-15** `v0.13.2+170` 🔧 Fixed! layout Main and Band screens
@@ -155,20 +155,20 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-03-30** `v0.13.3+176` ♻️ refactor: rebuild web app with FlowGroove branding (no RepSync references)
 - **2026-03-30** `v0.13.3+176` ♻️ refactor: update Telegram bot branding to FlowGroove
 - **2026-03-30** `v0.13.4+176` ✨ feat(models): Add autocomplete foundation models (Phase 1 complete)
-- **2026-03-30** `v0.13.4+176` ✨ feat(services): Add MusicBrainz + Song Suggestion services (Phase 2 complete) — _Manual BPM/key entry is where good intentions die — autocomplete fills metadata from a real DB._ ([blog](/blog/pulling-bpm-and-key-from-musicbrainz/))
+- **2026-03-30** `v0.13.4+176` ✨ feat(services): Add MusicBrainz + Song Suggestion services (Phase 2 complete) — _Manual BPM/key entry is where good intentions die — autocomplete fills metadata from a real DB._
 - **2026-03-30** `v0.13.4+176` ✨ feat(ui): Add autocomplete widgets (Phase 3 complete)
 - **2026-03-30** `v0.13.4+176` ✨ feat(backend): Add Firestore backend for canonical songs (Phase 4 complete)
 - **2026-03-30** `v0.13.4+176` ✨ feat(integration): Add Riverpod providers and form integration (Phase 5 partial)
 - **2026-03-30** `v0.13.4+176` ✨ feat(integration): Wire autocomplete into AddSongScreen (Phase 5 progress)
-- **2026-03-30** `v0.13.4+176` ✨ feat(integration): Complete save logic with duplicate detection (Phase 5 complete) — _Canonical songs must dedupe so the shared library doesn't fill with near-identical entries._ ([blog](/blog/canonical-songs-and-the-duplicate-problem/))
+- **2026-03-30** `v0.13.4+176` ✨ feat(integration): Complete save logic with duplicate detection (Phase 5 complete) — _Canonical songs must dedupe so the shared library doesn't fill with near-identical entries._
 - **2026-03-30** `v0.13.4+176` 🔧 fix: Critical error fixes for autocomplete implementation
 - **2026-03-30** `v0.13.4+176` 🔧 fix: Reduce autocomplete errors from 24 to 8
 - **2026-03-30** `v0.13.4+176` 🔧 fix: Fix repository methods and remaining errors
 - **2026-03-30** `v0.13.4+176` 🔧 fix: ZERO autocomplete errors achieved!
-- **2026-03-30** `v0.13.4+176` ✨ feat(phase1): Audio optimizations - vibration sync + focus manager ([blog](/blog/making-the-click-feel-tight/))
-- **2026-03-30** `v0.13.4+176` ✨ feat(phase1): Audio pre-initialization for instant first beat ([blog](/blog/instant-first-beat/))
+- **2026-03-30** `v0.13.4+176` ✨ feat(phase1): Audio optimizations - vibration sync + focus manager
+- **2026-03-30** `v0.13.4+176` ✨ feat(phase1): Audio pre-initialization for instant first beat
 - **2026-03-30** `v0.13.4+176` ✨ feat(phase2): State management optimizations
-- **2026-03-30** `v0.13.4+176` ✨ feat(phase3): Tone Matrix System - Core implementation — _Give the metronome per-beat tone/accent control instead of a single flat click._ ([blog](/blog/the-tone-matrix/))
+- **2026-03-30** `v0.13.4+176` ✨ feat(phase3): Tone Matrix System - Core implementation — _Give the metronome per-beat tone/accent control instead of a single flat click._
 - **2026-03-30** `v0.13.4+176` ✨ feat(phase3): Complete Tone Matrix System with UI — _Give the metronome per-beat tone/accent control instead of a single flat click._
 - **2026-03-30** `v0.13.4+176` ✨ feat(phase4): Add Central Tempo Circle widget
 - **2026-03-30** `v0.13.4+176` ✨ feat(phase4): Add Accent Pattern Editor widget
@@ -196,9 +196,9 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-04-08** `v0.13.4+184` 🔧 fix: track Hugo CSS in git — was blocked by /docs/assets/ gitignore rule
 - **2026-04-08** `v0.13.4+184` 🔧 fix: track Flutter app in docs/app/ — was gitignored, causing 404 on GitHub Pages
 - **2026-04-08** `v0.13.4+184` 🔧 fix: Flutter base href '/app/' → '/flutter-FlowGroove-app/app/' for GitHub Pages project path
-- **2026-04-08** `v0.13.4+184` ✨ feat: transform Hugo into landing page with MonoPulse theme ([blog](/blog/landing-page-and-app-shipping-apart/))
+- **2026-04-08** `v0.13.4+184` ✨ feat: transform Hugo into landing page with MonoPulse theme
 - **2026-04-08** `v0.13.4+184` 🔧 fix: complete project audit cleanup — 6 phases
-- **2026-04-09** `v0.13.4+184` ✨ feat: Phase 2 complete — touch targets, wakelock, BPM API, autocomplete, sync, roles + demo — _Server-authoritative roles + a seeded demo account so 'Try Demo' shows a real, populated band._ ([blog](/blog/concert-mode/))
+- **2026-04-09** `v0.13.4+184` ✨ feat: Phase 2 complete — touch targets, wakelock, BPM API, autocomplete, sync, roles + demo — _Server-authoritative roles + a seeded demo account so 'Try Demo' shows a real, populated band._
 - **2026-04-09** `v0.13.4+184` 🔧 fix: add missing kDebugMode import to metronome_provider — prevents crash on metronome start
 - **2026-04-09** `v0.13.4+184` 🔧 fix: add missing foundation.dart import to metronome_provider + update memory bank
 - **2026-04-15** `v0.13.4+184` 🔧 fix: Hugo landing page — add profile image + update X link
@@ -212,7 +212,7 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 ## Hardening + Wiki/Help
 
 - **2026-05-13** `v0.13.4+184` ✨ Add Firebase emulator integration gate
-- **2026-05-14** `v0.13.4+184` 🔧 Fix band setlist creation flow ([blog](/blog/setlists-that-survive-a-coffee-spill/))
+- **2026-05-14** `v0.13.4+184` 🔧 Fix band setlist creation flow
 - **2026-05-16** `v0.13.4+184` ✨ Add minimal library v2 rules validation
 - **2026-05-16** `v0.13.4+184` ✨ Add ensure canonical callable tests
 - **2026-05-16** `v0.13.4+184` ✨ Add library migration dry run
@@ -222,9 +222,9 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-06-05** `v0.13.4+184` 🔧 fix: clear functions audit gate
 - **2026-06-06** `v0.13.4+185` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-06** `v0.13.4+189` 🔧 Fix Android metronome release audio
-- **2026-06-06** `v0.13.4+189` ✨ feat: add WallClockScheduler with drift compensation — _Metronome drifted over time; wall-clock scheduling with drift compensation keeps it tight._ ([blog](/blog/why-the-metronome-slowly-drifted/))
+- **2026-06-06** `v0.13.4+189` ✨ feat: add WallClockScheduler with drift compensation — _Metronome drifted over time; wall-clock scheduling with drift compensation keeps it tight._
 - **2026-06-06** `v0.13.4+189` ✨ feat: add low-latency MetronomeAudioEngine with flutter_soloud
-- **2026-06-06** `v0.13.4+189` ✨ feat: rewrite playback client with WallClockScheduler and new audio engine — _Metronome drifted over time; wall-clock scheduling with drift compensation keeps it tight._ ([blog](/blog/why-the-metronome-slowly-drifted/))
+- **2026-06-06** `v0.13.4+189` ✨ feat: rewrite playback client with WallClockScheduler and new audio engine — _Metronome drifted over time; wall-clock scheduling with drift compensation keeps it tight._
 - **2026-06-06** `v0.13.4+189` ✨ feat: add drift test and differentiated haptic feedback
 - **2026-06-06** `v0.13.4+189` ♻️ perf: reduce widget rebuilds, fix pulse animation, debounce BPM changes
 - **2026-06-06** `v0.13.4+189` ✨ feat: extend BPM range to 1-600 and fix dial sensitivity
@@ -253,7 +253,7 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-06-15** `v0.13.4+199` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-16** `v0.13.4+200` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-16** `v0.14.0+203` 🚀 deploy: hugo landing + flutter app {
-- **2026-06-16** `v0.14.1+204` 🔧 Fix release Firebase init crash + CI workflow + functions audit ([blog](/blog/the-release-that-crashed-on-launch/))
+- **2026-06-16** `v0.14.1+204` 🔧 Fix release Firebase init crash + CI workflow + functions audit
 - **2026-06-16** `v0.14.1+205` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-17** `v0.14.1+206` ✨ feat(model): add photoURL to Band
 - **2026-06-17** `v0.14.1+206` ✨ feat(model): add photoSource to AppUser
@@ -308,14 +308,14 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-06-22** `v0.14.1+226` 🔧 fix(metronome): recover() only signals deviceChanged when reopen actually succeeds
 - **2026-06-22** `v0.14.1+226` ✨ feat(metronome): audio route monitor (Android AudioDeviceCallback)
 - **2026-06-22** `v0.14.1+226` ✨ feat(metronome): wire unified engine behind enableUnifiedEngine flag
-- **2026-06-22** `v0.14.1+226` 🔧 fix(metronome): route-change handling (no spurious start recover, prompt latency), restore haptics in unified engine ([blog](/blog/silent-on-bluetooth/))
+- **2026-06-22** `v0.14.1+226` 🔧 fix(metronome): route-change handling (no spurious start recover, prompt latency), restore haptics in unified engine
 - **2026-06-22** `v0.14.1+226` ✨ feat(metronome): activate unified sample-accurate engine on Android (enableUnifiedEngine=true)
 - **2026-06-22** `v0.14.1+226` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-22** `v0.14.1+227` 🔧 fix(metronome): use released buffer so playback doesn't stop at ~30s
 - **2026-06-22** `v0.14.1+227` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-22** `v0.14.1+228` ✨ feat(metronome): wave types (sine/square/triangle/sawtooth) + louder clicks
 - **2026-06-22** `v0.14.1+228` 🚀 deploy: hugo landing + flutter app {
-- **2026-06-22** `v0.14.1+231` ♻️ refactor(android): extract metronome engine, decouple from MethodChannel ([blog](/blog/the-provider-that-touched-everything/))
+- **2026-06-22** `v0.14.1+231` ♻️ refactor(android): extract metronome engine, decouple from MethodChannel
 - **2026-06-22** `v0.14.1+231` ✨ feat(android): add metronome foreground service + notification + manifest
 - **2026-06-22** `v0.14.1+231` ✨ feat(android): drive metronome via foreground service, stop killing on pause
 - **2026-06-22** `v0.14.1+231` ✨ feat(metronome): route Android playback through native foreground service
@@ -324,7 +324,7 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-06-22** `v0.14.1+235` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-22** `v0.14.1+235` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-22** `v0.14.1+236` 🚀 deploy: hugo landing + flutter app {
-- **2026-06-22** `v0.14.1+237` 🔧 fix(bands): server-authoritative leave/delete + realtime list sync ([blog](/blog/who-is-allowed-to-do-what/))
+- **2026-06-22** `v0.14.1+237` 🔧 fix(bands): server-authoritative leave/delete + realtime list sync
 - **2026-06-22** `v0.14.1+237` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-23** `v0.14.1+244` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-23** `v0.14.1+245` 🚀 deploy: hugo landing + flutter app {
@@ -333,15 +333,15 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-06-24** `v0.14.1+248` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+249` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+250` ✨ feat(site): stripped embed.html output for in-app docs panel
-- **2026-06-24** `v0.14.1+250` 🔧 fix(avatar): import Google photo server-side; fix profile name overflow — _Avatar diverged (Google on home, Telegram on profile) — make the profile choice authoritative everywhere._ ([blog](/blog/two-faces-one-user/))
+- **2026-06-24** `v0.14.1+250` 🔧 fix(avatar): import Google photo server-side; fix profile name overflow — _Avatar diverged (Google on home, Telegram on profile) — make the profile choice authoritative everywhere._
 - **2026-06-24** `v0.14.1+250` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+251` 🔧 fix(web): point docs panel at flowgroove.app, not stale GitHub Pages
 - **2026-06-24** `v0.14.1+251` ♻️ refactor(web): resolve docs panel URL host-agnostically from Uri.base
 - **2026-06-24** `v0.14.1+251` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+252` 🔧 fix(web): bypass docs iframe — restore app interaction (diagnostic) — _HtmlElementView/iframe freezes the web app; open external content in a new tab instead._
 - **2026-06-24** `v0.14.1+252` 🚀 deploy: hugo landing + flutter app {
-- **2026-06-24** `v0.14.1+253` 🔧 fix(avatar): upload profile photo via putData (web-compatible) — _Avatar diverged (Google on home, Telegram on profile) — make the profile choice authoritative everywhere._ ([blog](/blog/avatars-that-wouldnt-upload-on-web/))
-- **2026-06-24** `v0.14.1+253` ✨ feat(web): docs panel opens Hugo FAQ in a new tab; drop iframe — _HtmlElementView/iframe freezes the web app; open external content in a new tab instead._ ([blog](/blog/the-iframe-that-froze-the-app/))
+- **2026-06-24** `v0.14.1+253` 🔧 fix(avatar): upload profile photo via putData (web-compatible) — _Avatar diverged (Google on home, Telegram on profile) — make the profile choice authoritative everywhere._
+- **2026-06-24** `v0.14.1+253` ✨ feat(web): docs panel opens Hugo FAQ in a new tab; drop iframe — _HtmlElementView/iframe freezes the web app; open external content in a new tab instead._
 - **2026-06-24** `v0.14.1+253` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+254` 🔧 fix(web): render desktop app column as a portrait phone
 - **2026-06-24** `v0.14.1+254` 🚀 deploy: hugo landing + flutter app {
@@ -355,8 +355,8 @@ The full FlowGroove history — **336 notable changes** across **237 releases**,
 - **2026-06-24** `v0.14.2+259` ✨ feat(wiki): desktop split in app builder; confine overlays to left column — _Reuse the same Markdown for site docs and in-app help so they can't drift apart._
 - **2026-06-24** `v0.14.2+259` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.2+260` 🚀 deploy(blog): publish 'in-app help follows the screen' devlog post — _Generic FAQs are useless mid-rehearsal — bundle the Hugo wiki so help matches the current screen._
-- **2026-06-24** `v0.14.2+260` 🔧 fix(blog): track docs/blog post pages that bare index.html rule hid ([blog](/blog/the-blog-posts-that-404d/))
-- **2026-06-25** `v0.14.2+260` ✨ feat(site): custom FlowGroove landing page + real demo screenshots ([blog](/blog/the-demo-account-thats-actually-real/))
+- **2026-06-24** `v0.14.2+260` 🔧 fix(blog): track docs/blog post pages that bare index.html rule hid
+- **2026-06-25** `v0.14.2+260` ✨ feat(site): custom FlowGroove landing page + real demo screenshots
 - **2026-06-25** `v0.14.2+260` 🔧 fix(site): use real FlowGroove logo in landing nav/footer
 - **2026-06-25** `v0.14.2+260` 🔧 fix(wiki): in-panel navigation + mirror/pin toggle for desktop wiki — _Reuse the same Markdown for site docs and in-app help so they can't drift apart._ ([blog](/blog/in-app-help-that-follows-the-screen-you-re-on/))
 - **2026-06-25** `v0.14.2+260` 🚀 deploy: hugo landing + flutter app {

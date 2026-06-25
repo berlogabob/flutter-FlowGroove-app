@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T06:45:00+01:00'
-draft: false
+draft: true
 slug: day-zero-it-was-called-repsync
 summary: "Before it was FlowGroove it was \"repsync\" — a blank Flutter project and a README. Here's day zero."
 tags:

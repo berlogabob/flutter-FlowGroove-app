@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T06:15:00+01:00'
-draft: false
+draft: true
 slug: one-codebase-three-screens
 summary: "A solo dev can't maintain three apps. Picking Flutter was less about love and more about math."
 tags:

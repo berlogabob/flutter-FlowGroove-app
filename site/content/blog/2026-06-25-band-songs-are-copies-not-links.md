@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T09:30:00+01:00'
-draft: false
+draft: true
 slug: band-songs-are-copies-not-links
 summary: "When you add a song to a band, you get your own copy — not a link to a shared original. That was a deliberate call, and it has consequences."
 tags:

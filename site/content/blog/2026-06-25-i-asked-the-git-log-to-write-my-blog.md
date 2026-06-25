@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T23:00:00+01:00'
-draft: false
+draft: true
 slug: i-asked-the-git-log-to-write-my-blog
 summary: "This whole series is mined from the git history by a small pipeline. Here's the machine behind the curtain — the one that turned 876 commits into episodes."
 tags:

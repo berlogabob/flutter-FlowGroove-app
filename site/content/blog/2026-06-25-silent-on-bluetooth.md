@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T07:45:00+01:00'
-draft: false
+draft: true
 slug: silent-on-bluetooth
 summary: "Plug in Bluetooth headphones mid-session and the click goes laggy or silent. The audio engine bound to your speaker once and never looked again."
 tags:

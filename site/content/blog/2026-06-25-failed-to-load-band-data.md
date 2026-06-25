@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T19:00:00+01:00'
-draft: false
+draft: true
 slug: failed-to-load-band-data
 summary: "\"Failed to load band data\" — but only after restarting the app. The band was being passed around in memory and didn't survive a relaunch."
 tags:

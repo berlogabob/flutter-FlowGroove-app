@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T09:15:00+01:00'
-draft: false
+draft: true
 slug: canonical-songs-and-the-duplicate-problem
 summary: "Once songs fill themselves in from a database, you get a new problem: ten slightly different copies of the same song. Here's the dedupe story."
 tags:

@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T08:15:00+01:00'
-draft: false
+draft: true
 slug: making-the-click-feel-tight
 summary: "A metronome that's mathematically on time can still feel loose. Tightness is partly perception — vibration, focus, and what your body feels."
 tags:

@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T22:30:00+01:00'
-draft: false
+draft: true
 slug: turning-a-repo-into-a-knowledge-graph
 summary: "Reading files one at a time tells you what each does. Turning the whole repo into a graph tells you how it's actually shaped — and where the surprises hide."
 tags:

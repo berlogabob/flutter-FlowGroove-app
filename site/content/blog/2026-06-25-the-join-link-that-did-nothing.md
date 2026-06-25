@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T18:45:00+01:00'
-draft: false
+draft: true
 slug: the-join-link-that-did-nothing
 summary: "Tap the invite link, the app opens, and… nothing happens. The fix was all about timing — the app was ready before the user was logged in."
 tags:

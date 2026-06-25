@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T22:00:00+01:00'
-draft: false
+draft: true
 slug: a-memory-that-survives-clear
 summary: "Working with an AI assistant that forgets everything between sessions is exhausting. So I gave it a memory that lives in files and persists."
 tags:

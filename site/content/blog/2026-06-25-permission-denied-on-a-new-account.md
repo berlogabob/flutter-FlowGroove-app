@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T19:15:00+01:00'
-draft: false
+draft: true
 slug: permission-denied-on-a-new-account
 summary: "Brand-new accounts crashed the moment they touched a band. The culprit was a user document that was supposed to exist and didn't."
 tags:

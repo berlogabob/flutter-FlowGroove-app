@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T20:00:00+01:00'
-draft: false
+draft: true
 slug: two-deploy-channels-one-repo
 summary: "One repo, two destinations: a scrappy dev build on GitHub Pages and the real thing on flowgroove.app. Keeping them straight is its own small discipline."
 tags:

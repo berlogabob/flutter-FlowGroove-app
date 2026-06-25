@@ -2,7 +2,7 @@
 categories:
 - story
 date: '2026-06-25T06:00:00+01:00'
-draft: false
+draft: true
 slug: the-tuesday-the-setlist-got-lost
 summary: "Every band app starts with one rehearsal that goes wrong. Here's mine."
 tags:

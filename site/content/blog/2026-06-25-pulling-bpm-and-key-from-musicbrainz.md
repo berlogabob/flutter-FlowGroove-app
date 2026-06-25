@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T09:00:00+01:00'
-draft: false
+draft: true
 slug: pulling-bpm-and-key-from-musicbrainz
 summary: "To fill in song details automatically, the app needed a real music database behind it. Here's wiring up MusicBrainz and a suggestion layer."
 tags:

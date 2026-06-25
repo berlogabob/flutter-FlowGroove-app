@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T22:15:00+01:00'
-draft: false
+draft: true
 slug: lazy-on-purpose
 summary: "The best code is the code you never write. A philosophy of aggressive laziness, applied to a real codebase audit, kept this project from drowning in cleverness."
 tags:

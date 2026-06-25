@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T08:45:00+01:00'
-draft: false
+draft: true
 slug: manual-entry-is-where-good-intentions-die
 summary: "The fastest way to make sure a band never logs its songs properly is to ask them to type in the BPM by hand."
 tags:

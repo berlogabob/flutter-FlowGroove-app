@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T20:15:00+01:00'
-draft: false
+draft: true
 slug: landing-page-and-app-shipping-apart
 summary: "The marketing site and the app are different beasts with different release rhythms. Splitting them apart let each move at its own speed."
 tags:

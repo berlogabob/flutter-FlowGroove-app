@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T16:00:00+01:00'
-draft: false
+draft: true
 slug: the-v1-that-never-was
 summary: "I tagged v1.0.0, started a big refactor, and then rolled the version number all the way back. Here's why going backwards was the right call."
 tags:

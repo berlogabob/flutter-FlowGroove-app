@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T21:15:00+01:00'
-draft: false
+draft: true
 slug: the-release-that-crashed-on-launch
 summary: "The debug build ran fine. The release build crashed instantly on launch. The difference came down to initializing Firebase twice."
 tags:

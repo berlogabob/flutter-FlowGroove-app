@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T20:45:00+01:00'
-draft: false
+draft: true
 slug: the-robot-that-commits-while-i-sleep
 summary: "My git history is full of commits I didn't write. There's a loop that auto-commits and deploys my working-tree edits — convenient, and occasionally confusing."
 tags:

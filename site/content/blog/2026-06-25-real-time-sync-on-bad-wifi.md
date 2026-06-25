@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T18:15:00+01:00'
-draft: false
+draft: true
 slug: real-time-sync-on-bad-wifi
 summary: "I change the setlist, everyone sees it — even in a venue with WiFi held together by hope. Real-time sync sounds simple and absolutely is not."
 tags:

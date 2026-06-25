@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T21:45:00+01:00'
-draft: false
+draft: true
 slug: the-buttons-i-accidentally-deleted
 summary: "A user reported that the next and previous buttons were gone after an update. I hadn't meant to remove them — a refactor took them out from under me."
 tags:

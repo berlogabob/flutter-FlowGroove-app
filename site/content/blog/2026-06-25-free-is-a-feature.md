@@ -2,7 +2,7 @@
 categories:
 - story
 date: '2026-06-25T06:30:00+01:00'
-draft: false
+draft: true
 slug: free-is-a-feature
 summary: "FlowGroove is free for indie musicians on purpose. Here's the thinking behind giving the work away."
 tags:

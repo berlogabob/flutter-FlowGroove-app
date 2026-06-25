@@ -2,7 +2,7 @@
 categories:
 - devlog
 date: '2026-06-25T19:45:00+01:00'
-draft: false
+draft: true
 slug: concert-mode
 summary: "Performing live is a different job than managing a library. Concert Mode strips the app down to what you need on stage, hands-busy, eyes-up."
 tags:
