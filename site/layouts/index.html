@@ -35,6 +35,8 @@
   .brand{display:flex;align-items:center;gap:11px;margin-right:auto}
   .logo-sq{width:32px;height:32px;border-radius:9px;background:#FF5E00;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#000}
   .brand-name{font-weight:600;font-size:16px;letter-spacing:.3px;color:#EDEDED}
+  .logo-img{width:32px;height:32px;border-radius:8px;object-fit:contain;display:block;flex:none}
+  .foot-logo{width:26px;height:26px}
   .nav-links{display:flex;align-items:center;gap:26px}
   .nav-links a{font-size:14px;color:#A0A0A5;transition:color .2s}
   .nav-links a:hover{color:#F5F5F5}
@@ -169,7 +171,7 @@
 <div class="nav-bar">
   <nav class="nav wrap">
     <a class="brand" href="{{ "" | relURL }}">
-      <span class="logo-sq">F</span>
+      <img class="logo-img" src="{{ "images/logo-icon.png" | relURL }}" alt="FlowGroove logo" width="32" height="32">
       <span class="brand-name">FlowGroove</span>
     </a>
     <div class="nav-links">
@@ -304,7 +306,7 @@
 <!-- FOOTER -->
 <footer class="foot">
   <div class="foot-inner">
-    <div class="foot-brand"><span class="logo-sq">F</span><span>© {{ now.Year }} FlowGroove · Sounding Doubts, Portugal</span></div>
+    <div class="foot-brand"><img class="logo-img foot-logo" src="{{ "images/logo-icon.png" | relURL }}" alt="FlowGroove logo" width="26" height="26"><span>© {{ now.Year }} FlowGroove · Sounding Doubts, Portugal</span></div>
     <div class="foot-links">
       <a href="{{ "privacy/" | relURL }}">Privacy</a>
       <a href="{{ "terms/" | relURL }}">Terms</a>
