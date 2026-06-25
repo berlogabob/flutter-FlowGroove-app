@@ -333,7 +333,7 @@ The full FlowGroove history — **332 notable changes** across **233 releases**,
 - **2026-06-24** `v0.14.1+248` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+249` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+250` ✨ feat(site): stripped embed.html output for in-app docs panel
-- **2026-06-24** `v0.14.1+250` 🔧 fix(avatar): import Google photo server-side; fix profile name overflow — _Avatar diverged (Google on home, Telegram on profile) — make the profile choice authoritative everywhere._
+- **2026-06-24** `v0.14.1+250` 🔧 fix(avatar): import Google photo server-side; fix profile name overflow — _Avatar diverged (Google on home, Telegram on profile) — make the profile choice authoritative everywhere._ ([blog](/blog/two-faces-one-user/))
 - **2026-06-24** `v0.14.1+250` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+251` 🔧 fix(web): point docs panel at flowgroove.app, not stale GitHub Pages
 - **2026-06-24** `v0.14.1+251` ♻️ refactor(web): resolve docs panel URL host-agnostically from Uri.base
@@ -341,7 +341,7 @@ The full FlowGroove history — **332 notable changes** across **233 releases**,
 - **2026-06-24** `v0.14.1+252` 🔧 fix(web): bypass docs iframe — restore app interaction (diagnostic) — _HtmlElementView/iframe freezes the web app; open external content in a new tab instead._
 - **2026-06-24** `v0.14.1+252` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+253` 🔧 fix(avatar): upload profile photo via putData (web-compatible) — _Avatar diverged (Google on home, Telegram on profile) — make the profile choice authoritative everywhere._
-- **2026-06-24** `v0.14.1+253` ✨ feat(web): docs panel opens Hugo FAQ in a new tab; drop iframe — _HtmlElementView/iframe freezes the web app; open external content in a new tab instead._
+- **2026-06-24** `v0.14.1+253` ✨ feat(web): docs panel opens Hugo FAQ in a new tab; drop iframe — _HtmlElementView/iframe freezes the web app; open external content in a new tab instead._ ([blog](/blog/the-iframe-that-froze-the-app/))
 - **2026-06-24** `v0.14.1+253` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+254` 🔧 fix(web): render desktop app column as a portrait phone
 - **2026-06-24** `v0.14.1+254` 🚀 deploy: hugo landing + flutter app {
@@ -355,7 +355,7 @@ The full FlowGroove history — **332 notable changes** across **233 releases**,
 - **2026-06-24** `v0.14.2+259` ✨ feat(wiki): desktop split in app builder; confine overlays to left column — _Reuse the same Markdown for site docs and in-app help so they can't drift apart._
 - **2026-06-24** `v0.14.2+259` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.2+260` 🚀 deploy(blog): publish 'in-app help follows the screen' devlog post — _Generic FAQs are useless mid-rehearsal — bundle the Hugo wiki so help matches the current screen._
-- **2026-06-24** `v0.14.2+260` 🔧 fix(blog): track docs/blog post pages that bare index.html rule hid
+- **2026-06-24** `v0.14.2+260` 🔧 fix(blog): track docs/blog post pages that bare index.html rule hid ([blog](/blog/the-blog-posts-that-404d/))
 - **2026-06-25** `v0.14.2+260` ✨ feat(site): custom FlowGroove landing page + real demo screenshots
 - **2026-06-25** `v0.14.2+260` 🔧 fix(site): use real FlowGroove logo in landing nav/footer
 - **2026-06-25** `v0.14.2+260` 🔧 fix(wiki): in-panel navigation + mirror/pin toggle for desktop wiki — _Reuse the same Markdown for site docs and in-app help so they can't drift apart._ ([blog](/blog/in-app-help-that-follows-the-screen-you-re-on/))

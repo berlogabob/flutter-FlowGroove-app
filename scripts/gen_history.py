@@ -88,6 +88,9 @@ BLOG = {
     "in-panel navigation": ("published", "blog/2026-06-24-in-app-help-that-follows-the-screen-you-re-on.md"),
     "wiki panel": ("published", "blog/2026-06-24-in-app-help-that-follows-the-screen-you-re-on.md"),
     "WallClockScheduler": ("published", "blog/2026-06-25-why-the-metronome-slowly-drifted.md"),
+    "index.html rule hid": ("published", "blog/2026-06-25-the-blog-posts-that-404d.md"),
+    "drop iframe": ("published", "blog/2026-06-25-the-iframe-that-froze-the-app.md"),
+    "import Google photo server-side": ("published", "blog/2026-06-25-two-faces-one-user.md"),
 }
 
 

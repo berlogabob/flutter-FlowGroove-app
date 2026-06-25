@@ -119,12 +119,12 @@ lived. Devlog format, dev-curious audience.*
 *Pure war-story season. Each episode: the symptom, the hunt, the one-line truth.
 Highest engagement potential — everyone loves a debugging story.*
 
-- ⬜ **S6E1 — The blog posts that 404'd** — a bare `index.html` gitignore rule
-  swallowing Hugo pages on Pages. *(source: gitignore-index-html-swallows-hugo-pages)*
-- ⬜ **S6E2 — The iframe that froze the whole web app** — why HtmlElementView is a trap
-  on Flutter web; open a new tab instead. *(source: flutter-web-no-platform-view-iframe)*
-- ⬜ **S6E3 — Two faces, one user** — Google avatar on home, Telegram avatar on profile;
-  making the profile choice authoritative. *(source: 2026-06-16 avatar arc)*
+- ✅ **S6E1 — The blog posts that 404'd** — published `2026-06-25`. A bare `index.html`
+  gitignore rule swallowing Hugo pages on Pages.
+- ✅ **S6E2 — The iframe that froze the whole web app** — published `2026-06-25`. Why
+  HtmlElementView is a trap on Flutter web; open a new tab instead.
+- ✅ **S6E3 — Two faces, one user** — published `2026-06-25`. Google avatar on home,
+  Telegram avatar on profile; making the profile choice authoritative.
 - ⬜ **S6E4 — Avatars that wouldn't upload on web** — `putData` vs `putFile`, bucket
   CORS, mirroring external photos server-side. *(source: storage-web-avatars)*
 - ⬜ **S6E5 — The next/prev buttons I accidentally deleted** — a refactor that quietly
