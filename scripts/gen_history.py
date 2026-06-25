@@ -94,6 +94,35 @@ BLOG = {
     "putData": ("published", "blog/2026-06-25-avatars-that-wouldnt-upload-on-web.md"),
     "decouple from MethodChannel": ("published", "blog/2026-06-25-the-provider-that-touched-everything.md"),
     "Revert version to": ("published", "blog/2026-06-25-the-v1-that-never-was.md"),
+    # Season 1
+    "Rename project from RepSync": ("published", "blog/2026-06-25-day-zero-it-was-called-repsync.md"),
+    # Season 2
+    "Web Audio API sound synthesis": ("published", "blog/2026-06-25-the-web-metronome-was-silent.md"),
+    "Accent Pattern (Reaper DAW style)": ("published", "blog/2026-06-25-reaper-style-accent-patterns.md"),
+    "Tone Matrix System - Core": ("published", "blog/2026-06-25-the-tone-matrix.md"),
+    "route-change handling": ("published", "blog/2026-06-25-silent-on-bluetooth.md"),
+    "Audio pre-initialization for instant first beat": ("published", "blog/2026-06-25-instant-first-beat.md"),
+    "vibration sync + focus manager": ("published", "blog/2026-06-25-making-the-click-feel-tight.md"),
+    "Metronome Phase 4 - Visual Polish": ("published", "blog/2026-06-25-readable-on-a-dark-stage.md"),
+    # Season 3
+    "MusicBrainz + Song Suggestion": ("published", "blog/2026-06-25-pulling-bpm-and-key-from-musicbrainz.md"),
+    "duplicate detection": ("published", "blog/2026-06-25-canonical-songs-and-the-duplicate-problem.md"),
+    "band -> song sorting and editing": ("published", "blog/2026-06-25-band-songs-are-copies-not-links.md"),
+    "Fix band setlist creation flow": ("published", "blog/2026-06-25-setlists-that-survive-a-coffee-spill.md"),
+    # Season 4
+    "offline indicator": ("published", "blog/2026-06-25-real-time-sync-on-bad-wifi.md"),
+    "server-authoritative leave/delete": ("published", "blog/2026-06-25-who-is-allowed-to-do-what.md"),
+    "comprehensive debug and fix tools for permission": ("published", "blog/2026-06-25-permission-denied-on-a-new-account.md"),
+    "real demo screenshots": ("published", "blog/2026-06-25-the-demo-account-thats-actually-real.md"),
+    "wakelock": ("published", "blog/2026-06-25-concert-mode.md"),
+    # Season 5
+    "deployment with FTP and make release-stable": ("published", "blog/2026-06-25-two-deploy-channels-one-repo.md"),
+    "transform Hugo into landing page": ("published", "blog/2026-06-25-landing-page-and-app-shipping-apart.md"),
+    "make release' command for Android": ("published", "blog/2026-06-25-make-release-and-the-ritual-it-replaced.md"),
+    "release Firebase init crash": ("published", "blog/2026-06-25-the-release-that-crashed-on-launch.md"),
+    # Season 7
+    "Memory System with Mr. Memory agent": ("published", "blog/2026-06-25-a-memory-that-survives-clear.md"),
+    "comprehensive design system audit": ("published", "blog/2026-06-25-linking-my-design-system-to-an-ai.md"),
 }
 
 

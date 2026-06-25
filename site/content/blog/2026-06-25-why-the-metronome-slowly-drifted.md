@@ -4,10 +4,10 @@ categories:
 date: '2026-06-25T10:00:00+01:00'
 draft: false
 slug: why-the-metronome-slowly-drifted
-summary: The FlowGroove metronome used to slide off the beat over a long song. The fix was about 50 lines of stdlib and no new dependency — here's what was actually wrong.
+summary: "The FlowGroove metronome used to slide off the beat over a long song. The fix was about 50 lines of stdlib and no new dependency — here's what was actually wrong."
 tags:
 - devlog
-title: Why the metronome slowly drifted — and the 50-line fix
+title: "Why the metronome slowly drifted — and the 50-line fix"
 ---
 
 ## What changed

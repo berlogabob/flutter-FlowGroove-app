@@ -4,11 +4,11 @@ categories:
 date: '2026-06-25T11:00:00+01:00'
 draft: false
 slug: the-blog-posts-that-404d
-summary: I shipped a blog, clicked a post, and got a 404 — from a one-line rule I'd written months earlier and forgotten.
+summary: "I shipped a blog, clicked a post, and got a 404 — from a one-line rule I'd written months earlier and forgotten."
 tags:
 - devlog
 - war-story
-title: The blog posts that 404'd
+title: "The blog posts that 404'd"
 ---
 
 ## What changed

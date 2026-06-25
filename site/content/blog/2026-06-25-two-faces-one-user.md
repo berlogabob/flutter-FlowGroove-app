@@ -4,11 +4,11 @@ categories:
 date: '2026-06-25T13:00:00+01:00'
 draft: false
 slug: two-faces-one-user
-summary: The same user showed up with a Google face on one screen and a Telegram face on another. Picking one "source of truth" for an avatar was sneakier than it sounds.
+summary: "The same user showed up with a Google face on one screen and a Telegram face on another. Picking one \"source of truth\" for an avatar was sneakier than it sounds."
 tags:
 - devlog
 - war-story
-title: Two faces, one user
+title: "Two faces, one user"
 ---
 
 ## What changed

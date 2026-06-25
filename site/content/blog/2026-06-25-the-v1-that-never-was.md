@@ -4,11 +4,11 @@ categories:
 date: '2026-06-25T16:00:00+01:00'
 draft: false
 slug: the-v1-that-never-was
-summary: I tagged v1.0.0, started a big refactor, and then rolled the version number all the way back. Here's why going backwards was the right call.
+summary: "I tagged v1.0.0, started a big refactor, and then rolled the version number all the way back. Here's why going backwards was the right call."
 tags:
 - devlog
 - war-story
-title: The v1.0.0 that never was
+title: "The v1.0.0 that never was"
 ---
 
 ## What changed

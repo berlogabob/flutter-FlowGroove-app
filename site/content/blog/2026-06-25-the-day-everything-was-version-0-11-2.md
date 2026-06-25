@@ -4,11 +4,11 @@ categories:
 date: '2026-06-25T17:00:00+01:00'
 draft: false
 slug: the-day-everything-was-version-0-11-2
-summary: My git history has 233 releases and 235 of the commits just say "Release". A robot makes them while I sleep — and cleaning up that mess is why this whole blog series exists.
+summary: "My git history has 233 releases and 235 of the commits just say \"Release\". A robot makes them while I sleep — and cleaning up that mess is why this whole blog series exists."
 tags:
 - devlog
 - meta
-title: The day everything was version 0.11.2+68
+title: "The day everything was version 0.11.2+68"
 ---
 
 ## What changed

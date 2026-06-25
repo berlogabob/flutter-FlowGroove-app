@@ -4,11 +4,11 @@ categories:
 date: '2026-06-25T15:00:00+01:00'
 draft: false
 slug: the-provider-that-touched-everything
-summary: I turned the codebase into a graph to ask a simple question — why does one provider connect to thirty other things? — and found coupling I couldn't see by reading files.
+summary: "I turned the codebase into a graph to ask a simple question — why does one provider connect to thirty other things? — and found coupling I couldn't see by reading files."
 tags:
 - devlog
 - war-story
-title: The provider that touched everything
+title: "The provider that touched everything"
 ---
 
 ## What changed
