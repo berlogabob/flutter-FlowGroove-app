@@ -1,0 +1,5 @@
+{{/* layouts/shortcodes/screenshot-card.html */}}
+<div class="screenshot-card">
+  <img src="{{ .Get "src" | absURL }}" alt="{{ .Get "alt" }}" loading="lazy" class="screenshot-img">
+  <p class="screenshot-caption">{{ .Get "caption" }}</p>
+</div>

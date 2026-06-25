@@ -187,6 +187,9 @@ index.html
 # ...but the bare rule above is for Flutter web build output; Hugo blog pages
 # under docs/ are the GitHub Pages deploy and MUST be tracked, or posts 404.
 !docs/blog/**/index.html
+# Custom Hugo homepage template (source, not build output) — must be tracked or
+# clean/CI builds render PaperMod's default home instead of the custom landing.
+!site/layouts/index.html
 flutter_web_debug.log
 
 # Local Claude Code agent state / worktrees
