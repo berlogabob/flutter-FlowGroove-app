@@ -5,7 +5,7 @@ description: "What shipped in FlowGroove, when, and why — the human-readable p
 
 # Changelog & Archive
 
-The full FlowGroove history — **332 notable changes** across **233 releases**, from day 0 (2026-02-03) to today. The complete machine-readable log (including chores and every release) lives in `site/data/history.yaml`.
+The full FlowGroove history — **336 notable changes** across **237 releases**, from day 0 (2026-02-03) to today. The complete machine-readable log (including chores and every release) lives in `site/data/history.yaml`.
 
 
 ## Genesis
@@ -100,7 +100,7 @@ The full FlowGroove history — **332 notable changes** across **233 releases**,
 - **2026-02-26** `v0.11.2+69` 🔧 Fix: app_router redirect to use goNamed
 - **2026-02-26** `v0.11.2+69` 🔧 Fix: Unify AppBar across all screens
 - **2026-02-26** `v0.11.2+69` ✨ Feat: Unified custom AppBar across all screens
-- **2026-02-26** `v0.11.2+69` 🔧 Fix: Revert version to 0.11.2+68
+- **2026-02-26** `v0.11.2+69` 🔧 Fix: Revert version to 0.11.2+68 ([blog](/blog/the-v1-that-never-was/))
 - **2026-02-26** `v0.11.2+69` 🔧 Fix: Firebase Auth persistence to keep user logged in
 - **2026-02-26** `v0.11.2+69` 🚀 Deploy: Auth persistence fix (web only)
 - **2026-02-26** `v0.11.2+70` 🔧 Fix: White screen on startup - add error handling
@@ -315,7 +315,7 @@ The full FlowGroove history — **332 notable changes** across **233 releases**,
 - **2026-06-22** `v0.14.1+227` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-22** `v0.14.1+228` ✨ feat(metronome): wave types (sine/square/triangle/sawtooth) + louder clicks
 - **2026-06-22** `v0.14.1+228` 🚀 deploy: hugo landing + flutter app {
-- **2026-06-22** `v0.14.1+231` ♻️ refactor(android): extract metronome engine, decouple from MethodChannel
+- **2026-06-22** `v0.14.1+231` ♻️ refactor(android): extract metronome engine, decouple from MethodChannel ([blog](/blog/the-provider-that-touched-everything/))
 - **2026-06-22** `v0.14.1+231` ✨ feat(android): add metronome foreground service + notification + manifest
 - **2026-06-22** `v0.14.1+231` ✨ feat(android): drive metronome via foreground service, stop killing on pause
 - **2026-06-22** `v0.14.1+231` ✨ feat(metronome): route Android playback through native foreground service
@@ -340,7 +340,7 @@ The full FlowGroove history — **332 notable changes** across **233 releases**,
 - **2026-06-24** `v0.14.1+251` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+252` 🔧 fix(web): bypass docs iframe — restore app interaction (diagnostic) — _HtmlElementView/iframe freezes the web app; open external content in a new tab instead._
 - **2026-06-24** `v0.14.1+252` 🚀 deploy: hugo landing + flutter app {
-- **2026-06-24** `v0.14.1+253` 🔧 fix(avatar): upload profile photo via putData (web-compatible) — _Avatar diverged (Google on home, Telegram on profile) — make the profile choice authoritative everywhere._
+- **2026-06-24** `v0.14.1+253` 🔧 fix(avatar): upload profile photo via putData (web-compatible) — _Avatar diverged (Google on home, Telegram on profile) — make the profile choice authoritative everywhere._ ([blog](/blog/avatars-that-wouldnt-upload-on-web/))
 - **2026-06-24** `v0.14.1+253` ✨ feat(web): docs panel opens Hugo FAQ in a new tab; drop iframe — _HtmlElementView/iframe freezes the web app; open external content in a new tab instead._ ([blog](/blog/the-iframe-that-froze-the-app/))
 - **2026-06-24** `v0.14.1+253` 🚀 deploy: hugo landing + flutter app {
 - **2026-06-24** `v0.14.1+254` 🔧 fix(web): render desktop app column as a portrait phone
@@ -360,3 +360,7 @@ The full FlowGroove history — **332 notable changes** across **233 releases**,
 - **2026-06-25** `v0.14.2+260` 🔧 fix(site): use real FlowGroove logo in landing nav/footer
 - **2026-06-25** `v0.14.2+260` 🔧 fix(wiki): in-panel navigation + mirror/pin toggle for desktop wiki — _Reuse the same Markdown for site docs and in-app help so they can't drift apart._ ([blog](/blog/in-app-help-that-follows-the-screen-you-re-on/))
 - **2026-06-25** `v0.14.2+260` 🚀 deploy: hugo landing + flutter app {
+- **2026-06-25** `v0.14.2+261` 🚀 deploy: hugo landing + flutter app {
+- **2026-06-25** `v0.14.2+262` 🚀 deploy: hugo landing + flutter app {
+- **2026-06-25** `v0.14.2+263` 🚀 deploy: hugo landing + flutter app {
+- **2026-06-25** `v0.14.2+264` 🚀 deploy: hugo landing + flutter app {

@@ -91,6 +91,9 @@ BLOG = {
     "index.html rule hid": ("published", "blog/2026-06-25-the-blog-posts-that-404d.md"),
     "drop iframe": ("published", "blog/2026-06-25-the-iframe-that-froze-the-app.md"),
     "import Google photo server-side": ("published", "blog/2026-06-25-two-faces-one-user.md"),
+    "putData": ("published", "blog/2026-06-25-avatars-that-wouldnt-upload-on-web.md"),
+    "decouple from MethodChannel": ("published", "blog/2026-06-25-the-provider-that-touched-everything.md"),
+    "Revert version to": ("published", "blog/2026-06-25-the-v1-that-never-was.md"),
 }
 
 

@@ -125,16 +125,19 @@ Highest engagement potential — everyone loves a debugging story.*
   HtmlElementView is a trap on Flutter web; open a new tab instead.
 - ✅ **S6E3 — Two faces, one user** — published `2026-06-25`. Google avatar on home,
   Telegram avatar on profile; making the profile choice authoritative.
-- ⬜ **S6E4 — Avatars that wouldn't upload on web** — `putData` vs `putFile`, bucket
-  CORS, mirroring external photos server-side. *(source: storage-web-avatars)*
+- ✅ **S6E4 — Avatars that wouldn't upload on web** — published `2026-06-25`. `putData`
+  vs `putFile`, bucket CORS, mirroring external photos server-side.
 - ⬜ **S6E5 — The next/prev buttons I accidentally deleted** — a refactor that quietly
-  removed navigation, caught in build errors. *(source: 2026-06-24 session)*
-- ⬜ **S6E6 — `currentUserProvider` touched 30 nodes** — using a knowledge graph to find
-  accidental coupling across band screens. *(source: graphify sessions)*
-- ⬜ **S6E7 — "Last good version before the major refactor"** — the v1.0.0 attempt, the
-  revert, and learning to tag escape hatches. *(source: Feb 25–26 churn era)*
-- ⬜ **S6E8 — The day everything was version 0.11.2+68** — what 235 auto-deploy commits
-  taught me about meaningful history (and why this very series exists). *(meta)*
+  removed navigation, caught in build errors. *(source: 2026-06-24 session — no clean
+  commit anchor yet; needs digging before drafting)*
+- ✅ **S6E6 — The provider that touched everything** — published `2026-06-25`. Using a
+  knowledge graph to find accidental coupling; first cut = decoupling the metronome
+  engine from the platform MethodChannel.
+- ✅ **S6E7 — The v1.0.0 that never was** — published `2026-06-25`. The 1.0 attempt, the
+  revert, and learning to tag escape hatches.
+- ✅ **S6E8 — The day everything was version 0.11.2+68** — published `2026-06-25` (meta;
+  not a changelog entry by design). What 235 auto-deploy commits taught me about
+  meaningful history — and why this series exists.
 
 ## Season 7 — Building With AI
 *The modern-solo-dev meta thread: shipping a real app with AI assistants. Timely,
