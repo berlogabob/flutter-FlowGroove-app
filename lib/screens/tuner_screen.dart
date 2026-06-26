@@ -281,60 +281,13 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
             onModeChanged: notifier.setMode,
           ),
 
-          // Instrument/tuning indicator (compact)
+          // Instrument/tuning indicator (full-width card)
           if (state.selectedInstrument != null) ...[
             const SizedBox(height: MonoPulseSpacing.lg),
-            GestureDetector(
+            _InstrumentCard(
+              instrumentName: state.selectedInstrument!.name,
+              tuningName: state.selectedTuning?.name ?? '',
               onTap: _showInstrumentPicker,
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: MonoPulseSpacing.lg,
-                  vertical: MonoPulseSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: MonoPulseColors.surfaceRaised,
-                  borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-                  border: Border.all(color: MonoPulseColors.borderSubtle),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.piano_outlined,
-                      color: MonoPulseColors.accentOrange,
-                      size: 16,
-                    ),
-                    const SizedBox(width: MonoPulseSpacing.sm),
-                    Text(
-                      state.selectedInstrument!.name,
-                      style: MonoPulseTypography.labelMedium.copyWith(
-                        color: MonoPulseColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: MonoPulseSpacing.xs),
-                    Text(
-                      '·',
-                      style: MonoPulseTypography.labelMedium.copyWith(
-                        color: MonoPulseColors.textTertiary,
-                      ),
-                    ),
-                    const SizedBox(width: MonoPulseSpacing.xs),
-                    Text(
-                      state.selectedTuning?.name ?? '',
-                      style: MonoPulseTypography.labelMedium.copyWith(
-                        color: MonoPulseColors.textTertiary,
-                      ),
-                    ),
-                    const SizedBox(width: MonoPulseSpacing.sm),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: MonoPulseColors.textTertiary,
-                      size: 16,
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
 
@@ -354,14 +307,8 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
           if (state.mode == TunerMode.listen) ...[
             const SizedBox(height: MonoPulseSpacing.lg),
             const DetectionModeToggle(),
-            if (state.permissionState.name == 'notRequested') ...[
-              const SizedBox(height: MonoPulseSpacing.md),
-              const _InfoCard(
-                icon: Icons.privacy_tip_outlined,
-                text:
-                    'Your microphone is used only on this device for pitch detection. Audio is never stored or uploaded.',
-              ),
-            ],
+            // Mic-privacy copy lives in Settings only (Mono Pulse: "main window
+            // stays clean") — it was duplicated here.
             if (state.errorMessage != null) ...[
               const SizedBox(height: MonoPulseSpacing.md),
               _ErrorCard(
@@ -392,7 +339,7 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
           Padding(
             padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
             child: Text(
-              'A4 ${state.referenceA4.round()} Hz · Tolerance ±${state.centsTolerance} cents',
+              'A4 ${state.referenceA4.round()} Hz · ±${state.centsTolerance} cents',
               style: MonoPulseTypography.labelSmall.copyWith(
                 color: MonoPulseColors.textTertiary,
               ),
@@ -444,34 +391,80 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
   }
 }
 
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.icon, required this.text});
+class _InstrumentCard extends StatelessWidget {
+  const _InstrumentCard({
+    required this.instrumentName,
+    required this.tuningName,
+    required this.onTap,
+  });
 
-  final IconData icon;
-  final String text;
+  final String instrumentName;
+  final String tuningName;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(MonoPulseSpacing.md),
-      decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: MonoPulseColors.accentOrange, size: 18),
-          const SizedBox(width: MonoPulseSpacing.sm),
-          Expanded(
-            child: Text(
-              text,
-              style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.md,
+          vertical: MonoPulseSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: MonoPulseColors.surfaceRaised,
+          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+          border: Border.all(color: MonoPulseColors.borderSubtle),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: MonoPulseColors.accentOrange.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+              ),
+              child: const Icon(
+                Icons.piano_outlined,
+                color: MonoPulseColors.accentOrange,
+                size: 20,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: MonoPulseSpacing.md),
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: instrumentName,
+                      style: MonoPulseTypography.titleMedium.copyWith(
+                        color: MonoPulseColors.textHighEmphasis,
+                      ),
+                    ),
+                    if (tuningName.isNotEmpty)
+                      TextSpan(
+                        text: '  ·  $tuningName',
+                        style: MonoPulseTypography.bodyMedium.copyWith(
+                          color: MonoPulseColors.textTertiary,
+                        ),
+                      ),
+                  ],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: MonoPulseSpacing.sm),
+            const Icon(
+              Icons.chevron_right,
+              color: MonoPulseColors.textTertiary,
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
