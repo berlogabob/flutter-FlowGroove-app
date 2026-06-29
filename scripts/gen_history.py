@@ -133,9 +133,10 @@ def find_why(subject):
     return ""
 
 
-# The 2026-06-25 series is written but held as drafts until the coordinated launch
-# (waiting on subreddit approval). Flip to True on launch day, then regenerate.
-SERIES_LIVE = False
+# The 2026-06-25 series launched 2026-06-28: drips one post/day 2026-06-29..2026-08-12
+# (future-dated, draft:false). ponytail: changelog blog-links for not-yet-live posts 404
+# until that post's day — accepted, not worth date-gating the links.
+SERIES_LIVE = True
 
 
 def find_blog(subject):

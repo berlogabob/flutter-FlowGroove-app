@@ -11,6 +11,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
+import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
@@ -307,8 +308,14 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   Future<void> _exportPdf(Setlist setlist) async {
+    final layout = await pickSetlistPdfLayout(context);
+    if (layout == null) return;
     try {
-      await PdfService.exportSetlist(setlist, _songsForSetlist(setlist));
+      await PdfService.exportSetlist(
+        setlist,
+        _songsForSetlist(setlist),
+        layout: layout,
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(

@@ -562,21 +562,21 @@ class BandRouteResolver extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final band = extra;
-    if (band != null) return builder(band);
+    // Prefer the live band from the stream so edits made elsewhere (name, tags,
+    // description, member roles) show up without re-navigating. `extra` is only a
+    // navigation-time snapshot, used as a fallback while the stream loads or if
+    // the band isn't in the list yet.
+    final bands = ref.watch(bandsProvider).asData?.value;
+    if (bands != null) {
+      for (final candidate in bands) {
+        if (candidate.id == bandId) return builder(candidate);
+      }
+      if (extra != null) return builder(extra!);
+      return _bandLoadError(context);
+    }
 
-    final bandsAsync = ref.watch(bandsProvider);
-    return bandsAsync.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (_, _) => _bandLoadError(context),
-      data: (bands) {
-        for (final candidate in bands) {
-          if (candidate.id == bandId) return builder(candidate);
-        }
-        return _bandLoadError(context);
-      },
-    );
+    if (extra != null) return builder(extra!);
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 
   Widget _bandLoadError(BuildContext context) {

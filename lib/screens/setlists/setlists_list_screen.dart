@@ -9,6 +9,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../services/export/pdf_service.dart';
+import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
@@ -268,15 +269,16 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 
   Future<void> _exportPdf(Setlist setlist) async {
+    final layout = await pickSetlistPdfLayout(context);
+    if (layout == null) return;
     final setlistSongs = _songsForSetlist(setlist);
     try {
-      await PdfService.exportSetlist(setlist, setlistSongs);
+      await PdfService.exportSetlist(setlist, setlistSongs, layout: layout);
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
