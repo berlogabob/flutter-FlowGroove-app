@@ -10,7 +10,7 @@ FlowGroove is a real-time repertoire and setlist manager for cover bands and gig
 
 Try it live: [https://flowgroove.app](https://flowgroove.app)
 
-This repository also contains the Hugo marketing site, a Telegram support bot, Firebase functions, the active `.codex/` internal workspace, and an `oldarchive/` area for legacy materials.
+This repository also contains the Hugo marketing site, Firebase functions (including the single Telegram bot, `@flowgroovebot`), the active `.codex/` internal workspace, and an `oldarchive/` area for legacy materials.
 
 ## Quick Start
 
@@ -80,10 +80,12 @@ Deploy target:
 ### Core App
 
 - Shared song library with metadata, links, unique IDs, and structure editing
+- Lyrics + chords performance sheet (ChordPro): keep-awake stage view, live transpose, per-song PDF, and paste-to-import
 - Band management with membership and invite/join flows
 - Drag-and-drop setlists with per-gig overrides for key, BPM, notes, and order
 - Offline-first data flow with Hive-backed local caching
 - Firebase Auth, Firestore, and Storage integration
+- In-app account deletion (Google Play compliant), removing all associated data
 - CSV import/export and PDF export
 - Responsive desktop/mobile layout
 
@@ -104,7 +106,7 @@ Deploy target:
 - Demo mode banner and read-only behavior
 - Role-aware permission helpers
 - Song autocomplete and BPM lookup provider layer
-- Telegram support bot codebase included in `telegram_bot/`
+- Telegram bot (`@flowgroovebot`) served by the `telegramWebhook` function in `functions/src/telegram/` — handles account linking and support DMs
 
 ## Tech Stack
 
@@ -124,8 +126,7 @@ Deploy target:
 - `test/` - Flutter test suite
 - `site/` - Hugo landing page source
 - `docs/` - generated GitHub Pages output plus project reports
-- `telegram_bot/` - Telegram support bot
-- `functions/` - Firebase Functions source
+- `functions/` - Firebase Functions source (includes the Telegram bot in `functions/src/telegram/`)
 - `.codex/` - active internal workspace for agents, rules, memory, tasks, and session control
 - `memory/` - protected project memory bank retained at the repo root
 - `oldarchive/` - archived Qwen context, exports, reports, snapshots, and legacy support files
@@ -136,7 +137,6 @@ Deploy target:
 - `test/`: 97 Dart test files
 - `site/`: 247 files
 - `docs/`: 127 files
-- `telegram_bot/`: 14 files
 
 ## Common Commands
 
@@ -167,7 +167,7 @@ Deploy target:
 ### Supporting Docs
 
 - [site/README.md](site/README.md)
-- [telegram_bot/README.md](telegram_bot/README.md)
+- [functions/src/telegram/README.md](functions/src/telegram/README.md)
 - [memory/README.md](memory/README.md)
 - [memory/CRITICAL_PROBLEMS.md](memory/CRITICAL_PROBLEMS.md)
 - [.codex/README.md](.codex/README.md)

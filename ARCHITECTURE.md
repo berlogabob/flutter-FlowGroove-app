@@ -9,7 +9,7 @@ This repository contains five meaningful systems:
 
 1. Flutter application
 2. Hugo marketing site
-3. Telegram support bot
+3. Telegram bot (lives inside Firebase Functions)
 4. Firebase Functions workspace
 5. Imported AI workspace context (`memory/`, `.codex/`)
 
@@ -23,8 +23,7 @@ flutter_repsync_app/
 ├── test/               # Flutter tests
 ├── site/               # Hugo source
 ├── docs/               # GitHub Pages output + reports
-├── telegram_bot/       # Telegram support bot
-├── functions/          # Firebase Functions
+├── functions/          # Firebase Functions (incl. Telegram bot in src/telegram/)
 ├── scripts/            # build, deploy, session, and maintenance scripts
 ├── memory/             # protected project memory bank
 ├── .codex/             # active Codex control plane and imported workspace context
@@ -76,8 +75,17 @@ Marketing-site source lives in `site/`.
 - landing page
 - FAQ, about, privacy, terms
 - blog and SEO content
+- public roadmap (`/roadmap/`) — build-time snapshot of GitHub Project #8
 - GitHub Pages preview root
 - production root site for FTP deployment
+
+The roadmap page renders the project board on-site (GitHub blocks iframing). On
+each deploy, `scripts/fetch-roadmap.sh` pulls Project #8 via `gh api graphql`
+into `site/data/roadmap.json`, and `layouts/_default/roadmap.html` renders it as
+kanban columns from the `Status` field. Needs `gh` authed with the `project`
+scope; on failure it keeps the existing snapshot so deploys never break. Note:
+the home page nav is hardcoded in `layouts/index.html` (not the PaperMod menu),
+so nav links must be added in both `hugo.toml` and `layouts/index.html`.
 
 #### Important Output Paths
 
@@ -86,21 +94,126 @@ Marketing-site source lives in `site/`.
 
 ### 3. Telegram Bot
 
-The Telegram support bot lives in `telegram_bot/`.
+There is a single bot — **@flowgroovebot** — served by the `telegramWebhook`
+Cloud Function in `functions/src/telegram/` (Telegraf/Node). The same bot also
+posts devlogs to the `@flowgrooveapp` channel via `poster/poster.py` (same token).
 
 #### Purpose
 
 - link Telegram users to FlowGroove accounts
-- create support topics
-- support admin reply workflow
+- route support DMs into the `SUPPORT_GROUP_ID` group as per-user forum topics, with admin replies routed back to the user
+- post devlogs to the announce channel (poster script)
 
-This subsystem is documented separately in `telegram_bot/README.md` and was not runtime-validated in this audit pass.
+This subsystem is documented separately in `functions/src/telegram/README.md`.
+
+### Devlog publishing pipeline
+
+One devlog post fans out from a single source. Only **Reddit** is automated — a
+Devvit *cloud* cron crossposts the newest feed item to `r/FlowGroove` (live there
+since 2026-06-29; before that the bot was installed only in the test sub). The Hugo
+site and the Telegram channel are posted **manually** — the old nightly launchd
+auto-deploy (`devlog-daily.sh`) was unreliable (macOS Full Disk Access, exit 126)
+and is disabled. X and Instagram are manual too: copy is pre-written in the post's
+`.social.yaml` sidecar (`x` / `instagram` blocks) — nothing reads those. The map
+below shows every entry point and the two dedup guards.
+
+```mermaid
+flowchart TD
+    subgraph author["Authoring — manual"]
+        draft["poster.py draft --title --commits"]
+        write["edit .md body + telegram.text"]
+        files[".md (draft:true) + .social.yaml"]
+        draft --> files
+        write --> files
+    end
+
+    subgraph tg["Telegram — manual"]
+        tgpub["poster.py publish telegram"]
+        tgchan["@flowgrooveapp channel"]
+        tgpub -->|"dup-guard: .social.yaml message_id"| tgchan
+    end
+    files --> tgpub
+
+    subgraph manual["X + Instagram — manual copy/paste"]
+        xnode["X / Twitter — paste x.text"]
+        ignode["Instagram — paste caption + image"]
+    end
+    files -.->|"hand-posted, nothing reads these"| xnode
+    files -.->|"hand-posted, nothing reads these"| ignode
+
+    subgraph web["Web + RSS feed — manual deploy"]
+        flip["flip draft:false"]
+        deploy["make deploy-hugo (FTP, prod)"]
+        mirror["scripts/mirror-feed.sh (separate step)"]
+        hugo["hugo --minify -> site/public/ + index.xml"]
+        ftp["FTP -> flowgroove.app/blog/"]
+        feed["GCS reddit-feed.xml (public)"]
+        flip --> deploy --> hugo --> ftp
+        hugo --> mirror --> feed
+    end
+    files --> flip
+
+    subgraph reddit["Reddit — Devvit, automatic"]
+        cron["scheduler cron 0 11 UTC daily"]
+        menu["mod menu: Publish latest devlog now"]
+        bot["check-feed: newest /blog/ item only"]
+        sub["r/FlowGroove link post"]
+        cron --> bot
+        menu --> bot
+        bot -->|"dup-guard: Redis posted:guid"| sub
+    end
+    feed --> bot
+```
+
+**Entry points**
+
+| Channel | Trigger | Type | Source |
+|---------|---------|------|--------|
+| Web | `make deploy-hugo` (FTP → flowgroove.app) | manual | `Makefile` |
+| Reddit feed | `scripts/mirror-feed.sh` — run **after** deploy | manual | `scripts/mirror-feed.sh` |
+| Telegram | `poster.py publish telegram <slug>` (needs a `.social.yaml`) | manual | `poster/poster.py` |
+| Reddit | scheduler cron `0 11 * * *` (live in r/FlowGroove since 2026-06-29) | scheduled (cloud) | `reddit-bot/devvit.json` |
+| Reddit | mod menu "Publish latest devlog now" | manual (mod) | `reddit-bot/src/server/index.ts` |
+| X / Twitter | copy `x.text` from the sidecar, post by hand | manual | `<post>.social.yaml` |
+| Instagram | copy `instagram.caption` + `image`, post by hand | manual | `<post>.social.yaml` |
+
+The nightly `devlog-daily.sh` launchd job (09:00) that used to chain deploy + feed
+mirror is **disabled** — it failed under macOS Full Disk Access (exit 126). Deploys
+are manual; re-enable only after granting FDA to the launchd process.
+
+**Caveats:**
+- `make deploy-hugo` uploads the site over FTP but does **not** refresh the Reddit
+  feed — run `scripts/mirror-feed.sh` after it (the disabled nightly job used to chain
+  the two; `scripts/deploy-hugo.sh` is the GitHub-Pages/dev path and mirrors on its own).
+- The Reddit bot posts only the **newest** `/blog/` item per feed refresh. Deploy one
+  post at a time when each needs to reach Reddit (see `poster/README.md`, `reddit-bot/README.md`).
+- **Telegram needs the `.social.yaml` sidecar** (`telegram.text`); web + Reddit don't.
+  The 2026-06-25 series posts ship without sidecars, so they reach web + Reddit but
+  **not** Telegram until a sidecar is added.
+- **X / Instagram:** no automation — the sidecar just stores the copy. X links are
+  clickable; Instagram captions are not, so the `instagram` block says "link in bio"
+  and carries a hashtag block + an `image` pointer (no per-post images exist; reuse a
+  shared asset from `site/static/images/`).
 
 ### 4. Firebase Functions
 
-Cloud function code lives in `functions/`.
+Cloud function code lives in `functions/` (Node 22, gen-2). Implementations are under
+`functions/src/`; `functions/index.js` only wires exports. Mocha tests run against the
+Firestore emulator (`npm test` — needs JDK 21+).
 
-The directory is present and versioned, but it was not deeply validated during this pass.
+Server-authoritative callables (admin-SDK, so they bypass client-side rules):
+
+- `joinBand`, `updateBandMember` (`src/bands.js`) — atomic membership writes.
+- `deleteAccount` (`src/account.js`) — account deletion for Google Play: detaches the
+  user from every band (dissolving empty ones, promoting a remaining member if needed),
+  recursive-deletes their data + avatar, then deletes the Auth user last. No client
+  re-auth needed.
+- `ensureCanonicalSong` (`src/canonical.js`) — dedupe/create canonical songs.
+- `setBandAvatar` / `removeBandAvatar` (`src/band_avatar.js`),
+  `importTelegramAvatar` / `importGoogleAvatar` (`src/avatars.js`).
+
+HTTP + scheduled: `telegramWebhook`, `shareToTelegram`, `onBandSetlistCreated`,
+`dailyEventReminder` (`src/telegram/`).
 
 ### 5. AI Workspace Context
 
@@ -145,7 +258,9 @@ Primary service areas:
 
 - Firebase/Firestore access
 - audio engine and pitch detection
-- CSV/PDF export
+- CSV/PDF export (incl. per-song chords+lyrics performance sheet PDF)
+- ChordPro lyrics+chords: parse/transpose (`utils/chordpro.dart`), render
+  (`widgets/chord_chart_view.dart`), and paste-to-import
 - connectivity and cache control
 - matching/search utilities
 - external API wrappers for Spotify and MusicBrainz
@@ -167,6 +282,15 @@ Primary service areas:
 - custom tuning editor
 - stage mode overlay
 - note scale ruler
+
+#### Performance Sheet (songs)
+
+- `Section.chordChart` holds ChordPro source (`[Am]Twinkle [F]star`); a song's
+  sections form the sheet
+- `screens/performance_sheet_screen.dart` — full-screen, keep-awake (reuses
+  `wakelockProvider`), live ± semitone transpose, chords rendered over lyrics
+- per-song PDF export at the current transpose (`services/export/pdf_service.dart`)
+- paste ChordPro/lyrics → sections (`screens/songs/components/import_lyrics_dialog.dart`)
 
 ## Deployment Topology
 
