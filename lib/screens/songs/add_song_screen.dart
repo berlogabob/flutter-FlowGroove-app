@@ -9,6 +9,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
 import '../../utils/song_tags.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../performance_sheet_screen.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';
@@ -316,6 +317,27 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         appBar: CustomAppBar.build(
           context,
           title: _isEditing ? 'Edit Song' : 'Add Song',
+          menuItems: [
+            PopupMenuItem<void>(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => PerformanceSheetScreen(
+                    title: formData.title.trim().isEmpty
+                        ? 'Song'
+                        : formData.title.trim(),
+                    sections: formData.sections,
+                  ),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.queue_music),
+                  SizedBox(width: 8),
+                  Text('Performance sheet'),
+                ],
+              ),
+            ),
+          ],
         ),
         body: ListView(
           padding: const EdgeInsets.all(16),

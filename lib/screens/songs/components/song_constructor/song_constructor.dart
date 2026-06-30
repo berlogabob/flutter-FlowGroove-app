@@ -105,6 +105,7 @@ class _SongConstructorState extends State<SongConstructor> {
             name: result['name'] as String?,
             notes: result['notes'] as String?,
             duration: result['duration'] as int?,
+            chordChart: result['chordChart'] as String?,
           );
         }
       });

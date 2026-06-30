@@ -13,6 +13,7 @@ class Section {
     this.notes = '',
     this.duration = 1,
     this.colorValue,
+    this.chordChart,
   });
 
   /// Create from JSON map.
@@ -23,6 +24,7 @@ class Section {
       notes: json['notes'] as String? ?? '',
       duration: json['duration'] as int? ?? 1,
       colorValue: json['colorValue'] as int?,
+      chordChart: json['chordChart'] as String?,
     );
   }
   /// Unique identifier for this section.
@@ -39,6 +41,11 @@ class Section {
 
   /// Optional custom color (ARGB value).
   int? colorValue;
+
+  /// Optional lyrics with inline chords in ChordPro format, e.g.
+  /// `[Am]Twinkle [F]little [C]star`. One parser ([parseChordProLine]) renders
+  /// this as chords-over-lyrics and powers transpose/export.
+  String? chordChart;
 
   /// Equality operator based on unique ID.
   @override
@@ -69,6 +76,7 @@ class Section {
     String? notes,
     int? duration,
     int? colorValue,
+    String? chordChart,
   }) {
     return Section(
       id: id,
@@ -76,6 +84,7 @@ class Section {
       notes: notes ?? this.notes,
       duration: duration ?? this.duration,
       colorValue: colorValue ?? this.colorValue,
+      chordChart: chordChart ?? this.chordChart,
     );
   }
 
@@ -87,6 +96,7 @@ class Section {
       'notes': notes,
       'duration': duration,
       if (colorValue != null) 'colorValue': colorValue,
+      if (chordChart != null && chordChart!.isNotEmpty) 'chordChart': chordChart,
     };
   }
 
