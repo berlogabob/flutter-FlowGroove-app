@@ -7,9 +7,11 @@ import '../../models/song_suggestion.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
+import '../../models/section.dart';
 import '../../utils/song_tags.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../performance_sheet_screen.dart';
+import 'components/import_lyrics_dialog.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';
@@ -297,6 +299,20 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     }
   }
 
+  /// Opens the paste-import sheet and appends the parsed sections to the form.
+  Future<void> _importLyrics() async {
+    final imported = await showModalBottomSheet<List<Section>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const ImportLyricsDialog(),
+    );
+    if (imported == null || imported.isEmpty || !mounted) return;
+    final notifier = ref.read(songFormStateProvider.notifier);
+    final existing = ref.read(songFormStateProvider).formData.sections;
+    notifier.setSections([...existing, ...imported]);
+    notifier.markAsChanged();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch form state for reactive updates
@@ -334,6 +350,16 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                   Icon(Icons.queue_music),
                   SizedBox(width: 8),
                   Text('Performance sheet'),
+                ],
+              ),
+            ),
+            PopupMenuItem<void>(
+              onTap: _importLyrics,
+              child: const Row(
+                children: [
+                  Icon(Icons.content_paste),
+                  SizedBox(width: 8),
+                  Text('Import lyrics & chords'),
                 ],
               ),
             ),

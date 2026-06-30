@@ -42,6 +42,93 @@ List<ChordSegment> parseChordProLine(String line) {
   return out;
 }
 
+/// Section-header keywords used to split pasted text into sections.
+const _headerWords = [
+  'intro', 'verse', 'prechorus', 'pre-chorus', 'chorus', 'bridge', 'outro',
+  'instrumental', 'solo', 'interlude', 'refrain', 'hook', 'breakdown', 'coda',
+  'ending', 'tag', 'pause',
+];
+
+bool _isHeaderWord(String s) {
+  final first =
+      s.trim().toLowerCase().split(RegExp(r'\s+')).first.replaceAll('-', '');
+  return _headerWords.map((w) => w.replaceAll('-', '')).contains(first);
+}
+
+String _titleCase(String s) => s
+    .split(RegExp(r'\s+'))
+    .where((w) => w.isNotEmpty)
+    .map((w) => w[0].toUpperCase() + w.substring(1))
+    .join(' ');
+
+/// Returns the section name if [line] is a header, else null. Recognizes
+/// ChordPro start directives ({start_of_chorus}/{soc}, {comment: X}), bracketed
+/// headers ([Verse 1]), "Chorus:" and bare "Verse 2" — but only when the label
+/// is a known section word, so chord lines like `[Am]` are never headers.
+String? _sectionHeader(String line) {
+  final t = line.trim();
+  if (t.isEmpty) return null;
+
+  final directive = RegExp(r'^\{\s*(.+?)\s*\}$').firstMatch(t);
+  if (directive != null) {
+    final inner = directive.group(1)!.toLowerCase();
+    final start = RegExp(r'^(?:start_of_|so)([a-z_]+)$').firstMatch(inner);
+    if (start != null) {
+      const abbr = {'v': 'Verse', 'c': 'Chorus', 'b': 'Bridge', 't': 'Tag'};
+      final kind = start.group(1)!;
+      return abbr[kind] ?? _titleCase(kind.replaceAll('_', ' '));
+    }
+    final comment = RegExp(r'^(?:comment|c)\s*:\s*(.+)$').firstMatch(inner);
+    if (comment != null) return _titleCase(comment.group(1)!);
+    return null; // other directive (title/key/...) — not a header
+  }
+
+  final bracket = RegExp(r'^\[(.+)\]$').firstMatch(t);
+  if (bracket != null && _isHeaderWord(bracket.group(1)!)) {
+    return _titleCase(bracket.group(1)!.trim());
+  }
+  final colon = RegExp(r'^([A-Za-z][A-Za-z \-]{0,20}?)\s*:$').firstMatch(t);
+  if (colon != null && _isHeaderWord(colon.group(1)!)) {
+    return _titleCase(colon.group(1)!.trim());
+  }
+  final bare = RegExp(r'^[A-Za-z][A-Za-z\- ]*\d*$').firstMatch(t);
+  if (bare != null && _isHeaderWord(t)) return _titleCase(t);
+
+  return null;
+}
+
+/// Splits pasted ChordPro/plain text into named sections, each with a ChordPro
+/// [chart] string. Pure `{directive}` lines (title/key/...) are dropped; content
+/// before the first header lands in a default "Verse". Empty sections are
+/// omitted. Used by paste-to-import.
+List<({String name, String chart})> parseSongSections(String text) {
+  final names = <String>[];
+  final buffers = <List<String>>[];
+  void startSection(String name) {
+    names.add(name);
+    buffers.add(<String>[]);
+  }
+
+  for (final raw in text.split('\n')) {
+    final line = raw.trimRight();
+    final header = _sectionHeader(line);
+    if (header != null) {
+      startSection(header);
+      continue;
+    }
+    if (RegExp(r'^\{.*\}$').hasMatch(line.trim())) continue; // stray directive
+    if (names.isEmpty) startSection('Verse');
+    buffers.last.add(line);
+  }
+
+  final out = <({String name, String chart})>[];
+  for (var i = 0; i < names.length; i++) {
+    final chart = buffers[i].join('\n').trim();
+    if (chart.isNotEmpty) out.add((name: names[i], chart: chart));
+  }
+  return out;
+}
+
 /// Renders one ChordPro line as two aligned monospace lines: a chord line whose
 /// chords sit above the syllable they precede, and the bare lyric line. Used for
 /// PDF/plain-text export where per-segment widgets aren't available.

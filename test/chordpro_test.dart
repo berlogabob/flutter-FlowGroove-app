@@ -77,6 +77,38 @@ void main() {
     });
   });
 
+  group('parseSongSections', () {
+    test('splits on bracketed/colon headers', () {
+      final s = parseSongSections(
+        '[Verse 1]\n[Am]Twinkle [F]star\n\n'
+        'Chorus:\n[C]How I [G]wonder',
+      );
+      expect(s.length, 2);
+      expect(s[0].name, 'Verse 1');
+      expect(s[0].chart, '[Am]Twinkle [F]star');
+      expect(s[1].name, 'Chorus');
+      expect(s[1].chart, '[C]How I [G]wonder');
+    });
+
+    test('no headers => single default Verse', () {
+      final s = parseSongSections('[Am]just a line\nanother line');
+      expect(s.length, 1);
+      expect(s[0].name, 'Verse');
+      expect(s[0].chart, '[Am]just a line\nanother line');
+    });
+
+    test('chord-only line is not a header; directives ignored', () {
+      final s = parseSongSections('{title: Song}\n{soc}\n[Am] [G]\nwords');
+      expect(s.length, 1);
+      expect(s[0].name, 'Chorus'); // from {soc}
+      expect(s[0].chart, '[Am] [G]\nwords');
+    });
+
+    test('empty input yields no sections', () {
+      expect(parseSongSections('   \n\n'), isEmpty);
+    });
+  });
+
   group('transposeChordChart', () {
     test('zero is a no-op', () {
       const chart = '[Am]Twinkle [F]little [C]star';
