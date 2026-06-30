@@ -148,6 +148,7 @@ hugo-build-prod:
 	@echo "║         Building Hugo (Production / flowgroove.app)       ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
+	@./scripts/fetch-roadmap.sh || echo "⚠️  roadmap refresh skipped"
 	@cd site && hugo --minify --baseURL "https://flowgroove.app/"
 	@echo "✅ Hugo production build complete"
 	@echo ""
