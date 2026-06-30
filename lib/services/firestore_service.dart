@@ -457,6 +457,48 @@ class FirestoreService {
     }
   }
 
+  /// Writes a band to BOTH the global `bands/{id}` collection and the user's
+  /// `users/{uid}/bands/{id}` reference in a single atomic batch (one round
+  /// trip) instead of two sequential `set` calls — used on band create/edit.
+  Future<void> saveBandBatch(Band band, {String? uid}) async {
+    try {
+      final userId = uid ?? _currentUserId;
+      final data = band.toJson();
+      final batch = _firestore.batch()
+        ..set(_firestore.collection('bands').doc(band.id), data)
+        ..set(
+          _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('bands')
+              .doc(band.id),
+          data,
+        );
+      await batch.commit().timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: saveBandBatch timed out after ${_firestoreTimeout.inSeconds}s for band ${band.id}',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to save this band.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
   /// Gets a band by invite code from global collection.
   Future<Band?> getBandByInviteCode(String code) async {
     try {

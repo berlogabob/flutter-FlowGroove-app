@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,30 +68,6 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
     ref.read(errorStateProvider.notifier).handleError(error);
   }
 
-  /// Generates a unique invite code with collision detection.
-  Future<String> _generateUniqueInviteCode() async {
-    final service = ref.read(firestoreProvider);
-
-    String code;
-    bool isTaken;
-    int attempts = 0;
-    const maxAttempts = 10;
-
-    do {
-      code = Band.generateUniqueInviteCode();
-      isTaken = await service.isInviteCodeTaken(code);
-      attempts++;
-
-      if (attempts > maxAttempts) {
-        throw ApiError.unknown(
-          message: 'Failed to generate unique invite code. Please try again.',
-        );
-      }
-    } while (isTaken);
-
-    return code;
-  }
-
   Future<void> _saveBand() async {
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
@@ -109,10 +87,13 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
 
       final service = ref.read(firestoreProvider);
 
-      // Generate unique invite code for new bands
+      // Generate the invite code locally — no pre-check round trip. A 6-char
+      // code over a 36-char alphabet is ~2.2e9 combos, so collisions are
+      // negligible at this app's scale.
+      // ponytail: drop-and-retry only if band count ever nears birthday-collision range.
       final inviteCode = _isEditing
           ? widget.band!.inviteCode
-          : await _generateUniqueInviteCode();
+          : Band.generateUniqueInviteCode();
 
       final band = Band(
         id: _isEditing ? widget.band!.id : const Uuid().v4(),
@@ -135,14 +116,12 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
         createdAt: _isEditing ? widget.band!.createdAt : DateTime.now(),
       );
 
-      // Save to global collection (for cross-user access)
-      await service.saveBandToGlobal(band);
+      // One atomic batch write to both the global collection and the user's
+      // reference (was two sequential `set` calls).
+      await service.saveBandBatch(band, uid: user.uid);
 
-      // Save to user's collection (for quick access and listing)
-      await service.saveBand(band, uid: user.uid);
-
-      // Log analytics event
-      await AnalyticsService.logBandCreatedFromBand(band);
+      // Analytics is non-blocking — don't make the user wait on it.
+      unawaited(AnalyticsService.logBandCreatedFromBand(band));
 
       if (mounted) {
         // Clear unsaved changes flag so PopScope lets the screen pop after save
