@@ -22,9 +22,9 @@ if (hasReleaseSigning) {
 
 android {
     namespace = "com.flowgroove.app"
-    // Pinned explicitly so the submitted API level is deterministic — Google Play
-    // requires new apps/updates to target API 35+.
-    compileSdk = 35
+    // compileSdk 36: required by androidx deps (browser/activity/core) pulled by plugins.
+    // targetSdk stays 35 (Play's minimum) — compileSdk and targetSdk are independent.
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -38,7 +38,7 @@ android {
 
     defaultConfig {
         applicationId = "com.flowgroove.app"
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
