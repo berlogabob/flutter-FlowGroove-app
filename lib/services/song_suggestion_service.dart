@@ -1,6 +1,7 @@
 import '../models/song_suggestion.dart';
 import '../repositories/canonical_song_repository.dart';
 import '../repositories/song_repository.dart';
+import 'api/spotify_proxy_service.dart';
 import 'matching/fuzzy_matcher.dart';
 import 'musicbrainz_service.dart';
 
@@ -67,6 +68,7 @@ class SongSuggestionService {
       _searchPersonal(title, artist),
       if (_bandId case final bandId?) _searchGroup(title, artist, bandId),
       if (_canonicalRepo != null) _searchCanonical(title, artist),
+      _searchSpotify(title, artist),
       _searchMusicBrainz(title, artist),
     ]);
 
@@ -223,6 +225,47 @@ class SongSuggestionService {
     }
   }
 
+  /// Search Spotify (primary external source — gives popularity ranking now and
+  /// BPM/key on selection). Skipped when Spotify isn't configured. Results are
+  /// fuzzy-scored + filtered against the query, like every other source.
+  Future<List<SongSuggestion>> _searchSpotify(
+    String title,
+    String artist,
+  ) async {
+    if (!SpotifyProxyService.isConfigured) return [];
+    try {
+      final query = [title, artist].where((s) => s.isNotEmpty).join(' ').trim();
+      if (query.isEmpty) return [];
+
+      final tracks = await SpotifyProxyService.search(query);
+      final suggestions = <SongSuggestion>[];
+      for (final track in tracks) {
+        final match = FuzzyMatcher.calculateMatchScore(
+          inputTitle: title,
+          inputArtist: artist,
+          targetTitle: track.name,
+          targetArtist: track.artist,
+          targetAlbum: track.album,
+        );
+        if (match.overall < 0.6) continue;
+        suggestions.add(
+          SongSuggestion.fromSpotify(
+            id: track.id,
+            title: track.name,
+            artist: track.artist,
+            spotifyId: track.id,
+            album: track.album,
+            durationMs: track.durationMs,
+          ).copyWith(matchScore: match.overall),
+        );
+      }
+      return suggestions;
+    } catch (e) {
+      // Non-fatal — Spotify is optional discovery.
+      return [];
+    }
+  }
+
   /// Search MusicBrainz API
   Future<List<SongSuggestion>> _searchMusicBrainz(
     String title,
@@ -311,6 +354,11 @@ class SongSuggestionService {
       return 'canonical:$canonicalSongId';
     }
 
+    final spotifyId = suggestion.spotifyId;
+    if (spotifyId != null && spotifyId.isNotEmpty) {
+      return 'spotify:$spotifyId';
+    }
+
     return '${suggestion.title.toLowerCase().trim()}|'
         '${suggestion.artist.toLowerCase().trim()}';
   }
@@ -322,10 +370,12 @@ class SongSuggestionService {
         return 1;
       case SuggestionSource.group:
         return 2;
-      case SuggestionSource.canonical:
+      case SuggestionSource.spotify:
         return 3;
-      case SuggestionSource.musicbrainz:
+      case SuggestionSource.canonical:
         return 4;
+      case SuggestionSource.musicbrainz:
+        return 5;
     }
   }
 

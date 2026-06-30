@@ -52,6 +52,8 @@ class SourceIcon extends StatelessWidget {
         return Icons.group;
       case SuggestionSource.musicbrainz:
         return Icons.cloud;
+      case SuggestionSource.spotify:
+        return Icons.music_note;
       case SuggestionSource.canonical:
         return Icons.library_music;
     }
@@ -66,6 +68,8 @@ class SourceIcon extends StatelessWidget {
       case SuggestionSource.group:
         return colorScheme.secondary;
       case SuggestionSource.musicbrainz:
+        return MonoPulseColors.successGreen;
+      case SuggestionSource.spotify:
         return MonoPulseColors.successGreen;
       case SuggestionSource.canonical:
         return colorScheme.tertiary;

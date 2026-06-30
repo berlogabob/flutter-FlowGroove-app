@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../services/api/spotify_service.dart';
+import '../../../services/api/spotify_proxy_service.dart';
+import '../../../services/api/spotify_service.dart' show SpotifyTrack, SpotifyAudioFeatures;
 import '../../../theme/mono_pulse_theme.dart';
 
 /// A bottom sheet widget for searching and selecting tracks from Spotify.
@@ -33,7 +34,7 @@ class SpotifySearchSection extends StatefulWidget {
 
 class _SpotifySearchSectionState extends State<SpotifySearchSection> {
   late Future<List<SpotifyTrack>> _searchResults;
-  final Map<String, SpotifyAudioFeatures> _audioFeatures = {};
+  String? _loadingTrackId;
 
   @override
   void initState() {
@@ -41,19 +42,27 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
     _searchResults = _loadResults();
   }
 
+  // Use the proxy so search works on web (CORS/auth). Audio-features are NOT
+  // fetched here — that's an N+1; we fetch them lazily for the chosen track.
   Future<List<SpotifyTrack>> _loadResults() async {
     try {
-      final tracks = await SpotifyService.search(widget.query);
-      for (final track in tracks) {
-        final features = await SpotifyService.getAudioFeatures(track.id);
-        if (features != null) {
-          _audioFeatures[track.id] = features;
-        }
-      }
-      return tracks;
+      return await SpotifyProxyService.search(widget.query);
     } catch (e) {
       return [];
     }
+  }
+
+  Future<void> _select(SpotifyTrack track) async {
+    setState(() => _loadingTrackId = track.id);
+    SpotifyAudioFeatures? features;
+    try {
+      features = await SpotifyProxyService.getAudioFeatures(track.id);
+    } catch (_) {
+      features = null; // best-effort; selection still works without BPM/key
+    }
+    if (!mounted) return;
+    setState(() => _loadingTrackId = null);
+    widget.onSelect(track, features);
   }
 
   @override
@@ -162,32 +171,23 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                 itemCount: results.length,
                 itemBuilder: (context, index) {
                   final track = results[index];
-                  final features = _audioFeatures[track.id];
+                  final isLoading = _loadingTrackId == track.id;
 
                   return ListTile(
                     title: Text(track.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(track.artist),
-                        if (features != null)
-                          Text(
-                            '${features.musicalKey} • ${features.bpm} BPM',
-                            style: const TextStyle(
-                              color: MonoPulseColors.accentOrange,
-                              fontSize: 12,
-                            ),
-                          ),
-                      ],
+                    subtitle: Text(
+                      track.album != null
+                          ? '${track.artist} • ${track.album}'
+                          : track.artist,
                     ),
-                    isThreeLine: features != null,
-                    trailing: features != null
-                        ? Chip(
-                            label: Text('${features.bpm}'),
-                            backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                    trailing: isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : null,
-                    onTap: () => widget.onSelect(track, features),
+                        : const Icon(Icons.add, color: MonoPulseColors.accentOrange),
+                    onTap: _loadingTrackId == null ? () => _select(track) : null,
                   );
                 },
               );

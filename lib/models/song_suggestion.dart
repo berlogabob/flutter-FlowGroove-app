@@ -14,6 +14,9 @@ enum SuggestionSource {
   /// MusicBrainz API
   musicbrainz,
 
+  /// Spotify API (search + audio-features for BPM/key)
+  spotify,
+
   /// Local canonical collection
   canonical,
 }
@@ -60,6 +63,7 @@ class SongSuggestion extends Equatable {
     this.releaseYear,
     this.durationMs,
     this.musicBrainzId,
+    this.spotifyId,
     this.matchReasons = const [],
   });
 
@@ -176,6 +180,31 @@ class SongSuggestion extends Equatable {
     );
   }
 
+  /// Create a suggestion from a Spotify track. BPM/key are filled later, on
+  /// selection, via the audio-features endpoint (avoids an N+1 fetch at search).
+  factory SongSuggestion.fromSpotify({
+    required String id,
+    required String title,
+    required String artist,
+    required String spotifyId,
+    String? album,
+    int? durationMs,
+    double matchScore = 0.9,
+  }) {
+    return SongSuggestion(
+      id: 'spotify_$id',
+      title: title,
+      artist: artist,
+      source: SuggestionSource.spotify,
+      type: matchScore >= 0.95 ? SuggestionType.exact : SuggestionType.similar,
+      matchScore: matchScore,
+      spotifyId: spotifyId,
+      album: album,
+      durationMs: durationMs,
+      matchReasons: const ['From Spotify'],
+    );
+  }
+
   factory SongSuggestion.fromJson(Map<String, dynamic> json) =>
       _$SongSuggestionFromJson(json);
 
@@ -232,6 +261,9 @@ class SongSuggestion extends Equatable {
   /// MusicBrainz ID (if from MusicBrainz)
   final String? musicBrainzId;
 
+  /// Spotify track ID (if from Spotify) — used to fetch BPM/key on selection
+  final String? spotifyId;
+
   /// Reasons why this song matched (for debugging/UI)
   @JsonKey(defaultValue: [])
   final List<String> matchReasons;
@@ -256,6 +288,7 @@ class SongSuggestion extends Equatable {
     int? releaseYear,
     int? durationMs,
     String? musicBrainzId,
+    String? spotifyId,
     List<String>? matchReasons,
   }) {
     return SongSuggestion(
@@ -276,6 +309,7 @@ class SongSuggestion extends Equatable {
       releaseYear: releaseYear ?? this.releaseYear,
       durationMs: durationMs ?? this.durationMs,
       musicBrainzId: musicBrainzId ?? this.musicBrainzId,
+      spotifyId: spotifyId ?? this.spotifyId,
       matchReasons: matchReasons ?? this.matchReasons,
     );
   }
@@ -320,6 +354,8 @@ class SongSuggestion extends Equatable {
         return 'group';
       case SuggestionSource.musicbrainz:
         return 'cloud';
+      case SuggestionSource.spotify:
+        return 'music_note';
       case SuggestionSource.canonical:
         return 'library_music';
     }
@@ -334,6 +370,8 @@ class SongSuggestion extends Equatable {
         return 'blue';
       case SuggestionSource.musicbrainz:
         return 'green';
+      case SuggestionSource.spotify:
+        return 'successGreen';
       case SuggestionSource.canonical:
         return 'purple';
     }
@@ -354,5 +392,6 @@ class SongSuggestion extends Equatable {
     canonicalSongId,
     bandId,
     musicBrainzId,
+    spotifyId,
   ];
 }

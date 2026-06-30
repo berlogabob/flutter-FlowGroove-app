@@ -120,6 +120,8 @@ class SuggestionSelectionDialog extends StatelessWidget {
         return Icon(Icons.group, color: Theme.of(context).colorScheme.secondary);
       case SuggestionSource.musicbrainz:
         return const Icon(Icons.cloud, color: MonoPulseColors.successGreen);
+      case SuggestionSource.spotify:
+        return const Icon(Icons.music_note, color: MonoPulseColors.successGreen);
       case SuggestionSource.canonical:
         return Icon(Icons.library_music, color: Theme.of(context).colorScheme.tertiary);
     }
@@ -133,6 +135,8 @@ class SuggestionSelectionDialog extends StatelessWidget {
         return 'Song in Band Library';
       case SuggestionSource.musicbrainz:
         return 'Found in MusicBrainz';
+      case SuggestionSource.spotify:
+        return 'Found on Spotify';
       case SuggestionSource.canonical:
         return 'Song in Database';
     }
@@ -146,6 +150,8 @@ class SuggestionSelectionDialog extends StatelessWidget {
         return Icons.group;
       case SuggestionSource.musicbrainz:
         return Icons.cloud;
+      case SuggestionSource.spotify:
+        return Icons.music_note;
       case SuggestionSource.canonical:
         return Icons.library_music;
     }
@@ -159,6 +165,8 @@ class SuggestionSelectionDialog extends StatelessWidget {
         return 'In ${suggestion.bandName ?? "your band"} • ${suggestion.matchScore.toStringAsFixed(0).padLeft(3)}% match';
       case SuggestionSource.musicbrainz:
         return 'From MusicBrainz database';
+      case SuggestionSource.spotify:
+        return 'From Spotify • adds BPM/key on selection';
       case SuggestionSource.canonical:
         return 'In song database • ${suggestion.matchScore.toStringAsFixed(0).padLeft(3)}% match';
     }

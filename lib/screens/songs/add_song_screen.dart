@@ -8,6 +8,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
 import '../../models/section.dart';
+import '../../services/api/spotify_proxy_service.dart';
 import '../../utils/song_tags.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../performance_sheet_screen.dart';
@@ -226,6 +227,58 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         _titleController.text = suggestion.title;
         _artistController.text = suggestion.artist;
     }
+
+    // Spotify suggestions carry no BPM/key at search time — fetch audio-features
+    // now (one lazy call) and fill what the user hasn't set.
+    final spotifyId = suggestion.spotifyId;
+    if (spotifyId != null && spotifyId.isNotEmpty) {
+      await _autofillFromSpotify(spotifyId);
+    }
+  }
+
+  /// Fills BPM and key from Spotify audio-features for [spotifyId], without
+  /// overwriting a BPM the user already typed.
+  Future<void> _autofillFromSpotify(String spotifyId) async {
+    if (_originalBpmController.text.trim().isNotEmpty) return;
+    try {
+      final features = await SpotifyProxyService.getAudioFeatures(spotifyId);
+      if (features == null || !mounted) return;
+      if (features.bpm > 0) {
+        // The controller's listener syncs this into the form provider.
+        _originalBpmController.text = features.bpm.toString();
+      }
+      _applySpotifyKey(features.musicalKey);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Filled ${features.bpm} BPM · ${features.musicalKey} from Spotify',
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      // Non-fatal — autofill is best-effort (e.g. audio-features unavailable).
+    }
+  }
+
+  /// Parses a Spotify key string like "C# minor" into the form's base+modifier.
+  void _applySpotifyKey(String musicalKey) {
+    final parts = musicalKey.trim().split(' ');
+    if (parts.isEmpty || parts.first.isEmpty) return;
+    final token = parts.first; // e.g. "C#"
+    final base = token.replaceAll(RegExp('[#bm]'), '');
+    if (base.isEmpty) return;
+    var modifier = '';
+    if (token.contains('#')) {
+      modifier = '#';
+    } else if (token.contains('b')) {
+      modifier = 'b';
+    }
+    if (parts.length > 1 && parts[1].toLowerCase() == 'minor') modifier = 'm';
+    ref
+        .read(songFormStateProvider.notifier)
+        .updateOriginalKey(base.substring(0, 1).toUpperCase(), modifier);
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flowgroove/models/musicbrainz_recording.dart';
 import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/repositories/song_repository.dart';
 import 'package:flowgroove/services/musicbrainz_service.dart';
 import 'package:flowgroove/services/song_suggestion_service.dart';
@@ -67,5 +68,18 @@ void main() {
 
     final results = await service.getSuggestions(query: 'bohemian rhapsody');
     expect(results.map((s) => s.title), isNot(contains('Hit the Road Jack')));
+  });
+
+  test('#76: SongSuggestion.fromSpotify carries source + spotifyId for autofill',
+      () {
+    final s = SongSuggestion.fromSpotify(
+      id: 't1',
+      title: 'Zombie',
+      artist: 'The Cranberries',
+      spotifyId: 't1',
+    );
+    expect(s.source, SuggestionSource.spotify);
+    expect(s.spotifyId, 't1');
+    expect(s.id, 'spotify_t1');
   });
 }
