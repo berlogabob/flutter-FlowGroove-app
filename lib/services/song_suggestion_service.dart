@@ -233,22 +233,36 @@ class SongSuggestionService {
       final recordings = await _musicBrainz.searchRecording(
         title: title,
         artist: artist,
-        limit: 5,
+        limit: 8,
       );
 
-      return recordings
-          .map(
-            (rec) => SongSuggestion.fromMusicBrainz(
-              id: rec.id,
-              title: rec.title,
-              artist: rec.artist,
-              musicBrainzId: rec.id,
-              durationMs: rec.lengthMs,
-              releaseYear: rec.releaseYear,
-              album: rec.album,
-            ),
-          )
-          .toList();
+      // Score and filter each recording against the query, exactly like the
+      // other sources — MusicBrainz returns many loose / same-title / foreign
+      // (e.g. Cyrillic) matches that must not be promoted to the top with a
+      // flat score. (#75)
+      final suggestions = <SongSuggestion>[];
+      for (final rec in recordings) {
+        final match = FuzzyMatcher.calculateMatchScore(
+          inputTitle: title,
+          inputArtist: artist,
+          targetTitle: rec.title,
+          targetArtist: rec.artist,
+          targetAlbum: rec.album,
+        );
+        if (match.overall < 0.6) continue;
+        suggestions.add(
+          SongSuggestion.fromMusicBrainz(
+            id: rec.id,
+            title: rec.title,
+            artist: rec.artist,
+            musicBrainzId: rec.id,
+            durationMs: rec.lengthMs,
+            releaseYear: rec.releaseYear,
+            album: rec.album,
+          ).copyWith(matchScore: match.overall),
+        );
+      }
+      return suggestions;
     } catch (e) {
       // MusicBrainz errors are expected (rate limits, network, etc.)
       // Return empty list - not critical
