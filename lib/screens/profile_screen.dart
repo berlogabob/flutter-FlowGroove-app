@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +13,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../providers/auth/auth_provider.dart';
+import '../../services/account_function_service.dart';
 import '../../services/avatar_function_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/telegram_service.dart';
@@ -681,9 +684,85 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
           ),
+          Center(
+            child: TextButton(
+              onPressed: _confirmAndDeleteAccount,
+              child: Text(
+                'Delete account',
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  /// Confirms, then deletes the account + all data via the server-authoritative
+  /// `deleteAccount` callable, signs out and returns to login (Google Play
+  /// data-deletion requirement).
+  Future<void> _confirmAndDeleteAccount() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete account'),
+        content: const Text(
+          'This permanently deletes your account and all your data — your '
+          'songs, setlists, and band memberships. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: MonoPulseColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    // Non-dismissible progress while the server cascades the deletion.
+    unawaited(
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      ),
+    );
+
+    try {
+      await AccountFunctionService().deleteAccount();
+      if (!mounted) return;
+      Navigator.pop(context); // dismiss progress
+      await ref.read(appUserProvider.notifier).signOut();
+      if (mounted) context.goNamed('login');
+    } on FirebaseFunctionsException catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // dismiss progress
+      final msg = e.code == 'failed-precondition'
+          ? (e.message ?? 'This account cannot be deleted.')
+          : 'Could not delete your account. Please try again.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(msg)));
+    } catch (_) {
+      if (!mounted) return;
+      Navigator.pop(context); // dismiss progress
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not delete your account. Please try again.'),
+        ),
+      );
+    }
   }
 
   Widget _buildSection({
