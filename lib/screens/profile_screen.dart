@@ -19,6 +19,7 @@ import '../../utils/music_role_icon.dart';
 import '../../utils/web_version_loader_export.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/support_sheet.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -618,6 +619,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 title: 'Link Telegram',
                 subtitle: 'Get name and photo from Telegram',
                 onTap: _showTelegramLinkDialog,
+              ),
+            ],
+          ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          _buildSection(
+            title: 'Support',
+            children: [
+              _buildMenuItem(
+                icon: Icons.headset_mic_outlined,
+                title: 'Contact support',
+                subtitle: 'Reach us on Telegram or WhatsApp',
+                onTap: () => showSupportSheet(context, appVersion: _version),
               ),
             ],
           ),
