@@ -21,6 +21,10 @@ const bands = require("./src/bands");
 exports.joinBand = bands.joinBand;
 exports.updateBandMember = bands.updateBandMember;
 
+// Account deletion (server-authoritative; Google Play data-deletion requirement)
+const account = require("./src/account");
+exports.deleteAccount = account.deleteAccount;
+
 // Band avatar (server-authoritative; admin verified server-side)
 const bandAvatar = require("./src/band_avatar");
 exports.setBandAvatar = bandAvatar.setBandAvatar;
