@@ -6,6 +6,7 @@ import 'package:flowgroove/models/song_import_plan.dart';
 import 'package:flowgroove/services/csv/song_csv_parser.dart';
 import 'package:flowgroove/services/csv/song_csv_service.dart';
 import 'package:flowgroove/services/csv/song_import_analyzer.dart';
+import 'package:flowgroove/services/json/song_json_codec.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -53,7 +54,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Import songs from CSV',
+              'Import songs (CSV or JSON)',
               style:
                   (isMobile
                           ? MonoPulseTypography.titleLarge
@@ -88,7 +89,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
               const Icon(Icons.table_view_outlined, size: 56),
               const SizedBox(height: 20),
               const Text(
-                'Choose a CSV file or paste CSV data. The complete file will be compared with your library before anything is saved.',
+                'Choose a CSV file, or paste CSV or FlowGroove Song JSON (e.g. from an AI). Everything is compared with your library and previewed before anything is saved.',
                 textAlign: TextAlign.center,
                 style: MonoPulseTypography.bodyLarge,
               ),
@@ -262,12 +263,19 @@ class _SongImportDialogState extends State<SongImportDialog> {
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       final content = data?.text ?? '';
-      final result = content.trim().isEmpty
-          ? SongParseResult(
-              successful: const [],
-              errors: ['Clipboard is empty'],
-            )
-          : await _service.importFromString(content);
+      final trimmed = content.trim();
+      final SongParseResult result;
+      if (trimmed.isEmpty) {
+        result = SongParseResult(
+          successful: const [],
+          errors: ['Clipboard is empty'],
+        );
+      } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        // Looks like JSON → FlowGroove Song JSON.
+        result = const SongJsonCodec().parse(content);
+      } else {
+        result = await _service.importFromString(content);
+      }
       if (!mounted) return;
       _setResult(result);
     } catch (error) {
