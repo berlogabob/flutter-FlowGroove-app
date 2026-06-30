@@ -169,6 +169,14 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
                     email: user.email,
                     displayName: displayName,
                     photoURL: photoURL,
+                    accessRole:
+                        (telegramData['accessRole'] as String?) ?? 'member',
+                    musicRoles: List<String>.from(
+                      (telegramData['musicRoles'] as List?) ?? const [],
+                    ),
+                    systemTags: List<String>.from(
+                      (telegramData['systemTags'] as List?) ?? const [],
+                    ),
                     createdAt: DateTime.now(),
                   ),
                 );
@@ -267,6 +275,12 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         if (data != null) {
           return {
             'photoURL': data['photoURL'],
+            // Persisted profile fields the auth token doesn't carry. Without
+            // these the provider state defaults musicRoles to [], so saved
+            // roles vanish on the next rebuild ("My Roles edit doesn't save").
+            'musicRoles': data['musicRoles'],
+            'accessRole': data['accessRole'],
+            'systemTags': data['systemTags'],
             if (data['telegramConsent'] == true) ...{
               'telegramUsername': data['telegramUsername'],
               'telegramPhotoURL': data['telegramPhotoURL'],
