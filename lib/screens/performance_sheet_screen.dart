@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/section.dart';
 import '../providers/wakelock_provider.dart';
+import '../services/export/pdf_service.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/chordpro.dart';
 import '../widgets/chord_chart_view.dart';
@@ -62,6 +63,15 @@ class _PerformanceSheetScreenState
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
+          IconButton(
+            tooltip: 'Export PDF',
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            onPressed: () => PdfService.exportSongSheet(
+              widget.title,
+              widget.sections,
+              transpose: _transpose,
+            ),
+          ),
           IconButton(
             tooltip: 'Transpose down',
             icon: const Icon(Icons.remove),

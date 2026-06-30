@@ -42,6 +42,25 @@ List<ChordSegment> parseChordProLine(String line) {
   return out;
 }
 
+/// Renders one ChordPro line as two aligned monospace lines: a chord line whose
+/// chords sit above the syllable they precede, and the bare lyric line. Used for
+/// PDF/plain-text export where per-segment widgets aren't available.
+({String chords, String lyrics}) chordsOverLyrics(String line) {
+  final lyrics = StringBuffer();
+  final chords = StringBuffer();
+  for (final seg in parseChordProLine(line)) {
+    final chord = seg.chord;
+    if (chord != null && chord.isNotEmpty) {
+      while (chords.length < lyrics.length) {
+        chords.write(' ');
+      }
+      chords.write('$chord ');
+    }
+    lyrics.write(seg.text);
+  }
+  return (chords: chords.toString().trimRight(), lyrics: lyrics.toString());
+}
+
 /// Transposes every `[chord]` in a chart by [semitones] (lyrics untouched).
 String transposeChordChart(String chart, int semitones) {
   if (semitones == 0) return chart;

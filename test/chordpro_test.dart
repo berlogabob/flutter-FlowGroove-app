@@ -60,6 +60,23 @@ void main() {
     });
   });
 
+  group('chordsOverLyrics', () {
+    test('aligns chords above the syllable they precede', () {
+      final r = chordsOverLyrics('[Am]Twinkle [F]little [C]star');
+      expect(r.lyrics, 'Twinkle little star');
+      // Each chord sits at the column where its lyric segment begins.
+      expect(r.chords.indexOf('Am'), r.lyrics.indexOf('Twinkle'));
+      expect(r.chords.indexOf('F'), r.lyrics.indexOf('little'));
+      expect(r.chords.indexOf('C'), r.lyrics.indexOf('star'));
+    });
+
+    test('line with no chords yields an empty chord line', () {
+      final r = chordsOverLyrics('just words');
+      expect(r.chords, '');
+      expect(r.lyrics, 'just words');
+    });
+  });
+
   group('transposeChordChart', () {
     test('zero is a no-op', () {
       const chart = '[Am]Twinkle [F]little [C]star';
