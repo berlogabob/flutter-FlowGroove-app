@@ -86,7 +86,7 @@ Deploy target:
 - Offline-first data flow with Hive-backed local caching
 - Firebase Auth, Firestore, and Storage integration
 - In-app account deletion (Google Play compliant), removing all associated data
-- CSV import/export and PDF export
+- CSV and FlowGroove Song JSON import/export (documented, AI-ready schema; paste auto-detects format) plus PDF export
 - Responsive desktop/mobile layout
 
 ### Music Tools

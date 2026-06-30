@@ -225,6 +225,22 @@ The repo keeps a protected memory bank and a normalized Codex control plane:
 
 This context is operational documentation, not app runtime code.
 
+### 6. AI-ready Song Workflow / MCP (planned)
+
+The **Song JSON** format (`docs/SONG_JSON_SCHEMA.md`, `services/json/song_json_codec.dart`)
+is the stable contract for letting a user's own AI prepare songs. Today that's manual:
+export a song as JSON / paste AI output into Import. The planned **MCP endpoint** wraps the
+same contract for direct agent access:
+
+- per-user **API key** (minted in-app, stored hashed, revocable) →
+- an **authenticated Cloud Functions gateway** that maps key→uid and validates writes against
+  the schema →
+- a thin **Node MCP server** exposing tools (`list/get/validate/create/update/export_song`,
+  later sections/chords/lab/homework).
+
+No canonical-song or destructive writes; users bring their own AI, so FlowGroove pays no
+tokens. Gated until the schema is verified. (Not yet built.)
+
 ## App Structure
 
 ### Routing
@@ -261,6 +277,9 @@ Primary service areas:
 - CSV/PDF export (incl. per-song chords+lyrics performance sheet PDF)
 - ChordPro lyrics+chords: parse/transpose (`utils/chordpro.dart`), render
   (`widgets/chord_chart_view.dart`), and paste-to-import
+- Song JSON import/export — versioned, documented format
+  (`services/json/song_json_codec.dart`, schema in `docs/SONG_JSON_SCHEMA.md`); the
+  import dialog auto-detects JSON vs CSV. This is the contract the AI/MCP layer writes against.
 - connectivity and cache control
 - matching/search utilities
 - external API wrappers for Spotify and MusicBrainz
