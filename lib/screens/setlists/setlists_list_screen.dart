@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -15,6 +14,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/share_sheet.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
@@ -237,7 +237,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
           ),
           OverflowMenuAction(
             entries: [
-              ('Copy links', Icons.link, () => _copyLinks(setlist)),
+              ('Share', Icons.share, () => _shareSetlist(setlist)),
               ('Export PDF', Icons.picture_as_pdf, () => _exportPdf(setlist)),
             ],
           ),
@@ -264,7 +264,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     context.goNamed('metronome');
   }
 
-  void _copyLinks(Setlist setlist) {
+  void _shareSetlist(Setlist setlist) {
     _shareAsLinks(context, setlist, _songsForSetlist(setlist));
   }
 
@@ -300,9 +300,6 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     }
     buffer.writeln();
     buffer.writeln('Created with FlowGroove');
-    Clipboard.setData(ClipboardData(text: buffer.toString()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Setlist links copied to clipboard!')),
-    );
+    showShareSheet(context, buffer.toString(), subject: setlist.name);
   }
 }

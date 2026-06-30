@@ -16,6 +16,7 @@ import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
 import '../../widgets/invite_code_field.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/share_sheet.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/unified_item/adapters/band_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
@@ -487,100 +488,11 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
   }
 
   void _showShareOptions(String message) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.copy),
-              title: const Text('Copy to clipboard'),
-              onTap: () {
-                Clipboard.setData(ClipboardData(text: message));
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Copied to clipboard!')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('Share via...'),
-              onTap: () {
-                Navigator.pop(context);
-                _shareText(message);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.email),
-              title: const Text('Email'),
-              onTap: () {
-                Navigator.pop(context);
-                final emailUri = Uri(
-                  scheme: 'mailto',
-                  queryParameters: {
-                    'subject': 'Join my band "${widget.band.name}"',
-                    'body': message,
-                  },
-                );
-                launchUrl(emailUri);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.telegram),
-              title: const Text('Telegram'),
-              onTap: () {
-                Navigator.pop(context);
-                final telegramUri = Uri.parse(
-                  'https://t.me/share/url?url=${Uri.encodeComponent(message)}',
-                );
-                launchUrl(telegramUri, mode: LaunchMode.externalApplication);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.link),
-              title: const Text('WhatsApp'),
-              onTap: () {
-                Navigator.pop(context);
-                final whatsappUri = Uri.parse(
-                  'https://wa.me/?text=${Uri.encodeComponent(message)}',
-                );
-                launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-              },
-            ),
-          ],
-        ),
-      ),
+    showShareSheet(
+      context,
+      message,
+      subject: 'Join my band "${widget.band.name}"',
     );
-  }
-
-  Future<void> _shareText(String text) async {
-    try {
-      await Clipboard.setData(ClipboardData(text: text));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Link copied! Paste in any app to share.'),
-          ),
-        );
-      }
-    } on ApiError catch (e) {
-      _handleError(e);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
-    } catch (e, stackTrace) {
-      final error = ApiError.fromException(e, stackTrace: stackTrace);
-      _handleError(error);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
-    }
   }
 
   Future<void> _copyToClipboard() async {
