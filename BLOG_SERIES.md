@@ -25,6 +25,12 @@ launch day: flip the drafts to `draft: false`, set `SERIES_LIVE = True` in
 `scripts/gen_history.py`, regenerate, and deploy. (dated 2026-06-25; the two pre-existing origin posts and the in-app-help devlog from
 2026-06-24 are folded in). Story/meta episodes have no changelog entry by design.
 
+**Reddit caveat:** the `reddit-bot` Devvit app crossposts only the **newest** `/blog/`
+item per deploy. Flipping the whole batch to `draft:false` and deploying once puts them
+all on the web + changelog but reaches Reddit with just the latest. To drip the series to
+Reddit (1/day), flip + deploy one episode at a time (the launchd job already does this).
+Telegram is per-post via `poster/poster.py` regardless.
+
 ---
 
 ## Season 1 — Origin Story
@@ -160,6 +166,25 @@ shareable, distinct from the music angle.*
 - ✏️ **S7E6 — I asked the git log to write my blog** — this pipeline: history.yaml →
   changelog → episode bible → posts. The series, explained by the series. *(meta;
   source: scripts/gen_history.py)*
+
+## Season 8 — Shipping to the Store & the Song Workspace
+*Going to market. The Google Play gauntlet, and a real cover-band guitarist who
+reshuffled the roadmap in a single chat — from "what I think they want" to "what
+one player actually needs to get through a song." Drafts held (`draft: true`)
+until the launch run.*
+
+- ⬜ **S8E1 — The user who reshuffled my roadmap** — one tester reordered my whole
+  priority list: stability and chords-over-lyrics first, everything else second.
+  *(story; source: 2026-06-30 user feedback)*
+- ✏️ **S8E2 — Deleting your account, the lazy-correct way** — Play requires in-app
+  deletion; doing it server-side skipped the entire re-auth flow. *(devlog/war-story;
+  source: #43 deleteAccount)*
+- ✏️ **S8E3 — The band that took too long to create** — a tester set the phone down
+  waiting; four round trips became one. *(war-story; source: #61 create speed)*
+- ✏️ **S8E4 — Chords over the right syllable** — ChordPro lyrics+chords, a keep-awake
+  performance view, transpose, and print. *(devlog; source: #34/#64 performance sheet)*
+- ✏️ **S8E5 — Stop typing the chords by hand** — paste lyrics+chords → sections; the
+  first step toward AI/MCP import. *(devlog; source: #56 paste import)*
 
 ---
 
