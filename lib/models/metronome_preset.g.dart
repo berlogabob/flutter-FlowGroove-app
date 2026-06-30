@@ -16,6 +16,7 @@ MetronomePreset _$MetronomePresetFromJson(Map<String, dynamic> json) =>
       ),
       waveType: json['waveType'] as String? ?? 'sine',
       accentEnabled: json['accentEnabled'] as bool? ?? true,
+      createdAt: _parseDateTime(json['createdAt']),
       subdivisions: (json['subdivisions'] as num?)?.toInt() ?? 1,
       beatModes:
           (json['beatModes'] as List<dynamic>?)
@@ -31,7 +32,6 @@ MetronomePreset _$MetronomePresetFromJson(Map<String, dynamic> json) =>
       visualFlashEnabled: json['visualFlashEnabled'] as bool? ?? true,
       hapticsEnabled: json['hapticsEnabled'] as bool? ?? true,
       soundProfileId: json['soundProfileId'] as String? ?? 'digital',
-      createdAt: _parseDateTime(json['createdAt']),
     );
 
 Map<String, dynamic> _$MetronomePresetToJson(MetronomePreset instance) =>

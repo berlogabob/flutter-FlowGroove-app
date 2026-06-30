@@ -10,6 +10,8 @@ Setlist _$SetlistFromJson(Map<String, dynamic> json) => Setlist(
   id: json['id'] as String? ?? '',
   bandId: json['bandId'] as String? ?? '',
   name: json['name'] as String? ?? '',
+  createdAt: _parseDateTime(json['createdAt']),
+  updatedAt: _parseDateTime(json['updatedAt']),
   description: json['description'] as String?,
   eventDateTime: _parseTimestamp(json['eventDateTime']),
   eventLocation: json['eventLocation'] as String?,
@@ -21,8 +23,6 @@ Setlist _$SetlistFromJson(Map<String, dynamic> json) => Setlist(
   assignments: json['assignments'] == null
       ? {}
       : _assignmentsFromJson(json['assignments']),
-  createdAt: _parseDateTime(json['createdAt']),
-  updatedAt: _parseDateTime(json['updatedAt']),
 );
 
 Map<String, dynamic> _$SetlistToJson(Setlist instance) => <String, dynamic>{
