@@ -87,6 +87,8 @@ Deploy target:
 - Firebase Auth, Firestore, and Storage integration
 - In-app account deletion (Google Play compliant), removing all associated data
 - CSV and FlowGroove Song JSON import/export (documented, AI-ready schema; paste auto-detects format) plus PDF export
+- Search-to-autofill from Spotify (BPM/key) and MusicBrainz, fuzzy-ranked
+- Bring-your-own-AI: copy a prompt for ChatGPT/Claude/Gemini, or connect an agent via the MCP endpoint (per-user API keys) — FlowGroove pays no AI tokens
 - Responsive desktop/mobile layout
 
 ### Music Tools

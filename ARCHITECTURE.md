@@ -211,9 +211,12 @@ Server-authoritative callables (admin-SDK, so they bypass client-side rules):
 - `ensureCanonicalSong` (`src/canonical.js`) — dedupe/create canonical songs.
 - `setBandAvatar` / `removeBandAvatar` (`src/band_avatar.js`),
   `importTelegramAvatar` / `importGoogleAvatar` (`src/avatars.js`).
+- `createApiKey` / `listApiKeys` / `revokeApiKey` (`src/mcp/keys.js`) — per-user MCP
+  API keys (random token shown once, only its SHA-256 stored, revocable, demo-blocked).
 
 HTTP + scheduled: `telegramWebhook`, `shareToTelegram`, `onBandSetlistCreated`,
-`dailyEventReminder` (`src/telegram/`).
+`dailyEventReminder` (`src/telegram/`), and `mcpGateway` (`src/mcp/gateway.js`) — the
+authenticated MCP endpoint (see §6).
 
 ### 5. AI Workspace Context
 
@@ -225,21 +228,25 @@ The repo keeps a protected memory bank and a normalized Codex control plane:
 
 This context is operational documentation, not app runtime code.
 
-### 6. AI-ready Song Workflow / MCP (planned)
+### 6. AI-ready Song Workflow / MCP
 
 The **Song JSON** format (`docs/SONG_JSON_SCHEMA.md`, `services/json/song_json_codec.dart`)
-is the stable contract for letting a user's own AI prepare songs. Today that's manual:
-export a song as JSON / paste AI output into Import. The planned **MCP endpoint** wraps the
-same contract for direct agent access:
+is the stable contract for letting a user's own AI prepare songs. Two ways to use it:
 
-- per-user **API key** (minted in-app, stored hashed, revocable) →
-- an **authenticated Cloud Functions gateway** that maps key→uid and validates writes against
-  the schema →
-- a thin **Node MCP server** exposing tools (`list/get/validate/create/update/export_song`,
-  later sections/chords/lab/homework).
+- **Manual (built):** export a song as JSON / paste AI output into Import (auto-detects
+  JSON vs CSV, validated + previewed before save). Ready-made prompts via
+  `services/json/song_ai_prompt.dart` + `docs/AI_PROMPTS.md`.
+- **MCP endpoint (built; deploy gated):** direct agent access over the same contract:
+  - per-user **API key** (in-app: Profile → *AI access (MCP)*; token shown once, only its
+    SHA-256 stored) →
+  - an **authenticated Cloud Functions gateway** (`mcpGateway`) that maps key→uid, enforces
+    read/write scope, and validates every write server-side (`src/mcp/song_schema.js`) →
+  - a thin, user-run **Node MCP server** (`mcp/`, `@modelcontextprotocol/sdk`) exposing
+    tools `list/get/validate/export/create/update_song`.
 
-No canonical-song or destructive writes; users bring their own AI, so FlowGroove pays no
-tokens. Gated until the schema is verified. (Not yet built.)
+Writes are scoped to the key's own uid; no canonical-song or destructive writes. Users bring
+their own AI, so FlowGroove pays no tokens. Richer tools (sections/chords/lab/homework) land
+with Song Lab. See `mcp/README.md` for client config.
 
 ## App Structure
 
