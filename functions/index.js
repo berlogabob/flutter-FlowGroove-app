@@ -32,6 +32,8 @@ exports.listApiKeys = mcpKeys.listApiKeys;
 exports.revokeApiKey = mcpKeys.revokeApiKey;
 const mcpGateway = require("./src/mcp/gateway");
 exports.mcpGateway = mcpGateway.mcpGateway;
+const mcpRemote = require("./src/mcp/remote");
+exports.mcpRemote = mcpRemote.mcpRemote;
 
 // Band avatar (server-authoritative; admin verified server-side)
 const bandAvatar = require("./src/band_avatar");
