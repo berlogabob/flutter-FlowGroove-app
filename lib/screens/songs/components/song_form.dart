@@ -187,11 +187,6 @@ class SongForm extends StatelessWidget {
             title: 'Key & BPM',
             icon: Icons.music_note,
             initiallyExpanded: false,
-            action: TextButton.icon(
-              onPressed: onCopyFromOriginal,
-              icon: const Icon(Icons.copy, size: 16),
-              label: const Text('Copy'),
-            ),
             preview: _keyBpmPreview(
               originalBase: originalKeyBase,
               originalModifier: originalKeyModifier,
@@ -342,8 +337,10 @@ class SongForm extends StatelessWidget {
   }
 }
 
-/// Collapsed preview for the combined Key & BPM bubble: shows "Our" when it's
-/// set (has a BPM, or a key different from Original), otherwise "Original".
+/// Collapsed preview for the Key & BPM bubble: just the effective scale + BPM
+/// (Our when it's set — has a BPM or a key different from Original — else
+/// Original), with no "Our"/"Original" label since which one it is doesn't matter
+/// at a glance.
 Widget _keyBpmPreview({
   required String originalBase,
   required String originalModifier,
@@ -357,10 +354,11 @@ Widget _keyBpmPreview({
   final oBpm = originalBpm.trim();
   final uBpm = ourBpm.trim();
   final hasOur = uBpm.isNotEmpty || ourKey != origKey;
+  final key = hasOur ? ourKey : origKey;
+  final bpm = hasOur ? uBpm : oBpm;
   final parts = <String>[
-    hasOur ? 'Our' : 'Original',
-    hasOur ? ourKey : origKey,
-    if ((hasOur ? uBpm : oBpm).isNotEmpty) '${hasOur ? uBpm : oBpm} BPM',
+    key,
+    if (bpm.isNotEmpty) '$bpm BPM',
   ];
   return _previewAccent(parts.join('  ·  '));
 }
