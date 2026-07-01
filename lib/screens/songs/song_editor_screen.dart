@@ -40,6 +40,7 @@ class SongEditorScreen extends StatefulWidget {
 class _SongEditorScreenState extends State<SongEditorScreen> {
   late final ChordProSyncController _sync;
   late final TextEditingController _textCtrl;
+  bool _mapExpanded = false;
   static const _uuid = Uuid();
 
   @override
@@ -216,9 +217,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _metaBar(m),
-            _mapStrip(),
-            const Divider(height: 1),
+            _mapSection(m),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(MonoPulseSpacing.md),
@@ -245,94 +244,147 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
     );
   }
 
-  Widget _metaBar(ChordProSyncMeta m) {
+  /// Collapsible map header — mirrors the in-form SongConstructor: an always-
+  /// visible meta line (key·scale · BPM · time) with a collapse toggle on the
+  /// right, a thin proportional song-map graph on the second line, and (when
+  /// expanded) the full reorderable section list.
+  Widget _mapSection(ChordProSyncMeta m) {
+    final sections = _sync.sections;
     final bits = <String>[
       if (m.ourKey != null && m.ourKey!.isNotEmpty)
         '${m.ourKey} · ${keyToScale(m.ourKey!).quality}',
       if (m.ourBpm != null) '${m.ourBpm} BPM',
       if (m.timeTop != null) '${m.timeTop}/4',
     ];
-    if (bits.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Text(
-        bits.join('   ·   '),
-        style: MonoPulseTypography.bodyMedium.copyWith(
-          color: MonoPulseColors.accentOrange,
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: MonoPulseColors.borderDefault),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Main line: meta + collapse/expand toggle.
+          InkWell(
+            onTap: sections.isEmpty
+                ? null
+                : () => setState(() => _mapExpanded = !_mapExpanded),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 8, 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      bits.isEmpty ? 'Song map' : bits.join('   ·   '),
+                      style: MonoPulseTypography.bodyMedium.copyWith(
+                        color: MonoPulseColors.accentOrange,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (sections.isNotEmpty)
+                    AnimatedRotation(
+                      turns: _mapExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(
+                        Icons.expand_more,
+                        color: MonoPulseColors.textSecondary,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          // Second line: thin proportional song-map graph.
+          if (sections.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: _thinMap(sections),
+            )
+          else
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: Text(
+                'No sections yet — type ChordPro below, or use Import / Add.',
+                style: TextStyle(color: MonoPulseColors.textSecondary),
+              ),
+            ),
+          // Collapsible: the full reorderable section list.
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: (_mapExpanded && sections.isNotEmpty)
+                ? ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.30,
+                    ),
+                    child: _reorderList(sections),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _mapStrip() {
-    final sections = _sync.sections;
-    if (sections.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Text(
-          'No sections yet — type ChordPro below, or use Import / Add.',
-          style: TextStyle(color: MonoPulseColors.textSecondary),
-        ),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Text(
-            'SONG MAP · ${songMapSummary(sections.map((s) => s.name).toList())}',
-            style: MonoPulseTypography.bodySmall.copyWith(
-              color: MonoPulseColors.textSecondary,
+  /// A thin bar of section colours whose widths track each section's duration.
+  Widget _thinMap(List<Section> sections) {
+    return SizedBox(
+      height: 8,
+      child: Row(
+        children: [
+          for (final s in sections)
+            Expanded(
+              flex: s.duration > 0 ? s.duration : 1,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 1),
+                decoration: BoxDecoration(
+                  color: s.color,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+        ],
+      ),
+    );
+  }
+
+  Widget _reorderList(List<Section> sections) {
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      itemCount: sections.length,
+      onReorder: (oldIndex, newIndex) {
+        final list = [..._sync.sections];
+        var target = newIndex;
+        if (target > oldIndex) target -= 1;
+        final item = list.removeAt(oldIndex);
+        list.insert(target, item);
+        _sync.updateFromMap(list);
+      },
+      itemBuilder: (context, i) {
+        final s = sections[i];
+        return Dismissible(
+          key: ValueKey('dismiss_${s.id}'),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 20),
+            color: MonoPulseColors.error,
+            child: const Icon(Icons.delete, color: MonoPulseColors.textPrimary),
           ),
-        ),
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.30,
+          onDismissed: (_) => _sync.updateFromMap(
+            _sync.sections.where((x) => x.id != s.id).toList(),
           ),
-          child: ReorderableListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            itemCount: sections.length,
-            onReorder: (oldIndex, newIndex) {
-              final list = [..._sync.sections];
-              var target = newIndex;
-              if (target > oldIndex) target -= 1;
-              final item = list.removeAt(oldIndex);
-              list.insert(target, item);
-              _sync.updateFromMap(list);
-            },
-            itemBuilder: (context, i) {
-              final s = sections[i];
-              return Dismissible(
-                key: ValueKey('dismiss_${s.id}'),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 20),
-                  color: MonoPulseColors.error,
-                  child: const Icon(
-                    Icons.delete,
-                    color: MonoPulseColors.textPrimary,
-                  ),
-                ),
-                onDismissed: (_) => _sync.updateFromMap(
-                  _sync.sections.where((x) => x.id != s.id).toList(),
-                ),
-                child: SectionCard(
-                  section: s,
-                  enableDrag: true,
-                  dragIndex: i,
-                  onTap: () => _editSection(s),
-                ),
-              );
-            },
+          child: SectionCard(
+            section: s,
+            enableDrag: true,
+            dragIndex: i,
+            onTap: () => _editSection(s),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
