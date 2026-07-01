@@ -185,6 +185,17 @@ until the launch run.*
   performance view, transpose, and print. *(devlog; source: #34/#64 performance sheet)*
 - ✏️ **S8E5 — Stop typing the chords by hand** — paste lyrics+chords → sections; the
   first step toward AI/MCP import. *(devlog; source: #56 paste import)*
+- ✏️ **S8E6 — The Cyrillic song that gate-crashed my search** — one search source skipped
+  the scoring rules; the fix was deleting a special case. *(war-story; source: #75)*
+- ✏️ **S8E7 — Autofill that actually fills** — Spotify fills BPM/key on search; why I
+  didn't seed a 5,000-song catalog (the data wasn't in it). *(devlog; source: #76)*
+- ✏️ **S8E8 — A song format worth agreeing on** — a documented, versioned Song JSON +
+  copy-a-prompt so any AI can write an importable song. *(devlog; source: #71/#73)*
+- ✏️ **S8E9 — Connect your own AI, and I don't pay for it** — the MCP endpoint: your agent,
+  your tokens, a key you own, writes validated to your library. *(devlog; source: #74)*
+
+The AI arc (E5→E9) is one story: a stable format lets the intelligence live in the user's
+own model, so FlowGroove reads/writes one clean shape and pays no tokens.
 
 ---
 
