@@ -12,6 +12,7 @@ class LinksEditor extends StatelessWidget {
     required this.links,
     required this.onAddLink,
     required this.onRemoveLink,
+    this.embedded = false,
     super.key,
   });
   /// The current list of links.
@@ -23,8 +24,44 @@ class LinksEditor extends StatelessWidget {
   /// Callback when a link is removed.
   final Function(int index) onRemoveLink;
 
+  /// When true, render only the chips + an "Add link" button (no own header),
+  /// for embedding inside a [CollapsibleSection] that supplies the title.
+  final bool embedded;
+
   @override
   Widget build(BuildContext context) {
+    if (embedded) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (links.isNotEmpty) ...[
+            Wrap(
+              spacing: 8,
+              children: links
+                  .asMap()
+                  .entries
+                  .map(
+                    (e) => _LinkChip(
+                      link: e.value,
+                      index: e.key,
+                      onDeleted: () => onRemoveLink(e.key),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _showAddLinkDialog(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Add link'),
+            ),
+          ),
+        ],
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

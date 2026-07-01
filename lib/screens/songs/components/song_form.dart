@@ -181,47 +181,71 @@ class SongForm extends StatelessWidget {
             textInputAction: TextInputAction.done,
           ),
           const SizedBox(height: 24),
-          // Original key and BPM
-          KeyBpmSelector(
-            base: originalKeyBase,
-            modifier: originalKeyModifier,
-            bpmController: originalBpmController,
-            label: 'Original',
-            onKeyChanged: onOriginalKeyChanged,
+          // Original Key & BPM — collapsible bubble.
+          CollapsibleSection(
+            title: 'Original Key & BPM',
+            icon: Icons.music_note_outlined,
+            initiallyExpanded: false,
+            preview: _keyBpmPreview(
+              originalKeyBase,
+              originalKeyModifier,
+              originalBpmController.text,
+            ),
+            child: KeyBpmSelector(
+              base: originalKeyBase,
+              modifier: originalKeyModifier,
+              bpmController: originalBpmController,
+              onKeyChanged: onOriginalKeyChanged,
+            ),
           ),
-          const SizedBox(height: 24),
-          // Our key and BPM section header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Our Key & BPM',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              TextButton.icon(
-                onPressed: onCopyFromOriginal,
-                icon: const Icon(Icons.copy, size: 16),
-                label: const Text('Copy'),
-              ),
-            ],
+          const SizedBox(height: 16),
+          // Our Key & BPM — collapsible bubble, Copy in the header.
+          CollapsibleSection(
+            title: 'Our Key & BPM',
+            icon: Icons.music_note,
+            initiallyExpanded: false,
+            action: TextButton.icon(
+              onPressed: onCopyFromOriginal,
+              icon: const Icon(Icons.copy, size: 16),
+              label: const Text('Copy'),
+            ),
+            preview: _keyBpmPreview(
+              ourKeyBase,
+              ourKeyModifier,
+              ourBpmController.text,
+            ),
+            child: KeyBpmSelector(
+              base: ourKeyBase,
+              modifier: ourKeyModifier,
+              bpmController: ourBpmController,
+              onKeyChanged: onOurKeyChanged,
+            ),
           ),
-          const SizedBox(height: 12),
-          // Our key and BPM
-          KeyBpmSelector(
-            base: ourKeyBase,
-            modifier: ourKeyModifier,
-            bpmController: ourBpmController,
-            label: 'Our',
-            onKeyChanged: onOurKeyChanged,
+          const SizedBox(height: 16),
+          // Links — collapsible bubble.
+          CollapsibleSection(
+            title: 'Links',
+            icon: Icons.link,
+            initiallyExpanded: false,
+            preview: links.isEmpty
+                ? const Text(
+                    'No links',
+                    style: TextStyle(color: MonoPulseColors.textSecondary),
+                  )
+                : Text(
+                    links.map((l) => l.type.replaceAll('_', ' ')).join('  ·  '),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: MonoPulseColors.textSecondary),
+                  ),
+            child: LinksEditor(
+              embedded: true,
+              links: links,
+              onAddLink: onAddLink,
+              onRemoveLink: onRemoveLink,
+            ),
           ),
-          const SizedBox(height: 24),
-          // Links editor
-          LinksEditor(
-            links: links,
-            onAddLink: onAddLink,
-            onRemoveLink: onRemoveLink,
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           // Song structure ("scheme") — collapsible with a song-map preview.
           CollapsibleSection(
             title: 'Song Structure',
@@ -349,4 +373,17 @@ class SongForm extends StatelessWidget {
       if (!selectedTags.contains(tag)) onTagChanged(tag, true);
     }
   }
+}
+
+/// A compact `Key · BPM` preview shown when a key/BPM bubble is collapsed.
+Widget _keyBpmPreview(String base, String modifier, String bpm) {
+  final b = bpm.trim();
+  final parts = <String>[
+    '$base$modifier',
+    if (b.isNotEmpty) '$b BPM',
+  ];
+  return Text(
+    parts.join('  ·  '),
+    style: const TextStyle(color: MonoPulseColors.accentOrange),
+  );
 }

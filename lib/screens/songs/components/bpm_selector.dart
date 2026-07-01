@@ -60,7 +60,8 @@ class BpmSelector extends StatelessWidget {
 class KeyBpmSelector extends StatelessWidget {
 
   const KeyBpmSelector({
-    required this.base, required this.modifier, required this.bpmController, required this.label, required this.onKeyChanged, super.key,
+    required this.base, required this.modifier, required this.bpmController, required this.onKeyChanged, super.key,
+    this.label,
     this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
     this.keyModifiers = const ['', '#', 'b', 'm'],
   });
@@ -73,8 +74,9 @@ class KeyBpmSelector extends StatelessWidget {
   /// Controller for the BPM field.
   final TextEditingController bpmController;
 
-  /// Label for this selector group.
-  final String label;
+  /// Optional label for this selector group. Omit when the surrounding widget
+  /// (e.g. a CollapsibleSection) already provides a title.
+  final String? label;
 
   /// Callback when key selection changes.
   final Function(String base, String modifier) onKeyChanged;
@@ -90,11 +92,13 @@ class KeyBpmSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-        ),
-        const SizedBox(height: 4),
+        if (label != null && label!.isNotEmpty) ...[
+          Text(
+            label!,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+          ),
+          const SizedBox(height: 4),
+        ],
         IntrinsicHeight(
           child: Row(
             children: [
