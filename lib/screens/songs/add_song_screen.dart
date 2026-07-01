@@ -7,7 +7,6 @@ import '../../models/song_suggestion.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
-import '../../models/section.dart';
 import '../../services/api/spotify_proxy_service.dart';
 import '../../utils/song_tags.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -352,17 +351,42 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     }
   }
 
-  /// Opens the paste-import sheet and appends the parsed sections to the form.
+  /// Opens the paste-import sheet, applies any ChordPro song metadata
+  /// (title/artist/key/tempo/time) to the form, and appends the parsed sections.
   Future<void> _importLyrics() async {
-    final imported = await showModalBottomSheet<List<Section>>(
+    final imported = await showModalBottomSheet<ImportedSong>(
       context: context,
       isScrollControlled: true,
       builder: (_) => const ImportLyricsDialog(),
     );
-    if (imported == null || imported.isEmpty || !mounted) return;
+    if (imported == null || !mounted) return;
     final notifier = ref.read(songFormStateProvider.notifier);
-    final existing = ref.read(songFormStateProvider).formData.sections;
-    notifier.setSections([...existing, ...imported]);
+
+    // Controllers drive title/artist/bpm (setting .text fires their listeners);
+    // key/time/sections go straight through the notifier. Mirrors selectSuggestion.
+    if (imported.title != null && imported.title!.isNotEmpty) {
+      _titleController.text = imported.title!;
+    }
+    if (imported.artist != null && imported.artist!.isNotEmpty) {
+      _artistController.text = imported.artist!;
+    }
+    if (imported.ourBpm != null) {
+      _ourBpmController.text = imported.ourBpm.toString();
+    }
+    if (imported.ourKey != null && imported.ourKey!.isNotEmpty) {
+      final k = imported.ourKey!;
+      notifier.updateOurKey(
+        k[0].toUpperCase(),
+        k.length > 1 ? k.substring(1) : '',
+      );
+    }
+    if (imported.timeTop != null) {
+      notifier.updateAccentBeats(imported.timeTop!);
+    }
+    if (imported.sections.isNotEmpty) {
+      final existing = ref.read(songFormStateProvider).formData.sections;
+      notifier.setSections([...existing, ...imported.sections]);
+    }
     notifier.markAsChanged();
   }
 

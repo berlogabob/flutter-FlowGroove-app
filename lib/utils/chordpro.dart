@@ -342,6 +342,7 @@ final _sectionStart = RegExp(
 );
 final _sectionEnd = RegExp(r'^\s*\{\s*(?:end_of_\w+|eo[bcvt])\s*\}\s*$');
 final _annotation = RegExp(r'^\s*\[\*\s*(.*?)\s*\]\s*$');
+final _comment = RegExp(r'^\s*\{\s*(?:comment|c)\s*:\s*(.*?)\s*\}\s*$');
 final _anyDirective = RegExp(r'^\s*\{.*\}\s*$');
 
 /// Parses a full ChordPro document back onto [base]: standard directives update
@@ -353,9 +354,11 @@ ChordProParse chordProToSong(String text, {required Song base}) {
 
   const soAbbr = {'v': 'Verse', 'c': 'Chorus', 'b': 'Bridge', 't': 'Tab'};
   final sections = <Section>[];
+  final songNotes = <String>[];
   String? name;
   var notes = '';
   final lines = <String>[];
+  String? pendingLabel; // a {comment: X} not yet resolved to header vs song note
 
   void flush() {
     if (name == null) return;
@@ -374,18 +377,32 @@ ChordProParse chordProToSong(String text, {required Song base}) {
     notes = '';
   }
 
+  // Resolve a section label: `label="Foo"`, a plain `: Foo` after the directive,
+  // else the section kind title-cased (`{start_of_bridge}` → `Bridge`).
+  String labelFor(String? attr, String kind) {
+    final a = (attr ?? '').trim();
+    final quoted = RegExp(r'label\s*=\s*"([^"]*)"').firstMatch(a)?.group(1);
+    final plain = quoted ?? (a.contains('=') ? '' : a);
+    if (plain.trim().isNotEmpty) return plain.trim();
+    return kind.isEmpty ? 'Verse' : _titleCase(kind.replaceAll('_', ' '));
+  }
+
   for (final raw in text.split('\n')) {
     final line = raw.trimRight();
+
     final start = _sectionStart.firstMatch(line);
     if (start != null) {
-      flush();
-      final attr = start.group(3) ?? '';
-      final label = RegExp(r'label\s*=\s*"([^"]*)"').firstMatch(attr)?.group(1);
-      final kind = start.group(1) ?? soAbbr[start.group(2)] ?? '';
-      name = (label ?? '').trim();
-      if (name.isEmpty) {
-        name = kind.isEmpty ? 'Verse' : _titleCase(kind.replaceAll('_', ' '));
+      // A {comment: X} sitting just before a real block is a song-level note,
+      // not a section header.
+      if (pendingLabel != null) {
+        songNotes.add(pendingLabel);
+        pendingLabel = null;
       }
+      flush();
+      name = labelFor(
+        start.group(3),
+        start.group(1) ?? soAbbr[start.group(2)] ?? '',
+      );
       continue;
     }
     if (_sectionEnd.hasMatch(line)) {
@@ -393,15 +410,45 @@ ChordProParse chordProToSong(String text, {required Song base}) {
       name = null;
       continue;
     }
-    if (name == null) continue; // preamble / header directives
-    final annot = _annotation.firstMatch(line);
-    if (annot != null) {
-      notes = notes.isEmpty ? annot.group(1)! : '$notes\n${annot.group(1)}';
+
+    final comment = _comment.firstMatch(line);
+    if (comment != null) {
+      if (name == null) {
+        pendingLabel = comment.group(1); // header for following chords, or a note
+      } else {
+        notes = notes.isEmpty
+            ? comment.group(1)!
+            : '$notes\n${comment.group(1)}';
+      }
       continue;
     }
-    if (_anyDirective.hasMatch(line)) continue; // stray directive in a section
+
+    final annot = _annotation.firstMatch(line);
+    if (annot != null) {
+      if (name != null) {
+        notes = notes.isEmpty ? annot.group(1)! : '$notes\n${annot.group(1)}';
+      }
+      continue;
+    }
+
+    if (_anyDirective.hasMatch(line)) continue; // header / other directive
+
+    if (line.trim().isEmpty) {
+      if (name != null) lines.add(''); // keep blank lines inside a block
+      continue;
+    }
+
+    // Real chord/lyric content. If we're not in a block yet, open an implicit
+    // section — a preceding {comment: X} names it (e.g. Intro), else "Verse".
+    if (name == null) {
+      name = (pendingLabel != null && pendingLabel.trim().isNotEmpty)
+          ? pendingLabel.trim()
+          : 'Verse';
+      pendingLabel = null;
+    }
     lines.add(line);
   }
+  if (pendingLabel != null) songNotes.add(pendingLabel);
   flush();
 
   final unknown = <String>[
@@ -435,7 +482,7 @@ ChordProParse chordProToSong(String text, {required Song base}) {
     accentBeats:
         int.tryParse((dir['time'] ?? '').split('/').first.trim()) ??
         base.accentBeats,
-    notes: dir['comment'] ?? base.notes,
+    notes: songNotes.isNotEmpty ? songNotes.join('\n') : base.notes,
     sections: outSections.isNotEmpty ? outSections : base.sections,
   );
 
