@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flowgroove/utils/chordpro.dart';
 import '../../models/song.dart';
 import '../theme/mono_pulse_theme.dart';
+
+/// A one-line summary of a song's synced metadata for the card subtitle:
+/// key + derived scale, then the collapsed song map (e.g.
+/// `Am minor  ·  Intro · Verse · Chorus ×2`). Null when there's nothing to show.
+String? _songMeta(Song song) {
+  final parts = <String>[];
+  final key = song.ourKey;
+  if (key != null && key.isNotEmpty) {
+    parts.add('$key ${keyToScale(key).quality}');
+  }
+  if (song.sections.isNotEmpty) {
+    parts.add(songMapSummary(song.sections.map((s) => s.name).toList()));
+  }
+  return parts.isEmpty ? null : parts.join('  ·  ');
+}
 
 /// A card widget for displaying song information.
 ///
@@ -38,6 +54,7 @@ class SongCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final meta = _songMeta(song);
     return Card(
       margin: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.lg,
@@ -52,9 +69,27 @@ class SongCard extends StatelessWidget {
           song.title,
           style: const TextStyle(color: MonoPulseColors.textPrimary),
         ),
-        subtitle: Text(
-          song.artist,
-          style: const TextStyle(color: MonoPulseColors.textSecondary),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              song.artist,
+              style: const TextStyle(color: MonoPulseColors.textSecondary),
+            ),
+            if (meta != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  meta,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: MonoPulseColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+          ],
         ),
         trailing: _buildTrailingActions(context),
         onTap: onEdit,
@@ -172,9 +207,24 @@ class CompactSongCard extends StatelessWidget {
             color: MonoPulseColors.textPrimary,
           ),
         ),
-        subtitle: Text(
-          song.artist,
-          style: const TextStyle(color: MonoPulseColors.textSecondary),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              song.artist,
+              style: const TextStyle(color: MonoPulseColors.textSecondary),
+            ),
+            if (_songMeta(song) case final meta?)
+              Text(
+                meta,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: MonoPulseColors.textSecondary,
+                  fontSize: 11,
+                ),
+              ),
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

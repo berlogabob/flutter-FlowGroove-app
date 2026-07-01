@@ -6,6 +6,9 @@
 /// belongs to: `[Am]Twinkle [F]little [C]star`.
 library;
 
+import '../models/section.dart';
+import '../models/song.dart';
+
 /// A piece of a lyric line: [text] optionally preceded by a [chord].
 typedef ChordSegment = ({String? chord, String text});
 
@@ -186,4 +189,259 @@ String transposeChord(String chord, int semitones) {
   if (wasFlat) newRoot = _sharpToFlat[newRoot] ?? newRoot;
 
   return '$newRoot$suffix';
+}
+
+// ============================================================
+// Song ⇄ ChordPro sync
+// ------------------------------------------------------------
+// The FlowGroove [Song] is the source of truth; ChordPro is its readable text
+// layer. [songToChordPro] renders a song as one canonical document and
+// [chordProToSong] reads one back — preserving directives it doesn't recognize
+// so another app's data is never silently dropped on a round-trip.
+// ============================================================
+
+/// Splits a key symbol like `Am`, `F#m`, `Bb`, `C` into its parts. [quality] is
+/// `minor` when the suffix starts with a lowercase `m` that isn't the start of
+/// `maj`, otherwise `major`. Lets the UI show a scale next to the key without
+/// adding a model field.
+({String root, String? accidental, String quality}) keyToScale(String key) {
+  final m = RegExp(r'^\s*([A-Ga-g])([#b])?(.*)$').firstMatch(key);
+  if (m == null) {
+    return (root: key.trim(), accidental: null, quality: 'major');
+  }
+  final suffix = m.group(3)!.trim();
+  final isMinor = suffix.startsWith('m') && !suffix.startsWith('maj');
+  return (
+    root: m.group(1)!.toUpperCase(),
+    accidental: m.group(2),
+    quality: isMinor ? 'minor' : 'major',
+  );
+}
+
+/// Collapses an ordered list of section names into a compact one-line song map,
+/// merging consecutive repeats: `[Intro, Verse, Chorus, Chorus, Bridge]` →
+/// `Intro · Verse · Chorus ×2 · Bridge`. Shared by the song card and PDF header.
+String songMapSummary(List<String> names) {
+  final parts = <String>[];
+  final counts = <int>[];
+  for (final raw in names) {
+    final n = raw.trim();
+    if (n.isEmpty) continue;
+    if (parts.isNotEmpty && parts.last == n) {
+      counts[counts.length - 1]++;
+    } else {
+      parts.add(n);
+      counts.add(1);
+    }
+  }
+  return [
+    for (var i = 0; i < parts.length; i++)
+      counts[i] > 1 ? '${parts[i]} ×${counts[i]}' : parts[i],
+  ].join(' · ');
+}
+
+final _directiveLine = RegExp(
+  r'^\s*\{\s*([A-Za-z_][\w-]*)\s*(?::\s*|\s+)(.*?)\s*\}\s*$',
+  multiLine: true,
+);
+
+/// Reads `{name: value}` / `{name value}` directives from a ChordPro document
+/// into a name→value map (lower-cased names, last wins). Value-less directives
+/// like `{soc}` are skipped. Used to lift header metadata and `x_flowgroove_*`.
+Map<String, String> parseDirectives(String text) {
+  final out = <String, String>{};
+  for (final m in _directiveLine.allMatches(text)) {
+    out[m.group(1)!.toLowerCase()] = m.group(2)!;
+  }
+  return out;
+}
+
+/// Renders [song] as a single canonical ChordPro document: standard header
+/// directives, an `x_flowgroove_*` snapshot of app-only data (original key, song
+/// map), then one labelled block per section wrapping its `[* notes]` and chord
+/// chart. Inverse of [chordProToSong].
+String songToChordPro(Song song) {
+  final b = StringBuffer();
+  void directive(String name, Object? value) {
+    final s = value?.toString().trim() ?? '';
+    if (s.isNotEmpty) b.writeln('{$name: $s}');
+  }
+
+  directive('title', song.title);
+  directive('artist', song.artist);
+  directive('key', song.ourKey);
+  directive('tempo', song.ourBPM);
+  // The model carries no time-signature denominator; songs are treated as x/4.
+  // ponytail: emit the numerator only; add a real denominator if 6/8 etc. matters.
+  directive('time', '${song.accentBeats}/4');
+  if (song.originalKey != null && song.originalKey != song.ourKey) {
+    directive('x_flowgroove_original_key', song.originalKey);
+  }
+  if (song.sections.isNotEmpty) {
+    directive(
+      'x_flowgroove_song_map',
+      song.sections.map((s) => s.name).join(' | '),
+    );
+  }
+  final notes = song.notes?.trim() ?? '';
+  if (notes.isNotEmpty) b.writeln('{comment: $notes}');
+
+  for (final section in song.sections) {
+    b.writeln();
+    b.writeln('{start_of_verse: label="${section.name}"}');
+    final sectionNotes = section.notes.trim();
+    if (sectionNotes.isNotEmpty) {
+      for (final n in sectionNotes.split('\n')) {
+        b.writeln('[* ${n.trim()}]');
+      }
+    }
+    final chart = section.chordChart?.trim() ?? '';
+    if (chart.isNotEmpty) b.writeln(chart);
+    b.writeln('{end_of_verse}');
+  }
+  return b.toString().trimRight();
+}
+
+/// The parts recovered from a ChordPro document by [chordProToSong].
+class ChordProParse {
+  ChordProParse({
+    required this.song,
+    required this.sections,
+    required this.unknownDirectives,
+  });
+
+  /// [chordProToSong]'s `base` updated with the standard / `x_flowgroove_*`
+  /// metadata found in the document.
+  final Song song;
+
+  /// Sections rebuilt from `{start_of_*}`…`{end_of_*}` blocks: the `label`
+  /// becomes the name, `[* ...]` lines the notes, the rest the chord chart.
+  final List<Section> sections;
+
+  /// Directives that are neither standard ChordPro nor `x_flowgroove_*`, kept
+  /// verbatim so a caller can re-emit them — ChordPro interop depends on not
+  /// destroying data other apps wrote.
+  final List<String> unknownDirectives;
+}
+
+const _knownDirectives = {
+  'title', 'artist', 'key', 'tempo', 'time', 'capo', 'duration', 'tag',
+  'comment', 'c', 'meta', 'subtitle', 'album', 'year', 'composer', 'lyricist',
+  'x_flowgroove_original_key', 'x_flowgroove_song_map',
+};
+
+const _sectionAbbr = {'soc', 'sov', 'sob', 'sot', 'eoc', 'eov', 'eob', 'eot'};
+
+bool _isSectionDirective(String name) =>
+    name.startsWith('start_of_') ||
+    name.startsWith('end_of_') ||
+    _sectionAbbr.contains(name);
+
+final _sectionStart = RegExp(
+  r'^\s*\{\s*(?:start_of_(\w+)|so([bcvt]))\b\s*(?::\s*(.*?))?\s*\}\s*$',
+);
+final _sectionEnd = RegExp(r'^\s*\{\s*(?:end_of_\w+|eo[bcvt])\s*\}\s*$');
+final _annotation = RegExp(r'^\s*\[\*\s*(.*?)\s*\]\s*$');
+final _anyDirective = RegExp(r'^\s*\{.*\}\s*$');
+
+/// Parses a full ChordPro document back onto [base]: standard directives update
+/// title/artist/key/tempo/time, section blocks rebuild [Section]s, and any
+/// unrecognized directive is preserved in [ChordProParse.unknownDirectives].
+/// Inverse of [songToChordPro].
+ChordProParse chordProToSong(String text, {required Song base}) {
+  final dir = parseDirectives(text);
+
+  const soAbbr = {'v': 'Verse', 'c': 'Chorus', 'b': 'Bridge', 't': 'Tab'};
+  final sections = <Section>[];
+  String? name;
+  var notes = '';
+  final lines = <String>[];
+
+  void flush() {
+    if (name == null) return;
+    final chart = lines.join('\n').trim();
+    final i = sections.length;
+    final id = i < base.sections.length ? base.sections[i].id : 'cp_sec_$i';
+    sections.add(
+      Section(
+        id: id,
+        name: name,
+        notes: notes,
+        chordChart: chart.isEmpty ? null : chart,
+      ),
+    );
+    lines.clear();
+    notes = '';
+  }
+
+  for (final raw in text.split('\n')) {
+    final line = raw.trimRight();
+    final start = _sectionStart.firstMatch(line);
+    if (start != null) {
+      flush();
+      final attr = start.group(3) ?? '';
+      final label = RegExp(r'label\s*=\s*"([^"]*)"').firstMatch(attr)?.group(1);
+      final kind = start.group(1) ?? soAbbr[start.group(2)] ?? '';
+      name = (label ?? '').trim();
+      if (name.isEmpty) {
+        name = kind.isEmpty ? 'Verse' : _titleCase(kind.replaceAll('_', ' '));
+      }
+      continue;
+    }
+    if (_sectionEnd.hasMatch(line)) {
+      flush();
+      name = null;
+      continue;
+    }
+    if (name == null) continue; // preamble / header directives
+    final annot = _annotation.firstMatch(line);
+    if (annot != null) {
+      notes = notes.isEmpty ? annot.group(1)! : '$notes\n${annot.group(1)}';
+      continue;
+    }
+    if (_anyDirective.hasMatch(line)) continue; // stray directive in a section
+    lines.add(line);
+  }
+  flush();
+
+  final unknown = <String>[
+    for (final m in _directiveLine.allMatches(text))
+      if (!_knownDirectives.contains(m.group(1)!.toLowerCase()) &&
+          !_isSectionDirective(m.group(1)!.toLowerCase()))
+        m.group(0)!.trim(),
+  ];
+
+  // If the doc carried a song-map snapshot but no section blocks, rebuild
+  // placeholder sections from it so the order survives the round-trip.
+  var outSections = sections;
+  if (outSections.isEmpty && dir['x_flowgroove_song_map'] != null) {
+    final names = dir['x_flowgroove_song_map']!
+        .split('|')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    outSections = [
+      for (var i = 0; i < names.length; i++)
+        Section(id: 'cp_map_$i', name: names[i]),
+    ];
+  }
+
+  final song = base.copyWith(
+    title: dir['title'] ?? base.title,
+    artist: dir['artist'] ?? base.artist,
+    ourKey: dir['key'] ?? base.ourKey,
+    ourBPM: int.tryParse(dir['tempo'] ?? '') ?? base.ourBPM,
+    originalKey: dir['x_flowgroove_original_key'] ?? base.originalKey,
+    accentBeats:
+        int.tryParse((dir['time'] ?? '').split('/').first.trim()) ??
+        base.accentBeats,
+    notes: dir['comment'] ?? base.notes,
+    sections: outSections.isNotEmpty ? outSections : base.sections,
+  );
+
+  return ChordProParse(
+    song: song,
+    sections: outSections,
+    unknownDirectives: unknown,
+  );
 }

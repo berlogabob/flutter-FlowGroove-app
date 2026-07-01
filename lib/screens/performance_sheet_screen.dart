@@ -17,11 +17,19 @@ class PerformanceSheetScreen extends ConsumerStatefulWidget {
   const PerformanceSheetScreen({
     required this.title,
     required this.sections,
+    this.songKey,
+    this.bpm,
+    this.timeTop,
     super.key,
   });
 
   final String title;
   final List<Section> sections;
+
+  /// Optional song metadata rendered in the exported PDF header.
+  final String? songKey;
+  final int? bpm;
+  final int? timeTop;
 
   @override
   ConsumerState<PerformanceSheetScreen> createState() =>
@@ -70,6 +78,9 @@ class _PerformanceSheetScreenState
               widget.title,
               widget.sections,
               transpose: _transpose,
+              songKey: widget.songKey,
+              bpm: widget.bpm,
+              timeTop: widget.timeTop,
             ),
           ),
           IconButton(

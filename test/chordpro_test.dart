@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/utils/chordpro.dart';
 
 void main() {
@@ -125,6 +127,103 @@ void main() {
     test('+12 semitones round-trips to the same roots', () {
       const chart = '[Am]Twinkle [F]little [C/G]star';
       expect(transposeChordChart(chart, 12), chart);
+    });
+  });
+
+  group('keyToScale', () {
+    test('minor key', () {
+      final s = keyToScale('Am');
+      expect(s.root, 'A');
+      expect(s.accidental, isNull);
+      expect(s.quality, 'minor');
+    });
+
+    test('sharp minor', () {
+      final s = keyToScale('F#m');
+      expect(s.root, 'F');
+      expect(s.accidental, '#');
+      expect(s.quality, 'minor');
+    });
+
+    test('flat major', () {
+      final s = keyToScale('Bb');
+      expect(s.root, 'B');
+      expect(s.accidental, 'b');
+      expect(s.quality, 'major');
+    });
+
+    test('plain major', () {
+      final s = keyToScale('C');
+      expect(s.root, 'C');
+      expect(s.accidental, isNull);
+      expect(s.quality, 'major');
+    });
+
+    test('maj7 is major, not minor', () {
+      expect(keyToScale('Cmaj7').quality, 'major');
+    });
+  });
+
+  group('songMapSummary', () {
+    test('collapses consecutive repeats', () {
+      expect(
+        songMapSummary(['Intro', 'Verse', 'Chorus', 'Chorus', 'Bridge']),
+        'Intro · Verse · Chorus ×2 · Bridge',
+      );
+    });
+  });
+
+  group('songToChordPro / chordProToSong round-trip', () {
+    Song blank() => Song(
+      id: 'x',
+      title: '',
+      artist: '',
+      createdAt: DateTime(2020),
+      updatedAt: DateTime(2020),
+    );
+
+    test('preserves metadata, song map and section charts', () {
+      final song = blank().copyWith(
+        title: 'Zombie',
+        artist: 'The Cranberries',
+        ourKey: 'Em',
+        ourBPM: 84,
+        accentBeats: 4,
+        sections: [
+          Section(
+            id: 's1',
+            name: 'Verse 1',
+            notes: 'soft',
+            chordChart: '[Em]Another [C]head',
+          ),
+          Section(id: 's2', name: 'Chorus', chordChart: '[Em]In your [C]head'),
+        ],
+      );
+      final parsed = chordProToSong(songToChordPro(song), base: blank());
+
+      expect(parsed.song.title, 'Zombie');
+      expect(parsed.song.artist, 'The Cranberries');
+      expect(parsed.song.ourKey, 'Em');
+      expect(parsed.song.ourBPM, 84);
+      expect(parsed.song.accentBeats, 4);
+      expect(parsed.sections.map((s) => s.name).toList(), [
+        'Verse 1',
+        'Chorus',
+      ]);
+      expect(parsed.sections[0].chordChart, '[Em]Another [C]head');
+      expect(parsed.sections[0].notes, 'soft');
+      expect(parsed.sections[1].chordChart, '[Em]In your [C]head');
+    });
+
+    test('unknown directives are preserved, not dropped', () {
+      final text =
+          '${songToChordPro(blank().copyWith(title: 'T'))}\n'
+          '{x_customapp_foo: bar}';
+      final parsed = chordProToSong(text, base: blank());
+      expect(
+        parsed.unknownDirectives.any((d) => d.contains('x_customapp_foo')),
+        isTrue,
+      );
     });
   });
 }

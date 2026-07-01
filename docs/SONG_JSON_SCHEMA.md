@@ -58,6 +58,8 @@ links, normalized/soundex search keys) are never imported or exported.
 - `duration` — integer phrases/bars (default `1`).
 - `notes` — free text.
 - `chordChart` — **ChordPro** lyrics with inline `[chords]` (chord before its syllable).
+  A whole song can also be rendered to / parsed from a single ChordPro document via the
+  sync codec (`utils/chordpro.dart`); see [`CHORDPRO.md`](CHORDPRO.md).
   This is what the performance sheet, transpose, and PDF render.
 
 ## Validation

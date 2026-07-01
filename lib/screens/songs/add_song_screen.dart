@@ -395,6 +395,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                         ? 'Song'
                         : formData.title.trim(),
                     sections: formData.sections,
+                    songKey: formData.ourKey,
+                    bpm: int.tryParse(formData.ourBpm),
+                    timeTop: formData.accentBeats,
                   ),
                 ),
               ),

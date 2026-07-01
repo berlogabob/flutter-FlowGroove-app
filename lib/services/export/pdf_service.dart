@@ -18,6 +18,9 @@ class PdfService {
     String title,
     List<Section> sections, {
     int transpose = 0,
+    String? songKey,
+    int? bpm,
+    int? timeTop,
   }) async {
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.robotoRegular();
@@ -25,6 +28,18 @@ class PdfService {
     final mono = await PdfGoogleFonts.robotoMonoRegular();
     final monoBold = await PdfGoogleFonts.robotoMonoBold();
     final orange = PdfColor.fromHex('E65100');
+
+    // Header metadata mirrors the song card: key + derived scale, tempo, time,
+    // and the collapsed song map. All optional — omitted lines just don't render.
+    final metaLine = <String>[
+      if (songKey != null && songKey.trim().isNotEmpty)
+        '${songKey.trim()} · ${keyToScale(songKey).quality}',
+      if (bpm != null) '$bpm BPM',
+      if (timeTop != null) '$timeTop/4',
+    ].join('   ·   ');
+    final songMap = sections.isNotEmpty
+        ? songMapSummary(sections.map((s) => s.name).toList())
+        : '';
 
     final blocks = <pw.Widget>[];
     for (final section in sections) {
@@ -73,6 +88,28 @@ class PdfService {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(title, style: pw.TextStyle(font: fontBold, fontSize: 22)),
+            if (metaLine.isNotEmpty) ...[
+              pw.SizedBox(height: 4),
+              pw.Text(
+                metaLine,
+                style: pw.TextStyle(
+                  font: font,
+                  fontSize: 11,
+                  color: PdfColor.fromHex('616161'),
+                ),
+              ),
+            ],
+            if (songMap.isNotEmpty) ...[
+              pw.SizedBox(height: 2),
+              pw.Text(
+                songMap,
+                style: pw.TextStyle(
+                  font: font,
+                  fontSize: 10,
+                  color: PdfColor.fromHex('9E9E9E'),
+                ),
+              ),
+            ],
             pw.SizedBox(height: 12),
             pw.Divider(color: PdfColor.fromHex('E0E0E0')),
             pw.SizedBox(height: 12),
