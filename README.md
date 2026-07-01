@@ -80,7 +80,7 @@ Deploy target:
 ### Core App
 
 - Shared song library with metadata, links, unique IDs, and structure editing
-- Lyrics + chords performance sheet (ChordPro): keep-awake stage view, live transpose, per-song PDF, and paste-to-import
+- Lyrics + chords performance sheet (ChordPro): keep-awake stage view, live transpose, per-song PDF (with a key/scale · tempo · time · song-map header), paste-to-import, and a Song ⇄ ChordPro sync codec that round-trips a full chart without losing unknown directives
 - Band management with membership and invite/join flows
 - Drag-and-drop setlists with per-gig overrides for key, BPM, notes, and order
 - Offline-first data flow with Hive-backed local caching

@@ -289,6 +289,16 @@ String songToChordPro(Song song) {
   for (final section in song.sections) {
     b.writeln();
     b.writeln('{start_of_verse: label="${section.name}"}');
+    // Structured extras plain ChordPro can't carry (bars/colour) ride in an
+    // x_ directive so they survive a pure-text round-trip and MCP.
+    final extras = <String>[
+      if (section.duration != 1) 'bars=${section.duration}',
+      if (section.colorValue != null)
+        'color=${(section.colorValue! & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}',
+    ];
+    if (extras.isNotEmpty) {
+      b.writeln('{x_flowgroove_section: ${extras.join('; ')}}');
+    }
     final sectionNotes = section.notes.trim();
     if (sectionNotes.isNotEmpty) {
       for (final n in sectionNotes.split('\n')) {
@@ -327,7 +337,7 @@ class ChordProParse {
 const _knownDirectives = {
   'title', 'artist', 'key', 'tempo', 'time', 'capo', 'duration', 'tag',
   'comment', 'c', 'meta', 'subtitle', 'album', 'year', 'composer', 'lyricist',
-  'x_flowgroove_original_key', 'x_flowgroove_song_map',
+  'x_flowgroove_original_key', 'x_flowgroove_song_map', 'x_flowgroove_section',
 };
 
 const _sectionAbbr = {'soc', 'sov', 'sob', 'sot', 'eoc', 'eov', 'eob', 'eot'};
@@ -343,6 +353,10 @@ final _sectionStart = RegExp(
 final _sectionEnd = RegExp(r'^\s*\{\s*(?:end_of_\w+|eo[bcvt])\s*\}\s*$');
 final _annotation = RegExp(r'^\s*\[\*\s*(.*?)\s*\]\s*$');
 final _comment = RegExp(r'^\s*\{\s*(?:comment|c)\s*:\s*(.*?)\s*\}\s*$');
+final _sectionExtra = RegExp(
+  r'^\s*\{\s*x_flowgroove_section\s*:\s*(.*?)\s*\}\s*$',
+  caseSensitive: false,
+);
 final _anyDirective = RegExp(r'^\s*\{.*\}\s*$');
 
 /// Parses a full ChordPro document back onto [base]: standard directives update
@@ -357,6 +371,8 @@ ChordProParse chordProToSong(String text, {required Song base}) {
   final songNotes = <String>[];
   String? name;
   var notes = '';
+  int? curBars;
+  int? curColor;
   final lines = <String>[];
   String? pendingLabel; // a {comment: X} not yet resolved to header vs song note
 
@@ -370,11 +386,15 @@ ChordProParse chordProToSong(String text, {required Song base}) {
         id: id,
         name: name,
         notes: notes,
+        duration: curBars ?? 1,
+        colorValue: curColor,
         chordChart: chart.isEmpty ? null : chart,
       ),
     );
     lines.clear();
     notes = '';
+    curBars = null;
+    curColor = null;
   }
 
   // Resolve a section label: `label="Foo"`, a plain `: Foo` after the directive,
@@ -419,6 +439,22 @@ ChordProParse chordProToSong(String text, {required Song base}) {
         notes = notes.isEmpty
             ? comment.group(1)!
             : '$notes\n${comment.group(1)}';
+      }
+      continue;
+    }
+
+    final extra = _sectionExtra.firstMatch(line);
+    if (extra != null) {
+      if (name != null) {
+        final body = extra.group(1)!;
+        final bars = RegExp(r'bars\s*=\s*(\d+)').firstMatch(body);
+        final color = RegExp(
+          r'color\s*=\s*#?([0-9a-fA-F]{6})',
+        ).firstMatch(body);
+        if (bars != null) curBars = int.tryParse(bars.group(1)!);
+        if (color != null) {
+          curColor = 0xFF000000 | int.parse(color.group(1)!, radix: 16);
+        }
       }
       continue;
     }
@@ -491,4 +527,45 @@ ChordProParse chordProToSong(String text, {required Song base}) {
     sections: outSections,
     unknownDirectives: unknown,
   );
+}
+
+/// Merges freshly-[parsed] sections onto the [existing] ones, preserving the
+/// structured extras plain ChordPro can't carry. Each parsed section is matched
+/// greedily to the next unused existing section of the same name (in order); a
+/// match keeps the existing `id` and any `duration`/`colorValue` the text didn't
+/// specify, while taking the parsed name/notes/chordChart. Unmatched parsed
+/// sections are new. This is what lets live text editing update chords and
+/// re-order without wiping the map's structure.
+List<Section> reconcileSections(
+  List<Section> existing,
+  List<Section> parsed,
+) {
+  final used = List<bool>.filled(existing.length, false);
+  final out = <Section>[];
+  for (final p in parsed) {
+    var matched = -1;
+    for (var i = 0; i < existing.length; i++) {
+      if (!used[i] && existing[i].name == p.name) {
+        matched = i;
+        break;
+      }
+    }
+    if (matched == -1) {
+      out.add(p);
+      continue;
+    }
+    used[matched] = true;
+    final e = existing[matched];
+    out.add(
+      Section(
+        id: e.id,
+        name: p.name,
+        notes: p.notes,
+        duration: p.duration != 1 ? p.duration : e.duration,
+        colorValue: p.colorValue ?? e.colorValue,
+        chordChart: p.chordChart,
+      ),
+    );
+  }
+  return out;
 }

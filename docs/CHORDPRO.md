@@ -44,6 +44,13 @@ data another app wrote.
 | `Section.name`                 | `{start_of_verse: label="Name"}`           |
 | `Section.notes`                | `[* ...]` annotation line(s)               |
 | `Section.chordChart`           | the chord/lyric lines inside the block     |
+| `Section.duration` / colour    | `{x_flowgroove_section: bars=N; color=RRGGBB}` |
+
+Section "extras" (bars/duration, colour) aren't expressible in plain ChordPro, so
+they ride in a per-section `x_flowgroove_section` directive — lossless through a
+text round-trip and MCP. When ChordPro text is edited live, `reconcileSections`
+also carries these forward by matching sections on order+name, so editing chords
+never wipes structure.
 
 `x_flowgroove_*` uses the official ChordPro `x_` namespace for
 application-specific directives, so other ChordPro tools ignore it rather than
@@ -85,8 +92,15 @@ denominator would need a model change — deferred until an app actually needs 6
 
 ## Where it's used
 
-- **Song cards** (`widgets/song_card.dart`) — show key + derived scale and the
-  collapsed song map under the artist.
+- **Song editor** (`screens/songs/song_editor_screen.dart` +
+  `chordpro_sync_controller.dart`) — a full-screen view where the visual song map
+  and a ChordPro text area are two live-synced views of one `sections` store. Map
+  edits regenerate the text instantly; text edits debounce then reconcile back.
+  Opened from the Add/Edit Song overflow menu ("Song editor").
+- **Paste import** (`components/import_lyrics_dialog.dart`) — a full ChordPro doc
+  fills title/artist/key/tempo/time + sections; loose lyrics just split sections.
+- **Song cards** (`widgets/song_card.dart`) — key + derived scale + section count
+  (the full map lives in the editor, keeping the card uncluttered).
 - **PDF export** (`services/export/pdf_service.dart`) — header line with key/scale,
   tempo, time signature and song map.
 - **Per-section charts** (`Section.chordChart`) — the existing storage the codec
@@ -95,7 +109,6 @@ denominator would need a model change — deferred until an app actually needs 6
 ## Deferred
 
 - External `.cho` file import/export (file picker / share).
-- A raw-ChordPro editor tab that round-trips text ↔ `Song` live.
 - Extracting the parser into a standalone `chordpro_dart` package + upstream
   contribution — only after it's proven on real songs here.
 - Structured scale/mode field; time-signature denominator; ABC/LilyPond/MusicXML.

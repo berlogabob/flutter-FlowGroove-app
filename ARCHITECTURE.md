@@ -284,8 +284,13 @@ Primary service areas:
 - Firebase/Firestore access
 - audio engine and pitch detection
 - CSV/PDF export (incl. per-song chords+lyrics performance sheet PDF)
-- ChordPro lyrics+chords: parse/transpose (`utils/chordpro.dart`), render
-  (`widgets/chord_chart_view.dart`), and paste-to-import
+- ChordPro lyrics+chords: parse/transpose, plus a **Song ⇄ ChordPro sync codec**
+  (`utils/chordpro.dart`: `songToChordPro`/`chordProToSong`, `keyToScale`,
+  `songMapSummary`) that treats the `Song` as source of truth and ChordPro as its
+  readable text layer — standard directives for key/tempo/time, `x_flowgroove_*`
+  for song map & original key, and unknown directives preserved on round-trip.
+  Rendered by `widgets/chord_chart_view.dart`; paste-to-import supported.
+  See `docs/CHORDPRO.md`.
 - Song JSON import/export — versioned, documented format
   (`services/json/song_json_codec.dart`, schema in `docs/SONG_JSON_SCHEMA.md`); the
   import dialog auto-detects JSON vs CSV. This is the contract the AI/MCP layer writes against.
@@ -317,8 +322,24 @@ Primary service areas:
   sections form the sheet
 - `screens/performance_sheet_screen.dart` — full-screen, keep-awake (reuses
   `wakelockProvider`), live ± semitone transpose, chords rendered over lyrics
-- per-song PDF export at the current transpose (`services/export/pdf_service.dart`)
+- per-song PDF export at the current transpose (`services/export/pdf_service.dart`),
+  with a header line for key + derived scale, tempo, time signature and song map
 - paste ChordPro/lyrics → sections (`screens/songs/components/import_lyrics_dialog.dart`)
+- **Song ⇄ ChordPro sync** (`utils/chordpro.dart`): `songToChordPro` assembles a
+  canonical document (header directives + `x_flowgroove_song_map`/`_original_key`
+  + labelled section blocks); `chordProToSong` reads it back onto a `Song`,
+  preserving unrecognized directives. `keyToScale` derives the scale from the key
+  string (no model field); `songMapSummary` collapses the section run for cards/PDF
+- **Song editor** (`screens/songs/song_editor_screen.dart` +
+  `chordpro_sync_controller.dart`): full-screen, live two-way sync between the
+  visual song map and a ChordPro text area over one `sections` store. Map edits
+  regenerate text instantly; text edits debounce then `reconcileSections` merges
+  back (matched by order+name), preserving section id/bars/colour. Section extras
+  ride in `{x_flowgroove_section: bars=N; color=RRGGBB}`. Opened from the
+  Add/Edit-Song overflow menu.
+- `widgets/song_card.dart` surfaces key + derived scale + section count (full map
+  lives in the editor)
+- directive conventions: `docs/CHORDPRO.md`
 
 ## Deployment Topology
 

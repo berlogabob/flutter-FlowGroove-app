@@ -12,6 +12,7 @@ import '../../utils/song_tags.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../performance_sheet_screen.dart';
 import 'components/import_lyrics_dialog.dart';
+import 'song_editor_screen.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';
@@ -351,8 +352,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     }
   }
 
-  /// Opens the paste-import sheet, applies any ChordPro song metadata
-  /// (title/artist/key/tempo/time) to the form, and appends the parsed sections.
+  /// Opens the paste-import sheet and applies the result (metadata + sections)
+  /// to the form, appending the parsed sections to any existing ones.
   Future<void> _importLyrics() async {
     final imported = await showModalBottomSheet<ImportedSong>(
       context: context,
@@ -360,10 +361,35 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       builder: (_) => const ImportLyricsDialog(),
     );
     if (imported == null || !mounted) return;
-    final notifier = ref.read(songFormStateProvider.notifier);
+    _applyImported(imported);
+  }
 
-    // Controllers drive title/artist/bpm (setting .text fires their listeners);
-    // key/time/sections go straight through the notifier. Mirrors selectSuggestion.
+  /// Opens the full-screen Song editor (live map ⇄ ChordPro sync) seeded from
+  /// the form, then replaces the form's sections with the edited map.
+  Future<void> _openSongEditor() async {
+    final formData = ref.read(songFormStateProvider).formData;
+    final result = await Navigator.of(context).push<ImportedSong>(
+      MaterialPageRoute<ImportedSong>(
+        builder: (_) => SongEditorScreen(
+          title: formData.title.trim().isEmpty ? 'Song' : formData.title.trim(),
+          sections: formData.sections,
+          artist: formData.artist,
+          songKey: formData.ourKey,
+          bpm: int.tryParse(formData.ourBpm),
+          timeTop: formData.accentBeats,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    _applyImported(result, replaceSections: true);
+  }
+
+  /// Applies parsed song metadata + sections to the form. Controllers drive
+  /// title/artist/bpm (setting `.text` fires their listeners); key/time/sections
+  /// go straight through the notifier. [replaceSections] replaces the section
+  /// list (the editor returns the whole map); otherwise it appends.
+  void _applyImported(ImportedSong imported, {bool replaceSections = false}) {
+    final notifier = ref.read(songFormStateProvider.notifier);
     if (imported.title != null && imported.title!.isNotEmpty) {
       _titleController.text = imported.title!;
     }
@@ -383,7 +409,9 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     if (imported.timeTop != null) {
       notifier.updateAccentBeats(imported.timeTop!);
     }
-    if (imported.sections.isNotEmpty) {
+    if (replaceSections) {
+      notifier.setSections(imported.sections);
+    } else if (imported.sections.isNotEmpty) {
       final existing = ref.read(songFormStateProvider).formData.sections;
       notifier.setSections([...existing, ...imported.sections]);
     }
@@ -430,6 +458,16 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                   Icon(Icons.queue_music),
                   SizedBox(width: 8),
                   Text('Performance sheet'),
+                ],
+              ),
+            ),
+            PopupMenuItem<void>(
+              onTap: _openSongEditor,
+              child: const Row(
+                children: [
+                  Icon(Icons.edit_note),
+                  SizedBox(width: 8),
+                  Text('Song editor (map + ChordPro)'),
                 ],
               ),
             ),

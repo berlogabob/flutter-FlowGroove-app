@@ -4,17 +4,18 @@ import 'package:flowgroove/utils/chordpro.dart';
 import '../../models/song.dart';
 import '../theme/mono_pulse_theme.dart';
 
-/// A one-line summary of a song's synced metadata for the card subtitle:
-/// key + derived scale, then the collapsed song map (e.g.
-/// `Am minor  ·  Intro · Verse · Chorus ×2`). Null when there's nothing to show.
+/// A compact one-line summary for the card subtitle: key + derived scale and a
+/// section count (e.g. `Am · minor  ·  10 sections`). The full song map now
+/// lives in the Song editor, so the card stays uncluttered. Null when empty.
 String? _songMeta(Song song) {
   final parts = <String>[];
   final key = song.ourKey;
   if (key != null && key.isNotEmpty) {
-    parts.add('$key ${keyToScale(key).quality}');
+    parts.add('$key · ${keyToScale(key).quality}');
   }
-  if (song.sections.isNotEmpty) {
-    parts.add(songMapSummary(song.sections.map((s) => s.name).toList()));
+  final n = song.sections.length;
+  if (n > 0) {
+    parts.add('$n ${n == 1 ? 'section' : 'sections'}');
   }
   return parts.isEmpty ? null : parts.join('  ·  ');
 }
