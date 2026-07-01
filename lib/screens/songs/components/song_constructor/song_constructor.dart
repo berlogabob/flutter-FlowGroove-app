@@ -15,12 +15,21 @@ import 'widgets/section_picker.dart';
 /// Supports collapsed (pill visualization) and expanded (vertical list) states.
 class SongConstructor extends StatefulWidget {
 
-  const SongConstructor({super.key, this.initialSections, this.onChange});
+  const SongConstructor({
+    super.key,
+    this.initialSections,
+    this.onChange,
+    this.embedded = false,
+  });
   /// Callback when the structure changes.
   final Function(List<Section>)? onChange;
 
   /// Initial sections (optional).
   final List<Section>? initialSections;
+
+  /// When true, render only the editable section list (no own header/pill), for
+  /// embedding inside a [CollapsibleSection] that provides the header + preview.
+  final bool embedded;
 
   @override
   State<SongConstructor> createState() => _SongConstructorState();
@@ -172,6 +181,8 @@ class _SongConstructorState extends State<SongConstructor> {
 
   @override
   Widget build(BuildContext context) {
+    // Embedded: no own header/pill — the host CollapsibleSection supplies those.
+    if (widget.embedded) return _buildExpandedState();
     return DecoratedBox(
       decoration: BoxDecoration(
         color: MonoPulseColors.surface,

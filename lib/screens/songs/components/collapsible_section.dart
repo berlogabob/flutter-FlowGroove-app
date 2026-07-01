@@ -19,6 +19,7 @@ class CollapsibleSection extends StatefulWidget {
     this.initiallyExpanded = true,
     this.action,
     this.icon,
+    this.preview,
     this.onExpandedChanged,
   });
   /// Section title.
@@ -35,6 +36,11 @@ class CollapsibleSection extends StatefulWidget {
 
   /// Optional icon for the header.
   final IconData? icon;
+
+  /// Optional compact preview shown under the header while collapsed — e.g. a
+  /// song-map graph, a notes snippet, or the selected tags — so a collapsed
+  /// section still communicates its content at a glance.
+  final Widget? preview;
 
   /// Callback when expansion state changes.
   final Function(bool expanded)? onExpandedChanged;
@@ -99,6 +105,23 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
               ),
             ),
           ),
+          // Preview while collapsed.
+          if (widget.preview != null)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              child: _isExpanded
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        MonoPulseSpacing.lg,
+                        0,
+                        MonoPulseSpacing.lg,
+                        MonoPulseSpacing.lg,
+                      ),
+                      child: widget.preview,
+                    ),
+            ),
           // Content
           AnimatedSize(
             duration: const Duration(milliseconds: 200),

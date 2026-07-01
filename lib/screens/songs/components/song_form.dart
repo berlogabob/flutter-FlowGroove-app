@@ -12,6 +12,7 @@ import 'collapsible_section.dart';
 import 'links_editor.dart';
 import 'metronome_pattern_editor.dart';
 import 'song_constructor/song_constructor.dart';
+import 'song_constructor/widgets/pill_view.dart';
 
 /// A comprehensive form widget for adding or editing songs.
 ///
@@ -221,71 +222,92 @@ class SongForm extends StatelessWidget {
             onRemoveLink: onRemoveLink,
           ),
           const SizedBox(height: 24),
-          // Song structure ("scheme") editor
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Song Structure',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: MonoPulseColors.textPrimary,
-              ),
+          // Song structure ("scheme") — collapsible with a song-map preview.
+          CollapsibleSection(
+            title: 'Song Structure',
+            icon: Icons.queue_music,
+            initiallyExpanded: false,
+            preview: sections.isEmpty
+                ? const Text(
+                    'No structure yet',
+                    style: TextStyle(color: MonoPulseColors.textSecondary),
+                  )
+                : SizedBox(height: 28, child: PillView(sections: sections)),
+            child: SongConstructor(
+              embedded: true,
+              initialSections: sections,
+              onChange: onSectionsChanged,
             ),
           ),
-          const SizedBox(height: 12),
-          SongConstructor(
-            initialSections: sections,
-            onChange: onSectionsChanged,
-          ),
-          const SizedBox(height: 24),
-          // Notes field
-          const Text('Notes', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: notesController,
-            decoration: const InputDecoration(hintText: 'Notes...'),
-            maxLines: 3,
-          ),
-          const SizedBox(height: MonoPulseSpacing.xxxl),
-          // Tags selection
-          const Text(
-            'Tags',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: MonoPulseColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.md),
-          Wrap(
-            spacing: MonoPulseSpacing.md,
-            runSpacing: MonoPulseSpacing.sm,
-            children: [
-              // Predefined suggestions plus any custom tags already selected.
-              for (final tag in {...availableTags, ...selectedTags})
-                FilterChip(
-                  label: Text(
-                    tag,
-                    style: const TextStyle(
-                      color: MonoPulseColors.textPrimary,
-                    ),
+          const SizedBox(height: 16),
+          // Notes — collapsible with a snippet preview.
+          CollapsibleSection(
+            title: 'Notes',
+            icon: Icons.notes,
+            initiallyExpanded: false,
+            preview: notesController.text.trim().isEmpty
+                ? const Text(
+                    'No notes',
+                    style: TextStyle(color: MonoPulseColors.textSecondary),
+                  )
+                : Text(
+                    notesController.text.trim(),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: MonoPulseColors.textSecondary),
                   ),
-                  selected: selectedTags.contains(tag),
-                  onSelected: (selected) => onTagChanged(tag, selected),
-                  selectedColor: MonoPulseColors.accentOrangeSubtle,
-                  checkmarkColor: MonoPulseColors.accentOrange,
-                ),
-              ActionChip(
-                avatar: const Icon(
-                  Icons.add,
-                  size: 18,
-                  color: MonoPulseColors.accentOrange,
-                ),
-                label: const Text('Add tag'),
-                onPressed: () => _editTags(context),
-              ),
-            ],
+            child: TextFormField(
+              controller: notesController,
+              decoration: const InputDecoration(hintText: 'Notes...'),
+              maxLines: 3,
+            ),
           ),
-          const SizedBox(height: MonoPulseSpacing.xxxl),
+          const SizedBox(height: 16),
+          // Tags — collapsible with the selected tags as preview.
+          CollapsibleSection(
+            title: 'Tags',
+            icon: Icons.label_outline,
+            initiallyExpanded: false,
+            preview: selectedTags.isEmpty
+                ? const Text(
+                    'No tags',
+                    style: TextStyle(color: MonoPulseColors.textSecondary),
+                  )
+                : Text(
+                    selectedTags.join('  ·  '),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: MonoPulseColors.accentOrange),
+                  ),
+            child: Wrap(
+              spacing: MonoPulseSpacing.md,
+              runSpacing: MonoPulseSpacing.sm,
+              children: [
+                // Predefined suggestions plus any custom tags already selected.
+                for (final tag in {...availableTags, ...selectedTags})
+                  FilterChip(
+                    label: Text(
+                      tag,
+                      style: const TextStyle(color: MonoPulseColors.textPrimary),
+                    ),
+                    selected: selectedTags.contains(tag),
+                    onSelected: (selected) => onTagChanged(tag, selected),
+                    selectedColor: MonoPulseColors.accentOrangeSubtle,
+                    checkmarkColor: MonoPulseColors.accentOrange,
+                  ),
+                ActionChip(
+                  avatar: const Icon(
+                    Icons.add,
+                    size: 18,
+                    color: MonoPulseColors.accentOrange,
+                  ),
+                  label: const Text('Add tag'),
+                  onPressed: () => _editTags(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           // Metronome beat-grid editor (collapsible)
           CollapsibleSection(
             title: 'Metronome Settings',
