@@ -447,6 +447,13 @@ class SongCsvParser {
         colorValue = _parseColorValue(color, errors, lineNumber, 'section $i');
       }
 
+      final chart = _getStringValue(
+        data,
+        'section_${i}_chart',
+        errors,
+        lineNumber,
+      );
+
       sections.add(
         Section(
           id: '', // Will be generated later
@@ -454,6 +461,7 @@ class SongCsvParser {
           notes: notes ?? '',
           duration: duration ?? 1,
           colorValue: colorValue,
+          chordChart: (chart != null && chart.isNotEmpty) ? chart : null,
         ),
       );
     }

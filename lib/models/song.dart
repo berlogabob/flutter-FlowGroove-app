@@ -277,6 +277,11 @@ class Song {
   }
 
   Map<String, dynamic> toJson() => _$SongToJson(this);
+
+  /// True when any section has chords or notes worth showing on a sheet.
+  bool get hasSheetContent => sections.any((s) =>
+      (s.chordChart != null && s.chordChart!.trim().isNotEmpty) ||
+      s.notes.trim().isNotEmpty);
 }
 
 // Helper methods for BeatMode serialization

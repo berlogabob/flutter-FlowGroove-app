@@ -66,6 +66,7 @@ class SongCsvSchema {
     'notes',
     'duration',
     'color',
+    'chart', // ChordPro lyrics+chords for this section
   ];
 
   // Links (up to 5 links)

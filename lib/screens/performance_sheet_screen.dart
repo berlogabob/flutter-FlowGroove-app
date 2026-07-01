@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/section.dart';
+import '../models/song.dart';
 import '../providers/wakelock_provider.dart';
+import '../services/export/chordpro_export.dart';
 import '../services/export/pdf_service.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/chordpro.dart';
@@ -17,6 +20,7 @@ class PerformanceSheetScreen extends ConsumerStatefulWidget {
   const PerformanceSheetScreen({
     required this.title,
     required this.sections,
+    this.song,
     this.songKey,
     this.bpm,
     this.timeTop,
@@ -25,6 +29,10 @@ class PerformanceSheetScreen extends ConsumerStatefulWidget {
 
   final String title;
   final List<Section> sections;
+
+  /// The saved song backing this sheet, when opened from one. Enables ChordPro
+  /// export (needs the full song for its directives). Null for unsaved drafts.
+  final Song? song;
 
   /// Optional song metadata rendered in the exported PDF header.
   final String? songKey;
@@ -36,9 +44,23 @@ class PerformanceSheetScreen extends ConsumerStatefulWidget {
       _PerformanceSheetScreenState();
 }
 
-class _PerformanceSheetScreenState
-    extends ConsumerState<PerformanceSheetScreen> {
+class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
+    with SingleTickerProviderStateMixin {
   int _transpose = 0;
+
+  // ponytail: autoscroll speed is a feel heuristic (no per-line bar timing).
+  // Tune the two constants on real songs; upgrade path = per-section bar counts.
+  static const double _manualBase = 35; // px/sec
+  static const double _bpmToPx = 0.45; // px/sec per BPM when synced
+  static const double _minSpeed = 8;
+  static const double _maxSpeed = 300;
+
+  final ScrollController _scroll = ScrollController();
+  late final Ticker _ticker = createTicker(_onTick);
+  bool _scrolling = false;
+  bool _bpmSync = false;
+  double _speed = _manualBase;
+  Duration _lastTick = Duration.zero;
 
   @override
   void initState() {
@@ -49,9 +71,56 @@ class _PerformanceSheetScreenState
 
   @override
   void dispose() {
+    _ticker.dispose();
+    _scroll.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     ref.read(wakelockProvider).disable();
     super.dispose();
+  }
+
+  void _onTick(Duration elapsed) {
+    final dt = (elapsed - _lastTick).inMicroseconds / 1e6;
+    _lastTick = elapsed;
+    if (!_scroll.hasClients) return;
+    final max = _scroll.position.maxScrollExtent;
+    final next = _scroll.offset + _speed * dt;
+    if (next >= max) {
+      _scroll.jumpTo(max);
+      _stopScroll();
+    } else {
+      _scroll.jumpTo(next);
+    }
+  }
+
+  void _toggleScroll() {
+    if (_scrolling) {
+      _stopScroll();
+    } else {
+      _lastTick = Duration.zero;
+      _ticker.start();
+      setState(() => _scrolling = true);
+    }
+  }
+
+  void _stopScroll() {
+    _ticker.stop();
+    if (mounted) setState(() => _scrolling = false);
+  }
+
+  void _nudgeSpeed(double factor) {
+    setState(() {
+      _bpmSync = false;
+      _speed = (_speed * factor).clamp(_minSpeed, _maxSpeed);
+    });
+  }
+
+  void _toggleBpmSync() {
+    setState(() {
+      _bpmSync = !_bpmSync;
+      _speed = _bpmSync
+          ? ((widget.bpm ?? 90) * _bpmToPx).clamp(_minSpeed, _maxSpeed)
+          : _manualBase;
+    });
   }
 
   String get _transposeLabel {
@@ -83,6 +152,12 @@ class _PerformanceSheetScreenState
               timeTop: widget.timeTop,
             ),
           ),
+          if (widget.song case final song?)
+            IconButton(
+              tooltip: 'Export ChordPro',
+              icon: const Icon(Icons.description_outlined),
+              onPressed: () => shareSongChordPro(song),
+            ),
           IconButton(
             tooltip: 'Transpose down',
             icon: const Icon(Icons.remove),
@@ -105,6 +180,7 @@ class _PerformanceSheetScreenState
       body: withCharts.isEmpty
           ? const _EmptyState()
           : ListView.separated(
+              controller: _scroll,
               padding: const EdgeInsets.all(MonoPulseSpacing.lg),
               itemCount: withCharts.length,
               separatorBuilder: (_, __) =>
@@ -112,6 +188,81 @@ class _PerformanceSheetScreenState
               itemBuilder: (context, i) =>
                   _SectionBlock(section: withCharts[i], transpose: _transpose),
             ),
+      bottomNavigationBar: withCharts.isEmpty
+          ? null
+          : _AutoScrollBar(
+              scrolling: _scrolling,
+              bpmSync: _bpmSync,
+              speed: _speed,
+              onToggle: _toggleScroll,
+              onSlower: () => _nudgeSpeed(0.8),
+              onFaster: () => _nudgeSpeed(1.25),
+              onToggleBpm: _toggleBpmSync,
+            ),
+    );
+  }
+}
+
+/// Bottom transport for hands-free scrolling: play/pause, ± speed, and a
+/// Manual ⇄ BPM mode toggle.
+class _AutoScrollBar extends StatelessWidget {
+  const _AutoScrollBar({
+    required this.scrolling,
+    required this.bpmSync,
+    required this.speed,
+    required this.onToggle,
+    required this.onSlower,
+    required this.onFaster,
+    required this.onToggleBpm,
+  });
+
+  final bool scrolling;
+  final bool bpmSync;
+  final double speed;
+  final VoidCallback onToggle;
+  final VoidCallback onSlower;
+  final VoidCallback onFaster;
+  final VoidCallback onToggleBpm;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.md,
+          vertical: MonoPulseSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            IconButton.filled(
+              onPressed: onToggle,
+              icon: Icon(scrolling ? Icons.pause : Icons.play_arrow),
+              tooltip: scrolling ? 'Pause scroll' : 'Auto-scroll',
+            ),
+            const SizedBox(width: MonoPulseSpacing.sm),
+            IconButton(
+              onPressed: onSlower,
+              icon: const Icon(Icons.remove),
+              tooltip: 'Slower',
+            ),
+            Text(
+              '${speed.round()} px/s',
+              style: MonoPulseTypography.labelLarge,
+            ),
+            IconButton(
+              onPressed: onFaster,
+              icon: const Icon(Icons.add),
+              tooltip: 'Faster',
+            ),
+            const Spacer(),
+            ChoiceChip(
+              label: Text(bpmSync ? 'BPM' : 'Manual'),
+              selected: bpmSync,
+              onSelected: (_) => onToggleBpm(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

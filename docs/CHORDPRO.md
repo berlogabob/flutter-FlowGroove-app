@@ -103,12 +103,18 @@ denominator would need a model change — deferred until an app actually needs 6
   (the full map lives in the editor, keeping the card uncluttered).
 - **PDF export** (`services/export/pdf_service.dart`) — header line with key/scale,
   tempo, time signature and song map.
+- **`.cho` file export** (`services/export/chordpro_export.dart`) —
+  `shareSongChordPro(song)` runs `songToChordPro` and shares a standard ChordPro
+  file (share_plus). Surfaced from the Performance Sheet AppBar for saved songs.
+- **CSV** (`services/csv/`) — the `section_{n}_chart` column carries each
+  section's `chordChart` through the Google-Sheets round-trip.
 - **Per-section charts** (`Section.chordChart`) — the existing storage the codec
   assembles from and parses back into.
 
 ## Deferred
 
-- External `.cho` file import/export (file picker / share).
+- External `.cho` file **import** (file picker) — export ships; import is the
+  remaining half.
 - Extracting the parser into a standalone `chordpro_dart` package + upstream
   contribution — only after it's proven on real songs here.
 - Structured scale/mode field; time-signature denominator; ABC/LilyPond/MusicXML.

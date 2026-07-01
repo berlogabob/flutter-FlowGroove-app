@@ -27,6 +27,7 @@ import '../../widgets/unified_item/adapters/song_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
+import '../performance_sheet_screen.dart';
 import 'components/csv_import_export/csv_import_export.dart';
 
 /// Notifier for songs filter/sort state.
@@ -887,11 +888,30 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     List<Band> bands,
   ) {
     return [
+      if (adapter.song.hasSheetContent)
+        _OpenInPerformanceSheetAction(
+          onPressed: () => _openPerformanceSheet(adapter.song),
+        ),
       _OpenInTunerAction(onPressed: () => _openInTuner(adapter.song)),
       if (_hasMetronomeData(adapter.song))
         _OpenInMetronomeAction(onPressed: () => _openInMetronome(adapter.song)),
       if (bands.isNotEmpty) _buildAddToBandAction(adapter, bands),
     ];
+  }
+
+  void _openPerformanceSheet(Song song) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PerformanceSheetScreen(
+          title: song.title.trim().isEmpty ? 'Song' : song.title.trim(),
+          sections: song.sections,
+          song: song,
+          songKey: song.ourKey,
+          bpm: song.ourBPM,
+          timeTop: song.accentBeats,
+        ),
+      ),
+    );
   }
 
   bool _hasMetronomeData(Song song) {
@@ -1069,6 +1089,23 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(error.message)));
     }
+  }
+}
+
+class _OpenInPerformanceSheetAction implements UnifiedItemAction {
+  const _OpenInPerformanceSheetAction({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      key: const ValueKey('open-in-performance-sheet-action'),
+      icon: const Icon(Icons.queue_music, size: 20),
+      color: MonoPulseColors.accentOrange,
+      tooltip: 'Performance sheet',
+      onPressed: onPressed,
+    );
   }
 }
 

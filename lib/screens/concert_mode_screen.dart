@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/data/metronome_provider.dart';
 import '../providers/wakelock_provider.dart';
 import '../theme/mono_pulse_theme.dart';
+import 'performance_sheet_screen.dart';
 
 /// Full-screen "stage" view of the metronome (Mono Pulse Concert Mode).
 ///
@@ -65,6 +66,8 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
         ? (state.currentBeat ~/ subdivisions) % numerator
         : -1;
 
+    final song = state.activeSong;
+
     return Scaffold(
       backgroundColor: MonoPulseColors.black,
       body: SafeArea(
@@ -83,6 +86,34 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
+            // Open the loaded song's lyrics+chords sheet (seeded with the live
+            // tempo). The metronome keeps running underneath.
+            if (song != null && song.hasSheetContent)
+              Positioned(
+                top: MonoPulseSpacing.sm,
+                left: MonoPulseSpacing.sm,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.lyrics_outlined,
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                  iconSize: 28,
+                  tooltip: 'Lyrics & chords',
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => PerformanceSheetScreen(
+                        title:
+                            song.title.trim().isEmpty ? 'Song' : song.title.trim(),
+                        sections: song.sections,
+                        song: song,
+                        songKey: song.ourKey,
+                        bpm: state.bpm,
+                        timeTop: song.accentBeats,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
               child: OrientationBuilder(

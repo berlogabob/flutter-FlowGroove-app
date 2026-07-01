@@ -321,9 +321,21 @@ Primary service areas:
 - `Section.chordChart` holds ChordPro source (`[Am]Twinkle [F]star`); a song's
   sections form the sheet
 - `screens/performance_sheet_screen.dart` — full-screen, keep-awake (reuses
-  `wakelockProvider`), live ± semitone transpose, chords rendered over lyrics
+  `wakelockProvider`), live ± semitone transpose, chords rendered over lyrics,
+  plus hands-free **auto-scroll** (a `Ticker` nudges the `ScrollController`;
+  play/pause, ± speed, and a Manual ⇄ BPM toggle that seeds speed from the
+  passed tempo — a feel heuristic, no per-line bar timing)
+- reachable directly from a saved song: a **Performance sheet** quick-action on
+  each song row (`songs_list_screen.dart`, gated on `Song.hasSheetContent`) and
+  a lyrics button in **concert mode** (`concert_mode_screen.dart`, opens the
+  loaded `activeSong` seeded with the live metronome BPM)
 - per-song PDF export at the current transpose (`services/export/pdf_service.dart`),
   with a header line for key + derived scale, tempo, time signature and song map
+- per-song **ChordPro `.cho` export** (`services/export/chordpro_export.dart`:
+  `shareSongChordPro` → `songToChordPro` + share_plus), from the sheet's AppBar
+  when opened on a saved `Song`
+- **CSV** carries chords too: `section_{n}_chart` column round-trips
+  `Section.chordChart` (`services/csv/song_csv_schema.dart` `sectionFields`)
 - paste ChordPro/lyrics → sections (`screens/songs/components/import_lyrics_dialog.dart`)
 - **Song ⇄ ChordPro sync** (`utils/chordpro.dart`): `songToChordPro` assembles a
   canonical document (header directives + `x_flowgroove_song_map`/`_original_key`

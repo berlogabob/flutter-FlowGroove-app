@@ -478,5 +478,40 @@ Song 3,Artist 3
       expect(parsedSong.links, hasLength(1));
       expect(parsedSong.links.first.url, contains('youtube.com'));
     });
+
+    test('serialize then parse preserves section chordChart', () {
+      final serializer = SongCsvSerializer();
+      final parser = SongCsvParser();
+
+      final originalSong = Song(
+        id: 'test-chart',
+        title: 'Chart Song',
+        artist: 'Test Artist',
+        links: [],
+        tags: [],
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024, 1, 2),
+        beatModes: [],
+        sections: [
+          Section(
+            id: 'sec-1',
+            name: 'Verse',
+            duration: 4,
+            chordChart: '[Am]Twinkle [F]little [C]star',
+          ),
+        ],
+      );
+
+      final csv = serializer.serialize([originalSong]);
+      expect(csv, contains('section_1_chart'));
+
+      final result = parser.parse(csv);
+      expect(result.errors, isEmpty);
+      expect(result.successful, hasLength(1));
+      expect(
+        result.successful.first.sections.first.chordChart,
+        equals('[Am]Twinkle [F]little [C]star'),
+      );
+    });
   });
 }
