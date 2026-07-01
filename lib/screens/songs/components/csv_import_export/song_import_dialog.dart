@@ -6,6 +6,7 @@ import 'package:flowgroove/models/song_import_plan.dart';
 import 'package:flowgroove/services/csv/song_csv_parser.dart';
 import 'package:flowgroove/services/csv/song_csv_service.dart';
 import 'package:flowgroove/services/csv/song_import_analyzer.dart';
+import 'package:flowgroove/services/json/song_ai_prompt.dart';
 import 'package:flowgroove/services/json/song_json_codec.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -111,8 +112,36 @@ class _SongImportDialogState extends State<SongImportDialog> {
                   label: const Text('Paste from clipboard'),
                 ),
               ),
+              const SizedBox(height: 24),
+              const Text(
+                "No file? Ask your own AI. Copy a prompt, paste it into "
+                "ChatGPT/Claude/Gemini, then paste its result back here.",
+                textAlign: TextAlign.center,
+                style: MonoPulseTypography.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: _copyAiPrompt,
+                  icon: const Icon(Icons.auto_awesome),
+                  label: const Text('Copy AI prompt'),
+                ),
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _copyAiPrompt() async {
+    await Clipboard.setData(ClipboardData(text: songImportPrompt()));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'AI prompt copied — paste it into your AI, then paste the result here.',
         ),
       ),
     );
