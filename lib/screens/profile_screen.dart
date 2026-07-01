@@ -13,6 +13,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../providers/auth/auth_provider.dart';
+import 'settings/api_access_screen.dart';
 import '../../services/account_function_service.dart';
 import '../../services/avatar_function_service.dart';
 import '../../services/storage_service.dart';
@@ -622,6 +623,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 title: 'Link Telegram',
                 subtitle: 'Get name and photo from Telegram',
                 onTap: _showTelegramLinkDialog,
+              ),
+              _buildMenuItem(
+                icon: Icons.smart_toy_outlined,
+                title: 'AI access (MCP)',
+                subtitle: 'Connect your own AI to read & add songs',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ApiAccessScreen(),
+                  ),
+                ),
               ),
             ],
           ),

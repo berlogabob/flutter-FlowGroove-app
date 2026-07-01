@@ -25,6 +25,14 @@ exports.updateBandMember = bands.updateBandMember;
 const account = require("./src/account");
 exports.deleteAccount = account.deleteAccount;
 
+// MCP endpoint: per-user API keys (callables) + the authenticated HTTP gateway.
+const mcpKeys = require("./src/mcp/keys");
+exports.createApiKey = mcpKeys.createApiKey;
+exports.listApiKeys = mcpKeys.listApiKeys;
+exports.revokeApiKey = mcpKeys.revokeApiKey;
+const mcpGateway = require("./src/mcp/gateway");
+exports.mcpGateway = mcpGateway.mcpGateway;
+
 // Band avatar (server-authoritative; admin verified server-side)
 const bandAvatar = require("./src/band_avatar");
 exports.setBandAvatar = bandAvatar.setBandAvatar;
