@@ -215,8 +215,8 @@ Server-authoritative callables (admin-SDK, so they bypass client-side rules):
   API keys (random token shown once, only its SHA-256 stored, revocable, demo-blocked).
 
 HTTP + scheduled: `telegramWebhook`, `shareToTelegram`, `onBandSetlistCreated`,
-`dailyEventReminder` (`src/telegram/`), and `mcpGateway` (`src/mcp/gateway.js`) — the
-authenticated MCP endpoint (see §6).
+`dailyEventReminder` (`src/telegram/`), plus the MCP endpoints `mcpGateway`
+(`src/mcp/gateway.js`, API-key) and `mcpRemote` (`src/mcp/remote.js`, remote OAuth) — see §6.
 
 ### 5. AI Workspace Context
 
@@ -231,22 +231,24 @@ This context is operational documentation, not app runtime code.
 ### 6. AI-ready Song Workflow / MCP
 
 The **Song JSON** format (`docs/SONG_JSON_SCHEMA.md`, `services/json/song_json_codec.dart`)
-is the stable contract for letting a user's own AI prepare songs. Two ways to use it:
+is the stable contract for letting a user's own AI prepare songs. Three ways to use it, all
+sharing one set of tool functions (`src/mcp/tools.js`):
 
 - **Manual (built):** export a song as JSON / paste AI output into Import (auto-detects
   JSON vs CSV, validated + previewed before save). Ready-made prompts via
   `services/json/song_ai_prompt.dart` + `docs/AI_PROMPTS.md`.
-- **MCP endpoint (built; deploy gated):** direct agent access over the same contract:
-  - per-user **API key** (in-app: Profile → *AI access (MCP)*; token shown once, only its
-    SHA-256 stored) →
-  - an **authenticated Cloud Functions gateway** (`mcpGateway`) that maps key→uid, enforces
-    read/write scope, and validates every write server-side (`src/mcp/song_schema.js`) →
-  - a thin, user-run **Node MCP server** (`mcp/`, `@modelcontextprotocol/sdk`) exposing
-    tools `list/get/validate/export/create/update_song`.
+- **MCP API key (built + deployed, e2e-verified):** per-user **API key** (in-app: Profile →
+  *AI access (MCP)*; token shown once, only its SHA-256 stored) → the authenticated
+  `mcpGateway` (maps key→uid, read/write scope) → a user-run **Node MCP server** (`mcp/`,
+  `@modelcontextprotocol/sdk`). Live in prod. See `mcp/README.md`.
+- **Remote OAuth connector (spike; provider/deploy gated):** `mcpRemote`
+  (`src/mcp/remote.js`) — a hosted MCP Streamable-HTTP server so Claude/ChatGPT add
+  FlowGroove as a **one-click custom connector** (OAuth 2.1 via a managed provider + Google
+  login → Firebase uid). No key, no local server. Runbook: `docs/MCP_REMOTE_SETUP.md`.
 
-Writes are scoped to the key's own uid; no canonical-song or destructive writes. Users bring
-their own AI, so FlowGroove pays no tokens. Richer tools (sections/chords/lab/homework) land
-with Song Lab. See `mcp/README.md` for client config.
+Every path validates writes server-side (`src/mcp/song_schema.js`), scopes them to the
+caller's own uid, and does no canonical-song or destructive writes. Users bring their own AI,
+so FlowGroove pays no tokens. Richer tools (sections/chords/lab/homework) land with Song Lab.
 
 ## App Structure
 

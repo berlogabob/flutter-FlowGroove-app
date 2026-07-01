@@ -26,6 +26,9 @@ Get songs in fast — bring your own AI, no in-app tokens.
 
 ## Connect an AI agent (MCP)
 
-- Go to **Profile → AI access (MCP)** and create a key (read-only, or read + write).
-- Run the FlowGroove MCP server (see `mcp/README.md`) and add it to your AI client.
-- Your assistant can then list and add songs in your library directly.
+Let Claude, ChatGPT or Gemini list and add songs in your library directly.
+
+- **One-click (remote connector):** add FlowGroove as a custom connector in your AI app and
+  sign in — no key, no setup. (Rolling out; needs a paid AI plan on some apps.)
+- **Advanced (API key):** Profile → **AI access (MCP)** → create a key, then run the local
+  FlowGroove MCP server (see `mcp/README.md`) and add it to your client.
