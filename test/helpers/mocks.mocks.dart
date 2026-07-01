@@ -2512,6 +2512,15 @@ class MockFirestoreService extends _i1.Mock implements _i16.FirestoreService {
           as _i7.Future<void>);
 
   @override
+  _i7.Future<void> saveBandBatch(_i18.Band? band, {String? uid}) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveBandBatch, [band], {#uid: uid}),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
   _i7.Future<_i18.Band?> getBandByInviteCode(String? code) =>
       (super.noSuchMethod(
             Invocation.method(#getBandByInviteCode, [code]),
