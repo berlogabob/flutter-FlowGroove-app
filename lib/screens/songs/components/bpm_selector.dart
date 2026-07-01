@@ -35,7 +35,7 @@ class BpmSelector extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+            style: MonoPulseTypography.labelMedium,
           ),
           const SizedBox(height: 4),
         ],
@@ -54,117 +54,139 @@ class BpmSelector extends StatelessWidget {
   }
 }
 
-/// A combined widget for selecting key and BPM together.
-///
-/// This is useful for song forms where key and tempo are related.
-class KeyBpmSelector extends StatelessWidget {
-
-  const KeyBpmSelector({
-    required this.base, required this.modifier, required this.bpmController, required this.onKeyChanged, super.key,
-    this.label,
+/// A compact, column-aligned grid for the Original and Our key + BPM together.
+/// Both rows share the same columns (note · accidental · BPM) so they line up as
+/// a clear grid — used inside a single "Key & BPM" collapsible bubble.
+class KeyBpmGrid extends StatelessWidget {
+  const KeyBpmGrid({
+    required this.originalBase,
+    required this.originalModifier,
+    required this.originalBpmController,
+    required this.onOriginalKeyChanged,
+    required this.ourBase,
+    required this.ourModifier,
+    required this.ourBpmController,
+    required this.onOurKeyChanged,
+    super.key,
     this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
     this.keyModifiers = const ['', '#', 'b', 'm'],
   });
-  /// The selected base note.
-  final String base;
 
-  /// The selected modifier.
-  final String modifier;
+  final String originalBase;
+  final String originalModifier;
+  final TextEditingController originalBpmController;
+  final Function(String base, String modifier) onOriginalKeyChanged;
 
-  /// Controller for the BPM field.
-  final TextEditingController bpmController;
+  final String ourBase;
+  final String ourModifier;
+  final TextEditingController ourBpmController;
+  final Function(String base, String modifier) onOurKeyChanged;
 
-  /// Optional label for this selector group. Omit when the surrounding widget
-  /// (e.g. a CollapsibleSection) already provides a title.
-  final String? label;
-
-  /// Callback when key selection changes.
-  final Function(String base, String modifier) onKeyChanged;
-
-  /// Available base notes.
   final List<String> keyBases;
-
-  /// Available modifiers.
   final List<String> keyModifiers;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Table(
+      columnWidths: const {
+        0: IntrinsicColumnWidth(),
+        1: IntrinsicColumnWidth(),
+        2: IntrinsicColumnWidth(),
+        3: FlexColumnWidth(),
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
-        if (label != null && label!.isNotEmpty) ...[
-          Text(
-            label!,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+        _row(
+          'Original',
+          originalBase,
+          originalModifier,
+          originalBpmController,
+          onOriginalKeyChanged,
+        ),
+        _row('Our', ourBase, ourModifier, ourBpmController, onOurKeyChanged),
+      ],
+    );
+  }
+
+  TableRow _row(
+    String label,
+    String base,
+    String modifier,
+    TextEditingController bpm,
+    Function(String, String) onKey,
+  ) {
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          child: Text(
+            label,
+            style: MonoPulseTypography.labelMedium,
           ),
-          const SizedBox(height: 4),
-        ],
-        IntrinsicHeight(
-          child: Row(
-            children: [
-              _buildMiniDropdown(
-                base,
-                keyBases,
-                (v) => onKeyChanged(v ?? 'C', modifier),
-              ),
-              const SizedBox(width: 4),
-              _buildMiniDropdown(
-                modifier,
-                keyModifiers,
-                (v) => onKeyChanged(base, v ?? ''),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: bpmController,
-                  decoration: const InputDecoration(
-                    labelText: 'BPM',
-                    isDense: true,
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-            ],
+        ),
+        Padding(
+          padding: const EdgeInsets.all(4),
+          child: _keyMiniDropdown(
+            base,
+            keyBases,
+            (v) => onKey(v ?? 'C', modifier),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(4),
+          child: _keyMiniDropdown(
+            modifier,
+            keyModifiers,
+            (v) => onKey(base, v ?? ''),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(4),
+          child: TextFormField(
+            controller: bpm,
+            decoration: const InputDecoration(labelText: 'BPM', isDense: true),
+            keyboardType: TextInputType.number,
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildMiniDropdown(
-    String value,
-    List<String> items,
-    Function(String?) onChanged,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-        border: Border.all(color: MonoPulseColors.borderDefault),
-      ),
-      child: DropdownButton<String>(
-        value: value,
-        isDense: true,
-        underline: const SizedBox(),
-        dropdownColor: MonoPulseColors.surfaceOverlay,
-        iconEnabledColor: MonoPulseColors.textSecondary,
-        items: items
-            .map(
-              (k) => DropdownMenuItem(
-                value: k,
-                child: Text(
-                  k.isEmpty ? '-' : k,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: MonoPulseColors.textPrimary,
-                  ),
+/// Shared compact note/accidental dropdown used by the key grid.
+Widget _keyMiniDropdown(
+  String value,
+  List<String> items,
+  ValueChanged<String?> onChanged,
+) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8),
+    decoration: BoxDecoration(
+      color: MonoPulseColors.surfaceRaised,
+      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+      border: Border.all(color: MonoPulseColors.borderDefault),
+    ),
+    child: DropdownButton<String>(
+      value: value,
+      isDense: true,
+      underline: const SizedBox(),
+      dropdownColor: MonoPulseColors.surfaceOverlay,
+      iconEnabledColor: MonoPulseColors.textSecondary,
+      items: items
+          .map(
+            (k) => DropdownMenuItem(
+              value: k,
+              child: Text(
+                k.isEmpty ? '-' : k,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: MonoPulseColors.textPrimary,
                 ),
               ),
-            )
-            .toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
+            ),
+          )
+          .toList(),
+      onChanged: onChanged,
+    ),
+  );
 }

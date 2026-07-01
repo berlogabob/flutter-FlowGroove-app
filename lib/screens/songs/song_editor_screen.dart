@@ -303,11 +303,18 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
               child: _thinMap(sections),
             )
           else
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                MonoPulseSpacing.lg,
+                0,
+                MonoPulseSpacing.lg,
+                MonoPulseSpacing.sm,
+              ),
               child: Text(
                 'No sections yet — type ChordPro below, or use Import / Add.',
-                style: TextStyle(color: MonoPulseColors.textSecondary),
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
               ),
             ),
           // Collapsible: the full reorderable section list.

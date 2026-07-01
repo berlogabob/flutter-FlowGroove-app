@@ -73,7 +73,10 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
             onTap: _toggleExpanded,
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             child: Container(
-              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
+                vertical: MonoPulseSpacing.md,
+              ),
               child: Row(
                 children: [
                   // Expand/collapse icon
@@ -83,15 +86,15 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                     child: Icon(
                       widget.icon ?? Icons.keyboard_arrow_down,
                       color: MonoPulseColors.textSecondary,
-                      size: 24,
+                      size: 20,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Title
+                  // Title (compact — leaves room for the collapsed preview).
                   Expanded(
                     child: Text(
                       widget.title,
-                      style: MonoPulseTypography.titleLarge.copyWith(
+                      style: MonoPulseTypography.titleMedium.copyWith(
                         color: MonoPulseColors.textPrimary,
                       ),
                     ),
