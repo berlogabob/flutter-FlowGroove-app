@@ -117,28 +117,25 @@ void main() async {
     return;
   }
 
-  // Initialize Firebase Analytics ONLY on mobile (not web)
+  // Firebase Analytics (mobile only). Grab the singleton now (cheap) but defer
+  // the awaited init/collection/connection/app-open work to after the first
+  // frame so it never blocks startup. Events logged before the deferred enable
+  // are buffered by Firebase Analytics.
   FirebaseAnalytics? analytics;
   if (!kIsWeb) {
     analytics = FirebaseAnalytics.instance;
-    debugPrint('📊 Firebase Analytics initialized');
-
-    // Initialize Analytics Service
-    await AnalyticsService.initialize();
-
-    // Enable analytics collection (explicitly)
-    await analytics.setAnalyticsCollectionEnabled(true);
-    debugPrint('📊 Analytics collection enabled');
-
-    // Enable debug mode for development
     AnalyticsDebug.enableDebugMode();
-
-    // Test analytics connection
-    await AnalyticsDebug.testConnection();
-
-    // Log app open event
-    await AnalyticsDebug.logAppOpen();
-    debugPrint('📊 App open event logged');
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await AnalyticsService.initialize();
+        await analytics!.setAnalyticsCollectionEnabled(true);
+        await AnalyticsDebug.testConnection();
+        await AnalyticsDebug.logAppOpen();
+        debugPrint('📊 Analytics initialized (deferred, off critical path)');
+      } catch (e) {
+        debugPrint('⚠️ Deferred analytics init failed: $e');
+      }
+    });
   } else {
     debugPrint('ℹ️  Web platform - skipping Analytics initialization');
   }

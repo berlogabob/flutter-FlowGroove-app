@@ -4,6 +4,7 @@ import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/repositories/repositories.dart';
 import 'package:flowgroove/services/cache_service.dart';
@@ -67,7 +68,7 @@ void main() {
           songRepositoryProvider.overrideWithValue(mockSongRepository),
           bandRepositoryProvider.overrideWithValue(mockBandRepository),
           setlistRepositoryProvider.overrideWithValue(mockSetlistRepository),
-          cacheProvider.overrideWithValue(mockCacheService),
+          cacheServiceProvider.overrideWithValue(mockCacheService),
         ],
       );
       addTearDown(container.dispose);
@@ -111,8 +112,8 @@ void main() {
         verify(mockSetlistRepository.watchBandSetlists('band-1')).called(1);
       });
 
-      test('cacheProvider returns mocked instance', () {
-        final cache = container.read(cacheProvider);
+      test('cacheServiceProvider returns mocked instance', () {
+        final cache = container.read(cacheServiceProvider);
         expect(cache, equals(mockCacheService));
       });
 

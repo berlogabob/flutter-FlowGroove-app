@@ -29,6 +29,13 @@ class FirestoreSongRepository implements SongRepository {
   final FirebaseAuth _auth;
   final Uuid _uuid = const Uuid();
 
+  /// Session memo of canonical songs already fetched, so we don't re-read the
+  /// same catalog records on every songs snapshot (they fire on any library
+  /// change). ponytail: plain map, no TTL — canonical songs are read-mostly
+  /// catalog records; a canonical edit won't reflect until app restart. Add
+  /// invalidation here if that staleness ever matters.
+  final Map<String, CanonicalSong> _canonicalCache = {};
+
   /// Helper method to check if user is authenticated.
   void _requireAuth() {
     if (_auth.currentUser == null) {
@@ -656,7 +663,16 @@ class FirestoreSongRepository implements SongRepository {
     Set<String> canonicalSongIds,
   ) async {
     final result = <String, CanonicalSong>{};
-    final ids = canonicalSongIds.where((id) => id.isNotEmpty).toList();
+    final ids = <String>[];
+    for (final id in canonicalSongIds) {
+      if (id.isEmpty) continue;
+      final cached = _canonicalCache[id];
+      if (cached != null) {
+        result[id] = cached; // memo hit — skip the network read
+      } else {
+        ids.add(id);
+      }
+    }
 
     for (var start = 0; start < ids.length; start += 10) {
       final end = start + 10 > ids.length ? ids.length : start + 10;
@@ -672,7 +688,9 @@ class FirestoreSongRepository implements SongRepository {
         for (final doc in snapshot.docs) {
           final data = Map<String, dynamic>.from(doc.data());
           data['id'] ??= doc.id;
-          result[doc.id] = CanonicalSong.fromJson(data);
+          final canonical = CanonicalSong.fromJson(data);
+          result[doc.id] = canonical;
+          _canonicalCache[doc.id] = canonical;
         }
       } catch (e) {
         debugPrint(

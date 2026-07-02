@@ -17,23 +17,26 @@ import '../widgets/standard_screen_scaffold.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/tool_button.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Log screen view for analytics (safe for tests)
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Log screen view once per navigation, not on every rebuild.
     try {
       AnalyticsDebug.logScreenView(
         screenName: 'HomeScreen',
         screenClass: 'HomeScreen',
       );
     } catch (_) {}
-
-    // Also log with Firebase Analytics directly (safe for tests)
     try {
-      final apps = Firebase.apps;
-      if (apps.isNotEmpty) {
+      if (Firebase.apps.isNotEmpty) {
         FirebaseAnalytics.instance.logScreenView(
           screenName: 'HomeScreen',
           screenClass: 'HomeScreen',
@@ -42,7 +45,10 @@ class HomeScreen extends ConsumerWidget {
     } catch (_) {
       // Ignore in test environment when Firebase is not initialized
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return StandardScreenScaffold(
       title: 'Home',
       showBackButton: false, // Hide back button for main tabs
@@ -59,7 +65,6 @@ class HomeScreen extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final breakpoint = getBreakpoint(constraints.maxWidth);
-        final userName = userAsync.value?.displayName ?? 'User';
 
         return DashboardGrid(
           greetingCard: _buildGreetingCard(ref, userAsync, breakpoint),

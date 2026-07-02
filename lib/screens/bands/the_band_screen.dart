@@ -22,6 +22,7 @@ import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/tool_button.dart';
 import '../setlists/create_setlist_screen.dart';
+import '../../utils/snackbar.dart';
 
 /// The Band Screen - displays band dashboard similar to personal page.
 ///
@@ -55,6 +56,21 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     _descriptionController = TextEditingController(
       text: widget.band.description ?? '',
     );
+    // Log screen view once per navigation, not on every rebuild.
+    try {
+      AnalyticsDebug.logScreenView(
+        screenName: 'TheBandScreen',
+        screenClass: 'TheBandScreen',
+      );
+    } catch (_) {}
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        FirebaseAnalytics.instance.logScreenView(
+          screenName: 'TheBandScreen',
+          screenClass: 'TheBandScreen',
+        );
+      }
+    } catch (_) {}
   }
 
   @override
@@ -107,22 +123,6 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   @override
   Widget build(BuildContext context) {
-    try {
-      AnalyticsDebug.logScreenView(
-        screenName: 'TheBandScreen',
-        screenClass: 'TheBandScreen',
-      );
-    } catch (_) {}
-
-    try {
-      if (Firebase.apps.isNotEmpty) {
-        FirebaseAnalytics.instance.logScreenView(
-          screenName: 'TheBandScreen',
-          screenClass: 'TheBandScreen',
-        );
-      }
-    } catch (_) {}
-
     return StandardScreenScaffold(
       title: widget.band.name,
       body: _buildBandDashboard(),
@@ -465,15 +465,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Band name updated successfully')),
-        );
+        showAppSnackBar(context, 'Band name updated successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating band name: $e')));
+        showAppSnackBar(context, 'Error updating band name: $e');
       }
     } finally {
       if (mounted) {
@@ -543,15 +539,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Description updated successfully')),
-        );
+        showAppSnackBar(context, 'Description updated successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating description: $e')),
-        );
+        showAppSnackBar(context, 'Error updating description: $e');
       }
     } finally {
       if (mounted) {

@@ -126,19 +126,10 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
   AsyncValue<AppUser?> build() {
     final authState = ref.watch(authStateProvider);
 
-    authState.whenOrNull(
-      data: (user) {
-        if (user != null) {
-          _syncAnalyticsIfPossible(user);
-        }
-      },
-    );
-
     return authState.when(
       data: (user) {
         if (user != null) {
           String displayName = user.displayName ?? '';
-          String? photoURL = user.photoURL;
 
           if (displayName.isEmpty) {
             // Use email or fallback to 'User'
@@ -146,50 +137,16 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
             displayName = emailPrefix.isNotEmpty ? emailPrefix : 'User';
           }
 
-          if (_canAccessFirestore()) {
-            // Load Telegram photo if consent given.
-            _loadTelegramProfile(user.uid).then((
-              telegramData,
-            ) {
-              if (telegramData != null) {
-                if (displayName == 'User' &&
-                    telegramData['telegramUsername'] != null) {
-                  displayName = telegramData['telegramUsername'] as String;
-                }
-                // Avatar precedence matches the Profile screen: the doc's
-                // photoURL is the user's chosen avatar (any photoSource) and
-                // is authoritative; fall back to Telegram, then auth photo.
-                photoURL = (telegramData['photoURL'] as String?) ??
-                    (telegramData['telegramPhotoURL'] as String?) ??
-                    photoURL;
-
-                state = AsyncValue.data(
-                  AppUser(
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: displayName,
-                    photoURL: photoURL,
-                    accessRole:
-                        (telegramData['accessRole'] as String?) ?? 'member',
-                    musicRoles: List<String>.from(
-                      (telegramData['musicRoles'] as List?) ?? const [],
-                    ),
-                    systemTags: List<String>.from(
-                      (telegramData['systemTags'] as List?) ?? const [],
-                    ),
-                    createdAt: DateTime.now(),
-                  ),
-                );
-              }
-            });
-          }
+          // Single read of users/{uid}: feeds both analytics user-properties
+          // and profile hydration (avatar/roles), instead of two separate gets.
+          _hydrateFromUserDoc(user, displayName);
 
           return AsyncValue.data(
             AppUser(
               uid: user.uid,
               email: user.email,
               displayName: displayName,
-              photoURL: photoURL,
+              photoURL: user.photoURL,
               createdAt: DateTime.now(),
             ),
           );
@@ -205,94 +162,84 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     );
   }
 
-  Future<void> _syncAnalyticsIfPossible(User user) async {
+  /// Reads users/{uid} once and applies it to both analytics user-properties
+  /// and the hydrated AppUser state (avatar + persisted roles). Merged from the
+  /// former `_syncAnalyticsIfPossible` + `_loadTelegramProfile`, which each read
+  /// the same doc separately.
+  Future<void> _hydrateFromUserDoc(User user, String baseDisplayName) async {
     final firestore = _readFirestoreIfAvailable();
-    if (firestore == null) {
+    if (firestore == null) return;
+
+    Map<String, dynamic>? data;
+    try {
+      final userDoc = await firestore.collection('users').doc(user.uid).get();
+      data = userDoc.exists ? userDoc.data() : null;
+    } catch (e) {
+      debugPrint('Error loading user doc: $e');
       return;
     }
 
+    final bandCount = (data?['bandIds'] as List?)?.length ?? 0;
+    final accessRole = (data?['accessRole'] as String?) ?? 'member';
+    final musicRoles =
+        List<String>.from((data?['musicRoles'] as List?) ?? const []);
+    final systemTags =
+        List<String>.from((data?['systemTags'] as List?) ?? const []);
+
+    // Analytics user-properties.
     try {
-      final userDoc = await firestore.collection('users').doc(user.uid).get();
-
-      int bandCount = 0;
-      const int songCount = 0;
-      const int setlistCount = 0;
-
-      if (userDoc.exists) {
-        final data = userDoc.data();
-        if (data != null) {
-          bandCount = (data['bandIds'] as List?)?.length ?? 0;
-        }
-      }
-
-      final appUser = AppUser(
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        accessRole: (userDoc.data()?['accessRole'] as String?) ?? 'member',
-        musicRoles: List<String>.from(
-          (userDoc.data()?['musicRoles'] as List?) ?? [],
-        ),
-        systemTags: List<String>.from(
-          (userDoc.data()?['systemTags'] as List?) ?? [],
-        ),
-        bandIds: List.generate(bandCount, (i) => 'band_$i'),
-        createdAt: DateTime.now(),
-      );
-
-      await ref
-          .read(analyticsClientProvider)
-          .setUserProperties(
-            user: appUser,
+      await ref.read(analyticsClientProvider).setUserProperties(
+            user: AppUser(
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              accessRole: accessRole,
+              musicRoles: musicRoles,
+              systemTags: systemTags,
+              bandIds: List.generate(bandCount, (i) => 'band_$i'),
+              createdAt: DateTime.now(),
+            ),
             bandCount: bandCount,
-            songCount: songCount,
-            setlistCount: setlistCount,
+            songCount: 0,
+            setlistCount: 0,
           );
     } catch (e) {
       debugPrint('Error setting user properties: $e');
     }
-  }
 
-  bool _canAccessFirestore() {
-    return _readFirestoreIfAvailable() != null;
-  }
+    // Profile hydration: only push new state if the doc actually adds anything.
+    if (data == null) return;
 
-  /// Load profile data from the user doc: the authoritative chosen avatar
-  /// (`photoURL`, written by the Profile screen) plus Telegram fields when the
-  /// user gave consent. Returns null only if the doc is missing/empty.
-  Future<Map<String, dynamic>?> _loadTelegramProfile(String uid) async {
-    final firestore = _readFirestoreIfAvailable();
-    if (firestore == null) {
-      return null;
+    var displayName = baseDisplayName;
+    final telegramConsent = data['telegramConsent'] == true;
+    final telegramUsername =
+        telegramConsent ? data['telegramUsername'] as String? : null;
+    final telegramPhotoURL =
+        telegramConsent ? data['telegramPhotoURL'] as String? : null;
+
+    if (displayName == 'User' && telegramUsername != null) {
+      displayName = telegramUsername;
     }
+    // Avatar precedence matches the Profile screen: the doc's photoURL is the
+    // user's chosen avatar and is authoritative; fall back to Telegram, then
+    // auth photo.
+    final photoURL = (data['photoURL'] as String?) ??
+        telegramPhotoURL ??
+        user.photoURL;
 
-    try {
-      final userDoc = await firestore.collection('users').doc(uid).get();
-
-      if (userDoc.exists) {
-        final data = userDoc.data();
-        if (data != null) {
-          return {
-            'photoURL': data['photoURL'],
-            // Persisted profile fields the auth token doesn't carry. Without
-            // these the provider state defaults musicRoles to [], so saved
-            // roles vanish on the next rebuild ("My Roles edit doesn't save").
-            'musicRoles': data['musicRoles'],
-            'accessRole': data['accessRole'],
-            'systemTags': data['systemTags'],
-            if (data['telegramConsent'] == true) ...{
-              'telegramUsername': data['telegramUsername'],
-              'telegramPhotoURL': data['telegramPhotoURL'],
-            },
-          };
-        }
-      }
-      return null;
-    } catch (e) {
-      debugPrint('Error loading Telegram profile: $e');
-      return null;
-    }
+    state = AsyncValue.data(
+      AppUser(
+        uid: user.uid,
+        email: user.email,
+        displayName: displayName,
+        photoURL: photoURL,
+        accessRole: accessRole,
+        musicRoles: musicRoles,
+        systemTags: systemTags,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 
   FirebaseFirestore? _readFirestoreIfAvailable() {

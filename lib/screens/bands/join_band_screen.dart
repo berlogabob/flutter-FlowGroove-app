@@ -11,6 +11,7 @@ import '../../services/analytics_service.dart';
 import '../../services/secure_storage_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../utils/snackbar.dart';
 
 class JoinBandScreen extends ConsumerStatefulWidget {
 
@@ -90,9 +91,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
     // of a real band. Server-side join rules are the real boundary, but block
     // it here too so the demo UI can't even attempt it.
     if (ref.read(isDemoUserProvider)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Demo accounts cannot join bands. Sign up to join.')),
-      );
+      showAppSnackBar(context, 'Demo accounts cannot join bands. Sign up to join.');
       return;
     }
 
@@ -137,25 +136,18 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       );
 
       if (mounted) {
-        // Invalidate bands provider to ensure UI refresh
-        ref.invalidate(bandsProvider);
+        // No manual invalidate: bandsProvider watches `memberUids arrayContains
+        // uid` in realtime, so the server-side join propagates the new band on
+        // its own. Invalidating here would force a redundant full re-read.
         final name = result.bandName.isNotEmpty ? result.bandName : _band!.name;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result.alreadyMember
+        showAppSnackBar(context, result.alreadyMember
                   ? 'You are already a member of "$name"'
-                  : 'Joined "$name"!',
-            ),
-          ),
-        );
+                  : 'Joined "$name"!');
         context.goNamed('bands');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(_joinErrorMessage(e))));
+        showAppSnackBar(context, _joinErrorMessage(e));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -213,7 +205,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                     Container(
                       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                       decoration: BoxDecoration(
-                        color: MonoPulseColors.errorSubtle,
+                        color: MonoPulseColors.error10,
                         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
                       ),
                       child: Text(

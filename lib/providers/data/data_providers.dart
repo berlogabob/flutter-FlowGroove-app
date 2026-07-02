@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/band.dart';
@@ -10,7 +9,6 @@ import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../repositories/repositories.dart';
 import '../../services/band_function_service.dart';
-import '../../services/cache_service.dart';
 import '../../services/canonical_song_function_service.dart';
 import '../../services/firestore_service.dart';
 import '../auth/auth_provider.dart';
@@ -109,16 +107,8 @@ final canonicalSongSearchProvider =
       return repo.search(query: normalizedQuery);
     });
 
-/// Provider for the CacheService.
-///
-/// Usage:
-/// ```dart
-/// final cache = ref.read(cacheProvider);
-/// await cache.cacheSongs(uid, songs);
-/// ```
-final cacheProvider = Provider<CacheService>((ref) {
-  return CacheService();
-});
+// CacheService is provided once as `cacheServiceProvider` (auth_provider.dart);
+// this file reuses it rather than defining a second identical provider.
 
 /// Stream provider that watches songs for the current user with caching.
 ///
@@ -134,7 +124,7 @@ final songsProvider = StreamProvider<List<Song>>((ref) {
     data: (user) {
       if (user == null) return Stream.value([]);
 
-      final cache = ref.watch(cacheProvider);
+      final cache = ref.watch(cacheServiceProvider);
       final songRepo = ref.watch(songRepositoryProvider);
 
       // Return a stream that first emits cached data, then network updates
@@ -203,7 +193,7 @@ final bandsProvider = StreamProvider<List<Band>>((ref) {
     data: (user) {
       if (user == null) return Stream.value([]);
 
-      final cache = ref.watch(cacheProvider);
+      final cache = ref.watch(cacheServiceProvider);
       final bandRepo = ref.watch(bandRepositoryProvider);
 
       return Stream.multi((listener) {
@@ -248,76 +238,53 @@ final bandsProvider = StreamProvider<List<Band>>((ref) {
 final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
 
-  debugPrint(
-    '🔵 setlistsProvider: userAsync.value = ${userAsync.value?.email ?? "NULL"}',
-  );
-
   return userAsync.when(
     data: (user) {
-      if (user == null) {
-        debugPrint('🔴 setlistsProvider: user is null, returning empty stream');
-        return Stream.value([]);
-      }
-
-      debugPrint('🟢 setlistsProvider: user=${user.email}, uid=${user.uid}');
-
+      if (user == null) return Stream.value([]);
       final setlistRepo = ref.watch(setlistRepositoryProvider);
-      final stream = setlistRepo.watchSetlists(user.uid);
-      debugPrint('🔵 setlistsProvider: stream created');
-      return stream;
+      return setlistRepo.watchSetlists(user.uid);
     },
-    loading: () {
-      debugPrint('🟡 setlistsProvider: loading, returning empty stream');
-      return const Stream.empty();
-    },
-    error: (error, stack) {
-      debugPrint('🔴 setlistsProvider: error=$error');
-      return Stream.value([]);
-    },
+    loading: () => const Stream.empty(),
+    error: (error, stack) => Stream.value([]),
   );
 });
 
+// Per-band family providers are autoDispose: their Firestore listeners close
+// when no screen is watching them, so visiting N bands does not leave N
+// permanent snapshot listeners open for the whole session.
+
 /// Stream provider that watches shared setlists for a band.
-final bandSetlistsProvider = StreamProvider.family<List<Setlist>, String>((
-  ref,
-  bandId,
-) {
+final bandSetlistsProvider =
+    StreamProvider.autoDispose.family<List<Setlist>, String>((ref, bandId) {
   final setlistRepo = ref.watch(setlistRepositoryProvider);
   return setlistRepo.watchBandSetlists(bandId);
 });
 
 /// Stream provider that watches rehearsals for a band.
-final bandRehearsalsProvider = StreamProvider.family<List<Rehearsal>, String>((
-  ref,
-  bandId,
-) {
+final bandRehearsalsProvider =
+    StreamProvider.autoDispose.family<List<Rehearsal>, String>((ref, bandId) {
   final repo = ref.watch(rehearsalRepositoryProvider);
   return repo.watchRehearsals(bandId);
 });
 
 /// Stream provider that watches a single rehearsal ((bandId, rehearsalId)).
 final rehearsalProvider =
-    StreamProvider.family<Rehearsal?, (String, String)>((ref, key) {
+    StreamProvider.autoDispose.family<Rehearsal?, (String, String)>((ref, key) {
   final repo = ref.watch(rehearsalRepositoryProvider);
   return repo.watchRehearsal(key.$1, key.$2);
 });
 
 /// Stream provider that watches votes for a rehearsal ((bandId, rehearsalId)).
-final rehearsalVotesProvider =
-    StreamProvider.family<Map<String, RehearsalVote>, (String, String)>((
-  ref,
-  key,
-) {
+final rehearsalVotesProvider = StreamProvider.autoDispose
+    .family<Map<String, RehearsalVote>, (String, String)>((ref, key) {
   final repo = ref.watch(rehearsalRepositoryProvider);
   return repo.watchVotes(key.$1, key.$2);
 });
 
 /// Stream provider that watches band songs with caching.
-final bandSongsProvider = StreamProvider.family<List<Song>, String>((
-  ref,
-  bandId,
-) {
-  final cache = ref.watch(cacheProvider);
+final bandSongsProvider =
+    StreamProvider.autoDispose.family<List<Song>, String>((ref, bandId) {
+  final cache = ref.watch(cacheServiceProvider);
   final songRepo = ref.watch(songRepositoryProvider);
 
   return Stream.multi((listener) {
@@ -368,17 +335,18 @@ final bandCountProvider = Provider<int>((ref) {
 
 /// Provider that returns the count of setlists.
 final setlistCountProvider = Provider<int>((ref) {
-  final count =
-      ref
+  return ref
           .watch(setlistsProvider)
           .whenOrNull(data: (setlists) => setlists.length) ??
       0;
-  debugPrint('🔵 setlistCountProvider: count=$count');
-  return count;
 });
 
 /// Provider that returns the count of shared setlists for a band.
-final bandSetlistCountProvider = Provider.family<int, String>((ref, bandId) {
+///
+/// autoDispose so it does not pin the autoDispose [bandSetlistsProvider] stream
+/// alive after the band screen is gone.
+final bandSetlistCountProvider =
+    Provider.autoDispose.family<int, String>((ref, bandId) {
   return ref
           .watch(bandSetlistsProvider(bandId))
           .whenOrNull(data: (setlists) => setlists.length) ??
