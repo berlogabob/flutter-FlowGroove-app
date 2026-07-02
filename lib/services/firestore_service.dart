@@ -167,28 +167,27 @@ class FirestoreService {
 
             if (bandIds.isEmpty) return <Band>[];
 
-            // Fetch full band data from global collection
-            final bands = <Band>[];
-            for (final bandId in bandIds) {
-              try {
-                final bandDoc = await _firestore
-                    .collection('bands')
-                    .doc(bandId)
-                    .get();
-                if (bandDoc.exists) {
-                  final data = bandDoc.data()!;
-                  data['id'] = bandDoc.id; // Set the document ID
-                  bands.add(Band.fromJson(data));
+            // Fetch full band data from the global collection in parallel —
+            // sequential awaits here made band loading O(n) round trips.
+            final bandDocs = await Future.wait(
+              bandIds.map((bandId) async {
+                try {
+                  return await _firestore
+                      .collection('bands')
+                      .doc(bandId)
+                      .get();
+                } on FirebaseException catch (e) {
+                  if (e.code == 'not-found') return null; // Band was deleted
+                  rethrow;
                 }
-              } on FirebaseException catch (e) {
-                if (e.code == 'not-found') {
-                  // Band was deleted, skip it
-                  continue;
-                }
-                rethrow;
-              }
-            }
-            return bands;
+              }),
+            );
+
+            return [
+              for (final bandDoc in bandDocs)
+                if (bandDoc != null && bandDoc.exists)
+                  Band.fromJson(bandDoc.data()!..['id'] = bandDoc.id),
+            ];
           })
           .handleError((Object error, StackTrace stackTrace) {
             throw ApiError.fromException(error, stackTrace: stackTrace);
