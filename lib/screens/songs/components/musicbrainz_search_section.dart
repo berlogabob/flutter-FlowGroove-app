@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../services/api/musicbrainz_service.dart';
+import '../../../models/musicbrainz_recording.dart';
+import '../../../services/musicbrainz_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
 
 /// A bottom sheet widget for searching and selecting recordings from MusicBrainz.
@@ -34,7 +35,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
   @override
   void initState() {
     super.initState();
-    _searchResults = MusicBrainzService.searchRecording(widget.query);
+    _searchResults = MusicBrainzService().searchFlexible(widget.query);
   }
 
   @override
@@ -124,12 +125,14 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                 itemBuilder: (context, index) {
                   final recording = results[index];
                   return ListTile(
-                    title: Text(recording.title ?? 'Unknown'),
-                    subtitle: Text(recording.artist ?? 'Unknown artist'),
-                    trailing: recording.bpm != null
-                        ? Chip(
-                            label: Text('${recording.bpm} BPM'),
-                            backgroundColor: MonoPulseColors.accentOrange10,
+                    title: Text(recording.displayTitle),
+                    subtitle: Text(recording.artist),
+                    trailing: recording.lengthMs != null
+                        ? Text(
+                            recording.formattedDuration,
+                            style: MonoPulseTypography.bodySmall.copyWith(
+                              color: MonoPulseColors.textSecondary,
+                            ),
                           )
                         : null,
                     onTap: () => widget.onSelect(recording),

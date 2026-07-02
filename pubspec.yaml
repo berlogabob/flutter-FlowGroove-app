@@ -37,12 +37,6 @@ dependencies:
   # Wakelock (Phase 2.2)
   wakelock_plus: ^1.3.0
 
-  # HTTP Client (Upgraded from http to dio)
-  dio: ^5.7.0
-
-  # Forms & Validation
-  formz: ^0.8.0
-
   # Navigation
   go_router: ^17.1.0
 

@@ -132,11 +132,11 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
           query: query,
           scrollController: scrollController,
           onSelect: (recording) {
-            final title = (recording.title?.trim().isNotEmpty ?? false)
-                ? recording.title!.trim()
+            final title = recording.title.trim().isNotEmpty
+                ? recording.title.trim()
                 : formData.title.trim();
-            final artist = (recording.artist?.trim().isNotEmpty ?? false)
-                ? recording.artist!.trim()
+            final artist = recording.artistCredit.isNotEmpty
+                ? recording.artist.trim()
                 : formData.artist.trim();
 
             if (title.isEmpty || artist.isEmpty) {
@@ -144,19 +144,17 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
               return;
             }
 
-            final fallbackId = '${title.toLowerCase()}-${artist.toLowerCase()}'
-                .replaceAll(RegExp('[^a-z0-9]+'), '-')
-                .replaceAll(RegExp(r'^-+|-+$'), '');
             final suggestion = SongSuggestion.fromMusicBrainz(
-              id: recording.id ?? fallbackId,
+              id: recording.id,
               title: title,
               artist: artist,
               musicBrainzId: recording.id,
-              durationMs: recording.durationMs,
-              album: recording.release,
+              durationMs: recording.lengthMs,
+              releaseYear: recording.releaseYear,
+              album: recording.album,
             );
 
-            applyMusicBrainzSuggestion(suggestion, bpm: recording.bpm);
+            applyMusicBrainzSuggestion(suggestion);
             Navigator.pop(context);
             showMessage('Added: $title - $artist');
           },
