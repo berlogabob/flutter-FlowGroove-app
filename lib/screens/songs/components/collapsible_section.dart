@@ -20,6 +20,7 @@ class CollapsibleSection extends StatefulWidget {
     this.action,
     this.icon,
     this.preview,
+    this.inlinePreview = true,
     this.onExpandedChanged,
   });
   /// Section title.
@@ -37,10 +38,15 @@ class CollapsibleSection extends StatefulWidget {
   /// Optional icon for the header.
   final IconData? icon;
 
-  /// Optional compact preview shown under the header while collapsed — e.g. a
-  /// song-map graph, a notes snippet, or the selected tags — so a collapsed
-  /// section still communicates its content at a glance.
+  /// Optional compact preview shown while collapsed — e.g. a song-map graph,
+  /// a notes snippet, or the selected tags — so a collapsed section still
+  /// communicates its content at a glance.
   final Widget? preview;
+
+  /// Whether the collapsed [preview] sits inline at the right of the header
+  /// row (single line, keeps the bubble one row tall). Set false for wide
+  /// previews like the song map, which render under the header instead.
+  final bool inlinePreview;
 
   /// Callback when expansion state changes.
   final void Function(bool expanded)? onExpandedChanged;
@@ -91,25 +97,39 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                   ),
                   const SizedBox(width: 8),
                   // Title (compact — leaves room for the collapsed preview).
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: MonoPulseTypography.titleMedium.copyWith(
-                        color: MonoPulseColors.textPrimary,
-                      ),
+                  Text(
+                    widget.title,
+                    style: MonoPulseTypography.titleMedium.copyWith(
+                      color: MonoPulseColors.textPrimary,
                     ),
+                  ),
+                  // Inline collapsed preview, right-aligned on the SAME line
+                  // as the title so the collapsed bubble stays one row tall.
+                  Expanded(
+                    child:
+                        !_isExpanded &&
+                            widget.preview != null &&
+                            widget.inlinePreview
+                        ? Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: widget.preview,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                   // Action button
                   if (widget.action != null) ...[
-                    widget.action!,
                     const SizedBox(width: 8),
+                    widget.action!,
                   ],
                 ],
               ),
             ),
           ),
-          // Preview while collapsed.
-          if (widget.preview != null)
+          // Wide preview under the header while collapsed.
+          if (widget.preview != null && !widget.inlinePreview)
             AnimatedSize(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,

@@ -1,24 +1,25 @@
 import '../models/song_suggestion.dart';
 import '../repositories/canonical_song_repository.dart';
-import '../repositories/song_repository.dart';
 import 'api/spotify_proxy_service.dart';
 import 'matching/fuzzy_matcher.dart';
 import 'musicbrainz_service.dart';
 
 /// Song Suggestion Service
 ///
-/// Orchestrates song suggestions from multiple sources:
-/// 1. User's personal library
-/// 2. Band/group libraries
+/// Orchestrates song autofill suggestions from EXTERNAL sources only:
+/// 1. Canonical song catalog
+/// 2. Spotify
 /// 3. MusicBrainz API
-/// 4. Local canonical database
+///
+/// The user's own/band library is deliberately NOT searched here — autofill
+/// is for pulling in new song metadata, and library hits crowded out the web
+/// results (#78). Save-time duplicate detection covers the "already have it"
+/// case separately.
 ///
 /// Usage:
 /// ```dart
 /// final service = SongSuggestionService(
-///   songRepo: SongRepository(),
 ///   musicBrainz: MusicBrainzService(),
-///   userId: currentUser.uid,
 /// );
 ///
 /// final suggestions = await service.getSuggestions(
@@ -29,19 +30,11 @@ import 'musicbrainz_service.dart';
 class SongSuggestionService {
 
   SongSuggestionService({
-    required this._songRepo,
     required this._musicBrainz,
-    required this._userId,
     this._canonicalRepo,
-    this._bandId,
-    this._bandName,
   });
-  final SongRepository _songRepo;
   final CanonicalSongRepository? _canonicalRepo;
   final MusicBrainzService _musicBrainz;
-  final String _userId;
-  final String? _bandId;
-  final String? _bandName;
 
   /// Get suggestions as user types
   ///
@@ -65,8 +58,6 @@ class SongSuggestionService {
 
     // Search all sources in parallel
     final results = await Future.wait([
-      _searchPersonal(title, artist),
-      if (_bandId case final bandId?) _searchGroup(title, artist, bandId),
       if (_canonicalRepo != null) _searchCanonical(title, artist),
       _searchSpotify(title, artist),
       _searchMusicBrainz(title, artist),
@@ -121,99 +112,6 @@ class SongSuggestionService {
               durationMs: song.durationMs,
               musicBrainzId: song.musicBrainzId,
               matchScore: matchResult.overall,
-            ),
-          );
-        }
-      }
-
-      return suggestions;
-    } catch (e) {
-      return [];
-    }
-  }
-
-  /// Search user's personal song library
-  Future<List<SongSuggestion>> _searchPersonal(
-    String title,
-    String artist,
-  ) async {
-    try {
-      // Get user's songs from repository
-      final songs = await _songRepo.getSongs(_userId);
-
-      final suggestions = <SongSuggestion>[];
-
-      for (final song in songs) {
-        final matchResult = FuzzyMatcher.calculateMatchScore(
-          inputTitle: title,
-          inputArtist: artist,
-          targetTitle: song.title,
-          targetArtist: song.artist,
-          targetAlbum: song.album,
-        );
-
-        // Only include good matches
-        if (matchResult.overall >= 0.6) {
-          suggestions.add(
-            SongSuggestion(
-              id: song.id,
-              title: song.title,
-              artist: song.artist,
-              source: SuggestionSource.personal,
-              type: matchResult.isExactMatch
-                  ? SuggestionType.exact
-                  : SuggestionType.similar,
-              matchScore: matchResult.overall,
-              bpm: song.originalBPM ?? song.ourBPM,
-              key: song.originalKey ?? song.ourKey,
-              canonicalSongId: song.canonicalSongId,
-              musicBrainzId: song.musicbrainzId,
-              matchReasons: _buildMatchReasons(matchResult),
-            ),
-          );
-        }
-      }
-
-      return suggestions;
-    } catch (e) {
-      // Return empty list on error (don't break UX)
-      return [];
-    }
-  }
-
-  /// Search band/group song library
-  Future<List<SongSuggestion>> _searchGroup(
-    String title,
-    String artist,
-    String bandId,
-  ) async {
-    try {
-      // Get band's songs from repository
-      final songs = await _songRepo.getBandSongs(bandId);
-
-      final suggestions = <SongSuggestion>[];
-
-      for (final song in songs) {
-        final matchResult = FuzzyMatcher.calculateMatchScore(
-          inputTitle: title,
-          inputArtist: artist,
-          targetTitle: song.title,
-          targetArtist: song.artist,
-          targetAlbum: song.album,
-        );
-
-        if (matchResult.overall >= 0.6) {
-          suggestions.add(
-            SongSuggestion.fromGroupSong(
-              id: song.id,
-              title: song.title,
-              artist: song.artist,
-              bandId: bandId,
-              bandName: _bandName ?? 'your band',
-              bpm: (song.originalBPM ?? song.ourBPM)?.toString(),
-              key: song.originalKey ?? song.ourKey,
-              canonicalSongId: song.canonicalSongId,
-              musicBrainzId: song.musicbrainzId,
             ),
           );
         }
@@ -400,29 +298,6 @@ class SongSuggestionService {
 
     // No separator found - treat entire query as title
     return _QueryParts(title: trimmed, artist: '');
-  }
-
-  /// Build match reasons list
-  List<String> _buildMatchReasons(MatchResult match) {
-    final reasons = <String>[];
-
-    if (match.title >= 0.95) {
-      reasons.add('Exact title match');
-    } else if (match.title >= 0.85) {
-      reasons.add('Close title match');
-    }
-
-    if (match.artist >= 0.95) {
-      reasons.add('Exact artist match');
-    } else if (match.artist >= 0.85) {
-      reasons.add('Close artist match');
-    }
-
-    if (match.album > 0) {
-      reasons.add('Album match');
-    }
-
-    return reasons;
   }
 }
 

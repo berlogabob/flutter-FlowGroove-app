@@ -229,6 +229,9 @@ class SongForm extends StatelessWidget {
             preview: sections.isEmpty
                 ? _previewMuted('No structure yet')
                 : SizedBox(height: 28, child: PillView(sections: sections)),
+            // The song map is full-width, so it stays under the header;
+            // the empty-state text fits inline like the other sections.
+            inlinePreview: sections.isEmpty,
             child: SongConstructor(
               embedded: true,
               initialSections: sections,
@@ -362,7 +365,7 @@ Widget _keyBpmPreview({
 /// A muted collapsed-preview line (secondary colour, design-system body scale).
 Widget _previewMuted(String text) => Text(
   text,
-  maxLines: 2,
+  maxLines: 1,
   overflow: TextOverflow.ellipsis,
   style: MonoPulseTypography.bodySmall.copyWith(
     color: MonoPulseColors.textSecondary,
@@ -372,7 +375,7 @@ Widget _previewMuted(String text) => Text(
 /// A highlighted collapsed-preview line (accent colour) for the "live" value.
 Widget _previewAccent(String text) => Text(
   text,
-  maxLines: 2,
+  maxLines: 1,
   overflow: TextOverflow.ellipsis,
   style: MonoPulseTypography.bodySmall.copyWith(
     color: MonoPulseColors.accentOrange,

@@ -1,7 +1,7 @@
 /// Riverpod provider for song autocomplete/search suggestions.
 ///
-/// Provides debounced search across personal library, band library,
-/// and MusicBrainz API via SongSuggestionService.
+/// Provides debounced search across external catalogs (canonical,
+/// Spotify, MusicBrainz) via SongSuggestionService.
 library;
 
 import 'dart:async';
@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/song_suggestion.dart';
-import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
 import '../services/musicbrainz_service.dart';
 import '../services/song_suggestion_service.dart';
@@ -57,40 +56,21 @@ class AutocompleteSearchState {
 /// Notifier for autocomplete search.
 class AutocompleteSearchNotifier extends Notifier<AutocompleteSearchState> {
   Timer? _debounceTimer;
-  String? _userId;
-  String? _bandId;
   SongSuggestionService? _service;
 
   SongSuggestionService get _suggestionService {
+    // Autofill searches external catalogs only (canonical/Spotify/
+    // MusicBrainz) — the user's own library is not a suggestion source (#78).
     _service ??= SongSuggestionService(
-      songRepo: ref.read(songRepositoryProvider),
       canonicalRepo: ref.read(canonicalSongRepositoryProvider),
       musicBrainz: MusicBrainzService(),
-      userId: _userId ?? '',
-      bandId: _bandId,
-      bandName: _resolveBandName(),
     );
     return _service!;
   }
 
-  /// Looks up the band's display name from the user's loaded bands.
-  /// Returns null if the bands list hasn't loaded or the id isn't found;
-  /// the service falls back to a generic label in that case.
-  String? _resolveBandName() {
-    final id = _bandId;
-    if (id == null) return null;
-    final bands = ref.read(bandsProvider).value;
-    if (bands == null) return null;
-    for (final b in bands) {
-      if (b.id == id) return b.name;
-    }
-    return null;
-  }
-
-  /// Initialize with user/band context.
+  /// Kept for call-site compatibility; external-only search needs no
+  /// user/band context.
   void init({String? userId, String? bandId}) {
-    _userId = userId ?? ref.read(currentUserProvider).value?.uid;
-    _bandId = bandId;
     _service = null;
   }
 

@@ -1,9 +1,7 @@
 import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/models/musicbrainz_recording.dart';
-import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/repositories/canonical_song_repository.dart';
-import 'package:flowgroove/repositories/song_repository.dart';
 import 'package:flowgroove/services/musicbrainz_service.dart';
 import 'package:flowgroove/services/song_suggestion_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,10 +23,8 @@ void main() {
         ),
       ]);
       final service = SongSuggestionService(
-        songRepo: _FakeSongRepository(),
         canonicalRepo: canonicalRepo,
         musicBrainz: _FakeMusicBrainzService(),
-        userId: 'user-1',
       );
 
       final suggestions = await service.getSuggestions(
@@ -47,7 +43,6 @@ void main() {
 
     test('deduplicates canonical and MusicBrainz by external id', () async {
       final service = SongSuggestionService(
-        songRepo: _FakeSongRepository(),
         canonicalRepo: _FakeCanonicalSongRepository([
           CanonicalSong(
             id: 'canonical-1',
@@ -69,7 +64,6 @@ void main() {
             ],
           ),
         ]),
-        userId: 'user-1',
       );
 
       final suggestions = await service.getSuggestions(
@@ -84,55 +78,6 @@ void main() {
       expect(suggestions.single.source, SuggestionSource.canonical);
     });
   });
-}
-
-class _FakeSongRepository implements SongRepository {
-  @override
-  Future<void> addSongToBand({
-    required Song song,
-    required String bandId,
-    String? contributorId,
-    String? contributorName,
-  }) async {}
-
-  @override
-  Future<void> addSongToBandById(String songId, String bandId) async {}
-
-  @override
-  Future<void> deleteBandSong(String bandId, String songId) async {}
-
-  @override
-  Future<void> deleteSong(String songId, {String? uid}) async {}
-
-  @override
-  Future<List<Song>> getBandSongs(String bandId) async => [];
-
-  @override
-  Future<List<Song>> getSongs(String uid) async => [];
-
-  @override
-  Future<void> saveBandSong(Song song, String bandId) async {}
-
-  @override
-  Future<void> saveSong(Song song, {String? uid}) async {}
-
-  @override
-  Future<void> updateBandSong(Song song, String bandId) async {}
-
-  @override
-  Future<void> updateSong(Song song, {String? uid}) async {}
-
-  @override
-  Future<void> revertBandSongToCanonical(Song song, String bandId) async {}
-
-  @override
-  Future<void> revertSongToCanonical(Song song, {String? uid}) async {}
-
-  @override
-  Stream<List<Song>> watchBandSongs(String bandId) => const Stream.empty();
-
-  @override
-  Stream<List<Song>> watchSongs(String uid) => const Stream.empty();
 }
 
 class _FakeCanonicalSongRepository implements CanonicalSongRepository {
