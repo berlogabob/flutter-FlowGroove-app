@@ -113,11 +113,8 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
   }
 
   Future<void> _save() async {
-    final title = _title.text.trim();
-    if (title.isEmpty) {
-      _snack('Add a title');
-      return;
-    }
+    // Title is optional — date/time identifies a rehearsal well enough.
+    final title = _title.text.trim().isEmpty ? 'Rehearsal' : _title.text.trim();
     if (_slots.isEmpty) {
       _snack('Add at least one time option');
       return;
@@ -176,7 +173,7 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
         children: [
           TextField(
             controller: _title,
-            decoration: const InputDecoration(labelText: 'Title'),
+            decoration: const InputDecoration(labelText: 'Title (optional)'),
             textCapitalization: TextCapitalization.sentences,
           ),
           const SizedBox(height: 16),

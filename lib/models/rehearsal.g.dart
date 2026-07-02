@@ -78,7 +78,7 @@ Map<String, dynamic> _$RehearsalToJson(Rehearsal instance) => <String, dynamic>{
   'createdBy': instance.createdBy,
   'title': instance.title,
   'description': instance.description,
-  'candidateSlots': instance.candidateSlots,
+  'candidateSlots': instance.candidateSlots.map((e) => e.toJson()).toList(),
   'durationMinutes': instance.durationMinutes,
   'requiredMemberUids': instance.requiredMemberUids,
   'optionalMemberUids': instance.optionalMemberUids,

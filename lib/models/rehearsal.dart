@@ -68,7 +68,9 @@ class RehearsalVote {
 /// A rehearsal proposal that grows into a confirmed event (single merged
 /// lifecycle: collecting -> confirmed -> done/cancelled). Stored at
 /// bands/{bandId}/rehearsals/{rehearsalId}, mirroring band setlists.
-@JsonSerializable()
+// explicitToJson: candidateSlots must serialize to maps, or Firestore
+// rejects the write with "Invalid argument: Instance of 'CandidateSlot'".
+@JsonSerializable(explicitToJson: true)
 class Rehearsal {
   Rehearsal({
     required this.id,
