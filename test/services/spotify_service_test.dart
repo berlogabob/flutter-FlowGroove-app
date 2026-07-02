@@ -58,7 +58,7 @@ void main() {
         final trackJson = {
           'id': 'track1',
           'name': 'Test Song',
-          'artists': [],
+          'artists': <dynamic>[],
           'album': {'name': 'Test Album'},
           'duration_ms': null,
           'external_urls': null,
@@ -318,7 +318,7 @@ void main() {
           }
           return http.Response(
             json.encode({
-              'tracks': {'items': []},
+              'tracks': {'items': <dynamic>[]},
             }),
             200,
           );

@@ -52,7 +52,6 @@ class SongForm extends StatelessWidget {
     required this.onAccentBeatsChanged,
     required this.onRegularBeatsChanged,
     required this.isEditing,
-    this.onCopyFromOriginal,
     this.onSuggestionSelected,
     this.bandId,
     super.key,
@@ -135,9 +134,6 @@ class SongForm extends StatelessWidget {
 
   /// Callback when the subdivisions-per-beat count changes.
   final ValueChanged<int> onRegularBeatsChanged;
-
-  /// Callback when copy from original is triggered.
-  final VoidCallback? onCopyFromOriginal;
 
   /// Whether we are in edit mode (vs. add mode).
   final bool isEditing;

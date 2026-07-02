@@ -90,13 +90,15 @@ void main() {
         ],
       );
 
-      // Verify form fields (note: title has * in label, autocomplete has hint)
+      // Title and artist are always visible; the rest of the form lives in
+      // collapsible section bubbles.
       expect(find.text('Title *'), findsOneWidget);
       expect(find.text('Artist'), findsOneWidget);
-      expect(find.text('Original'), findsOneWidget);
-      expect(find.text('Our'), findsOneWidget);
-      expect(find.text('Our Key & BPM'), findsOneWidget);
+      expect(find.text('Key & BPM'), findsOneWidget);
+      expect(find.text('Links'), findsOneWidget);
+      expect(find.text('Song Structure'), findsOneWidget);
       expect(find.text('Notes'), findsOneWidget);
+      expect(find.text('Tags'), findsOneWidget);
     });
 
     testWidgets('displays save button', (tester) async {
@@ -167,17 +169,18 @@ void main() {
         ],
       );
 
-      // Find BPM fields (they are TextFormFields within KeyBpmSelector)
-      final textFields = find.byType(TextFormField);
-      // Field order: autocomplete (hidden title), visible title, artist, original BPM, our BPM, notes
-      // Original BPM is at index 3, our BPM at index 4
+      // BPM fields live inside the collapsed 'Key & BPM' section; expand it.
+      await tester.ensureVisible(find.text('Key & BPM'));
+      await tester.tap(find.text('Key & BPM'));
+      await tester.pumpAndSettle();
 
-      // Enter original BPM
-      await tester.enterText(textFields.at(3), '120');
+      // The grid has one 'BPM' field per row: Original first, then Our.
+      final bpmFields = find.widgetWithText(TextFormField, 'BPM');
+      expect(bpmFields, findsNWidgets(2));
+
+      await tester.enterText(bpmFields.at(0), '120');
       await tester.pump();
-
-      // Enter our BPM
-      await tester.enterText(textFields.at(4), '125');
+      await tester.enterText(bpmFields.at(1), '125');
       await tester.pump();
 
       // Verify values
@@ -200,7 +203,13 @@ void main() {
         ],
       );
 
-      // Notes field is always visible (no longer a collapsible section).
+      // Notes field lives inside the collapsed 'Notes' section; scroll it
+      // clear of the bottom action bar, then expand it.
+      await tester.drag(find.byType(ListView), const Offset(0, -200));
+      await tester.pump();
+      await tester.tap(find.text('Notes'));
+      await tester.pumpAndSettle();
+
       final notesField = find.widgetWithText(TextFormField, 'Notes...');
       await tester.enterText(notesField, 'Test notes');
       await tester.pump();
@@ -312,27 +321,6 @@ void main() {
       expect(find.text('Web'), findsOneWidget);
     });
 
-    testWidgets('displays copy from original button', (
-      tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const AddSongScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          autocompleteSearchProvider.overrideWith(
-            TestAutocompleteNotifier.new,
-          ),
-        ],
-      );
-
-      // Verify copy button (labeled as "Copy" in the "Our Key & BPM" section)
-      expect(find.text('Copy'), findsOneWidget);
-    });
-
     testWidgets('populates form fields when editing', (
       tester,
     ) async {
@@ -358,9 +346,15 @@ void main() {
         ],
       );
 
-      // Verify form is populated
+      // Title and artist populate the always-visible fields.
       expect(find.text('Existing Song'), findsWidgets);
       expect(find.text('Existing Artist'), findsWidgets);
+
+      // BPM values live inside the collapsed 'Key & BPM' section.
+      await tester.ensureVisible(find.text('Key & BPM'));
+      await tester.tap(find.text('Key & BPM'));
+      await tester.pumpAndSettle();
+
       expect(find.text('130'), findsWidgets);
       expect(find.text('135'), findsWidgets);
     });
@@ -405,7 +399,11 @@ void main() {
         ],
       );
 
-      // Verify key selectors are present (labels in KeyBpmSelector)
+      // Key selectors live inside the collapsed 'Key & BPM' section.
+      await tester.ensureVisible(find.text('Key & BPM'));
+      await tester.tap(find.text('Key & BPM'));
+      await tester.pumpAndSettle();
+
       expect(find.text('Original'), findsOneWidget);
       expect(find.text('Our'), findsOneWidget);
     });

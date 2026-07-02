@@ -188,13 +188,6 @@ class SongFormData {
   /// Get the "our" key as a complete string.
   String get ourKey => _buildKey(ourKeyBase, ourKeyModifier);
 
-  /// Copy key and BPM from original to "our" fields.
-  void copyFromOriginal() {
-    ourKeyBase = originalKeyBase;
-    ourKeyModifier = originalKeyModifier;
-    ourBpm = originalBpm;
-  }
-
   /// Clear all form fields.
   void clear() {
     title = '';

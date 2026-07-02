@@ -235,6 +235,9 @@ void main() {
         overrides: overrides(),
       );
 
+      // The demo button sits below the 600px test viewport; scroll to it.
+      await tester.ensureVisible(find.text('Try Demo Account'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Try Demo Account'));
       await tester.pumpAndSettle();
 

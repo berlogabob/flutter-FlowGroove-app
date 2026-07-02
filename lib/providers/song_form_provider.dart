@@ -250,17 +250,6 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     markAsChanged();
   }
 
-  /// Copy from original.
-  void copyFromOriginal() {
-    state = state.copyWith(
-      formData: state.formData.copyWith(
-        ourKeyBase: state.formData.originalKeyBase,
-        ourKeyModifier: state.formData.originalKeyModifier,
-        ourBpm: state.formData.originalBpm,
-      ),
-    );
-    markAsChanged();
-  }
 
   /// Initialize beat modes.
   void initializeBeatModes() {

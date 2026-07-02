@@ -4,6 +4,7 @@ import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/setlists/create_setlist_screen.dart';
+import 'package:flowgroove/widgets/primary_action_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,9 +45,8 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextFormField).first, 'Gig Night');
-      await tester.tap(find.byIcon(Icons.more_horiz));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Save'));
+      // Save lives in the bottom PrimaryActionBar.
+      await tester.tap(find.widgetWithText(PrimaryActionBar, 'Create Setlist'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
@@ -95,9 +95,8 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextFormField).first, 'Shared Gig');
-      await tester.tap(find.byIcon(Icons.more_horiz));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Save'));
+      // Save lives in the bottom PrimaryActionBar.
+      await tester.tap(find.widgetWithText(PrimaryActionBar, 'Create Setlist'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
@@ -143,9 +142,8 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextFormField).first, 'Shared Gig');
-      await tester.tap(find.byIcon(Icons.more_horiz));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Save'));
+      // Save lives in the bottom PrimaryActionBar.
+      await tester.tap(find.widgetWithText(PrimaryActionBar, 'Create Setlist'));
       await tester.pumpAndSettle();
 
       expect(

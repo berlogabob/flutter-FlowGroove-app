@@ -50,6 +50,10 @@ void main() {
           ),
         ],
         overrides: [
+          // bandsProvider hits the real repository without this override;
+          // the resulting error makes riverpod schedule retry timers that
+          // trip the pending-timer invariant at teardown.
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([band])),
           currentUserProvider.overrideWithValue(
             AsyncValue<User?>.data(firebaseUser),
           ),
@@ -107,6 +111,10 @@ void main() {
           ),
         ],
         overrides: [
+          // bandsProvider hits the real repository without this override;
+          // the resulting error makes riverpod schedule retry timers that
+          // trip the pending-timer invariant at teardown.
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([band])),
           currentUserProvider.overrideWithValue(
             AsyncValue<User?>.data(firebaseUser),
           ),

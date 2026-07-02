@@ -321,7 +321,7 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Import songs from CSV'), findsOneWidget);
+      expect(find.text('Import songs (CSV or JSON)'), findsOneWidget);
       expect(find.text('Select CSV file'), findsOneWidget);
       expect(find.text('Paste from clipboard'), findsOneWidget);
     });
@@ -343,7 +343,7 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Export Songs to CSV'), findsOneWidget);
+      expect(find.text('Export Songs'), findsOneWidget);
       expect(find.text('Export 1 song(s) to CSV file:'), findsOneWidget);
       expect(find.text('Save to Device'), findsOneWidget);
       expect(find.text('Share'), findsOneWidget);

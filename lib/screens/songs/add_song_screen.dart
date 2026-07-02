@@ -530,11 +530,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                     .toggleTag(tag, selected);
                 ref.read(songFormStateProvider.notifier).markAsChanged();
               },
-              onCopyFromOriginal: () {
-                ref.read(songFormStateProvider.notifier).copyFromOriginal();
-                _ourBpmController.text = _originalBpmController.text;
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
               sections: formData.sections,
               onSectionsChanged: (newSections) {
                 ref

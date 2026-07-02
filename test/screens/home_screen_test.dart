@@ -133,7 +133,7 @@ void main() {
       expect(find.text('Song'), findsOneWidget);
       expect(find.text('Band'), findsOneWidget);
       expect(find.text('Setlist'), findsOneWidget);
-      expect(find.text('Bank'), findsOneWidget);
+      expect(find.text('Song Bank'), findsOneWidget);
     });
 
     testWidgets('displays tools section', (tester) async {

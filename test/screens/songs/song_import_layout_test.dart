@@ -42,7 +42,7 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Import songs from CSV'), findsOneWidget);
+    expect(find.text('Import songs (CSV or JSON)'), findsOneWidget);
     expect(find.text('Select CSV file'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
