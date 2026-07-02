@@ -308,19 +308,15 @@ void main() {
         ],
       );
 
-      // Scroll down to reveal search buttons at bottom of ListView
+      // Scroll down to reveal the single web-search shortcut.
       await tester.dragUntilVisible(
-        find.text('MusicBrainz'),
+        find.text('Search web'),
         find.byType(ListView),
         const Offset(0, -500),
       );
       await tester.pump();
 
-      // Verify search buttons
-      expect(find.text('MusicBrainz'), findsOneWidget);
-      expect(find.text('Spotify'), findsOneWidget);
-      expect(find.text('BPM/Key'), findsOneWidget);
-      expect(find.text('Web'), findsOneWidget);
+      expect(find.text('Search web'), findsOneWidget);
     });
 
     testWidgets('populates form fields when editing', (
@@ -483,33 +479,6 @@ void main() {
       expect(find.byType(ListView), findsOneWidget);
     });
 
-    testWidgets('displays Wrap for search buttons', (
-      tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const AddSongScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          autocompleteSearchProvider.overrideWith(
-            TestAutocompleteNotifier.new,
-          ),
-        ],
-      );
-
-      await tester.dragUntilVisible(
-        find.byType(Wrap),
-        find.byType(ListView),
-        const Offset(0, -500),
-      );
-      await tester.pump();
-
-      // Tags and the search-button row both use Wrap.
-      expect(find.byType(Wrap), findsWidgets);
-    });
 
     testWidgets('displays search icons', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
@@ -526,64 +495,15 @@ void main() {
         ],
       );
 
-      // Scroll down to reveal search buttons at bottom
+      // Scroll down to reveal search button at bottom
       // Drag UP (positive offset in Y) to scroll content down
       await tester.fling(find.byType(ListView), const Offset(0, -800), 1000);
       await tester.pumpAndSettle();
 
-      // Search icons are in TextButton.icon widgets - find by button text instead
-      expect(find.text('MusicBrainz'), findsOneWidget);
-      expect(find.text('Web'), findsOneWidget);
+      expect(find.text('Search web'), findsOneWidget);
     });
 
-    testWidgets('displays music note icon for Spotify', (
-      tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
 
-      await pumpAppWidget(
-        tester,
-        const AddSongScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          autocompleteSearchProvider.overrideWith(
-            TestAutocompleteNotifier.new,
-          ),
-        ],
-      );
-
-      // Scroll down to reveal search buttons
-      await tester.drag(find.byType(ListView), const Offset(0, -500));
-      await tester.pump();
-
-      expect(find.byIcon(Icons.music_note), findsWidgets);
-    });
-
-    testWidgets('displays analytics icon for BPM/Key', (
-      tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const AddSongScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          autocompleteSearchProvider.overrideWith(
-            TestAutocompleteNotifier.new,
-          ),
-        ],
-      );
-
-      // Scroll down to reveal search buttons
-      await tester.fling(find.byType(ListView), const Offset(0, -800), 1000);
-      await tester.pumpAndSettle();
-
-      // Verify BPM/Key button is visible
-      expect(find.text('BPM/Key'), findsOneWidget);
-    });
 
     testWidgets('displays SizedBox for spacing', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
@@ -603,30 +523,6 @@ void main() {
       expect(find.byType(SizedBox), findsWidgets);
     });
 
-    testWidgets('displays Align widget for search buttons', (
-      tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const AddSongScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          autocompleteSearchProvider.overrideWith(
-            TestAutocompleteNotifier.new,
-          ),
-        ],
-      );
-
-      // Scroll down to reveal search buttons
-      await tester.fling(find.byType(ListView), const Offset(0, -800), 1000);
-      await tester.pumpAndSettle();
-
-      // Verify Wrap (containing search buttons) is found
-      expect(find.byType(Wrap), findsWidgets);
-    });
 
     testWidgets('handles null song for add mode', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();

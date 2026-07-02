@@ -363,18 +363,10 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     ];
   }
 
-  /// Build tool buttons for band dashboard
+  /// Build tool buttons for band dashboard.
+  /// Same order as the home screen tools: Tuner, Metronome, Rehearsals last.
   List<ToolButton> _buildTools() {
     return [
-      ToolButton(
-        icon: Icons.event_available,
-        label: 'Rehearsals',
-        onTap: () => context.goNamed(
-          'band-rehearsals',
-          pathParameters: {'id': widget.band.id},
-          extra: widget.band,
-        ),
-      ),
       ToolButton(
         icon: Icons.tune,
         label: 'Tuner',
@@ -384,6 +376,15 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         icon: Icons.speed,
         label: 'Metronome',
         onTap: () => context.goNamed('metronome'),
+      ),
+      ToolButton(
+        icon: Icons.event,
+        label: 'Rehearsals',
+        onTap: () => context.goNamed(
+          'band-rehearsals',
+          pathParameters: {'id': widget.band.id},
+          extra: widget.band,
+        ),
       ),
     ];
   }

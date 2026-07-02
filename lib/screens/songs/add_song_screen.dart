@@ -307,21 +307,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     ref.read(songFormStateProvider.notifier).setError(value);
   }
 
-  @override
-  void applyMusicBrainzSuggestion(SongSuggestion suggestion, {int? bpm}) {
-    final notifier = ref.read(songFormStateProvider.notifier);
-    final currentBpm = ref.read(songFormStateProvider).formData.originalBpm;
-
-    notifier.selectSuggestion(suggestion);
-    _titleController.text = suggestion.title;
-    _artistController.text = suggestion.artist;
-
-    if (bpm != null && currentBpm.trim().isEmpty) {
-      notifier.updateOriginalBpm(bpm.toString());
-      _originalBpmController.text = bpm.toString();
-    }
-  }
-
   /// Save the song to Firestore with duplicate check.
   Future<void> _saveSong() async {
     final formState = _formKey.currentState;
@@ -567,33 +552,15 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
               isEditing: _isEditing,
             ),
             const SizedBox(height: 24),
-            // Search buttons row
+            // Single web-search shortcut — the title autocomplete already
+            // covers MusicBrainz/Spotify autofill; the old per-source buttons
+            // were clutter and mostly broken (#78 follow-up).
             Align(
               alignment: Alignment.centerRight,
-              child: Wrap(
-                spacing: 4,
-                children: [
-                  TextButton.icon(
-                    onPressed: showMusicBrainzSearch,
-                    icon: const Icon(Icons.search, size: 18),
-                    label: const Text('MusicBrainz'),
-                  ),
-                  TextButton.icon(
-                    onPressed: showSpotifySearch,
-                    icon: const Icon(Icons.music_note, size: 18),
-                    label: const Text('Spotify'),
-                  ),
-                  TextButton.icon(
-                    onPressed: fetchTrackAnalysis,
-                    icon: const Icon(Icons.analytics, size: 18),
-                    label: const Text('BPM/Key'),
-                  ),
-                  TextButton.icon(
-                    onPressed: searchOnWeb,
-                    icon: const Icon(Icons.search, size: 18),
-                    label: const Text('Web'),
-                  ),
-                ],
+              child: TextButton.icon(
+                onPressed: searchOnWeb,
+                icon: const Icon(Icons.search, size: 18),
+                label: const Text('Search web'),
               ),
             ),
           ],
