@@ -60,7 +60,7 @@ class GreetingCard extends StatelessWidget {
         isCompact ? MonoPulseSpacing.md : MonoPulseSpacing.lg,
       ),
       decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrangeSubtle,
+        color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         border: Border.all(color: MonoPulseColors.borderSubtle),
       ),

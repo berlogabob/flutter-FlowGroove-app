@@ -63,7 +63,7 @@ class SongAttributionBadge extends StatelessWidget {
     return Container(
       padding: _padding,
       decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrangeSubtle,
+        color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(_borderRadius),
         border: Border.all(color: MonoPulseColors.accentOrange),
       ),
@@ -95,7 +95,7 @@ class SongAttributionBadge extends StatelessWidget {
     return Container(
       padding: _padding,
       decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrangeSubtle,
+        color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(_borderRadius),
         border: Border.all(color: MonoPulseColors.accentOrange),
       ),
@@ -245,7 +245,7 @@ class CompactAttributionBadge extends StatelessWidget {
         vertical: 2,
       ),
       decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrangeSubtle,
+        color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(MonoPulseRadius.small),
       ),
       child: Row(

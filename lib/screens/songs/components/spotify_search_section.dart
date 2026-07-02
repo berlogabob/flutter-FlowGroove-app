@@ -107,7 +107,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                       Icon(
                         isPremiumError ? Icons.lock : Icons.error_outline,
                         size: 48,
-                        color: isPremiumError ? Colors.orange : Colors.red,
+                        color: isPremiumError ? MonoPulseColors.warning : MonoPulseColors.error,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -120,7 +120,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                         isPremiumError
                             ? 'Spotify API needs Premium subscription'
                             : 'Try again later',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: TextStyle(color: MonoPulseColors.textSecondary, fontSize: 12),
                       ),
                       if (isPremiumError) ...[
                         const SizedBox(height: 16),
@@ -152,13 +152,13 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.music_off, size: 48, color: Colors.grey),
+                      Icon(Icons.music_off, size: 48, color: MonoPulseColors.textTertiary),
                       SizedBox(height: 16),
                       Text('No results found'),
                       SizedBox(height: 8),
                       Text(
                         'Spotify API not configured.\nSee lib/services/spotify_service.dart',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                        style: TextStyle(color: MonoPulseColors.textTertiary, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
                     ],

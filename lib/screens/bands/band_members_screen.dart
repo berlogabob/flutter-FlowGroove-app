@@ -83,7 +83,7 @@ class BandMembersScreen extends StatelessWidget {
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               visualDensity: VisualDensity.compact,
-                              backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                              backgroundColor: MonoPulseColors.accentOrange10,
                               labelStyle: const TextStyle(
                                 color: MonoPulseColors.accentOrange,
                               ),

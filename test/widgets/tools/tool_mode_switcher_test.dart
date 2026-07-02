@@ -191,7 +191,7 @@ void main() {
         (c) =>
             c.decoration is BoxDecoration &&
             (c.decoration! as BoxDecoration).color ==
-                MonoPulseColors.accentOrangeSubtle,
+                MonoPulseColors.accentOrange10,
       );
 
       expect(hasActiveBackground, isTrue);

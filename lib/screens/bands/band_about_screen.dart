@@ -11,6 +11,7 @@ import '../../utils/music_role_icon.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/user_avatar.dart';
+import '../../utils/snackbar.dart';
 
 class BandAboutScreen extends ConsumerStatefulWidget {
 
@@ -223,7 +224,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     final chip = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrangeSubtle,
+        color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
       ),
       child: Row(
@@ -338,7 +339,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                         }
                       });
                     },
-                    selectedColor: MonoPulseColors.accentOrangeSubtle,
+                    selectedColor: MonoPulseColors.accentOrange10,
                     checkmarkColor: MonoPulseColors.accentOrange,
                   );
                 }).toList(),
@@ -357,7 +358,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                       .map(
                         (tag) => Chip(
                           label: Text(tag),
-                          backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                          backgroundColor: MonoPulseColors.accentOrange10,
                           labelStyle: const TextStyle(
                             color: MonoPulseColors.accentOrange,
                           ),
@@ -477,7 +478,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                   padding: EdgeInsets.zero,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   visualDensity: VisualDensity.compact,
-                  backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                  backgroundColor: MonoPulseColors.accentOrange10,
                   labelStyle: const TextStyle(
                     color: MonoPulseColors.accentOrange,
                   ),
@@ -697,9 +698,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showAppSnackBar(context, message);
   }
 
   void _toggleEdit() {
@@ -729,15 +728,11 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
           _band = updatedBand;
           _isEditing = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Band updated successfully')),
-        );
+        showAppSnackBar(context, 'Band updated successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating band: $e')));
+        showAppSnackBar(context, 'Error updating band: $e');
       }
     }
   }
@@ -745,9 +740,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   Future<void> _shareBand(BuildContext context) async {
     final inviteCode = _band.inviteCode;
     if (inviteCode == null || inviteCode.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No invite code available for this band')),
-      );
+      showAppSnackBar(context, 'No invite code available for this band');
       return;
     }
 

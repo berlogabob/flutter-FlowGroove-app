@@ -161,8 +161,8 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                     onDeleted: () => _toggleRole(role),
                     selected: true,
                     onSelected: (_) => _toggleRole(role),
-                    backgroundColor: MonoPulseColors.accentOrangeSubtle,
-                    selectedColor: MonoPulseColors.accentOrangeSubtle,
+                    backgroundColor: MonoPulseColors.accentOrange10,
+                    selectedColor: MonoPulseColors.accentOrange10,
                     padding: EdgeInsets.zero,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   );
@@ -210,7 +210,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                       ),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? MonoPulseColors.accentOrangeSubtle
+                            ? MonoPulseColors.accentOrange10
                             : MonoPulseColors.surfaceOverlay,
                         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
                         border: Border.all(

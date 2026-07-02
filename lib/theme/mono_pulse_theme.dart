@@ -40,10 +40,6 @@ class MonoPulseColors {
   static const Color accentOrangeDark = Color(0xFFE64E00);
   static const Color accentOrange10 = Color(0x1AFF5E00); // 10% opacity
 
-  // Deprecated alias for accentOrange10
-  @Deprecated('Use accentOrange10 (identical value)')
-  static const Color accentOrangeSubtle = accentOrange10;
-
   // Beat Mode Colors
   static const Color beatModeNormal = Color(0xFFFF5E00); // Orange
   static const Color beatModeAccent = Color(0xFF00BCD4); // Cyan
@@ -58,10 +54,6 @@ class MonoPulseColors {
   static const Color error = Color(0xFFFF2D55);
   static const Color error10 = Color(0x1AFF2D55);
 
-  // Deprecated alias for error10
-  @Deprecated('Use error10 (identical value)')
-  static const Color errorSubtle = error10;
-
   // Success - Orange or White
   static const Color success = accentOrange;
   static const Color successAlt = textPrimary;
@@ -74,25 +66,13 @@ class MonoPulseColors {
   static const Color successGreen = Color(0xFF4CAF50);
   static const Color successGreen5 = Color(0x0D4CAF50); // 5% opacity
 
-  // Deprecated alias for successGreen5
-  @Deprecated('Use successGreen5 (identical value)')
-  static const Color successGreenSubtle = successGreen5;
-
   // Warning
   static const Color warning = Color(0xFFFF9800);
   static const Color warning5 = Color(0x0DFF9800); // 5% opacity
 
-  // Deprecated alias for warning5
-  @Deprecated('Use warning5 (identical value)')
-  static const Color warningSubtle = warning5;
-
   // Info
   static const Color info = Color(0xFF2196F3);
   static const Color info5 = Color(0x0D2196F3); // 5% opacity
-
-  // Deprecated alias for info5
-  @Deprecated('Use info5 (identical value)')
-  static const Color infoSubtle = info5;
 
   // ============================================
   // Role Colors
@@ -121,25 +101,8 @@ class MonoPulseColors {
   static const Color error20 = Color(0x33FF2D55); // 20%
   static const Color error30 = Color(0x4DFF2D55); // 30%
 
-  // Deprecated aliases for error opacity variants
-  @Deprecated('Use error5 (identical value)')
-  static const Color errorSubtle5 = error5;
-  @Deprecated('Use error20 (identical value)')
-  static const Color errorSubtle20 = error20;
-  @Deprecated('Use error30 (identical value)')
-  static const Color errorSubtle30 = error30;
-
   // Orange opacity variants
-  // NOTE: orangeSubtle15/20/30 are exact duplicates of accentOrange15/20/30.
-  // Prefer the canonical accentOrange{NN} naming below; these are kept as
-  // deprecated aliases to allow incremental migration without breaking callers.
   static const Color orangeSubtle5 = Color(0x0DFF5E00); // 5%
-  @Deprecated('Use accentOrange15 (identical value)')
-  static const Color orangeSubtle15 = accentOrange15; // 15%
-  @Deprecated('Use accentOrange20 (identical value)')
-  static const Color orangeSubtle20 = accentOrange20; // 20%
-  @Deprecated('Use accentOrange30 (identical value)')
-  static const Color orangeSubtle30 = accentOrange30; // 30%
 
   // Accent orange opacity variants (for UI elements) — canonical naming.
   static const Color accentOrange15 = Color(0x26FF5E00); // 15%
@@ -604,7 +567,7 @@ class MonoPulseTheme {
       // Navigation Bar (Material 3)
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: MonoPulseColors.black,
-        indicatorColor: MonoPulseColors.accentOrangeSubtle,
+        indicatorColor: MonoPulseColors.accentOrange10,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return MonoPulseTypography.labelSmall.copyWith(

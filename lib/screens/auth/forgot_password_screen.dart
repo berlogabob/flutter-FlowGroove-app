@@ -152,7 +152,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 Container(
                   padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                   decoration: BoxDecoration(
-                    color: MonoPulseColors.errorSubtle,
+                    color: MonoPulseColors.error10,
                     border: Border.all(color: MonoPulseColors.error),
                     borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                   ),

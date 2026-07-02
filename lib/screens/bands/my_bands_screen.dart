@@ -22,6 +22,7 @@ import '../../widgets/unified_item/adapters/band_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
+import '../../utils/snackbar.dart';
 
 /// Screen for displaying the user's bands with search, filter, sort,
 /// swipe-to-delete, and drag-and-drop reordering.
@@ -170,26 +171,20 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
               .removeMember(bandId: band.id, targetUid: user.uid);
 
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Successfully left the band')),
-            );
+            showAppSnackBar(context, 'Successfully left the band');
           }
           return true;
         } on ApiError catch (e) {
           _handleStreamError(e, StackTrace.current);
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(e.message)));
+            showAppSnackBar(context, e.message);
           }
           return false; // Don't dismiss on error
         } catch (e, stackTrace) {
           final error = ApiError.fromException(e, stackTrace: stackTrace);
           _handleStreamError(error, stackTrace);
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(error.message)));
+            showAppSnackBar(context, error.message);
           }
           return false; // Don't dismiss on error
         }
@@ -499,24 +494,18 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
     try {
       await Clipboard.setData(ClipboardData(text: _inviteCode));
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Code copied!')));
+        showAppSnackBar(context, 'Code copied!');
       }
     } on ApiError catch (e) {
       _handleError(e);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        showAppSnackBar(context, e.message);
       }
     } catch (e, stackTrace) {
       final error = ApiError.fromException(e, stackTrace: stackTrace);
       _handleError(error);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        showAppSnackBar(context, error.message);
       }
     }
   }
@@ -533,9 +522,9 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
             Container(
               padding: const EdgeInsets.all(MonoPulseSpacing.md),
               decoration: BoxDecoration(
-                color: MonoPulseColors.errorSubtle,
+                color: MonoPulseColors.error10,
                 borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                border: Border.all(color: MonoPulseColors.errorSubtle20),
+                border: Border.all(color: MonoPulseColors.error20),
               ),
               child: Row(
                 children: [

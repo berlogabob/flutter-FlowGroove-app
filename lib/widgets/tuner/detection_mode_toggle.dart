@@ -83,7 +83,7 @@ class _ModeOption extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isActive
-              ? MonoPulseColors.accentOrangeSubtle
+              ? MonoPulseColors.accentOrange10
               : Colors.transparent,
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
         ),

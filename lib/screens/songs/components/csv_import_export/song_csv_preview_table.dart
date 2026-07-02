@@ -46,10 +46,10 @@ class SongCsvPreviewTable extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       color: songs.isNotEmpty && errors.isEmpty
-          ? MonoPulseColors.successGreenSubtle
+          ? MonoPulseColors.successGreen5
           : errors.isNotEmpty && songs.isNotEmpty
-          ? MonoPulseColors.warningSubtle
-          : MonoPulseColors.errorSubtle,
+          ? MonoPulseColors.warning5
+          : MonoPulseColors.error10,
       child: Row(
         children: [
           Icon(
@@ -176,7 +176,8 @@ class SongCsvPreviewTable extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             child: DataTable(
-              headingRowColor: WidgetStateProperty.all(Colors.grey.shade200),
+              headingRowColor:
+                  WidgetStateProperty.all(MonoPulseColors.surfaceRaised),
               columns: const [
                 DataColumn(label: Text('Title')),
                 DataColumn(label: Text('Artist')),

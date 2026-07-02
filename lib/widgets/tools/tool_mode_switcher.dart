@@ -111,7 +111,7 @@ class _ModePill extends StatelessWidget {
           margin: EdgeInsets.symmetric(horizontal: ToolSpacing.sm(context)),
           decoration: BoxDecoration(
             color: isActive
-                ? MonoPulseColors.accentOrangeSubtle
+                ? MonoPulseColors.accentOrange10
                 : MonoPulseColors.surface,
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             border: Border.all(

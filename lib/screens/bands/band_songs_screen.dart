@@ -255,8 +255,8 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: isCopy
-              ? MonoPulseColors.accentOrangeSubtle
-              : MonoPulseColors.accentOrangeSubtle,
+              ? MonoPulseColors.accentOrange10
+              : MonoPulseColors.accentOrange10,
           child: Icon(
             isCopy ? Icons.content_copy : Icons.music_note,
             color: isCopy

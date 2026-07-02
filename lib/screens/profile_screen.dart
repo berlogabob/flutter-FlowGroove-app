@@ -24,6 +24,7 @@ import '../../utils/web_version_loader_export.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/support_sheet.dart';
+import '../utils/snackbar.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -202,9 +203,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error uploading photo: $e')),
-        );
+        showAppSnackBar(context, 'Error uploading photo: $e');
       }
     }
   }
@@ -414,13 +413,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 final link =
                     'https://t.me/${TelegramService.botUsername}?start=link_$userId';
                 await Clipboard.setData(ClipboardData(text: link));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Could not open Telegram. Link copied to clipboard - paste in Telegram to continue.',
-                    ),
-                  ),
-                );
+                showAppSnackBar(context, 'Could not open Telegram. Link copied to clipboard - paste in Telegram to continue.');
               }
             },
             icon: const Icon(Icons.send),
@@ -448,15 +441,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       
       if (mounted) {
         setState(() => _isEditingName = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Name updated')));
+        showAppSnackBar(context, 'Name updated');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating name: $e')));
+        showAppSnackBar(context, 'Error updating name: $e');
       }
     }
   }
@@ -762,17 +751,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final msg = e.code == 'failed-precondition'
           ? (e.message ?? 'This account cannot be deleted.')
           : 'Could not delete your account. Please try again.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(msg)));
+      showAppSnackBar(context, msg);
     } catch (_) {
       if (!mounted) return;
       Navigator.pop(context); // dismiss progress
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not delete your account. Please try again.'),
-        ),
-      );
+      showAppSnackBar(context, 'Could not delete your account. Please try again.');
     }
   }
 
@@ -845,7 +828,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           color: MonoPulseColors.textPrimary,
                         ),
                       ),
-                      backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                      backgroundColor: MonoPulseColors.accentOrange10,
                       padding: EdgeInsets.zero,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     );
@@ -879,15 +862,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       try {
         await ref.read(appUserProvider.notifier).updateMusicRoles(result);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Roles updated')),
-          );
+          showAppSnackBar(context, 'Roles updated');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error updating roles: $e')));
+          showAppSnackBar(context, 'Error updating roles: $e');
         }
       }
     }

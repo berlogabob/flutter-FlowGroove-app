@@ -14,6 +14,7 @@ import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/primary_action_bar.dart';
+import '../../utils/snackbar.dart';
 
 enum SetlistStorageScope { personal, band }
 
@@ -209,17 +210,13 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     final userAsync = ref.read(currentUserProvider);
     final user = userAsync.value;
     if (user == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please login first')));
+      showAppSnackBar(context, 'Please login first');
       return;
     }
 
     final bandId = _effectiveBandId;
     if (_isBandScope && bandId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Band is required for shared setlists')),
-      );
+      showAppSnackBar(context, 'Band is required for shared setlists');
       return;
     }
 
@@ -262,13 +259,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       }
 
       // Show snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${_isBandScope ? 'Band setlist' : 'Setlist'} "${setlist.name}" ${_isEditing ? 'updated' : 'created'}',
-          ),
-        ),
-      );
+      showAppSnackBar(context, '${_isBandScope ? 'Band setlist' : 'Setlist'} "${setlist.name}" ${_isEditing ? 'updated' : 'created'}');
 
       // Clear unsaved changes flag after successful save
       setState(() => _hasUnsavedChanges = false);
@@ -281,15 +272,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isBandScope
+      showAppSnackBar(context, _isBandScope
                 ? 'Could not save the shared setlist. Check your band permissions and try again.'
-                : 'Could not save the setlist. Please try again.',
-          ),
-        ),
-      );
+                : 'Could not save the setlist. Please try again.');
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -576,7 +561,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                 vertical: MonoPulseSpacing.xs,
                               ),
                               decoration: BoxDecoration(
-                                color: MonoPulseColors.accentOrangeSubtle,
+                                color: MonoPulseColors.accentOrange10,
                                 borderRadius: BorderRadius.circular(
                                   MonoPulseRadius.small,
                                 ),

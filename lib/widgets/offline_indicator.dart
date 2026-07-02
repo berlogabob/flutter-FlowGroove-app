@@ -45,7 +45,7 @@ class OfflineIndicator extends ConsumerWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(MonoPulseSpacing.sm),
       decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrangeSubtle,
+        color: MonoPulseColors.accentOrange10,
         border: Border.all(color: MonoPulseColors.accentOrange),
       ),
       child: Row(
@@ -70,7 +70,7 @@ class OfflineIndicator extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: MonoPulseColors.accentOrangeSubtle,
+        color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
         border: Border.all(color: MonoPulseColors.accentOrange),
       ),

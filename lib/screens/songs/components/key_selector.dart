@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/mono_pulse_theme.dart';
+
 /// A widget for selecting musical key with base note and modifier.
 ///
 /// This widget provides a compact UI for selecting a musical key using
@@ -77,9 +79,9 @@ class KeySelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MonoPulseColors.surface,
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: MonoPulseColors.borderDefault),
       ),
       child: DropdownButton<String>(
         value: value,

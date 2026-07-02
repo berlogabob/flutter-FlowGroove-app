@@ -77,14 +77,14 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                       const Icon(
                         Icons.error_outline,
                         size: 48,
-                        color: Colors.red,
+                        color: MonoPulseColors.error,
                       ),
                       const SizedBox(height: 16),
                       const Text('Search error'),
                       const SizedBox(height: 8),
                       Text(
                         'Try again later',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: TextStyle(color: MonoPulseColors.textSecondary, fontSize: 12),
                       ),
                     ],
                   ),
@@ -101,7 +101,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                       Icon(
                         Icons.search_off,
                         size: 48,
-                        color: Colors.grey,
+                        color: MonoPulseColors.textTertiary,
                       ),
                       SizedBox(height: 16),
                       Text('No results found'),
@@ -109,7 +109,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                       Text(
                         'Try different keywords',
                         style: TextStyle(
-                          color: Colors.grey,
+                          color: MonoPulseColors.textTertiary,
                           fontSize: 12,
                         ),
                       ),
@@ -129,7 +129,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                     trailing: recording.bpm != null
                         ? Chip(
                             label: Text('${recording.bpm} BPM'),
-                            backgroundColor: MonoPulseColors.accentOrangeSubtle,
+                            backgroundColor: MonoPulseColors.accentOrange10,
                           )
                         : null,
                     onTap: () => widget.onSelect(recording),

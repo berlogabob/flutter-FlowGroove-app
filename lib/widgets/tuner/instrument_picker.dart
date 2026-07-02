@@ -139,7 +139,7 @@ class _InstrumentTile extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: isSelected
-                  ? MonoPulseColors.accentOrangeSubtle
+                  ? MonoPulseColors.accentOrange10
                   : MonoPulseColors.surfaceRaised,
               borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
             ),

@@ -278,7 +278,7 @@ class SongForm extends StatelessWidget {
                     ),
                     selected: selectedTags.contains(tag),
                     onSelected: (selected) => onTagChanged(tag, selected),
-                    selectedColor: MonoPulseColors.accentOrangeSubtle,
+                    selectedColor: MonoPulseColors.accentOrange10,
                     checkmarkColor: MonoPulseColors.accentOrange,
                   ),
                 ActionChip(

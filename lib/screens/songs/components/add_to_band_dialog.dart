@@ -241,7 +241,7 @@ class _AddToBandDialogState extends ConsumerState<AddToBandDialog> {
           ? const Icon(Icons.check_circle, color: MonoPulseColors.accentOrange)
           : null,
       selected: isSelected,
-      selectedTileColor: MonoPulseColors.accentOrangeSubtle,
+      selectedTileColor: MonoPulseColors.accentOrange10,
       onTap: () {
         setState(() {
           _selectedBand = band;

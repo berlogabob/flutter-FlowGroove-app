@@ -8,12 +8,14 @@ import '../../../models/song.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../providers/permissions_provider.dart';
+import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/ics_export.dart';
 import '../../../utils/rehearsal_scoring.dart';
 import '../../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/standard_screen_scaffold.dart';
 import 'rehearsal_format.dart';
+import '../../../utils/snackbar.dart';
 
 class RehearsalDetailScreen extends ConsumerWidget {
   const RehearsalDetailScreen({
@@ -287,9 +289,12 @@ class _SlotCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                _voteButton('Can', RehearsalVote.answerCan, Colors.green),
-                _voteButton('Maybe', RehearsalVote.answerMaybe, Colors.orange),
-                _voteButton("Can't", RehearsalVote.answerCant, Colors.red),
+                _voteButton('Can', RehearsalVote.answerCan,
+                    MonoPulseColors.successGreen),
+                _voteButton('Maybe', RehearsalVote.answerMaybe,
+                    MonoPulseColors.warning),
+                _voteButton("Can't", RehearsalVote.answerCant,
+                    MonoPulseColors.error),
               ],
             ),
             if (onConfirm != null)
@@ -383,9 +388,7 @@ class _ConfirmedCard extends ConsumerWidget {
                   setlistName: setlist?.name,
                 );
                 if (!ok && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Could not create calendar file')),
-                  );
+                  showAppSnackBar(context, 'Could not create calendar file');
                 }
               },
             ),
