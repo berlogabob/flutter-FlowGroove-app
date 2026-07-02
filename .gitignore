@@ -48,8 +48,13 @@ qwen-code-export-*.md
 oldarchive/*
 !oldarchive/README.md
 
-# Local production/deploy snapshots
-backup/production-*/
+# Local archives / snapshots (kept on disk, not in git)
+backup/
+test_hive/
+graphify-venv/
+graphify-out/
+/2026-*.txt
+/Grok-*.json
 
 # Local migration dry-run reports
 migration-reports/
