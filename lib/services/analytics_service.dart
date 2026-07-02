@@ -925,7 +925,7 @@ class AnalyticsService {
   }
 
   /// Log error helper
-  static void _logError(String method, error) {
+  static void _logError(String method, dynamic error) {
     debugPrint('❌ Analytics Error in $method: $error');
   }
 }

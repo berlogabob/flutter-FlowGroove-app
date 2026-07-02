@@ -180,7 +180,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
 
   /// Shows a dialog with the invite code and a copy button.
   void _showInviteCodeDialog(String inviteCode) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(

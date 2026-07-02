@@ -26,7 +26,7 @@ class SpotifySearchSection extends StatefulWidget {
   /// Callback when a track is selected.
   ///
   /// Returns the selected track and its audio features (if available).
-  final Function(SpotifyTrack track, SpotifyAudioFeatures? features) onSelect;
+  final void Function(SpotifyTrack track, SpotifyAudioFeatures? features) onSelect;
 
   @override
   State<SpotifySearchSection> createState() => _SpotifySearchSectionState();

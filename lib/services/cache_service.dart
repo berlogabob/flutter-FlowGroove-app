@@ -44,7 +44,7 @@ class CacheService {
   }
 
   /// Opens a Hive box with the given name.
-  Future<Box> _openBox(String name) async {
+  Future<Box<dynamic>> _openBox(String name) async {
     return Hive.openBox(name);
   }
 
@@ -66,7 +66,7 @@ class CacheService {
   }) async {
     try {
       final box = await _openBox(boxName);
-      final data = box.get(_cacheDataKey, defaultValue: []);
+      final data = box.get(_cacheDataKey, defaultValue: <dynamic>[]);
       if (data is! List) return [];
       return data.whereType<Map<String, dynamic>>().map(fromJson).toList();
     } catch (e) {

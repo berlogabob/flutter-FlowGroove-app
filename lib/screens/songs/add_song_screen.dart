@@ -13,7 +13,7 @@ import '../../widgets/custom_app_bar.dart';
 import '../performance_sheet_screen.dart';
 import 'components/import_lyrics_dialog.dart';
 import 'song_editor_screen.dart';
-import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
+import '../../widgets/error_banner.dart' show ErrorBanner;
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';
 import 'components/song_form.dart';

@@ -362,12 +362,10 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
       shrinkWrap: true,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       itemCount: sections.length,
-      onReorder: (oldIndex, newIndex) {
+      onReorderItem: (oldIndex, newIndex) {
         final list = [..._sync.sections];
-        var target = newIndex;
-        if (target > oldIndex) target -= 1;
         final item = list.removeAt(oldIndex);
-        list.insert(target, item);
+        list.insert(newIndex, item);
         _sync.updateFromMap(list);
       },
       itemBuilder: (context, i) {

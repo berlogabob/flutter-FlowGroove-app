@@ -75,12 +75,12 @@ class KeyBpmGrid extends StatelessWidget {
   final String originalBase;
   final String originalModifier;
   final TextEditingController originalBpmController;
-  final Function(String base, String modifier) onOriginalKeyChanged;
+  final void Function(String base, String modifier) onOriginalKeyChanged;
 
   final String ourBase;
   final String ourModifier;
   final TextEditingController ourBpmController;
-  final Function(String base, String modifier) onOurKeyChanged;
+  final void Function(String base, String modifier) onOurKeyChanged;
 
   final List<String> keyBases;
   final List<String> keyModifiers;
@@ -113,7 +113,7 @@ class KeyBpmGrid extends StatelessWidget {
     String base,
     String modifier,
     TextEditingController bpm,
-    Function(String, String) onKey,
+    void Function(String, String) onKey,
   ) {
     return TableRow(
       children: [

@@ -19,10 +19,10 @@ class LinksEditor extends StatelessWidget {
   final List<Link> links;
 
   /// Callback when a link is added.
-  final Function(Link link) onAddLink;
+  final void Function(Link link) onAddLink;
 
   /// Callback when a link is removed.
-  final Function(int index) onRemoveLink;
+  final void Function(int index) onRemoveLink;
 
   /// When true, render only the chips + an "Add link" button (no own header),
   /// for embedding inside a [CollapsibleSection] that supplies the title.
@@ -98,7 +98,7 @@ class LinksEditor extends StatelessWidget {
   }
 
   void _showAddLinkDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         final urlController = TextEditingController();

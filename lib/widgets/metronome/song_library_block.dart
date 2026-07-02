@@ -8,6 +8,7 @@ import '../../models/song.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 import '../error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 
 class SongLibraryBlock extends ConsumerWidget {
@@ -102,12 +103,9 @@ class SongLibraryBlock extends ConsumerWidget {
           if (loaded) {
             Navigator.of(sheetContext).pop();
           } else {
-            ScaffoldMessenger.of(sheetContext).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'This setlist is empty or contains unavailable songs.',
-                ),
-              ),
+            showAppSnackBar(
+              sheetContext,
+              'This setlist is empty or contains unavailable songs.',
             );
           }
         },

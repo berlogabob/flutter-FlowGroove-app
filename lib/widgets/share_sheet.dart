@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils/snackbar.dart';
 
 /// Curated share sheet: Copy / Share via… / Email / Telegram / WhatsApp.
 ///
@@ -21,9 +22,7 @@ void showShareSheet(BuildContext context, String message, {String? subject}) {
             onTap: () {
               Clipboard.setData(ClipboardData(text: message));
               Navigator.pop(sheetContext);
-              ScaffoldMessenger.of(sheetContext).showSnackBar(
-                const SnackBar(content: Text('Copied to clipboard!')),
-              );
+              showAppSnackBar(sheetContext, 'Copied to clipboard!');
             },
           ),
           ListTile(

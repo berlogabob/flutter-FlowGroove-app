@@ -1,7 +1,8 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kDebugMode, kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -25,6 +26,12 @@ import 'widgets/wiki_panel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // debugPrint still emits in release builds; silence the app's ~250 log
+  // call sites globally instead of guarding each one.
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
 
   // Global error widget for graceful degradation (prevents full red screen)
   ErrorWidget.builder = (details) {
@@ -201,8 +208,10 @@ void main() async {
     debugPrint('   UID: ${currentUser.uid}');
     debugPrint('   Email verified: ${currentUser.emailVerified}');
 
-    // Log login event for existing user
-    await analytics?.logLogin(loginMethod: 'auto');
+    // Log login event for existing user (off the startup critical path)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      analytics?.logLogin(loginMethod: 'auto');
+    });
   } else {
     debugPrint('🔑 NO USER: No user found from previous session');
   }

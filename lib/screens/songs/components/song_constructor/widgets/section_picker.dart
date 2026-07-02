@@ -11,7 +11,7 @@ import 'color_picker_dialog.dart';
 class SectionPicker extends StatefulWidget {
 
   const SectionPicker({required this.onSectionSelected, super.key});
-  final Function(String) onSectionSelected;
+  final void Function(String) onSectionSelected;
 
   @override
   State<SectionPicker> createState() => _SectionPickerState();

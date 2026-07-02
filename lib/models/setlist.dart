@@ -199,7 +199,7 @@ class Setlist {
   }
 }
 
-DateTime _parseDateTime(value) {
+DateTime _parseDateTime(dynamic value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
   if (value is Timestamp) return value.toDate();
@@ -222,7 +222,7 @@ DateTime _parseDateTime(value) {
   return DateTime.now();
 }
 
-DateTime? _parseTimestamp(value) {
+DateTime? _parseTimestamp(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value;
   if (value is Timestamp) return value.toDate();
@@ -246,7 +246,7 @@ DateTime? _parseTimestamp(value) {
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
 
-Map<String, SetlistAssignment> _assignmentsFromJson(value) {
+Map<String, SetlistAssignment> _assignmentsFromJson(dynamic value) {
   if (value == null) return {};
   if (value is Map) {
     final result = <String, SetlistAssignment>{};
@@ -270,7 +270,7 @@ Map<String, dynamic> _assignmentsToJson(Map<String, SetlistAssignment> value) {
   return value.map((key, val) => MapEntry(key, val.toJson()));
 }
 
-List<SetlistItem> _itemsFromJson(value) {
+List<SetlistItem> _itemsFromJson(dynamic value) {
   if (value is! List) return const [];
   return value
       .whereType<Map<dynamic, dynamic>>()

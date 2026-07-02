@@ -120,7 +120,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
       return;
     }
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
@@ -181,7 +181,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
       return;
     }
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) => DraggableScrollableSheet(
@@ -247,7 +247,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
     final encodedQuery = Uri.encodeComponent(query);
     final spotifyUrl = 'https://open.spotify.com/search/$encodedQuery';
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Search on Web'),

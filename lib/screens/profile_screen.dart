@@ -223,7 +223,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _showPhotoOptions() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       backgroundColor: MonoPulseColors.surface,
       shape: const RoundedRectangleBorder(
@@ -360,7 +360,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final userAsync = ref.read(currentUserProvider);
     final userId = userAsync.value?.uid;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Link Telegram'),

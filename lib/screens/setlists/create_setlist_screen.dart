@@ -497,14 +497,12 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _selectedSongs.length,
-                  onReorder: (oldIndex, newIndex) {
-                    var adjustedIndex = newIndex;
+                  onReorderItem: (oldIndex, newIndex) {
                     setState(() {
-                      if (adjustedIndex > oldIndex) adjustedIndex--;
                       final song = _selectedSongs.removeAt(oldIndex);
                       final item = _selectedItems.removeAt(oldIndex);
-                      _selectedSongs.insert(adjustedIndex, song);
-                      _selectedItems.insert(adjustedIndex, item);
+                      _selectedSongs.insert(newIndex, song);
+                      _selectedItems.insert(newIndex, item);
                       _markAsChanged();
                     });
                   },

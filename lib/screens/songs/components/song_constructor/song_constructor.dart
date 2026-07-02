@@ -22,7 +22,7 @@ class SongConstructor extends StatefulWidget {
     this.embedded = false,
   });
   /// Callback when the structure changes.
-  final Function(List<Section>)? onChange;
+  final void Function(List<Section>)? onChange;
 
   /// Initial sections (optional).
   final List<Section>? initialSections;
@@ -75,7 +75,7 @@ class _SongConstructorState extends State<SongConstructor> {
   }
 
   void _showSectionPicker() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) => Dialog(
         child: Container(
@@ -123,7 +123,7 @@ class _SongConstructorState extends State<SongConstructor> {
   }
 
   void _deleteSection(Section section) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Section'),

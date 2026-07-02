@@ -401,7 +401,7 @@ class _HexPresetChip extends StatelessWidget {
 
   final Color color;
   final String hex;
-  final Function(String, Color) onTap;
+  final void Function(String, Color) onTap;
 
   @override
   Widget build(BuildContext context) {

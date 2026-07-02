@@ -22,7 +22,7 @@ class MusicBrainzSearchSection extends StatefulWidget {
   final ScrollController scrollController;
 
   /// Callback when a recording is selected.
-  final Function(MusicBrainzRecording recording) onSelect;
+  final void Function(MusicBrainzRecording recording) onSelect;
 
   @override
   State<MusicBrainzSearchSection> createState() =>

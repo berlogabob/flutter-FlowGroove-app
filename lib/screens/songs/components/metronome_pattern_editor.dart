@@ -30,7 +30,7 @@ class MetronomePatternEditor extends StatelessWidget {
   final List<List<BeatMode>> beatModes;
 
   /// Callback when a beat mode is changed.
-  final Function(int beatIndex, int subdivisionIndex, BeatMode mode)
+  final void Function(int beatIndex, int subdivisionIndex, BeatMode mode)
   onBeatModeChanged;
 
   /// Callback when accentBeats changes.

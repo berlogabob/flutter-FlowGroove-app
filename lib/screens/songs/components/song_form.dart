@@ -97,25 +97,25 @@ class SongForm extends StatelessWidget {
   final String ourKeyModifier;
 
   /// Callback when original key changes.
-  final Function(String, String) onOriginalKeyChanged;
+  final void Function(String, String) onOriginalKeyChanged;
 
   /// Callback when "our" key changes.
-  final Function(String, String) onOurKeyChanged;
+  final void Function(String, String) onOurKeyChanged;
 
   /// Callback when a link is added.
-  final Function(Link) onAddLink;
+  final void Function(Link) onAddLink;
 
   /// Callback when a link is removed.
-  final Function(int) onRemoveLink;
+  final void Function(int) onRemoveLink;
 
   /// Callback when a tag selection changes.
-  final Function(String tag, bool selected) onTagChanged;
+  final void Function(String tag, bool selected) onTagChanged;
 
   /// Current song structure sections (the "song scheme").
   final List<Section> sections;
 
   /// Callback when the song structure changes.
-  final Function(List<Section>) onSectionsChanged;
+  final void Function(List<Section>) onSectionsChanged;
 
   /// Beats per measure (metronome grid rows).
   final int accentBeats;
@@ -127,7 +127,7 @@ class SongForm extends StatelessWidget {
   final List<List<BeatMode>> beatModes;
 
   /// Callback when a single cell in the beat grid changes.
-  final Function(int beatIndex, int subdivisionIndex, BeatMode mode)
+  final void Function(int beatIndex, int subdivisionIndex, BeatMode mode)
   onBeatModeChanged;
 
   /// Callback when the beats-per-measure count changes.

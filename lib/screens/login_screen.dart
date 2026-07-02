@@ -263,7 +263,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     debugPrint('🔑 Email from login: $_email.value');
                     // Use Navigator to push the route with email
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (context) =>
                             ForgotPasswordScreen(initialEmail: _email.value),
                       ),

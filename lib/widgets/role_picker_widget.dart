@@ -95,7 +95,6 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final crossAxisCount = screenWidth < 400 ? 2 : screenWidth < 600 ? 3 : screenWidth < 900 ? 4 : 5;
 
     return AlertDialog(
       title: Text(widget.title ?? 'Select Roles'),

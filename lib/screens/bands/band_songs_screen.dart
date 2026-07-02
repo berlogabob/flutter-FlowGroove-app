@@ -7,6 +7,7 @@ import '../../../models/song.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../utils/snackbar.dart';
 import '../../../widgets/confirmation_dialog.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/empty_state.dart';
@@ -317,12 +318,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   void _addSongToBand(BuildContext context, WidgetRef ref) {
     // Navigate to song picker or add new song
     // For now, we'll just show a snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Song picker coming soon'),
-        action: SnackBarAction(label: 'OK', onPressed: () {}),
-      ),
-    );
+    showAppSnackBar(context, 'Song picker coming soon');
   }
 
   void _editSong(BuildContext context, WidgetRef ref, Song song) {

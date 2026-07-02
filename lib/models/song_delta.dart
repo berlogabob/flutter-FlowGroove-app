@@ -224,7 +224,7 @@ Map<String, dynamic> _sanitize(Map<String, dynamic> input) {
   return result;
 }
 
-dynamic _normalizeValue(String field, value) {
+dynamic _normalizeValue(String field, dynamic value) {
   switch (field) {
     case SongDeltaField.tags:
       if (value == null) return null;
@@ -250,7 +250,7 @@ dynamic _normalizeValue(String field, value) {
   }
 }
 
-dynamic _toJsonValue(value) {
+dynamic _toJsonValue(dynamic value) {
   if (value is List<Link>) return _linksToJson(value);
   if (value is List<Section>) return _sectionsToJson(value);
   if (value is List<List<BeatMode>>) return _beatModesToJson(value);
@@ -265,7 +265,7 @@ List<Map<String, dynamic>> _sectionsToJson(List<Section> sections) {
   return sections.map((section) => section.toJson()).toList();
 }
 
-List<List<BeatMode>> _beatModesFromJson(value) {
+List<List<BeatMode>> _beatModesFromJson(dynamic value) {
   if (value == null) return [];
   if (value is List<List<BeatMode>>) return value;
   if (value is List) {

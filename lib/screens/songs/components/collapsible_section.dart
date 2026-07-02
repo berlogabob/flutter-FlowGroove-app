@@ -43,7 +43,7 @@ class CollapsibleSection extends StatefulWidget {
   final Widget? preview;
 
   /// Callback when expansion state changes.
-  final Function(bool expanded)? onExpandedChanged;
+  final void Function(bool expanded)? onExpandedChanged;
 
   @override
   State<CollapsibleSection> createState() => _CollapsibleSectionState();

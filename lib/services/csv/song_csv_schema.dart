@@ -325,7 +325,7 @@ class SongCsvSchema {
 /// Validation rules for CSV data
 class SongCsvValidation {
   /// Validate BPM value (must be integer between 40-300)
-  static bool isValidBpm(value) {
+  static bool isValidBpm(dynamic value) {
     if (value == null || value.toString().isEmpty) return true; // Optional
     final bpm = int.tryParse(value.toString());
     return bpm != null && bpm >= 40 && bpm <= 300;
@@ -380,7 +380,7 @@ class SongCsvValidation {
   }
 
   /// Validate duration (positive number)
-  static bool isValidDuration(value) {
+  static bool isValidDuration(dynamic value) {
     if (value == null || value.toString().isEmpty) return true; // Optional
     final duration = double.tryParse(value.toString());
     return duration != null && duration > 0;
