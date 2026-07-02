@@ -15,6 +15,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../services/song_library_merge_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
@@ -29,7 +30,6 @@ import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../performance_sheet_screen.dart';
 import 'components/csv_import_export/csv_import_export.dart';
-import '../../utils/snackbar.dart';
 
 /// Notifier for songs filter/sort state.
 class SongsFilterSortNotifier extends Notifier<SongsFilterSortState> {
@@ -754,7 +754,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: MonoPulseSpacing.lg,
-              vertical: 8,
+              vertical: MonoPulseSpacing.sm,
             ),
             child: _buildTagCloud(songs),
           ),
@@ -763,7 +763,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.lg,
-            vertical: 8,
+            vertical: MonoPulseSpacing.sm,
           ),
           child: Row(
             children: [
@@ -779,7 +779,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: MonoPulseSpacing.md,
-                    vertical: 8,
+                    vertical: MonoPulseSpacing.sm,
                   ),
                 ),
               ),

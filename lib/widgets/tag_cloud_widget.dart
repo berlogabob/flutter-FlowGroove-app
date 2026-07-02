@@ -34,7 +34,7 @@ class TagCloudWidget extends StatelessWidget {
           if (index == 0) {
             // "All" chip
             return Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
               child: AppFilterChip(
                 label: 'All',
                 selected: selectedTag == null,
@@ -49,7 +49,7 @@ class TagCloudWidget extends StatelessWidget {
           final intensity = count / maxCount;
 
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
             child: AppFilterChip(
               label: '$tag ($count)',
               selected: selectedTag == tag,

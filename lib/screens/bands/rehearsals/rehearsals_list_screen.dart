@@ -7,6 +7,7 @@ import '../../../models/rehearsal.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../providers/permissions_provider.dart';
+import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../../widgets/fab_variants.dart';
@@ -78,7 +79,7 @@ class RehearsalsListScreen extends ConsumerWidget {
           final sorted = [...rehearsals]
             ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
           return ListView.builder(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(MonoPulseSpacing.md),
             itemCount: sorted.length,
             itemBuilder: (context, i) => _RehearsalTile(
               band: band,

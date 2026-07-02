@@ -64,8 +64,8 @@ class AppFilterChip extends StatelessWidget {
       checkmarkColor: MonoPulseColors.textPrimary,
       // Padding and shape
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 8,
+        horizontal: MonoPulseSpacing.md,
+        vertical: MonoPulseSpacing.sm,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),

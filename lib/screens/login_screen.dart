@@ -276,7 +276,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
                 ),
                 child: _isLoading
                     ? const SizedBox(

@@ -43,7 +43,7 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -85,7 +85,9 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
                       const SizedBox(height: 8),
                       Text(
                         'Try again later',
-                        style: TextStyle(color: MonoPulseColors.textSecondary, fontSize: 12),
+                        style: MonoPulseTypography.bodySmall.copyWith(
+                          color: MonoPulseColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -95,23 +97,22 @@ class _MusicBrainzSearchSectionState extends State<MusicBrainzSearchSection> {
               final results = snapshot.data ?? [];
 
               if (results.isEmpty) {
-                return const Center(
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.search_off,
                         size: 48,
                         color: MonoPulseColors.textTertiary,
                       ),
-                      SizedBox(height: 16),
-                      Text('No results found'),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 16),
+                      const Text('No results found'),
+                      const SizedBox(height: 8),
                       Text(
                         'Try different keywords',
-                        style: TextStyle(
+                        style: MonoPulseTypography.bodySmall.copyWith(
                           color: MonoPulseColors.textTertiary,
-                          fontSize: 12,
                         ),
                       ),
                     ],

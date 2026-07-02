@@ -10,6 +10,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
@@ -22,7 +23,6 @@ import '../../widgets/unified_item/adapters/band_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
-import '../../utils/snackbar.dart';
 
 /// Screen for displaying the user's bands with search, filter, sort,
 /// swipe-to-delete, and drag-and-drop reordering.

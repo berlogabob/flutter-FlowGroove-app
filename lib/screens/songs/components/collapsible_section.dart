@@ -135,7 +135,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: MonoPulseSpacing.lg,
-                  vertical: 8,
+                  vertical: MonoPulseSpacing.sm,
                 ),
                 child: widget.child,
               ),

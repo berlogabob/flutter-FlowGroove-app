@@ -8,18 +8,19 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
 import '../../services/api/spotify_proxy_service.dart';
+import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 import '../../utils/song_tags.dart';
 import '../../widgets/custom_app_bar.dart';
-import '../performance_sheet_screen.dart';
-import 'components/import_lyrics_dialog.dart';
-import 'song_editor_screen.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner;
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';
+import '../performance_sheet_screen.dart';
+import 'components/import_lyrics_dialog.dart';
 import 'components/song_form.dart';
 import 'models/song_form_data.dart';
+import 'song_editor_screen.dart';
 import 'utils/add_song_screen_helper.dart';
-import '../../utils/snackbar.dart';
 
 /// Screen for adding or editing a song with comprehensive error handling.
 class AddSongScreen extends ConsumerStatefulWidget {
@@ -479,7 +480,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
           ],
         ),
         body: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           children: [
             // Error banner
             if (error != null) ...[

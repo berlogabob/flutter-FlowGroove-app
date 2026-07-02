@@ -125,7 +125,7 @@ class _SectionPickerState extends State<SectionPicker>
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: MonoPulseSpacing.lg,
-                vertical: 12,
+                vertical: MonoPulseSpacing.md,
               ),
             ),
             onSubmitted: (value) {
@@ -145,7 +145,7 @@ class _SectionPickerState extends State<SectionPicker>
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(
               horizontal: MonoPulseSpacing.xxl,
-              vertical: 16,
+              vertical: MonoPulseSpacing.lg,
             ),
           ),
           child: const Text('Add', style: TextStyle(fontSize: 15)),
@@ -156,7 +156,7 @@ class _SectionPickerState extends State<SectionPicker>
 
   Widget _buildPartsTab(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: AppDimensions.gridSpacing,
@@ -172,7 +172,7 @@ class _SectionPickerState extends State<SectionPicker>
 
   Widget _buildColorsTab(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: AppDimensions.gridSpacing,
@@ -223,7 +223,7 @@ class _SectionPickerState extends State<SectionPicker>
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: MonoPulseSpacing.sm,
-              vertical: 12,
+              vertical: MonoPulseSpacing.md,
             ),
             child: Text(
               template,

@@ -13,7 +13,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../providers/auth/auth_provider.dart';
-import 'settings/api_access_screen.dart';
 import '../../services/account_function_service.dart';
 import '../../services/avatar_function_service.dart';
 import '../../services/storage_service.dart';
@@ -25,6 +24,7 @@ import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/support_sheet.dart';
 import '../utils/snackbar.dart';
+import 'settings/api_access_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -500,10 +500,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               ? Text(
                                   user?.email?.substring(0, 1).toUpperCase() ??
                                       '?',
-                                  style: const TextStyle(
-                                    fontSize: 40,
+                                  style: MonoPulseTypography.displayLarge.copyWith(
                                     color: MonoPulseColors.accentOrange,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: MonoPulseTypography.bold,
                                   ),
                                 )
                               : null,
@@ -512,7 +511,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           bottom: 0,
                           right: 0,
                           child: Container(
-                            padding: const EdgeInsets.all(4),
+                            padding: const EdgeInsets.all(MonoPulseSpacing.xs),
                             decoration: const BoxDecoration(
                               color: MonoPulseColors.accentOrange,
                               shape: BoxShape.circle,
@@ -767,7 +766,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(left: MonoPulseSpacing.xs, bottom: MonoPulseSpacing.sm),
           child: Text(
             title,
             style: MonoPulseTypography.labelLarge.copyWith(

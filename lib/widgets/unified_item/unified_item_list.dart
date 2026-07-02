@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'unified_item_model.dart';
+
+import '../../theme/mono_pulse_theme.dart';
 import 'unified_item_card.dart';
+import 'unified_item_model.dart';
 
 /// Optimized list widget with swipe-to-delete and drag-and-drop reordering
 class UnifiedItemList<T extends UnifiedItemModel> extends StatefulWidget {
@@ -49,7 +51,7 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
           background: Container(
             color: Theme.of(context).colorScheme.error,
             alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: MonoPulseSpacing.lg),
             child: const Icon(Icons.delete, color: Colors.white),
           ),
           confirmDismiss: (direction) async {

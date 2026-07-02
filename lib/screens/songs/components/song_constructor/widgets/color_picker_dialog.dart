@@ -408,7 +408,7 @@ class _HexPresetChip extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTap(hex, color),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm, vertical: MonoPulseSpacing.xs),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),

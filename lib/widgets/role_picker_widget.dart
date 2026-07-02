@@ -125,8 +125,8 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                 ),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: MonoPulseSpacing.md,
+                  vertical: MonoPulseSpacing.sm,
                 ),
               ),
               onChanged: (value) => setState(() => _searchQuery = value),
@@ -180,7 +180,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
             const SizedBox(height: 4),
             if (_filteredPopular.isEmpty && _searchQuery.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
                 child: Center(
                   child: Text(
                     'No matching popular roles.\nType above to add custom role.',
@@ -204,8 +204,8 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                     child: Container(
                       constraints: const BoxConstraints(minHeight: 48),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: MonoPulseSpacing.md,
+                        vertical: MonoPulseSpacing.sm,
                       ),
                       decoration: BoxDecoration(
                         color: isSelected

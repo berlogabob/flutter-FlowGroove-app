@@ -153,7 +153,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       children: [
         // Search field
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: CustomTextField(
             hint: 'Search songs...',
             prefixIcon: Icons.search,
@@ -166,7 +166,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
               children: [
                 FilterChip(
                   label: const Text('All'),
@@ -180,7 +180,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                 const SizedBox(width: 8),
                 ...contributors.map(
                   (contributor) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
                     child: FilterChip(
                       label: Text(contributor),
                       selected: _filterContributor == contributor,
@@ -220,10 +220,10 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       key: Key(song.id),
       direction: _canEdit ? DismissDirection.endToStart : DismissDirection.none,
       background: Container(
-        color: Colors.red,
+        color: MonoPulseColors.error,
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
-        child: const Icon(Icons.delete, color: Colors.white),
+        padding: const EdgeInsets.only(right: MonoPulseSpacing.lg),
+        child: const Icon(Icons.delete, color: MonoPulseColors.textPrimary),
       ),
       confirmDismiss: (direction) async {
         if (!_canEdit) return false;
@@ -281,20 +281,18 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
             if (song.ourKey != null)
               Text(
                 song.ourKey!,
-                style: const TextStyle(
+                style: MonoPulseTypography.labelMedium.copyWith(
                   color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontWeight: MonoPulseTypography.bold,
                 ),
               ),
             if (song.ourBPM != null) ...[
               const SizedBox(width: MonoPulseSpacing.sm),
               Text(
                 '${song.ourBPM}',
-                style: const TextStyle(
+                style: MonoPulseTypography.labelMedium.copyWith(
                   color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontWeight: MonoPulseTypography.bold,
                 ),
               ),
             ],

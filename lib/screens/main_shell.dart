@@ -224,7 +224,7 @@ class _NavTab extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: MonoPulseSpacing.sm,
-                    vertical: 2,
+                    vertical: MonoPulseSpacing.xxs,
                   ),
                   child: label,
                 ),

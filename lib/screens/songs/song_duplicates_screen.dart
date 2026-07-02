@@ -7,8 +7,8 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/matching/song_duplicate_detector.dart';
 import '../../services/song_library_merge_service.dart';
-import 'song_merge_dialog.dart';
 import '../../utils/snackbar.dart';
+import 'song_merge_dialog.dart';
 
 class SongDuplicatesScreen extends ConsumerStatefulWidget {
   const SongDuplicatesScreen({super.key});

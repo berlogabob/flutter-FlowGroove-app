@@ -38,7 +38,7 @@ class MatchScoreBadge extends StatelessWidget {
       height: size,
       padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.xs,
-        vertical: 4, // Custom micro-padding for tight badge layout
+        vertical: MonoPulseSpacing.xs, // Custom micro-padding for tight badge layout
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),

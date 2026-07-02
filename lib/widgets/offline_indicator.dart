@@ -68,7 +68,7 @@ class OfflineIndicator extends ConsumerWidget {
 
   Widget _buildChip(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: 6),
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(MonoPulseRadius.huge),

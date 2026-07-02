@@ -224,7 +224,7 @@ class _SongConstructorState extends State<SongConstructor> {
                   ),
                   // Auto-Generate button (always rendered, just hidden when collapsed)
                   Padding(
-                    padding: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.only(left: MonoPulseSpacing.sm),
                     child: IgnorePointer(
                       ignoring: !_expanded,
                       child: AnimatedOpacity(
@@ -243,8 +243,8 @@ class _SongConstructorState extends State<SongConstructor> {
                           ),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 4,
+                              horizontal: MonoPulseSpacing.xs,
+                              vertical: MonoPulseSpacing.xs,
                             ),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -267,7 +267,7 @@ class _SongConstructorState extends State<SongConstructor> {
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: MonoPulseSpacing.lg,
-                  vertical: 8,
+                  vertical: MonoPulseSpacing.sm,
                 ),
                 child: _buildExpandedState(),
               ),
@@ -278,7 +278,7 @@ class _SongConstructorState extends State<SongConstructor> {
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: MonoPulseSpacing.lg,
-                vertical: 8,
+                vertical: MonoPulseSpacing.sm,
               ),
               child: SizedBox(height: 36, child: PillView(sections: _sections)),
             ),
@@ -308,7 +308,7 @@ class _SongConstructorState extends State<SongConstructor> {
                       key: ValueKey(section.id),
                       background: Container(
                         alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.only(left: 20),
+                        padding: const EdgeInsets.only(left: MonoPulseSpacing.xl),
                         color: MonoPulseColors.accentOrange,
                         child: const Row(
                           children: [
@@ -329,7 +329,7 @@ class _SongConstructorState extends State<SongConstructor> {
                       ),
                       secondaryBackground: Container(
                         alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
+                        padding: const EdgeInsets.only(right: MonoPulseSpacing.xl),
                         color: MonoPulseColors.error,
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -382,7 +382,7 @@ class _SongConstructorState extends State<SongConstructor> {
         // Empty state message
         if (_sections.isEmpty) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
             child: Text(
               'No sections yet',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

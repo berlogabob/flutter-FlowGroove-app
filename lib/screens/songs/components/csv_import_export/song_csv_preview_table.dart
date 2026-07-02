@@ -113,7 +113,7 @@ class SongCsvPreviewTable extends StatelessWidget {
           const SizedBox(height: 8),
           ...errors.map(
             (error) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
               child: Row(
                 children: [
                   const Icon(

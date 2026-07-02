@@ -84,7 +84,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,8 +113,8 @@ class _TagInputDialogState extends State<TagInputDialog> {
                     hintText: widget.hintText,
                     border: const OutlineInputBorder(),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: MonoPulseSpacing.md,
+                      vertical: MonoPulseSpacing.sm,
                     ),
                   ),
                   textInputAction: TextInputAction.done,

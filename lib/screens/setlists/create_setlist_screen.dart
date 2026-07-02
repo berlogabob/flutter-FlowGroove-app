@@ -12,9 +12,9 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/primary_action_bar.dart';
-import '../../utils/snackbar.dart';
 
 enum SetlistStorageScope { personal, band }
 
@@ -514,7 +514,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       background: Container(
                         alignment: Alignment.centerRight,
                         margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
-                        padding: const EdgeInsets.only(right: 20),
+                        padding: const EdgeInsets.only(right: MonoPulseSpacing.xl),
                         decoration: BoxDecoration(
                           color: MonoPulseColors.error,
                           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
@@ -753,7 +753,7 @@ class _SongPickerSheetState extends State<_SongPickerSheet> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
           child: TextField(
             decoration: const InputDecoration(
               hintText: 'Search...',

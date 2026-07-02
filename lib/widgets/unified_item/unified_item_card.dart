@@ -31,7 +31,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg, vertical: MonoPulseSpacing.sm),
       elevation: 0,
       color: Theme.of(context).colorScheme.surface,
       child: ListTile(

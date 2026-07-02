@@ -188,9 +188,9 @@ class SongAttributionBadge extends StatelessWidget {
   EdgeInsets get _padding {
     switch (size) {
       case BadgeSize.small:
-        return const EdgeInsets.symmetric(horizontal: 6, vertical: 2);
+        return const EdgeInsets.symmetric(horizontal: 6, vertical: MonoPulseSpacing.xxs);
       case BadgeSize.medium:
-        return const EdgeInsets.symmetric(horizontal: 8, vertical: 4);
+        return const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm, vertical: MonoPulseSpacing.xs);
       case BadgeSize.large:
         return const EdgeInsets.symmetric(horizontal: 10, vertical: 6);
     }
@@ -242,7 +242,7 @@ class CompactAttributionBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.xs,
-        vertical: 2,
+        vertical: MonoPulseSpacing.xxs,
       ),
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrange10,

@@ -85,7 +85,7 @@ class _WikiPanelState extends State<WikiPanel> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+            padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.lg, MonoPulseSpacing.sm, MonoPulseSpacing.sm, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [

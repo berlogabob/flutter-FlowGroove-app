@@ -12,8 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../theme/mono_pulse_theme.dart';
-import '../../../../widgets/loading_indicator.dart';
 import '../../../../utils/snackbar.dart';
+import '../../../../widgets/loading_indicator.dart';
 
 class SongImportDialog extends StatefulWidget {
   const SongImportDialog({required this.librarySongs, super.key});
@@ -49,7 +49,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
 
   Widget _buildHeader(bool isMobile) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.lg, MonoPulseSpacing.md, MonoPulseSpacing.md, MonoPulseSpacing.md),
       child: Row(
         children: [
           const Icon(Icons.upload_file),
@@ -83,7 +83,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
   Widget _buildImportOptions() {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
           child: Column(
@@ -144,7 +144,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
 
   Widget _buildAnalysis(SongImportAnalysis analysis) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       children: [
         Text(
           'Ready to import',
@@ -249,7 +249,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
   Widget _buildFooter() {
     final analysis = _analysis;
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Row(
         children: [
           if (analysis != null)

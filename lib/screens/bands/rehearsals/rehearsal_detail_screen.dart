@@ -11,11 +11,11 @@ import '../../../providers/permissions_provider.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/ics_export.dart';
 import '../../../utils/rehearsal_scoring.dart';
+import '../../../utils/snackbar.dart';
 import '../../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/standard_screen_scaffold.dart';
 import 'rehearsal_format.dart';
-import '../../../utils/snackbar.dart';
 
 class RehearsalDetailScreen extends ConsumerWidget {
   const RehearsalDetailScreen({
@@ -129,7 +129,7 @@ class _Body extends ConsumerWidget {
     final confirmed = rehearsal.status == Rehearsal.statusConfirmed;
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       children: [
         Text(rehearsal.title, style: Theme.of(context).textTheme.headlineSmall),
         if (rehearsal.location != null) ...[
@@ -259,7 +259,7 @@ class _SlotCard extends StatelessWidget {
             )
           : null,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(MonoPulseSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -280,7 +280,7 @@ class _SlotCard extends StatelessWidget {
             ),
             if (blocked)
               Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.only(top: MonoPulseSpacing.xs),
                 child: Text(
                   "Can't make it: $blockingNames",
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -314,7 +314,7 @@ class _SlotCard extends StatelessWidget {
   Widget _voteButton(String label, String answer, Color color) {
     final selected = myAnswer == answer;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
       child: ChoiceChip(
         label: Text(label),
         selected: selected,
@@ -354,7 +354,7 @@ class _ConfirmedCard extends ConsumerWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -401,7 +401,7 @@ class _ConfirmedCard extends ConsumerWidget {
   Widget _songLine(Song? song) {
     if (song == null) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xxs),
       child: Text('• ${song.title} — ${song.artist}'),
     );
   }

@@ -70,7 +70,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -120,7 +120,7 @@ class _SpotifySearchSectionState extends State<SpotifySearchSection> {
                         isPremiumError
                             ? 'Spotify API needs Premium subscription'
                             : 'Try again later',
-                        style: TextStyle(color: MonoPulseColors.textSecondary, fontSize: 12),
+                        style: const TextStyle(color: MonoPulseColors.textSecondary, fontSize: 12),
                       ),
                       if (isPremiumError) ...[
                         const SizedBox(height: 16),

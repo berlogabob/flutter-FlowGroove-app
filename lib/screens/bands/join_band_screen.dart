@@ -10,8 +10,8 @@ import '../../providers/permissions_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../services/secure_storage_service.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/custom_app_bar.dart';
 
 class JoinBandScreen extends ConsumerStatefulWidget {
 
@@ -255,7 +255,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                     ElevatedButton(
                       onPressed: _isLoading ? null : _loadBand,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: MonoPulseColors.textPrimary)
@@ -269,7 +269,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                       onPressed: (_isLoading || isDemo) ? null : _joinBand,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: MonoPulseColors.accentOrange,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: MonoPulseColors.textPrimary)

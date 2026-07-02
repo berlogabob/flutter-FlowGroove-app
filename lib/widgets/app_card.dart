@@ -13,7 +13,7 @@ import '../theme/mono_pulse_theme.dart';
 /// AppCard(
 ///   variant: AppCardVariant.surface,
 ///   child: Padding(
-///     padding: const EdgeInsets.all(16),
+///     padding: const EdgeInsets.all(MonoPulseSpacing.lg),
 ///     child: Text('Content'),
 ///   ),
 /// )
@@ -22,7 +22,7 @@ import '../theme/mono_pulse_theme.dart';
 /// AppCard(
 ///   variant: AppCardVariant.raised,
 ///   child: Padding(
-///     padding: const EdgeInsets.all(16),
+///     padding: const EdgeInsets.all(MonoPulseSpacing.lg),
 ///     child: Text('Important Content'),
 ///   ),
 /// )

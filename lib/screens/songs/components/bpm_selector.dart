@@ -118,14 +118,14 @@ class KeyBpmGrid extends StatelessWidget {
     return TableRow(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.sm, horizontal: MonoPulseSpacing.xs),
           child: Text(
             label,
             style: MonoPulseTypography.labelMedium,
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xs),
           child: _keyMiniDropdown(
             base,
             keyBases,
@@ -133,7 +133,7 @@ class KeyBpmGrid extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xs),
           child: _keyMiniDropdown(
             modifier,
             keyModifiers,
@@ -141,7 +141,7 @@ class KeyBpmGrid extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xs),
           child: TextFormField(
             controller: bpm,
             decoration: const InputDecoration(labelText: 'BPM', isDense: true),
@@ -160,7 +160,7 @@ Widget _keyMiniDropdown(
   ValueChanged<String?> onChanged,
 ) {
   return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8),
+    padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
     decoration: BoxDecoration(
       color: MonoPulseColors.surfaceRaised,
       borderRadius: BorderRadius.circular(MonoPulseRadius.small),

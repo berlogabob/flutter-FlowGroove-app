@@ -10,6 +10,7 @@ import '../../providers/data/metronome_provider.dart';
 import '../../services/export/pdf_service.dart';
 import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
@@ -20,7 +21,6 @@ import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
-import '../../utils/snackbar.dart';
 
 class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});

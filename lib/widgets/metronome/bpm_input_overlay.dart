@@ -77,7 +77,7 @@ class _ModeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       decoration: BoxDecoration(
         color: MonoPulseColors.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),

@@ -5,8 +5,8 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/custom_app_bar.dart';
 
 /// Invite/share screen: QR code + invite code with copy-link and native share.
 class BandInviteScreen extends StatelessWidget {

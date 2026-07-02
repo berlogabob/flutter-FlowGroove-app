@@ -15,6 +15,7 @@ import '../../providers/permissions_provider.dart';
 import '../../services/avatar_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/dashboard_grid.dart';
 import '../../widgets/greeting_card.dart';
 import '../../widgets/quick_action_button.dart';
@@ -22,7 +23,6 @@ import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/tool_button.dart';
 import '../setlists/create_setlist_screen.dart';
-import '../../utils/snackbar.dart';
 
 /// The Band Screen - displays band dashboard similar to personal page.
 ///

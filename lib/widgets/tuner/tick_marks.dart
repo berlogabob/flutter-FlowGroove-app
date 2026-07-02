@@ -102,10 +102,8 @@ class _TickMarksPainter extends CustomPainter {
         // Draw main label (e.g., "A4") - 14px Regular per brandbook
         labelPaint.text = TextSpan(
           text: label,
-          style: const TextStyle(
-            fontSize: 14,
+          style: MonoPulseTypography.bodyMedium.copyWith(
             color: MonoPulseColors.textTertiary,
-            fontWeight: MonoPulseTypography.regular,
           ),
         );
         labelPaint.layout();
@@ -122,10 +120,8 @@ class _TickMarksPainter extends CustomPainter {
 
           labelPaint.text = TextSpan(
             text: subLabel,
-            style: const TextStyle(
-              fontSize: 14,
+            style: MonoPulseTypography.bodyMedium.copyWith(
               color: MonoPulseColors.textTertiary,
-              fontWeight: MonoPulseTypography.regular,
             ),
           );
           labelPaint.layout();

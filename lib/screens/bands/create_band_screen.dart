@@ -13,11 +13,11 @@ import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/invite_code_field.dart';
 import '../../widgets/primary_action_bar.dart';
-import '../../utils/snackbar.dart';
 
 /// Screen for creating or editing a band with comprehensive error handling.
 class CreateBandScreen extends ConsumerStatefulWidget {

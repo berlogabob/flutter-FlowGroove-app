@@ -8,9 +8,10 @@ import '../../../models/rehearsal.dart';
 import '../../../models/setlist.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
+import '../../../theme/mono_pulse_theme.dart';
+import '../../../utils/snackbar.dart';
 import '../../../widgets/standard_screen_scaffold.dart';
 import 'rehearsal_format.dart';
-import '../../../utils/snackbar.dart';
 
 /// Create or edit a rehearsal proposal (candidate slots + members + setlist).
 class RehearsalEditScreen extends ConsumerStatefulWidget {
@@ -171,7 +172,7 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
     return StandardScreenScaffold(
       title: widget.rehearsal == null ? 'New Rehearsal' : 'Edit Rehearsal',
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         children: [
           TextField(
             controller: _title,
@@ -264,7 +265,7 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
   }
 
   Widget _sectionLabel(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
+    padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
     child: Text(text, style: Theme.of(context).textTheme.titleSmall),
   );
 }

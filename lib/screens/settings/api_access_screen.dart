@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../../services/mcp_api_key_service.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/custom_app_bar.dart';
 
 /// Manages per-user API keys for the MCP endpoint: mint (shown once), list, revoke,
 /// plus a short "connect your AI" guide.
@@ -136,23 +136,23 @@ class _ApiAccessScreenState extends State<ApiAccessScreen> {
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
-          _GuideCard(gatewayUrl: ApiAccessScreen.gatewayUrl),
+          const _GuideCard(gatewayUrl: ApiAccessScreen.gatewayUrl),
           const SizedBox(height: MonoPulseSpacing.lg),
-          Text('Your keys', style: MonoPulseTypography.titleMedium),
+          const Text('Your keys', style: MonoPulseTypography.titleMedium),
           const SizedBox(height: MonoPulseSpacing.sm),
           FutureBuilder<List<ApiKeyInfo>>(
             future: _keys,
             builder: (context, snap) {
               if (snap.connectionState == ConnectionState.waiting) {
                 return const Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: EdgeInsets.all(MonoPulseSpacing.xxl),
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
               final keys = snap.data ?? const [];
               if (keys.isEmpty) {
                 return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
                   child: Text('No keys yet. Create one to get started.'),
                 );
               }
@@ -197,7 +197,7 @@ class _GuideCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('How to connect', style: MonoPulseTypography.titleMedium),
+          const Text('How to connect', style: MonoPulseTypography.titleMedium),
           const SizedBox(height: 8),
           const Text('Gateway URL:'),
           SelectableText(
@@ -236,10 +236,10 @@ class _CreateKeySheetState extends State<_CreateKeySheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        left: MonoPulseSpacing.lg,
+        right: MonoPulseSpacing.lg,
+        top: MonoPulseSpacing.lg,
+        bottom: MediaQuery.of(context).viewInsets.bottom + MonoPulseSpacing.lg,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

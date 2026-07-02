@@ -218,7 +218,7 @@ class _Badge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final badge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: MonoPulseSpacing.xxs),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(MonoPulseRadius.small),

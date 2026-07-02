@@ -28,6 +28,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/song_suggestion.dart';
 import '../providers/song_autocomplete_provider.dart';
+import '../theme/mono_pulse_theme.dart';
 import 'suggestion_card.dart';
 
 /// Autocomplete TypeAhead widget for song search.
@@ -212,8 +213,8 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
           suffixIcon: _buildSuffixIcon(searchState.isLoading),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+            horizontal: MonoPulseSpacing.lg,
+            vertical: MonoPulseSpacing.md,
           ),
         ),
         textInputAction: TextInputAction.search,
@@ -232,7 +233,7 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
   Widget? _buildSuffixIcon(bool isLoading) {
     if (isLoading) {
       return const Padding(
-        padding: EdgeInsets.all(12),
+        padding: EdgeInsets.all(MonoPulseSpacing.md),
         child: SizedBox(
           width: 20,
           height: 20,
@@ -310,7 +311,7 @@ class _SuggestionDropdown extends StatelessWidget {
 
   Widget _buildErrorState(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -340,7 +341,7 @@ class _SuggestionDropdown extends StatelessWidget {
 
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -364,7 +365,7 @@ class _SuggestionDropdown extends StatelessWidget {
   Widget _buildSuggestionsList(BuildContext context) {
     return ListView.builder(
       shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xs),
       itemCount: suggestions.length,
       itemBuilder: (context, index) {
         final suggestion = suggestions[index];

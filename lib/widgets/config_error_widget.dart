@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/config_validator.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// Widget displayed when configuration validation fails
 ///
@@ -20,7 +21,7 @@ class ConfigErrorWidget extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
             child: MaxWidthBox(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -58,7 +59,7 @@ class ConfigErrorWidget extends StatelessWidget {
                       color: Theme.of(context).colorScheme.errorContainer,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -71,7 +72,7 @@ class ConfigErrorWidget extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         ...exception.errors.map((error) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -104,7 +105,7 @@ class ConfigErrorWidget extends StatelessWidget {
                         color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -116,7 +117,7 @@ class ConfigErrorWidget extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           ...exception.warnings.map((warning) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -169,7 +170,7 @@ class ConfigErrorWidget extends StatelessWidget {
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -206,7 +207,7 @@ class ConfigErrorWidget extends StatelessWidget {
     String text,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -229,7 +230,7 @@ class ConfigErrorWidget extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(top: 2),
+              padding: const EdgeInsets.only(top: MonoPulseSpacing.xxs),
               child: Text(
                 text,
                 style: Theme.of(context).textTheme.bodyMedium,

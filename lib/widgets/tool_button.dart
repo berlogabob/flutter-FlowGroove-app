@@ -112,7 +112,7 @@ class ToolButton extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: MonoPulseSpacing.sm,
-                    vertical: 2,
+                    vertical: MonoPulseSpacing.xxs,
                   ),
                   decoration: BoxDecoration(
                     color: MonoPulseColors.borderStrong,

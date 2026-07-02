@@ -227,7 +227,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MonoPulseColors.accentOrange,
                   foregroundColor: MonoPulseColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                   ),

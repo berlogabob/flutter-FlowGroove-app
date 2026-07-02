@@ -317,7 +317,7 @@ class MetronomePatternEditor extends StatelessWidget {
           _cycleBeatMode(mode),
         ),
         child: Container(
-          margin: const EdgeInsets.all(2),
+          margin: const EdgeInsets.all(MonoPulseSpacing.xxs),
           decoration: BoxDecoration(
             color: mode == BeatMode.silent
                 ? Colors.transparent
@@ -421,7 +421,7 @@ class MetronomePatternEditor extends StatelessWidget {
           child: icon != null
               ? Icon(icon, color: color, size: 10)
               : Container(
-                  margin: const EdgeInsets.all(4),
+                  margin: const EdgeInsets.all(MonoPulseSpacing.xs),
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,

@@ -101,7 +101,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   /// Builds a single requirement row with checkmark or bullet.
   Widget _buildRequirement(String text, bool isMet) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
       child: Row(
         children: [
           Icon(
@@ -218,7 +218,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _register,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
                 ),
                 child: _isLoading
                     ? const SizedBox(

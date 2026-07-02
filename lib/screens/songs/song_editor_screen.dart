@@ -122,7 +122,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
       context: context,
       builder: (dctx) => Dialog(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
           child: SectionPicker(
             onSectionSelected: (name) {
               Navigator.pop(dctx);
@@ -271,7 +271,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
                 ? null
                 : () => setState(() => _mapExpanded = !_mapExpanded),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 8, 4),
+              padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.lg, 10, MonoPulseSpacing.sm, MonoPulseSpacing.xs),
               child: Row(
                 children: [
                   Expanded(
@@ -299,7 +299,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
           // Second line: thin proportional song-map graph.
           if (sections.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.lg, 0, MonoPulseSpacing.lg, 10),
               child: _thinMap(sections),
             )
           else
@@ -360,7 +360,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
   Widget _reorderList(List<Section> sections) {
     return ReorderableListView.builder(
       shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
       itemCount: sections.length,
       onReorderItem: (oldIndex, newIndex) {
         final list = [..._sync.sections];
@@ -375,7 +375,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
           direction: DismissDirection.endToStart,
           background: Container(
             alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
+            padding: const EdgeInsets.only(right: MonoPulseSpacing.xl),
             color: MonoPulseColors.error,
             child: const Icon(Icons.delete, color: MonoPulseColors.textPrimary),
           ),

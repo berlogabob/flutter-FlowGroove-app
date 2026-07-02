@@ -106,8 +106,8 @@ class SuggestionSelectionDialog extends StatelessWidget {
       ),
       actions: _buildActions(context),
       actionsPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
+        horizontal: MonoPulseSpacing.lg,
+        vertical: MonoPulseSpacing.sm,
       ),
     );
   }

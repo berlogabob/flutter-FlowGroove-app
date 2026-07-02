@@ -7,6 +7,7 @@ import '../models/tuner_preset.dart';
 import '../providers/tuner_provider.dart';
 import '../services/analytics_service.dart';
 import '../theme/mono_pulse_theme.dart';
+import '../utils/snackbar.dart';
 import '../widgets/tools/tool_mode_switcher.dart';
 import '../widgets/tools/tool_scaffold.dart';
 import '../widgets/tuner/central_dial.dart';
@@ -16,7 +17,6 @@ import '../widgets/tuner/instrument_picker.dart';
 import '../widgets/tuner/settings_sheet.dart';
 import '../widgets/tuner/stage_mode_overlay.dart';
 import '../widgets/tuner/transport_bar.dart';
-import '../utils/snackbar.dart';
 
 /// Tuner Screen - Mono Pulse Design (Post-MVP)
 ///

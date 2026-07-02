@@ -28,14 +28,14 @@ class SectionCard extends StatelessWidget {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.symmetric(
-        vertical: 4,
+        vertical: MonoPulseSpacing.xs,
         horizontal: MonoPulseSpacing.sm,
       ),
       child: ListTile(
         onTap: onTap,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: MonoPulseSpacing.lg,
-          vertical: 8,
+          vertical: MonoPulseSpacing.sm,
         ),
         leading: _buildColorIndicator(color),
         title: _buildTitle(context),

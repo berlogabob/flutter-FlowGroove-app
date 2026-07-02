@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
+
 import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/user_avatar.dart';
-import '../../utils/snackbar.dart';
 
 class BandAboutScreen extends ConsumerStatefulWidget {
 
@@ -222,7 +223,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     VoidCallback? onTap,
   }) {
     final chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: 6),
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(MonoPulseRadius.huge),

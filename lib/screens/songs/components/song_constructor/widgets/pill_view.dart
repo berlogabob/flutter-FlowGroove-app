@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../../../models/section.dart';
+import '../../../../../theme/mono_pulse_theme.dart';
 import '../core/theme/app_colors.dart';
 
 /// Pill visualization widget for collapsed state.
@@ -30,7 +32,7 @@ class PillView extends StatelessWidget {
         ).colorScheme.primaryContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppDimensions.pillBorderRadius),
       ),
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       child: Row(
         children: sections.map((section) {
           return Expanded(

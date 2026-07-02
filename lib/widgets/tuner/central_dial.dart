@@ -483,8 +483,8 @@ class _RadialGradientOverlay extends StatelessWidget {
         gradient: RadialGradient(
           radius: 0.9,
           colors: [
-            Color(0xFF1A1A1A), // Lighter center
-            Color(0xFF0D0D0D), // Darker edges
+            MonoPulseColors.surfaceRaised, // Lighter center
+            MonoPulseColors.blackSurface, // Darker edges
           ],
           stops: [0.0, 1.0],
         ),

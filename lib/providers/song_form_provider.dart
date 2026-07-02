@@ -12,6 +12,7 @@ import '../repositories/song_repository.dart';
 import '../screens/songs/models/song_form_data.dart';
 import '../services/analytics_service.dart';
 import '../services/matching/fuzzy_matcher.dart';
+import '../theme/mono_pulse_theme.dart';
 import '../utils/song_tags.dart';
 import 'data/data_providers.dart';
 
@@ -603,7 +604,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+        icon: const Icon(Icons.warning_amber_rounded, color: MonoPulseColors.warning),
         title: const Text('Similar Song Exists'),
         content: Column(
           mainAxisSize: MainAxisSize.min,

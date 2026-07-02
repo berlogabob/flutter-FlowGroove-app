@@ -69,8 +69,8 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
                 hintText: widget.hintText,
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                  horizontal: MonoPulseSpacing.lg,
+                  vertical: MonoPulseSpacing.sm,
                 ),
               ),
               controller: _controller,
@@ -81,7 +81,7 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
 
           // Sort dropdown
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
             child: DropdownButton<SortOption>(
               value: widget.currentSort,
               onChanged: widget.onSortChanged,
