@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/band.dart';
+import '../models/rehearsal.dart';
 import '../models/setlist.dart';
 import '../models/song.dart';
 import '../models/tuner_launch_context.dart';
@@ -21,6 +22,9 @@ import '../screens/bands/band_songs_screen.dart';
 import '../screens/bands/create_band_screen.dart';
 import '../screens/bands/join_band_screen.dart';
 import '../screens/bands/my_bands_screen.dart';
+import '../screens/bands/rehearsals/rehearsal_detail_screen.dart';
+import '../screens/bands/rehearsals/rehearsal_edit_screen.dart';
+import '../screens/bands/rehearsals/rehearsals_list_screen.dart';
 import '../screens/bands/the_band_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
@@ -348,6 +352,47 @@ List<RouteBase> _buildAppRoutes() {
                     bandId: state.pathParameters['id'],
                     extra: state.extra as Band?,
                     builder: (band) => BandMembersScreen(band: band),
+                  ),
+                ),
+                GoRoute(
+                  path: ':id/rehearsals',
+                  name: 'band-rehearsals',
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    extra: state.extra as Band?,
+                    builder: (band) => RehearsalsListScreen(band: band),
+                  ),
+                ),
+                // 'create' before ':rid' so it isn't matched as rid="create".
+                GoRoute(
+                  path: ':id/rehearsals/create',
+                  name: 'create-rehearsal',
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    extra: state.extra as Band?,
+                    builder: (band) => RehearsalEditScreen(band: band),
+                  ),
+                ),
+                GoRoute(
+                  path: ':id/rehearsals/:rid/edit',
+                  name: 'edit-rehearsal',
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    builder: (band) => RehearsalEditScreen(
+                      band: band,
+                      rehearsal: state.extra as Rehearsal?,
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: ':id/rehearsals/:rid',
+                  name: 'rehearsal-detail',
+                  builder: (context, state) => BandRouteResolver(
+                    bandId: state.pathParameters['id'],
+                    builder: (band) => RehearsalDetailScreen(
+                      band: band,
+                      rehearsalId: state.pathParameters['rid']!,
+                    ),
                   ),
                 ),
               ],

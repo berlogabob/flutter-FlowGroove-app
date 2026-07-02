@@ -237,6 +237,32 @@ service cloud.firestore {
         isGlobalBandAdmin(bandId);
     }
 
+    // Rehearsal proposals/events — one merged lifecycle per band.
+    match /bands/{bandId}/rehearsals/{rehearsalId} {
+      // Band members can read
+      allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+
+      // Band editors/admins can create and update (non-demo only)
+      allow create, update: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandEditorOrAdmin(bandId);
+
+      // Band admins can delete (non-demo only)
+      allow delete: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandAdmin(bandId);
+
+      // Votes — each member owns exactly their own vote doc (docId == uid).
+      match /votes/{uid} {
+        allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+        allow create, update: if isAuthenticated() &&
+          isNotDemo(request.auth.uid) &&
+          isGlobalBandMember(bandId) &&
+          request.auth.uid == uid;
+        allow delete: if isAuthenticated() && request.auth.uid == uid;
+      }
+    }
+
     // ============================================================
     // Users Collection - each user has their own subcollections
     // ============================================================

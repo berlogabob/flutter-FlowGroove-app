@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/band.dart';
 import '../../models/canonical_song.dart';
+import '../../models/rehearsal.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../repositories/repositories.dart';
@@ -62,6 +63,14 @@ final bandRepositoryProvider = Provider<BandRepository>((ref) {
 /// ```
 final setlistRepositoryProvider = Provider<SetlistRepository>((ref) {
   return FirestoreSetlistRepository(
+    firestore: ref.watch(firebaseFirestoreProvider),
+    auth: ref.watch(firebaseAuthProvider),
+  );
+});
+
+/// Provider for the RehearsalRepository.
+final rehearsalRepositoryProvider = Provider<RehearsalRepository>((ref) {
+  return FirestoreRehearsalRepository(
     firestore: ref.watch(firebaseFirestoreProvider),
     auth: ref.watch(firebaseAuthProvider),
   );
@@ -275,6 +284,32 @@ final bandSetlistsProvider = StreamProvider.family<List<Setlist>, String>((
 ) {
   final setlistRepo = ref.watch(setlistRepositoryProvider);
   return setlistRepo.watchBandSetlists(bandId);
+});
+
+/// Stream provider that watches rehearsals for a band.
+final bandRehearsalsProvider = StreamProvider.family<List<Rehearsal>, String>((
+  ref,
+  bandId,
+) {
+  final repo = ref.watch(rehearsalRepositoryProvider);
+  return repo.watchRehearsals(bandId);
+});
+
+/// Stream provider that watches a single rehearsal ((bandId, rehearsalId)).
+final rehearsalProvider =
+    StreamProvider.family<Rehearsal?, (String, String)>((ref, key) {
+  final repo = ref.watch(rehearsalRepositoryProvider);
+  return repo.watchRehearsal(key.$1, key.$2);
+});
+
+/// Stream provider that watches votes for a rehearsal ((bandId, rehearsalId)).
+final rehearsalVotesProvider =
+    StreamProvider.family<Map<String, RehearsalVote>, (String, String)>((
+  ref,
+  key,
+) {
+  final repo = ref.watch(rehearsalRepositoryProvider);
+  return repo.watchVotes(key.$1, key.$2);
 });
 
 /// Stream provider that watches band songs with caching.

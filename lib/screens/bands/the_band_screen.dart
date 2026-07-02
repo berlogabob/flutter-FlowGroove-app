@@ -367,6 +367,15 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   List<ToolButton> _buildTools() {
     return [
       ToolButton(
+        icon: Icons.event_available,
+        label: 'Rehearsals',
+        onTap: () => context.goNamed(
+          'band-rehearsals',
+          pathParameters: {'id': widget.band.id},
+          extra: widget.band,
+        ),
+      ),
+      ToolButton(
         icon: Icons.tune,
         label: 'Tuner',
         onTap: () => context.goNamed('tuner'),

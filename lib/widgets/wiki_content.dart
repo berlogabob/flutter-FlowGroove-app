@@ -47,6 +47,7 @@ const _pages = <String>{
   'home',
   'songs',
   'bands',
+  'rehearsals',
   'setlists',
   'profile',
   'metronome',

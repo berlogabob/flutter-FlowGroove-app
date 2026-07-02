@@ -45,6 +45,7 @@ void main() {
       expect(wikiKeyForHref('home/'), 'home');
       expect(wikiKeyForHref('songs.md'), 'songs');
       expect(wikiKeyForHref('concert-mode/'), 'concert-mode');
+      expect(wikiKeyForHref('../rehearsals/'), 'rehearsals');
       expect(wikiKeyForHref('./tuner'), 'tuner');
     });
     test('strips query and fragment', () {
