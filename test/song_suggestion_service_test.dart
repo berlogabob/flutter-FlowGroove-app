@@ -30,6 +30,23 @@ class _EmptySongRepo implements SongRepository {
       throw UnimplementedError(invocation.memberName.toString());
 }
 
+/// Song repository stub with a fixed personal library.
+class _LibrarySongRepo extends _EmptySongRepo {
+  _LibrarySongRepo(this.songs);
+  final List<Song> songs;
+
+  @override
+  Future<List<Song>> getSongs(String uid) async => songs;
+}
+
+Song _song(String id, String title, String artist) => Song(
+      id: id,
+      title: title,
+      artist: artist,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+
 MusicBrainzRecording _rec(String id, String title) =>
     MusicBrainzRecording(id: id, title: title);
 
@@ -68,6 +85,25 @@ void main() {
 
     final results = await service.getSuggestions(query: 'bohemian rhapsody');
     expect(results.map((s) => s.title), isNot(contains('Hit the Road Jack')));
+  });
+
+  test('#78: an unrelated Cyrillic song in the PERSONAL library is not '
+      'suggested for a partial Latin query, but the real match is', () async {
+    final service = SongSuggestionService(
+      songRepo: _LibrarySongRepo([
+        _song('s1', 'Надежда на', 'Полина'), // unrelated own-library song
+        _song('s2', 'Hit the Lights', 'Metallica'),
+      ]),
+      musicBrainz: _FakeMusicBrainz([]),
+      userId: 'u1',
+    );
+
+    // Partial title, artist not typed yet — the reported repro.
+    final results = await service.getSuggestions(query: 'hit the li');
+
+    final titles = results.map((s) => s.title).toList();
+    expect(titles, contains('Hit the Lights'));
+    expect(titles, isNot(contains('Надежда на')));
   });
 
   test('#76: SongSuggestion.fromSpotify carries source + spotifyId for autofill',
