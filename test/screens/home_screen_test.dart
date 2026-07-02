@@ -141,9 +141,10 @@ void main() {
 
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
 
-      expect(find.byType(ToolButton), findsNWidgets(2));
+      expect(find.byType(ToolButton), findsNWidgets(3));
       expect(find.text('Tuner'), findsOneWidget);
       expect(find.text('Metronome'), findsOneWidget);
+      expect(find.text('Rehearsals'), findsOneWidget);
     });
 
     testWidgets('displays loading state when user data is loading', (

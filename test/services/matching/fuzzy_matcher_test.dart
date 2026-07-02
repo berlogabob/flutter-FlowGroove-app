@@ -150,4 +150,36 @@ void main() {
       expect(Soundex.isSimilar('', 'hello'), isFalse);
     });
   });
+
+  group('FuzzyMatcher.calculateMatchScore (issue #78)', () {
+    test('unrelated Cyrillic song scores below threshold for latin query', () {
+      final result = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'hit the li',
+        inputArtist: '',
+        targetTitle: 'Надежда на',
+        targetArtist: 'Полина',
+      );
+      expect(result.overall, lessThan(0.6));
+    });
+
+    test('title prefix passes threshold when artist is not typed yet', () {
+      final result = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'hit the li',
+        inputArtist: '',
+        targetTitle: 'Hit the Lights',
+        targetArtist: 'Metallica',
+      );
+      expect(result.overall, greaterThanOrEqualTo(0.6));
+    });
+
+    test('Cyrillic query still matches Cyrillic title', () {
+      final result = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'Надежда',
+        inputArtist: '',
+        targetTitle: 'Надежда',
+        targetArtist: 'Анна Герман',
+      );
+      expect(result.overall, greaterThanOrEqualTo(0.9));
+    });
+  });
 }

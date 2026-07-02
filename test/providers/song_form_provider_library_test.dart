@@ -214,6 +214,60 @@ void main() {
       expect(repository.savedSong, isNull);
     });
   });
+
+  group('new-song draft id (issue #78 duplicates)', () {
+    late ProviderContainer container;
+    late _RecordingSongRepository repository;
+
+    setUp(() {
+      container = ProviderContainer();
+      repository = _RecordingSongRepository();
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test('autoSave reuses the same song id across calls', () async {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Hit the Lights');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      notifier.updateArtist('Metallica');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      expect(repository.savedSongs, hasLength(2));
+      expect(repository.savedSongs[0].id, repository.savedSongs[1].id);
+    });
+
+    test('manual save after autoSave keeps the autosaved id', () async {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Hit the Lights');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      notifier.updateArtist('Metallica');
+      await notifier.saveSong(songRepo: repository, uid: 'user-1');
+
+      expect(repository.savedSongs, hasLength(2));
+      expect(repository.savedSongs[0].id, repository.savedSongs[1].id);
+    });
+
+    test('reset starts a fresh draft id', () async {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Song A');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      notifier.reset();
+      notifier.updateTitle('Song B');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      expect(repository.savedSongs, hasLength(2));
+      expect(
+        repository.savedSongs[0].id,
+        isNot(repository.savedSongs[1].id),
+      );
+    });
+  });
 }
 
 class _FakeCanonicalSongFunctionService
@@ -256,6 +310,7 @@ class _RecordingSongRepository implements SongRepository {
   Song? updatedSong;
   Song? savedBandSong;
   Song? updatedBandSong;
+  final savedSongs = <Song>[];
 
   @override
   Future<void> addSongToBand({
@@ -294,6 +349,7 @@ class _RecordingSongRepository implements SongRepository {
   @override
   Future<void> saveSong(Song song, {String? uid}) async {
     savedSong = song;
+    savedSongs.add(song);
   }
 
   @override

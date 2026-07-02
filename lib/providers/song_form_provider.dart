@@ -80,6 +80,16 @@ class SongFormState {
 
 /// Notifier for managing song form state.
 class SongFormStateNotifier extends Notifier<SongFormState> {
+  /// Stable id for the new song being drafted. Reused by every autosave and
+  /// the manual save so repeated saves overwrite one Firestore doc instead of
+  /// minting a new copy each time (#78).
+  String? _draftId;
+
+  String _newSongId(bool isEditing, Song? existingSong) {
+    if (isEditing && existingSong != null) return existingSong.id;
+    return _draftId ??= const Uuid().v4();
+  }
+
   @override
   SongFormState build() {
     return SongFormState.initial();
@@ -87,10 +97,12 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
   /// Initialize form with existing song data.
   void initFromSong(Song song) {
+    _draftId = null;
     state = SongFormState.fromSong(song);
   }
 
   void initFromFormData(SongFormData formData) {
+    _draftId = null;
     state = SongFormState(formData: formData);
   }
 
@@ -273,9 +285,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
     try {
       final song = state.formData.toSong(
-        id: isEditing && existingSong != null
-            ? existingSong.id
-            : const Uuid().v4(),
+        id: _newSongId(isEditing, existingSong),
         createdAt: isEditing && existingSong != null
             ? existingSong.createdAt
             : DateTime.now(),
@@ -357,9 +367,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
     try {
       final song = state.formData.toSong(
-        id: isEditing && existingSong != null
-            ? existingSong.id
-            : const Uuid().v4(),
+        id: _newSongId(isEditing, existingSong),
         createdAt: isEditing && existingSong != null
             ? existingSong.createdAt
             : DateTime.now(),
@@ -392,11 +400,13 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
   /// Reset form to initial state.
   void reset() {
+    _draftId = null;
     state = SongFormState.initial();
   }
 
   /// Reset form from song.
   void resetFromSong(Song song) {
+    _draftId = null;
     state = SongFormState.fromSong(song);
   }
 

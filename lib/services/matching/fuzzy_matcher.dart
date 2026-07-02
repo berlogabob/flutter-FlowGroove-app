@@ -279,8 +279,16 @@ class FuzzyMatcher {
     
     // Weighted average
     double overallScore;
-    
-    if (albumScore > 0) {
+
+    if (normInputArtist.isEmpty) {
+      // Artist not typed yet (partial query) — scoring the empty artist
+      // against targets would dilute real title matches below the display
+      // threshold and inflate junk whose artist also normalizes to empty.
+      // ponytail: 0.9 damping keeps Jaro-Winkler noise between unrelated
+      // titles (~0.6) under the 0.6 cutoff; swap for a stricter title
+      // algorithm if junk still leaks through.
+      overallScore = titleScore * 0.9;
+    } else if (albumScore > 0) {
       overallScore = (titleScore * 0.5) + (artistScore * 0.3) + (albumScore * 0.2);
     } else {
       // No album, reweight
@@ -299,7 +307,11 @@ class FuzzyMatcher {
   static double _calculateTitleScore(String s1, String s2) {
     // Try exact match first
     if (s1 == s2) return 1;
-    
+
+    // An empty side matches nothing (guards `contains('')` scoring 0.9
+    // against titles that normalize away entirely).
+    if (s1.isEmpty || s2.isEmpty) return 0;
+
     // Try contains match
     if (s2.contains(s1) || s1.contains(s2)) {
       return 0.9;
@@ -330,8 +342,11 @@ class FuzzyMatcher {
     return s
         .toLowerCase()
         .trim()
-        .replaceAll(RegExp(r'[^\w\s]'), '') // Remove punctuation
-        .replaceAll(RegExp(r'\s+'), ' '); // Normalize whitespace
+        // Remove punctuation, keeping letters/digits in ANY script — Dart's
+        // \w is ASCII-only and silently erased Cyrillic titles (#78).
+        .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), '')
+        .replaceAll(RegExp(r'\s+'), ' ') // Normalize whitespace
+        .trim();
   }
 }
 

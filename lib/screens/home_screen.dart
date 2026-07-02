@@ -124,9 +124,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               label: 'Metronome',
               onTap: () => context.goNamed('metronome'),
             ),
+            ToolButton(
+              icon: Icons.event,
+              label: 'Rehearsals',
+              onTap: () => _openRehearsals(context, ref),
+            ),
           ],
         );
       },
+    );
+  }
+
+  /// Tools entry point for rehearsal schedules: one band goes straight to its
+  /// schedule, several bands show a picker first.
+  void _openRehearsals(BuildContext context, WidgetRef ref) {
+    final bands = ref.read(bandsProvider).value ?? [];
+    if (bands.isEmpty) {
+      context.goNamed('bands');
+      return;
+    }
+    if (bands.length == 1) {
+      context.goNamed(
+        'band-rehearsals',
+        pathParameters: {'id': bands.first.id},
+        extra: bands.first,
+      );
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            for (final band in bands)
+              ListTile(
+                leading: const Icon(Icons.event),
+                title: Text(band.name),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  context.goNamed(
+                    'band-rehearsals',
+                    pathParameters: {'id': band.id},
+                    extra: band,
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
     );
   }
 

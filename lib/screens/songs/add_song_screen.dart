@@ -140,6 +140,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       ref
           .read(songFormStateProvider.notifier)
           .initFromFormData(widget.initialFormData!);
+    } else {
+      // Fresh add: the provider is global, so without a reset the form shows
+      // the previous session's song and the exit autosave re-writes it as a
+      // duplicate (#78).
+      ref.read(songFormStateProvider.notifier).reset();
     }
 
     final formData = ref.read(songFormStateProvider).formData;

@@ -1,7 +1,9 @@
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/song_autocomplete_provider.dart';
+import 'package:flowgroove/providers/song_form_provider.dart';
 import 'package:flowgroove/screens/songs/add_song_screen.dart';
+import 'package:flowgroove/screens/songs/models/song_form_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -720,6 +722,30 @@ void main() {
       expect(find.byType(Form), findsOneWidget);
     });
 
+    testWidgets('add mode starts blank despite stale form state (issue #78)', (
+      tester,
+    ) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          autocompleteSearchProvider.overrideWith(
+            TestAutocompleteNotifier.new,
+          ),
+          // Simulate leftover state from a previously added/edited song.
+          songFormStateProvider.overrideWith(StaleFormNotifier.new),
+        ],
+      );
+
+      // The stale title must NOT leak into a fresh add-song form.
+      expect(find.text('Stale Song'), findsNothing);
+      expect(find.text('Stale Artist'), findsNothing);
+    });
+
     testWidgets('displays PopScope for auto-save on back', (
       tester,
     ) async {
@@ -742,6 +768,17 @@ void main() {
       expect(find.byWidgetPredicate((w) => w.runtimeType.toString().startsWith('PopScope')), findsOneWidget);
     });
   });
+}
+
+/// Simulates leftover global form state from a previous add/edit session.
+class StaleFormNotifier extends SongFormStateNotifier {
+  @override
+  SongFormState build() {
+    return SongFormState(
+      formData: SongFormData(title: 'Stale Song', artist: 'Stale Artist'),
+      hasUnsavedChanges: true,
+    );
+  }
 }
 
 /// Test autocomplete notifier that returns empty state
