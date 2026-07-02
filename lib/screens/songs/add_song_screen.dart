@@ -19,6 +19,7 @@ import '../../widgets/suggestion_selection_dialog.dart';
 import 'components/song_form.dart';
 import 'models/song_form_data.dart';
 import 'utils/add_song_screen_helper.dart';
+import '../../utils/snackbar.dart';
 
 /// Screen for adding or editing a song with comprehensive error handling.
 class AddSongScreen extends ConsumerStatefulWidget {
@@ -249,13 +250,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       }
       _applySpotifyKey(features.musicalKey);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Filled ${features.bpm} BPM · ${features.musicalKey} from Spotify',
-            ),
-          ),
-        );
+        showAppSnackBar(context, 'Filled ${features.bpm} BPM · ${features.musicalKey} from Spotify');
       }
     } catch (_) {
       // Non-fatal — autofill is best-effort (e.g. audio-features unavailable).

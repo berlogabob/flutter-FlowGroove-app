@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../theme/mono_pulse_theme.dart';
 import '../../../../widgets/loading_indicator.dart';
+import '../../../../utils/snackbar.dart';
 
 class SongImportDialog extends StatefulWidget {
   const SongImportDialog({required this.librarySongs, super.key});
@@ -138,13 +139,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
   Future<void> _copyAiPrompt() async {
     await Clipboard.setData(ClipboardData(text: songImportPrompt()));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'AI prompt copied — paste it into your AI, then paste the result here.',
-        ),
-      ),
-    );
+    showAppSnackBar(context, 'AI prompt copied — paste it into your AI, then paste the result here.');
   }
 
   Widget _buildAnalysis(SongImportAnalysis analysis) {

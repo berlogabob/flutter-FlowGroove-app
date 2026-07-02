@@ -23,6 +23,7 @@ import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../setlists/create_setlist_screen.dart';
+import '../../utils/snackbar.dart';
 
 class BandSetlistsScreen extends ConsumerStatefulWidget {
   const BandSetlistsScreen({required this.band, super.key});
@@ -299,9 +300,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
         .read(metronomeProvider.notifier)
         .loadSetlistQueue(setlist, availableSongs: songs, sourceBandId: widget.band.id);
     if (!loaded) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This setlist is empty or has unavailable songs.')),
-      );
+      showAppSnackBar(context, 'This setlist is empty or has unavailable songs.');
       return;
     }
     context.goNamed('metronome');
@@ -318,9 +317,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      showAppSnackBar(context, 'Error: $e');
     }
   }
 
@@ -345,9 +342,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     buffer.writeln('Created with FlowGroove');
 
     Clipboard.setData(ClipboardData(text: buffer.toString()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Setlist links copied to clipboard!')),
-    );
+    showAppSnackBar(context, 'Setlist links copied to clipboard!');
   }
 }
 

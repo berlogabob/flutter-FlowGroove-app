@@ -29,6 +29,7 @@ import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../performance_sheet_screen.dart';
 import 'components/csv_import_export/csv_import_export.dart';
+import '../../utils/snackbar.dart';
 
 /// Notifier for songs filter/sort state.
 class SongsFilterSortNotifier extends Notifier<SongsFilterSortState> {
@@ -200,12 +201,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       if (user == null) {
         if (!mounted) return;
         closeProgress();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error: User not logged in'),
-            backgroundColor: MonoPulseColors.error,
-          ),
-        );
+        showAppSnackBar(context, 'Error: User not logged in', error: true);
         return;
       }
 
@@ -279,12 +275,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to import songs'),
-            backgroundColor: MonoPulseColors.error,
-          ),
-        );
+        showAppSnackBar(context, 'Failed to import songs', error: true);
       }
 
       // Refresh songs list
@@ -292,12 +283,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     } catch (e) {
       if (!mounted) return;
       closeProgress();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Import error: $e'),
-          backgroundColor: MonoPulseColors.error,
-        ),
-      );
+      showAppSnackBar(context, 'Import error: $e', error: true);
     }
   }
 
@@ -1009,16 +995,12 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     } on ApiError catch (e) {
       _handleStreamError(e, StackTrace.current);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
+      showAppSnackBar(context, e.message);
     } catch (e, stackTrace) {
       final error = ApiError.fromException(e, stackTrace: stackTrace);
       _handleStreamError(error, stackTrace);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      showAppSnackBar(context, error.message);
     }
   }
 
@@ -1078,16 +1060,12 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     } on ApiError catch (e) {
       _handleStreamError(e, StackTrace.current);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
+      showAppSnackBar(context, e.message);
     } catch (e, stackTrace) {
       final error = ApiError.fromException(e, stackTrace: stackTrace);
       _handleStreamError(error, stackTrace);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      showAppSnackBar(context, error.message);
     }
   }
 }

@@ -10,6 +10,7 @@ import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../widgets/standard_screen_scaffold.dart';
 import 'rehearsal_format.dart';
+import '../../../utils/snackbar.dart';
 
 /// Create or edit a rehearsal proposal (candidate slots + members + setlist).
 class RehearsalEditScreen extends ConsumerStatefulWidget {
@@ -161,8 +162,7 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
     }
   }
 
-  void _snack(String msg) => ScaffoldMessenger.of(context)
-      .showSnackBar(SnackBar(content: Text(msg)));
+  void _snack(String msg) => showAppSnackBar(context, msg);
 
   @override
   Widget build(BuildContext context) {

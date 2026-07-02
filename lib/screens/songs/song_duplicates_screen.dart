@@ -8,6 +8,7 @@ import '../../providers/data/data_providers.dart';
 import '../../services/matching/song_duplicate_detector.dart';
 import '../../services/song_library_merge_service.dart';
 import 'song_merge_dialog.dart';
+import '../../utils/snackbar.dart';
 
 class SongDuplicatesScreen extends ConsumerStatefulWidget {
   const SongDuplicatesScreen({super.key});
@@ -126,9 +127,7 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
     ref.invalidate(songsProvider);
     ref.invalidate(setlistsProvider);
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Songs merged.')));
+      showAppSnackBar(context, 'Songs merged.');
     }
   }
 }

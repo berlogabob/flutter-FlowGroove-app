@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 import '../../../../theme/mono_pulse_theme.dart';
 import '../../../../widgets/loading_indicator.dart';
+import '../../../../utils/snackbar.dart';
 
 /// Dialog for exporting songs to CSV file.
 class SongExportDialog extends StatefulWidget {
@@ -185,9 +186,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
     final jsonStr = const SongJsonCodec().exportToString(widget.songs);
     await Clipboard.setData(ClipboardData(text: jsonStr));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${widget.songs.length} song(s) copied as JSON')),
-    );
+    showAppSnackBar(context, '${widget.songs.length} song(s) copied as JSON');
   }
 
   Future<void> _exportAndShare() async {

@@ -20,6 +20,7 @@ import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
+import '../../utils/snackbar.dart';
 
 class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});
@@ -256,9 +257,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
         .read(metronomeProvider.notifier)
         .loadSetlistQueue(setlist, availableSongs: _songsForSetlist(setlist));
     if (!loaded) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This setlist is empty or has unavailable songs.')),
-      );
+      showAppSnackBar(context, 'This setlist is empty or has unavailable songs.');
       return;
     }
     context.goNamed('metronome');
@@ -276,9 +275,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       await PdfService.exportSetlist(setlist, setlistSongs, layout: layout);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      showAppSnackBar(context, 'Error: $e');
     }
   }
 

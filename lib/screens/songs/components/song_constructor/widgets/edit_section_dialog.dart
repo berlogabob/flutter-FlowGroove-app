@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
 import '../../../../../widgets/chord_chart_view.dart';
+import '../../../../../utils/snackbar.dart';
 
 /// Dialog for editing a section's name, duration, and notes.
 class EditSectionDialog extends StatefulWidget {
@@ -206,11 +207,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 ElevatedButton(
                   onPressed: () {
                     if (_nameController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Section name cannot be empty'),
-                        ),
-                      );
+                      showAppSnackBar(context, 'Section name cannot be empty');
                       return;
                     }
                     Navigator.pop(context, {

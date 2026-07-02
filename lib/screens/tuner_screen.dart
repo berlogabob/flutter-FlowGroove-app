@@ -16,6 +16,7 @@ import '../widgets/tuner/instrument_picker.dart';
 import '../widgets/tuner/settings_sheet.dart';
 import '../widgets/tuner/stage_mode_overlay.dart';
 import '../widgets/tuner/transport_bar.dart';
+import '../utils/snackbar.dart';
 
 /// Tuner Screen - Mono Pulse Design (Post-MVP)
 ///
@@ -356,13 +357,7 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
     final presetScope = ref.read(tunerProvider).selectedPresetScope;
     if (contextData == null || presetId == null) return;
     if (presetScope == TunerPresetScope.local) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Save this custom preset to your account before linking it.',
-          ),
-        ),
-      );
+      showAppSnackBar(context, 'Save this custom preset to your account before linking it.');
       return;
     }
 
@@ -384,9 +379,7 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
       'target': itemId == null ? 'song' : 'setlist_item',
     });
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Tuning preset linked.')));
+      showAppSnackBar(context, 'Tuning preset linked.');
     }
   }
 }

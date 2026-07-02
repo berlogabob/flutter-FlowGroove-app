@@ -6,6 +6,7 @@ import '../../models/instrument.dart';
 import '../../models/tuner_preset.dart';
 import '../../providers/tuner_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 
 /// Custom Tuning Editor - Bottom sheet for creating custom tunings.
 ///
@@ -307,15 +308,9 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _scope == TunerPresetScope.local
+      showAppSnackBar(context, _scope == TunerPresetScope.local
                 ? 'The preset could not be saved.'
-                : 'Sign in and check your band permissions before syncing this preset.',
-          ),
-        ),
-      );
+                : 'Sign in and check your band permissions before syncing this preset.');
     }
   }
 }

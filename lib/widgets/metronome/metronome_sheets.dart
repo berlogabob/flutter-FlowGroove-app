@@ -7,6 +7,7 @@ import '../../models/metronome_tempo_range.dart';
 import '../../models/tempo_ramp.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 
 /// Shared bottom-sheet launcher for the metronome tool panels.
 Future<void> _showSheet(BuildContext context, Widget child) {
@@ -300,9 +301,7 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
       ref.read(metronomeProvider.notifier).startTempoRamp(ramp);
       Navigator.of(context).maybePop();
     } on ArgumentError catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message.toString())),
-      );
+      showAppSnackBar(context, e.message.toString());
     }
   }
 

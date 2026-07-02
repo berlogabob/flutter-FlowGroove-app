@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../services/mcp_api_key_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../utils/snackbar.dart';
 
 /// Manages per-user API keys for the MCP endpoint: mint (shown once), list, revoke,
 /// plus a short "connect your AI" guide.
@@ -111,7 +112,7 @@ class _ApiAccessScreenState extends State<ApiAccessScreen> {
 
   void _snack(String m) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+    showAppSnackBar(context, m);
   }
 
   @override

@@ -17,6 +17,7 @@ import '../../widgets/custom_app_bar.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/invite_code_field.dart';
 import '../../widgets/primary_action_bar.dart';
+import '../../utils/snackbar.dart';
 
 /// Screen for creating or editing a band with comprehensive error handling.
 class CreateBandScreen extends ConsumerStatefulWidget {
@@ -130,30 +131,20 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
         if (!_isEditing) {
           _showInviteCodeDialog(band.inviteCode!);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Band "${band.name}" ${_isEditing ? 'updated' : 'created'}!',
-              ),
-            ),
-          );
+          showAppSnackBar(context, 'Band "${band.name}" ${_isEditing ? 'updated' : 'created'}!');
           Navigator.pop(context);
         }
       }
     } on ApiError catch (e) {
       _handleError(e);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        showAppSnackBar(context, e.message);
       }
     } catch (e, stackTrace) {
       final error = ApiError.fromException(e, stackTrace: stackTrace);
       _handleError(error);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        showAppSnackBar(context, error.message);
       }
     } finally {
       if (mounted) {
@@ -210,9 +201,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                 IconButton(
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: inviteCode));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invite code copied!')),
-                    );
+                    showAppSnackBar(context, 'Invite code copied!');
                   },
                   icon: const Icon(Icons.copy),
                   tooltip: 'Copy',
