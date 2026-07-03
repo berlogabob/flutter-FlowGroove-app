@@ -8,6 +8,7 @@ import '../../providers/data/data_providers.dart';
 import '../../services/matching/song_duplicate_detector.dart';
 import '../../services/song_library_merge_service.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'song_merge_dialog.dart';
 
 class SongDuplicatesScreen extends ConsumerStatefulWidget {
@@ -43,7 +44,7 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
   Widget build(BuildContext context) {
     final songs = ref.watch(songsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Duplicate songs')),
+      appBar: CustomAppBar.build(context, title: 'Duplicate songs'),
       body: songs.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>

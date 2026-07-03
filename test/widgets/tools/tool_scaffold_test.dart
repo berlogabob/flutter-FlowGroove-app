@@ -176,7 +176,7 @@ void main() {
       expect(find.byIcon(Icons.more_horiz), findsOneWidget);
     });
 
-    testWidgets('does not render menu when menuItems is null', (
+    testWidgets('renders global menu even when menuItems is null', (
       tester,
     ) async {
       await _pumpToolScaffold(
@@ -187,7 +187,8 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.more_horiz), findsNothing);
+      // Issue #83: the 3-dot menu is always present (global items).
+      expect(find.byIcon(Icons.more_horiz), findsOneWidget);
     });
 
     testWidgets('uses ToolAppBar for app bar', (tester) async {

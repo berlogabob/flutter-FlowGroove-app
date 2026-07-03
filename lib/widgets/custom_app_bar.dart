@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/auth/auth_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 
 /// Custom AppBar with consistent back button and menu across all screens.
 ///
 /// Features:
 /// - Circular back button with border (consistent with Mono Pulse design)
-/// - Three dots menu button
+/// - Three dots menu button, always present (issue #83): screen-specific
+///   menu items on top, then global items (Profile, Sign out)
 /// - Haptic feedback on tap
 /// - 48px minimum touch zones
 ///
@@ -29,7 +32,8 @@ class CustomAppBar {
   ///
   /// [context] - Build context for navigation
   /// [title] - AppBar title text
-  /// [menuItems] - List of menu items (optional)
+  /// [menuItems] - Screen-specific menu items shown above the global ones
+  /// [actions] - Extra action widgets shown before the menu button
   /// [onBack] - Custom back action (optional, defaults to Navigator.pop)
   /// [isTool] - Whether this is a tool screen (uses titleLarge typography)
   static PreferredSizeWidget build(
@@ -37,6 +41,7 @@ class CustomAppBar {
     required String title,
     bool isTool = false,
     List<PopupMenuEntry<dynamic>>? menuItems,
+    List<Widget>? actions,
     VoidCallback? onBack,
   }) {
     return AppBar(
@@ -44,48 +49,7 @@ class CustomAppBar {
       foregroundColor: MonoPulseColors.textPrimary,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.light,
-      leading: GestureDetector(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          if (onBack != null) {
-            onBack();
-          } else {
-            // For StatefulShellRoute (Metronome/Tuner), always go home
-            // For normal routes, use pop
-            final currentRoute = GoRouterState.of(context).uri.path;
-            if (currentRoute.startsWith('/main/metronome') ||
-                currentRoute.startsWith('/main/tuner')) {
-              context.go('/main/home');
-            } else {
-              context.pop();
-            }
-          }
-        },
-        // minTapTarget touch zone
-        child: SizedBox(
-          width: MonoPulseSpacing.massive, // 48px
-          height: MonoPulseSpacing.massive,
-          child: Center(
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: MonoPulseColors.textSecondary,
-                  width: MonoPulseBorder.default_,
-                ),
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                color: MonoPulseColors.textSecondary,
-                size: MonoPulseIcons.sizeMedium,
-                semanticLabel: 'Back',
-              ),
-            ),
-          ),
-        ),
-      ),
+      leading: _backButton(context, onBack),
       title: Text(
         title,
         style:
@@ -98,109 +62,20 @@ class CustomAppBar {
                 ),
       ),
       centerTitle: true,
-      actions: menuItems != null
-          ? [
-              GestureDetector(
-                onTap: HapticFeedback.lightImpact,
-                // minTapTarget touch zone
-                child: SizedBox(
-                  width: MonoPulseSpacing.massive, // 48px
-                  height: MonoPulseSpacing.massive,
-                  child: Center(
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: MonoPulseColors.borderSubtle,
-                        ),
-                      ),
-                      child: PopupMenuButton<void>(
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(
-                          Icons.more_horiz,
-                          color: MonoPulseColors.textSecondary,
-                          size: MonoPulseIcons.sizeLarge,
-                        ),
-                        itemBuilder: (context) => menuItems,
-                        onSelected: (value) {},
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: MonoPulseSpacing.md),
-            ]
-          : [const SizedBox(width: MonoPulseSpacing.md)],
+      actions: [
+        ...?actions,
+        _menuButton(context, menuItems),
+        const SizedBox(width: MonoPulseSpacing.md),
+      ],
     );
   }
 
-  /// Builds a simple custom AppBar with only back button (no menu).
-  ///
-  /// Use this for screens that don't need a menu.
+  /// Builds a custom AppBar with only back button and the global menu.
   static PreferredSizeWidget buildSimple(
     BuildContext context, {
     required String title,
     VoidCallback? onBack,
-  }) {
-    return AppBar(
-      backgroundColor: MonoPulseColors.black,
-      foregroundColor: MonoPulseColors.textPrimary,
-      elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.light,
-      leading: GestureDetector(
-        onTap: () {
-          HapticFeedback.lightImpact();
-          if (onBack != null) {
-            onBack();
-          } else {
-            // For StatefulShellRoute (Metronome/Tuner), always go home
-            // For normal routes, use pop
-            final currentRoute = GoRouterState.of(context).uri.path;
-            if (currentRoute.startsWith('/main/metronome') ||
-                currentRoute.startsWith('/main/tuner')) {
-              context.go('/main/home');
-            } else {
-              context.pop();
-            }
-          }
-        },
-        // minTapTarget touch zone
-        child: SizedBox(
-          width: MonoPulseSpacing.massive, // 48px
-          height: MonoPulseSpacing.massive,
-          child: Center(
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: MonoPulseColors.textSecondary,
-                  width: MonoPulseBorder.default_,
-                ),
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                color: MonoPulseColors.textSecondary,
-                size: MonoPulseIcons.sizeMedium,
-                semanticLabel: 'Back',
-              ),
-            ),
-          ),
-        ),
-      ),
-      title: Text(
-        title,
-        style: MonoPulseTypography.headlineLarge.copyWith(
-          color: MonoPulseColors.textHighEmphasis,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      centerTitle: true,
-    );
-  }
+  }) => build(context, title: title, onBack: onBack);
 
   /// Builds a custom AppBar without back button (for main shell tabs).
   ///
@@ -225,40 +100,109 @@ class CustomAppBar {
         ),
       ),
       centerTitle: true,
-      actions: menuItems != null
-          ? [
-              GestureDetector(
-                onTap: HapticFeedback.lightImpact,
-                child: SizedBox(
-                  width: MonoPulseSpacing.massive, // 48px
-                  height: MonoPulseSpacing.massive,
-                  child: Center(
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: MonoPulseColors.textSecondary,
-                          width: MonoPulseBorder.default_,
-                        ),
-                      ),
-                      child: PopupMenuButton<void>(
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(
-                          Icons.more_horiz,
-                          color: MonoPulseColors.textSecondary,
-                          size: MonoPulseIcons.sizeLarge,
-                        ),
-                        itemBuilder: (context) => menuItems,
-                        onSelected: (value) {},
-                      ),
-                    ),
-                  ),
-                ),
+      actions: [
+        _menuButton(context, menuItems),
+        const SizedBox(width: MonoPulseSpacing.md),
+      ],
+    );
+  }
+
+  /// Global menu items appended to every screen's menu.
+  static List<PopupMenuEntry<dynamic>> _globalMenuItems(BuildContext context) {
+    return [
+      PopupMenuItem<void>(
+        onTap: () => context.go('/main/profile'),
+        child: const Text('Profile'),
+      ),
+      PopupMenuItem<void>(
+        onTap: () => ProviderScope.containerOf(context)
+            .read(appUserProvider.notifier)
+            .signOut(),
+        child: const Text('Sign out'),
+      ),
+    ];
+  }
+
+  static Widget _menuButton(
+    BuildContext context,
+    List<PopupMenuEntry<dynamic>>? menuItems,
+  ) {
+    return GestureDetector(
+      onTap: HapticFeedback.lightImpact,
+      // minTapTarget touch zone
+      child: SizedBox(
+        width: MonoPulseSpacing.massive, // 48px
+        height: MonoPulseSpacing.massive,
+        child: Center(
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: MonoPulseColors.borderSubtle),
+            ),
+            child: PopupMenuButton<void>(
+              padding: EdgeInsets.zero,
+              icon: const Icon(
+                Icons.more_horiz,
+                color: MonoPulseColors.textSecondary,
+                size: MonoPulseIcons.sizeLarge,
               ),
-            ]
-          : null,
+              itemBuilder: (_) => [
+                ...?menuItems,
+                if (menuItems != null && menuItems.isNotEmpty)
+                  const PopupMenuDivider(),
+                ..._globalMenuItems(context),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Widget _backButton(BuildContext context, VoidCallback? onBack) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        if (onBack != null) {
+          onBack();
+        } else {
+          // For StatefulShellRoute (Metronome/Tuner), always go home
+          // For normal routes, use pop
+          final currentRoute = GoRouterState.of(context).uri.path;
+          if (currentRoute.startsWith('/main/metronome') ||
+              currentRoute.startsWith('/main/tuner')) {
+            context.go('/main/home');
+          } else {
+            context.pop();
+          }
+        }
+      },
+      // minTapTarget touch zone
+      child: SizedBox(
+        width: MonoPulseSpacing.massive, // 48px
+        height: MonoPulseSpacing.massive,
+        child: Center(
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: MonoPulseColors.textSecondary,
+                width: MonoPulseBorder.default_,
+              ),
+            ),
+            child: const Icon(
+              Icons.arrow_back_ios_new,
+              color: MonoPulseColors.textSecondary,
+              size: MonoPulseIcons.sizeMedium,
+              semanticLabel: 'Back',
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

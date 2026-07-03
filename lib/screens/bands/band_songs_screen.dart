@@ -9,6 +9,7 @@ import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/snackbar.dart';
 import '../../../widgets/confirmation_dialog.dart';
+import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../widgets/song_attribution_badge.dart';
@@ -91,8 +92,9 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     final songsAsync = ref.watch(bandSongsProvider(widget.band.id));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('${widget.band.name} Songs'),
+      appBar: CustomAppBar.build(
+        context,
+        title: '${widget.band.name} Songs',
         actions: [
           if (_filterContributor != null)
             IconButton(
