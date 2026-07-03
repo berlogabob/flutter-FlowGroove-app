@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/api_error.dart';
 import '../../models/band.dart';
@@ -869,20 +870,71 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     );
   }
 
+  // ponytail: favorite = a 'favorite' tag, so it persists and filters via the
+  // existing tag system; promote to a Song field if it ever needs sorting.
+  static const _favoriteTag = 'favorite';
+
   List<UnifiedItemAction> _buildSongActions(
     SongItemAdapter adapter,
     List<Band> bands,
   ) {
+    final song = adapter.song;
+    final isFavorite = song.tags.contains(_favoriteTag);
     return [
-      if (adapter.song.hasSheetContent)
-        _OpenInPerformanceSheetAction(
-          onPressed: () => _openPerformanceSheet(adapter.song),
-        ),
-      _OpenInTunerAction(onPressed: () => _openInTuner(adapter.song)),
-      if (_hasMetronomeData(adapter.song))
-        _OpenInMetronomeAction(onPressed: () => _openInMetronome(adapter.song)),
-      if (bands.isNotEmpty) _buildAddToBandAction(adapter, bands),
+      IconAction(
+        icon: isFavorite ? Icons.star : Icons.star_border,
+        tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+        color: MonoPulseColors.accentOrange,
+        onPressed: () => _toggleFavorite(song),
+      ),
+      OverflowMenuAction(
+        entries: [
+          if (song.spotifyUrl != null)
+            ('Play on Spotify', Icons.play_circle_fill, () => _openSpotify(song)),
+          if (song.hasSheetContent)
+            (
+              'Performance sheet',
+              Icons.queue_music,
+              () => _openPerformanceSheet(song),
+            ),
+          ('Open in Tuner', Icons.tune, () => _openInTuner(song)),
+          if (_hasMetronomeData(song))
+            ('Open in Metronome', Icons.speed, () => _openInMetronome(song)),
+          for (final band in bands)
+            (
+              'Add to ${band.name}',
+              Icons.add_to_queue,
+              () => unawaited(_addToBand(song, band.id)),
+            ),
+        ],
+      ),
     ];
+  }
+
+  Future<void> _toggleFavorite(Song song) async {
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return;
+    final tags = song.tags.contains(_favoriteTag)
+        ? song.tags.where((t) => t != _favoriteTag).toList()
+        : [...song.tags, _favoriteTag];
+    try {
+      await ref
+          .read(songRepositoryProvider)
+          .saveSong(song.copyWith(tags: tags), uid: user.uid);
+      ref.invalidate(songsProvider);
+    } catch (e, stackTrace) {
+      final error = ApiError.fromException(e, stackTrace: stackTrace);
+      _handleStreamError(error, stackTrace);
+      if (!mounted) return;
+      showAppSnackBar(context, error.message);
+    }
+  }
+
+  Future<void> _openSpotify(Song song) async {
+    final uri = Uri.parse(song.spotifyUrl!);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   void _openPerformanceSheet(Song song) {
@@ -906,20 +958,6 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         song.accentBeats != 4 ||
         song.regularBeats != 1 ||
         song.beatModes.isNotEmpty;
-  }
-
-  /// Build "Add to Band" action for the trailing actions.
-  UnifiedItemAction _buildAddToBandAction(
-    SongItemAdapter adapter,
-    List<Band> bands,
-  ) {
-    return _AddToBandAction(
-      adapter: adapter,
-      bands: bands,
-      context: context,
-      ref: ref,
-      onAddToBand: _addToBand,
-    );
   }
 
   void _openInMetronome(Song song) {
@@ -1067,100 +1105,5 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       if (!mounted) return;
       showAppSnackBar(context, error.message);
     }
-  }
-}
-
-class _OpenInPerformanceSheetAction implements UnifiedItemAction {
-  const _OpenInPerformanceSheetAction({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      key: const ValueKey('open-in-performance-sheet-action'),
-      icon: const Icon(Icons.queue_music, size: 20),
-      color: MonoPulseColors.accentOrange,
-      tooltip: 'Performance sheet',
-      onPressed: onPressed,
-    );
-  }
-}
-
-class _OpenInMetronomeAction implements UnifiedItemAction {
-  const _OpenInMetronomeAction({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      key: const ValueKey('open-in-metronome-action'),
-      icon: const Icon(Icons.speed, size: 20),
-      color: MonoPulseColors.accentOrange,
-      tooltip: 'Open in Metronome',
-      onPressed: onPressed,
-    );
-  }
-}
-
-class _OpenInTunerAction implements UnifiedItemAction {
-  const _OpenInTunerAction({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      key: const ValueKey('open-in-tuner-action'),
-      icon: const Icon(Icons.tune, size: 20),
-      color: MonoPulseColors.accentOrange,
-      tooltip: 'Open in Tuner',
-      onPressed: onPressed,
-    );
-  }
-}
-
-/// Custom action for "Add to Band" functionality.
-class _AddToBandAction implements UnifiedItemAction {
-
-  _AddToBandAction({
-    required this.adapter,
-    required this.bands,
-    required this.context,
-    required this.ref,
-    required this.onAddToBand,
-  });
-  final SongItemAdapter adapter;
-  final List<Band> bands;
-  final BuildContext context;
-  final WidgetRef ref;
-  final Future<void> Function(Song, String) onAddToBand;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.add_to_queue, size: 20),
-      tooltip: 'Add to Band',
-      onSelected: (bandId) async {
-        await onAddToBand(adapter.song, bandId);
-      },
-      itemBuilder: (context) => [
-        ...bands.map(
-          (band) => PopupMenuItem<String>(
-            value: band.id,
-            child: Row(
-              children: [
-                const Icon(Icons.groups, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(band.name, overflow: TextOverflow.ellipsis),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }

@@ -58,6 +58,29 @@ void main() {
           'recording:(Test AND Song*) AND artist:"Test Artist"');
     });
 
+    test('no-artist query matches tokens against recording OR artist (#87)',
+        () async {
+      Uri? requested;
+      final service = MusicBrainzService(
+        client: MockClient((request) async {
+          requested = request.url;
+          return okResponse([recordingJson]);
+        }),
+      );
+
+      await service.searchRecording(title: 'ride the lightning metallica');
+
+      // The trailing "metallica" token must be able to match the artist,
+      // otherwise the original recording is never returned — only covers.
+      expect(
+        requested!.queryParameters['query'],
+        '(recording:ride OR artist:ride) AND '
+        '(recording:the OR artist:the) AND '
+        '(recording:lightning OR artist:lightning) AND '
+        '(recording:metallica* OR artist:metallica*)',
+      );
+    });
+
     test('throws ServerError on 500', () async {
       final service = MusicBrainzService(
         client: MockClient((request) async => http.Response('boom', 500)),

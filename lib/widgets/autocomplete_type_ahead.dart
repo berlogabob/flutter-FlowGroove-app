@@ -147,6 +147,8 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
                   width: MediaQuery.of(context).size.width - 32,
                   child: CompositedTransformFollower(
                     link: _layerLink,
+                    // Anchor below the field, not on top of it (#87).
+                    targetAnchor: Alignment.bottomLeft,
                     offset: const Offset(0, 4),
                     child: _SuggestionDropdown(
                       suggestions: searchState.suggestions,

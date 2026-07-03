@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'pdf_service.dart';
 
 /// Bottom sheet that lets the user pick a setlist PDF layout.
-/// Returns null if dismissed. Add option (c) chords+lyrics here when built.
+/// Returns null if dismissed.
 Future<SetlistPdfLayout?> pickSetlistPdfLayout(BuildContext context) =>
     _pickPdfLayout(
       context,
       asIsSubtitle: 'One card per song, full detail',
       compactIcon: Icons.format_list_bulleted,
       compactSubtitle: 'One line per song, fits on one list',
+      withPack: true,
     );
 
 /// Same picker for a song performance-sheet PDF (#79): "As is" flows across
@@ -27,6 +28,7 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
   required String asIsSubtitle,
   required IconData compactIcon,
   required String compactSubtitle,
+  bool withPack = false,
 }) {
   return showModalBottomSheet<SetlistPdfLayout>(
     context: context,
@@ -46,6 +48,15 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
             subtitle: Text(compactSubtitle),
             onTap: () => Navigator.pop(context, SetlistPdfLayout.compact),
           ),
+          if (withPack)
+            ListTile(
+              leading: const Icon(Icons.library_music),
+              title: const Text('SetlistPack'),
+              subtitle: const Text(
+                'Compact setlist + one-page sheet per song',
+              ),
+              onTap: () => Navigator.pop(context, SetlistPdfLayout.pack),
+            ),
         ],
       ),
     ),

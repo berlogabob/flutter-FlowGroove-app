@@ -70,7 +70,24 @@ class SongSuggestionService {
     }
 
     // Deduplicate and sort
-    final deduplicated = _deduplicateSuggestions(allSuggestions);
+    var deduplicated = _deduplicateSuggestions(allSuggestions);
+
+    // ponytail: bare query has no artist field — when a suggestion's artist
+    // is literally in what the user typed ("ride the lightning METALLICA"),
+    // it's the original, not a cover; boost it above the same-title ties.
+    // Naive substring; tighten to token matching if short names misfire.
+    if (artist.isEmpty) {
+      final q = query.toLowerCase();
+      deduplicated = deduplicated.map((s) {
+        final a = s.artist.toLowerCase().trim();
+        return a.length >= 3 && q.contains(a)
+            ? s.copyWith(
+                matchScore: (s.matchScore + 0.1).clamp(0.0, 1.0),
+              )
+            : s;
+      }).toList();
+    }
+
     deduplicated.sort((a, b) => b.matchScore.compareTo(a.matchScore));
 
     // Limit results

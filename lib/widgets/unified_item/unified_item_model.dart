@@ -94,7 +94,9 @@ class OverflowMenuAction implements UnifiedItemAction {
               children: [
                 Icon(entries[i].$2, size: 20),
                 const SizedBox(width: 12),
-                Text(entries[i].$1),
+                Expanded(
+                  child: Text(entries[i].$1, overflow: TextOverflow.ellipsis),
+                ),
               ],
             ),
           ),

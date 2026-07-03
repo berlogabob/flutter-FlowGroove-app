@@ -77,6 +77,39 @@ void main() {
       expect(suggestions.single.musicBrainzId, 'mb-1');
       expect(suggestions.single.source, SuggestionSource.canonical);
     });
+    test('ranks original above covers when artist is typed in query', () async {
+      // Bare query, no " - " separator: "ride the lightning metallica".
+      // MusicBrainz returns covers first; the original must outrank them (#87).
+      final service = SongSuggestionService(
+        musicBrainz: _FakeMusicBrainzService([
+          const MusicBrainzRecording(
+            id: 'mb-cover',
+            title: 'Ride the Lightning',
+            artistCredit: [
+              MusicBrainzArtistCredit(
+                artist: MusicBrainzArtist(id: 'a-cover', name: 'New Eden'),
+              ),
+            ],
+          ),
+          const MusicBrainzRecording(
+            id: 'mb-original',
+            title: 'Ride the Lightning',
+            artistCredit: [
+              MusicBrainzArtistCredit(
+                artist: MusicBrainzArtist(id: 'a-metallica', name: 'Metallica'),
+              ),
+            ],
+          ),
+        ]),
+      );
+
+      final suggestions = await service.getSuggestions(
+        query: 'ride the lightning metallica',
+      );
+
+      expect(suggestions, isNotEmpty);
+      expect(suggestions.first.artist, 'Metallica');
+    });
   });
 }
 

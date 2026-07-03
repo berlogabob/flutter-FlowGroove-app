@@ -8,7 +8,9 @@ import '../../models/song.dart';
 import '../../utils/chordpro.dart';
 
 /// PDF layout for a setlist export.
-enum SetlistPdfLayout { detailed, compact }
+/// [pack] = compact setlist page + every song as a one-page compact sheet
+/// (#84; roster/stage map/schedule pages come later).
+enum SetlistPdfLayout { detailed, compact, pack }
 
 class PdfService {
   /// Exports a single song's performance sheet (chords over lyrics per section)
@@ -30,93 +32,23 @@ class PdfService {
     final fontBold = await PdfGoogleFonts.robotoBold();
     final mono = await PdfGoogleFonts.robotoMonoRegular();
     final monoBold = await PdfGoogleFonts.robotoMonoBold();
-    final orange = PdfColor.fromHex('E65100');
 
-    // Header metadata mirrors the song card: key + derived scale, tempo, time,
-    // and the collapsed song map. All optional — omitted lines just don't render.
-    final metaLine = <String>[
-      if (songKey != null && songKey.trim().isNotEmpty)
-        '${songKey.trim()} · ${keyToScale(songKey).quality}',
-      if (bpm != null) '$bpm BPM',
-      if (timeTop != null) '$timeTop/4',
-    ].join('   ·   ');
-    final songMap = sections.isNotEmpty
-        ? songMapSummary(sections.map((s) => s.name).toList())
-        : '';
-
-    final blocks = <pw.Widget>[];
-    for (final section in sections) {
-      final chart = section.chordChart?.trim() ?? '';
-      if (chart.isEmpty && section.notes.trim().isEmpty) continue;
-
-      blocks.add(
-        pw.Text(
-          section.name,
-          style: pw.TextStyle(font: fontBold, fontSize: 14, color: orange),
-        ),
-      );
-      blocks.add(pw.SizedBox(height: 4));
-
-      if (chart.isNotEmpty) {
-        for (final line in transposeChordChart(chart, transpose).split('\n')) {
-          final co = chordsOverLyrics(line);
-          if (co.chords.isNotEmpty) {
-            blocks.add(
-              pw.Text(
-                co.chords,
-                style: pw.TextStyle(
-                  font: monoBold,
-                  fontSize: 10,
-                  color: orange,
-                ),
-              ),
-            );
-          }
-          blocks.add(
-            pw.Text(
-              co.lyrics.isEmpty ? ' ' : co.lyrics,
-              style: pw.TextStyle(font: mono, fontSize: 11),
-            ),
-          );
-        }
-      } else {
-        blocks.add(
-          pw.Text(section.notes, style: pw.TextStyle(font: font, fontSize: 11)),
-        );
-      }
-      blocks.add(pw.SizedBox(height: 14));
-    }
-
-    pw.Widget header() => pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(title, style: pw.TextStyle(font: fontBold, fontSize: 22)),
-        if (metaLine.isNotEmpty) ...[
-          pw.SizedBox(height: 4),
-          pw.Text(
-            metaLine,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 11,
-              color: PdfColor.fromHex('616161'),
-            ),
-          ),
-        ],
-        if (songMap.isNotEmpty) ...[
-          pw.SizedBox(height: 2),
-          pw.Text(
-            songMap,
-            style: pw.TextStyle(
-              font: font,
-              fontSize: 10,
-              color: PdfColor.fromHex('9E9E9E'),
-            ),
-          ),
-        ],
-        pw.SizedBox(height: 12),
-        pw.Divider(color: PdfColor.fromHex('E0E0E0')),
-        pw.SizedBox(height: 12),
-      ],
+    final blocks = _sheetBlocks(
+      sections,
+      transpose,
+      font: font,
+      fontBold: fontBold,
+      mono: mono,
+      monoBold: monoBold,
+    );
+    pw.Widget header() => _sheetHeader(
+      title,
+      sections,
+      songKey: songKey,
+      bpm: bpm,
+      timeTop: timeTop,
+      font: font,
+      fontBold: fontBold,
     );
 
     final empty = pw.Text(
@@ -125,20 +57,7 @@ class PdfService {
     );
 
     if (fitOnePage) {
-      pdf.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(32),
-          build: (context) => pw.FittedBox(
-            alignment: pw.Alignment.topLeft,
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              mainAxisSize: pw.MainAxisSize.min,
-              children: [header(), if (blocks.isEmpty) empty else ...blocks],
-            ),
-          ),
-        ),
-      );
+      pdf.addPage(_onePageSheet(header(), blocks, empty));
     } else {
       pdf.addPage(
         pw.MultiPage(
@@ -175,9 +94,9 @@ class PdfService {
     final font = await PdfGoogleFonts.robotoRegular();
     final fontBold = await PdfGoogleFonts.robotoBold();
 
-    final songWidgets = layout == SetlistPdfLayout.compact
-        ? _compactRows(songs, font, fontBold)
-        : _detailedRows(songs, font, fontBold);
+    final songWidgets = layout == SetlistPdfLayout.detailed
+        ? _detailedRows(songs, font, fontBold)
+        : _compactRows(songs, font, fontBold);
 
     pdf.addPage(
       pw.MultiPage(
@@ -250,11 +169,179 @@ class PdfService {
       ),
     );
 
-    final suffix = layout == SetlistPdfLayout.compact ? '_compact' : '';
+    // SetlistPack (#84): after the compact list, one compact sheet per song.
+    if (layout == SetlistPdfLayout.pack) {
+      final mono = await PdfGoogleFonts.robotoMonoRegular();
+      final monoBold = await PdfGoogleFonts.robotoMonoBold();
+      final empty = pw.Text(
+        'No lyrics or chords yet.',
+        style: pw.TextStyle(font: font),
+      );
+      for (final song in songs) {
+        pdf.addPage(
+          _onePageSheet(
+            _sheetHeader(
+              song.title,
+              song.sections,
+              songKey: song.ourKey,
+              bpm: song.ourBPM,
+              timeTop: song.accentBeats,
+              font: font,
+              fontBold: fontBold,
+            ),
+            _sheetBlocks(
+              song.sections,
+              0,
+              font: font,
+              fontBold: fontBold,
+              mono: mono,
+              monoBold: monoBold,
+            ),
+            empty,
+          ),
+        );
+      }
+    }
+
+    final suffix = switch (layout) {
+      SetlistPdfLayout.detailed => '',
+      SetlistPdfLayout.compact => '_compact',
+      SetlistPdfLayout.pack => '_pack',
+    };
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
       name: '${setlist.name.replaceAll(' ', '_')}_setlist$suffix.pdf',
     );
+  }
+
+  /// One-page A4 sheet: header + section blocks scaled to fit (#79 layout).
+  static pw.Page _onePageSheet(
+    pw.Widget header,
+    List<pw.Widget> blocks,
+    pw.Widget empty,
+  ) {
+    return pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      build: (context) => pw.FittedBox(
+        alignment: pw.Alignment.topLeft,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisSize: pw.MainAxisSize.min,
+          children: [header, if (blocks.isEmpty) empty else ...blocks],
+        ),
+      ),
+    );
+  }
+
+  /// Song-sheet header: title, key/BPM/time meta line, collapsed song map.
+  static pw.Widget _sheetHeader(
+    String title,
+    List<Section> sections, {
+    required String? songKey,
+    required int? bpm,
+    required int? timeTop,
+    required pw.Font font,
+    required pw.Font fontBold,
+  }) {
+    // Header metadata mirrors the song card: key + derived scale, tempo, time,
+    // and the collapsed song map. All optional — omitted lines just don't render.
+    final metaLine = <String>[
+      if (songKey != null && songKey.trim().isNotEmpty)
+        '${songKey.trim()} · ${keyToScale(songKey).quality}',
+      if (bpm != null) '$bpm BPM',
+      if (timeTop != null) '$timeTop/4',
+    ].join('   ·   ');
+    final songMap = sections.isNotEmpty
+        ? songMapSummary(sections.map((s) => s.name).toList())
+        : '';
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(title, style: pw.TextStyle(font: fontBold, fontSize: 22)),
+        if (metaLine.isNotEmpty) ...[
+          pw.SizedBox(height: 4),
+          pw.Text(
+            metaLine,
+            style: pw.TextStyle(
+              font: font,
+              fontSize: 11,
+              color: PdfColor.fromHex('616161'),
+            ),
+          ),
+        ],
+        if (songMap.isNotEmpty) ...[
+          pw.SizedBox(height: 2),
+          pw.Text(
+            songMap,
+            style: pw.TextStyle(
+              font: font,
+              fontSize: 10,
+              color: PdfColor.fromHex('9E9E9E'),
+            ),
+          ),
+        ],
+        pw.SizedBox(height: 12),
+        pw.Divider(color: PdfColor.fromHex('E0E0E0')),
+        pw.SizedBox(height: 12),
+      ],
+    );
+  }
+
+  /// Per-section chords-over-lyrics blocks of a song sheet.
+  static List<pw.Widget> _sheetBlocks(
+    List<Section> sections,
+    int transpose, {
+    required pw.Font font,
+    required pw.Font fontBold,
+    required pw.Font mono,
+    required pw.Font monoBold,
+  }) {
+    final orange = PdfColor.fromHex('E65100');
+    final blocks = <pw.Widget>[];
+    for (final section in sections) {
+      final chart = section.chordChart?.trim() ?? '';
+      if (chart.isEmpty && section.notes.trim().isEmpty) continue;
+
+      blocks.add(
+        pw.Text(
+          section.name,
+          style: pw.TextStyle(font: fontBold, fontSize: 14, color: orange),
+        ),
+      );
+      blocks.add(pw.SizedBox(height: 4));
+
+      if (chart.isNotEmpty) {
+        for (final line in transposeChordChart(chart, transpose).split('\n')) {
+          final co = chordsOverLyrics(line);
+          if (co.chords.isNotEmpty) {
+            blocks.add(
+              pw.Text(
+                co.chords,
+                style: pw.TextStyle(
+                  font: monoBold,
+                  fontSize: 10,
+                  color: orange,
+                ),
+              ),
+            );
+          }
+          blocks.add(
+            pw.Text(
+              co.lyrics.isEmpty ? ' ' : co.lyrics,
+              style: pw.TextStyle(font: mono, fontSize: 11),
+            ),
+          );
+        }
+      } else {
+        blocks.add(
+          pw.Text(section.notes, style: pw.TextStyle(font: font, fontSize: 11)),
+        );
+      }
+      blocks.add(pw.SizedBox(height: 14));
+    }
+    return blocks;
   }
 
   /// Boxed card per song, one row each (original layout).

@@ -11,8 +11,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:mockito/mockito.dart';
+
 import '../../helpers/metronome_test_runtime.dart';
+import '../../helpers/mocks.mocks.dart';
 import '../../helpers/routed_test_harness.dart';
+import '../../repositories/mock_repositories.dart';
+
+class _RecordingSongRepository extends MockSongRepository {
+  Song? lastSaved;
+
+  @override
+  Future<void> saveSong(Song song, {String? uid}) {
+    lastSaved = song;
+    return super.saveSong(song, uid: uid);
+  }
+}
 
 AppUser createTestUser() {
   return AppUser(
@@ -128,7 +142,12 @@ void main() {
       expect(find.text('130 BPM'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
       expect(find.byIcon(Icons.music_note), findsWidgets);
-      expect(find.byTooltip('Open in Tuner'), findsNWidgets(2));
+      expect(find.byTooltip('More'), findsNWidgets(2));
+      expect(find.byTooltip('Add to favorites'), findsNWidgets(2));
+
+      await tester.tap(find.byTooltip('More').first);
+      await tester.pumpAndSettle();
+      expect(find.text('Open in Tuner'), findsOneWidget);
     });
 
     testWidgets('shows metronome action for songs with tempo data', (
@@ -149,11 +168,9 @@ void main() {
         overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
       );
 
-      expect(find.byTooltip('Open in Metronome'), findsOneWidget);
-      expect(
-        find.byKey(const ValueKey('open-in-metronome-action')),
-        findsOneWidget,
-      );
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      expect(find.text('Open in Metronome'), findsOneWidget);
     });
 
     testWidgets('shows metronome action for saved beat pattern settings', (
@@ -173,7 +190,9 @@ void main() {
         overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
       );
 
-      expect(find.byTooltip('Open in Metronome'), findsOneWidget);
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      expect(find.text('Open in Metronome'), findsOneWidget);
     });
 
     testWidgets('opens song settings in metronome without starting playback', (
@@ -231,7 +250,9 @@ void main() {
       );
       await tester.pump();
 
-      await tester.tap(find.byTooltip('Open in Metronome'));
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Metronome'));
       await tester.pumpAndSettle();
 
       final metronomeState = container.read(metronomeProvider);
@@ -243,6 +264,34 @@ void main() {
       expect(metronomeState.regularBeats, 2);
       expect(metronomeState.beatModes, song.beatModes);
       expect(metronomeState.isPlaying, isFalse);
+    });
+
+    testWidgets('favorite star toggles the favorite tag', (tester) async {
+      final song = createTestSong(id: 'fav-song', title: 'Fav Song');
+      final repo = _RecordingSongRepository();
+      final firebaseUser = MockUser();
+      when(firebaseUser.uid).thenReturn('test-user-id');
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: [
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          // Fresh stream per listen: _toggleFavorite invalidates songsProvider,
+          // which re-subscribes.
+          songsProvider.overrideWith(
+            (ref) => Stream<List<Song>>.value([song]),
+          ),
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([])),
+          songRepositoryProvider.overrideWithValue(repo),
+          currentUserProvider.overrideWithValue(AsyncValue.data(firebaseUser)),
+        ],
+      );
+
+      await tester.tap(find.byTooltip('Add to favorites'));
+      await tester.pump();
+
+      expect(repo.lastSaved?.tags, contains('favorite'));
     });
 
     testWidgets('filters songs by title', (tester) async {

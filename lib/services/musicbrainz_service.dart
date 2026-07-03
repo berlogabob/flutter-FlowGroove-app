@@ -59,18 +59,24 @@ class MusicBrainzService {
         .where((t) => t.isNotEmpty)
         .toList();
     if (tokens.isEmpty) return [];
-    final expr = [
+    final terms = [
       ...tokens.take(tokens.length - 1),
       '${tokens.last}*',
-    ].join(' AND ');
+    ];
 
-    final queryParts = <String>['recording:($expr)'];
+    final String query;
     if (artist != null && artist.isNotEmpty) {
-      queryParts.add('artist:"$artist"');
+      query = 'recording:(${terms.join(' AND ')}) AND artist:"$artist"';
+    } else {
+      // Bare queries often end with the artist ("ride the lightning
+      // metallica"). Let each token match the title OR the artist, otherwise
+      // the original recording (artist token absent from its title) is never
+      // returned — only covers whose title/alias mentions the artist (#87).
+      query = terms.map((t) => '(recording:$t OR artist:$t)').join(' AND ');
     }
 
     return _search(
-      query: queryParts.join(' AND '),
+      query: query,
       limit: limit,
       offset: offset,
       inc: ['artists', 'releases', 'isrcs', 'aliases'],

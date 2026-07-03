@@ -42,7 +42,8 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
               ? MonoPulseTypography.bodyMedium.copyWith(
                   fontWeight: FontWeight.w500,
                 )
-              : MonoPulseTypography.bodyLarge.copyWith(
+              : MonoPulseTypography.titleLarge.copyWith(
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
         ),
