@@ -162,6 +162,10 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   @override
   Widget build(BuildContext context) {
     final setlistsAsync = ref.watch(bandSetlistsProvider(widget.band.id));
+    // Keep the autoDispose band-songs provider alive for this screen:
+    // _songsForSetlist awaits its .future, and without an active listener
+    // Riverpod disposes it mid-load ("disposed during loading state", #80).
+    ref.watch(bandSongsProvider(widget.band.id));
     final canEdit = _canEdit;
 
     return StandardScreenScaffold(
