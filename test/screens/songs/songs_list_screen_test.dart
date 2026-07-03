@@ -129,7 +129,8 @@ void main() {
       expect(find.text('Song Two'), findsOneWidget);
       expect(find.text('130 BPM'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
-      expect(find.byIcon(Icons.music_note), findsWidgets);
+      // Song cards deliberately have no leading icon — text gets the room.
+      expect(find.byIcon(Icons.music_note), findsNothing);
       expect(find.byTooltip('More'), findsNWidgets(2));
       expect(find.byTooltip('Practice mode'), findsNWidgets(2));
 

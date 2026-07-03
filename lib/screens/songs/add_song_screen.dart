@@ -7,6 +7,7 @@ import '../../models/song_suggestion.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
+import '../../services/api/deezer_service.dart';
 import '../../services/api/spotify_proxy_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
@@ -243,12 +244,31 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         _artistController.text = suggestion.artist;
     }
 
-    // Spotify suggestions carry no BPM/key at search time — fetch audio-features
-    // now (one lazy call) and fill what the user hasn't set.
+    // Suggestions carry no BPM at search time — fetch it now (one lazy call)
+    // and fill what the user hasn't set.
     final spotifyId = suggestion.spotifyId;
     if (spotifyId != null && spotifyId.isNotEmpty) {
       await _autofillFromSpotify(spotifyId);
+    } else {
+      await _autofillBpm(suggestion);
     }
+  }
+
+  /// Fills BPM for a non-Spotify suggestion: from the suggestion itself when
+  /// it has one (canonical), otherwise from Deezer (#76 — Spotify
+  /// audio-features is closed to new apps, Deezer needs no auth).
+  Future<void> _autofillBpm(SongSuggestion suggestion) async {
+    if (_originalBpmController.text.trim().isNotEmpty) return;
+    final bpm = suggestion.bpm ??
+        await DeezerService.getBpm(
+          title: suggestion.title,
+          artist: suggestion.artist,
+        );
+    if (bpm == null || bpm <= 0 || !mounted) return;
+    if (_originalBpmController.text.trim().isNotEmpty) return;
+    // The controller's listener syncs this into the form provider.
+    _originalBpmController.text = bpm.toString();
+    showAppSnackBar(context, 'Filled $bpm BPM from Deezer');
   }
 
   /// Fills BPM and key from Spotify audio-features for [spotifyId], without
