@@ -1,0 +1,42 @@
+canonical_url: https://flowgroove.app/blog/why-the-metronome-slowly-drifted/
+telegram:
+  text: "\U0001F941 Why the metronome slowly drifted \u2014 and the 50-line fix\n\n\
+    The FlowGroove metronome used to slide off the beat over a long song. The culprit:\
+    \ a periodic timer that re-armed relative to when the last tick actually fired\
+    \ \u2014 so every few milliseconds of lateness carried into the next interval\
+    \ and quietly piled up.\n\nThe fix: anchor every tick to a monotonic clock. A\
+    \ wall-clock scheduler tracks an absolute target per tick (nextTarget += interval)\
+    \ and schedules \"target minus now\", so jitter gets corrected on the spot instead\
+    \ of compounding.\n\n~50 lines of pure Dart, no new dependency. A metronome that\
+    \ can't hold time is worse than none \u2014 you trust it and it lies to you \u2192\
+    \ https://flowgroove.app/blog/why-the-metronome-slowly-drifted/"
+  message_id: 20
+reddit:
+  subreddit: FlowGroove
+  title: ''
+  body: ''
+  submission_id: null
+  permalink: null
+x:
+  text: "The FlowGroove metronome used to drift off the beat over a long song \U0001F941\
+    \n\nCause: periodic timer re-armed from the last (late) tick \u2014 lateness compounds.\n\
+    Fix: monotonic clock + absolute tick targets. ~50 lines, no new dependency.\n\n\
+    https://flowgroove.app/blog/why-the-metronome-slowly-drifted/\n\n#buildinpublic\
+    \ #indiedev #flutter"
+  posted_url: null
+instagram:
+  image: static/images/og-cover.png
+  caption: "Why the metronome slowly drifted \u2014 and the 50-line fix \U0001F941\
+    \n\nThe FlowGroove metronome used to slide off the beat over a long song. Not\
+    \ by much \u2014 but by the last chorus of a five-minute tune you could feel it,\
+    \ exactly when you need the click most.\n\nThe culprit: a periodic timer that\
+    \ re-armed relative to when the last tick actually fired. Every few milliseconds\
+    \ of lateness carried into the next interval, and it quietly piled up.\n\nThe\
+    \ fix: anchor every tick to a monotonic clock with an absolute target per tick,\
+    \ and schedule \"target minus now\". Jitter gets corrected on the spot instead\
+    \ of compounding. About 50 lines, standard library only, no new dependency.\n\n\
+    A metronome that can't hold time is worse than no metronome, because you trust\
+    \ it and it lies to you. It just stays in time now. Link in bio \U0001F3B8\n.\n\
+    .\n#coverband #bandlife #musicianlife #gigginglife #setlist #metronome #rehearsal\
+    \ #livemusic #musictech #indiedev #buildinpublic #flutter #opensource #musicians"
+  posted_url: null
