@@ -14,10 +14,13 @@ Your personal song library.
   and it fills title, key, tempo, time and the whole structure at once.
 - Open the **Performance sheet** to play from — reach it straight from a song's row
   (the sheet-music button) or from Concert Mode. It keeps the screen awake, lets you
-  transpose live, and **auto-scrolls hands-free**: press play and set the pace, or
-  switch to **BPM** mode to scroll at a speed matched to the tempo.
-- Export a song sheet as **PDF** (with key, scale, tempo, time signature and the song
-  map in the header) or as a standard **ChordPro `.cho`** file to share or print.
+  transpose live (the ± controls sit in the bottom bar), and **auto-scrolls
+  hands-free**: press play and set the pace, or switch to **BPM** mode to scroll at
+  a speed matched to the tempo.
+- Export from the performance sheet's **⋯ menu**: a song sheet as **PDF** — either
+  **As is** (full size, flows across pages) or **Compact** (everything scaled to fit
+  one A4 page) — or as a standard **ChordPro `.cho`** file to share or print. The PDF
+  header carries key, scale, tempo, time signature and the song map.
 - **CSV** export/import now carries the per-section chords too, so your chart survives
   a trip through a spreadsheet.
 - Song cards show the key **and scale** (e.g. *Am · minor*) and the section count.
