@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -146,6 +147,15 @@ void main() async {
   } else {
     debugPrint('ℹ️  Web platform - skipping Analytics initialization');
   }
+
+  // Enable Firestore offline persistence on every platform (mobile has it on
+  // by default, web does not). This replaces the removed Hive data cache:
+  // first paint comes from the SDK's disk cache and self-corrects live (#91).
+  try {
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+    );
+  } catch (_) {}
 
   // Enable Firebase Auth persistence for Android
   try {

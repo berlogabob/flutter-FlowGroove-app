@@ -107,63 +107,20 @@ final canonicalSongSearchProvider =
       return repo.search(query: normalizedQuery);
     });
 
-// CacheService is provided once as `cacheServiceProvider` (auth_provider.dart);
-// this file reuses it rather than defining a second identical provider.
+// Offline support comes from Firestore's built-in persistence (enabled in
+// main.dart), so these providers expose the raw real-time streams. The old
+// Hive cache-first wrappers raced the live stream and could re-emit stale
+// data after fresh data (#91 phantom items).
 
-/// Stream provider that watches songs for the current user with caching.
-///
-/// This provider:
-/// 1. Immediately returns cached data if available
-/// 2. Updates cache from network stream in background
-/// 3. Continues to work offline with cached data
+/// Stream provider that watches songs for the current user.
 final songsProvider = StreamProvider<List<Song>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
 
-  // Handle loading and error states properly
   return userAsync.when(
     data: (user) {
       if (user == null) return Stream.value([]);
-
-      final cache = ref.watch(cacheServiceProvider);
       final songRepo = ref.watch(songRepositoryProvider);
-
-      // Return a stream that first emits cached data, then network updates
-      return Stream.multi((listener) {
-        bool hasEmittedCache = false;
-
-        // Emit cached data immediately
-        cache.getCachedSongs(user.uid).then((cachedSongs) {
-          if (cachedSongs.isNotEmpty && !listener.isClosed) {
-            listener.add(cachedSongs);
-            hasEmittedCache = true;
-          }
-        });
-
-        // Listen to network updates
-        final subscription = songRepo
-            .watchSongs(user.uid)
-            .listen(
-              (songs) async {
-                // Update cache
-                await cache.cacheSongs(user.uid, songs);
-                if (!listener.isClosed) {
-                  listener.add(songs);
-                }
-              },
-              onError: (Object error) {
-                // On error, emit cached data if not already emitted
-                if (!hasEmittedCache && !listener.isClosed) {
-                  cache.getCachedSongs(user.uid).then((cachedSongs) {
-                    if (!listener.isClosed) {
-                      listener.add(cachedSongs);
-                    }
-                  });
-                }
-              },
-            );
-
-        listener.onCancel = subscription.cancel;
-      });
+      return songRepo.watchSongs(user.uid);
     },
     loading: () => Stream.value([]),
     error: (error, stack) => Stream.value([]),
@@ -185,49 +142,15 @@ final selectedBandProvider = NotifierProvider<SelectedBandNotifier, Band?>(() {
   return SelectedBandNotifier();
 });
 
-/// Stream provider that watches bands for the current user with caching.
+/// Stream provider that watches bands for the current user.
 final bandsProvider = StreamProvider<List<Band>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
 
   return userAsync.when(
     data: (user) {
       if (user == null) return Stream.value([]);
-
-      final cache = ref.watch(cacheServiceProvider);
       final bandRepo = ref.watch(bandRepositoryProvider);
-
-      return Stream.multi((listener) {
-        bool hasEmittedCache = false;
-
-        cache.getCachedBands(user.uid).then((cachedBands) {
-          if (cachedBands.isNotEmpty && !listener.isClosed) {
-            listener.add(cachedBands);
-            hasEmittedCache = true;
-          }
-        });
-
-        final subscription = bandRepo
-            .watchBands(user.uid)
-            .listen(
-              (bands) async {
-                await cache.cacheBands(user.uid, bands);
-                if (!listener.isClosed) {
-                  listener.add(bands);
-                }
-              },
-              onError: (Object error) {
-                if (!hasEmittedCache && !listener.isClosed) {
-                  cache.getCachedBands(user.uid).then((cachedBands) {
-                    if (!listener.isClosed) {
-                      listener.add(cachedBands);
-                    }
-                  });
-                }
-              },
-            );
-
-        listener.onCancel = subscription.cancel;
-      });
+      return bandRepo.watchBands(user.uid);
     },
     loading: () => Stream.value([]),
     error: (error, stack) => Stream.value([]),
@@ -281,44 +204,11 @@ final rehearsalVotesProvider = StreamProvider.autoDispose
   return repo.watchVotes(key.$1, key.$2);
 });
 
-/// Stream provider that watches band songs with caching.
+/// Stream provider that watches band songs.
 final bandSongsProvider =
     StreamProvider.autoDispose.family<List<Song>, String>((ref, bandId) {
-  final cache = ref.watch(cacheServiceProvider);
   final songRepo = ref.watch(songRepositoryProvider);
-
-  return Stream.multi((listener) {
-    bool hasEmittedCache = false;
-
-    cache.getCachedBandSongs(bandId).then((cachedSongs) {
-      if (cachedSongs.isNotEmpty && !listener.isClosed) {
-        listener.add(cachedSongs);
-        hasEmittedCache = true;
-      }
-    });
-
-    final subscription = songRepo
-        .watchBandSongs(bandId)
-        .listen(
-          (songs) async {
-            await cache.cacheBandSongs(bandId, songs);
-            if (!listener.isClosed) {
-              listener.add(songs);
-            }
-          },
-          onError: (Object error) {
-            if (!hasEmittedCache && !listener.isClosed) {
-              cache.getCachedBandSongs(bandId).then((cachedSongs) {
-                if (!listener.isClosed) {
-                  listener.add(cachedSongs);
-                }
-              });
-            }
-          },
-        );
-
-    listener.onCancel = subscription.cancel;
-  });
+  return songRepo.watchBandSongs(bandId);
 });
 
 /// Provider that returns the count of songs.
