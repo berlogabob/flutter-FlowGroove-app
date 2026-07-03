@@ -3,18 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/api_error.dart';
 import '../../models/band.dart';
 import '../../models/song.dart';
 import '../../models/song_import_plan.dart';
-import '../../models/tuner_launch_context.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
-import '../../providers/data/metronome_provider.dart';
 import '../../services/song_library_merge_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
@@ -27,46 +23,10 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/tag_cloud_widget.dart';
 import '../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../widgets/unified_item/song_card_actions.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
-import '../../widgets/unified_item/unified_item_model.dart';
-import '../performance_sheet_screen.dart';
 import 'components/csv_import_export/csv_import_export.dart';
-
-/// Which action is pinned on song cards ('practice' default). Persisted.
-class SongQuickActionNotifier extends Notifier<String> {
-  static const prefsKey = 'songs.quick_action';
-
-  @override
-  String build() {
-    unawaited(_load());
-    return 'practice';
-  }
-
-  Future<void> _load() async {
-    try {
-      final saved = (await SharedPreferences.getInstance()).getString(prefsKey);
-      if (saved != null) state = saved;
-    } catch (_) {
-      // No prefs backend (first run / tests) — the default stands.
-    }
-  }
-
-  Future<void> set(String action) async {
-    state = action;
-    try {
-      await (await SharedPreferences.getInstance()).setString(prefsKey, action);
-    } catch (_) {
-      // Persisting is best-effort; the in-memory choice still applies.
-    }
-  }
-}
-
-/// Provider for the pinned song-card quick action.
-final songQuickActionProvider =
-    NotifierProvider<SongQuickActionNotifier, String>(
-      SongQuickActionNotifier.new,
-    );
 
 /// Notifier for songs filter/sort state.
 class SongsFilterSortNotifier extends Notifier<SongsFilterSortState> {
@@ -152,7 +112,8 @@ class SongsListScreen extends ConsumerStatefulWidget {
   ConsumerState<SongsListScreen> createState() => _SongsListScreenState();
 }
 
-class _SongsListScreenState extends ConsumerState<SongsListScreen> {
+class _SongsListScreenState extends ConsumerState<SongsListScreen>
+    with SongCardActions {
   ApiError? _currentError;
   final TextEditingController _filterController = TextEditingController();
   List<Song>? _manualOrder; // Store manual order for manual sort mode
@@ -904,182 +865,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       onDelete: _deleteSongByIndex,
       onEdit: _navigateToEditByIndex,
       additionalActionsBuilder: (index) =>
-          _buildSongActions(songAdapters[index], bands),
-    );
-  }
-
-  /// Pinned-quick-action catalog: key → (label, icon).
-  static const _quickActions = <String, (String, IconData)>{
-    'practice': ('Practice mode', Icons.speed),
-    'tuner': ('Open in Tuner', Icons.tune),
-    'sheet': ('Performance sheet', Icons.queue_music),
-    'spotify': ('Play on Spotify', Icons.play_circle_fill),
-    'band': ('Add to band…', Icons.add_to_queue),
-  };
-
-  bool _quickActionAvailable(String key, Song song, List<Band> bands) =>
-      switch (key) {
-        'sheet' => song.hasSheetContent,
-        'spotify' => song.spotifyUrl != null,
-        'band' => bands.isNotEmpty,
-        _ => true,
-      };
-
-  void _runQuickAction(String key, Song song, List<Band> bands) {
-    switch (key) {
-      case 'tuner':
-        _openInTuner(song);
-      case 'sheet':
-        _openPerformanceSheet(song);
-      case 'spotify':
-        unawaited(_openSpotify(song));
-      case 'band':
-        unawaited(_pickBandAndAdd(song, bands));
-      default:
-        _openInMetronome(song);
-    }
-  }
-
-  List<UnifiedItemAction> _buildSongActions(
-    SongItemAdapter adapter,
-    List<Band> bands,
-  ) {
-    final song = adapter.song;
-    // ponytail: chosen action missing on this song (no sheet/Spotify/bands)
-    // falls back to Practice rather than an empty slot.
-    var quick = ref.read(songQuickActionProvider);
-    if (!_quickActionAvailable(quick, song, bands)) quick = 'practice';
-    final (quickLabel, quickIcon) = _quickActions[quick]!;
-    return [
-      IconAction(
-        icon: quickIcon,
-        tooltip: quickLabel,
-        color: MonoPulseColors.accentOrange,
-        onPressed: () => _runQuickAction(quick, song, bands),
-      ),
-      OverflowMenuAction(
-        entries: [
-          ('Practice mode', Icons.speed, () => _openInMetronome(song)),
-          if (song.spotifyUrl != null)
-            ('Play on Spotify', Icons.play_circle_fill, () => _openSpotify(song)),
-          if (song.hasSheetContent)
-            (
-              'Performance sheet',
-              Icons.queue_music,
-              () => _openPerformanceSheet(song),
-            ),
-          ('Open in Tuner', Icons.tune, () => _openInTuner(song)),
-          if (bands.isNotEmpty)
-            (
-              'Add to band…',
-              Icons.add_to_queue,
-              () => unawaited(_pickBandAndAdd(song, bands)),
-            ),
-          ('Quick action…', Icons.push_pin_outlined, () {
-            unawaited(_pickQuickAction());
-          }),
-        ],
-      ),
-    ];
-  }
-
-  /// Let the user choose which action is pinned on song cards.
-  Future<void> _pickQuickAction() async {
-    final current = ref.read(songQuickActionProvider);
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: RadioGroup<String>(
-          groupValue: current,
-          onChanged: (v) => Navigator.pop(context, v),
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              for (final MapEntry(: key, : value) in _quickActions.entries)
-                RadioListTile<String>(
-                  value: key,
-                  title: Text(value.$1),
-                  secondary: Icon(value.$2),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (choice != null) {
-      await ref.read(songQuickActionProvider.notifier).set(choice);
-    }
-  }
-
-  /// One "Add to band…" entry instead of one per band — opens a picker.
-  Future<void> _pickBandAndAdd(Song song, List<Band> bands) async {
-    final bandId = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            for (final band in bands)
-              ListTile(
-                leading: const Icon(Icons.groups),
-                title: Text(band.name),
-                onTap: () => Navigator.pop(context, band.id),
-              ),
-          ],
-        ),
-      ),
-    );
-    if (bandId != null) await _addToBand(song, bandId);
-  }
-
-  Future<void> _openSpotify(Song song) async {
-    final uri = Uri.parse(song.spotifyUrl!);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
-  void _openPerformanceSheet(Song song) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PerformanceSheetScreen(
-          title: song.title.trim().isEmpty ? 'Song' : song.title.trim(),
-          sections: song.sections,
-          song: song,
-          songKey: song.ourKey,
-          bpm: song.ourBPM,
-          timeTop: song.accentBeats,
-        ),
-      ),
-    );
-  }
-
-  void _openInMetronome(Song song) {
-    final metronome = ref.read(metronomeProvider.notifier);
-    if (ref.read(metronomeProvider).isPlaying) {
-      metronome.stop();
-    }
-    metronome.loadSongTempo(song);
-    context.goNamed('metronome');
-  }
-
-  void _openInTuner(Song song) {
-    final user = ref.read(currentUserProvider).value;
-    unawaited(
-      context.pushNamed<void>(
-        'tuner',
-        extra: TunerLaunchContext(
-          song: song,
-          saveSong: user == null
-              ? null
-              : (updatedSong) async {
-                  await ref
-                      .read(songRepositoryProvider)
-                      .saveSong(updatedSong, uid: user.uid);
-                  ref.invalidate(songsProvider);
-                },
-        ),
-      ),
+          buildSongActions(songAdapters[index].song, bands: bands),
     );
   }
 
@@ -1166,38 +952,4 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     }
   }
 
-  /// Add a song to a band.
-  Future<void> _addToBand(Song song, String bandId) async {
-    final userAsync = ref.read(currentUserProvider);
-    final user = userAsync.value;
-    if (user == null) return;
-
-    try {
-      await ref
-          .read(songRepositoryProvider)
-          .addSongToBand(
-            song: song,
-            bandId: bandId,
-            contributorId: user.uid,
-            contributorName: user.displayName ?? user.email ?? 'Unknown',
-          );
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Added "${song.title}" to band'),
-          backgroundColor: MonoPulseColors.success,
-        ),
-      );
-    } on ApiError catch (e) {
-      _handleStreamError(e, StackTrace.current);
-      if (!mounted) return;
-      showAppSnackBar(context, e.message);
-    } catch (e, stackTrace) {
-      final error = ApiError.fromException(e, stackTrace: stackTrace);
-      _handleStreamError(error, stackTrace);
-      if (!mounted) return;
-      showAppSnackBar(context, error.message);
-    }
-  }
 }

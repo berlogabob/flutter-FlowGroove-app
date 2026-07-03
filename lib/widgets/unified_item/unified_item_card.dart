@@ -161,8 +161,9 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         subtitleWidgets.add(Row(children: badges));
       }
 
-      // Add attribution badge for copied songs
-      if (song.isCopy) {
+      // Attribution: band songs name their contributor; personal copies just
+      // note they were shared.
+      if (song.contributedBy != null || song.isCopy) {
         subtitleWidgets.add(
           Row(
             children: [
@@ -173,7 +174,9 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                'Shared to band',
+                song.contributedBy != null
+                    ? 'Added by ${song.contributedBy}'
+                    : 'Shared to band',
                 style: MonoPulseTypography.labelSmall.copyWith(
                   color: MonoPulseColors.accentOrange,
                   fontWeight: FontWeight.w500,

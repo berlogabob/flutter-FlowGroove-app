@@ -12,7 +12,9 @@ import '../../../widgets/confirmation_dialog.dart';
 import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/empty_state.dart';
-import '../../../widgets/song_attribution_badge.dart';
+import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../../widgets/unified_item/song_card_actions.dart';
+import '../../../widgets/unified_item/unified_item_list.dart';
 
 /// Screen for displaying a band's shared songs.
 ///
@@ -28,9 +30,13 @@ class BandSongsScreen extends ConsumerStatefulWidget {
   ConsumerState<BandSongsScreen> createState() => _BandSongsScreenState();
 }
 
-class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
+class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
+    with SongCardActions {
   String _searchQuery = '';
   String? _filterContributor;
+
+  @override
+  String get songActionsBandId => widget.band.id;
 
   /// Get the current user's role in the band.
   String? get _userRole {
@@ -135,12 +141,20 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         Expanded(
           child: filteredSongs.isEmpty
               ? _buildEmptyState(songs.isEmpty)
-              : ListView.builder(
-                  itemCount: filteredSongs.length,
-                  itemBuilder: (context, index) {
-                    final song = filteredSongs[index];
-                    return _buildSongCard(context, ref, song);
-                  },
+              : UnifiedItemList<SongItemAdapter>(
+                  items: [
+                    for (final song in filteredSongs) SongItemAdapter(song),
+                  ],
+                  onEdit: _canEdit
+                      ? (index) => _editSong(context, ref, filteredSongs[index])
+                      : null,
+                  onDelete: _canEdit
+                      ? (index) => _removeFromBand(filteredSongs[index])
+                      : null,
+                  additionalActionsBuilder: (index) => buildSongActions(
+                    filteredSongs[index],
+                    bands: const [],
+                  ),
                 ),
         ),
       ],
@@ -217,102 +231,15 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     return EmptyState.search(query: _searchQuery);
   }
 
-  Widget _buildSongCard(BuildContext context, WidgetRef ref, Song song) {
-    return Dismissible(
-      key: Key(song.id),
-      direction: _canEdit ? DismissDirection.endToStart : DismissDirection.none,
-      background: Container(
-        color: MonoPulseColors.error,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: MonoPulseSpacing.lg),
-        child: const Icon(Icons.delete, color: MonoPulseColors.textPrimary),
-      ),
-      confirmDismiss: (direction) async {
-        if (!_canEdit) return false;
-        return ConfirmationDialog.showDeleteDialog(
-          context,
-          title: 'Remove from Band',
-          message: 'Are you sure you want to remove this song from the band?',
-          confirmLabel: 'Remove',
-        );
-      },
-      onDismissed: (direction) async {
-        if (!_canEdit) return;
-        await ref
-            .read(firestoreProvider)
-            .deleteBandSong(widget.band.id, song.id);
-      },
-      child: _buildSongTile(context, ref, song),
+  Future<void> _removeFromBand(Song song) async {
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Remove from Band',
+      message: 'Are you sure you want to remove this song from the band?',
+      confirmLabel: 'Remove',
     );
-  }
-
-  Widget _buildSongTile(BuildContext context, WidgetRef ref, Song song) {
-    final isCopy = song.isCopy;
-    final contributorName = song.contributedBy;
-
-    return Card(
-      margin: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.lg,
-        vertical: MonoPulseSpacing.sm,
-      ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isCopy
-              ? MonoPulseColors.accentOrange10
-              : MonoPulseColors.accentOrange10,
-          child: Icon(
-            isCopy ? Icons.content_copy : Icons.music_note,
-            color: isCopy
-                ? MonoPulseColors.accentOrange
-                : MonoPulseColors.accentOrange,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          song.title,
-          style: const TextStyle(color: MonoPulseColors.textPrimary),
-        ),
-        subtitle: AttributionSubtitle(
-          subtitle: song.artist,
-          contributorName: contributorName,
-          isCopy: isCopy,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (song.ourKey != null)
-              Text(
-                song.ourKey!,
-                style: MonoPulseTypography.labelMedium.copyWith(
-                  color: MonoPulseColors.accentOrange,
-                  fontWeight: MonoPulseTypography.bold,
-                ),
-              ),
-            if (song.ourBPM != null) ...[
-              const SizedBox(width: MonoPulseSpacing.sm),
-              Text(
-                '${song.ourBPM}',
-                style: MonoPulseTypography.labelMedium.copyWith(
-                  color: MonoPulseColors.accentOrange,
-                  fontWeight: MonoPulseTypography.bold,
-                ),
-              ),
-            ],
-            if (_canEdit)
-              IconButton(
-                icon: const Icon(
-                  Icons.edit,
-                  size: 20,
-                  color: MonoPulseColors.textSecondary,
-                ),
-                onPressed: () => _editSong(context, ref, song),
-                tooltip: 'Edit',
-              ),
-          ],
-        ),
-        onTap: () => _editSong(context, ref, song),
-      ),
-    );
+    if (!confirmed) return;
+    await ref.read(firestoreProvider).deleteBandSong(widget.band.id, song.id);
   }
 
   void _addSongToBand(BuildContext context, WidgetRef ref) {
