@@ -10,23 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:mockito/mockito.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/metronome_test_runtime.dart';
-import '../../helpers/mocks.mocks.dart';
 import '../../helpers/routed_test_harness.dart';
-import '../../repositories/mock_repositories.dart';
-
-class _RecordingSongRepository extends MockSongRepository {
-  Song? lastSaved;
-
-  @override
-  Future<void> saveSong(Song song, {String? uid}) {
-    lastSaved = song;
-    return super.saveSong(song, uid: uid);
-  }
-}
 
 AppUser createTestUser() {
   return AppUser(
@@ -143,7 +130,7 @@ void main() {
       expect(find.text('G'), findsOneWidget);
       expect(find.byIcon(Icons.music_note), findsWidgets);
       expect(find.byTooltip('More'), findsNWidgets(2));
-      expect(find.byTooltip('Add to favorites'), findsNWidgets(2));
+      expect(find.byTooltip('Practice mode'), findsNWidgets(2));
 
       await tester.tap(find.byTooltip('More').first);
       await tester.pumpAndSettle();
@@ -170,7 +157,7 @@ void main() {
 
       await tester.tap(find.byTooltip('More'));
       await tester.pumpAndSettle();
-      expect(find.text('Open in Metronome'), findsOneWidget);
+      expect(find.text('Practice mode'), findsOneWidget);
     });
 
     testWidgets('shows metronome action for saved beat pattern settings', (
@@ -192,7 +179,7 @@ void main() {
 
       await tester.tap(find.byTooltip('More'));
       await tester.pumpAndSettle();
-      expect(find.text('Open in Metronome'), findsOneWidget);
+      expect(find.text('Practice mode'), findsOneWidget);
     });
 
     testWidgets('opens song settings in metronome without starting playback', (
@@ -252,7 +239,7 @@ void main() {
 
       await tester.tap(find.byTooltip('More'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Open in Metronome'));
+      await tester.tap(find.text('Practice mode'));
       await tester.pumpAndSettle();
 
       final metronomeState = container.read(metronomeProvider);
@@ -266,32 +253,68 @@ void main() {
       expect(metronomeState.isPlaying, isFalse);
     });
 
-    testWidgets('favorite star toggles the favorite tag', (tester) async {
-      final song = createTestSong(id: 'fav-song', title: 'Fav Song');
-      final repo = _RecordingSongRepository();
-      final firebaseUser = MockUser();
-      when(firebaseUser.uid).thenReturn('test-user-id');
+    testWidgets('user can pick which quick action is pinned', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(
+          songs: Stream<List<Song>>.value([createTestSong()]),
+        ),
+      );
+
+      expect(find.byTooltip('Practice mode'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Quick action…'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Tuner'));
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Open in Tuner'), findsOneWidget);
+      expect(find.byTooltip('Practice mode'), findsNothing);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString(SongQuickActionNotifier.prefsKey), 'tuner');
+    });
+
+    testWidgets('"Add to band…" opens a picker listing all bands', (
+      tester,
+    ) async {
+      final bands = [
+        Band(
+          id: 'band-1',
+          name: 'First Band',
+          createdBy: 'test-user-id',
+          createdAt: DateTime(2024),
+        ),
+        Band(
+          id: 'band-2',
+          name: 'Second Band',
+          createdBy: 'test-user-id',
+          createdAt: DateTime(2024),
+        ),
+      ];
 
       await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/songs',
-        overrides: [
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          // Fresh stream per listen: _toggleFavorite invalidates songsProvider,
-          // which re-subscribes.
-          songsProvider.overrideWith(
-            (ref) => Stream<List<Song>>.value([song]),
-          ),
-          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([])),
-          songRepositoryProvider.overrideWithValue(repo),
-          currentUserProvider.overrideWithValue(AsyncValue.data(firebaseUser)),
-        ],
+        overrides: overridesFor(
+          songs: Stream<List<Song>>.value([createTestSong()]),
+          bands: Stream<List<Band>>.value(bands),
+        ),
       );
 
-      await tester.tap(find.byTooltip('Add to favorites'));
-      await tester.pump();
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      // One menu entry, not one per band.
+      expect(find.text('Add to band…'), findsOneWidget);
+      expect(find.text('First Band'), findsNothing);
 
-      expect(repo.lastSaved?.tags, contains('favorite'));
+      await tester.tap(find.text('Add to band…'));
+      await tester.pumpAndSettle();
+      expect(find.text('First Band'), findsOneWidget);
+      expect(find.text('Second Band'), findsOneWidget);
     });
 
     testWidgets('filters songs by title', (tester) async {
