@@ -36,9 +36,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _version = 'Loading...';
   String? _profilePhotoPath;
-  String? _avatarUrl;
-  String _photoSource = 'local'; // 'upload', 'telegram', 'google', 'local'
-  String? _telegramId;
   bool _isEditingName = false;
   late TextEditingController _nameController;
 
@@ -48,12 +45,44 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _nameController = TextEditingController();
     _loadVersionInfo();
     _loadProfilePhoto();
-    _loadTelegramProfile();
+    _migrateLegacyLocalPhoto();
   }
 
-  /// Load profile data: Storage photoURL (authoritative), Telegram linkage,
-  /// and one-time migration of legacy local profile_photo.jpg.
-  Future<void> _loadTelegramProfile() async {
+  // Avatar state derives from the LIVE users/{uid} doc (userDocProvider), so
+  // this screen and every other one (home greeting, band lists) always agree
+  // and update together (#91). `ref.read` here so the getters are also safe
+  // in bottom-sheet callbacks; build() watches the provider for rebuilds.
+  Map<String, dynamic>? get _userDoc =>
+      ref.read(userDocProvider).asData?.value;
+
+  String? get _avatarUrl {
+    final doc = _userDoc;
+    final url = doc?['photoURL'] as String?;
+    if (url != null) return url;
+    if (doc?['telegramConsent'] == true) {
+      // Legacy: no Storage URL yet, fall back to Telegram URL from Firestore
+      return doc?['telegramPhotoURL'] as String?;
+    }
+    return null;
+  }
+
+  String get _photoSource {
+    final doc = _userDoc;
+    if (doc?['photoURL'] != null) {
+      return (doc?['photoSource'] as String?) ?? 'upload';
+    }
+    if (doc?['telegramConsent'] == true && doc?['telegramPhotoURL'] != null) {
+      return 'telegram';
+    }
+    return 'local';
+  }
+
+  String? get _telegramId => _userDoc?['telegramId'] as String?;
+
+  /// One-time migration: upload the legacy local profile_photo.jpg to Storage
+  /// when the user doc has no photoURL yet. The Storage write updates the doc,
+  /// which propagates through userDocProvider.
+  Future<void> _migrateLegacyLocalPhoto() async {
     try {
       final user = ref.read(currentUserProvider).value;
       if (user == null) return;
@@ -62,58 +91,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           .collection('users')
           .doc(user.uid)
           .get();
+      if ((userDoc.data()?['photoURL'] as String?) != null) return;
 
-      if (!userDoc.exists) return;
+      final dir = await getApplicationDocumentsDirectory();
+      final legacy = File('${dir.path}/profile_photo.jpg');
+      if (!await legacy.exists()) return;
 
-      final data = userDoc.data();
-
-      // Capture telegramId and existing Storage URL outside setState
-      final telegramId = data?['telegramId'] as String?;
-      final existingUrl = data?['photoURL'] as String?;
-      String? newPhotoUrl;
-      String? newPhotoSource;
-
-      if (existingUrl != null) {
-        // Storage URL is authoritative
-        newPhotoUrl = existingUrl;
-        newPhotoSource = (data?['photoSource'] as String?) ?? 'upload';
-      } else {
-        // One-time migration: upload legacy local file if present
-        try {
-          final dir = await getApplicationDocumentsDirectory();
-          final legacy = File('${dir.path}/profile_photo.jpg');
-          if (await legacy.exists()) {
-            final url = await StorageService()
-                .uploadProfilePicture(await legacy.readAsBytes());
-            await legacy.delete();
-            newPhotoUrl = url;
-            newPhotoSource = 'upload';
-          }
-        } catch (e) {
-          debugPrint('Avatar migration skipped: $e');
-        }
+      await StorageService().uploadProfilePicture(await legacy.readAsBytes());
+      await legacy.delete();
+      if (mounted) {
+        setState(() => _profilePhotoPath = null);
       }
-
-      if (!mounted) return;
-      setState(() {
-        _telegramId = telegramId;
-        if (newPhotoUrl != null) {
-          _avatarUrl = newPhotoUrl;
-          _photoSource = newPhotoSource ?? 'upload';
-          _profilePhotoPath = null; // prefer network URL
-        } else if (data != null && data['telegramConsent'] == true) {
-          // Legacy: no Storage URL yet, fall back to Telegram URL from Firestore
-          final tgUrl = data['telegramPhotoURL'] as String?;
-          if (tgUrl != null) {
-            _avatarUrl = tgUrl;
-            if (_profilePhotoPath == null) {
-              _photoSource = 'telegram';
-            }
-          }
-        }
-      });
     } catch (e) {
-      debugPrint('Error loading profile: $e');
+      debugPrint('Avatar migration skipped: $e');
     }
   }
 
@@ -193,14 +183,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (pickedFile == null) return;
 
       // readAsBytes() works on web (blob) and mobile; File(path) + putFile does not.
-      final url = await StorageService()
+      // The upload writes photoURL to users/{uid}; the live doc stream
+      // refreshes this screen and every other avatar in the app.
+      await StorageService()
           .uploadProfilePicture(await pickedFile.readAsBytes());
       if (!mounted) return;
-      setState(() {
-        _profilePhotoPath = null;
-        _avatarUrl = url;
-        _photoSource = 'upload';
-      });
+      setState(() => _profilePhotoPath = null);
     } catch (e) {
       if (mounted) {
         showAppSnackBar(context, 'Error uploading photo: $e');
@@ -212,11 +200,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       await StorageService().deleteProfilePicture();
       if (!mounted) return;
-      setState(() {
-        _profilePhotoPath = null;
-        _avatarUrl = null;
-        _photoSource = 'local';
-      });
+      setState(() => _profilePhotoPath = null);
     } catch (e) {
       debugPrint('Error removing photo: $e');
     }
@@ -263,14 +247,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 }
                 final messenger = ScaffoldMessenger.of(context);
                 try {
-                  final url =
-                      await AvatarFunctionService().importTelegramAvatar();
-                  if (!mounted) return;
-                  setState(() {
-                    _avatarUrl = url;
-                    _photoSource = 'telegram';
-                    _profilePhotoPath = null;
-                  });
+                  // Server writes photoURL to users/{uid}; the live doc
+                  // stream refreshes all screens.
+                  await AvatarFunctionService().importTelegramAvatar();
                 } catch (e) {
                   messenger.showSnackBar(
                     SnackBar(content: Text('Telegram import failed: $e')),
@@ -295,13 +274,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Navigator.pop(context);
                   final messenger = ScaffoldMessenger.of(context);
                   try {
-                    final url = await AvatarFunctionService().importGoogleAvatar();
-                    if (!mounted) return;
-                    setState(() {
-                      _avatarUrl = url;
-                      _photoSource = 'google';
-                      _profilePhotoPath = null;
-                    });
+                    await AvatarFunctionService().importGoogleAvatar();
                   } catch (e) {
                     messenger.showSnackBar(
                       SnackBar(content: Text('Google import failed: $e')),
@@ -468,6 +441,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Subscribe to the live user doc: the avatar getters above read from it.
+    ref.watch(userDocProvider);
     final userAsync = ref.watch(currentUserProvider);
     final user = userAsync.value;
     final appUserAsync = ref.watch(appUserProvider);
