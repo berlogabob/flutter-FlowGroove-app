@@ -127,21 +127,6 @@ final songsProvider = StreamProvider<List<Song>>((ref) {
   );
 });
 
-/// Notifier for the currently selected band.
-class SelectedBandNotifier extends Notifier<Band?> {
-  @override
-  Band? build() => null;
-
-  void select(Band? band) {
-    state = band;
-  }
-}
-
-/// Provider for the selected band state.
-final selectedBandProvider = NotifierProvider<SelectedBandNotifier, Band?>(() {
-  return SelectedBandNotifier();
-});
-
 /// Stream provider that watches bands for the current user.
 final bandsProvider = StreamProvider<List<Band>>((ref) {
   final userAsync = ref.watch(currentUserProvider);

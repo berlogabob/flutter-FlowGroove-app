@@ -3,16 +3,19 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i5;
 
-import 'package:flowgroove/models/band.dart' as _i6;
-import 'package:flowgroove/models/setlist.dart' as _i8;
-import 'package:flowgroove/models/song.dart' as _i4;
-import 'package:flowgroove/repositories/band_repository.dart' as _i5;
-import 'package:flowgroove/repositories/setlist_repository.dart' as _i7;
-import 'package:flowgroove/repositories/song_repository.dart' as _i2;
-import 'package:flowgroove/services/cache_service.dart' as _i9;
+import 'package:firebase_auth/firebase_auth.dart' as _i3;
+import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart'
+    as _i2;
+import 'package:flowgroove/models/band.dart' as _i8;
+import 'package:flowgroove/models/setlist.dart' as _i10;
+import 'package:flowgroove/models/song.dart' as _i6;
+import 'package:flowgroove/repositories/band_repository.dart' as _i7;
+import 'package:flowgroove/repositories/setlist_repository.dart' as _i9;
+import 'package:flowgroove/repositories/song_repository.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i11;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -29,61 +32,93 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
+class _FakeUserMetadata_0 extends _i1.SmartFake implements _i2.UserMetadata {
+  _FakeUserMetadata_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeMultiFactor_1 extends _i1.SmartFake implements _i3.MultiFactor {
+  _FakeMultiFactor_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeIdTokenResult_2 extends _i1.SmartFake implements _i2.IdTokenResult {
+  _FakeIdTokenResult_2(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeUserCredential_3 extends _i1.SmartFake
+    implements _i3.UserCredential {
+  _FakeUserCredential_3(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeConfirmationResult_4 extends _i1.SmartFake
+    implements _i3.ConfirmationResult {
+  _FakeConfirmationResult_4(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeUser_5 extends _i1.SmartFake implements _i3.User {
+  _FakeUser_5(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [SongRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSongRepository extends _i1.Mock implements _i2.SongRepository {
+class MockSongRepository extends _i1.Mock implements _i4.SongRepository {
   MockSongRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> saveSong(_i4.Song? song, {String? uid}) =>
+  _i5.Future<void> saveSong(_i6.Song? song, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#saveSong, [song], {#uid: uid}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> deleteSong(String? songId, {String? uid}) =>
+  _i5.Future<void> deleteSong(String? songId, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#deleteSong, [songId], {#uid: uid}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> updateSong(_i4.Song? song, {String? uid}) =>
+  _i5.Future<void> updateSong(_i6.Song? song, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#updateSong, [song], {#uid: uid}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> revertSongToCanonical(_i4.Song? song, {String? uid}) =>
+  _i5.Future<void> revertSongToCanonical(_i6.Song? song, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#revertSongToCanonical, [song], {#uid: uid}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Stream<List<_i4.Song>> watchSongs(String? uid) =>
+  _i5.Stream<List<_i6.Song>> watchSongs(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#watchSongs, [uid]),
-            returnValue: _i3.Stream<List<_i4.Song>>.empty(),
+            returnValue: _i5.Stream<List<_i6.Song>>.empty(),
           )
-          as _i3.Stream<List<_i4.Song>>);
+          as _i5.Stream<List<_i6.Song>>);
 
   @override
-  _i3.Future<void> addSongToBand({
-    required _i4.Song? song,
+  _i5.Future<void> addSongToBand({
+    required _i6.Song? song,
     required String? bandId,
     String? contributorId,
     String? contributorName,
@@ -95,387 +130,523 @@ class MockSongRepository extends _i1.Mock implements _i2.SongRepository {
               #contributorId: contributorId,
               #contributorName: contributorName,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> addSongToBandById(String? songId, String? bandId) =>
+  _i5.Future<void> addSongToBandById(String? songId, String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#addSongToBandById, [songId, bandId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> saveBandSong(_i4.Song? song, String? bandId) =>
+  _i5.Future<void> saveBandSong(_i6.Song? song, String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#saveBandSong, [song, bandId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Stream<List<_i4.Song>> watchBandSongs(String? bandId) =>
+  _i5.Stream<List<_i6.Song>> watchBandSongs(String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#watchBandSongs, [bandId]),
-            returnValue: _i3.Stream<List<_i4.Song>>.empty(),
+            returnValue: _i5.Stream<List<_i6.Song>>.empty(),
           )
-          as _i3.Stream<List<_i4.Song>>);
+          as _i5.Stream<List<_i6.Song>>);
 
   @override
-  _i3.Future<void> deleteBandSong(String? bandId, String? songId) =>
+  _i5.Future<void> deleteBandSong(String? bandId, String? songId) =>
       (super.noSuchMethod(
             Invocation.method(#deleteBandSong, [bandId, songId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> updateBandSong(_i4.Song? song, String? bandId) =>
+  _i5.Future<void> updateBandSong(_i6.Song? song, String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#updateBandSong, [song, bandId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> revertBandSongToCanonical(_i4.Song? song, String? bandId) =>
+  _i5.Future<void> revertBandSongToCanonical(_i6.Song? song, String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#revertBandSongToCanonical, [song, bandId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<List<_i4.Song>> getSongs(String? uid) =>
+  _i5.Future<List<_i6.Song>> getSongs(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#getSongs, [uid]),
-            returnValue: _i3.Future<List<_i4.Song>>.value(<_i4.Song>[]),
+            returnValue: _i5.Future<List<_i6.Song>>.value(<_i6.Song>[]),
           )
-          as _i3.Future<List<_i4.Song>>);
+          as _i5.Future<List<_i6.Song>>);
 
   @override
-  _i3.Future<List<_i4.Song>> getBandSongs(String? bandId) =>
+  _i5.Future<List<_i6.Song>> getBandSongs(String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#getBandSongs, [bandId]),
-            returnValue: _i3.Future<List<_i4.Song>>.value(<_i4.Song>[]),
+            returnValue: _i5.Future<List<_i6.Song>>.value(<_i6.Song>[]),
           )
-          as _i3.Future<List<_i4.Song>>);
+          as _i5.Future<List<_i6.Song>>);
 }
 
 /// A class which mocks [BandRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockBandRepository extends _i1.Mock implements _i5.BandRepository {
+class MockBandRepository extends _i1.Mock implements _i7.BandRepository {
   MockBandRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> saveBand(_i6.Band? band, {String? uid}) =>
+  _i5.Future<void> saveBand(_i8.Band? band, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#saveBand, [band], {#uid: uid}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> deleteBand(String? bandId, {String? uid}) =>
+  _i5.Future<void> deleteBand(String? bandId, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#deleteBand, [bandId], {#uid: uid}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Stream<List<_i6.Band>> watchBands(String? uid) =>
+  _i5.Stream<List<_i8.Band>> watchBands(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#watchBands, [uid]),
-            returnValue: _i3.Stream<List<_i6.Band>>.empty(),
+            returnValue: _i5.Stream<List<_i8.Band>>.empty(),
           )
-          as _i3.Stream<List<_i6.Band>>);
+          as _i5.Stream<List<_i8.Band>>);
 
   @override
-  _i3.Future<void> saveBandToGlobal(_i6.Band? band) =>
+  _i5.Future<void> saveBandToGlobal(_i8.Band? band) =>
       (super.noSuchMethod(
             Invocation.method(#saveBandToGlobal, [band]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<_i6.Band?> getBandByInviteCode(String? code) =>
+  _i5.Future<_i8.Band?> getBandByInviteCode(String? code) =>
       (super.noSuchMethod(
             Invocation.method(#getBandByInviteCode, [code]),
-            returnValue: _i3.Future<_i6.Band?>.value(),
+            returnValue: _i5.Future<_i8.Band?>.value(),
           )
-          as _i3.Future<_i6.Band?>);
+          as _i5.Future<_i8.Band?>);
 
   @override
-  _i3.Future<bool> isInviteCodeTaken(String? code) =>
+  _i5.Future<bool> isInviteCodeTaken(String? code) =>
       (super.noSuchMethod(
             Invocation.method(#isInviteCodeTaken, [code]),
-            returnValue: _i3.Future<bool>.value(false),
+            returnValue: _i5.Future<bool>.value(false),
           )
-          as _i3.Future<bool>);
+          as _i5.Future<bool>);
 
   @override
-  _i3.Future<void> addUserToBand(String? bandId, {String? userId}) =>
+  _i5.Future<void> addUserToBand(String? bandId, {String? userId}) =>
       (super.noSuchMethod(
             Invocation.method(#addUserToBand, [bandId], {#userId: userId}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> removeUserFromBand(String? bandId, {String? userId}) =>
+  _i5.Future<void> removeUserFromBand(String? bandId, {String? userId}) =>
       (super.noSuchMethod(
             Invocation.method(#removeUserFromBand, [bandId], {#userId: userId}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 }
 
 /// A class which mocks [SetlistRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSetlistRepository extends _i1.Mock implements _i7.SetlistRepository {
+class MockSetlistRepository extends _i1.Mock implements _i9.SetlistRepository {
   MockSetlistRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> saveSetlist(_i8.Setlist? setlist, {String? uid}) =>
+  _i5.Future<void> saveSetlist(_i10.Setlist? setlist, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#saveSetlist, [setlist], {#uid: uid}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> deleteSetlist(String? setlistId, {String? uid}) =>
+  _i5.Future<void> deleteSetlist(String? setlistId, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#deleteSetlist, [setlistId], {#uid: uid}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Stream<List<_i8.Setlist>> watchSetlists(String? uid) =>
+  _i5.Stream<List<_i10.Setlist>> watchSetlists(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#watchSetlists, [uid]),
-            returnValue: _i3.Stream<List<_i8.Setlist>>.empty(),
+            returnValue: _i5.Stream<List<_i10.Setlist>>.empty(),
           )
-          as _i3.Stream<List<_i8.Setlist>>);
+          as _i5.Stream<List<_i10.Setlist>>);
 
   @override
-  _i3.Future<void> saveBandSetlist(_i8.Setlist? setlist, String? bandId) =>
+  _i5.Future<void> saveBandSetlist(_i10.Setlist? setlist, String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#saveBandSetlist, [setlist, bandId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> deleteBandSetlist(String? bandId, String? setlistId) =>
+  _i5.Future<void> deleteBandSetlist(String? bandId, String? setlistId) =>
       (super.noSuchMethod(
             Invocation.method(#deleteBandSetlist, [bandId, setlistId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Stream<List<_i8.Setlist>> watchBandSetlists(String? bandId) =>
+  _i5.Stream<List<_i10.Setlist>> watchBandSetlists(String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#watchBandSetlists, [bandId]),
-            returnValue: _i3.Stream<List<_i8.Setlist>>.empty(),
+            returnValue: _i5.Stream<List<_i10.Setlist>>.empty(),
           )
-          as _i3.Stream<List<_i8.Setlist>>);
+          as _i5.Stream<List<_i10.Setlist>>);
 }
 
-/// A class which mocks [CacheService].
+/// A class which mocks [User].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCacheService extends _i1.Mock implements _i9.CacheService {
-  MockCacheService() {
+class MockUser extends _i1.Mock implements _i3.User {
+  MockUser() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<bool> isCacheStale(String? boxName, {Duration? ttl}) =>
-      (super.noSuchMethod(
-            Invocation.method(#isCacheStale, [boxName], {#ttl: ttl}),
-            returnValue: _i3.Future<bool>.value(false),
-          )
-          as _i3.Future<bool>);
+  bool get emailVerified =>
+      (super.noSuchMethod(Invocation.getter(#emailVerified), returnValue: false)
+          as bool);
 
   @override
-  _i3.Future<void> cacheSongs(String? uid, List<_i4.Song>? songs) =>
-      (super.noSuchMethod(
-            Invocation.method(#cacheSongs, [uid, songs]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
-          )
-          as _i3.Future<void>);
+  bool get isAnonymous =>
+      (super.noSuchMethod(Invocation.getter(#isAnonymous), returnValue: false)
+          as bool);
 
   @override
-  _i3.Future<List<_i4.Song>> getCachedSongs(String? uid) =>
+  _i2.UserMetadata get metadata =>
       (super.noSuchMethod(
-            Invocation.method(#getCachedSongs, [uid]),
-            returnValue: _i3.Future<List<_i4.Song>>.value(<_i4.Song>[]),
+            Invocation.getter(#metadata),
+            returnValue: _FakeUserMetadata_0(
+              this,
+              Invocation.getter(#metadata),
+            ),
           )
-          as _i3.Future<List<_i4.Song>>);
+          as _i2.UserMetadata);
 
   @override
-  _i3.Future<DateTime?> getSongsCacheTimestamp(String? uid) =>
+  List<_i2.UserInfo> get providerData =>
       (super.noSuchMethod(
-            Invocation.method(#getSongsCacheTimestamp, [uid]),
-            returnValue: _i3.Future<DateTime?>.value(),
+            Invocation.getter(#providerData),
+            returnValue: <_i2.UserInfo>[],
           )
-          as _i3.Future<DateTime?>);
+          as List<_i2.UserInfo>);
 
   @override
-  _i3.Future<void> clearSongsCache(String? uid) =>
+  String get uid =>
       (super.noSuchMethod(
-            Invocation.method(#clearSongsCache, [uid]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.getter(#uid),
+            returnValue: _i11.dummyValue<String>(this, Invocation.getter(#uid)),
           )
-          as _i3.Future<void>);
+          as String);
 
   @override
-  _i3.Future<void> cacheBands(String? uid, List<_i6.Band>? bands) =>
+  _i3.MultiFactor get multiFactor =>
       (super.noSuchMethod(
-            Invocation.method(#cacheBands, [uid, bands]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.getter(#multiFactor),
+            returnValue: _FakeMultiFactor_1(
+              this,
+              Invocation.getter(#multiFactor),
+            ),
           )
-          as _i3.Future<void>);
+          as _i3.MultiFactor);
 
   @override
-  _i3.Future<List<_i6.Band>> getCachedBands(String? uid) =>
+  _i5.Future<void> delete() =>
       (super.noSuchMethod(
-            Invocation.method(#getCachedBands, [uid]),
-            returnValue: _i3.Future<List<_i6.Band>>.value(<_i6.Band>[]),
+            Invocation.method(#delete, []),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<List<_i6.Band>>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<DateTime?> getBandsCacheTimestamp(String? uid) =>
+  _i5.Future<String?> getIdToken([bool? forceRefresh = false]) =>
       (super.noSuchMethod(
-            Invocation.method(#getBandsCacheTimestamp, [uid]),
-            returnValue: _i3.Future<DateTime?>.value(),
+            Invocation.method(#getIdToken, [forceRefresh]),
+            returnValue: _i5.Future<String?>.value(),
           )
-          as _i3.Future<DateTime?>);
+          as _i5.Future<String?>);
 
   @override
-  _i3.Future<void> clearBandsCache(String? uid) =>
+  _i5.Future<_i2.IdTokenResult> getIdTokenResult([
+    bool? forceRefresh = false,
+  ]) =>
       (super.noSuchMethod(
-            Invocation.method(#clearBandsCache, [uid]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#getIdTokenResult, [forceRefresh]),
+            returnValue: _i5.Future<_i2.IdTokenResult>.value(
+              _FakeIdTokenResult_2(
+                this,
+                Invocation.method(#getIdTokenResult, [forceRefresh]),
+              ),
+            ),
           )
-          as _i3.Future<void>);
+          as _i5.Future<_i2.IdTokenResult>);
 
   @override
-  _i3.Future<void> cacheSetlists(String? uid, List<_i8.Setlist>? setlists) =>
+  _i5.Future<_i3.UserCredential> linkWithCredential(
+    _i2.AuthCredential? credential,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#cacheSetlists, [uid, setlists]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#linkWithCredential, [credential]),
+            returnValue: _i5.Future<_i3.UserCredential>.value(
+              _FakeUserCredential_3(
+                this,
+                Invocation.method(#linkWithCredential, [credential]),
+              ),
+            ),
           )
-          as _i3.Future<void>);
+          as _i5.Future<_i3.UserCredential>);
 
   @override
-  _i3.Future<List<_i8.Setlist>> getCachedSetlists(String? uid) =>
+  _i5.Future<_i3.UserCredential> linkWithProvider(_i2.AuthProvider? provider) =>
       (super.noSuchMethod(
-            Invocation.method(#getCachedSetlists, [uid]),
-            returnValue: _i3.Future<List<_i8.Setlist>>.value(<_i8.Setlist>[]),
+            Invocation.method(#linkWithProvider, [provider]),
+            returnValue: _i5.Future<_i3.UserCredential>.value(
+              _FakeUserCredential_3(
+                this,
+                Invocation.method(#linkWithProvider, [provider]),
+              ),
+            ),
           )
-          as _i3.Future<List<_i8.Setlist>>);
+          as _i5.Future<_i3.UserCredential>);
 
   @override
-  _i3.Future<DateTime?> getSetlistsCacheTimestamp(String? uid) =>
+  _i5.Future<_i3.UserCredential> reauthenticateWithProvider(
+    _i2.AuthProvider? provider,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#getSetlistsCacheTimestamp, [uid]),
-            returnValue: _i3.Future<DateTime?>.value(),
+            Invocation.method(#reauthenticateWithProvider, [provider]),
+            returnValue: _i5.Future<_i3.UserCredential>.value(
+              _FakeUserCredential_3(
+                this,
+                Invocation.method(#reauthenticateWithProvider, [provider]),
+              ),
+            ),
           )
-          as _i3.Future<DateTime?>);
+          as _i5.Future<_i3.UserCredential>);
 
   @override
-  _i3.Future<void> clearSetlistsCache(String? uid) =>
+  _i5.Future<_i3.UserCredential> reauthenticateWithPopup(
+    _i2.AuthProvider? provider,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#clearSetlistsCache, [uid]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#reauthenticateWithPopup, [provider]),
+            returnValue: _i5.Future<_i3.UserCredential>.value(
+              _FakeUserCredential_3(
+                this,
+                Invocation.method(#reauthenticateWithPopup, [provider]),
+              ),
+            ),
           )
-          as _i3.Future<void>);
+          as _i5.Future<_i3.UserCredential>);
 
   @override
-  _i3.Future<void> cacheBandSongs(String? bandId, List<_i4.Song>? songs) =>
+  _i5.Future<void> reauthenticateWithRedirect(_i2.AuthProvider? provider) =>
       (super.noSuchMethod(
-            Invocation.method(#cacheBandSongs, [bandId, songs]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#reauthenticateWithRedirect, [provider]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<List<_i4.Song>> getCachedBandSongs(String? bandId) =>
+  _i5.Future<_i3.UserCredential> linkWithPopup(_i2.AuthProvider? provider) =>
       (super.noSuchMethod(
-            Invocation.method(#getCachedBandSongs, [bandId]),
-            returnValue: _i3.Future<List<_i4.Song>>.value(<_i4.Song>[]),
+            Invocation.method(#linkWithPopup, [provider]),
+            returnValue: _i5.Future<_i3.UserCredential>.value(
+              _FakeUserCredential_3(
+                this,
+                Invocation.method(#linkWithPopup, [provider]),
+              ),
+            ),
           )
-          as _i3.Future<List<_i4.Song>>);
+          as _i5.Future<_i3.UserCredential>);
 
   @override
-  _i3.Future<void> clearBandSongsCache(String? bandId) =>
+  _i5.Future<void> linkWithRedirect(_i2.AuthProvider? provider) =>
       (super.noSuchMethod(
-            Invocation.method(#clearBandSongsCache, [bandId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#linkWithRedirect, [provider]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i3.Future<void> clearAllUserCache(String? uid) =>
+  _i5.Future<_i3.ConfirmationResult> linkWithPhoneNumber(
+    String? phoneNumber, [
+    _i3.RecaptchaVerifier? verifier,
+  ]) =>
       (super.noSuchMethod(
-            Invocation.method(#clearAllUserCache, [uid]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#linkWithPhoneNumber, [phoneNumber, verifier]),
+            returnValue: _i5.Future<_i3.ConfirmationResult>.value(
+              _FakeConfirmationResult_4(
+                this,
+                Invocation.method(#linkWithPhoneNumber, [
+                  phoneNumber,
+                  verifier,
+                ]),
+              ),
+            ),
           )
-          as _i3.Future<void>);
+          as _i5.Future<_i3.ConfirmationResult>);
 
   @override
-  _i3.Future<void> clearAllCache() =>
+  _i5.Future<_i3.UserCredential> reauthenticateWithCredential(
+    _i2.AuthCredential? credential,
+  ) =>
       (super.noSuchMethod(
-            Invocation.method(#clearAllCache, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#reauthenticateWithCredential, [credential]),
+            returnValue: _i5.Future<_i3.UserCredential>.value(
+              _FakeUserCredential_3(
+                this,
+                Invocation.method(#reauthenticateWithCredential, [credential]),
+              ),
+            ),
           )
-          as _i3.Future<void>);
+          as _i5.Future<_i3.UserCredential>);
 
   @override
-  _i3.Future<bool> hasCache(String? uid) =>
+  _i5.Future<void> reload() =>
       (super.noSuchMethod(
-            Invocation.method(#hasCache, [uid]),
-            returnValue: _i3.Future<bool>.value(false),
+            Invocation.method(#reload, []),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i3.Future<bool>);
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> sendEmailVerification([
+    _i2.ActionCodeSettings? actionCodeSettings,
+  ]) =>
+      (super.noSuchMethod(
+            Invocation.method(#sendEmailVerification, [actionCodeSettings]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<_i3.User> unlink(String? providerId) =>
+      (super.noSuchMethod(
+            Invocation.method(#unlink, [providerId]),
+            returnValue: _i5.Future<_i3.User>.value(
+              _FakeUser_5(this, Invocation.method(#unlink, [providerId])),
+            ),
+          )
+          as _i5.Future<_i3.User>);
+
+  @override
+  _i5.Future<void> updatePassword(String? newPassword) =>
+      (super.noSuchMethod(
+            Invocation.method(#updatePassword, [newPassword]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updatePhoneNumber(
+    _i2.PhoneAuthCredential? phoneCredential,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#updatePhoneNumber, [phoneCredential]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updateDisplayName(String? displayName) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDisplayName, [displayName]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updatePhotoURL(String? photoURL) =>
+      (super.noSuchMethod(
+            Invocation.method(#updatePhotoURL, [photoURL]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> updateProfile({String? displayName, String? photoURL}) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateProfile, [], {
+              #displayName: displayName,
+              #photoURL: photoURL,
+            }),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> verifyBeforeUpdateEmail(
+    String? newEmail, [
+    _i2.ActionCodeSettings? actionCodeSettings,
+  ]) =>
+      (super.noSuchMethod(
+            Invocation.method(#verifyBeforeUpdateEmail, [
+              newEmail,
+              actionCodeSettings,
+            ]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
 }

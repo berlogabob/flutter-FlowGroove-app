@@ -261,11 +261,3 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
     );
   }
 }
-
-/// Provider for watching a band's songs.
-final bandSongsProvider = StreamProvider.family<List<Song>, String>((
-  ref,
-  bandId,
-) {
-  return ref.watch(firestoreProvider).watchBandSongs(bandId);
-});
