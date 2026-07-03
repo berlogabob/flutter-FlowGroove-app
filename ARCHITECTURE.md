@@ -62,6 +62,7 @@ Primary app code lives in `lib/`.
 - Songs
 - Bands
 - Setlists
+- Rehearsal Planner (per-band availability poll → confirmed rehearsal)
 - Profile
 - Metronome
 - Tuner
@@ -215,8 +216,14 @@ Server-authoritative callables (admin-SDK, so they bypass client-side rules):
   API keys (random token shown once, only its SHA-256 stored, revocable, demo-blocked).
 
 HTTP + scheduled: `telegramWebhook`, `shareToTelegram`, `onBandSetlistCreated`,
-`dailyEventReminder` (`src/telegram/`), plus the MCP endpoints `mcpGateway`
+`dailyEventReminder`, `onRehearsalCreated` / `onRehearsalUpdated`
+(`src/telegram/rehearsals_notify.js` — fan out proposal/confirmation notices via
+`notifyBandMembers`), plus the MCP endpoints `mcpGateway`
 (`src/mcp/gateway.js`, API-key) and `mcpRemote` (`src/mcp/remote.js`, remote OAuth) — see §6.
+
+Note: rehearsal CRUD is **not** a callable — the client writes
+`bands/{bandId}/rehearsals/*` directly, gated by Firestore rules (member-owns-own-vote,
+editor/admin create, admin delete). Only the Telegram fan-out is server code.
 
 ### 5. AI Workspace Context
 
@@ -261,6 +268,9 @@ so FlowGroove pays no tokens. Richer tools (sections/chords/lab/homework) land w
 - shell-based app routes under `/main/...`
 - branches for:
   `home`, `songs`, `bands`, `setlists`, `profile`, `metronome`, `tuner`
+- band sub-routes (resolved through `BandRouteResolver`):
+  `band-songs`, `band-setlists`, `band-members`, `band-rehearsals` (+ `create-rehearsal`,
+  `rehearsal-detail`, `edit-rehearsal`)
 
 ### State Management
 
@@ -276,6 +286,18 @@ Key provider groups:
   `song_autocomplete_provider.dart`
   `permissions_provider.dart`
   `wakelock_provider.dart`
+
+Provider rules learned the hard way (#80):
+
+- Per-band family stream providers (e.g. `bandSongsProvider`) are
+  **autoDispose** so Firestore listeners close when unwatched.
+- Never do a one-shot `ref.read(provider).value ?? []` on a stream provider —
+  a cold provider is still `loading` and you silently get `[]`. Await
+  `ref.read(provider.future)` instead.
+- Awaiting `.future` of an **autoDispose** provider requires an active
+  listener (`ref.watch` in the screen's build, or `ref.listenManual`),
+  otherwise Riverpod disposes it mid-load: "Bad state: disposed during
+  loading state".
 
 ### Data And Services
 
@@ -352,6 +374,38 @@ Primary service areas:
 - `widgets/song_card.dart` surfaces key + derived scale + section count (full map
   lives in the editor)
 - directive conventions: `docs/CHORDPRO.md`
+
+#### Rehearsal Planner (bands)
+
+A per-band availability poll that grows into a confirmed rehearsal event — one
+merged document lifecycle (`collecting → confirmed → done/cancelled`), not a
+separate proposal-vs-event split.
+
+- **Model** `models/rehearsal.dart`: `Rehearsal` (candidate slots, required/optional
+  member uids, optional `setlistId`, free-text `location`, `status`,
+  `confirmedSlotId`), `CandidateSlot`, and `RehearsalVote` (`answers` map
+  slotId→`can|maybe|cant`). Same `@JsonSerializable` + `_sentinel` copyWith idiom as
+  `Band`/`Setlist`.
+- **Storage** `bands/{bandId}/rehearsals/{id}` mirrors band setlists; votes live in a
+  `.../votes/{uid}` subcollection keyed by uid (one doc per member — makes the
+  "member owns only their own vote" rule a one-liner).
+- **Writes are client-side, rules-gated** (no CRUD callable):
+  `repositories/firestore_rehearsal_repository.dart` behind `RehearsalRepository`,
+  exposed via `bandRehearsalsProvider` / `rehearsalProvider` /
+  `rehearsalVotesProvider` in `providers/data/data_providers.dart`.
+- **Best-slot scoring** is a pure function (`utils/rehearsal_scoring.dart`): a required
+  member's `cant` blocks a slot; otherwise required `can`+100 / `maybe`+40, optional
+  `can`+10 / `maybe`+4. The organizer still confirms manually (suggestion, not
+  automation). Unit-tested in `test/rehearsal_scoring_test.dart`.
+- **UI** `screens/bands/rehearsals/` — list, edit (slots via native date/time pickers,
+  Required→Optional member chips, setlist + location), and detail (per-slot voting,
+  best-slot highlight, conflict + "waiting on" notices, organizer confirm, confirmed
+  card with the attached setlist's songs). Entry point is a tool button on the band
+  dashboard (`the_band_screen.dart`).
+- **Calendar export** `utils/ics_export.dart` — a hand-rolled `.ics` (VEVENT) shared
+  via `share_plus`; no calendar dependency, no two-way sync in V1.
+- **Notifications** are Telegram-only, via the `onRehearsalCreated` /
+  `onRehearsalUpdated` triggers (§4); there is no in-app notification center.
 
 ## Deployment Topology
 
