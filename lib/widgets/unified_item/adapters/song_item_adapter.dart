@@ -62,7 +62,6 @@ class SongItemAdapter extends UnifiedItemModel {
   String? get ourKey => song.ourKey;
   String? get originalKey => song.originalKey;
   String? get spotifyUrl => song.spotifyUrl;
-  bool get isShared => song.isCopy || song.bandId != null;
   bool get isCopy => song.isCopy;
   String? get contributedBy => song.contributedBy;
   String? get originalOwnerId => song.originalOwnerId;

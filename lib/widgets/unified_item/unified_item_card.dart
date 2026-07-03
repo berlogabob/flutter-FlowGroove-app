@@ -60,13 +60,13 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
     );
   }
 
-  Widget _buildLeadingIcon(BuildContext context) {
+  Widget? _buildLeadingIcon(BuildContext context) {
     IconData icon;
-    bool isShared = false;
 
     if (item is SongItemAdapter) {
-      icon = Icons.music_note;
-      isShared = (item as SongItemAdapter).isShared;
+      // No leading avatar for songs — the title needs the room on phones,
+      // and copy status is already shown by the attribution line.
+      return null;
     } else if (item is BandItemAdapter) {
       // Show the band's avatar when it has one, falling back to initials.
       final band = (item as BandItemAdapter).band;
@@ -85,15 +85,8 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
     }
 
     return CircleAvatar(
-      backgroundColor: isShared
-          ? MonoPulseColors.sharedBackground
-          : MonoPulseColors.surfaceRaised,
-      child: Icon(
-        isShared ? Icons.content_copy : icon,
-        color: isShared
-            ? MonoPulseColors.sharedIcon
-            : MonoPulseColors.accentOrange,
-      ),
+      backgroundColor: MonoPulseColors.surfaceRaised,
+      child: Icon(icon, color: MonoPulseColors.accentOrange),
     );
   }
 
