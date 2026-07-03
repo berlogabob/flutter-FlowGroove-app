@@ -8,9 +8,12 @@ import '../models/song.dart';
 import '../providers/wakelock_provider.dart';
 import '../services/export/chordpro_export.dart';
 import '../services/export/pdf_service.dart';
+import '../services/export/setlist_export_sheet.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/chordpro.dart';
+import '../utils/snackbar.dart';
 import '../widgets/chord_chart_view.dart';
+import '../widgets/custom_app_bar.dart';
 
 /// Full-screen, stage-readable lyrics+chords view for a song. Renders each
 /// section's ChordPro [Section.chordChart] as chords-over-lyrics, keeps the
@@ -128,53 +131,72 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
     return _transpose > 0 ? '+$_transpose' : '$_transpose';
   }
 
+  Future<void> _exportPdf() async {
+    final layout = await pickSongSheetPdfLayout(context);
+    if (layout == null) return;
+    try {
+      await PdfService.exportSongSheet(
+        widget.title,
+        widget.sections,
+        transpose: _transpose,
+        songKey: widget.songKey,
+        bpm: widget.bpm,
+        timeTop: widget.timeTop,
+        fitOnePage: layout == SetlistPdfLayout.compact,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, 'PDF export failed: $e');
+    }
+  }
+
+  Future<void> _exportChordPro(Song song) async {
+    try {
+      await shareSongChordPro(song);
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, 'ChordPro export failed: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final withCharts = widget.sections
-        .where((s) =>
-            (s.chordChart != null && s.chordChart!.trim().isNotEmpty) ||
-            s.notes.trim().isNotEmpty)
+        .where(
+          (s) =>
+              (s.chordChart != null && s.chordChart!.trim().isNotEmpty) ||
+              s.notes.trim().isNotEmpty,
+        )
         .toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-            tooltip: 'Export PDF',
-            icon: const Icon(Icons.picture_as_pdf_outlined),
-            onPressed: () => PdfService.exportSongSheet(
-              widget.title,
-              widget.sections,
-              transpose: _transpose,
-              songKey: widget.songKey,
-              bpm: widget.bpm,
-              timeTop: widget.timeTop,
+      // Classic 3-dot menu like every other screen (#79); transpose lives in
+      // the bottom bar next to the scroll transport.
+      appBar: CustomAppBar.build(
+        context,
+        title: widget.title,
+        menuItems: [
+          PopupMenuItem<void>(
+            onTap: _exportPdf,
+            child: const Row(
+              children: [
+                Icon(Icons.picture_as_pdf_outlined, size: 20),
+                SizedBox(width: MonoPulseSpacing.sm),
+                Text('Export PDF'),
+              ],
             ),
           ),
           if (widget.song case final song?)
-            IconButton(
-              tooltip: 'Export ChordPro',
-              icon: const Icon(Icons.description_outlined),
-              onPressed: () => shareSongChordPro(song),
+            PopupMenuItem<void>(
+              onTap: () => _exportChordPro(song),
+              child: const Row(
+                children: [
+                  Icon(Icons.description_outlined, size: 20),
+                  SizedBox(width: MonoPulseSpacing.sm),
+                  Text('Export ChordPro'),
+                ],
+              ),
             ),
-          IconButton(
-            tooltip: 'Transpose down',
-            icon: const Icon(Icons.remove),
-            onPressed: () => setState(() => _transpose--),
-          ),
-          Center(
-            child: Text(
-              _transposeLabel,
-              style: MonoPulseTypography.labelLarge,
-            ),
-          ),
-          IconButton(
-            tooltip: 'Transpose up',
-            icon: const Icon(Icons.add),
-            onPressed: () => setState(() => _transpose++),
-          ),
-          const SizedBox(width: MonoPulseSpacing.sm),
         ],
       ),
       body: withCharts.isEmpty
@@ -194,35 +216,45 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
               scrolling: _scrolling,
               bpmSync: _bpmSync,
               speed: _speed,
+              transposeLabel: _transposeLabel,
               onToggle: _toggleScroll,
               onSlower: () => _nudgeSpeed(0.8),
               onFaster: () => _nudgeSpeed(1.25),
               onToggleBpm: _toggleBpmSync,
+              onTransposeDown: () => setState(() => _transpose--),
+              onTransposeUp: () => setState(() => _transpose++),
             ),
     );
   }
 }
 
-/// Bottom transport for hands-free scrolling: play/pause, ± speed, and a
-/// Manual ⇄ BPM mode toggle.
+/// Bottom transport for hands-free scrolling: play/pause, ± speed, a
+/// Manual ⇄ BPM mode toggle, and live ± transpose (moved here from the
+/// AppBar when it gained the standard 3-dot menu, #79).
 class _AutoScrollBar extends StatelessWidget {
   const _AutoScrollBar({
     required this.scrolling,
     required this.bpmSync,
     required this.speed,
+    required this.transposeLabel,
     required this.onToggle,
     required this.onSlower,
     required this.onFaster,
     required this.onToggleBpm,
+    required this.onTransposeDown,
+    required this.onTransposeUp,
   });
 
   final bool scrolling;
   final bool bpmSync;
   final double speed;
+  final String transposeLabel;
   final VoidCallback onToggle;
   final VoidCallback onSlower;
   final VoidCallback onFaster;
   final VoidCallback onToggleBpm;
+  final VoidCallback onTransposeDown;
+  final VoidCallback onTransposeUp;
 
   @override
   Widget build(BuildContext context) {
@@ -232,33 +264,61 @@ class _AutoScrollBar extends StatelessWidget {
           horizontal: MonoPulseSpacing.md,
           vertical: MonoPulseSpacing.sm,
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton.filled(
-              onPressed: onToggle,
-              icon: Icon(scrolling ? Icons.pause : Icons.play_arrow),
-              tooltip: scrolling ? 'Pause scroll' : 'Auto-scroll',
+            Row(
+              children: [
+                const Icon(
+                  Icons.music_note,
+                  size: MonoPulseIcons.sizeMedium,
+                  color: MonoPulseColors.textSecondary,
+                ),
+                const SizedBox(width: MonoPulseSpacing.sm),
+                const Text('Transpose', style: MonoPulseTypography.labelLarge),
+                const Spacer(),
+                IconButton(
+                  onPressed: onTransposeDown,
+                  icon: const Icon(Icons.remove),
+                  tooltip: 'Transpose down',
+                ),
+                Text(transposeLabel, style: MonoPulseTypography.labelLarge),
+                IconButton(
+                  onPressed: onTransposeUp,
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Transpose up',
+                ),
+              ],
             ),
-            const SizedBox(width: MonoPulseSpacing.sm),
-            IconButton(
-              onPressed: onSlower,
-              icon: const Icon(Icons.remove),
-              tooltip: 'Slower',
-            ),
-            Text(
-              '${speed.round()} px/s',
-              style: MonoPulseTypography.labelLarge,
-            ),
-            IconButton(
-              onPressed: onFaster,
-              icon: const Icon(Icons.add),
-              tooltip: 'Faster',
-            ),
-            const Spacer(),
-            ChoiceChip(
-              label: Text(bpmSync ? 'BPM' : 'Manual'),
-              selected: bpmSync,
-              onSelected: (_) => onToggleBpm(),
+            Row(
+              children: [
+                IconButton.filled(
+                  onPressed: onToggle,
+                  icon: Icon(scrolling ? Icons.pause : Icons.play_arrow),
+                  tooltip: scrolling ? 'Pause scroll' : 'Auto-scroll',
+                ),
+                const SizedBox(width: MonoPulseSpacing.sm),
+                IconButton(
+                  onPressed: onSlower,
+                  icon: const Icon(Icons.remove),
+                  tooltip: 'Slower',
+                ),
+                Text(
+                  '${speed.round()} px/s',
+                  style: MonoPulseTypography.labelLarge,
+                ),
+                IconButton(
+                  onPressed: onFaster,
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Faster',
+                ),
+                const Spacer(),
+                ChoiceChip(
+                  label: Text(bpmSync ? 'BPM' : 'Manual'),
+                  selected: bpmSync,
+                  onSelected: (_) => onToggleBpm(),
+                ),
+              ],
             ),
           ],
         ),
@@ -311,9 +371,9 @@ class _EmptyState extends StatelessWidget {
           'No lyrics or chords yet.\nAdd them to a section to see the '
           'performance sheet.',
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: MonoPulseColors.textSecondary,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge?.copyWith(color: MonoPulseColors.textSecondary),
         ),
       ),
     );

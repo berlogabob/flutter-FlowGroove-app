@@ -24,13 +24,13 @@ import 'utils/add_song_screen_helper.dart';
 
 /// Screen for adding or editing a song with comprehensive error handling.
 class AddSongScreen extends ConsumerStatefulWidget {
-
   const AddSongScreen({
     super.key,
     this.song,
     this.bandId,
     this.initialFormData,
   });
+
   /// The song to edit. If null, a new song will be created.
   final Song? song;
 
@@ -51,6 +51,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   late TextEditingController _originalBpmController;
   late TextEditingController _ourBpmController;
   late TextEditingController _notesController;
+
+  /// True once the post-frame _initControllers has reset/seeded the global
+  /// form provider — the form body isn't rendered before that (#78).
+  bool _formReady = false;
 
   bool get _isEditing => widget.song != null;
 
@@ -80,6 +84,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _initControllers();
+        // Body is gated on this: the global form provider still holds the
+        // previous song until _initControllers resets it, so rendering the
+        // form one frame early flashes stale data (#78).
+        setState(() => _formReady = true);
       }
     });
     WidgetsBinding.instance.addObserver(this);
@@ -256,7 +264,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       }
       _applySpotifyKey(features.musicalKey);
       if (mounted) {
-        showAppSnackBar(context, 'Filled ${features.bpm} BPM · ${features.musicalKey} from Spotify');
+        showAppSnackBar(
+          context,
+          'Filled ${features.bpm} BPM · ${features.musicalKey} from Spotify',
+        );
       }
     } catch (_) {
       // Non-fatal — autofill is best-effort (e.g. audio-features unavailable).
@@ -469,102 +480,112 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
             ),
           ],
         ),
-        body: ListView(
-          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-          children: [
-            // Error banner
-            if (error != null) ...[
-              ErrorBanner(
-                message: error.message,
-                onRetry: () =>
-                    ref.read(songFormStateProvider.notifier).clearError(),
+        body: !_formReady
+            ? const SizedBox.shrink()
+            : ListView(
+                padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                children: [
+                  // Error banner
+                  if (error != null) ...[
+                    ErrorBanner(
+                      message: error.message,
+                      onRetry: () =>
+                          ref.read(songFormStateProvider.notifier).clearError(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  // Song form with autocomplete
+                  SongForm(
+                    formKey: _formKey,
+                    titleController: _titleController,
+                    artistController: _artistController,
+                    originalBpmController: _originalBpmController,
+                    ourBpmController: _ourBpmController,
+                    notesController: _notesController,
+                    links: formData.links,
+                    selectedTags: formData.selectedTags,
+                    availableTags: _availableTags,
+                    originalKeyBase: formData.originalKeyBase,
+                    originalKeyModifier: formData.originalKeyModifier,
+                    ourKeyBase: formData.ourKeyBase,
+                    ourKeyModifier: formData.ourKeyModifier,
+                    onOriginalKeyChanged: (b, m) {
+                      ref
+                          .read(songFormStateProvider.notifier)
+                          .updateOriginalKey(b, m);
+                      ref.read(songFormStateProvider.notifier).markAsChanged();
+                    },
+                    onOurKeyChanged: (b, m) {
+                      ref
+                          .read(songFormStateProvider.notifier)
+                          .updateOurKey(b, m);
+                      ref.read(songFormStateProvider.notifier).markAsChanged();
+                    },
+                    onAddLink: (link) {
+                      ref.read(songFormStateProvider.notifier).addLink(link);
+                      ref.read(songFormStateProvider.notifier).markAsChanged();
+                    },
+                    onRemoveLink: (index) {
+                      ref
+                          .read(songFormStateProvider.notifier)
+                          .removeLink(index);
+                      ref.read(songFormStateProvider.notifier).markAsChanged();
+                    },
+                    onTagChanged: (tag, selected) {
+                      ref
+                          .read(songFormStateProvider.notifier)
+                          .toggleTag(tag, selected);
+                      ref.read(songFormStateProvider.notifier).markAsChanged();
+                    },
+                    sections: formData.sections,
+                    onSectionsChanged: (newSections) {
+                      ref
+                          .read(songFormStateProvider.notifier)
+                          .setSections(newSections);
+                      ref.read(songFormStateProvider.notifier).markAsChanged();
+                    },
+                    accentBeats: formData.accentBeats,
+                    regularBeats: formData.regularBeats,
+                    beatModes: formData.beatModes,
+                    onAccentBeatsChanged: (value) {
+                      final notifier = ref.read(songFormStateProvider.notifier);
+                      notifier.updateAccentBeats(value);
+                      notifier.initializeBeatModes();
+                      notifier.markAsChanged();
+                    },
+                    onRegularBeatsChanged: (value) {
+                      final notifier = ref.read(songFormStateProvider.notifier);
+                      notifier.updateRegularBeats(value);
+                      notifier.initializeBeatModes();
+                      notifier.markAsChanged();
+                    },
+                    onBeatModeChanged: (beatIndex, subdivisionIndex, mode) {
+                      final notifier = ref.read(songFormStateProvider.notifier);
+                      notifier.updateBeatMode(
+                        beatIndex,
+                        subdivisionIndex,
+                        mode,
+                      );
+                      notifier.markAsChanged();
+                    },
+                    onSuggestionSelected: _handleSuggestionSelected,
+                    bandId: widget.bandId,
+                    isEditing: _isEditing,
+                  ),
+                  const SizedBox(height: 24),
+                  // Single web-search shortcut — the title autocomplete already
+                  // covers MusicBrainz/Spotify autofill; the old per-source buttons
+                  // were clutter and mostly broken (#78 follow-up).
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: searchOnWeb,
+                      icon: const Icon(Icons.search, size: 18),
+                      label: const Text('Search web'),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-            ],
-            // Song form with autocomplete
-            SongForm(
-              formKey: _formKey,
-              titleController: _titleController,
-              artistController: _artistController,
-              originalBpmController: _originalBpmController,
-              ourBpmController: _ourBpmController,
-              notesController: _notesController,
-              links: formData.links,
-              selectedTags: formData.selectedTags,
-              availableTags: _availableTags,
-              originalKeyBase: formData.originalKeyBase,
-              originalKeyModifier: formData.originalKeyModifier,
-              ourKeyBase: formData.ourKeyBase,
-              ourKeyModifier: formData.ourKeyModifier,
-              onOriginalKeyChanged: (b, m) {
-                ref
-                    .read(songFormStateProvider.notifier)
-                    .updateOriginalKey(b, m);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onOurKeyChanged: (b, m) {
-                ref.read(songFormStateProvider.notifier).updateOurKey(b, m);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onAddLink: (link) {
-                ref.read(songFormStateProvider.notifier).addLink(link);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onRemoveLink: (index) {
-                ref.read(songFormStateProvider.notifier).removeLink(index);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onTagChanged: (tag, selected) {
-                ref
-                    .read(songFormStateProvider.notifier)
-                    .toggleTag(tag, selected);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              sections: formData.sections,
-              onSectionsChanged: (newSections) {
-                ref
-                    .read(songFormStateProvider.notifier)
-                    .setSections(newSections);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              accentBeats: formData.accentBeats,
-              regularBeats: formData.regularBeats,
-              beatModes: formData.beatModes,
-              onAccentBeatsChanged: (value) {
-                final notifier = ref.read(songFormStateProvider.notifier);
-                notifier.updateAccentBeats(value);
-                notifier.initializeBeatModes();
-                notifier.markAsChanged();
-              },
-              onRegularBeatsChanged: (value) {
-                final notifier = ref.read(songFormStateProvider.notifier);
-                notifier.updateRegularBeats(value);
-                notifier.initializeBeatModes();
-                notifier.markAsChanged();
-              },
-              onBeatModeChanged: (beatIndex, subdivisionIndex, mode) {
-                final notifier = ref.read(songFormStateProvider.notifier);
-                notifier.updateBeatMode(beatIndex, subdivisionIndex, mode);
-                notifier.markAsChanged();
-              },
-              onSuggestionSelected: _handleSuggestionSelected,
-              bandId: widget.bandId,
-              isEditing: _isEditing,
-            ),
-            const SizedBox(height: 24),
-            // Single web-search shortcut — the title autocomplete already
-            // covers MusicBrainz/Spotify autofill; the old per-source buttons
-            // were clutter and mostly broken (#78 follow-up).
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: searchOnWeb,
-                icon: const Icon(Icons.search, size: 18),
-                label: const Text('Search web'),
-              ),
-            ),
-          ],
-        ),
         bottomNavigationBar: PrimaryActionBar(
           label: _isEditing ? 'Save Changes' : 'Save Song',
           onPressed: isSaving ? null : _saveSong,

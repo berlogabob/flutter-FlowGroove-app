@@ -66,17 +66,20 @@ class MusicBrainzRelease extends Equatable {
     required this.title,
     this.date,
     this.country,
-    this.media,
   });
 
   factory MusicBrainzRelease.fromJson(Map<String, dynamic> json) =>
       _$MusicBrainzReleaseFromJson(json);
 
+  // NOTE: no `media` field — the API sends it as a list of objects, and the
+  // old List<String> typing made every fromJson throw, silently killing all
+  // MusicBrainz autofill suggestions (#75/#78). It was never read; if it's
+  // ever needed, model it as its own class.
+
   final String id;
   final String title;
   final String? date;
   final String? country;
-  final List<String>? media;
 
   Map<String, dynamic> toJson() => _$MusicBrainzReleaseToJson(this);
 

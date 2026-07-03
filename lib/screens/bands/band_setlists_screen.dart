@@ -68,9 +68,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
       setlistsToUse = _manualOrder!;
     }
 
-    var adapters = setlistsToUse
-        .map(SetlistItemAdapter.new)
-        .toList();
+    var adapters = setlistsToUse.map(SetlistItemAdapter.new).toList();
 
     if (_searchQuery.trim().isNotEmpty) {
       final query = _searchQuery.toLowerCase().trim();
@@ -285,8 +283,10 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     );
   }
 
-  List<Song> _songsForSetlist(Setlist setlist) {
-    final allSongs = ref.read(bandSongsProvider(widget.band.id)).value ?? [];
+  /// Awaits the first emission: bandSongsProvider is autoDispose, so a cold
+  /// `.value` read here was always `loading` → 0 songs → blank exports (#80).
+  Future<List<Song>> _songsForSetlist(Setlist setlist) async {
+    final allSongs = await ref.read(bandSongsProvider(widget.band.id).future);
     final songsById = {for (final song in allSongs) song.id: song};
     return setlist.songIds
         .map((songId) => songsById[songId])
@@ -294,13 +294,21 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
         .toList();
   }
 
-  void _openInMetronome(Setlist setlist) {
-    final songs = _songsForSetlist(setlist);
+  Future<void> _openInMetronome(Setlist setlist) async {
+    final songs = await _songsForSetlist(setlist);
+    if (!mounted) return;
     final loaded = ref
         .read(metronomeProvider.notifier)
-        .loadSetlistQueue(setlist, availableSongs: songs, sourceBandId: widget.band.id);
+        .loadSetlistQueue(
+          setlist,
+          availableSongs: songs,
+          sourceBandId: widget.band.id,
+        );
     if (!loaded) {
-      showAppSnackBar(context, 'This setlist is empty or has unavailable songs.');
+      showAppSnackBar(
+        context,
+        'This setlist is empty or has unavailable songs.',
+      );
       return;
     }
     context.goNamed('metronome');
@@ -312,7 +320,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     try {
       await PdfService.exportSetlist(
         setlist,
-        _songsForSetlist(setlist),
+        await _songsForSetlist(setlist),
         layout: layout,
       );
     } catch (e) {
@@ -321,8 +329,9 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     }
   }
 
-  void _shareAsLinks(Setlist setlist) {
-    final songs = _songsForSetlist(setlist);
+  Future<void> _shareAsLinks(Setlist setlist) async {
+    final songs = await _songsForSetlist(setlist);
+    if (!mounted) return;
     final buffer = StringBuffer();
     buffer.writeln(setlist.name);
     if (setlist.description != null) buffer.writeln(setlist.description);
@@ -341,7 +350,8 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     buffer.writeln();
     buffer.writeln('Created with FlowGroove');
 
-    Clipboard.setData(ClipboardData(text: buffer.toString()));
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+    if (!mounted) return;
     showAppSnackBar(context, 'Setlist links copied to clipboard!');
   }
 }

@@ -49,7 +49,22 @@ class MusicBrainzService {
     int limit = 10,
     int offset = 0,
   }) async {
-    final queryParts = <String>['recording:"$title"'];
+    // Autocomplete sends partial titles ("hit the li"), so a quoted phrase
+    // query matches nothing. AND all tokens and wildcard the last one so
+    // mid-word typing still finds "Hit the Lights" (#75/#78).
+    final tokens = title
+        .trim()
+        .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), ' ')
+        .split(RegExp(r'\s+'))
+        .where((t) => t.isNotEmpty)
+        .toList();
+    if (tokens.isEmpty) return [];
+    final expr = [
+      ...tokens.take(tokens.length - 1),
+      '${tokens.last}*',
+    ].join(' AND ');
+
+    final queryParts = <String>['recording:($expr)'];
     if (artist != null && artist.isNotEmpty) {
       queryParts.add('artist:"$artist"');
     }
@@ -102,13 +117,15 @@ class MusicBrainzService {
     int offset = 0,
     List<String>? inc,
   }) async {
-    final uri = Uri.parse('$_baseUrl/recording').replace(queryParameters: {
-      'query': query,
-      'fmt': 'json',
-      'limit': limit.toString(),
-      'offset': offset.toString(),
-      'inc': inc?.join('+') ?? '',
-    });
+    final uri = Uri.parse('$_baseUrl/recording').replace(
+      queryParameters: {
+        'query': query,
+        'fmt': 'json',
+        'limit': limit.toString(),
+        'offset': offset.toString(),
+        'inc': inc?.join('+') ?? '',
+      },
+    );
 
     final data = await _getJson(uri);
     final recordings = data['recordings'] as List<dynamic>? ?? [];

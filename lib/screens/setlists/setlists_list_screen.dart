@@ -41,9 +41,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       setlistsToUse = _manualOrder!;
     }
 
-    var adapters = setlistsToUse
-        .map(SetlistItemAdapter.new)
-        .toList();
+    var adapters = setlistsToUse.map(SetlistItemAdapter.new).toList();
 
     if (_searchQuery.trim().isNotEmpty) {
       final query = _searchQuery.toLowerCase().trim();
@@ -247,30 +245,39 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     );
   }
 
-  List<Song> _songsForSetlist(Setlist setlist) {
-    final allSongs = ref.read(songsProvider).value ?? [];
+  /// Awaits the first emission instead of a one-shot `.value` read — a cold
+  /// read on this screen resolved 0 songs → blank PDF/share/metronome (#80).
+  Future<List<Song>> _songsForSetlist(Setlist setlist) async {
+    final allSongs = await ref.read(songsProvider.future);
     return allSongs.where((s) => setlist.songIds.contains(s.id)).toList();
   }
 
-  void _openInMetronome(Setlist setlist) {
+  Future<void> _openInMetronome(Setlist setlist) async {
+    final songs = await _songsForSetlist(setlist);
+    if (!mounted) return;
     final loaded = ref
         .read(metronomeProvider.notifier)
-        .loadSetlistQueue(setlist, availableSongs: _songsForSetlist(setlist));
+        .loadSetlistQueue(setlist, availableSongs: songs);
     if (!loaded) {
-      showAppSnackBar(context, 'This setlist is empty or has unavailable songs.');
+      showAppSnackBar(
+        context,
+        'This setlist is empty or has unavailable songs.',
+      );
       return;
     }
     context.goNamed('metronome');
   }
 
-  void _shareSetlist(Setlist setlist) {
-    _shareAsLinks(context, setlist, _songsForSetlist(setlist));
+  Future<void> _shareSetlist(Setlist setlist) async {
+    final songs = await _songsForSetlist(setlist);
+    if (!mounted) return;
+    _shareAsLinks(context, setlist, songs);
   }
 
   Future<void> _exportPdf(Setlist setlist) async {
     final layout = await pickSetlistPdfLayout(context);
     if (layout == null) return;
-    final setlistSongs = _songsForSetlist(setlist);
+    final setlistSongs = await _songsForSetlist(setlist);
     try {
       await PdfService.exportSetlist(setlist, setlistSongs, layout: layout);
     } catch (e) {

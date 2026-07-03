@@ -48,6 +48,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   bool _isSaving = false;
   bool _showEventDetails = false;
 
+  /// False while an existing setlist's songs are still resolving; saving in
+  /// that window would persist songIds: [] and wipe the setlist (#80).
+  bool _songsLoaded = true;
+
   bool get _isEditing => widget.setlist != null;
   bool get _isBandScope => widget.storageScope == SetlistStorageScope.band;
 
@@ -64,11 +68,14 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
         : ref.watch(bandSongsProvider(bandId));
   }
 
-  AsyncValue<List<Song>> _readAvailableSongs() {
+  /// Waits for the first emission instead of a one-shot `.value` read:
+  /// bandSongsProvider is autoDispose, so a cold read is always `loading`
+  /// and used to resolve 0 songs here (#80).
+  Future<List<Song>> _fetchAvailableSongs() {
     final bandId = _effectiveBandId;
     return bandId == null
-        ? ref.read(songsProvider)
-        : ref.read(bandSongsProvider(bandId));
+        ? ref.read(songsProvider.future)
+        : ref.read(bandSongsProvider(bandId).future);
   }
 
   void _markAsChanged() {
@@ -87,29 +94,32 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       _descriptionController.text = setlist.description ?? '';
       _eventDate = setlist.eventDateTime;
       _eventLocationController.text = setlist.eventLocation ?? '';
+      _songsLoaded = setlist.effectiveItems.isEmpty;
       _loadSongsForEditing(setlist);
     }
   }
 
-  void _loadSongsForEditing(Setlist setlist) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final songsAsync = _readAvailableSongs();
-      final allSongs = songsAsync.value ?? [];
-      final songsById = <String, Song>{
-        for (final song in allSongs) song.id: song,
-      };
-      final items = setlist.effectiveItems;
-      if (!mounted) return;
-      setState(() {
-        _selectedSongs = [
-          for (final item in items)
-            ?songsById[item.songId],
-        ];
-        _selectedItems = [
-          for (final item in items)
-            if (songsById.containsKey(item.songId)) item,
-        ];
-      });
+  Future<void> _loadSongsForEditing(Setlist setlist) async {
+    List<Song> allSongs;
+    try {
+      allSongs = await _fetchAvailableSongs();
+    } catch (_) {
+      allSongs = [];
+    }
+    final songsById = <String, Song>{
+      for (final song in allSongs) song.id: song,
+    };
+    final items = setlist.effectiveItems;
+    if (!mounted) return;
+    setState(() {
+      _songsLoaded =
+          allSongs.isNotEmpty ||
+          items.isEmpty; // a failed load never counts as "loaded empty"
+      _selectedSongs = [for (final item in items) ?songsById[item.songId]];
+      _selectedItems = [
+        for (final item in items)
+          if (songsById.containsKey(item.songId)) item,
+      ];
     });
   }
 
@@ -168,8 +178,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   }
 
   Future<void> _showSongPicker() async {
-    final songsAsync = _readAvailableSongs();
-    final songs = songsAsync.value ?? [];
+    final songs = await _fetchAvailableSongs();
+    if (!mounted) return;
 
     final result = await showModalBottomSheet<List<Song>>(
       context: context,
@@ -204,6 +214,13 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
 
   Future<void> _saveSetlist() async {
     if (_isSaving) return;
+    if (!_songsLoaded) {
+      showAppSnackBar(
+        context,
+        'Songs are still loading — try again in a moment',
+      );
+      return;
+    }
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
@@ -259,7 +276,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       }
 
       // Show snackbar
-      showAppSnackBar(context, '${_isBandScope ? 'Band setlist' : 'Setlist'} "${setlist.name}" ${_isEditing ? 'updated' : 'created'}');
+      showAppSnackBar(
+        context,
+        '${_isBandScope ? 'Band setlist' : 'Setlist'} "${setlist.name}" ${_isEditing ? 'updated' : 'created'}',
+      );
 
       // Clear unsaved changes flag after successful save
       setState(() => _hasUnsavedChanges = false);
@@ -272,9 +292,12 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       }
     } catch (error) {
       if (!mounted) return;
-      showAppSnackBar(context, _isBandScope
-                ? 'Could not save the shared setlist. Check your band permissions and try again.'
-                : 'Could not save the setlist. Please try again.');
+      showAppSnackBar(
+        context,
+        _isBandScope
+            ? 'Could not save the shared setlist. Check your band permissions and try again.'
+            : 'Could not save the setlist. Please try again.',
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -358,81 +381,82 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       _showEventDetails ? Icons.expand_less : Icons.expand_more,
                       color: MonoPulseColors.textSecondary,
                     ),
-                    onPressed: () => setState(
-                      () => _showEventDetails = !_showEventDetails,
-                    ),
+                    onPressed: () =>
+                        setState(() => _showEventDetails = !_showEventDetails),
                   ),
                 ],
               ),
               if (_showEventDetails) ...[
                 const SizedBox(height: 8),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: MonoPulseColors.surfaceRaised,
-                    borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-                  ),
-                  child: const Icon(
-                    Icons.calendar_today,
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                ),
-                title: Text(
-                  'Event Date',
-                  style: MonoPulseTypography.bodySmall.copyWith(
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                ),
-                subtitle: Text(
-                  _eventDate != null
-                      ? '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}'
-                      : 'Tap to select date',
-                  style: MonoPulseTypography.bodyLarge.copyWith(
-                    color: _eventDate != null
-                        ? MonoPulseColors.textPrimary
-                        : MonoPulseColors.textTertiary,
-                  ),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_eventDate != null)
-                      IconButton(
-                        icon: const Icon(
-                          Icons.clear,
-                          color: MonoPulseColors.textSecondary,
-                        ),
-                        onPressed: _clearDate,
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: MonoPulseColors.surfaceRaised,
+                      borderRadius: BorderRadius.circular(
+                        MonoPulseRadius.large,
                       ),
-                    const Icon(
-                      Icons.chevron_right,
+                    ),
+                    child: const Icon(
+                      Icons.calendar_today,
                       color: MonoPulseColors.textSecondary,
                     ),
-                  ],
+                  ),
+                  title: Text(
+                    'Event Date',
+                    style: MonoPulseTypography.bodySmall.copyWith(
+                      color: MonoPulseColors.textSecondary,
+                    ),
+                  ),
+                  subtitle: Text(
+                    _eventDate != null
+                        ? '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}'
+                        : 'Tap to select date',
+                    style: MonoPulseTypography.bodyLarge.copyWith(
+                      color: _eventDate != null
+                          ? MonoPulseColors.textPrimary
+                          : MonoPulseColors.textTertiary,
+                    ),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_eventDate != null)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.clear,
+                            color: MonoPulseColors.textSecondary,
+                          ),
+                          onPressed: _clearDate,
+                        ),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: MonoPulseColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                  onTap: _pickDate,
                 ),
-                onTap: _pickDate,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _eventLocationController,
-                decoration: const InputDecoration(
-                  labelText: 'Event Location',
-                  prefixIcon: Icon(Icons.location_on),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _eventLocationController,
+                  decoration: const InputDecoration(
+                    labelText: 'Event Location',
+                    prefixIcon: Icon(Icons.location_on),
+                  ),
+                  textInputAction: TextInputAction.done,
+                  onChanged: (_) => _markAsChanged(),
+                  onFieldSubmitted: (_) => _saveSetlist(),
                 ),
-                textInputAction: TextInputAction.done,
-                onChanged: (_) => _markAsChanged(),
-                onFieldSubmitted: (_) => _saveSetlist(),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                maxLines: 2,
-                onChanged: (_) => _markAsChanged(),
-              ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                  maxLines: 2,
+                  onChanged: (_) => _markAsChanged(),
+                ),
               ],
               const SizedBox(height: 24),
               Row(
@@ -513,13 +537,22 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       direction: DismissDirection.endToStart,
                       background: Container(
                         alignment: Alignment.centerRight,
-                        margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
-                        padding: const EdgeInsets.only(right: MonoPulseSpacing.xl),
+                        margin: const EdgeInsets.only(
+                          bottom: MonoPulseSpacing.md,
+                        ),
+                        padding: const EdgeInsets.only(
+                          right: MonoPulseSpacing.xl,
+                        ),
                         decoration: BoxDecoration(
                           color: MonoPulseColors.error,
-                          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                          borderRadius: BorderRadius.circular(
+                            MonoPulseRadius.medium,
+                          ),
                         ),
-                        child: const Icon(Icons.delete, color: MonoPulseColors.textPrimary),
+                        child: const Icon(
+                          Icons.delete,
+                          color: MonoPulseColors.textPrimary,
+                        ),
                       ),
                       onDismissed: (_) => setState(() {
                         _selectedSongs.removeAt(index);
@@ -527,91 +560,91 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                         _markAsChanged();
                       }),
                       child: Card(
-                      margin: const EdgeInsets.only(
-                        bottom: MonoPulseSpacing.md,
-                      ),
-                      child: ListTile(
-                        leading: ReorderableDragStartListener(
-                          index: index,
-                          child: const Icon(
-                            Icons.drag_handle,
-                            color: MonoPulseColors.textTertiary,
-                          ),
+                        margin: const EdgeInsets.only(
+                          bottom: MonoPulseSpacing.md,
                         ),
-                        title: Text(
-                          song.title,
-                          style: const TextStyle(
-                            color: MonoPulseColors.textPrimary,
-                          ),
-                        ),
-                        subtitle: Text(
-                          song.artist,
-                          style: const TextStyle(
-                            color: MonoPulseColors.textSecondary,
-                          ),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: MonoPulseSpacing.md,
-                                vertical: MonoPulseSpacing.xs,
-                              ),
-                              decoration: BoxDecoration(
-                                color: MonoPulseColors.accentOrange10,
-                                borderRadius: BorderRadius.circular(
-                                  MonoPulseRadius.small,
-                                ),
-                              ),
-                              child: Text(
-                                song.ourKey ?? '-',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: MonoPulseColors.accentOrange,
-                                ),
-                              ),
+                        child: ListTile(
+                          leading: ReorderableDragStartListener(
+                            index: index,
+                            child: const Icon(
+                              Icons.drag_handle,
+                              color: MonoPulseColors.textTertiary,
                             ),
-                            const SizedBox(width: 8),
-                            if (song.ourBPM != null)
-                              Text(
-                                '${song.ourBPM}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
+                          ),
+                          title: Text(
+                            song.title,
+                            style: const TextStyle(
+                              color: MonoPulseColors.textPrimary,
+                            ),
+                          ),
+                          subtitle: Text(
+                            song.artist,
+                            style: const TextStyle(
+                              color: MonoPulseColors.textSecondary,
+                            ),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: MonoPulseSpacing.md,
+                                  vertical: MonoPulseSpacing.xs,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: MonoPulseColors.accentOrange10,
+                                  borderRadius: BorderRadius.circular(
+                                    MonoPulseRadius.small,
+                                  ),
+                                ),
+                                child: Text(
+                                  song.ourKey ?? '-',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: MonoPulseColors.accentOrange,
+                                  ),
                                 ),
                               ),
-                            if (song.spotifyUrl != null) ...[
-                              const SizedBox(width: 4),
-                              InkWell(
-                                onTap: () async {
-                                  final uri = Uri.parse(song.spotifyUrl!);
-                                  if (await canLaunchUrl(uri)) {
-                                    await launchUrl(
-                                      uri,
-                                      mode: LaunchMode.externalApplication,
-                                    );
-                                  }
-                                },
-                                child: const Icon(
-                                  Icons.play_circle_fill,
-                                  color: MonoPulseColors.beatModeAccent,
-                                  size: 24,
+                              const SizedBox(width: 8),
+                              if (song.ourBPM != null)
+                                Text(
+                                  '${song.ourBPM}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
+                              if (song.spotifyUrl != null) ...[
+                                const SizedBox(width: 4),
+                                InkWell(
+                                  onTap: () async {
+                                    final uri = Uri.parse(song.spotifyUrl!);
+                                    if (await canLaunchUrl(uri)) {
+                                      await launchUrl(
+                                        uri,
+                                        mode: LaunchMode.externalApplication,
+                                      );
+                                    }
+                                  },
+                                  child: const Icon(
+                                    Icons.play_circle_fill,
+                                    color: MonoPulseColors.beatModeAccent,
+                                    size: 24,
+                                  ),
+                                ),
+                              ],
+                              IconButton(
+                                icon: const Icon(Icons.tune, size: 20),
+                                tooltip: 'Open in Tuner',
+                                onPressed: () => _openTunerForItem(index),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.av_timer, size: 20),
+                                tooltip: 'Open in metronome',
+                                onPressed: () => _openInMetronome(index),
                               ),
                             ],
-                            IconButton(
-                              icon: const Icon(Icons.tune, size: 20),
-                              tooltip: 'Open in Tuner',
-                              onPressed: () => _openTunerForItem(index),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.av_timer, size: 20),
-                              tooltip: 'Open in metronome',
-                              onPressed: () => _openInMetronome(index),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
                       ),
                     );
                   },
@@ -643,7 +676,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       createdAt: widget.setlist?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
     );
-    final loaded = ref.read(metronomeProvider.notifier).loadSetlistQueue(
+    final loaded = ref
+        .read(metronomeProvider.notifier)
+        .loadSetlistQueue(
           draft,
           availableSongs: _selectedSongs,
           sourceBandId: _effectiveBandId,

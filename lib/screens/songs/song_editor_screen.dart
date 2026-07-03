@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/section.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/chordpro.dart';
+import '../../widgets/custom_app_bar.dart';
 import 'chordpro_sync_controller.dart';
 import 'components/import_lyrics_dialog.dart';
 import 'components/song_constructor/widgets/edit_section_dialog.dart';
@@ -196,21 +197,32 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
         _close();
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: BackButton(onPressed: _close),
-          title: Text(
-            (m.title?.isNotEmpty ?? false) ? m.title! : 'Song editor',
-          ),
-          actions: [
-            IconButton(
-              tooltip: 'Import ChordPro',
-              icon: const Icon(Icons.playlist_add),
-              onPressed: _import,
+        // Standard AppBar + classic 3-dot menu, consistent with the rest of
+        // the app (#79 UX sweep).
+        appBar: CustomAppBar.build(
+          context,
+          title: (m.title?.isNotEmpty ?? false) ? m.title! : 'Song editor',
+          onBack: _close,
+          menuItems: [
+            PopupMenuItem<void>(
+              onTap: _addSection,
+              child: const Row(
+                children: [
+                  Icon(Icons.add, size: 20),
+                  SizedBox(width: MonoPulseSpacing.sm),
+                  Text('Add section'),
+                ],
+              ),
             ),
-            IconButton(
-              tooltip: 'Add section',
-              icon: const Icon(Icons.add),
-              onPressed: _addSection,
+            PopupMenuItem<void>(
+              onTap: _import,
+              child: const Row(
+                children: [
+                  Icon(Icons.playlist_add, size: 20),
+                  SizedBox(width: MonoPulseSpacing.sm),
+                  Text('Import lyrics & chords'),
+                ],
+              ),
             ),
           ],
         ),
@@ -271,7 +283,12 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
                 ? null
                 : () => setState(() => _mapExpanded = !_mapExpanded),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.lg, 10, MonoPulseSpacing.sm, MonoPulseSpacing.xs),
+              padding: const EdgeInsets.fromLTRB(
+                MonoPulseSpacing.lg,
+                10,
+                MonoPulseSpacing.sm,
+                MonoPulseSpacing.xs,
+              ),
               child: Row(
                 children: [
                   Expanded(
@@ -299,7 +316,12 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
           // Second line: thin proportional song-map graph.
           if (sections.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.lg, 0, MonoPulseSpacing.lg, 10),
+              padding: const EdgeInsets.fromLTRB(
+                MonoPulseSpacing.lg,
+                0,
+                MonoPulseSpacing.lg,
+                10,
+              ),
               child: _thinMap(sections),
             )
           else

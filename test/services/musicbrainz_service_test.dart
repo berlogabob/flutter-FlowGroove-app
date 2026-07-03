@@ -52,8 +52,10 @@ void main() {
       expect(results.first.artist, 'Test Artist');
       expect(results.first.album, 'Test Album');
       expect(results.first.lengthMs, 180000);
+      // Prefix-friendly query: tokens ANDed, last one wildcarded, so partial
+      // autocomplete input ("hit the li") still matches (#75/#78).
       expect(requested!.queryParameters['query'],
-          'recording:"Test Song" AND artist:"Test Artist"');
+          'recording:(Test AND Song*) AND artist:"Test Artist"');
     });
 
     test('throws ServerError on 500', () async {
