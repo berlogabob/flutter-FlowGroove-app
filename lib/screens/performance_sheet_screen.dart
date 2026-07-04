@@ -200,6 +200,16 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
     }
   }
 
+  // Stop autoscroll BEFORE the pop so the ticker isn't firing jumpTo every frame
+  // through the route's exit transition, and pop via the Navigator this screen
+  // was pushed onto (`Navigator.push`) instead of the shared bar's go_router
+  // `context.pop()` — popping an imperatively-pushed route through go_router is
+  // the freeze suspect (#96).
+  void _handleBack() {
+    _stopScroll();
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final lyric =
@@ -215,6 +225,7 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
       appBar: CustomAppBar.build(
         context,
         title: widget.title,
+        onBack: _handleBack,
         menuItems: [
           PopupMenuItem<void>(
             onTap: _exportPdf,
