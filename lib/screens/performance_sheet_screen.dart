@@ -72,9 +72,17 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
   double _speed = _manualBase;
   Duration _lastTick = Duration.zero;
 
+  // Flat, pre-parsed rows (headers + chord lines). Built once and only rebuilt
+  // when transpose changes, so scroll-time item builds do zero parsing. Feeding
+  // one ListView item per LINE (not per section) keeps each frame's build cheap
+  // — a dense section no longer lays out hundreds of Texts in a single frame,
+  // which is what triggered the ANR (#96).
+  late List<_Row> _rows;
+
   @override
   void initState() {
     super.initState();
+    _recomputeRows();
     _ticker = createTicker(_onTick);
     _wakelock = ref.read(wakelockProvider)..enable();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
@@ -87,6 +95,31 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _wakelock.disable();
     super.dispose();
+  }
+
+  void _recomputeRows() {
+    final rows = <_Row>[];
+    for (final s in widget.sections) {
+      final chart = s.chordChart?.trim() ?? '';
+      final notes = s.notes.trim();
+      if (chart.isEmpty && notes.isEmpty) continue;
+      rows.add(_Row.header(s.name));
+      if (chart.isNotEmpty) {
+        for (final line in transposeChordChart(chart, _transpose).split('\n')) {
+          rows.add(_Row.line(parseChordProLine(line)));
+        }
+      } else {
+        rows.add(_Row.notes(notes));
+      }
+    }
+    _rows = rows;
+  }
+
+  void _changeTranspose(int delta) {
+    setState(() {
+      _transpose += delta;
+      _recomputeRows();
+    });
   }
 
   void _onTick(Duration elapsed) {
@@ -169,13 +202,12 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
 
   @override
   Widget build(BuildContext context) {
-    final withCharts = widget.sections
-        .where(
-          (s) =>
-              (s.chordChart != null && s.chordChart!.trim().isNotEmpty) ||
-              s.notes.trim().isNotEmpty,
-        )
-        .toList();
+    final lyric =
+        Theme.of(context).textTheme.headlineSmall ?? const TextStyle();
+    final chordStyle = lyric.copyWith(
+      fontWeight: FontWeight.bold,
+      color: Theme.of(context).colorScheme.primary,
+    );
 
     return Scaffold(
       // Classic 3-dot menu like every other screen (#79); transpose lives in
@@ -207,18 +239,16 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
             ),
         ],
       ),
-      body: withCharts.isEmpty
+      body: _rows.isEmpty
           ? const _EmptyState()
-          : ListView.separated(
+          : ListView.builder(
               controller: _scroll,
               padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-              itemCount: withCharts.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: MonoPulseSpacing.xl),
+              itemCount: _rows.length,
               itemBuilder: (context, i) =>
-                  _SectionBlock(section: withCharts[i], transpose: _transpose),
+                  _rows[i].build(context, first: i == 0, lyric: lyric, chord: chordStyle),
             ),
-      bottomNavigationBar: withCharts.isEmpty
+      bottomNavigationBar: _rows.isEmpty
           ? null
           : _AutoScrollBar(
               scrolling: _scrolling,
@@ -229,8 +259,8 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
               onSlower: () => _nudgeSpeed(0.8),
               onFaster: () => _nudgeSpeed(1.25),
               onToggleBpm: _toggleBpmSync,
-              onTransposeDown: () => setState(() => _transpose--),
-              onTransposeUp: () => setState(() => _transpose++),
+              onTransposeDown: () => _changeTranspose(-1),
+              onTransposeUp: () => _changeTranspose(1),
             ),
     );
   }
@@ -335,34 +365,55 @@ class _AutoScrollBar extends StatelessWidget {
   }
 }
 
-class _SectionBlock extends StatelessWidget {
-  const _SectionBlock({required this.section, required this.transpose});
+/// One flat list row: a section header, a pre-parsed chord line, or a plain
+/// notes block. Parsing happens once at build-of-rows time (not per frame), so
+/// each ListView item is cheap to render while scrolling (#96).
+class _Row {
+  const _Row.header(this.name)
+      : segments = null,
+        notes = null;
+  const _Row.line(this.segments)
+      : name = null,
+        notes = null;
+  const _Row.notes(this.notes)
+      : name = null,
+        segments = null;
 
-  final Section section;
-  final int transpose;
+  final String? name;
+  final List<ChordSegment>? segments;
+  final String? notes;
 
-  @override
-  Widget build(BuildContext context) {
-    final chart = section.chordChart?.trim() ?? '';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          section.name,
+  Widget build(
+    BuildContext context, {
+    required bool first,
+    required TextStyle lyric,
+    required TextStyle chord,
+  }) {
+    if (name != null) {
+      return Padding(
+        padding: EdgeInsets.only(
+          top: first ? 0 : MonoPulseSpacing.xl,
+          bottom: MonoPulseSpacing.sm,
+        ),
+        child: Text(
+          name!,
           style: MonoPulseTypography.titleMedium.copyWith(
             color: MonoPulseColors.accentOrange,
           ),
         ),
-        const SizedBox(height: MonoPulseSpacing.sm),
-        if (chart.isNotEmpty)
-          ChordChartView(
-            chart: transposeChordChart(chart, transpose),
-            lyricStyle: Theme.of(context).textTheme.headlineSmall,
-          )
-        else
-          // No ChordPro yet — fall back to plain section notes.
-          Text(section.notes, style: Theme.of(context).textTheme.titleLarge),
-      ],
+      );
+    }
+    if (notes != null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Text(notes!, style: Theme.of(context).textTheme.titleLarge),
+      );
+    }
+    return RepaintBoundary(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: ChordLineView(segments: segments!, lyric: lyric, chord: chord),
+      ),
     );
   }
 }

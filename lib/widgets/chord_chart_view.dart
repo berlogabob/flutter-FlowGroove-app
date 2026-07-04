@@ -55,8 +55,28 @@ class _ChartLine extends StatelessWidget {
   final TextStyle chord;
 
   @override
+  Widget build(BuildContext context) =>
+      ChordLineView(segments: parseChordProLine(line), lyric: lyric, chord: chord);
+}
+
+/// Renders one already-parsed ChordPro line as a `Wrap` of chord-over-syllable
+/// columns. Split out of [_ChartLine] so callers that parse ahead of time (the
+/// performance sheet, which caches parsed lines to keep scroll builds cheap —
+/// #96) can render without re-parsing on every rebuild.
+class ChordLineView extends StatelessWidget {
+  const ChordLineView({
+    required this.segments,
+    required this.lyric,
+    required this.chord,
+    super.key,
+  });
+
+  final List<ChordSegment> segments;
+  final TextStyle lyric;
+  final TextStyle chord;
+
+  @override
   Widget build(BuildContext context) {
-    final segments = parseChordProLine(line);
     if (segments.isEmpty) {
       // Blank line — preserve as vertical space.
       return SizedBox(height: lyric.fontSize ?? 16);
