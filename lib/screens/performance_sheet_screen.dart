@@ -9,6 +9,7 @@ import '../providers/wakelock_provider.dart';
 import '../services/export/chordpro_export.dart';
 import '../services/export/pdf_service.dart';
 import '../services/export/setlist_export_sheet.dart';
+import '../services/wakelock_controller.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/chordpro.dart';
 import '../utils/snackbar.dart';
@@ -59,7 +60,13 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
   static const double _maxSpeed = 300;
 
   final ScrollController _scroll = ScrollController();
-  late final Ticker _ticker = createTicker(_onTick);
+  // Created in initState (not lazily) so the TickerMode lookup happens while
+  // mounted — a lazy `= createTicker(...)` would first run inside dispose() when
+  // autoscroll was never started, looking up a deactivated ancestor (#96).
+  late final Ticker _ticker;
+  // Captured in initState: `ref` is unsafe in dispose() (throws StateError),
+  // so hold the controller directly to release the wakelock on close (#96).
+  late final WakelockController _wakelock;
   bool _scrolling = false;
   bool _bpmSync = false;
   double _speed = _manualBase;
@@ -68,7 +75,8 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
   @override
   void initState() {
     super.initState();
-    ref.read(wakelockProvider).enable();
+    _ticker = createTicker(_onTick);
+    _wakelock = ref.read(wakelockProvider)..enable();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
@@ -77,7 +85,7 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
     _ticker.dispose();
     _scroll.dispose();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    ref.read(wakelockProvider).disable();
+    _wakelock.disable();
     super.dispose();
   }
 
