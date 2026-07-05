@@ -73,7 +73,7 @@ Primary app code lives in `lib/`.
 
 #### Integration Services
 
-- Catalog autofill: MusicBrainz (search) + Deezer (tempo/key) + lyrics.ovh (plain lyrics); Spotify path optional/off. Accepting a suggestion also generates provenance links (MusicBrainz/Spotify deep links + YouTube/chords/lyrics searches) via `lib/utils/suggestion_links.dart`
+- Catalog autofill: MusicBrainz (search; suggestions ranked against title+artist so a full-name query floats the right recording up — no confidence % shown) + Deezer (tempo/key) + lyrics.ovh (lyrics split into Verse/Chorus sections via `lib/utils/lyrics_sections.dart`); Spotify path optional/off. Accepting a suggestion also generates tappable provenance links (MusicBrainz/Spotify deep links + YouTube/chords/lyrics searches) via `lib/utils/suggestion_links.dart`
 - Canonical song catalog via Cloud Functions
 - Desktop wiki panel loads bundled `site/content/wiki/*.md` (shared with the Hugo site)
 

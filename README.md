@@ -89,7 +89,7 @@ Deploy target:
 - Firebase Auth, Firestore, and Storage integration
 - In-app account deletion (Google Play compliant), removing all associated data
 - CSV and FlowGroove Song JSON import/export (documented, AI-ready schema; paste auto-detects format) plus PDF export
-- Search-to-autofill from MusicBrainz (fuzzy-ranked confidence), enriched with tempo/key from Deezer and plain lyrics from lyrics.ovh; accepting a match drops in provenance links (MusicBrainz, Spotify, YouTube, chords, lyrics) so you can see where the data came from; your own library is excluded from suggestions
+- Search-to-autofill from MusicBrainz (type the artist too to rank the right recording first), enriched with tempo/key from Deezer and lyrics from lyrics.ovh (split into Verse/Chorus sections); accepting a match drops in tappable provenance links (MusicBrainz, Spotify, YouTube, chords, lyrics); your own library is excluded from suggestions
 - Bring-your-own-AI: copy a prompt for ChatGPT/Claude/Gemini, or connect an agent via MCP — a one-click remote OAuth connector (spike) or a per-user API key + local server — FlowGroove pays no AI tokens
 - Responsive desktop/mobile layout
 

@@ -7,19 +7,21 @@ title: "Songs"
 Your personal song library.
 
 - Tap **+** to add a song (title, BPM, key, structure, links).
-- Search the title to autofill from the online catalog. Matches come from **MusicBrainz**
-  (title, artist, album, release info) and are ranked by how closely they match what you
-  typed, so the confidence badge actually tells the tight matches from the loose ones.
-  Selecting one fills those in, and tempo/key are added from **Deezer** when available.
-  Your own library is deliberately left out of these suggestions so you don't match a song
+- Search to autofill from the online catalog. Matches come from **MusicBrainz**
+  (title, artist, album, release info). **Type the artist as well as the title** (e.g.
+  *light my fire the doors*) to pull the right recording to the top — on a bare title
+  there are often many same-named covers and the real one can't be told apart. Selecting a
+  match fills those fields in, and tempo/key are added from **Deezer** when available. Your
+  own library is deliberately left out of these suggestions so you don't match a song
   against itself.
 - **Provenance links, added for you.** When you accept a match, FlowGroove drops links into
   the song so you can see where the info came from and jump straight to the source — the
   **MusicBrainz** recording, the **Spotify** track (when known), plus **YouTube**, **chords**
-  and **lyrics** searches for the title and artist.
-- **Lyrics, fetched.** Plain lyric text is pulled in automatically (when the notes are empty)
-  so you start with something to work from. Chords aren't available from a free catalogue —
-  paste a ChordPro chart (below) for the full chords + song map.
+  and **lyrics** searches. They show up as chips under Links; **tap one to open it**.
+- **Lyrics + a song map, fetched.** Plain lyric text is pulled in automatically and split into
+  **Verse / Chorus sections**, so it shows up in the Song editor and Performance sheet ready
+  to play from. Chords aren't available from a free catalogue — paste a ChordPro chart (below)
+  for the full chords.
 - Add lyrics + chords (ChordPro) per section. Open the **Song editor** (song menu →
   *Song editor*) to work on the song map and ChordPro side by side — reorder or edit
   sections and the text updates; type chords and the map updates. Paste a full chart

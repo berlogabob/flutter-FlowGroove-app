@@ -63,7 +63,7 @@ Of course. Indie, semi-pro, full-time — it doesn't care. The free tier covers 
 
 Type a song name and it pulls the BPM and key for you.
 
-It looks the data up from music databases (MusicBrainz for the match, Deezer for tempo/key). When you accept a match it also drops in links to where the info came from — the MusicBrainz recording, the Spotify track, and searches for YouTube, chords and lyrics — and pulls in the plain lyrics to get you started. Chords aren't fetched (no free source), but you can paste a ChordPro chart to fill the whole structure. If any of this is ever unavailable, you can just type the numbers in yourself — nothing ever blocks you.
+It looks the data up from music databases (MusicBrainz for the match, Deezer for tempo/key). Tip: type the artist too — "light my fire the doors" — to pull the right recording to the top; a bare title turns up lots of same-named covers. When you accept a match it drops in tappable links to where the info came from — the MusicBrainz recording, the Spotify track, and searches for YouTube, chords and lyrics — and pulls in the lyrics, split into Verse/Chorus sections you can play from. Chords aren't fetched (no free source), but you can paste a ChordPro chart to fill them in. If any of this is ever unavailable, you can just type things in yourself — nothing ever blocks you.
 
 ## Support
 
