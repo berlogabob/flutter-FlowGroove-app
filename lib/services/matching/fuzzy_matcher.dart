@@ -312,9 +312,13 @@ class FuzzyMatcher {
     // against titles that normalize away entirely).
     if (s1.isEmpty || s2.isEmpty) return 0;
 
-    // Try contains match
+    // Partial (substring) match — score by how much of the longer title the
+    // shorter one covers, so "Go With the Flow" (tight) ranks above
+    // "Go With the Flow (Live at ...)" (loose) instead of a flat 0.9.
     if (s2.contains(s1) || s1.contains(s2)) {
-      return 0.9;
+      final ratio =
+          s1.length < s2.length ? s1.length / s2.length : s2.length / s1.length;
+      return 0.55 + 0.4 * ratio; // 0.55..0.95
     }
     
     // Use best of multiple algorithms

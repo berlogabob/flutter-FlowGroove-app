@@ -8,10 +8,12 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
 import '../../services/api/deezer_service.dart';
+import '../../services/api/lyrics_service.dart';
 import '../../services/api/spotify_proxy_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../utils/song_tags.dart';
+import '../../utils/suggestion_links.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner;
 import '../../widgets/primary_action_bar.dart';
@@ -244,6 +246,12 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         _artistController.text = suggestion.artist;
     }
 
+    // Record where this came from — auto-fill the Links list from everything
+    // we know (MusicBrainz/Spotify deep links + YouTube/chords/lyrics search).
+    ref
+        .read(songFormStateProvider.notifier)
+        .addLinks(linksForSuggestion(suggestion));
+
     // Suggestions carry no BPM at search time — fetch it now (one lazy call)
     // and fill what the user hasn't set.
     final spotifyId = suggestion.spotifyId;
@@ -252,6 +260,23 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     } else {
       await _autofillBpm(suggestion);
     }
+
+    await _autofillLyrics(suggestion);
+  }
+
+  /// Fetches plain lyric text (lyrics.ovh) into the notes field, without
+  /// overwriting notes the user already has. Best-effort — no chords/song map.
+  Future<void> _autofillLyrics(SongSuggestion suggestion) async {
+    if (_notesController.text.trim().isNotEmpty) return;
+    final lyrics = await LyricsService.getLyrics(
+      title: suggestion.title,
+      artist: suggestion.artist,
+    );
+    if (lyrics == null || !mounted) return;
+    if (_notesController.text.trim().isNotEmpty) return;
+    // The controller's listener syncs this into the form provider.
+    _notesController.text = lyrics;
+    showAppSnackBar(context, 'Added lyrics from lyrics.ovh');
   }
 
   /// Fills BPM for a non-Spotify suggestion: from the suggestion itself when

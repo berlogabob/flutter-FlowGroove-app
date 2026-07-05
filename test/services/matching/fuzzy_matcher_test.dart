@@ -181,5 +181,23 @@ void main() {
       );
       expect(result.overall, greaterThanOrEqualTo(0.9));
     });
+
+    test('substring matches of different length score differently', () {
+      // Regression: the old flat-0.9 substring branch gave every "contains"
+      // hit an identical 0.81, so the confidence badge was stuck.
+      final tight = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'go with the flow',
+        inputArtist: '',
+        targetTitle: 'Go With the Flow',
+        targetArtist: 'Queens of the Stone Age',
+      );
+      final loose = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'go with the flow',
+        inputArtist: '',
+        targetTitle: 'Go With the Flow (Live at Alpine Valley 2011)',
+        targetArtist: 'Queens of the Stone Age',
+      );
+      expect(tight.overall, greaterThan(loose.overall));
+    });
   });
 }

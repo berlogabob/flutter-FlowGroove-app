@@ -7,7 +7,19 @@ title: "Songs"
 Your personal song library.
 
 - Tap **+** to add a song (title, BPM, key, structure, links).
-- Search the title to autofill from Spotify/MusicBrainz (Spotify fills BPM and key).
+- Search the title to autofill from the online catalog. Matches come from **MusicBrainz**
+  (title, artist, album, release info) and are ranked by how closely they match what you
+  typed, so the confidence badge actually tells the tight matches from the loose ones.
+  Selecting one fills those in, and tempo/key are added from **Deezer** when available.
+  Your own library is deliberately left out of these suggestions so you don't match a song
+  against itself.
+- **Provenance links, added for you.** When you accept a match, FlowGroove drops links into
+  the song so you can see where the info came from and jump straight to the source — the
+  **MusicBrainz** recording, the **Spotify** track (when known), plus **YouTube**, **chords**
+  and **lyrics** searches for the title and artist.
+- **Lyrics, fetched.** Plain lyric text is pulled in automatically (when the notes are empty)
+  so you start with something to work from. Chords aren't available from a free catalogue —
+  paste a ChordPro chart (below) for the full chords + song map.
 - Add lyrics + chords (ChordPro) per section. Open the **Song editor** (song menu →
   *Song editor*) to work on the song map and ChordPro side by side — reorder or edit
   sections and the text updates; type chords and the map updates. Paste a full chart
@@ -25,5 +37,23 @@ Your personal song library.
   a trip through a spreadsheet.
 - Song cards show the key **and scale** (e.g. *Am · minor*) and the section count.
 - Open a song to edit its details or song structure.
-- Songs you add to a band become independent copies in that band.
+- Songs you add to a band become independent copies in that band — editing the band's
+  copy changes only that copy, not your personal song.
+
+## Organize the library
+
+- **Tags:** add your own tags (e.g. *set A*, *learn*, *acoustic*) and filter the list by
+  them. A tag cloud shows what you've used.
+- **Search, filter and sort** by title, artist, key or tempo from the toolbar above the
+  list.
+
+## Find and merge duplicates
+
+- Open **Duplicates** (from the Songs screen) to see songs that look like the same track.
+  FlowGroove finds both exact matches and *possible* matches (fuzzy — similar title/artist),
+  and you can dismiss ones that aren't really duplicates.
+- **Merge a cluster:** pick which value wins for each field (title, artist, key, tempo,
+  links, structure…) in a field-by-field grid, choose the record to keep, and collapse the
+  group into one song. The merge is recorded so it's traceable.
+
 - See [AI & Import](../ai-and-import/) to import or connect your own AI.

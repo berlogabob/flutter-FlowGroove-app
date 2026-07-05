@@ -80,6 +80,7 @@ Deploy target:
 ### Core App
 
 - Shared song library with metadata, links, unique IDs, and structure editing
+- Tagging, filter/sort, and duplicate detection with field-by-field cluster merge
 - Lyrics + chords performance sheet (ChordPro): keep-awake stage view, live transpose, per-song PDF via the standard 3-dot menu (As is, or Compact — fit one A4 page; key/scale · tempo · time · song-map header), paste-to-import, and a Song ⇄ ChordPro sync codec that round-trips a full chart without losing unknown directives
 - Band management with membership and invite/join flows
 - Rehearsal Planner: propose times, poll member availability (can/maybe/can't), auto-suggest the best slot around required/optional members, confirm with an attached setlist, and export to calendar (.ics)
@@ -88,7 +89,7 @@ Deploy target:
 - Firebase Auth, Firestore, and Storage integration
 - In-app account deletion (Google Play compliant), removing all associated data
 - CSV and FlowGroove Song JSON import/export (documented, AI-ready schema; paste auto-detects format) plus PDF export
-- Search-to-autofill from Spotify (BPM/key) and MusicBrainz, fuzzy-ranked
+- Search-to-autofill from MusicBrainz (fuzzy-ranked confidence), enriched with tempo/key from Deezer and plain lyrics from lyrics.ovh; accepting a match drops in provenance links (MusicBrainz, Spotify, YouTube, chords, lyrics) so you can see where the data came from; your own library is excluded from suggestions
 - Bring-your-own-AI: copy a prompt for ChatGPT/Claude/Gemini, or connect an agent via MCP — a one-click remote OAuth connector (spike) or a per-user API key + local server — FlowGroove pays no AI tokens
 - Responsive desktop/mobile layout
 
@@ -162,10 +163,11 @@ Deploy target:
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
 - [docs/README.md](docs/README.md)
-- [docs/project-audit-2026-04-24.md](docs/project-audit-2026-04-24.md)
-- [docs/PLATFORMS.md](docs/PLATFORMS.md)
-- [MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md)
 - [CHANGELOG.md](CHANGELOG.md)
+
+### User Guides (Wiki)
+
+The in-app help panel and the public wiki share one source: [`site/content/wiki/`](site/content/wiki/). Edit those `.md` files to update both.
 
 ### Supporting Docs
 

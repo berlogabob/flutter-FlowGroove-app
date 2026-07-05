@@ -1,17 +1,18 @@
 # FlowGroove Architecture
 
-**Last Updated:** June 16, 2026  
-**Version:** 0.14.0+203
+**Last Updated:** July 5, 2026  
+**Version:** 0.14.2+323
 
 ## Overview
 
-This repository contains five meaningful systems:
+This repository contains these meaningful systems:
 
 1. Flutter application
-2. Hugo marketing site
+2. Hugo marketing site (also the single source for the in-app help **wiki** — `site/content/wiki/`)
 3. Telegram bot (lives inside Firebase Functions)
-4. Firebase Functions workspace
-5. Imported AI workspace context (`memory/`, `.codex/`)
+4. Firebase Functions workspace (band membership, account deletion, avatar import, MCP gateway, canonical-song catalog)
+5. FlowGroove MCP server (`mcp/`) — connect-your-own-AI: per-user API keys → Functions gateway → Firestore
+6. Imported AI workspace context (`memory/`, `.codex/`)
 
 The operational product is split across the Flutter app and the Hugo site. The other areas support deployment, support operations, and continuity.
 
@@ -66,6 +67,15 @@ Primary app code lives in `lib/`.
 - Profile
 - Metronome
 - Tuner
+- Concert Mode + Performance sheet (pushed on the root navigator, not GoRouter routes)
+- Song duplicate detection / cluster merge
+- AI access (MCP) key management
+
+#### Integration Services
+
+- Catalog autofill: MusicBrainz (search) + Deezer (tempo/key) + lyrics.ovh (plain lyrics); Spotify path optional/off. Accepting a suggestion also generates provenance links (MusicBrainz/Spotify deep links + YouTube/chords/lyrics searches) via `lib/utils/suggestion_links.dart`
+- Canonical song catalog via Cloud Functions
+- Desktop wiki panel loads bundled `site/content/wiki/*.md` (shared with the Hugo site)
 
 ### 2. Hugo Site
 

@@ -443,6 +443,20 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     markAsChanged();
   }
 
+  /// Merge provenance links into the form, skipping any URL already present so
+  /// re-accepting a suggestion (or existing links) never duplicates.
+  void addLinks(List<Link> links) {
+    final existing = state.formData.links.map((l) => l.url).toSet();
+    final toAdd = links.where((l) => existing.add(l.url)).toList();
+    if (toAdd.isEmpty) return;
+    state = state.copyWith(
+      formData: state.formData.copyWith(
+        links: [...state.formData.links, ...toAdd],
+      ),
+    );
+    markAsChanged();
+  }
+
   Future<String?> _canonicalSongIdForSelectedSuggestion() async {
     final suggestion = state.selectedSuggestion;
     if (suggestion == null) return null;
