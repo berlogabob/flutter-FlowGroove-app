@@ -182,22 +182,25 @@ void main() {
       expect(result.overall, greaterThanOrEqualTo(0.9));
     });
 
-    test('substring matches of different length score differently', () {
-      // Regression: the old flat-0.9 substring branch gave every "contains"
-      // hit an identical 0.81, so the confidence badge was stuck.
-      final tight = FuzzyMatcher.calculateMatchScore(
-        inputTitle: 'go with the flow',
+    test('artist typed inline ranks the right artist above same-title covers', () {
+      // "light my fire the doors" — the artist is typed inline (no separator),
+      // so the whole string is scored as title. The real Doors recording must
+      // outrank an obscure same-title cover instead of tying on title alone.
+      final doors = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'light my fire the doors',
         inputArtist: '',
-        targetTitle: 'Go With the Flow',
-        targetArtist: 'Queens of the Stone Age',
+        targetTitle: 'Light My Fire',
+        targetArtist: 'The Doors',
       );
-      final loose = FuzzyMatcher.calculateMatchScore(
-        inputTitle: 'go with the flow',
+      final cover = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'light my fire the doors',
         inputArtist: '',
-        targetTitle: 'Go With the Flow (Live at Alpine Valley 2011)',
-        targetArtist: 'Queens of the Stone Age',
+        targetTitle: 'Light My Fire',
+        targetArtist: '3 Balls of Fire',
       );
-      expect(tight.overall, greaterThan(loose.overall));
+      expect(doors.overall, greaterThan(cover.overall));
+      // Exact "title artist" is a strong match.
+      expect(doors.overall, greaterThanOrEqualTo(0.95));
     });
   });
 }

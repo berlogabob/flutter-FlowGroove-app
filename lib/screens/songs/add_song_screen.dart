@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../models/api_error.dart';
+import '../../models/section.dart';
 import '../../models/song.dart';
 import '../../models/song_suggestion.dart';
 import '../../providers/auth/auth_provider.dart';
@@ -12,6 +14,7 @@ import '../../services/api/lyrics_service.dart';
 import '../../services/api/spotify_proxy_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../utils/lyrics_sections.dart';
 import '../../utils/song_tags.dart';
 import '../../utils/suggestion_links.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -264,19 +267,33 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     await _autofillLyrics(suggestion);
   }
 
-  /// Fetches plain lyric text (lyrics.ovh) into the notes field, without
-  /// overwriting notes the user already has. Best-effort — no chords/song map.
+  /// Fetches plain lyric text (lyrics.ovh) and appends it to the song as
+  /// Verse/Chorus sections, so it shows in the song editor + performance sheet
+  /// (which render Section.chordChart, not notes). Best-effort — no chords.
   Future<void> _autofillLyrics(SongSuggestion suggestion) async {
-    if (_notesController.text.trim().isNotEmpty) return;
+    // Skip if the song already has lyric content, so re-selecting a suggestion
+    // never clobbers the user's sections or duplicates the lyrics.
+    final existing = ref.read(songFormStateProvider).formData.sections;
+    if (existing.any((s) => (s.chordChart ?? '').trim().isNotEmpty)) return;
     final lyrics = await LyricsService.getLyrics(
       title: suggestion.title,
       artist: suggestion.artist,
     );
     if (lyrics == null || !mounted) return;
-    if (_notesController.text.trim().isNotEmpty) return;
-    // The controller's listener syncs this into the form provider.
-    _notesController.text = lyrics;
-    showAppSnackBar(context, 'Added lyrics from lyrics.ovh');
+    final parts = lyricsToSections(lyrics);
+    if (parts.isEmpty) return;
+    final sections = [
+      for (final p in parts)
+        Section(id: const Uuid().v4(), name: p.name, chordChart: p.chart),
+    ];
+    final current = ref.read(songFormStateProvider).formData.sections;
+    ref
+        .read(songFormStateProvider.notifier)
+        .setSections([...current, ...sections]);
+    showAppSnackBar(
+      context,
+      'Added lyrics (${sections.length} parts) from lyrics.ovh',
+    );
   }
 
   /// Fills BPM for a non-Spotify suggestion: from the suggestion itself when

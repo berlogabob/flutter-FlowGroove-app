@@ -281,13 +281,16 @@ class FuzzyMatcher {
     double overallScore;
 
     if (normInputArtist.isEmpty) {
-      // Artist not typed yet (partial query) — scoring the empty artist
-      // against targets would dilute real title matches below the display
-      // threshold and inflate junk whose artist also normalizes to empty.
-      // ponytail: 0.9 damping keeps Jaro-Winkler noise between unrelated
-      // titles (~0.6) under the 0.6 cutoff; swap for a stricter title
-      // algorithm if junk still leaks through.
-      overallScore = titleScore * 0.9;
+      // Single-field query: there's no separate artist field, so the user may
+      // have typed the artist inline (e.g. "light my fire the doors"). Also
+      // score against "title + artist" combined and take the better of the two,
+      // so typing the right artist ranks the correct recording ABOVE same-title
+      // covers instead of leaving every same-title result tied on title alone.
+      // ponytail: 0.9 damping on the title-only path keeps Jaro-Winkler noise
+      // between unrelated titles (~0.6) under the 0.6 cutoff.
+      final combined = _normalize('$targetTitle $targetArtist');
+      final combinedScore = _calculateTitleScore(normInputTitle, combined);
+      overallScore = max(titleScore * 0.9, combinedScore);
     } else if (albumScore > 0) {
       overallScore = (titleScore * 0.5) + (artistScore * 0.3) + (albumScore * 0.2);
     } else {

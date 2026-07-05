@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../models/song_suggestion.dart';
 import '../theme/mono_pulse_theme.dart';
-import 'match_score_badge.dart';
 import 'source_icon.dart';
 
 /// Suggestion card widget for autocomplete dropdown
@@ -10,7 +9,6 @@ import 'source_icon.dart';
 /// Displays a song suggestion with:
 /// - Source icon (personal/group/MusicBrainz)
 /// - Title and artist
-/// - Match score badge
 /// - Additional info (BPM, key, album)
 /// - Forkable indicator for group songs
 ///
@@ -79,11 +77,6 @@ class SuggestionCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                
-                const SizedBox(width: 8),
-                
-                // Match score badge
-                MatchScoreBadge(score: suggestion.matchScore),
               ],
             ),
             

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../models/link.dart';
 import '../../../theme/mono_pulse_theme.dart';
 
@@ -172,11 +173,33 @@ class _LinkChip extends StatelessWidget {
   final int index;
   final VoidCallback onDeleted;
 
+  /// Open the link's URL externally (new tab on web). Best-effort — shows a
+  /// snackbar if it can't be launched, mirroring the app's other launch sites.
+  Future<void> _open(BuildContext context) async {
+    final url = link.url.trim();
+    if (url.isEmpty) return;
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+        webOnlyWindowName: '_blank',
+      );
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Could not open: $url')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Chip(
+    // Show the service name (title) when present, else the humanised type.
+    final label = link.title ?? link.type.replaceAll('_', ' ');
+    return RawChip(
+      // RawChip carries both a tap (open) and a delete action.
+      onPressed: link.url.trim().isEmpty ? null : () => _open(context),
       label: Text(
-        link.type.replaceAll('_', ' '),
+        label,
         style: const TextStyle(
           fontSize: 12,
           color: MonoPulseColors.textPrimary,
