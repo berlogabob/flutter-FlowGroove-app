@@ -13,6 +13,7 @@ import 'config/config_validator.dart';
 import 'firebase_options.dart';
 import 'models/user.dart';
 import 'providers/auth/auth_provider.dart';
+import 'providers/keep_screen_on_provider.dart';
 import 'providers/metronome_runtime_providers.dart';
 import 'repositories/metronome_session_repository.dart';
 import 'router/app_router.dart';
@@ -174,6 +175,11 @@ void main() async {
   }
 
   final rootContainer = ProviderContainer();
+
+  // Apply the global "keep screen on" preference (default on). Reading the
+  // provider constructs the notifier, which loads the stored value and applies
+  // the wakelock — providers are lazy, so it must be read once at startup.
+  rootContainer.read(keepScreenOnProvider);
 
   // Pre-initialize audio engine for instant first beat (deferred to avoid blocking startup)
   if (!kIsWeb) {

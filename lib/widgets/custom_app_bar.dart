@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth/auth_provider.dart';
+import '../providers/keep_screen_on_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 
 /// Custom AppBar with consistent back button and menu across all screens.
@@ -109,7 +110,23 @@ class CustomAppBar {
 
   /// Global menu items appended to every screen's menu.
   static List<PopupMenuEntry<dynamic>> _globalMenuItems(BuildContext context) {
+    final container = ProviderScope.containerOf(context);
+    final keepScreenOn = container.read(keepScreenOnProvider);
     return [
+      PopupMenuItem<void>(
+        onTap: () => container.read(keepScreenOnProvider.notifier).toggle(),
+        child: Row(
+          children: [
+            Icon(
+              keepScreenOn ? Icons.check_box : Icons.check_box_outline_blank,
+              size: MonoPulseIcons.sizeMedium,
+              color: MonoPulseColors.textSecondary,
+            ),
+            const SizedBox(width: MonoPulseSpacing.sm),
+            const Text('Keep screen on'),
+          ],
+        ),
+      ),
       PopupMenuItem<void>(
         onTap: () => context.go('/main/profile'),
         child: const Text('Profile'),
