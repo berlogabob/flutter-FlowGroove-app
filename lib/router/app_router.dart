@@ -442,10 +442,15 @@ List<RouteBase> _buildAppRoutes() {
                         ? SetlistStorageScope.band
                         : SetlistStorageScope.personal;
                     final bandId = state.uri.queryParameters['bandId'];
-                    return CreateSetlistScreen(
-                      setlist: setlist,
+                    return SetlistRouteResolver(
+                      setlistId: state.pathParameters['id'],
                       bandId: bandId,
-                      storageScope: scope,
+                      extra: setlist,
+                      builder: (live) => CreateSetlistScreen(
+                        setlist: live,
+                        bandId: bandId,
+                        storageScope: scope,
+                      ),
                     );
                   },
                 ),
@@ -641,5 +646,39 @@ class BandRouteResolver extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// Resolves the [Setlist] for the edit-setlist route.
+///
+/// Same rationale as [BandRouteResolver]: `state.extra` is a navigation-time
+/// snapshot that go_router does not persist across restarts/deep links, and it
+/// goes stale if the setlist was renamed elsewhere (#91). Prefer the live
+/// setlist from the stream; fall back to `extra` while the stream loads.
+class SetlistRouteResolver extends ConsumerWidget {
+  const SetlistRouteResolver({
+    required this.setlistId,
+    required this.bandId,
+    required this.builder,
+    this.extra,
+    super.key,
+  });
+
+  final String? setlistId;
+  final String? bandId;
+  final Setlist? extra;
+  final Widget Function(Setlist? setlist) builder;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final setlists = bandId != null
+        ? ref.watch(bandSetlistsProvider(bandId!)).asData?.value
+        : ref.watch(setlistsProvider).asData?.value;
+    if (setlists != null) {
+      for (final candidate in setlists) {
+        if (candidate.id == setlistId) return builder(candidate);
+      }
+    }
+    return builder(extra);
   }
 }

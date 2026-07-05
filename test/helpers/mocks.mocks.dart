@@ -2443,14 +2443,6 @@ class MockFirestoreService extends _i1.Mock implements _i16.FirestoreService {
           as _i7.Future<void>);
 
   @override
-  _i7.Stream<List<_i18.Band>> watchBands(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#watchBands, [uid]),
-            returnValue: _i7.Stream<List<_i18.Band>>.empty(),
-          )
-          as _i7.Stream<List<_i18.Band>>);
-
-  @override
   _i7.Future<void> saveSetlist(_i19.Setlist? setlist, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#saveSetlist, [setlist], {#uid: uid}),
@@ -2467,14 +2459,6 @@ class MockFirestoreService extends _i1.Mock implements _i16.FirestoreService {
             returnValueForMissingStub: _i7.Future<void>.value(),
           )
           as _i7.Future<void>);
-
-  @override
-  _i7.Stream<List<_i19.Setlist>> watchSetlists(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#watchSetlists, [uid]),
-            returnValue: _i7.Stream<List<_i19.Setlist>>.empty(),
-          )
-          as _i7.Stream<List<_i19.Setlist>>);
 
   @override
   _i7.Future<void> saveBandSetlist(_i19.Setlist? setlist, String? bandId) =>
@@ -2669,142 +2653,6 @@ class MockCacheService extends _i1.Mock implements _i21.CacheService {
   }
 
   @override
-  _i7.Future<bool> isCacheStale(String? boxName, {Duration? ttl}) =>
-      (super.noSuchMethod(
-            Invocation.method(#isCacheStale, [boxName], {#ttl: ttl}),
-            returnValue: _i7.Future<bool>.value(false),
-          )
-          as _i7.Future<bool>);
-
-  @override
-  _i7.Future<void> cacheSongs(String? uid, List<_i17.Song>? songs) =>
-      (super.noSuchMethod(
-            Invocation.method(#cacheSongs, [uid, songs]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
-  _i7.Future<List<_i17.Song>> getCachedSongs(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#getCachedSongs, [uid]),
-            returnValue: _i7.Future<List<_i17.Song>>.value(<_i17.Song>[]),
-          )
-          as _i7.Future<List<_i17.Song>>);
-
-  @override
-  _i7.Future<DateTime?> getSongsCacheTimestamp(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#getSongsCacheTimestamp, [uid]),
-            returnValue: _i7.Future<DateTime?>.value(),
-          )
-          as _i7.Future<DateTime?>);
-
-  @override
-  _i7.Future<void> clearSongsCache(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#clearSongsCache, [uid]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
-  _i7.Future<void> cacheBands(String? uid, List<_i18.Band>? bands) =>
-      (super.noSuchMethod(
-            Invocation.method(#cacheBands, [uid, bands]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
-  _i7.Future<List<_i18.Band>> getCachedBands(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#getCachedBands, [uid]),
-            returnValue: _i7.Future<List<_i18.Band>>.value(<_i18.Band>[]),
-          )
-          as _i7.Future<List<_i18.Band>>);
-
-  @override
-  _i7.Future<DateTime?> getBandsCacheTimestamp(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#getBandsCacheTimestamp, [uid]),
-            returnValue: _i7.Future<DateTime?>.value(),
-          )
-          as _i7.Future<DateTime?>);
-
-  @override
-  _i7.Future<void> clearBandsCache(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#clearBandsCache, [uid]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
-  _i7.Future<void> cacheSetlists(String? uid, List<_i19.Setlist>? setlists) =>
-      (super.noSuchMethod(
-            Invocation.method(#cacheSetlists, [uid, setlists]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
-  _i7.Future<List<_i19.Setlist>> getCachedSetlists(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#getCachedSetlists, [uid]),
-            returnValue: _i7.Future<List<_i19.Setlist>>.value(<_i19.Setlist>[]),
-          )
-          as _i7.Future<List<_i19.Setlist>>);
-
-  @override
-  _i7.Future<DateTime?> getSetlistsCacheTimestamp(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#getSetlistsCacheTimestamp, [uid]),
-            returnValue: _i7.Future<DateTime?>.value(),
-          )
-          as _i7.Future<DateTime?>);
-
-  @override
-  _i7.Future<void> clearSetlistsCache(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#clearSetlistsCache, [uid]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
-  _i7.Future<void> cacheBandSongs(String? bandId, List<_i17.Song>? songs) =>
-      (super.noSuchMethod(
-            Invocation.method(#cacheBandSongs, [bandId, songs]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
-  _i7.Future<List<_i17.Song>> getCachedBandSongs(String? bandId) =>
-      (super.noSuchMethod(
-            Invocation.method(#getCachedBandSongs, [bandId]),
-            returnValue: _i7.Future<List<_i17.Song>>.value(<_i17.Song>[]),
-          )
-          as _i7.Future<List<_i17.Song>>);
-
-  @override
-  _i7.Future<void> clearBandSongsCache(String? bandId) =>
-      (super.noSuchMethod(
-            Invocation.method(#clearBandSongsCache, [bandId]),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
   _i7.Future<void> clearAllUserCache(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#clearAllUserCache, [uid]),
@@ -2812,21 +2660,4 @@ class MockCacheService extends _i1.Mock implements _i21.CacheService {
             returnValueForMissingStub: _i7.Future<void>.value(),
           )
           as _i7.Future<void>);
-
-  @override
-  _i7.Future<void> clearAllCache() =>
-      (super.noSuchMethod(
-            Invocation.method(#clearAllCache, []),
-            returnValue: _i7.Future<void>.value(),
-            returnValueForMissingStub: _i7.Future<void>.value(),
-          )
-          as _i7.Future<void>);
-
-  @override
-  _i7.Future<bool> hasCache(String? uid) =>
-      (super.noSuchMethod(
-            Invocation.method(#hasCache, [uid]),
-            returnValue: _i7.Future<bool>.value(false),
-          )
-          as _i7.Future<bool>);
 }

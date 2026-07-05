@@ -395,6 +395,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     // Nothing changed (same order, same per-song settings, same position).
     if (index == state.currentSetlistIndex &&
         _queueEquals(state.loadedSetlistSongs, resolved)) {
+      // Metadata-only change (e.g. rename): refresh the setlist object so
+      // banners show the new name, without reshuffling or resetting the
+      // click (#91).
+      if (state.loadedSetlist?.name != freshSetlist.name) {
+        state = state.copyWith(loadedSetlist: freshSetlist);
+      }
       return;
     }
 

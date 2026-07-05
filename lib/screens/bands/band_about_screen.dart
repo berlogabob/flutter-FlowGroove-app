@@ -60,6 +60,19 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   }
 
   @override
+  void didUpdateWidget(BandAboutScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // BandRouteResolver re-delivers the live band on every stream emission;
+    // adopt it so renames/member changes made elsewhere show up (#91). While
+    // editing, leave the description/tags buffers alone.
+    _band = widget.band;
+    if (!_isEditing) {
+      _descriptionController.text = _band.description ?? '';
+      _tags = List<String>.from(_band.tags);
+    }
+  }
+
+  @override
   void dispose() {
     _descriptionController.dispose();
     super.dispose();

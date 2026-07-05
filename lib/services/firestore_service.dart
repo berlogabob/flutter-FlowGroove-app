@@ -151,52 +151,6 @@ class FirestoreService {
     }
   }
 
-  /// Watches bands for a user by fetching from the global collection.
-  ///
-  /// First gets the user's band IDs from their collection,
-  /// then fetches full band data from the global 'bands' collection.
-  Stream<List<Band>> watchBands(String uid) {
-    try {
-      return _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('bands')
-          .snapshots()
-          .asyncMap((snapshot) async {
-            final bandIds = snapshot.docs.map((doc) => doc.id).toList();
-
-            if (bandIds.isEmpty) return <Band>[];
-
-            // Fetch full band data from the global collection in parallel —
-            // sequential awaits here made band loading O(n) round trips.
-            final bandDocs = await Future.wait(
-              bandIds.map((bandId) async {
-                try {
-                  return await _firestore
-                      .collection('bands')
-                      .doc(bandId)
-                      .get();
-                } on FirebaseException catch (e) {
-                  if (e.code == 'not-found') return null; // Band was deleted
-                  rethrow;
-                }
-              }),
-            );
-
-            return [
-              for (final bandDoc in bandDocs)
-                if (bandDoc != null && bandDoc.exists)
-                  Band.fromJson(bandDoc.data()!..['id'] = bandDoc.id),
-            ];
-          })
-          .handleError((Object error, StackTrace stackTrace) {
-            throw ApiError.fromException(error, stackTrace: stackTrace);
-          });
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
   // ============================================================
   // Setlist Operations
   // ============================================================
@@ -267,45 +221,6 @@ class FirestoreService {
       }
       throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
-  /// Watches setlists for a user in real-time.
-  Stream<List<Setlist>> watchSetlists(String uid) {
-    try {
-      return FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('setlists')
-          .snapshots()
-          .map(
-            (snapshot) => snapshot.docs.map((doc) {
-              try {
-                return Setlist.fromJson(doc.data());
-              } catch (e, stackTrace) {
-                debugPrint('Failed to parse setlist ${doc.id}: $e');
-                debugPrint('Stack trace: $stackTrace');
-                // Return a default setlist with error info
-                return Setlist(
-                  id: doc.id,
-                  bandId: '',
-                  name: 'Error loading setlist',
-                  description: 'Failed to load: $e',
-                  createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                );
-              }
-            }).toList(),
-          )
-          .handleError((Object error, StackTrace stackTrace) {
-            debugPrint('Stream error in watchSetlists: $error');
-            debugPrint('Stack trace: $stackTrace');
-            throw ApiError.fromException(error, stackTrace: stackTrace);
-          });
-    } catch (e, stackTrace) {
-      debugPrint('Error setting up watchSetlists: $e');
-      debugPrint('Stack trace: $stackTrace');
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
   }

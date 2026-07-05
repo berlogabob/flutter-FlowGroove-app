@@ -8,7 +8,6 @@ import '../../models/api_error.dart';
 import '../../models/user.dart';
 import '../../services/analytics_service.dart';
 import '../../services/cache_service.dart';
-import '../../services/firestore_service.dart';
 import '../../services/secure_storage_service.dart';
 import '../../utils/music_role_icon.dart';
 
@@ -108,6 +107,26 @@ final currentUserProvider = Provider<AsyncValue<User?>>((ref) {
   return ref.watch(authStateProvider);
 });
 
+/// Live users/{uid} document for the signed-in user.
+///
+/// A snapshot stream (not a one-shot get) so avatar/role changes — including
+/// server-side ones like Telegram/Google avatar imports — propagate to every
+/// screen without an app restart (#91).
+final userDocProvider = StreamProvider<Map<String, dynamic>?>((ref) {
+  final user = ref.watch(authStateProvider).asData?.value;
+  if (user == null) return Stream.value(null);
+  try {
+    return ref
+        .watch(firebaseFirestoreProvider)
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .map((doc) => doc.exists ? doc.data() : null);
+  } catch (_) {
+    return Stream.value(null);
+  }
+});
+
 /// Provider for the AppUser state with error handling.
 ///
 /// This provider watches the auth state and converts Firebase User
@@ -122,25 +141,33 @@ final appUserProvider = NotifierProvider<AppUserNotifier, AsyncValue<AppUser?>>(
 ///
 /// IMPORTANT: Properly disposes resources to prevent memory leaks.
 class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
+  /// Tracks which uid analytics user-properties were synced for, so the sync
+  /// runs once per sign-in instead of on every users/{uid} emission.
+  String? _analyticsSyncedUid;
+
   @override
   AsyncValue<AppUser?> build() {
     final authState = ref.watch(authStateProvider);
 
     return authState.when(
       data: (user) {
-        if (user != null) {
-          String displayName = user.displayName ?? '';
+        if (user == null) return const AsyncValue.data(null);
 
-          if (displayName.isEmpty) {
-            // Use email or fallback to 'User'
-            final emailPrefix = user.email?.split('@').first ?? 'User';
-            displayName = emailPrefix.isNotEmpty ? emailPrefix : 'User';
-          }
+        String displayName = user.displayName ?? '';
+        if (displayName.isEmpty) {
+          // Use email or fallback to 'User'
+          final emailPrefix = user.email?.split('@').first ?? 'User';
+          displayName = emailPrefix.isNotEmpty ? emailPrefix : 'User';
+        }
 
-          // Single read of users/{uid}: feeds both analytics user-properties
-          // and profile hydration (avatar/roles), instead of two separate gets.
-          _hydrateFromUserDoc(user, displayName);
+        // Compose from the LIVE users/{uid} doc: every doc change rebuilds
+        // the AppUser, so avatar/role updates reach all screens without an
+        // app restart (#91). While the doc is still loading (or missing),
+        // fall back to auth-only data.
+        final data = ref.watch(userDocProvider).asData?.value;
+        _syncAnalytics(user, data);
 
+        if (data == null) {
           return AsyncValue.data(
             AppUser(
               uid: user.uid,
@@ -151,7 +178,36 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
             ),
           );
         }
-        return const AsyncValue.data(null);
+
+        final telegramConsent = data['telegramConsent'] == true;
+        final telegramUsername =
+            telegramConsent ? data['telegramUsername'] as String? : null;
+        final telegramPhotoURL =
+            telegramConsent ? data['telegramPhotoURL'] as String? : null;
+
+        if (displayName == 'User' && telegramUsername != null) {
+          displayName = telegramUsername;
+        }
+        // Avatar precedence: the doc's photoURL is the user's chosen avatar
+        // and is authoritative; fall back to Telegram, then auth photo.
+        final photoURL = (data['photoURL'] as String?) ??
+            telegramPhotoURL ??
+            user.photoURL;
+
+        return AsyncValue.data(
+          AppUser(
+            uid: user.uid,
+            email: user.email,
+            displayName: displayName,
+            photoURL: photoURL,
+            accessRole: (data['accessRole'] as String?) ?? 'member',
+            musicRoles:
+                List<String>.from((data['musicRoles'] as List?) ?? const []),
+            systemTags:
+                List<String>.from((data['systemTags'] as List?) ?? const []),
+            createdAt: DateTime.now(),
+          ),
+        );
       },
       loading: () => const AsyncValue.loading(),
       error: (error, stack) {
@@ -162,84 +218,36 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     );
   }
 
-  /// Reads users/{uid} once and applies it to both analytics user-properties
-  /// and the hydrated AppUser state (avatar + persisted roles). Merged from the
-  /// former `_syncAnalyticsIfPossible` + `_loadTelegramProfile`, which each read
-  /// the same doc separately.
-  Future<void> _hydrateFromUserDoc(User user, String baseDisplayName) async {
-    final firestore = _readFirestoreIfAvailable();
-    if (firestore == null) return;
+  /// Syncs analytics user-properties once per signed-in uid.
+  void _syncAnalytics(User user, Map<String, dynamic>? data) {
+    if (data == null || _analyticsSyncedUid == user.uid) return;
+    _analyticsSyncedUid = user.uid;
 
-    Map<String, dynamic>? data;
-    try {
-      final userDoc = await firestore.collection('users').doc(user.uid).get();
-      data = userDoc.exists ? userDoc.data() : null;
-    } catch (e) {
-      debugPrint('Error loading user doc: $e');
-      return;
-    }
-
-    final bandCount = (data?['bandIds'] as List?)?.length ?? 0;
-    final accessRole = (data?['accessRole'] as String?) ?? 'member';
-    final musicRoles =
-        List<String>.from((data?['musicRoles'] as List?) ?? const []);
-    final systemTags =
-        List<String>.from((data?['systemTags'] as List?) ?? const []);
-
-    // Analytics user-properties.
-    try {
-      await ref.read(analyticsClientProvider).setUserProperties(
-            user: AppUser(
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-              photoURL: user.photoURL,
-              accessRole: accessRole,
-              musicRoles: musicRoles,
-              systemTags: systemTags,
-              bandIds: List.generate(bandCount, (i) => 'band_$i'),
-              createdAt: DateTime.now(),
-            ),
-            bandCount: bandCount,
-            songCount: 0,
-            setlistCount: 0,
-          );
-    } catch (e) {
-      debugPrint('Error setting user properties: $e');
-    }
-
-    // Profile hydration: only push new state if the doc actually adds anything.
-    if (data == null) return;
-
-    var displayName = baseDisplayName;
-    final telegramConsent = data['telegramConsent'] == true;
-    final telegramUsername =
-        telegramConsent ? data['telegramUsername'] as String? : null;
-    final telegramPhotoURL =
-        telegramConsent ? data['telegramPhotoURL'] as String? : null;
-
-    if (displayName == 'User' && telegramUsername != null) {
-      displayName = telegramUsername;
-    }
-    // Avatar precedence matches the Profile screen: the doc's photoURL is the
-    // user's chosen avatar and is authoritative; fall back to Telegram, then
-    // auth photo.
-    final photoURL = (data['photoURL'] as String?) ??
-        telegramPhotoURL ??
-        user.photoURL;
-
-    state = AsyncValue.data(
-      AppUser(
-        uid: user.uid,
-        email: user.email,
-        displayName: displayName,
-        photoURL: photoURL,
-        accessRole: accessRole,
-        musicRoles: musicRoles,
-        systemTags: systemTags,
-        createdAt: DateTime.now(),
-      ),
+    final bandCount = (data['bandIds'] as List?)?.length ?? 0;
+    final analytics = ref.read(analyticsClientProvider);
+    final snapshot = AppUser(
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      accessRole: (data['accessRole'] as String?) ?? 'member',
+      musicRoles: List<String>.from((data['musicRoles'] as List?) ?? const []),
+      systemTags: List<String>.from((data['systemTags'] as List?) ?? const []),
+      bandIds: List.generate(bandCount, (i) => 'band_$i'),
+      createdAt: DateTime.now(),
     );
+    Future(() async {
+      try {
+        await analytics.setUserProperties(
+          user: snapshot,
+          bandCount: bandCount,
+          songCount: 0,
+          setlistCount: 0,
+        );
+      } catch (e) {
+        debugPrint('Error setting user properties: $e');
+      }
+    });
   }
 
   FirebaseFirestore? _readFirestoreIfAvailable() {
@@ -493,107 +501,77 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
+  /// Applies a targeted merge write to users/{uid}.
+  ///
+  /// The live [userDocProvider] snapshot then rebuilds AppUser on every
+  /// screen (with Firestore latency compensation the UI updates immediately).
+  /// Merge writes replace the old full-doc `saveUser` set(), which clobbered
+  /// doc fields not present on a possibly-stale in-memory AppUser (#91).
+  Future<void> _updateUserDoc(Map<String, Object?> fields) async {
+    if (state.value == null) {
+      throw ApiError.auth(message: 'No user logged in');
+    }
+    final user = _readFirebaseAuthOrThrow().currentUser;
+    final firestore = _readFirestoreIfAvailable();
+    if (user == null || firestore == null) {
+      throw ApiError.auth(message: 'No user logged in');
+    }
+
+    try {
+      await firestore
+          .collection('users')
+          .doc(user.uid)
+          .set(fields, SetOptions(merge: true));
+    } catch (e, stackTrace) {
+      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
+      state = AsyncValue.error(apiError, stackTrace);
+      throw apiError;
+    }
+  }
+
   /// Updates the user's music roles.
   ///
   /// Throws [ApiError] if update fails.
   Future<void> updateMusicRoles(List<String> roles) async {
-    final currentUser = state.value;
-    if (currentUser == null) {
-      throw ApiError.auth(message: 'No user logged in');
-    }
-
-    try {
-      final updatedUser = currentUser.copyWith(
-        musicRoles: MusicRoleIcon.normalizeKeys(roles),
-      );
-      final firestore = FirestoreService();
-      await firestore.saveUser(updatedUser);
-      state = AsyncValue.data(updatedUser);
-    } catch (e, stackTrace) {
-      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
-      state = AsyncValue.error(apiError, stackTrace);
-      throw apiError;
-    }
+    await _updateUserDoc({'musicRoles': MusicRoleIcon.normalizeKeys(roles)});
   }
 
   /// Updates the user's profile photo URL.
   ///
-  /// This method uploads the photo to Firebase Storage and updates
-  /// both Firestore and Firebase Auth with the new photo URL.
-  ///
   /// Throws [ApiError] if update fails.
   Future<void> updateProfilePhoto(String photoUrl) async {
-    final currentUser = state.value;
-    if (currentUser == null) {
-      throw ApiError.auth(message: 'No user logged in');
-    }
-
-    try {
-      final updatedUser = currentUser.copyWith(photoURL: photoUrl);
-      final firestore = FirestoreService();
-      await firestore.saveUser(updatedUser);
-      state = AsyncValue.data(updatedUser);
-    } catch (e, stackTrace) {
-      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
-      state = AsyncValue.error(apiError, stackTrace);
-      throw apiError;
-    }
+    await _updateUserDoc({'photoURL': photoUrl});
   }
 
   /// Removes the user's profile photo.
   ///
-  /// Clears the photo URL from both Firestore and Firebase Auth.
-  ///
   /// Throws [ApiError] if update fails.
   Future<void> removeProfilePhoto() async {
-    final currentUser = state.value;
-    if (currentUser == null) {
-      throw ApiError.auth(message: 'No user logged in');
-    }
-
-    try {
-      final updatedUser = currentUser.copyWith(photoURL: null);
-      final firestore = FirestoreService();
-      await firestore.saveUser(updatedUser);
-      state = AsyncValue.data(updatedUser);
-    } catch (e, stackTrace) {
-      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
-      state = AsyncValue.error(apiError, stackTrace);
-      throw apiError;
-    }
+    await _updateUserDoc({'photoURL': null});
   }
 
   /// Updates the user's display name.
   ///
-  /// This method updates both Firebase Auth and Firestore,
-  /// then refreshes the local state to reflect the change immediately.
+  /// Updates both Firebase Auth and Firestore.
   ///
   /// Throws [ApiError] if update fails.
   Future<void> updateDisplayName(String newName) async {
-    final currentUser = state.value;
-    if (currentUser == null) {
+    if (state.value == null) {
       throw ApiError.auth(message: 'No user logged in');
     }
 
     try {
-      // Update Firebase Auth
       final firebaseUser = _readFirebaseAuthOrThrow().currentUser;
       if (firebaseUser != null) {
         await firebaseUser.updateDisplayName(newName);
       }
-
-      // Update Firestore and local state
-      final updatedUser = currentUser.copyWith(displayName: newName);
-      final firestore = FirestoreService();
-      await firestore.saveUser(updatedUser);
-
-      // Update local state to trigger UI refresh
-      state = AsyncValue.data(updatedUser);
     } catch (e, stackTrace) {
       final apiError = ApiError.fromException(e, stackTrace: stackTrace);
       state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
     }
+
+    await _updateUserDoc({'displayName': newName});
   }
 
   /// Maps Firebase Auth exceptions to ApiError with user-friendly messages.

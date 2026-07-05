@@ -37,32 +37,20 @@ class UserAvatar extends StatefulWidget {
 class _UserAvatarState extends State<UserAvatar> {
   bool _imageFailed = false;
 
-  /// The last real (http) photo URL we accepted. Sticky on purpose: some
-  /// providers (e.g. `appUserProvider`) briefly drop photoURL to null on a
-  /// rebuild before an async profile load re-supplies it, which made the
-  /// avatar blink between the photo and the initial. We keep showing the last
-  /// good photo and only switch when a *different* http URL arrives.
-  // ponytail: a permanent photo removal (URL → null) keeps showing the old
-  // image until a new URL or app restart; acceptable vs. the blink.
-  String? _url;
-
-  @override
-  void initState() {
-    super.initState();
-    _adopt(widget.photoURL);
+  // The URL is used as given (no sticky last-good copy): appUserProvider now
+  // composes from the live users/{uid} doc and no longer blinks photoURL to
+  // null mid-load, and photo removal must actually clear the avatar (#91).
+  String? get _url {
+    final candidate = widget.photoURL;
+    return (candidate != null && candidate.startsWith('http'))
+        ? candidate
+        : null;
   }
 
   @override
   void didUpdateWidget(UserAvatar oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _adopt(widget.photoURL);
-  }
-
-  void _adopt(String? candidate) {
-    if (candidate != null &&
-        candidate.startsWith('http') &&
-        candidate != _url) {
-      _url = candidate;
+    if (oldWidget.photoURL != widget.photoURL) {
       _imageFailed = false; // new avatar uploaded → retry.
     }
   }
