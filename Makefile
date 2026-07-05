@@ -464,7 +464,17 @@ deploy-rules:
 # SAME build number. The bump must run before deploy-stable builds the web app,
 # so deploy-rules/deploy-stable are invoked in the recipe (not as prerequisites,
 # which Make would run before the bump). release is told to skip its own bump.
+# ponytail: no cross-channel rollback. If a later channel fails after the FTP push,
+# prod is live at the new version with no matching tag/release. Recover with
+# `make rollback-production`. Add a real orchestrator only if this bites repeatedly.
+RELEASE_BRANCH ?= second01
 release-all:
+	@if [ "$(CURRENT_BRANCH)" != "$(RELEASE_BRANCH)" ] && [ -z "$(ALLOW_BRANCH)" ]; then \
+		echo "❌ release-all on '$(CURRENT_BRANCH)'; expected '$(RELEASE_BRANCH)'."; \
+		echo "   Switch to $(RELEASE_BRANCH) first, or override: make release-all ALLOW_BRANCH=1"; \
+		exit 1; \
+	fi
+	@$(MAKE) test-fast
 	@./scripts/bump-build-number.sh $(LEVEL)
 	@$(MAKE) deploy-rules deploy-stable
 	@$(MAKE) -f Makefile.hugo deploy-all
