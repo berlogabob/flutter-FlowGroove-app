@@ -185,14 +185,22 @@ class CustomAppBar {
         if (onBack != null) {
           onBack();
         } else {
-          // For StatefulShellRoute (Metronome/Tuner), always go home
-          // For normal routes, use pop
+          // For StatefulShellRoute (Metronome/Tuner), always go home.
           final currentRoute = GoRouterState.of(context).uri.path;
           if (currentRoute.startsWith('/main/metronome') ||
               currentRoute.startsWith('/main/tuner')) {
             context.go('/main/home');
-          } else {
+          } else if (context.canPop()) {
+            // Screen was push()ed via go_router — pop it.
             context.pop();
+          } else if (Navigator.of(context).canPop()) {
+            // Screen was pushed imperatively (e.g. AI access via Navigator.push);
+            // go_router's pop can't see it, so pop the Navigator directly.
+            Navigator.of(context).pop();
+          } else {
+            // Reached via go()/goNamed() which replaced the stack — nothing to
+            // pop, so fall back home instead of a dead button.
+            context.go('/main/home');
           }
         }
       },

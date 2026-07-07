@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -374,7 +376,15 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       late final UserCredential credential;
 
       if (kIsWeb) {
-        credential = await auth.signInWithPopup(GoogleAuthProvider());
+        // Redirect, not popup: popups are blocked / storage-partitioned in mobile
+        // Safari and in-app browsers (Telegram, IG), which surfaced as a generic
+        // "Authentication failed" on iPhone. signInWithRedirect navigates away, so
+        // execution stops here; Firebase auto-consumes the result on the next load,
+        // the router redirect (authStateChanges) routes to Home, and
+        // [completeGoogleRedirect] ensures the user doc for first-time sign-ins.
+        await auth.signInWithRedirect(GoogleAuthProvider());
+        // Page is navigating; keep the caller awaiting until it unloads.
+        return Completer<UserCredential>().future;
       } else {
         // google_sign_in v7: singleton + initialize() + authenticate().
         final googleSignIn = GoogleSignIn.instance;
@@ -414,6 +424,23 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       final apiError = ApiError.fromException(e, stackTrace: stackTrace);
       state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
+    }
+  }
+
+  /// Completes a pending web Google **redirect** sign-in.
+  ///
+  /// [signInWithGoogle] on web calls `signInWithRedirect`, which navigates away
+  /// before it can create the Firestore user doc. Call this once at web startup:
+  /// Firebase has already auto-consumed the redirect and restored the session, so
+  /// this just fetches the returning credential and ensures the user doc exists
+  /// (security rules read `users/{uid}.accessRole`). No-op off web / no redirect.
+  Future<void> completeGoogleRedirect() async {
+    if (!kIsWeb) return;
+    try {
+      final result = await _readFirebaseAuthOrThrow().getRedirectResult();
+      await _ensureUserDocument(result.user);
+    } catch (e) {
+      debugPrint('Error completing Google redirect: $e');
     }
   }
 

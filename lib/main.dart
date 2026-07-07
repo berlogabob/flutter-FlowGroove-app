@@ -215,6 +215,12 @@ void main() async {
     });
   }
 
+  // Complete any pending web Google redirect sign-in (creates the user doc for
+  // first-time sign-ins; Firebase has already restored the session by now).
+  if (kIsWeb) {
+    await rootContainer.read(appUserProvider.notifier).completeGoogleRedirect();
+  }
+
   // Check if user is already logged in (from previous session)
   final currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser != null) {

@@ -251,9 +251,16 @@ ftp-upload:
 		if [ -d site/public/.well-known ]; then \
 			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p .well-known; mirror --reverse site/public/.well-known/ .well-known/; bye"; \
 		fi
-	@echo "📤 Uploading Flutter (build/web/) → /app/..."
+	@echo "📤 Uploading Flutter (build/web/) → /app/... (atomic: entrypoints last)"
+	@# Two passes so clients/service-worker never fetch a mismatched shell:
+	@#  1. everything EXCEPT the two activation files (uploads big main.dart.js +
+	@#     canvaskit while the OLD, coherent index.html/SW keep serving the old app);
+	@#  2. flutter_service_worker.js (its manifest now references files already present),
+	@#     then index.html last (flips the page to the new build). Window shrinks from the
+	@#     whole build to two small text files. No --delete: an old cached client may still
+	@#     need an old asset; stale hashed files are harmless cruft.
 	@source ./scripts/load-deploy-env.sh && \
-		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p app; cd app; mirror --reverse --delete build/web/ .; bye"
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p app; cd app; mirror --reverse --exclude-glob flutter_service_worker.js --exclude-glob index.html build/web/ .; put build/web/flutter_service_worker.js; put build/web/index.html; bye"
 	@echo "✅ Upload complete"
 	@echo ""
 
