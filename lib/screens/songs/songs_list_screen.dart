@@ -11,6 +11,7 @@ import '../../models/song_import_plan.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../services/song_library_merge_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
@@ -555,6 +556,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     ref.watch(songQuickActionProvider);
     final exportSongs = songsAsync.value;
     final canExport = exportSongs != null && exportSongs.isNotEmpty;
+    final canEdit = ref.watch(canEditProvider); // false for the shared demo account
 
     return StandardScreenScaffold(
       title: 'Songs',
@@ -583,11 +585,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
           child: const Text('Export to CSV'),
         ),
       ],
-      floatingActionButton: SingleFab(
-        icon: Icons.add,
-        onPressed: () => context.goNamed('add-song'),
-        heroTag: 'songs_fab',
-      ),
+      floatingActionButton: canEdit
+          ? SingleFab(
+              icon: Icons.add,
+              onPressed: () => context.goNamed('add-song'),
+              heroTag: 'songs_fab',
+            )
+          : null,
       body: _buildBody(songsAsync, bandsAsync),
     );
   }
@@ -642,6 +646,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     final filteredSongs = _filterAndSortSongs(songs);
     final bands = bandsAsync.value ?? [];
     final state = ref.watch(songsFilterSortProvider);
+    final canEdit = ref.watch(canEditProvider); // demo account is read-only
 
     // Initialize manual order when entering manual sort mode for the first time
     if (state.sortOption == SortOption.manual && _manualOrder == null) {
@@ -654,8 +659,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     final songAdapters = filteredSongs.map((song) {
       return SongItemAdapter(
         song,
-        onEdit: () => _navigateToEdit(song),
-        onDelete: () => _deleteSong(song),
+        onEdit: canEdit ? () => _navigateToEdit(song) : null,
+        onDelete: canEdit ? () => _deleteSong(song) : null,
         onTap: () => _navigateToEdit(song),
       );
     }).toList();

@@ -7,6 +7,7 @@ import '../../models/song.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
+import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
 import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
@@ -147,21 +148,25 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   @override
   Widget build(BuildContext context) {
     final setlistsAsync = ref.watch(setlistsProvider);
+    final canEdit = ref.watch(canEditProvider); // false for the shared demo account
 
     return StandardScreenScaffold(
       title: 'Setlists',
       showBackButton: false, // Hide back button for main tabs
       menuItems: [
-        PopupMenuItem<void>(
-          child: const Text('Create Setlist'),
-          onTap: () => context.goNamed('create-setlist'),
-        ),
+        if (canEdit)
+          PopupMenuItem<void>(
+            child: const Text('Create Setlist'),
+            onTap: () => context.goNamed('create-setlist'),
+          ),
       ],
-      floatingActionButton: SingleFab(
-        icon: Icons.add,
-        onPressed: () => context.goNamed('create-setlist'),
-        heroTag: 'setlists_fab',
-      ),
+      floatingActionButton: canEdit
+          ? SingleFab(
+              icon: Icons.add,
+              onPressed: () => context.goNamed('create-setlist'),
+              heroTag: 'setlists_fab',
+            )
+          : null,
       body: _buildBody(setlistsAsync),
     );
   }
@@ -218,13 +223,15 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 
   Widget _buildSetlistList(List<SetlistItemAdapter> adapters) {
+    final canEdit = ref.watch(canEditProvider); // demo account is read-only
+    final canReorder = canEdit && _sortOption == SortOption.manual;
     return UnifiedItemList<SetlistItemAdapter>(
       items: adapters,
-      enableReorder: _sortOption == SortOption.manual,
-      onReorder: _sortOption == SortOption.manual ? _handleReorder : null,
-      onDelete: _handleDelete,
+      enableReorder: canReorder,
+      onReorder: canReorder ? _handleReorder : null,
+      onDelete: canEdit ? _handleDelete : null,
       onTap: _handleTap,
-      onEdit: _handleEdit,
+      onEdit: canEdit ? _handleEdit : null,
       additionalActionsBuilder: (index) {
         final setlist = adapters[index].setlist;
         return [

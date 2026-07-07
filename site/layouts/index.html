@@ -12,16 +12,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#050506">
 {{- partial "seo.html" . -}}
 {{- partial "analytics.html" . -}}
 <link rel="icon" href="{{ "favicon.ico" | relURL }}">
 <link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* Self-hosted so the type never "falls off" when the Google Fonts CDN is
+     slow or blocked (ad-blockers, in-app browsers). Variable latin woff2. */
+  @font-face{font-family:'Inter';font-style:normal;font-weight:400 800;font-display:swap;
+    src:url({{ "fonts/inter-latin-var.woff2" | relURL }}) format('woff2')}
+  @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400 600;font-display:swap;
+    src:url({{ "fonts/jetbrainsmono-latin-var.woff2" | relURL }}) format('woff2')}
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth;color-scheme:dark}
   body{background:#050506;color:#F5F5F5;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
   ::selection{background:#FF5E00;color:#000}
   a{text-decoration:none;color:inherit}
@@ -59,6 +64,8 @@
   .socials a{font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:1px;color:#8A8A8F;display:flex;align-items:center;gap:7px;transition:color .2s}
   .socials a:hover{color:#F5F5F5}
   .socials a .sdot{width:5px;height:5px;border-radius:50%;background:#333}
+  .see-screens{display:inline-block;margin-top:22px;font-size:14px;font-weight:600;color:#FF6B1A}
+  .see-screens:hover{color:#FF8A4A}
 
   /* phone mockup */
   .phone-wrap{display:flex;justify-content:center;position:relative}
@@ -139,6 +146,9 @@
   .foot-brand{display:flex;align-items:center;gap:10px;margin-right:auto;font-size:14px;color:#A0A0A5}
   .foot-brand .logo-sq{width:26px;height:26px;border-radius:7px;font-size:14px}
   .foot-links{display:flex;gap:20px}
+  .tinylaunch-badge{display:inline-flex;flex:none;opacity:.9;transition:opacity .2s}
+  .tinylaunch-badge:hover{opacity:1}
+  .tinylaunch-badge img{display:block;width:202px;height:auto;max-width:100%}
   .foot-links a{font-size:13px;color:#8A8A8F;transition:color .2s}
   .foot-links a:hover{color:#F5F5F5}
 
@@ -148,16 +158,23 @@
     .hero .lede{margin-left:auto;margin-right:auto}
     .hero-cta,.socials{justify-content:center}
     .hero h1{font-size:46px;letter-spacing:-1.5px}
-    .phone-wrap{order:-1}
+    /* headline + CTA is the first screen on mobile; phone mockup drops below it */
     .feat-grid{grid-template-columns:repeat(2,1fr)}
     .story{grid-template-columns:1fr;gap:28px;padding:56px 24px}
     .support-card{grid-template-columns:1fr;padding:32px 24px;gap:28px}
     .nav-links{display:none}
+    /* opaque + no blur: backdrop-filter is unreliable in mobile/in-app browsers and
+       lets scrolled content ghost through the sticky bar */
+    .nav-bar{background:#050506;backdrop-filter:none;-webkit-backdrop-filter:none}
     .wrap,.section,.story,.support,.foot-inner,.faq{padding-left:24px;padding-right:24px}
   }
   @media(max-width:560px){
     .hero h1{font-size:38px}
-    .feat-grid{grid-template-columns:1fr}
+    /* horizontal swipe row instead of a tall stack on phones */
+    .feat-grid{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:80%;
+      overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+      margin-left:-24px;margin-right:-24px;padding:4px 24px 12px}
+    .feat-card{scroll-snap-align:start;min-height:0}
     .section h2,.faq-head h2{font-size:30px}
     .stage{gap:12px}
     .stage-phone{width:230px}
@@ -171,7 +188,7 @@
 <div class="nav-bar">
   <nav class="nav wrap">
     <a class="brand" href="{{ "" | relURL }}">
-      <img class="logo-img" src="{{ "images/logo-icon.png" | relURL }}" alt="FlowGroove logo" width="32" height="32">
+      <img class="logo-img" src="{{ "images/logo-icon.png" | relURL }}?v=3" alt="FlowGroove logo" width="32" height="32">
       <span class="brand-name">FlowGroove</span>
     </a>
     <div class="nav-links">
@@ -201,6 +218,7 @@
       <a href="https://t.me/flowgrooveapp" target="_blank" rel="noopener"><span class="sdot"></span>TELEGRAM</a>
       <a href="https://www.reddit.com/r/flowgroove/" target="_blank" rel="noopener"><span class="sdot"></span>REDDIT</a>
     </div>
+    <a class="see-screens" href="#screens">See the app in action ↓</a>
   </div>
   <div class="phone-wrap">
     <div class="phone-glow"></div>
@@ -228,7 +246,7 @@
 </section>
 
 <!-- SCREENSHOT CAROUSEL -->
-<section class="shots">
+<section class="shots" id="screens">
   <div class="wrap">
     <div class="kicker">See it in action</div>
     <h2 style="font-size:38px;font-weight:700;letter-spacing:-1px;margin-top:10px">Real screens — not mockups</h2>
@@ -306,12 +324,15 @@
 <!-- FOOTER -->
 <footer class="foot">
   <div class="foot-inner">
-    <div class="foot-brand"><img class="logo-img foot-logo" src="{{ "images/logo-icon.png" | relURL }}" alt="FlowGroove logo" width="26" height="26"><span>© {{ now.Year }} FlowGroove · Sounding Doubts, Portugal</span></div>
+    <div class="foot-brand"><img class="logo-img foot-logo" src="{{ "images/logo-icon.png" | relURL }}?v=3" alt="FlowGroove logo" width="26" height="26"><span>© {{ now.Year }} FlowGroove · Sounding Doubts, Portugal</span></div>
     <div class="foot-links">
       <a href="{{ "privacy/" | relURL }}">Privacy</a>
       <a href="{{ "terms/" | relURL }}">Terms</a>
       <a href="https://github.com/berlogabob/flutter-FlowGroove-app" target="_blank" rel="noopener">GitHub</a>
     </div>
+    <a class="tinylaunch-badge" href="https://tinylaunch.com/launch/17075/" target="_blank" rel="noopener" aria-label="FlowGroove is live on TinyLaunch">
+      <img src="{{ "images/tinylaunch-live-now.svg" | relURL }}" alt="FlowGroove is live now on TinyLaunch" width="202" height="61" loading="lazy">
+    </a>
   </div>
 </footer>
 

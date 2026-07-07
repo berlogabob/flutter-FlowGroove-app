@@ -275,8 +275,11 @@ service cloud.firestore {
         isOwner(userId) &&
         isValidUserProfileCreate(userId);
 
-      // Users can update their own document (name, photo, musicRoles), but NOT accessRole
+      // Users can update their own document (name, photo, musicRoles), but NOT accessRole.
+      // Demo is a shared public account: block all profile self-edits (this was the hole
+      // that let the demo profile be renamed — every other users/* write already checks it).
       allow update: if isAuthenticated() && isOwner(userId) &&
+        isNotDemo(userId) &&
         // Prevent users from escalating their own accessRole
         (request.resource.data.accessRole == resource.data.accessRole ||
          request.resource.data.accessRole == 'member');

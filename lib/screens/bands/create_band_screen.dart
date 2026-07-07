@@ -11,6 +11,7 @@ import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
@@ -229,6 +230,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canEdit = ref.watch(canEditProvider); // false for the shared demo account
     return PopScope(
       canPop: !_hasUnsavedChanges,
       onPopInvokedWithResult: (didPop, result) async {
@@ -271,6 +273,15 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
+                if (!canEdit) ...[
+                  const ErrorBanner(
+                    message:
+                        'Demo accounts are read-only — you can explore but '
+                        'not create bands.',
+                    style: ErrorBannerStyle.card,
+                  ),
+                  const SizedBox(height: 24),
+                ],
                 // Error banner
                 if (_currentError != null) ...[
                   ErrorBanner(
@@ -300,7 +311,9 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                   decoration: const InputDecoration(labelText: 'Description'),
                   textInputAction: TextInputAction.done,
                   onChanged: (_) => _markAsChanged(),
-                  onFieldSubmitted: (_) => _saveBand(),
+                  onFieldSubmitted: (_) {
+                    if (canEdit) _saveBand();
+                  },
                   maxLines: 3,
                 ),
               ],
@@ -309,7 +322,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
         ),
         bottomNavigationBar: PrimaryActionBar(
           label: _isEditing ? 'Save Changes' : 'Create Band',
-          onPressed: _isLoading ? null : _saveBand,
+          onPressed: (_isLoading || !canEdit) ? null : _saveBand,
           isLoading: _isLoading,
         ),
       ),

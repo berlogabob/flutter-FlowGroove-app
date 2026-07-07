@@ -52,6 +52,12 @@ const B2 = 'demo-band-02';
 const B3 = 'demo-band-03';
 
 const docs = {
+  // Demo user profile — accessRole:'demo' locks the shared account read-only (see permissions_provider).
+  [`users/${UID}`]: {
+    uid: UID, email: 'demo@flowgroove.app', displayName: 'demo',
+    photoURL: null, musicRoles: ['dj'], bandIds: [], systemTags: [],
+    accessRole: 'demo', createdAt: NOW,
+  },
   [`bands/${B2}`]: band(B2, 'Funk Foundry',
     'Funk and soul covers with a horn-section attitude.', ['funk', 'soul', 'covers'], 'FNKFRY'),
   [`bands/${B3}`]: band(B3, 'Indie Echoes',

@@ -13,6 +13,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../providers/auth/auth_provider.dart';
+import '../../providers/permissions_provider.dart';
 import '../../services/account_function_service.dart';
 import '../../services/avatar_function_service.dart';
 import '../../services/storage_service.dart';
@@ -446,6 +447,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final userAsync = ref.watch(currentUserProvider);
     final user = userAsync.value;
     final appUserAsync = ref.watch(appUserProvider);
+    // Demo is a shared public account: hide all profile-editing affordances.
+    final isDemo = ref.watch(isDemoUserProvider);
 
     final displayName =
         appUserAsync.whenOrNull(data: (u) => u?.displayName) ??
@@ -464,7 +467,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 children: [
                   GestureDetector(
-                    onTap: _showPhotoOptions,
+                    onTap: isDemo ? null : _showPhotoOptions,
                     child: Stack(
                       children: [
                         CircleAvatar(
@@ -482,22 +485,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 )
                               : null,
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(MonoPulseSpacing.xs),
-                            decoration: const BoxDecoration(
-                              color: MonoPulseColors.accentOrange,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 16,
-                              color: MonoPulseColors.textPrimary,
+                        if (!isDemo)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(MonoPulseSpacing.xs),
+                              decoration: const BoxDecoration(
+                                color: MonoPulseColors.accentOrange,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                size: 16,
+                                color: MonoPulseColors.textPrimary,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -546,16 +550,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.edit, size: 18),
-                          onPressed: () {
-                            _nameController.text = displayName == 'User'
-                                ? ''
-                                : displayName;
-                            setState(() => _isEditingName = true);
-                          },
-                          color: MonoPulseColors.textSecondary,
-                        ),
+                        if (!isDemo)
+                          IconButton(
+                            icon: const Icon(Icons.edit, size: 18),
+                            onPressed: () {
+                              _nameController.text = displayName == 'User'
+                                  ? ''
+                                  : displayName;
+                              setState(() => _isEditingName = true);
+                            },
+                            color: MonoPulseColors.textSecondary,
+                          ),
                       ],
                     ),
                   const SizedBox(height: 4),
@@ -575,18 +580,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _buildSection(
             title: 'Account',
             children: [
-              _buildMenuItem(
-                icon: Icons.person_outline,
-                title: 'Edit Profile',
-                subtitle: 'Change name and photo',
-                onTap: _showPhotoOptions,
-              ),
-              _buildMenuItem(
-                icon: Icons.send,
-                title: 'Link Telegram',
-                subtitle: 'Get name and photo from Telegram',
-                onTap: _showTelegramLinkDialog,
-              ),
+              if (!isDemo)
+                _buildMenuItem(
+                  icon: Icons.person_outline,
+                  title: 'Edit Profile',
+                  subtitle: 'Change name and photo',
+                  onTap: _showPhotoOptions,
+                ),
+              if (!isDemo)
+                _buildMenuItem(
+                  icon: Icons.send,
+                  title: 'Link Telegram',
+                  subtitle: 'Get name and photo from Telegram',
+                  onTap: _showTelegramLinkDialog,
+                ),
               _buildMenuItem(
                 icon: Icons.smart_toy_outlined,
                 title: 'AI access (MCP)',
@@ -756,6 +763,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildTagsSection() {
     final userAsync = ref.watch(appUserProvider);
+    final isDemo = ref.watch(isDemoUserProvider);
 
     return userAsync.when(
       data: (user) {
@@ -775,11 +783,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: () => _editRoles(roles),
-                    icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('Edit'),
-                  ),
+                  if (!isDemo)
+                    TextButton.icon(
+                      onPressed: () => _editRoles(roles),
+                      icon: const Icon(Icons.edit, size: 16),
+                      label: const Text('Edit'),
+                    ),
                 ],
               ),
               const SizedBox(height: 8),
