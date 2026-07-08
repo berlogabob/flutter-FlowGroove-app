@@ -22,6 +22,10 @@ class WallClockScheduler {
     _scheduleNext();
   }
 
+  /// Swap the tick interval without resetting the running phase. The already
+  /// scheduled timer fires on time; subsequent ticks use the new interval.
+  void updateInterval(Duration interval) => _interval = interval;
+
   void _scheduleNext() {
     if (_callback == null) return;
     _nextTargetMs += _interval.inMilliseconds;

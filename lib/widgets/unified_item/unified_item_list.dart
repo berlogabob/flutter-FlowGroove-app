@@ -40,13 +40,21 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
   @override
   Widget build(BuildContext context) {
     return ReorderableListView.builder(
+      // The framework's default handle renders OUTSIDE each item's own rounded
+      // container (it "escapes the card"). Turn it off and drive reorder from a
+      // long-press on the card body instead — matches the gesture-first pattern
+      // (tap = edit, swipe = delete).
+      buildDefaultDragHandles: false,
       physics: const AlwaysScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: widget.items.length,
       itemBuilder: (context, index) {
         final item = widget.items[index];
 
-        return Dismissible(
+        return ReorderableDelayedDragStartListener(
+          key: ValueKey('drag_${item.id}'),
+          index: index,
+          child: Dismissible(
           key: ValueKey(item.id),
           background: Container(
             color: Theme.of(context).colorScheme.error,
@@ -89,6 +97,7 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
                   : null,
               onTap: widget.onTap != null ? () => widget.onTap!(index) : null,
             ),
+          ),
           ),
         );
       },

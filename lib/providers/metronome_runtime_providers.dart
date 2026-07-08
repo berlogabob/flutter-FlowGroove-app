@@ -578,8 +578,12 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
   @override
   Future<void> update(MetronomePlaybackConfig config) async {
     _config = config;
+    // Swap interval in place: restarting the scheduler here reset the phase, so
+    // the next click fired a full interval after any button tap — an audible
+    // pause (worst at slow tempos) that read as playback "freezing". `_tickIndex`
+    // lives on this client, so the beat sequence stays continuous.
     if (_onTick != null) {
-      _scheduler.start(config.interval, _handleTick);
+      _scheduler.updateInterval(config.interval);
     }
   }
 

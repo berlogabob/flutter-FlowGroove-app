@@ -36,6 +36,23 @@ void main() {
       expect(callCount, countAfterStop);
     });
 
+    test('updateInterval changes cadence without resetting the phase', () async {
+      final scheduler = WallClockScheduler();
+      scheduler.start(const Duration(milliseconds: 50), () {});
+      await Future.delayed(const Duration(milliseconds: 170)); // ~3 ticks
+      final countBefore = scheduler.tickCount;
+      expect(countBefore, greaterThanOrEqualTo(2));
+
+      // Swapping the interval must NOT restart counting from 0 (that reset was
+      // the metronome "freeze on button-tap" bug).
+      scheduler.updateInterval(const Duration(milliseconds: 50));
+      expect(scheduler.tickCount, countBefore);
+
+      await Future.delayed(const Duration(milliseconds: 120));
+      scheduler.stop();
+      expect(scheduler.tickCount, greaterThan(countBefore));
+    });
+
     test('tickCount tracks number of ticks', () async {
       final scheduler = WallClockScheduler();
       scheduler.start(const Duration(milliseconds: 50), () {});
