@@ -1,12 +1,18 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/api_error.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/auth/error_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/error_banner.dart';
+import '../widgets/google_sign_in_button_stub.dart'
+    if (dart.library.js_interop) '../widgets/google_sign_in_button_web.dart';
 import 'auth/forgot_password_screen.dart';
 import 'songs/models/inputs/email_input.dart';
 import 'songs/models/inputs/password_input.dart';
@@ -27,11 +33,88 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLoading = false;
   ApiError? _currentError;
 
+  /// Web only: the GIS button can render once GoogleSignIn.initialize is done.
+  bool _webGoogleReady = false;
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _webGoogleAuthSub;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) _initWebGoogleSignIn();
+  }
+
   @override
   void dispose() {
+    _webGoogleAuthSub?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  /// On web the Google button is rendered by GIS itself and the sign-in comes
+  /// back through [GoogleSignIn.authenticationEvents]; Firebase's own
+  /// popup/redirect flows are unusable there (Safari popup-blocking / ITP).
+  Future<void> _initWebGoogleSignIn() async {
+    try {
+      await ref.read(appUserProvider.notifier).ensureGoogleSignInInitialized();
+    } catch (e, stackTrace) {
+      _handleError(ApiError.fromException(e, stackTrace: stackTrace));
+      return;
+    }
+    _webGoogleAuthSub = GoogleSignIn.instance.authenticationEvents.listen(
+      _onWebGoogleAuthEvent,
+      onError: (Object e, StackTrace stackTrace) {
+        if (e is GoogleSignInException &&
+            e.code == GoogleSignInExceptionCode.canceled) {
+          return;
+        }
+        _handleError(ApiError.fromException(e, stackTrace: stackTrace));
+      },
+    );
+    if (mounted) setState(() => _webGoogleReady = true);
+  }
+
+  Future<void> _onWebGoogleAuthEvent(
+    GoogleSignInAuthenticationEvent event,
+  ) async {
+    if (event is! GoogleSignInAuthenticationEventSignIn) return;
+    setState(() {
+      _isLoading = true;
+      _currentError = null;
+    });
+    try {
+      final idToken = event.user.authentication.idToken;
+      if (idToken == null) {
+        throw ApiError.auth(message: 'Google sign-in failed: missing ID token.');
+      }
+      await ref.read(appUserProvider.notifier).completeWebGoogleSignIn(idToken);
+      await _afterLoginSuccess('google');
+    } on ApiError catch (e) {
+      _handleError(e);
+    } catch (e, stackTrace) {
+      _handleError(ApiError.fromException(e, stackTrace: stackTrace));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  /// Shared post-login tail: analytics, pending join code, navigation.
+  Future<void> _afterLoginSuccess(String loginMethod) async {
+    final analytics = ref.read(analyticsClientProvider);
+    await analytics.logLogin(loginMethod: loginMethod);
+    await analytics.logLoginSuccess(loginMethod: loginMethod);
+
+    // Honour a pending join code captured before login.
+    final pendingJoinCode = await ref
+        .read(pendingJoinCodeStoreProvider)
+        .getAndClearPendingJoinCode();
+    if (!mounted) return;
+
+    if (pendingJoinCode != null) {
+      context.goNamed('join-band', queryParameters: {'code': pendingJoinCode});
+    } else {
+      context.go('/main/home');
+    }
   }
 
   void _onEmailChanged(String value) {
@@ -83,25 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         password: _password.value,
       );
 
-      // Log successful login
-      final analytics = ref.read(analyticsClientProvider);
-      await analytics.logLogin(loginMethod: 'email');
-      await analytics.logLoginSuccess(loginMethod: 'email');
-
-      // Check if there's a pending join code from before login.
-      final pendingJoinCode = await ref
-          .read(pendingJoinCodeStoreProvider)
-          .getAndClearPendingJoinCode();
-      if (!mounted) return;
-
-      if (pendingJoinCode != null) {
-        context.goNamed(
-          'join-band',
-          queryParameters: {'code': pendingJoinCode},
-        );
-      } else {
-        context.go('/main/home');
-      }
+      await _afterLoginSuccess('email');
     } on ApiError catch (e) {
       _handleError(e);
     } catch (e, stackTrace) {
@@ -125,25 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       await ref.read(appUserProvider.notifier).signInWithGoogle();
-
-      final analytics = ref.read(analyticsClientProvider);
-      await analytics.logLogin(loginMethod: 'google');
-      await analytics.logLoginSuccess(loginMethod: 'google');
-
-      // Honour a pending join code captured before login, same as email login.
-      final pendingJoinCode = await ref
-          .read(pendingJoinCodeStoreProvider)
-          .getAndClearPendingJoinCode();
-      if (!mounted) return;
-
-      if (pendingJoinCode != null) {
-        context.goNamed(
-          'join-band',
-          queryParameters: {'code': pendingJoinCode},
-        );
-      } else {
-        context.go('/main/home');
-      }
+      await _afterLoginSuccess('google');
     } on ApiError catch (e) {
       // Treat user-cancelled sign-in as a no-op, not an error banner.
       if (e.message == 'Google sign-in was cancelled.') return;
@@ -290,18 +337,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     : const Text('Sign In'),
               ),
               const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: _isLoading ? null : _loginWithGoogle,
-                icon: Image.asset(
-                  'assets/google_logo.png',
-                  height: 18,
-                  width: 18,
+              if (kIsWeb)
+                // GIS renders this button itself; sign-in arrives via
+                // authenticationEvents (see _onWebGoogleAuthEvent).
+                SizedBox(
+                  height: 44,
+                  child: _webGoogleReady
+                      ? Center(child: googleSignInButton())
+                      : const SizedBox.shrink(),
+                )
+              else
+                OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _loginWithGoogle,
+                  icon: Image.asset(
+                    'assets/google_logo.png',
+                    height: 18,
+                    width: 18,
+                  ),
+                  label: const Text('Continue with Google'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                 ),
-                label: const Text('Continue with Google'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

@@ -354,66 +354,89 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
 
   Future<void> _ensureGoogleSignInInitialized(GoogleSignIn googleSignIn) async {
     if (_googleSignInInitialized) return;
+    final clientId = _googleServerClientId.isEmpty
+        ? null
+        : _googleServerClientId;
     await googleSignIn.initialize(
-      serverClientId: _googleServerClientId.isEmpty
-          ? null
-          : _googleServerClientId,
+      // The web plugin asserts serverClientId == null and wants clientId
+      // instead; it's the same public web client either way.
+      clientId: kIsWeb ? clientId : null,
+      serverClientId: kIsWeb ? null : clientId,
     );
     _googleSignInInitialized = true;
   }
 
-  /// Signs in with Google.
-  ///
-  /// On web this uses Firebase's popup flow; on mobile it uses the
-  /// `google_sign_in` plugin to obtain an OAuth credential. After sign-in it
+  /// Public wrapper so the web login screen can initialize GIS before
+  /// rendering the Google button.
+  Future<void> ensureGoogleSignInInitialized() =>
+      _ensureGoogleSignInInitialized(GoogleSignIn.instance);
+
+  /// Signs in with Google on **mobile** via the `google_sign_in` plugin, then
   /// ensures a Firestore user document exists (security rules read
   /// `users/{uid}.accessRole`, so a missing doc would block all writes).
   ///
+  /// Not for web: there GIS only issues tokens through its own rendered button
+  /// (Firebase's popup/redirect flows are broken by Safari popup-blocking /
+  /// ITP), so the login screen renders `web_only.renderButton()` and calls
+  /// [completeWebGoogleSignIn] with the resulting ID token.
+  ///
   /// Throws [ApiError] if sign in fails or is cancelled.
   Future<UserCredential> signInWithGoogle() async {
-    try {
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'On web, Google sign-in is driven by the GIS button; '
+        'use completeWebGoogleSignIn.',
+      );
+    }
+    return _guardAuthErrors(() async {
       final auth = _readFirebaseAuthOrThrow();
-      late final UserCredential credential;
+      // google_sign_in v7: singleton + initialize() + authenticate().
+      final googleSignIn = GoogleSignIn.instance;
+      await _ensureGoogleSignInInitialized(googleSignIn);
 
-      if (kIsWeb) {
-        // Redirect, not popup: popups are blocked / storage-partitioned in mobile
-        // Safari and in-app browsers (Telegram, IG), which surfaced as a generic
-        // "Authentication failed" on iPhone. signInWithRedirect navigates away, so
-        // execution stops here; Firebase auto-consumes the result on the next load,
-        // the router redirect (authStateChanges) routes to Home, and
-        // [completeGoogleRedirect] ensures the user doc for first-time sign-ins.
-        await auth.signInWithRedirect(GoogleAuthProvider());
-        // Page is navigating; keep the caller awaiting until it unloads.
-        return Completer<UserCredential>().future;
-      } else {
-        // google_sign_in v7: singleton + initialize() + authenticate().
-        final googleSignIn = GoogleSignIn.instance;
-        await _ensureGoogleSignInInitialized(googleSignIn);
-
-        final GoogleSignInAccount googleUser;
-        try {
-          googleUser = await googleSignIn.authenticate();
-        } on GoogleSignInException catch (e) {
-          if (e.code == GoogleSignInExceptionCode.canceled) {
-            // User aborted the Google sign-in sheet.
-            throw ApiError.auth(message: 'Google sign-in was cancelled.');
-          }
-          rethrow;
+      final GoogleSignInAccount googleUser;
+      try {
+        googleUser = await googleSignIn.authenticate();
+      } on GoogleSignInException catch (e) {
+        if (e.code == GoogleSignInExceptionCode.canceled) {
+          // User aborted the Google sign-in sheet.
+          throw ApiError.auth(message: 'Google sign-in was cancelled.');
         }
-
-        // v7 only exposes an ID token here; that is sufficient for Firebase.
-        final idToken = googleUser.authentication.idToken;
-        if (idToken == null) {
-          throw ApiError.auth(
-            message: 'Google sign-in failed: missing ID token.',
-          );
-        }
-        final oauthCredential = GoogleAuthProvider.credential(idToken: idToken);
-        credential = await auth.signInWithCredential(oauthCredential);
+        rethrow;
       }
 
-      await _ensureUserDocument(credential.user);
-      return credential;
+      // v7 only exposes an ID token here; that is sufficient for Firebase.
+      final idToken = googleUser.authentication.idToken;
+      if (idToken == null) {
+        throw ApiError.auth(message: 'Google sign-in failed: missing ID token.');
+      }
+      return _signInWithGoogleIdToken(auth, idToken);
+    });
+  }
+
+  /// Completes a **web** Google sign-in started by the GIS rendered button:
+  /// exchanges the GIS [idToken] for a Firebase session and ensures the
+  /// Firestore user doc exists. Throws [ApiError] on failure.
+  Future<UserCredential> completeWebGoogleSignIn(String idToken) =>
+      _guardAuthErrors(
+        () => _signInWithGoogleIdToken(_readFirebaseAuthOrThrow(), idToken),
+      );
+
+  Future<UserCredential> _signInWithGoogleIdToken(
+    FirebaseAuth auth,
+    String idToken,
+  ) async {
+    final credential = await auth.signInWithCredential(
+      GoogleAuthProvider.credential(idToken: idToken),
+    );
+    await _ensureUserDocument(credential.user);
+    return credential;
+  }
+
+  /// Maps auth failures in [body] to [ApiError] and records them in [state].
+  Future<T> _guardAuthErrors<T>(Future<T> Function() body) async {
+    try {
+      return await body();
     } on FirebaseAuthException catch (e, stackTrace) {
       final apiError = _mapFirebaseAuthException(e);
       state = AsyncValue.error(apiError, stackTrace);
@@ -424,23 +447,6 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       final apiError = ApiError.fromException(e, stackTrace: stackTrace);
       state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
-    }
-  }
-
-  /// Completes a pending web Google **redirect** sign-in.
-  ///
-  /// [signInWithGoogle] on web calls `signInWithRedirect`, which navigates away
-  /// before it can create the Firestore user doc. Call this once at web startup:
-  /// Firebase has already auto-consumed the redirect and restored the session, so
-  /// this just fetches the returning credential and ensures the user doc exists
-  /// (security rules read `users/{uid}.accessRole`). No-op off web / no redirect.
-  Future<void> completeGoogleRedirect() async {
-    if (!kIsWeb) return;
-    try {
-      final result = await _readFirebaseAuthOrThrow().getRedirectResult();
-      await _ensureUserDocument(result.user);
-    } catch (e) {
-      debugPrint('Error completing Google redirect: $e');
     }
   }
 
