@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/permissions_provider.dart';
@@ -20,6 +22,7 @@ import '../../services/storage_service.dart';
 import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
+import '../../utils/responsive_breakpoints.dart';
 import '../../utils/web_version_loader_export.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
@@ -333,66 +336,125 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final telegramService = TelegramService();
     final userAsync = ref.read(currentUserProvider);
     final userId = userAsync.value?.uid;
+    final botLink = TelegramService.botLink(
+      userId != null ? 'link_$userId' : 'link',
+    );
+    // On desktop web Telegram is usually on the phone, not this machine —
+    // lead with a QR to scan instead of a deep link that dead-ends.
+    final isDesktopWeb = kIsWeb &&
+        getBreakpoint(MediaQuery.of(context).size.width) ==
+            ScreenBreakpoint.desktop;
+
+    Future<void> copyLink(BuildContext context) async {
+      await Clipboard.setData(ClipboardData(text: botLink));
+      if (context.mounted) {
+        showAppSnackBar(context, 'Link copied - paste in Telegram to continue.');
+      }
+    }
 
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Link Telegram'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Link your Telegram account to automatically import your profile name and photo to FlowGroove.',
-              style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textSecondary,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Link your Telegram account to automatically import your profile name and photo to FlowGroove.',
+                style: MonoPulseTypography.bodyMedium.copyWith(
+                  color: MonoPulseColors.textSecondary,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(MonoPulseSpacing.md),
-              decoration: BoxDecoration(
-                color: MonoPulseColors.surfaceRaised,
-                borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'How it works:',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+              const SizedBox(height: 16),
+              if (isDesktopWeb) ...[
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(MonoPulseSpacing.md),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                    ),
+                    child: QrImageView(data: botLink, size: 160),
                   ),
-                  SizedBox(height: 8),
-                  Text('1. Click "Open Telegram" below'),
-                  Text('2. Send /link command to the bot'),
-                  Text('3. Tap "Yes, link my profile"'),
-                  Text('4. Your name and photo will be imported'),
-                ],
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: Text(
+                    'Scan with your phone - Telegram opens the FlowGroove bot',
+                    style: MonoPulseTypography.bodySmall.copyWith(
+                      color: MonoPulseColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              Container(
+                padding: const EdgeInsets.all(MonoPulseSpacing.md),
+                decoration: BoxDecoration(
+                  color: MonoPulseColors.surfaceRaised,
+                  borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'How it works:',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 8),
+                    if (isDesktopWeb)
+                      const Text('1. Scan the QR code with your phone')
+                    else
+                      const Text('1. Click "Open Telegram" below'),
+                    const Text('2. Send /link command to the bot'),
+                    const Text('3. Tap "Yes, link my profile"'),
+                    const Text('4. Your name and photo will be imported'),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          ElevatedButton.icon(
-            onPressed: () async {
-              Navigator.pop(context);
-              // Open Telegram with start parameter
-              final opened = await telegramService.openBotChat(userId);
-              if (!opened && mounted) {
-                // Try copying link to clipboard as fallback
-                final link =
-                    'https://t.me/${TelegramService.botUsername}?start=link_$userId';
-                await Clipboard.setData(ClipboardData(text: link));
-                showAppSnackBar(context, 'Could not open Telegram. Link copied to clipboard - paste in Telegram to continue.');
-              }
-            },
-            icon: const Icon(Icons.send),
-            label: const Text('Open Telegram'),
-          ),
+          if (isDesktopWeb) ...[
+            TextButton.icon(
+              onPressed: () async {
+                Navigator.pop(context);
+                final opened = await telegramService.openBotChat(userId);
+                if (!opened && mounted) {
+                  await copyLink(this.context);
+                }
+              },
+              icon: const Icon(Icons.send),
+              label: const Text('Open Telegram'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                Navigator.pop(context);
+                await copyLink(this.context);
+              },
+              icon: const Icon(Icons.copy),
+              label: const Text('Copy link'),
+            ),
+          ] else
+            ElevatedButton.icon(
+              onPressed: () async {
+                Navigator.pop(context);
+                final opened = await telegramService.openBotChat(userId);
+                if (!opened && mounted) {
+                  await Clipboard.setData(ClipboardData(text: botLink));
+                  showAppSnackBar(context, 'Could not open Telegram. Link copied to clipboard - paste in Telegram to continue.');
+                }
+              },
+              icon: const Icon(Icons.send),
+              label: const Text('Open Telegram'),
+            ),
         ],
       ),
     );

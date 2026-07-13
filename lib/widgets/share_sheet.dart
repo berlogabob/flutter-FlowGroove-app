@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/telegram_service.dart';
 import '../utils/snackbar.dart';
 
 /// Curated share sheet: Copy / Share via… / Email / Telegram / WhatsApp.
@@ -56,9 +57,7 @@ void showShareSheet(BuildContext context, String message, {String? subject}) {
             title: const Text('Telegram'),
             onTap: () {
               Navigator.pop(sheetContext);
-              final telegramUri = Uri.parse(
-                'https://t.me/share/url?url=${Uri.encodeComponent(message)}',
-              );
+              final telegramUri = Uri.parse(TelegramService.shareLink(message));
               launchUrl(telegramUri, mode: LaunchMode.externalApplication);
             },
           ),

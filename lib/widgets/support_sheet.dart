@@ -23,7 +23,7 @@ void showSupportSheet(BuildContext context, {String? appVersion}) {
             onTap: () {
               Navigator.pop(sheetContext);
               launchUrl(
-                Uri.parse('https://t.me/${TelegramService.botUsername}'),
+                Uri.parse(TelegramService.botLink()),
                 mode: LaunchMode.externalApplication,
               );
             },

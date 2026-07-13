@@ -82,7 +82,7 @@ Amadora, Portugal | NIF: 518200736
 
 Want early access before the TinyLaunch launch?
 
-[Try the Demo](/app/) or [Support the Dev on Ko-fi](https://ko-fi.com/flowgroove)
+[Try the Demo](https://app.flowgroove.app/) or [Support the Dev on Ko-fi](https://ko-fi.com/flowgroove)
 
 ---
 

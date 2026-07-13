@@ -59,7 +59,7 @@ class DefaultFirebaseOptions {
       // which also serves /__/auth/** helpers — email action links land here too.
       authDomain: 'app.flowgroove.app',
       storageBucket: 'repsync-app-8685c.firebasestorage.app',
-      measurementId: 'G-T6YBX0M53W', // flowgroove.app stream - used for all deployments
+      measurementId: 'G-DQC026CRM8', // Firebase-provisioned web-app stream (site keeps G-T6YBX0M53W)
     );
   }
 

@@ -51,7 +51,7 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
 
     [[params.profileMode.buttons]]
       name = "Open App"
-      url = "app/"
+      url = "https://app.flowgroove.app/"
 
     [[params.profileMode.buttons]]
       name = "Support the Dev ☕"
@@ -151,7 +151,7 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
 [[menu.main]]
   identifier = "app"
   name = "Open App"
-  url = "app/"
+  url = "https://app.flowgroove.app/"
   weight = 6
 
 # Markdown renderer
