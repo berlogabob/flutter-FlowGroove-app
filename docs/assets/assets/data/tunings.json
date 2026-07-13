@@ -1,0 +1,251 @@
+{
+  "version": "2.0.0",
+  "instruments": [
+    {
+      "id": "guitar_6",
+      "name": "Guitar",
+      "subtitle": "6-String",
+      "origin": "Global",
+      "icon": "music_note",
+      "stringCount": 6,
+      "stringLabels": ["6", "5", "4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "notes": ["E2", "A2", "D3", "G3", "B3", "E4"]
+        },
+        {
+          "id": "drop_d",
+          "name": "Drop D",
+          "notes": ["D2", "A2", "D3", "G3", "B3", "E4"]
+        },
+        {
+          "id": "half_step_down",
+          "name": "Half Step Down",
+          "notes": ["Eb2", "Ab2", "Db3", "Gb3", "Bb3", "Eb4"]
+        },
+        {
+          "id": "open_g",
+          "name": "Open G",
+          "notes": ["D2", "G2", "D3", "G3", "B3", "D4"]
+        },
+        {
+          "id": "open_d",
+          "name": "Open D",
+          "notes": ["D2", "A2", "D3", "F#3", "A3", "D4"]
+        },
+        {
+          "id": "dadgad",
+          "name": "DADGAD",
+          "notes": ["D2", "A2", "D3", "G3", "A3", "D4"]
+        }
+      ]
+    },
+    {
+      "id": "bass_4",
+      "name": "Bass",
+      "subtitle": "4-String",
+      "origin": "Global",
+      "icon": "music_note",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "notes": ["E1", "A1", "D2", "G2"]
+        },
+        {
+          "id": "drop_d",
+          "name": "Drop D",
+          "notes": ["D1", "A1", "D2", "G2"]
+        }
+      ]
+    },
+    {
+      "id": "cavaquinho",
+      "name": "Cavaquinho",
+      "subtitle": "Brazil",
+      "origin": "Brazil",
+      "icon": "star",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard (D-G-B-D)",
+          "notes": ["D3", "G3", "B3", "D4"]
+        },
+        {
+          "id": "open_c",
+          "name": "Open C (C-G-C-E)",
+          "notes": ["C3", "G3", "C4", "E4"]
+        },
+        {
+          "id": "lisboa",
+          "name": "Lisboa (A-E-A-C#)",
+          "notes": ["A3", "E4", "A4", "C#5"]
+        }
+      ]
+    },
+    {
+      "id": "balalaika",
+      "name": "Balalaika",
+      "subtitle": "Russia",
+      "origin": "Russia",
+      "icon": "ac_unit",
+      "stringCount": 3,
+      "stringLabels": ["3", "2", "1"],
+      "tunings": [
+        {
+          "id": "prima",
+          "name": "Prima (E-E-A)",
+          "notes": ["E3", "E4", "A4"]
+        },
+        {
+          "id": "alternate",
+          "name": "Alternate (E-A-D)",
+          "notes": ["E3", "A3", "D4"]
+        }
+      ]
+    },
+    {
+      "id": "ukulele",
+      "name": "Ukulele",
+      "subtitle": "Hawaii",
+      "origin": "Hawaii",
+      "icon": "wb_sunny",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard_gce",
+          "name": "Standard (G-C-E-A)",
+          "notes": ["G4", "C4", "E4", "A4"]
+        },
+        {
+          "id": "low_g",
+          "name": "Low G (G-C-E-A)",
+          "notes": ["G3", "C4", "E4", "A4"]
+        },
+        {
+          "id": "d_tuning",
+          "name": "D Tuning (A-D-F#-B)",
+          "notes": ["A4", "D4", "F#4", "B4"]
+        },
+        {
+          "id": "slack_key",
+          "name": "Slack Key (G-C-E-G)",
+          "notes": ["G4", "C4", "E4", "G4"]
+        }
+      ]
+    },
+    {
+      "id": "violin",
+      "name": "Violin",
+      "subtitle": "4-String",
+      "origin": "Global",
+      "icon": "music_note",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "notes": ["G3", "D4", "A4", "E5"]
+        }
+      ]
+    },
+    {
+      "id": "viola",
+      "name": "Viola",
+      "subtitle": "4-String",
+      "origin": "Global",
+      "icon": "music_note",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "notes": ["C3", "G3", "D4", "A4"]
+        }
+      ]
+    },
+    {
+      "id": "cello",
+      "name": "Cello",
+      "subtitle": "4-String",
+      "origin": "Global",
+      "icon": "music_note",
+      "stringCount": 4,
+      "stringLabels": ["4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "standard",
+          "name": "Standard",
+          "notes": ["C2", "G2", "D3", "A3"]
+        }
+      ]
+    },
+    {
+      "id": "voice",
+      "name": "Voice",
+      "subtitle": "Chromatic",
+      "origin": "Global",
+      "icon": "mic",
+      "stringCount": 0,
+      "stringLabels": [],
+      "tunings": [
+        {
+          "id": "chromatic",
+          "name": "Chromatic",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "chromatic",
+      "name": "Chromatic",
+      "subtitle": "All Notes",
+      "origin": "Global",
+      "icon": "graphic_eq",
+      "stringCount": 0,
+      "stringLabels": [],
+      "tunings": [
+        {
+          "id": "chromatic",
+          "name": "All Notes",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "sitar",
+      "name": "Sitar",
+      "subtitle": "India",
+      "origin": "India",
+      "icon": "auto_awesome",
+      "stringCount": 6,
+      "stringLabels": ["6", "5", "4", "3", "2", "1"],
+      "tunings": [
+        {
+          "id": "raga_yaman",
+          "name": "Raga Yaman (C#-F#-G#-C#-F#-G#)",
+          "notes": ["C#2", "F#2", "G#2", "C#3", "F#3", "G#3"]
+        },
+        {
+          "id": "raga_bhairav",
+          "name": "Raga Bhairav (Bb-D-F-Bb-D-F)",
+          "notes": ["Bb1", "D2", "F2", "Bb2", "D3", "F3"]
+        },
+        {
+          "id": "standard_sitar",
+          "name": "Standard (C#-F#-G#-C#-F#-G#)",
+          "notes": ["C#2", "F#2", "G#2", "C#3", "F#3", "G#3"]
+        }
+      ]
+    }
+  ]
+}

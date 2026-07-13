@@ -1,3 +1,0 @@
-User-agent: *
-Disallow:
-Sitemap: https://berlogabob.github.io/flutter-FlowGroove-app/sitemap.xml
