@@ -17,14 +17,14 @@ title: "2nd place on TinyLaunch"
 The TinyLaunch run is over, and **FlowGroove finished in 2nd place**. There's a silver
 badge in the footer now.
 
-Two weeks ago this app launched into a batch of polished marketing and AI tools — a
+A week ago this app launched into a batch of polished marketing and AI tools — a
 metronome-and-setlist app for cover bands, built by one person. It spent launch day at #1
 and held near the top until the end. Second overall is more than I planned for, and I'll
 take it with both hands.
 
 ## What the launch actually gave me
 
-Not the badge. The launch forced two weeks of honesty: real users on real phones, finding
+Not the badge. The launch forced a week of honesty: real users on real phones, finding
 real problems. iPhone sign-in that broke in three different ways until it didn't. Avatars
 that vanished on desktop. A support link that led nowhere on some networks. All of it found
 because strangers clicked a link, and all of it fixed because they told me.
