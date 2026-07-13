@@ -55,7 +55,9 @@ class DefaultFirebaseOptions {
       appId: '1:703941154390:web:43dfeaf2f6a0495e004df7',
       messagingSenderId: '703941154390',
       projectId: 'repsync-app-8685c',
-      authDomain: 'repsync-app-8685c.firebaseapp.com',
+      // Same-origin auth: app is served from app.flowgroove.app (Firebase Hosting),
+      // which also serves /__/auth/** helpers — email action links land here too.
+      authDomain: 'app.flowgroove.app',
       storageBucket: 'repsync-app-8685c.firebasestorage.app',
       measurementId: 'G-T6YBX0M53W', // flowgroove.app stream - used for all deployments
     );
