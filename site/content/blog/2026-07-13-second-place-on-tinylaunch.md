@@ -1,7 +1,7 @@
 ---
 categories:
 - devlog
-date: '2026-07-13T23:30:00+01:00'
+date: '2026-07-13T22:00:00+01:00'
 draft: false
 slug: second-place-on-tinylaunch
 summary: "The TinyLaunch campaign is over: FlowGroove finished 2nd. What two weeks of launching taught a solo dev, and what happens now."
