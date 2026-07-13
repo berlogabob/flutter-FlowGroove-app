@@ -26,8 +26,10 @@
   @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400 600;font-display:swap;
     src:url({{ "fonts/jetbrainsmono-latin-var.woff2" | relURL }}) format('woff2')}
   *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth;color-scheme:dark}
-  body{background:#050506;color:#F5F5F5;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  /* overflow-x:clip on BOTH html and body: unlike hidden, clip cannot become a scroll
+     container, so a stray wide element can't expand the mobile layout viewport */
+  html{scroll-behavior:smooth;color-scheme:dark;overflow-x:clip}
+  body{background:#050506;color:#F5F5F5;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
   ::selection{background:#FF5E00;color:#000}
   a{text-decoration:none;color:inherit}
   .mono{font-family:'JetBrains Mono',monospace}
@@ -69,7 +71,9 @@
 
   /* phone mockup */
   .phone-wrap{display:flex;justify-content:center;position:relative}
-  .phone-glow{position:absolute;inset:-40px;background:radial-gradient(closest-side,rgba(255,94,0,.18),transparent);filter:blur(20px);z-index:0}
+  /* no horizontal bleed: an absolute glow wider than the viewport expands the mobile
+     layout viewport -> Android loads zoomed-out with horizontal pan */
+  .phone-glow{position:absolute;top:-40px;bottom:-40px;left:0;right:0;background:radial-gradient(closest-side,rgba(255,94,0,.18),transparent);filter:blur(20px);z-index:0}
   .phone{position:relative;z-index:1;width:286px;flex:none}
   .phone-frame{border-radius:46px;padding:11px;background:linear-gradient(160deg,#202020,#0a0a0a);border:1px solid #2a2a2a;box-shadow:0 50px 90px -30px rgba(0,0,0,.9)}
   .phone-screen{position:relative;border-radius:36px;overflow:hidden;background:#000;aspect-ratio:9/19.5}
