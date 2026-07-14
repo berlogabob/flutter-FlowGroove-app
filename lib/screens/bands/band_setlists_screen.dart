@@ -14,6 +14,7 @@ import '../../services/export/pdf_service.dart';
 import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
@@ -172,9 +173,10 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
       title: '${widget.band.name} Setlists',
       menuItems: canEdit
           ? [
-              PopupMenuItem<void>(
+              AppMenuItem(
+                icon: Icons.playlist_add,
+                label: 'Create Band Setlist',
                 onTap: _handleCreate,
-                child: const Text('Create Band Setlist'),
               ),
             ]
           : null,

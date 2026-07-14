@@ -1,8 +1,11 @@
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
+import 'package:flowgroove/screens/main_shell.dart';
 import 'package:flowgroove/screens/setlists/setlist_view_screen.dart';
+import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +13,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/mocks.dart';
-import '../../helpers/routed_test_harness.dart' show TestRouteMarker;
+import '../../helpers/routed_test_harness.dart'
+    show TestAppUserNotifier, TestRouteMarker;
 
 void main() {
   group('SetlistViewScreen', () {
@@ -41,30 +45,80 @@ void main() {
       );
     });
 
-    /// Builds a minimal router with the view screen as home plus the two
-    /// named routes it can push to, so `context.pushNamed` calls resolve
-    /// without needing the full app router.
+    /// Builds a minimal router mirroring production: the view screen is a
+    /// pushed child of the setlists branch inside the real [MainShell], so
+    /// the shell's pushed-mode bottom bar ([← Back] [Open in Metronome] [⋮])
+    /// renders. Portrait viewport, because the bottom bar only exists in
+    /// portrait (landscape uses the rail).
     Future<GoRouter> pumpView(
       WidgetTester tester, {
       bool canEdit = true,
     }) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      MenuScopeRegistry.reset();
+
       final router = GoRouter(
-        initialLocation: '/view',
+        initialLocation: '/main/setlists/view/${setlist.id}',
         routes: [
-          GoRoute(
-            path: '/view',
-            name: 'view',
-            builder: (context, state) =>
-                SetlistViewScreen(setlist: setlist),
+          StatefulShellRoute.indexedStack(
+            builder: (context, state, navigationShell) =>
+                MainShell(navigationShell: navigationShell),
+            branches: [
+              for (final root in const [
+                '/main/home',
+                '/main/songs',
+                '/main/bands',
+              ])
+                StatefulShellBranch(
+                  routes: [
+                    GoRoute(
+                      path: root,
+                      builder: (context, state) =>
+                          TestRouteMarker(root.split('/').last),
+                    ),
+                  ],
+                ),
+              StatefulShellBranch(
+                routes: [
+                  GoRoute(
+                    path: '/main/setlists',
+                    name: 'setlists',
+                    builder: (context, state) =>
+                        const TestRouteMarker('setlists'),
+                    routes: [
+                      GoRoute(
+                        path: 'view/:id',
+                        name: 'view',
+                        builder: (context, state) =>
+                            SetlistViewScreen(setlist: setlist),
+                      ),
+                      GoRoute(
+                        path: ':id/edit',
+                        name: 'edit-setlist',
+                        builder: (context, state) =>
+                            const TestRouteMarker('edit-setlist'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              StatefulShellBranch(
+                routes: [
+                  GoRoute(
+                    path: '/main/profile',
+                    name: 'profile',
+                    builder: (context, state) =>
+                        const TestRouteMarker('profile'),
+                  ),
+                ],
+              ),
+            ],
           ),
           GoRoute(
-            path: '/setlists/:id/edit',
-            name: 'edit-setlist',
-            builder: (context, state) =>
-                const TestRouteMarker('edit-setlist'),
-          ),
-          GoRoute(
-            path: '/metronome',
+            path: '/main/metronome',
             name: 'metronome',
             builder: (context, state) => const TestRouteMarker('metronome'),
           ),
@@ -74,6 +128,12 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
+          // The shell's DemoModeBanner watches appUserProvider; without an
+          // override the real notifier throws (no Firebase in tests) and
+          // Riverpod's retry timer trips the pending-timer check.
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+          ),
           songsProvider.overrideWith((ref) => Stream<List<Song>>.value(songs)),
           setlistsProvider.overrideWith(
             (ref) => Stream<List<Setlist>>.value([setlist]),
@@ -128,9 +188,13 @@ void main() {
     ) async {
       await pumpView(tester);
 
-      expect(find.text('Edit'), findsOneWidget);
+      // Edit moved into the bottom bar's Menu sheet.
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Edit'));
+      expect(find.text('Edit Setlist'), findsOneWidget);
+
+      await tester.tap(find.text('Edit Setlist'));
       await tester.pumpAndSettle();
 
       expect(find.text('route:edit-setlist'), findsOneWidget);
@@ -141,7 +205,9 @@ void main() {
     ) async {
       await pumpView(tester, canEdit: false);
 
-      expect(find.text('Edit'), findsNothing);
+      // No menu items at all -> the bottom bar hides the ⋮ Menu button.
+      expect(find.byIcon(Icons.more_horiz), findsNothing);
+      expect(find.text('Edit Setlist'), findsNothing);
     });
 
     testWidgets('pushes the metronome screen from the primary action button', (

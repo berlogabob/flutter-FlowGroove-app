@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
+import '../../../../../utils/snackbar.dart';
 import 'widgets/edit_section_dialog.dart';
 import 'widgets/pill_view.dart';
 import 'widgets/section_card.dart';
@@ -123,38 +124,27 @@ class _SongConstructorState extends State<SongConstructor> {
   }
 
   void _deleteSection(Section section) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Section'),
-        content: Text('Delete "${section.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                // Remove by index using ID comparison
-                final index = _sections.indexWhere((s) => s.id == section.id);
-                if (index != -1) {
-                  _sections = _sections
-                      .where((s) => s.id != section.id)
-                      .toList();
-                }
-              });
-              _notifyChange();
-              Navigator.pop(dialogContext);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    // ponytail: single-level undo via snackbar; editor undo stack only if beta asks
+    final index = _sections.indexWhere((s) => s.id == section.id);
+    if (index == -1) return;
+
+    final deletedSection = _sections[index];
+    setState(() {
+      _sections = _sections.where((s) => s.id != section.id).toList();
+    });
+    _notifyChange();
+
+    // Show snackbar with undo action
+    showAppSnackBar(
+      context,
+      'Section "${deletedSection.name}" deleted',
+      actionLabel: 'Undo',
+      onAction: () {
+        setState(() {
+          _sections.insert(index, deletedSection);
+        });
+        _notifyChange();
+      },
     );
   }
 
@@ -351,13 +341,31 @@ class _SongConstructorState extends State<SongConstructor> {
                       ),
                       confirmDismiss: (direction) async {
                         if (direction == DismissDirection.endToStart) {
-                          // Swipe left - delete directly (no dialog for swipe)
-                          setState(() {
-                            _sections = _sections
-                                .where((s) => s.id != section.id)
-                                .toList();
-                          });
-                          _notifyChange();
+                          // Swipe left - delete with undo snackbar
+                          final sectionIndex = _sections.indexWhere((s) => s.id == section.id);
+                          if (sectionIndex != -1) {
+                            final deletedSection = _sections[sectionIndex];
+                            setState(() {
+                              _sections = _sections
+                                  .where((s) => s.id != section.id)
+                                  .toList();
+                            });
+                            _notifyChange();
+
+                            if (mounted) {
+                              showAppSnackBar(
+                                context,
+                                'Section "${deletedSection.name}" deleted',
+                                actionLabel: 'Undo',
+                                onAction: () {
+                                  setState(() {
+                                    _sections.insert(sectionIndex, deletedSection);
+                                  });
+                                  _notifyChange();
+                                },
+                              );
+                            }
+                          }
                           return true; // Dismiss the item
                         } else if (direction == DismissDirection.startToEnd) {
                           // Swipe right - edit

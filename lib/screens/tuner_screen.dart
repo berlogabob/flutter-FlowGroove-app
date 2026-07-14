@@ -8,6 +8,7 @@ import '../providers/tuner_provider.dart';
 import '../services/analytics_service.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
+import '../widgets/app_menu_sheet.dart';
 import '../widgets/tools/tool_mode_switcher.dart';
 import '../widgets/tools/tool_scaffold.dart';
 import '../widgets/tuner/central_dial.dart';
@@ -111,113 +112,43 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
     );
   }
 
-  List<PopupMenuEntry<dynamic>> _buildMenuItems(TunerState state) {
+  List<AppMenuItem> _buildMenuItems(TunerState state) {
     return [
-      PopupMenuItem<dynamic>(
+      AppMenuItem(
+        icon: Icons.tune,
+        label: 'Tuner Settings',
         onTap: _showSettings,
-        child: Row(
-          children: [
-            const Icon(
-              Icons.tune,
-              color: MonoPulseColors.textSecondary,
-              size: 20,
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-            Text(
-              'Tuner Settings',
-              style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textHighEmphasis,
-              ),
-            ),
-          ],
-        ),
       ),
-      PopupMenuItem<dynamic>(
+      AppMenuItem(
+        icon: Icons.piano_outlined,
+        label: 'Instruments & Tunings',
         onTap: _showInstrumentPicker,
-        child: Row(
-          children: [
-            const Icon(
-              Icons.piano_outlined,
-              color: MonoPulseColors.textSecondary,
-              size: 20,
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-            Text(
-              'Instruments & Tunings',
-              style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textHighEmphasis,
-              ),
-            ),
-          ],
-        ),
       ),
-      PopupMenuItem<dynamic>(
+      AppMenuItem(
+        icon: Icons.edit_outlined,
+        label: 'Custom Tuning Editor',
         onTap: _showCustomTuningEditor,
-        child: Row(
-          children: [
-            const Icon(
-              Icons.edit_outlined,
-              color: MonoPulseColors.textSecondary,
-              size: 20,
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-            Text(
-              'Custom Tuning Editor',
-              style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textHighEmphasis,
-              ),
-            ),
-          ],
-        ),
       ),
-      PopupMenuItem<dynamic>(
+      // Live toggle: the trailing switch rebuilds in-sheet via Riverpod and
+      // does not close the sheet.
+      AppMenuItem(
+        icon: state.stageModeEnabled
+            ? Icons.fullscreen
+            : Icons.fullscreen_outlined,
+        label: 'Stage Mode',
         onTap: () => ref.read(tunerProvider.notifier).toggleStageModeEnabled(),
-        child: Row(
-          children: [
-            Icon(
-              state.stageModeEnabled
-                  ? Icons.fullscreen
-                  : Icons.fullscreen_outlined,
-              color: MonoPulseColors.textSecondary,
-              size: 20,
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-            Text(
-              'Stage Mode',
-              style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textHighEmphasis,
-              ),
-            ),
-            const Spacer(),
-            Container(
-              width: 40,
-              height: 24,
-              decoration: BoxDecoration(
-                color: state.stageModeEnabled
-                    ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.borderDefault,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Stack(
-                children: [
-                  AnimatedAlign(
-                    duration: MonoPulseAnimation.durationMedium,
-                    curve: MonoPulseAnimation.curveCustom,
-                    alignment: state.stageModeEnabled
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: const Padding(
-                      padding: EdgeInsets.all(3),
-                      child: ColoredBox(
-                        color: MonoPulseColors.white,
-                        child: SizedBox(width: 18, height: 18),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        trailing: Consumer(
+          builder: (context, ref, _) {
+            final enabled = ref.watch(
+              tunerProvider.select((s) => s.stageModeEnabled),
+            );
+            return Switch(
+              value: enabled,
+              activeThumbColor: MonoPulseColors.accentOrange,
+              onChanged: (_) =>
+                  ref.read(tunerProvider.notifier).toggleStageModeEnabled(),
+            );
+          },
         ),
       ),
     ];

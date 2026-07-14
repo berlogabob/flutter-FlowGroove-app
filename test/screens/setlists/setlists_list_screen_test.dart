@@ -37,7 +37,8 @@ void main() {
         overrides: overridesFor(setlists: Stream<List<Setlist>>.value([])),
       );
 
-      expect(find.text('Setlists'), findsOneWidget);
+      // Slim top bar title + the shell's Setlists nav tab label.
+      expect(find.text('Setlists'), findsNWidgets(2));
       expect(find.text('Search setlists...'), findsOneWidget);
       expect(find.byIcon(Icons.sort), findsOneWidget);
     });

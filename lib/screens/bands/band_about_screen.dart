@@ -11,7 +11,9 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/member_label.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/menu_items_scope.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/user_avatar.dart';
 
@@ -101,59 +103,45 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     final canManageMembers = ref.watch(
       canManageBandMembersProvider(_band.id),
     );
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
+    // Pushed branch child: title + actions are published for the shell's
+    // bottom bar ([← Back] [title] [⋮ Menu]); the top bar is title-only.
+    return MenuScopePublisher(
+      data: MenuScopeData(
         title: 'About ${_band.name}',
-        menuItems: [
+        items: [
           if (_canEdit) ...[
-            PopupMenuItem<void>(
+            AppMenuItem(
+              icon: _isEditing ? Icons.close : Icons.edit_outlined,
+              label: _isEditing ? 'Cancel' : 'Edit',
               onTap: _toggleEdit,
-              child: Row(
-                children: [
-                  Icon(
-                    _isEditing ? Icons.close : Icons.edit_outlined,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(_isEditing ? 'Cancel' : 'Edit'),
-                ],
-              ),
             ),
-            PopupMenuItem<void>(
+            AppMenuItem(
+              icon: Icons.save_outlined,
+              label: 'Save',
               onTap: _saveChanges,
-              child: const Row(
-                children: [
-                  Icon(Icons.save_outlined, size: 20),
-                  SizedBox(width: 12),
-                  Text('Save'),
-                ],
-              ),
             ),
           ],
-          PopupMenuItem<void>(
+          AppMenuItem(
+            icon: Icons.share_outlined,
+            label: 'Share Band',
             onTap: () => _shareBand(context),
-            child: const Row(
-              children: [
-                Icon(Icons.share_outlined, size: 20),
-                SizedBox(width: 12),
-                Text('Share Band'),
-              ],
-            ),
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-        children: [
-          _buildBandInfo(),
-          const SizedBox(height: 24),
-          _buildDescriptionSection(),
-          const SizedBox(height: 24),
-          _buildTagsSection(),
-          const SizedBox(height: 24),
-          _buildMembersSection(canManageMembers),
-        ],
+      child: Scaffold(
+        appBar: CustomAppBar.build(context, title: 'About ${_band.name}'),
+        body: ListView(
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          children: [
+            _buildBandInfo(),
+            const SizedBox(height: 24),
+            _buildDescriptionSection(),
+            const SizedBox(height: 24),
+            _buildTagsSection(),
+            const SizedBox(height: 24),
+            _buildMembersSection(canManageMembers),
+          ],
+        ),
       ),
     );
   }

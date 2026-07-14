@@ -11,6 +11,8 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 
+typedef _LoadedSongState = ({Song song, Setlist? setlist, String? sourceBandId, List<Song> loadedSetlistSongs});
+
 class SongLibraryBlock extends ConsumerWidget {
   const SongLibraryBlock({super.key});
 
@@ -184,7 +186,44 @@ class _LoadedSongCard extends ConsumerWidget {
           ),
           IconButton(
             tooltip: 'Clear loaded song',
-            onPressed: onClear,
+            onPressed: () {
+              // Cache the current state for undo
+              final cachedState = (
+                song: song,
+                setlist: setlist,
+                sourceBandId: sourceBandId,
+                loadedSetlistSongs: setlist != null
+                    ? ref.read(metronomeProvider).loadedSetlistSongs
+                    : <Song>[],
+              ) as _LoadedSongState;
+
+              // Clear the loaded content
+              onClear();
+
+              // Show snackbar with undo action
+              showAppSnackBar(
+                context,
+                'Song unloaded',
+                actionLabel: 'Undo',
+                onAction: () {
+                  final notifier = ref.read(metronomeProvider.notifier);
+                  if (cachedState.setlist != null) {
+                    // Reload the setlist
+                    notifier.loadSetlistQueue(
+                      cachedState.setlist!,
+                      availableSongs: cachedState.loadedSetlistSongs,
+                      sourceBandId: cachedState.sourceBandId,
+                    );
+                  } else {
+                    // Reload the single song
+                    notifier.loadSongTempo(
+                      cachedState.song,
+                      sourceBandId: cachedState.sourceBandId,
+                    );
+                  }
+                },
+              );
+            },
             icon: const Icon(
               Icons.close,
               color: MonoPulseColors.textSecondary,

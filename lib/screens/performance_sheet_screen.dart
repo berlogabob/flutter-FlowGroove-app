@@ -13,6 +13,7 @@ import '../services/wakelock_controller.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/chordpro.dart';
 import '../utils/snackbar.dart';
+import '../widgets/app_menu_sheet.dart';
 import '../widgets/chord_chart_view.dart';
 import '../widgets/custom_app_bar.dart';
 import 'songs/chordpro_sync_controller.dart';
@@ -293,33 +294,25 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
     );
 
     return Scaffold(
-      // Classic 3-dot menu like every other screen (#79); transpose lives in
-      // the bottom bar next to the scroll transport.
+      // Pushed imperatively (Navigator.push), so it lives outside go_router
+      // and can't use the shell's bottom bar — back + menu stay in the top
+      // bar here (menu opens the app menu sheet). Transpose lives in the
+      // bottom bar next to the scroll transport.
       appBar: CustomAppBar.build(
         context,
         title: widget.title,
         onBack: _handleBack,
         menuItems: [
-          PopupMenuItem<void>(
+          AppMenuItem(
+            icon: Icons.picture_as_pdf_outlined,
+            label: 'Export PDF',
             onTap: _exportPdf,
-            child: const Row(
-              children: [
-                Icon(Icons.picture_as_pdf_outlined, size: 20),
-                SizedBox(width: MonoPulseSpacing.sm),
-                Text('Export PDF'),
-              ],
-            ),
           ),
           if (widget.song case final song?)
-            PopupMenuItem<void>(
+            AppMenuItem(
+              icon: Icons.description_outlined,
+              label: 'Export ChordPro',
               onTap: () => _exportChordPro(song),
-              child: const Row(
-                children: [
-                  Icon(Icons.description_outlined, size: 20),
-                  SizedBox(width: MonoPulseSpacing.sm),
-                  Text('Export ChordPro'),
-                ],
-              ),
             ),
         ],
       ),

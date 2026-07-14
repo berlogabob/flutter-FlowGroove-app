@@ -11,6 +11,7 @@ import '../../services/analytics_service.dart';
 import '../../services/secure_storage_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/bottom_nav_or_action_bar.dart';
 import '../../widgets/custom_app_bar.dart';
 
 class JoinBandScreen extends ConsumerStatefulWidget {
@@ -200,7 +201,18 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         }
       },
       child: Scaffold(
-        appBar: CustomAppBar.buildSimple(context, title: 'Join Band'),
+        appBar: CustomAppBar.build(context, title: 'Join Band'),
+        // Root-pushed route (outside the shell): renders its own pushed-mode
+        // bottom bar. Back mirrors the PopScope's home-fallback logic above.
+        bottomNavigationBar: AppBottomBar.actions(
+          onBack: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/main/home');
+            }
+          },
+        ),
         body: Stack(
           children: [
             // Main content

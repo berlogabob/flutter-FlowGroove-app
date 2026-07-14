@@ -118,7 +118,14 @@ class _ApiAccessScreenState extends State<ApiAccessScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar.build(context, title: 'AI access (MCP)'),
+      // Pushed imperatively from Profile (Navigator.push), so it lives
+      // outside go_router and the shell's bottom bar can't serve it — keep an
+      // explicit back button in the top bar.
+      appBar: CustomAppBar.build(
+        context,
+        title: 'AI access (MCP)',
+        onBack: () => Navigator.of(context).pop(),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createKey,
         icon: const Icon(Icons.add),

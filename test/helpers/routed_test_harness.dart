@@ -5,8 +5,11 @@ import 'package:flowgroove/router/app_router.dart';
 import 'package:flowgroove/screens/auth/register_screen.dart';
 import 'package:flowgroove/screens/bands/my_bands_screen.dart';
 import 'package:flowgroove/screens/login_screen.dart';
+import 'package:flowgroove/screens/main_shell.dart';
 import 'package:flowgroove/screens/setlists/setlists_list_screen.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
+import 'package:flowgroove/router/branch_stack_observer.dart';
+import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -119,89 +122,133 @@ GoRouter createRoutedTestRouter({
             builder: (context, state) => const RegisterScreen(),
           ),
           GoRoute(
-            path: '/main/home',
-            name: 'home',
-            builder: (context, state) => const TestRouteMarker('home'),
-          ),
-          GoRoute(
             path: '/main/join-band',
             name: 'join-band',
             builder: (context, state) => const TestRouteMarker('join-band'),
           ),
-          GoRoute(
-            path: '/main/songs',
-            name: 'songs',
-            builder: (context, state) => const SongsListScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                name: 'add-song',
-                builder: (context, state) => const TestRouteMarker('add-song'),
+          // Mirror production: the 5 main branches live under the real
+          // MainShell, so tests exercise the bottom-first navigation (tab
+          // bar / rail, Menu-in-bottom-bar sheet, pushed-mode Back).
+          StatefulShellRoute.indexedStack(
+            builder: (context, state, navigationShell) =>
+                MainShell(navigationShell: navigationShell),
+            branches: [
+              StatefulShellBranch(
+                observers: [BranchStackObserver(0)],
+                routes: [
+                  GoRoute(
+                    path: '/main/home',
+                    name: 'home',
+                    builder: (context, state) => const TestRouteMarker('home'),
+                  ),
+                ],
               ),
-              GoRoute(
-                path: ':id/edit',
-                name: 'edit-song',
-                builder: (context, state) => const TestRouteMarker('edit-song'),
+              StatefulShellBranch(
+                observers: [BranchStackObserver(1)],
+                routes: [
+                  GoRoute(
+                    path: '/main/songs',
+                    name: 'songs',
+                    builder: (context, state) => const SongsListScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'add',
+                        name: 'add-song',
+                        builder: (context, state) =>
+                            const TestRouteMarker('add-song'),
+                      ),
+                      GoRoute(
+                        path: ':id/edit',
+                        name: 'edit-song',
+                        builder: (context, state) =>
+                            const TestRouteMarker('edit-song'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-          GoRoute(
-            path: '/main/bands',
-            name: 'bands',
-            builder: (context, state) => const MyBandsScreen(),
-            routes: [
-              GoRoute(
-                path: 'create',
-                name: 'create-band',
-                builder: (context, state) =>
-                    const TestRouteMarker('create-band'),
+              StatefulShellBranch(
+                observers: [BranchStackObserver(2)],
+                routes: [
+                  GoRoute(
+                    path: '/main/bands',
+                    name: 'bands',
+                    builder: (context, state) => const MyBandsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'create',
+                        name: 'create-band',
+                        builder: (context, state) =>
+                            const TestRouteMarker('create-band'),
+                      ),
+                      GoRoute(
+                        path: ':id',
+                        name: 'the-band',
+                        builder: (context, state) =>
+                            const TestRouteMarker('the-band'),
+                      ),
+                      GoRoute(
+                        path: ':id/edit',
+                        name: 'edit-band',
+                        builder: (context, state) =>
+                            const TestRouteMarker('edit-band'),
+                      ),
+                      GoRoute(
+                        path: ':id/songs',
+                        name: 'band-songs',
+                        builder: (context, state) =>
+                            const TestRouteMarker('band-songs'),
+                      ),
+                      GoRoute(
+                        path: ':id/setlists',
+                        name: 'band-setlists',
+                        builder: (context, state) =>
+                            const TestRouteMarker('band-setlists'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              GoRoute(
-                path: ':id',
-                name: 'the-band',
-                builder: (context, state) => const TestRouteMarker('the-band'),
+              StatefulShellBranch(
+                observers: [BranchStackObserver(3)],
+                routes: [
+                  GoRoute(
+                    path: '/main/setlists',
+                    name: 'setlists',
+                    builder: (context, state) => const SetlistsListScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'create',
+                        name: 'create-setlist',
+                        builder: (context, state) =>
+                            const TestRouteMarker('create-setlist'),
+                      ),
+                      GoRoute(
+                        path: ':id',
+                        name: 'setlist-view',
+                        builder: (context, state) =>
+                            const TestRouteMarker('setlist-view'),
+                      ),
+                      GoRoute(
+                        path: ':id/edit',
+                        name: 'edit-setlist',
+                        builder: (context, state) =>
+                            const TestRouteMarker('edit-setlist'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              GoRoute(
-                path: ':id/edit',
-                name: 'edit-band',
-                builder: (context, state) => const TestRouteMarker('edit-band'),
-              ),
-              GoRoute(
-                path: ':id/songs',
-                name: 'band-songs',
-                builder: (context, state) =>
-                    const TestRouteMarker('band-songs'),
-              ),
-              GoRoute(
-                path: ':id/setlists',
-                name: 'band-setlists',
-                builder: (context, state) =>
-                    const TestRouteMarker('band-setlists'),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: '/main/setlists',
-            name: 'setlists',
-            builder: (context, state) => const SetlistsListScreen(),
-            routes: [
-              GoRoute(
-                path: 'create',
-                name: 'create-setlist',
-                builder: (context, state) =>
-                    const TestRouteMarker('create-setlist'),
-              ),
-              GoRoute(
-                path: ':id',
-                name: 'setlist-view',
-                builder: (context, state) =>
-                    const TestRouteMarker('setlist-view'),
-              ),
-              GoRoute(
-                path: ':id/edit',
-                name: 'edit-setlist',
-                builder: (context, state) =>
-                    const TestRouteMarker('edit-setlist'),
+              StatefulShellBranch(
+                observers: [BranchStackObserver(4)],
+                routes: [
+                  GoRoute(
+                    path: '/main/profile',
+                    name: 'profile',
+                    builder: (context, state) =>
+                        const TestRouteMarker('profile'),
+                  ),
+                ],
               ),
             ],
           ),
@@ -215,6 +262,10 @@ Future<GoRouter> pumpRoutedTestApp(
   List<dynamic> overrides = const [],
   List<RouteBase>? routes,
 }) async {
+  // The menu registry is process-global; wipe it so a previous test's
+  // published items (with closures over disposed containers) can't leak in.
+  MenuScopeRegistry.reset();
+  BranchStackObserver.reset();
   final container = ProviderContainer(overrides: overrides.cast());
   final router = createRoutedTestRouter(
     initialLocation: initialLocation,
