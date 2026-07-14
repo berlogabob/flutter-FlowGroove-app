@@ -184,24 +184,21 @@ class CustomAppBar {
         HapticFeedback.lightImpact();
         if (onBack != null) {
           onBack();
+        } else if (context.canPop()) {
+          // Screen was push()ed via go_router — pop it. This covers
+          // Metronome/Tuner/Join Band too: they're pushed on the root
+          // navigator on top of the shell, so there's a shell screen
+          // underneath to return to.
+          context.pop();
+        } else if (Navigator.of(context).canPop()) {
+          // Screen was pushed imperatively (e.g. AI access via Navigator.push);
+          // go_router's pop can't see it, so pop the Navigator directly.
+          Navigator.of(context).pop();
         } else {
-          // For StatefulShellRoute (Metronome/Tuner), always go home.
-          final currentRoute = GoRouterState.of(context).uri.path;
-          if (currentRoute.startsWith('/main/metronome') ||
-              currentRoute.startsWith('/main/tuner')) {
-            context.go('/main/home');
-          } else if (context.canPop()) {
-            // Screen was push()ed via go_router — pop it.
-            context.pop();
-          } else if (Navigator.of(context).canPop()) {
-            // Screen was pushed imperatively (e.g. AI access via Navigator.push);
-            // go_router's pop can't see it, so pop the Navigator directly.
-            Navigator.of(context).pop();
-          } else {
-            // Reached via go()/goNamed() which replaced the stack — nothing to
-            // pop, so fall back home instead of a dead button.
-            context.go('/main/home');
-          }
+          // Reached via go()/goNamed() which replaced the stack (e.g. a
+          // deep-link cold start landing directly on Join Band) — nothing to
+          // pop, so fall back home instead of a dead button.
+          context.go('/main/home');
         }
       },
       // minTapTarget touch zone

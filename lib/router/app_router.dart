@@ -397,14 +397,6 @@ List<RouteBase> _buildAppRoutes() {
                 ),
               ],
             ),
-            GoRoute(
-              path: '/main/join-band',
-              name: 'join-band',
-              builder: (context, state) {
-                final code = state.uri.queryParameters['code'];
-                return JoinBandScreen(inviteCode: code);
-              },
-            ),
           ],
         ),
         // Setlists branch
@@ -468,26 +460,39 @@ List<RouteBase> _buildAppRoutes() {
             ),
           ],
         ),
-        // Tools branch (not in bottom nav)
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/main/metronome',
-              name: 'metronome',
-              builder: (context, state) => const MetronomeScreen(),
-            ),
-            GoRoute(
-              path: '/main/tuner',
-              name: 'tuner',
-              builder: (context, state) => TunerScreen(
-                launchContext: state.extra is TunerLaunchContext
-                    ? state.extra! as TunerLaunchContext
-                    : null,
-              ),
-            ),
-          ],
-        ),
       ],
+    ),
+
+    // Tool screens (Metronome/Tuner) and Join Band are pushed on top of the
+    // shell via the root navigator instead of living in a shell branch. That
+    // way there's always a shell screen underneath to pop back to, so system
+    // back (and the app bar back arrow) return to the app instead of exiting
+    // it. Names/paths are unchanged so the deep-link redirect below (which
+    // returns '/main/join-band?code=...' as a location string) still resolves.
+    GoRoute(
+      path: '/main/metronome',
+      name: 'metronome',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const MetronomeScreen(),
+    ),
+    GoRoute(
+      path: '/main/tuner',
+      name: 'tuner',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => TunerScreen(
+        launchContext: state.extra is TunerLaunchContext
+            ? state.extra! as TunerLaunchContext
+            : null,
+      ),
+    ),
+    GoRoute(
+      path: '/main/join-band',
+      name: 'join-band',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final code = state.uri.queryParameters['code'];
+        return JoinBandScreen(inviteCode: code);
+      },
     ),
   ];
 }
@@ -529,8 +534,10 @@ extension GoRouterExtension on BuildContext {
   void goTheBand(Band band) =>
       goNamed('the-band', pathParameters: {'id': band.id}, extra: band);
 
-  /// Navigate to join band screen.
-  void goJoinBand() => goNamed('join-band');
+  /// Navigate to join band screen. Pushed on the root navigator (see
+  /// [_buildAppRoutes]) so back returns to whatever screen is underneath
+  /// instead of exiting the app.
+  void goJoinBand() => pushNamed('join-band');
 
   /// Navigate to band songs screen.
   void goBandSongs(Band band) =>
@@ -575,12 +582,16 @@ extension GoRouterExtension on BuildContext {
   /// Navigate to profile screen.
   void goProfile() => goNamed('profile');
 
-  /// Navigate to metronome screen.
-  void goMetronome() => goNamed('metronome');
+  /// Navigate to metronome screen. Pushed on the root navigator (see
+  /// [_buildAppRoutes]) so back returns to whatever screen is underneath
+  /// instead of exiting the app.
+  void goMetronome() => pushNamed('metronome');
 
-  /// Navigate to tuner screen.
+  /// Navigate to tuner screen. Pushed on the root navigator (see
+  /// [_buildAppRoutes]) so back returns to whatever screen is underneath
+  /// instead of exiting the app.
   void goTuner({TunerLaunchContext? launchContext}) =>
-      goNamed('tuner', extra: launchContext);
+      pushNamed('tuner', extra: launchContext);
 
   /// Navigate to login screen.
   void goLogin() => goNamed('login');

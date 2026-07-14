@@ -5,8 +5,9 @@ import '../unified_item_model.dart';
 /// Adapter for Setlist model to work with unified item system
 class SetlistItemAdapter extends UnifiedItemModel {
 
-  SetlistItemAdapter(this.setlist);
+  SetlistItemAdapter(this.setlist, {this.resolvedSongCount});
   final Setlist setlist;
+  final int? resolvedSongCount;
 
   @override
   String get id => setlist.id;
@@ -47,7 +48,7 @@ class SetlistItemAdapter extends UnifiedItemModel {
   };
 
   // Type-specific properties
-  int get songIdsLength => setlist.songIds.length;
+  int get songIdsLength => resolvedSongCount ?? setlist.songIds.length;
   String? get bandName => setlist.bandId;
   String? get eventDate => setlist.formattedEventDate;
   String? get eventLocation => setlist.eventLocation;

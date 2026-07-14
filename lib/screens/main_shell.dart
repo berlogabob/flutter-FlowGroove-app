@@ -42,8 +42,10 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    // Clamp selectedIndex to prevent assertion errors when router has more
-    // branches than bottom nav destinations (e.g., Tools branch).
+    // The shell now has exactly 5 branches (Home/Songs/Bands/Setlists/Profile)
+    // matching _navItems — Metronome/Tuner/Join Band are pushed on top of the
+    // shell via the root navigator instead of being branches. Clamp kept as a
+    // harmless guard against out-of-range indices.
     final currentIndex = widget.navigationShell.currentIndex;
     final safeIndex =
         currentIndex >= 0 && currentIndex < 5 ? currentIndex : 0;

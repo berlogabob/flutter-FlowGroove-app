@@ -152,7 +152,9 @@ final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
       final setlistRepo = ref.watch(setlistRepositoryProvider);
       return setlistRepo.watchSetlists(user.uid);
     },
-    loading: () => const Stream.empty(),
+    // Stream.value, not Stream.empty: an empty stream never emits, leaving the
+    // provider in loading forever (Setlists screen hang) — matches songs/bands.
+    loading: () => Stream.value([]),
     error: (error, stack) => Stream.value([]),
   );
 });

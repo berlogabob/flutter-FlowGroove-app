@@ -22,7 +22,7 @@ import '../utils/responsive_breakpoints.dart';
 /// ToolButton(
 ///   icon: Icons.tune,
 ///   label: 'Tuner',
-///   onTap: () => context.goNamed('tuner'),
+///   onTap: () => context.pushNamed('tuner'),
 /// )
 ///
 /// // Disabled tool button (shows "Soon" badge)

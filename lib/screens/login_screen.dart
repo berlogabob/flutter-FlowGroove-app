@@ -111,7 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
 
     if (pendingJoinCode != null) {
-      context.goNamed('join-band', queryParameters: {'code': pendingJoinCode});
+      await context.pushNamed('join-band', queryParameters: {'code': pendingJoinCode});
     } else {
       context.go('/main/home');
     }

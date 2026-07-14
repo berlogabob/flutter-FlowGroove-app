@@ -117,12 +117,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ToolButton(
               icon: Icons.tune,
               label: 'Tuner',
-              onTap: () => context.goNamed('tuner'),
+              onTap: () => context.pushNamed('tuner'),
             ),
             ToolButton(
               icon: Icons.speed,
               label: 'Metronome',
-              onTap: () => context.goNamed('metronome'),
+              onTap: () => context.pushNamed('metronome'),
             ),
             ToolButton(
               icon: Icons.event,
