@@ -57,6 +57,11 @@ void main() {
           builder: (context, state) => const TestRouteMarker('metronome'),
         ),
         GoRoute(
+          path: '/main/practice',
+          name: 'practice',
+          builder: (context, state) => const TestRouteMarker('practice'),
+        ),
+        GoRoute(
           path: '/main/songs',
           name: 'songs',
           builder: (context, state) => const TestRouteMarker('songs'),
@@ -121,6 +126,37 @@ void main() {
 
       expect(currentRouterUri(router).path, '/main/songs/add');
       expect(find.text('Add Song'), findsOneWidget);
+    });
+
+    testWidgets('pushes the Practice placeholder from Home', (tester) async {
+      final mockUser = MockDataHelper.createMockAppUser(
+        displayName: 'TestUser',
+      );
+
+      final router = await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/home',
+        routes: buildRoutes(),
+        overrides: [
+          firebaseAuthProvider.overrideWithValue(mockAuth),
+          appUserProvider.overrideWith(
+            () => _HomeTestAppUserNotifier(mockUser),
+          ),
+          songsProvider.overrideWith((ref) => Stream.value([])),
+          bandsProvider.overrideWith((ref) => Stream.value([])),
+          setlistsProvider.overrideWith((ref) => Stream.value([])),
+          songCountProvider.overrideWith((ref) => 0),
+          bandCountProvider.overrideWith((ref) => 0),
+          setlistCountProvider.overrideWith((ref) => 0),
+        ],
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Practice'));
+      await tester.pumpAndSettle();
+
+      expect(currentRouterUri(router).path, '/main/practice');
+      expect(find.text('route:practice'), findsOneWidget);
     });
   });
 }

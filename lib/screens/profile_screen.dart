@@ -27,6 +27,7 @@ import '../../utils/web_version_loader_export.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/support_sheet.dart';
+import '../providers/keep_screen_on_provider.dart';
 import '../utils/snackbar.dart';
 import 'settings/api_access_screen.dart';
 
@@ -121,7 +122,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       String version = '';
       String buildNumber = '';
-      
+
       // On web, try to load version from version.json directly
       if (buildNumber.isEmpty) {
         try {
@@ -132,14 +133,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           // Ignore web loader errors
         }
       }
-      
+
       // If web loader didn't work, use package_info_plus
       if (version.isEmpty || buildNumber.isEmpty) {
         final packageInfo = await PackageInfo.fromPlatform();
         if (version.isEmpty) version = packageInfo.version;
         if (buildNumber.isEmpty) buildNumber = packageInfo.buildNumber;
       }
-      
+
       if (mounted) {
         setState(() {
           if (buildNumber.isNotEmpty && buildNumber != '1') {
@@ -474,7 +475,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       // Use the provider method which updates both Firebase and local state
       await ref.read(appUserProvider.notifier).updateDisplayName(newName);
-      
+
       if (mounted) {
         setState(() => _isEditingName = false);
         showAppSnackBar(context, 'Name updated');
@@ -511,6 +512,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final appUserAsync = ref.watch(appUserProvider);
     // Demo is a shared public account: hide all profile-editing affordances.
     final isDemo = ref.watch(isDemoUserProvider);
+    final keepScreenOn = ref.watch(keepScreenOnProvider);
 
     final displayName =
         appUserAsync.whenOrNull(data: (u) => u?.displayName) ??
@@ -665,6 +667,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     builder: (_) => const ApiAccessScreen(),
                   ),
                 ),
+              ),
+              SwitchListTile(
+                secondary: const Icon(
+                  Icons.lightbulb_outline,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Keep screen on'),
+                value: keepScreenOn,
+                onChanged: (_) =>
+                    ref.read(keepScreenOnProvider.notifier).toggle(),
               ),
             ],
           ),
@@ -836,24 +848,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'My Roles',
-                    style: MonoPulseTypography.labelMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+              if (!isDemo) ...[
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () => _editRoles(roles),
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: const Text('Edit'),
                   ),
-                  if (!isDemo)
-                    TextButton.icon(
-                      onPressed: () => _editRoles(roles),
-                      icon: const Icon(Icons.edit, size: 16),
-                      label: const Text('Edit'),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
+                ),
+                const SizedBox(height: 8),
+              ],
               if (roles.isEmpty)
                 const Text(
                   'Tap edit to add your instruments and roles.',

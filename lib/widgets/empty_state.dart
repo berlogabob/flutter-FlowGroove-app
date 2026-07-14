@@ -13,6 +13,8 @@ class EmptyState extends StatelessWidget {
     this.hint,
     this.actionLabel,
     this.onAction,
+    this.secondaryActionLabel,
+    this.onSecondaryAction,
     this.iconColor,
     this.iconSize = 80,
     super.key,
@@ -30,13 +32,15 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Create an empty state for bands.
-  factory EmptyState.bands({VoidCallback? onCreate}) {
+  factory EmptyState.bands({VoidCallback? onCreate, VoidCallback? onJoin}) {
     return EmptyState(
       icon: Icons.groups,
       message: 'No bands yet',
       hint: 'Create a band to get started',
       actionLabel: 'Create Band',
       onAction: onCreate,
+      secondaryActionLabel: 'Join band',
+      onSecondaryAction: onJoin,
     );
   }
 
@@ -75,6 +79,10 @@ class EmptyState extends StatelessWidget {
 
   /// Callback when the action button is pressed.
   final VoidCallback? onAction;
+
+  final String? secondaryActionLabel;
+
+  final VoidCallback? onSecondaryAction;
 
   /// The color of the icon.
   final Color? iconColor;
@@ -115,6 +123,14 @@ class EmptyState extends StatelessWidget {
               onPressed: onAction,
               icon: const Icon(Icons.add),
               label: Text(actionLabel!),
+            ),
+          ],
+          if (secondaryActionLabel != null && onSecondaryAction != null) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: onSecondaryAction,
+              icon: const Icon(Icons.group_add),
+              label: Text(secondaryActionLabel!),
             ),
           ],
         ],

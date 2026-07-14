@@ -132,7 +132,7 @@ void main() {
       // Song cards deliberately have no leading icon — text gets the room.
       expect(find.byIcon(Icons.music_note), findsNothing);
       expect(find.byTooltip('More'), findsNWidgets(2));
-      expect(find.byTooltip('Practice mode'), findsNWidgets(2));
+      expect(find.byTooltip('Metronome'), findsNWidgets(2));
 
       await tester.tap(find.byTooltip('More').first);
       await tester.pumpAndSettle();
@@ -159,7 +159,7 @@ void main() {
 
       await tester.tap(find.byTooltip('More'));
       await tester.pumpAndSettle();
-      expect(find.text('Practice mode'), findsOneWidget);
+      expect(find.text('Metronome'), findsOneWidget);
     });
 
     testWidgets('shows metronome action for saved beat pattern settings', (
@@ -181,7 +181,7 @@ void main() {
 
       await tester.tap(find.byTooltip('More'));
       await tester.pumpAndSettle();
-      expect(find.text('Practice mode'), findsOneWidget);
+      expect(find.text('Metronome'), findsOneWidget);
     });
 
     testWidgets('opens song settings in metronome without starting playback', (
@@ -241,7 +241,7 @@ void main() {
 
       await tester.tap(find.byTooltip('More'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Practice mode'));
+      await tester.tap(find.text('Metronome'));
       await tester.pumpAndSettle();
 
       final metronomeState = container.read(metronomeProvider);
@@ -265,17 +265,22 @@ void main() {
         ),
       );
 
-      expect(find.byTooltip('Practice mode'), findsOneWidget);
+      expect(find.byTooltip('Metronome'), findsOneWidget);
 
       await tester.tap(find.byTooltip('More'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Quick action…'));
       await tester.pumpAndSettle();
+      expect(find.text('Quick action'), findsOneWidget);
+      expect(
+        find.text('Sets what the pinned button on song cards does'),
+        findsOneWidget,
+      );
       await tester.tap(find.text('Open in Tuner'));
       await tester.pumpAndSettle();
 
       expect(find.byTooltip('Open in Tuner'), findsOneWidget);
-      expect(find.byTooltip('Practice mode'), findsNothing);
+      expect(find.byTooltip('Metronome'), findsNothing);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString(SongQuickActionNotifier.prefsKey), 'tuner');
     });

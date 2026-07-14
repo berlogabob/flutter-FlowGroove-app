@@ -247,6 +247,20 @@ void main() {
 
       expect(wasCreateCalled, isTrue);
     });
+
+    testWidgets('calls onJoin when Join band button is tapped', (tester) async {
+      var wasJoinCalled = false;
+
+      await pumpAppWidget(
+        tester,
+        EmptyState.bands(onJoin: () => wasJoinCalled = true),
+      );
+
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Join band'));
+      await tester.pump();
+
+      expect(wasJoinCalled, isTrue);
+    });
   });
 
   group('EmptyState.setlists', () {

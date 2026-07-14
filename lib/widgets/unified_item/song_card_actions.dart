@@ -63,7 +63,7 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Pinned-quick-action catalog: key → (label, icon).
   static const quickActions = <String, (String, IconData)>{
-    'practice': ('Practice mode', Icons.speed),
+    'practice': ('Metronome', Icons.speed),
     'tuner': ('Open in Tuner', Icons.tune),
     'sheet': ('Performance sheet', Icons.queue_music),
     'spotify': ('Play on Spotify', Icons.play_circle_fill),
@@ -111,7 +111,7 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       ),
       OverflowMenuAction(
         entries: [
-          ('Practice mode', Icons.speed, () => openInMetronome(song)),
+          ('Metronome', Icons.speed, () => openInMetronome(song)),
           if (song.spotifyUrl != null)
             ('Play on Spotify', Icons.play_circle_fill, () => openSpotify(song)),
           if (song.hasSheetContent)
@@ -147,6 +147,12 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           child: ListView(
             shrinkWrap: true,
             children: [
+              const ListTile(
+                title: Text('Quick action'),
+                subtitle: Text(
+                  'Sets what the pinned button on song cards does',
+                ),
+              ),
               for (final MapEntry(: key, : value) in quickActions.entries)
                 RadioListTile<String>(
                   value: key,

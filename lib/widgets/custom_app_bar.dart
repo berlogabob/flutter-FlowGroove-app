@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/auth/auth_provider.dart';
-import '../providers/keep_screen_on_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 
 /// Custom AppBar with consistent back button and menu across all screens.
 ///
 /// Features:
 /// - Circular back button with border (consistent with Mono Pulse design)
-/// - Three dots menu button, always present (issue #83): screen-specific
-///   menu items on top, then global items (Profile, Sign out)
+/// - Three dots menu button for screen-specific actions
 /// - Haptic feedback on tap
 /// - 48px minimum touch zones
 ///
@@ -33,7 +29,7 @@ class CustomAppBar {
   ///
   /// [context] - Build context for navigation
   /// [title] - AppBar title text
-  /// [menuItems] - Screen-specific menu items shown above the global ones
+  /// [menuItems] - Screen-specific menu items
   /// [actions] - Extra action widgets shown before the menu button
   /// [onBack] - Custom back action (optional, defaults to Navigator.pop)
   /// [isTool] - Whether this is a tool screen (uses titleLarge typography)
@@ -65,13 +61,13 @@ class CustomAppBar {
       centerTitle: true,
       actions: [
         ...?actions,
-        _menuButton(context, menuItems),
+        if (menuItems?.isNotEmpty ?? false) _menuButton(menuItems!),
         const SizedBox(width: MonoPulseSpacing.md),
       ],
     );
   }
 
-  /// Builds a custom AppBar with only back button and the global menu.
+  /// Builds a custom AppBar with only a back button.
   static PreferredSizeWidget buildSimple(
     BuildContext context, {
     required String title,
@@ -102,48 +98,13 @@ class CustomAppBar {
       ),
       centerTitle: true,
       actions: [
-        _menuButton(context, menuItems),
+        if (menuItems?.isNotEmpty ?? false) _menuButton(menuItems!),
         const SizedBox(width: MonoPulseSpacing.md),
       ],
     );
   }
 
-  /// Global menu items appended to every screen's menu.
-  static List<PopupMenuEntry<dynamic>> _globalMenuItems(BuildContext context) {
-    final container = ProviderScope.containerOf(context);
-    final keepScreenOn = container.read(keepScreenOnProvider);
-    return [
-      PopupMenuItem<void>(
-        onTap: () => container.read(keepScreenOnProvider.notifier).toggle(),
-        child: Row(
-          children: [
-            Icon(
-              keepScreenOn ? Icons.check_box : Icons.check_box_outline_blank,
-              size: MonoPulseIcons.sizeMedium,
-              color: MonoPulseColors.textSecondary,
-            ),
-            const SizedBox(width: MonoPulseSpacing.sm),
-            const Text('Keep screen on'),
-          ],
-        ),
-      ),
-      PopupMenuItem<void>(
-        onTap: () => context.go('/main/profile'),
-        child: const Text('Profile'),
-      ),
-      PopupMenuItem<void>(
-        onTap: () => ProviderScope.containerOf(context)
-            .read(appUserProvider.notifier)
-            .signOut(),
-        child: const Text('Sign out'),
-      ),
-    ];
-  }
-
-  static Widget _menuButton(
-    BuildContext context,
-    List<PopupMenuEntry<dynamic>>? menuItems,
-  ) {
+  static Widget _menuButton(List<PopupMenuEntry<dynamic>> menuItems) {
     return GestureDetector(
       onTap: HapticFeedback.lightImpact,
       // minTapTarget touch zone
@@ -165,12 +126,7 @@ class CustomAppBar {
                 color: MonoPulseColors.textSecondary,
                 size: MonoPulseIcons.sizeLarge,
               ),
-              itemBuilder: (_) => [
-                ...?menuItems,
-                if (menuItems != null && menuItems.isNotEmpty)
-                  const PopupMenuDivider(),
-                ..._globalMenuItems(context),
-              ],
+              itemBuilder: (_) => menuItems,
             ),
           ),
         ),

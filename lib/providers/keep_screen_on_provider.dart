@@ -1,7 +1,7 @@
 /// Global "keep screen on" preference.
 ///
 /// Persisted bool (default on) that drives the app-wide wakelock via
-/// `WakelockController.setAlwaysOn`. Toggled from the app bar's 3-dots menu.
+/// `WakelockController.setAlwaysOn`. Toggled from the Profile screen.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';

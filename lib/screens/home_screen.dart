@@ -108,9 +108,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onTap: () => context.goNamed('create-setlist'),
             ),
             QuickActionButton(
-              icon: Icons.library_music,
-              label: 'Song Bank',
-              onTap: () => context.goNamed('songs'),
+              icon: Icons.menu_book,
+              label: 'Practice',
+              onTap: () => context.pushNamed('practice'),
             ),
           ],
           tools: [
@@ -157,6 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: ListView(
           shrinkWrap: true,
           children: [
+            const ListTile(title: Text('Choose band')),
             for (final band in bands)
               ListTile(
                 leading: const Icon(Icons.event),
