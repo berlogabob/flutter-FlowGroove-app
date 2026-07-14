@@ -245,7 +245,8 @@ void main() {
       await tester.pumpAndSettle();
 
       final metronomeState = container.read(metronomeProvider);
-      expect(currentRouterUri(router).path, '/main/metronome');
+      // metronome is a pushed route: the router's reported URI goes stale,
+      // so the rendered marker is the navigation signal.
       expect(find.text('route:metronome'), findsOneWidget);
       expect(metronomeState.loadedSong?.id, 'metronome-song');
       expect(metronomeState.bpm, 142);
@@ -438,6 +439,72 @@ void main() {
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets(
+      'key filter matches a flat-stored key against its sharp chip (Ab == G#)',
+      (tester) async {
+        final songs = [
+          createTestSong(
+            id: '1',
+            title: 'Flat Song',
+            artist: 'A',
+            ourKey: 'Ab',
+          ),
+          createTestSong(id: '2', title: 'C Song', artist: 'B', ourKey: 'C'),
+          createTestSong(id: '3', title: 'No Key Song', artist: 'D'),
+        ];
+
+        await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/main/songs',
+          overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+        );
+
+        // Open the Key / BPM filter sheet and select the G# chip (major,
+        // the default toggle state).
+        await tester.tap(find.text('Key / BPM'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('G#'));
+        await tester.pumpAndSettle();
+
+        // Dismiss the bottom sheet via the barrier.
+        await tester.tapAt(const Offset(10, 10));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Flat Song'), findsOneWidget);
+        expect(find.text('C Song'), findsNothing);
+        // A song with no key must never match a specific key filter.
+        expect(find.text('No Key Song'), findsNothing);
+      },
+    );
+
+    testWidgets('Major/Minor toggle produces a minor-suffixed key filter', (
+      tester,
+    ) async {
+      final songs = [
+        createTestSong(id: '1', title: 'Minor Song', artist: 'A', ourKey: 'cm'),
+        createTestSong(id: '2', title: 'Major Song', artist: 'B', ourKey: 'C'),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+      );
+
+      await tester.tap(find.text('Key / BPM'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Minor'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cm'));
+      await tester.pumpAndSettle();
+
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Minor Song'), findsOneWidget);
+      expect(find.text('Major Song'), findsNothing);
     });
   });
 }

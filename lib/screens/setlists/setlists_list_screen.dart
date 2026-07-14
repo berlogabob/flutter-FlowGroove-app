@@ -144,8 +144,14 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       songs,
     );
     if (index >= adapters.length) return;
-    // Open setlist for editing on tap
-    _handleEdit(index);
+    final setlist = adapters[index].setlist;
+    // Open the read-only view on tap (P1-7): editing is a deliberate,
+    // separate step from the view screen's Edit action, not one tap away.
+    context.pushNamed(
+      'setlist-view',
+      pathParameters: {'id': setlist.id},
+      extra: setlist,
+    );
   }
 
   void _handleEdit(int index) {

@@ -71,11 +71,20 @@ void main() {
         ),
       ];
 
+      // Cards count only songs that resolve against the library (P0-4 fix),
+      // so the fixture must actually contain s1..s3.
+      final songs = [
+        MockDataHelper.createMockSong(id: 's1', title: 'Song 1'),
+        MockDataHelper.createMockSong(id: 's2', title: 'Song 2'),
+        MockDataHelper.createMockSong(id: 's3', title: 'Song 3'),
+      ];
+
       await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/setlists',
         overrides: overridesFor(
           setlists: Stream<List<Setlist>>.value(setlists),
+          songs: Stream<List<Song>>.value(songs),
         ),
       );
 
@@ -128,6 +137,33 @@ void main() {
 
       expect(find.text('No results found'), findsOneWidget);
       expect(find.text('Try searching for "missing"'), findsOneWidget);
+    });
+
+    testWidgets('tapping a setlist card opens the read-only view screen', (
+      tester,
+    ) async {
+      final setlists = [
+        MockDataHelper.createMockSetlist(id: '1', name: 'Gig Setlist'),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/setlists',
+        overrides: overridesFor(
+          setlists: Stream<List<Setlist>>.value(setlists),
+        ),
+      );
+
+      await tester.tap(find.text('Gig Setlist'));
+      await tester.pumpAndSettle();
+
+      // Note: pushNamed() from inside a StatefulShellBranch pushes onto the
+      // branch's own nested Navigator and doesn't update
+      // router.routeInformationProvider — the marker screen is the reliable
+      // signal that the right route rendered (same pattern used for the
+      // metronome push in songs_list_screen_test.dart).
+      expect(find.text('route:setlist-view'), findsOneWidget);
+      expect(find.text('route:edit-setlist'), findsNothing);
     });
 
     testWidgets('navigates to create setlist from FAB', (tester) async {

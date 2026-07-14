@@ -160,7 +160,8 @@ void main() {
       await tester.tap(find.widgetWithText(OutlinedButton, 'Join band'));
       await tester.pumpAndSettle();
 
-      expect(currentRouterUri(router).path, '/main/join-band');
+      // join-band is a pushed route: the reported URI goes stale; the
+      // rendered marker is the navigation signal.
       expect(find.text('route:join-band'), findsOneWidget);
     });
 
@@ -180,7 +181,8 @@ void main() {
       await tester.tap(find.text('Join band'));
       await tester.pumpAndSettle();
 
-      expect(currentRouterUri(router).path, '/main/join-band');
+      // join-band is a pushed route: the reported URI goes stale; the
+      // rendered marker is the navigation signal.
       expect(find.text('route:join-band'), findsOneWidget);
     });
 

@@ -213,9 +213,11 @@ void main() {
         await tester.tap(find.widgetWithText(ElevatedButton, 'Sign In'));
         await tester.pumpAndSettle();
 
-        expect(currentRouterUri(router).path, '/main/join-band');
-        expect(currentRouterUri(router).queryParameters['code'], 'ABC123');
+        // join-band is a pushed route: the router's reported URI goes stale,
+        // so assert the rendered marker (TestRouteMarker also prints the full
+        // uri, query included).
         expect(find.text('route:join-band'), findsOneWidget);
+        expect(find.text('uri:/main/join-band?code=ABC123'), findsOneWidget);
       },
     );
 

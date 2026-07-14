@@ -33,6 +33,7 @@ import '../screens/metronome_screen.dart';
 import '../screens/practice_placeholder_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
+import '../screens/setlists/setlist_view_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/songs/add_song_screen.dart';
 import '../screens/songs/models/song_form_data.dart';
@@ -424,6 +425,34 @@ List<RouteBase> _buildAppRoutes() {
                     );
                   },
                 ),
+                // 'create' is declared above the parameterized ':id' route
+                // for the same reason as the bands branch: go_router matches
+                // child routes in declaration order, so ':id' first would
+                // greedily match '/main/setlists/create' as a setlist with
+                // id="create".
+                GoRoute(
+                  path: ':id',
+                  name: 'setlist-view',
+                  builder: (context, state) {
+                    final setlist = state.extra as Setlist?;
+                    final scope =
+                        state.uri.queryParameters['scope'] ==
+                            SetlistStorageScope.band.name
+                        ? SetlistStorageScope.band
+                        : SetlistStorageScope.personal;
+                    final bandId = state.uri.queryParameters['bandId'];
+                    return SetlistRouteResolver(
+                      setlistId: state.pathParameters['id'],
+                      bandId: bandId,
+                      extra: setlist,
+                      builder: (live) => SetlistViewScreen(
+                        setlist: live,
+                        bandId: bandId,
+                        storageScope: scope,
+                      ),
+                    );
+                  },
+                ),
                 GoRoute(
                   path: ':id/edit',
                   name: 'edit-setlist',
@@ -667,7 +696,7 @@ class BandRouteResolver extends ConsumerWidget {
   }
 }
 
-/// Resolves the [Setlist] for the edit-setlist route.
+/// Resolves the [Setlist] for the setlist-view and edit-setlist routes.
 ///
 /// Same rationale as [BandRouteResolver]: `state.extra` is a navigation-time
 /// snapshot that go_router does not persist across restarts/deep links, and it

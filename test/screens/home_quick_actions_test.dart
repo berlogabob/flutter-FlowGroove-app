@@ -155,7 +155,8 @@ void main() {
       await tester.tap(find.text('Practice'));
       await tester.pumpAndSettle();
 
-      expect(currentRouterUri(router).path, '/main/practice');
+      // practice is a pushed route: the router's reported URI goes stale,
+      // so the rendered marker is the navigation signal.
       expect(find.text('route:practice'), findsOneWidget);
     });
   });
