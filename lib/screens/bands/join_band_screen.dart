@@ -193,6 +193,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        AnalyticsService.logBackUsed(source: 'system');
         if (context.canPop()) {
           context.pop();
         } else {

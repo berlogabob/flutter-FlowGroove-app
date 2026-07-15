@@ -205,6 +205,7 @@ class _LoadedSongCard extends ConsumerWidget {
                 context,
                 'Song unloaded',
                 actionLabel: 'Undo',
+                analyticsAction: 'song_unload',
                 onAction: () {
                   final notifier = ref.read(metronomeProvider.notifier);
                   if (cachedState.setlist != null) {

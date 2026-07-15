@@ -12,6 +12,7 @@ import 'analytics/metronome_analytics.dart';
 import 'config/config_validator.dart';
 import 'firebase_options.dart';
 import 'models/user.dart';
+import 'providers/analytics_consent_provider.dart';
 import 'providers/auth/auth_provider.dart';
 import 'providers/keep_screen_on_provider.dart';
 import 'providers/metronome_runtime_providers.dart';
@@ -180,6 +181,10 @@ void main() async {
   // provider constructs the notifier, which loads the stored value and applies
   // the wakelock — providers are lazy, so it must be read once at startup.
   rootContainer.read(keepScreenOnProvider);
+
+  // Apply the global "share usage analytics" preference (default on). Same
+  // lazy-provider-construction pattern as keepScreenOnProvider above.
+  rootContainer.read(analyticsConsentProvider);
 
   // Pre-initialize audio engine for instant first beat (deferred to avoid blocking startup)
   if (!kIsWeb) {

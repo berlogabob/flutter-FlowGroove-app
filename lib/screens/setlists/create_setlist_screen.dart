@@ -293,6 +293,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       }
 
       await AnalyticsService.logSetlistCreatedFromSetlist(setlist);
+      await AnalyticsService.logSetlistSaved(isBand: _isBandScope);
 
       if (!mounted) return;
       // Invalidate the setlists provider to ensure UI refresh
@@ -608,6 +609,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                               context,
                               'Removed "${removedSong?.title ?? 'Unavailable song'}"',
                               actionLabel: 'Undo',
+                              analyticsAction: 'song_removed',
                               onAction: () {
                                 setState(() {
                                   _selectedItems.insert(index, removedItem);

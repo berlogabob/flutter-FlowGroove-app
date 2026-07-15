@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/analytics_service.dart';
 import '../theme/mono_pulse_theme.dart';
 
 /// One navigation destination, shared by the portrait bottom bar and the
@@ -119,7 +120,13 @@ class AppBottomBar extends StatelessWidget {
               label: 'Back',
             ),
             selected: false,
-            onTap: onBack ?? () {},
+            // Single central place for the in-app Back tap: logs
+            // back_used{source: 'ui'} before running the screen's own
+            // callback (system back — PopScope etc. — logs separately).
+            onTap: () {
+              AnalyticsService.logBackUsed(source: 'ui');
+              (onBack ?? () {})();
+            },
           ),
         ),
         Expanded(

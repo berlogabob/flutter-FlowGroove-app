@@ -132,6 +132,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
           context,
           'Setlist "${setlist.name}" deleted',
           actionLabel: 'Undo',
+          analyticsAction: 'setlist_delete',
           onAction: () async {
             // Re-save the setlist via the same service call used by _saveManualOrder
             await ref

@@ -12,6 +12,7 @@ import '../../models/user.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
+import '../../services/analytics_service.dart';
 import '../../services/avatar_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
@@ -65,6 +66,9 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         screenClass: 'TheBandScreen',
       );
     } catch (_) {}
+    // HEART "adoption" fallback: cheaply detecting "first open after join"
+    // isn't available here, so this fires on every open — see report.
+    AnalyticsService.logBandOpened(bandId: widget.band.id);
     try {
       if (Firebase.apps.isNotEmpty) {
         FirebaseAnalytics.instance.logScreenView(
