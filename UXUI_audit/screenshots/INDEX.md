@@ -1,0 +1,116 @@
+- 00_probe.png — Home tab, default state.
+- 01_home__overflow-menu.png — Home top-right overflow menu with Keep screen on, Profile, and Sign out.
+- 02_home__menu-closed.png — Home tab after closing the overflow menu.
+- 03_songs__list.png — Songs tab, alphabetical list with tag filters and Key/BPM filter control.
+- 04_songs__tag-hard.png — Songs tag filter row with the hard tag selected.
+- 05_songs__tag-learning.png — Songs tag filter row with the learning tag selected.
+- 06_songs__tag-fast.png — Songs tag filter row with the fast tag selected.
+- 07_songs__tag-all-restored.png — Songs tag filter row restored to All.
+- 08_songs__filters-popup.png — Key/BPM filter bottom sheet with key chips and BPM selector.
+- 09_songs__bpm-dropdown.png — BPM selector popup with preset tempo thresholds.
+- 10_songs__filters-popup-restored.png — Key/BPM filter bottom sheet after closing the BPM selector.
+- 11_songs__filters-closed.png — Songs list after closing filter controls.
+- 12_songs__song-card-menu.png — Song-card kebab menu with Practice mode, Tuner, Add to band, and Quick action.
+- 13_songs__quick-action-picker.png — Quick-action picker bottom sheet with practice, tuner, performance sheet, Spotify, and add-to-band choices.
+- 14_songs__quick-action-closed.png — Songs list after closing the quick-action picker without changing the selection.
+- 15_songs__list-scroll2.png — Songs list scrolled to later alphabetical entries.
+- 16_edit-song__details-top.png — Edit Song screen for Jumping Jack Flash with metadata, structure summary, tags, notes, and metronome settings.
+- 17_edit-song__overflow-menu.png — Edit Song overflow menu with performance sheet, song editor, and import options.
+- 18_performance-sheet__main.png — Performance sheet empty state for a song without lyrics or chords.
+- 19_performance-sheet__overflow-menu.png — Performance sheet overflow menu with Export PDF.
+- 20_performance-sheet__export-pdf.png — Export PDF format picker with As is and Compact options; no export was started.
+- 21_performance-sheet__export-closed.png — Performance sheet after canceling PDF export.
+- 22_edit-song__returned.png — Edit Song screen after returning from the performance sheet.
+- 23_edit-song__structure-editor.png — Expanded Song Structure editor with reorder handles and destructive icons visible but untouched.
+- 24_edit-song__structure-editor-scroll2.png — Song Structure editor scrolled through chorus, bridge, and verse sections.
+- 25_edit-song__structure-editor-scroll3.png — Additional structure-editor view confirming the nested section list and fixed Save Changes action.
+- 26_songs__returned-from-edit.png — Songs list after exiting Edit Song without saving changes.
+- 27_practice-mode__main.png — Practice mode metronome with Jumping Jack Flash loaded at 137 BPM.
+- 28_practice-mode__overflow-menu.png — Practice-mode overflow with concert mode, sound, count-in, ramp, haptics, and song actions.
+- 29_practice-mode__sound-picker.png — Metronome Sound bottom sheet with waveform, volume, pitch, flash, and haptics controls.
+- 30_practice-mode__sound-closed.png — Practice metronome after closing Sound settings without changes.
+- 31_practice-mode__overflow-restored.png — Practice-mode overflow reopened for additional submenu capture.
+- 32_practice-mode__count-in-picker.png — Count-in bottom sheet with Off, 1 bar, 2 bars, and 4 bars options.
+- 33_practice-mode__count-in-closed.png — Practice metronome after closing Count-in settings without changes.
+- 34_practice-mode__overflow-for-ramp.png — Practice-mode overflow reopened to access Ramp settings.
+- 35_practice-mode__ramp-settings.png — Tempo ramp bottom sheet with target, step, cadence, loop, and start controls.
+- 36_practice-mode__ramp-closed.png — Practice metronome after closing Ramp settings without starting a ramp.
+- 37_home__relaunched.png — Home tab restored after relaunching the existing app from the Android launcher.
+- 38_add-song__form.png — Empty Add Song form with autofill search control and no suggestions shown without typing.
+- 39_add-song__overflow-menu.png — Add Song overflow menu with performance, editor, and import entries.
+- 40_add-song__menu-closed.png — Add Song form after closing the overflow menu.
+- 41_songs__returned-from-add-song.png — Songs list after backing out of Add Song without saving.
+- 42_home__default-again.png — Home tab revisited before opening library tools.
+- 43_song-bank__main.png — Song Bank quick action destination; it routes to the standard Songs library.
+- 44_bands__list.png — My Bands list with search/sort controls and create/join actions.
+- 45_band-detail__songs-tab.png — Teplo band detail/home with library counts, member count, and quick actions.
+- 46_band-detail__overflow-menu.png — Band-detail overflow menu with edit, add, tags, members, and avatar actions.
+- 47_band-detail__menu-closed.png — Band detail after closing its overflow menu.
+- 48_band-detail__songs-empty.png — Teplo Songs section empty state with Add Song actions.
+- 49_band-detail__returned-from-songs.png — Bands list after leaving the selected band's Songs section.
+- 50_band-detail__reopened.png — Teplo band detail reopened for remaining sections.
+- 51_band-detail__setlists-empty.png — Teplo Setlists section empty state with create actions.
+- 52_bands__returned-from-setlists.png — Bands list after leaving the selected band's Setlists section.
+- 53_band-detail__reopened-members.png — Teplo band detail reopened to inspect members and invitations.
+- 54_band-detail__members.png — About Teplo screen with description, tags, invite code, and member roles.
+- 55_band-detail__member-menu.png — Member role bottom sheet with admin/editor/viewer/music-role actions and untouched Remove from band action.
+- 56_band-detail__member-menu-closed.png — About Teplo after closing the member menu without changes.
+- 57_band-detail__invite.png — Invite to Teplo screen with QR code, invite code, and copy/share actions; nothing was sent.
+- 58_band-detail__about-returned.png — About Teplo after returning from the invite screen.
+- 59_bands__returned-from-about.png — Bands list after leaving About Teplo.
+- 60_create-band__form.png — Empty Create Band form; no data entered and no band created.
+- 61_bands__returned-from-create.png — Bands list after canceling Create Band.
+- 62_join-band__form.png — Empty Join Band form with invite-code field; no join was attempted.
+- 63_home__relaunched-after-join.png — Home tab after relaunching the app when Back from Join Band exited to the launcher.
+- 64_rehearsals__band-picker.png — Rehearsals band-picker bottom sheet opened from Home.
+- 65_rehearsals__teplo-list.png — Teplo Rehearsals empty state with New rehearsal action.
+- 66_bands__returned-from-teplo-rehearsals.png — Bands list after leaving Teplo Rehearsals.
+- 67_home__before-rehearsal-probe.png — Home tab before continuing the remaining rehearsal and navigation captures.
+- 68_setlists__list.png — Setlists tab showing the existing “testo tiras” setlist and create action.
+- 69_setlist-detail__main.png — Existing “testo tiras” setlist opened directly in its Edit Setlist screen with five song cards.
+- 70_setlist-detail__overflow-menu.png — Edit Setlist global overflow menu; no setlist export action is present here.
+- 71_setlist-detail__menu-closed.png — Edit Setlist after closing the global overflow without changes.
+- 72_setlists__returned.png — Setlists list after backing out of the existing setlist without saving.
+- 73_setlists__setlist-card-menu.png — Existing setlist card menu with Share and Export PDF actions visible; neither action was tapped.
+- 74_setlists__card-menu-closed.png — Transient blank/loading state immediately after closing the setlist card menu.
+- 75_setlists__list-restored.png — Setlists list repainted after the transient loading state.
+- 76_create-setlist__form.png — Empty Create Setlist form with name, song-add action, and zero-song state; no data entered.
+- 77_setlists__returned-from-create.png — Setlists list after backing out of Create Setlist without entering or saving data.
+- 78_profile__top.png — Profile tab top with photo, identity, roles, and account options.
+- 79_profile__overflow-menu.png — Profile overflow menu with Keep screen on, Profile, and Sign out; Sign out was not tapped.
+- 80_profile__menu-closed.png — Transient blank/loading state immediately after closing the Profile overflow menu.
+- 81_profile__top-restored.png — Profile top content restored after the transient loading state.
+- 82_profile__scroll2.png — Profile scrolled to account, support, app info, and the visible Sign Out/Delete account controls; neither was tapped.
+- 83_home__before-tools.png — Home tab before opening the Tuner and Metronome tools.
+- 84_tuner__main.png — Tuner tool in Listen/Auto mode with guitar standard tuning and A4 440 Hz reference.
+- 85_home__returned-from-tuner.png — Android launcher encountered when Back from Tuner exited the app instead of returning to Home.
+- 86_home__relaunched-after-tuner.png — Home tab restored by relaunching the existing app after Tuner exited to the launcher.
+- 87_metronome__main.png — Standalone Metronome tool at 120 BPM with beat/subdivision controls and song/setlist picker.
+- 88_home__returned-from-metronome.png — Home tab after leaving Metronome through the Home bottom-nav action.
+- 89_rehearsals__band-picker-returned.png — Rehearsals band picker reopened from Home, listing Teplo and seven other bands.
+- 90_rehearsals__teplo-list-reopened.png — Teplo Rehearsals empty state reopened before creating a rehearsal draft.
+- 91_create-rehearsal__form-top.png — Full empty New Rehearsal form for Teplo with time options, members, setlist, location, notes, and Save; no input or save.
+- 92_rehearsals__teplo-after-create-cancel.png — Teplo Rehearsals after backing out of the untouched form; no discard prompt was needed and nothing was saved.
+- 93_bands__after-teplo-rehearsals.png — My Bands list after leaving Teplo Rehearsals to probe other bands.
+- 94_home__before-other-rehearsals.png — Home tab before checking additional bands for existing rehearsals.
+- 95_rehearsals__band-picker-probe1.png — Rehearsals band picker before probing Millennium for an existing rehearsal.
+- 96_rehearsals__millennium-list.png — Millennium Rehearsals list with one confirmed rehearsal on Thu, Jul 9.
+- 97_rehearsal-detail__millennium.png — Millennium rehearsal detail with confirmed time, attendees, calendar action, voting control, and edit action; no action was taken.
+- 98_songs__before-duplicates-probe.png — Songs tab before probing for the duplicates/merge screen (session interrupted here by laptop reboot).
+- 99_songs__before-duplicates-probe-retry.png — Songs tab, retry capture before the duplicates probe.
+- 100_songs__overflow-menu.png — Songs tab top-right overflow menu with Find duplicates, Import from CSV, Export to CSV, Keep screen on, Profile, and Sign out.
+- 101_duplicate-songs__empty.png — Duplicate songs screen empty state ("No duplicate songs found") with the Include possible matches toggle off.
+- 102_duplicate-songs__possible-matches-on.png — Duplicate songs screen with Include possible matches toggled on; still no duplicates in this library. Toggle restored to off afterwards.
+- 103_duplicate-songs__overflow-menu.png — Duplicate songs overflow menu; only the generic Keep screen on / Profile / Sign out entries, no screen-specific actions.
+
+## Skipped / blocked
+
+- Auth screens (sign-in, sign-up, password reset) — skipped per safety rules; capturing them would require signing out of a real account.
+- Merge/cluster resolution UI — unreachable read-only: the library has no duplicate songs, so only the Duplicate songs empty state could be captured (101–102).
+- Setlist Share / Export PDF actions (73) — menu captured, actions not tapped to avoid sending/sharing.
+- Band invite send, join-band submit, purchases — never triggered per safety rules; invite screen (57) and join form (62) captured empty.
+- Sign out / Delete account (82) — visible in Profile capture, never tapped.
+- Known transient blank states after closing some menus (74, 80) — captured as-is; repaint follows (75, 81).
+- Back from Tuner (85) and from Join Band (63) exits the app to the launcher instead of returning to Home — captured and noted as a probable navigation bug.
+
+Capture finished on the Home tab (see 104_home__final.png).
