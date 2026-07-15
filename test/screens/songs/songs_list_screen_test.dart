@@ -6,7 +6,9 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
+import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/unified_item/song_card_actions.dart';
+import 'package:flowgroove/widgets/unified_item/unified_item_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,8 +79,9 @@ void main() {
         overrides: overridesFor(songs: Stream<List<Song>>.value([])),
       );
 
-      // Slim top bar title + the shell's Songs nav tab label.
-      expect(find.text('Songs'), findsNWidgets(2));
+      // No top app bar; only the shell's Songs nav tab label names the
+      // screen (root screens show no title anywhere else).
+      expect(find.text('Songs'), findsOneWidget);
       expect(find.text('Search songs...'), findsOneWidget);
       expect(find.text('Filters:'), findsOneWidget);
       expect(find.byIcon(Icons.sort), findsOneWidget);
@@ -130,6 +133,12 @@ void main() {
       expect(find.text('Song Two'), findsOneWidget);
       expect(find.text('130 BPM'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
+      expect(
+        tester
+            .widgetList<UnifiedItemBadge>(find.byType(UnifiedItemBadge))
+            .map((badge) => badge.color),
+        everyElement(MonoPulseColors.textTertiary),
+      );
       // Song cards deliberately have no leading icon — text gets the room.
       // (The single match is the shell's selected Songs nav tab icon.)
       expect(find.byIcon(Icons.music_note), findsOneWidget);
@@ -467,6 +476,13 @@ void main() {
         // the default toggle state).
         await tester.tap(find.text('Key / BPM'));
         await tester.pumpAndSettle();
+        // The BPM semantics subtitle renders in the sheet; the 'Exact N BPM'
+        // dropdown ITEMS only exist while the dropdown is open, so they are
+        // not asserted here.
+        expect(
+          find.text('Exact Our BPM; songs without one stay visible'),
+          findsOneWidget,
+        );
         await tester.tap(find.text('G#'));
         await tester.pumpAndSettle();
 

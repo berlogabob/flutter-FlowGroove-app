@@ -3,6 +3,7 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/screens/songs/add_song_screen.dart';
+import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -76,7 +77,9 @@ void main() {
     testWidgets('shows the Song quick action on the home screen', (
       tester,
     ) async {
-      final mockUser = MockDataHelper.createMockAppUser(displayName: 'TestUser');
+      final mockUser = MockDataHelper.createMockAppUser(
+        displayName: 'TestUser',
+      );
 
       await pumpRoutedTestApp(
         tester,
@@ -84,7 +87,9 @@ void main() {
         routes: buildRoutes(),
         overrides: [
           firebaseAuthProvider.overrideWithValue(mockAuth),
-          appUserProvider.overrideWith(() => _HomeTestAppUserNotifier(mockUser)),
+          appUserProvider.overrideWith(
+            () => _HomeTestAppUserNotifier(mockUser),
+          ),
           songsProvider.overrideWith((ref) => Stream.value([])),
           bandsProvider.overrideWith((ref) => Stream.value([])),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
@@ -102,7 +107,9 @@ void main() {
     testWidgets('routes from Home to the Add Song entry screen', (
       tester,
     ) async {
-      final mockUser = MockDataHelper.createMockAppUser(displayName: 'TestUser');
+      final mockUser = MockDataHelper.createMockAppUser(
+        displayName: 'TestUser',
+      );
 
       final router = await pumpRoutedTestApp(
         tester,
@@ -110,7 +117,9 @@ void main() {
         routes: buildRoutes(),
         overrides: [
           firebaseAuthProvider.overrideWithValue(mockAuth),
-          appUserProvider.overrideWith(() => _HomeTestAppUserNotifier(mockUser)),
+          appUserProvider.overrideWith(
+            () => _HomeTestAppUserNotifier(mockUser),
+          ),
           songsProvider.overrideWith((ref) => Stream.value([])),
           bandsProvider.overrideWith((ref) => Stream.value([])),
           setlistsProvider.overrideWith((ref) => Stream.value([])),
@@ -125,7 +134,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(currentRouterUri(router).path, '/main/songs/add');
-      expect(find.text('Add Song'), findsOneWidget);
+      // This route tree isn't wrapped in MainShell, so there's no bottom bar
+      // to render the title; AddSongScreen still publishes it locally.
+      final scope = tester.widget<MenuItemsScope>(find.byType(MenuItemsScope));
+      expect(scope.title, 'Add Song');
     });
 
     testWidgets('pushes the Practice placeholder from Home', (tester) async {

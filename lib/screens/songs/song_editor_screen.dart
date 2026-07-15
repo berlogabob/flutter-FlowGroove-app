@@ -5,7 +5,7 @@ import '../../models/section.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/chordpro.dart';
 import '../../widgets/app_menu_sheet.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/bottom_nav_or_action_bar.dart';
 import 'chordpro_sync_controller.dart';
 import 'components/import_lyrics_dialog.dart';
 import 'components/song_constructor/widgets/edit_section_dialog.dart';
@@ -199,50 +199,59 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
       },
       child: Scaffold(
         // Pushed imperatively (Navigator.push), so it lives outside go_router
-        // and can't use the shell's bottom bar — back + menu stay in the top
-        // bar here (menu opens the app menu sheet).
-        appBar: CustomAppBar.build(
-          context,
-          title: (m.title?.isNotEmpty ?? false) ? m.title! : 'Song editor',
-          onBack: _close,
-          menuItems: [
-            AppMenuItem(
-              icon: Icons.add,
-              label: 'Add section',
-              onTap: _addSection,
-            ),
-            AppMenuItem(
-              icon: Icons.playlist_add,
-              label: 'Import lyrics & chords',
-              onTap: _import,
-            ),
-          ],
-        ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _mapSection(m),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(MonoPulseSpacing.md),
-                child: TextField(
-                  controller: _textCtrl,
-                  onChanged: _sync.updateFromText,
-                  expands: true,
-                  maxLines: null,
-                  minLines: null,
-                  textAlignVertical: TextAlignVertical.top,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText:
-                        '{title: …}\n{key: …}\n{start_of_verse: Verse 1}\n[Am]…\n{end_of_verse}',
-                    alignLabelWithHint: true,
+        // and can't use the shell's bottom bar — this screen renders its own
+        // pushed-mode bar (Back/title/Menu). There is no top app bar.
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _mapSection(m),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(MonoPulseSpacing.md),
+                  child: TextField(
+                    controller: _textCtrl,
+                    onChanged: _sync.updateFromText,
+                    expands: true,
+                    maxLines: null,
+                    minLines: null,
+                    textAlignVertical: TextAlignVertical.top,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                    ),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText:
+                          '{title: …}\n{key: …}\n{start_of_verse: Verse 1}\n[Am]…\n{end_of_verse}',
+                      alignLabelWithHint: true,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+        bottomNavigationBar: AppBottomBar.actions(
+          onBack: _close,
+          title: (m.title?.isNotEmpty ?? false) ? m.title! : 'Song editor',
+          onMenu: () => showAppMenuSheet(
+            context,
+            title: (m.title?.isNotEmpty ?? false) ? m.title! : 'Song editor',
+            items: [
+              AppMenuItem(
+                icon: Icons.add,
+                label: 'Add section',
+                onTap: _addSection,
+              ),
+              AppMenuItem(
+                icon: Icons.playlist_add,
+                label: 'Import lyrics & chords',
+                onTap: _import,
+              ),
+            ],
+          ),
         ),
       ),
     );

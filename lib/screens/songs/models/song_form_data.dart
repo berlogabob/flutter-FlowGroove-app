@@ -14,7 +14,6 @@ part 'song_form_data.g.dart';
 /// separately from the UI logic.
 @JsonSerializable()
 class SongFormData {
-
   /// Creates a new SongFormData instance.
   SongFormData({
     this.title = '',
@@ -24,9 +23,9 @@ class SongFormData {
     this.notes = '',
     List<Link>? links,
     List<String>? selectedTags,
-    this.originalKeyBase = 'C',
+    this.originalKeyBase = '',
     this.originalKeyModifier = '',
-    this.ourKeyBase = 'C',
+    this.ourKeyBase = '',
     this.ourKeyModifier = '',
     this.spotifyUrl,
     this.accentBeats = 4,
@@ -66,6 +65,7 @@ class SongFormData {
 
   factory SongFormData.fromJson(Map<String, dynamic> json) =>
       _$SongFormDataFromJson(json);
+
   /// The song title.
   String title;
 
@@ -148,7 +148,11 @@ class SongFormData {
       spotifyUrl: spotifyUrl ?? this.spotifyUrl,
       accentBeats: accentBeats ?? this.accentBeats,
       regularBeats: regularBeats ?? this.regularBeats,
-      beatModes: beatModes ?? this.beatModes.map((row) => row.map((mode) => mode).toList()).toList(),
+      beatModes:
+          beatModes ??
+          this.beatModes
+              .map((row) => row.map((mode) => mode).toList())
+              .toList(),
       sections: sections ?? List.from(this.sections),
     );
   }
@@ -197,9 +201,9 @@ class SongFormData {
     notes = '';
     links.clear();
     selectedTags.clear();
-    originalKeyBase = 'C';
+    originalKeyBase = '';
     originalKeyModifier = '';
-    ourKeyBase = 'C';
+    ourKeyBase = '';
     ourKeyModifier = '';
     spotifyUrl = null;
     accentBeats = 4;
@@ -246,9 +250,7 @@ class SongFormData {
 
   /// Create a detached copy of the current beat modes grid.
   List<List<BeatMode>> _copyBeatModes() {
-    return beatModes
-        .map((row) => row.map((mode) => mode).toList())
-        .toList();
+    return beatModes.map((row) => row.map((mode) => mode).toList()).toList();
   }
 
   /// Parse BPM string to int, returns null if empty or invalid.

@@ -14,8 +14,8 @@ import '../theme/mono_pulse_theme.dart';
 import '../utils/chordpro.dart';
 import '../utils/snackbar.dart';
 import '../widgets/app_menu_sheet.dart';
+import '../widgets/bottom_nav_or_action_bar.dart';
 import '../widgets/chord_chart_view.dart';
-import '../widgets/custom_app_bar.dart';
 import 'songs/chordpro_sync_controller.dart';
 import 'songs/components/import_lyrics_dialog.dart';
 import 'songs/song_editor_screen.dart';
@@ -295,42 +295,33 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
 
     return Scaffold(
       // Pushed imperatively (Navigator.push), so it lives outside go_router
-      // and can't use the shell's bottom bar — back + menu stay in the top
-      // bar here (menu opens the app menu sheet). Transpose lives in the
-      // bottom bar next to the scroll transport.
-      appBar: CustomAppBar.build(
-        context,
-        title: widget.title,
-        onBack: _handleBack,
-        menuItems: [
-          AppMenuItem(
-            icon: Icons.picture_as_pdf_outlined,
-            label: 'Export PDF',
-            onTap: _exportPdf,
-          ),
-          if (widget.song case final song?)
-            AppMenuItem(
-              icon: Icons.description_outlined,
-              label: 'Export ChordPro',
-              onTap: () => _exportChordPro(song),
-            ),
-        ],
+      // and can't use the shell's bottom bar — this screen renders its own
+      // pushed-mode bar (Back/title/Menu). Transpose + scroll transport stack
+      // above it when there are rows to show. There is no top app bar.
+      body: SafeArea(
+        bottom: false,
+        child: _rows.isEmpty
+            ? _EmptyState(
+                onOpenEditor: _openSongEditor,
+                onImportLyrics: _importLyrics,
+              )
+            : ListView.builder(
+                controller: _scroll,
+                padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                itemCount: _rows.length,
+                itemBuilder: (context, i) => _rows[i].build(
+                  context,
+                  first: i == 0,
+                  lyric: lyric,
+                  chord: chordStyle,
+                ),
+              ),
       ),
-      body: _rows.isEmpty
-          ? _EmptyState(
-              onOpenEditor: _openSongEditor,
-              onImportLyrics: _importLyrics,
-            )
-          : ListView.builder(
-              controller: _scroll,
-              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-              itemCount: _rows.length,
-              itemBuilder: (context, i) =>
-                  _rows[i].build(context, first: i == 0, lyric: lyric, chord: chordStyle),
-            ),
-      bottomNavigationBar: _rows.isEmpty
-          ? null
-          : _AutoScrollBar(
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_rows.isNotEmpty)
+            _AutoScrollBar(
               scrolling: _scrolling,
               bpmSync: _bpmSync,
               speed: _speed,
@@ -342,6 +333,29 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
               onTransposeDown: () => _changeTranspose(-1),
               onTransposeUp: () => _changeTranspose(1),
             ),
+          AppBottomBar.actions(
+            onBack: _handleBack,
+            title: widget.title,
+            onMenu: () => showAppMenuSheet(
+              context,
+              title: widget.title,
+              items: [
+                AppMenuItem(
+                  icon: Icons.picture_as_pdf_outlined,
+                  label: 'Export PDF',
+                  onTap: _exportPdf,
+                ),
+                if (widget.song case final song?)
+                  AppMenuItem(
+                    icon: Icons.description_outlined,
+                    label: 'Export ChordPro',
+                    onTap: () => _exportChordPro(song),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -376,7 +390,11 @@ class _AutoScrollBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Sits above AppBottomBar.actions in the shared bottomNavigationBar
+    // Column — that bar owns the bottom (home-indicator) SafeArea inset, so
+    // this one only needs the sides.
     return SafeArea(
+      bottom: false,
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: MonoPulseSpacing.md,
@@ -449,15 +467,9 @@ class _AutoScrollBar extends StatelessWidget {
 /// notes block. Parsing happens once at build-of-rows time (not per frame), so
 /// each ListView item is cheap to render while scrolling (#96).
 class _Row {
-  const _Row.header(this.name)
-      : segments = null,
-        notes = null;
-  const _Row.line(this.segments)
-      : name = null,
-        notes = null;
-  const _Row.notes(this.notes)
-      : name = null,
-        segments = null;
+  const _Row.header(this.name) : segments = null, notes = null;
+  const _Row.line(this.segments) : name = null, notes = null;
+  const _Row.notes(this.notes) : name = null, segments = null;
 
   final String? name;
   final List<ChordSegment>? segments;
@@ -499,10 +511,7 @@ class _Row {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.onOpenEditor,
-    required this.onImportLyrics,
-  });
+  const _EmptyState({required this.onOpenEditor, required this.onImportLyrics});
 
   final VoidCallback onOpenEditor;
   final VoidCallback onImportLyrics;
@@ -519,9 +528,9 @@ class _EmptyState extends StatelessWidget {
               'No lyrics or chords yet.\nAdd them to a section to see the '
               'performance sheet.',
               textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: MonoPulseColors.textSecondary),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: MonoPulseColors.textSecondary,
+              ),
             ),
             const SizedBox(height: MonoPulseSpacing.xl),
             Column(

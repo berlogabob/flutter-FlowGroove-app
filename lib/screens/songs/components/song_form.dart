@@ -23,7 +23,6 @@ import 'song_constructor/widgets/pill_view.dart';
 /// - Notes field
 /// - Tags selection
 class SongForm extends StatelessWidget {
-
   const SongForm({
     required this.formKey,
     required this.titleController,
@@ -51,11 +50,12 @@ class SongForm extends StatelessWidget {
     required this.onBeatModeChanged,
     required this.onAccentBeatsChanged,
     required this.onRegularBeatsChanged,
-    required this.isEditing,
+    required this.onSearchWeb,
     this.onSuggestionSelected,
     this.bandId,
     super.key,
   });
+
   /// Form key for validation.
   final GlobalKey<FormState> formKey;
 
@@ -135,8 +135,8 @@ class SongForm extends StatelessWidget {
   /// Callback when the subdivisions-per-beat count changes.
   final ValueChanged<int> onRegularBeatsChanged;
 
-  /// Whether we are in edit mode (vs. add mode).
-  final bool isEditing;
+  /// Opens a web search for the current title and artist.
+  final VoidCallback onSearchWeb;
 
   /// Callback when a song suggestion is picked from the title autocomplete.
   /// When null, the autocomplete search box is hidden.
@@ -152,10 +152,11 @@ class SongForm extends StatelessWidget {
       child: Column(
         children: [
           // Song search autocomplete: type to find an existing song and
-          // autofill the form. Only shown when a handler is wired (add flow).
-          if (onSuggestionSelected != null && !isEditing) ...[
+          // autofill the form. Only shown when a handler is wired.
+          if (onSuggestionSelected != null) ...[
             AutocompleteTypeAhead(
               onSuggestionSelected: onSuggestionSelected!,
+              onSearchWeb: onSearchWeb,
               bandId: bandId,
               hint: 'Search a song to autofill…',
             ),
@@ -337,9 +338,8 @@ class SongForm extends StatelessWidget {
 }
 
 /// Collapsed preview for the Key & BPM bubble: just the effective scale + BPM
-/// (Our when it's set — has a BPM or a key different from Original — else
-/// Original), with no "Our"/"Original" label since which one it is doesn't matter
-/// at a glance.
+/// (Our when set, otherwise Original), with no "Our"/"Original" label since
+/// which one it is doesn't matter at a glance.
 Widget _keyBpmPreview({
   required String originalBase,
   required String originalModifier,
@@ -352,11 +352,10 @@ Widget _keyBpmPreview({
   final ourKey = '$ourBase$ourModifier';
   final oBpm = originalBpm.trim();
   final uBpm = ourBpm.trim();
-  final hasOur = uBpm.isNotEmpty || ourKey != origKey;
-  final key = hasOur ? ourKey : origKey;
-  final bpm = hasOur ? uBpm : oBpm;
+  final key = ourKey.isNotEmpty ? ourKey : origKey;
+  final bpm = uBpm.isNotEmpty ? uBpm : oBpm;
   final parts = <String>[
-    key,
+    key.isEmpty ? '—' : key,
     if (bpm.isNotEmpty) '$bpm BPM',
   ];
   return _previewAccent(parts.join('  ·  '));

@@ -5,9 +5,8 @@ import '../unified_item_model.dart';
 /// Adapter for Setlist model to work with unified item system
 class SetlistItemAdapter extends UnifiedItemModel {
 
-  SetlistItemAdapter(this.setlist, {this.resolvedSongCount});
+  SetlistItemAdapter(this.setlist);
   final Setlist setlist;
-  final int? resolvedSongCount;
 
   @override
   String get id => setlist.id;
@@ -48,7 +47,12 @@ class SetlistItemAdapter extends UnifiedItemModel {
   };
 
   // Type-specific properties
-  int get songIdsLength => resolvedSongCount ?? setlist.songIds.length;
+  //
+  // Raw entry count — NOT filtered against any consumer's song corpus. An
+  // entry whose songId doesn't resolve is still an entry (see setlist.dart's
+  // effectiveItems); undercounting here is what made a 6-entry setlist show
+  // "5 songs" on the card while the editor then deleted the 6th on save.
+  int get songIdsLength => setlist.effectiveItems.length;
   String? get bandName => setlist.bandId;
   String? get eventDate => setlist.formattedEventDate;
   String? get eventLocation => setlist.eventLocation;

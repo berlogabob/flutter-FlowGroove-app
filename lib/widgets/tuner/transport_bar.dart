@@ -319,25 +319,38 @@ class _InputLevelIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final normalized = ((levelDb + 70) / 50).clamp(0.0, 1.0);
-    return Container(
-      width: 56,
-      height: 56,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: MonoPulseColors.borderSubtle, width: 1.5),
-      ),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: FractionallySizedBox(
-          heightFactor: normalized,
-          child: Container(
-            width: 12,
-            decoration: BoxDecoration(
-              color: MonoPulseColors.accentOrange,
-              borderRadius: BorderRadius.circular(6),
+    return Semantics(
+      label: 'Microphone input level',
+      child: Container(
+        width: 56,
+        height: 56,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: MonoPulseColors.borderSubtle, width: 1.5),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                heightFactor: normalized,
+                child: Container(
+                  width: 12,
+                  decoration: BoxDecoration(
+                    color: MonoPulseColors.accentOrange,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
             ),
-          ),
+            const Icon(
+              Icons.mic,
+              size: 20,
+              color: MonoPulseColors.textSecondary,
+            ),
+          ],
         ),
       ),
     );

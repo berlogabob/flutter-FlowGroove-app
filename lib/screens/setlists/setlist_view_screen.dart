@@ -10,11 +10,11 @@ import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/menu_items_scope.dart';
+import '../../widgets/setlist_song_row.dart';
 import 'create_setlist_screen.dart' show SetlistStorageScope;
 
 /// Read-only detail view for a setlist (P1-7 fix).
@@ -79,13 +79,15 @@ class SetlistViewScreen extends ConsumerWidget {
         ),
       ),
       child: Scaffold(
-        appBar: CustomAppBar.build(context, title: setlist.name),
-        body: songsAsync.when(
-          data: (songs) => _buildBody(setlist, songs),
-          loading: () => const LoadingIndicator(),
-          // A failed songs load shouldn't block the setlist details from
-          // showing; song rows just fall back to "unavailable".
-          error: (_, _) => _buildBody(setlist, const []),
+        body: SafeArea(
+          bottom: false,
+          child: songsAsync.when(
+            data: (songs) => _buildBody(setlist, songs),
+            loading: () => const LoadingIndicator(),
+            // A failed songs load shouldn't block the setlist details from
+            // showing; song rows just fall back to "unavailable".
+            error: (_, _) => _buildBody(setlist, const []),
+          ),
         ),
       ),
     );
@@ -107,8 +109,46 @@ class SetlistViewScreen extends ConsumerWidget {
       itemCount: items.length,
       itemBuilder: (context, index) {
         final song = songsById[items[index].songId];
-        return _SongRow(index: index, song: song);
+        return SetlistSongRow(
+          index: index,
+          song: song,
+          trailing: song == null ? null : _badgesFor(song),
+        );
       },
+    );
+  }
+
+  /// Key/BPM badges shown when the row's song resolves. Mirrors the
+  /// editable rows in `CreateSetlistScreen`.
+  Widget _badgesFor(Song song) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.md,
+            vertical: MonoPulseSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: MonoPulseColors.accentOrange10,
+            borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+          ),
+          child: Text(
+            song.ourKey ?? '-',
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: MonoPulseColors.accentOrange,
+            ),
+          ),
+        ),
+        if (song.ourBPM != null) ...[
+          const SizedBox(width: 8),
+          Text(
+            '${song.ourBPM}',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ],
     );
   }
 
@@ -120,11 +160,11 @@ class SetlistViewScreen extends ConsumerWidget {
     Setlist setlist,
   ) async {
     final allSongs = await ref.read(
-      bandId == null
-          ? songsProvider.future
-          : bandSongsProvider(bandId!).future,
+      bandId == null ? songsProvider.future : bandSongsProvider(bandId!).future,
     );
-    final songs = allSongs.where((s) => setlist.songIds.contains(s.id)).toList();
+    final songs = allSongs
+        .where((s) => setlist.songIds.contains(s.id))
+        .toList();
     if (!context.mounted) return;
     final loaded = ref
         .read(metronomeProvider.notifier)
@@ -137,78 +177,5 @@ class SetlistViewScreen extends ConsumerWidget {
       return;
     }
     await context.pushNamed('metronome');
-  }
-}
-
-/// A single read-only song row. Visually mirrors the key/BPM badges used in
-/// `CreateSetlistScreen`'s editable rows, minus the drag handle and delete
-/// swipe — this screen never mutates the setlist.
-class _SongRow extends StatelessWidget {
-  const _SongRow({required this.index, required this.song});
-
-  final int index;
-  final Song? song;
-
-  @override
-  Widget build(BuildContext context) {
-    final song = this.song;
-    return Card(
-      margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: MonoPulseColors.surfaceRaised,
-          child: Text(
-            '${index + 1}',
-            style: const TextStyle(
-              color: MonoPulseColors.textSecondary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        title: Text(
-          song?.title ?? 'Unavailable song',
-          style: const TextStyle(color: MonoPulseColors.textPrimary),
-        ),
-        subtitle: song != null
-            ? Text(
-                song.artist,
-                style: const TextStyle(color: MonoPulseColors.textSecondary),
-              )
-            : null,
-        trailing: song == null
-            ? null
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: MonoPulseSpacing.md,
-                      vertical: MonoPulseSpacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: MonoPulseColors.accentOrange10,
-                      borderRadius: BorderRadius.circular(
-                        MonoPulseRadius.small,
-                      ),
-                    ),
-                    child: Text(
-                      song.ourKey ?? '-',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: MonoPulseColors.accentOrange,
-                      ),
-                    ),
-                  ),
-                  if (song.ourBPM != null) ...[
-                    const SizedBox(width: 8),
-                    Text(
-                      '${song.ourBPM}',
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ],
-                ],
-              ),
-      ),
-    );
   }
 }

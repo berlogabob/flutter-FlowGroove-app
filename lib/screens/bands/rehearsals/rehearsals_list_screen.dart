@@ -81,10 +81,8 @@ class RehearsalsListScreen extends ConsumerWidget {
           return ListView.builder(
             padding: const EdgeInsets.all(MonoPulseSpacing.md),
             itemCount: sorted.length,
-            itemBuilder: (context, i) => _RehearsalTile(
-              band: band,
-              rehearsal: sorted[i],
-            ),
+            itemBuilder: (context, i) =>
+                _RehearsalTile(band: band, rehearsal: sorted[i]),
           );
         },
       ),
@@ -101,24 +99,39 @@ class _RehearsalTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final confirmed = rehearsal.confirmedSlot;
+    final relevantSlots = confirmed == null
+        ? rehearsal.candidateSlots
+        : [confirmed];
+    final isPast =
+        relevantSlots.isNotEmpty &&
+        relevantSlots.every((slot) => slot.endTime.isBefore(DateTime.now()));
     final subtitle = confirmed != null
         ? formatSlotRange(confirmed)
         : '${rehearsal.candidateSlots.length} proposed time'
               '${rehearsal.candidateSlots.length == 1 ? '' : 's'}';
 
-    return Card(
-      child: ListTile(
-        leading: Icon(_statusIcon(rehearsal.status)),
-        title: Text(rehearsal.title),
-        subtitle: Text(subtitle),
-        trailing: Chip(
-          label: Text(_statusLabel(rehearsal.status)),
-          visualDensity: VisualDensity.compact,
-        ),
-        onTap: () => context.pushNamed(
-          'rehearsal-detail',
-          pathParameters: {'id': band.id, 'rid': rehearsal.id},
-          extra: band,
+    return Opacity(
+      opacity: isPast ? 0.6 : 1,
+      child: Card(
+        child: ListTile(
+          leading: Icon(_statusIcon(rehearsal.status)),
+          title: Text(rehearsal.title),
+          subtitle: Text(subtitle),
+          trailing: Chip(
+            label: Text(
+              isPast ? 'Past' : _statusLabel(rehearsal.status),
+              style: isPast
+                  ? const TextStyle(color: MonoPulseColors.textSecondary)
+                  : null,
+            ),
+            backgroundColor: isPast ? MonoPulseColors.surfaceRaised : null,
+            visualDensity: VisualDensity.compact,
+          ),
+          onTap: () => context.pushNamed(
+            'rehearsal-detail',
+            pathParameters: {'id': band.id, 'rid': rehearsal.id},
+            extra: band,
+          ),
         ),
       ),
     );

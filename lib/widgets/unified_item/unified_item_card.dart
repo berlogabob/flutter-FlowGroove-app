@@ -134,17 +134,11 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
           ),
         );
       }
-      if (song.ourKey != null) {
+      final displayKey = song.ourKey ?? song.originalKey;
+      if (displayKey != null) {
         badges.add(
           UnifiedItemBadge(
-            text: song.ourKey!,
-            color: MonoPulseColors.accentOrange,
-          ),
-        );
-      } else if (song.originalKey != null) {
-        badges.add(
-          UnifiedItemBadge(
-            text: song.originalKey!,
+            text: displayKey,
             color: MonoPulseColors.textTertiary,
           ),
         );
@@ -233,20 +227,11 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
 
     if (item is SongItemAdapter) {
       final song = item as SongItemAdapter;
-      if (song.ourKey != null) {
+      final displayKey = song.ourKey ?? song.originalKey;
+      if (displayKey != null) {
         compactSubtitles.add(
           Text(
-            song.ourKey!,
-            style: MonoPulseTypography.bodySmall.copyWith(
-              color: MonoPulseColors.accentOrange,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        );
-      } else if (song.originalKey != null) {
-        compactSubtitles.add(
-          Text(
-            song.originalKey!,
+            displayKey,
             style: MonoPulseTypography.bodySmall.copyWith(
               color: MonoPulseColors.textTertiary,
               fontWeight: FontWeight.w700,

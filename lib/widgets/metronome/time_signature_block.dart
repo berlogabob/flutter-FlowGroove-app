@@ -171,7 +171,10 @@ class _StripMetrics {
     final ideal = count > 0 ? availableWidth / count : maxContainer;
     final needsScroll = ideal < _kMinCircleContainer;
     final containerSize = ideal.clamp(_kMinCircleContainer, maxContainer);
-    return _StripMetrics(containerSize: containerSize, needsScroll: needsScroll);
+    return _StripMetrics(
+      containerSize: containerSize,
+      needsScroll: needsScroll,
+    );
   }
 
   final double containerSize;
@@ -223,7 +226,6 @@ Widget _buildCircleStrip({
 // BEATS ROW (Top Row)
 // ============================================================================
 class _BeatsRow extends StatelessWidget {
-
   const _BeatsRow({
     required this.count,
     required this.subdivisions,
@@ -255,6 +257,19 @@ class _BeatsRow extends StatelessWidget {
 
     return Row(
       children: [
+        SizedBox(
+          width: isSmallScreen ? 42 : 52,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Beats',
+              style: MonoPulseTypography.labelSmall.copyWith(
+                color: MonoPulseColors.textSecondary,
+              ),
+            ),
+          ),
+        ),
         _BeatButton(
           key: const Key('main-beats-decrement'),
           icon: Icons.remove,
@@ -319,7 +334,6 @@ class _BeatsRow extends StatelessWidget {
 // SUBDIVISIONS ROW (Bottom Row)
 // ============================================================================
 class _SubdivisionsRow extends StatelessWidget {
-
   const _SubdivisionsRow({
     required this.count,
     required this.isPlaying,
@@ -353,6 +367,19 @@ class _SubdivisionsRow extends StatelessWidget {
 
     return Row(
       children: [
+        SizedBox(
+          width: isSmallScreen ? 42 : 52,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Subdivision',
+              style: MonoPulseTypography.labelSmall.copyWith(
+                color: MonoPulseColors.textSecondary,
+              ),
+            ),
+          ),
+        ),
         _BeatButton(
           key: const Key('subdivisions-decrement'),
           icon: Icons.remove,
@@ -586,7 +613,6 @@ class _BeatModeCircle extends StatelessWidget {
 // BEAT BUTTON (Plus/Minus)
 // ============================================================================
 class _BeatButton extends StatelessWidget {
-
   const _BeatButton({
     required this.icon,
     super.key,

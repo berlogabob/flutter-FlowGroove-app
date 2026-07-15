@@ -18,9 +18,9 @@ SongFormData _$SongFormDataFromJson(Map<String, dynamic> json) => SongFormData(
   selectedTags: (json['selectedTags'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
-  originalKeyBase: json['originalKeyBase'] as String? ?? 'C',
+  originalKeyBase: json['originalKeyBase'] as String? ?? '',
   originalKeyModifier: json['originalKeyModifier'] as String? ?? '',
-  ourKeyBase: json['ourKeyBase'] as String? ?? 'C',
+  ourKeyBase: json['ourKeyBase'] as String? ?? '',
   ourKeyModifier: json['ourKeyModifier'] as String? ?? '',
   spotifyUrl: json['spotifyUrl'] as String?,
   accentBeats: (json['accentBeats'] as num?)?.toInt() ?? 4,

@@ -529,6 +529,12 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                     'BPM',
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
+                  Text(
+                    'Exact Our BPM; songs without one stay visible',
+                    style: MonoPulseTypography.bodySmall.copyWith(
+                      color: MonoPulseColors.textSecondary,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -542,7 +548,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                             ...[60, 80, 100, 120, 140, 160, 180].map(
                               (bpm) => DropdownMenuItem(
                                 value: bpm,
-                                child: Text('$bpm BPM'),
+                                child: Text('Exact $bpm BPM'),
                               ),
                             ),
                           ],

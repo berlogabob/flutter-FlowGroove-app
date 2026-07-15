@@ -7,7 +7,6 @@ import '../../../theme/mono_pulse_theme.dart';
 /// This widget provides a text field specifically designed for
 /// entering tempo values with numeric keyboard and validation.
 class BpmSelector extends StatelessWidget {
-
   const BpmSelector({
     required this.controller,
     this.label,
@@ -15,6 +14,7 @@ class BpmSelector extends StatelessWidget {
     this.onChanged,
     super.key,
   });
+
   /// Controller for the BPM text field.
   final TextEditingController controller;
 
@@ -33,10 +33,7 @@ class BpmSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
-          Text(
-            label!,
-            style: MonoPulseTypography.labelMedium,
-          ),
+          Text(label!, style: MonoPulseTypography.labelMedium),
           const SizedBox(height: 4),
         ],
         TextFormField(
@@ -68,7 +65,7 @@ class KeyBpmGrid extends StatelessWidget {
     required this.ourBpmController,
     required this.onOurKeyChanged,
     super.key,
-    this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+    this.keyBases = const ['', 'C', 'D', 'E', 'F', 'G', 'A', 'B'],
     this.keyModifiers = const ['', '#', 'b', 'm'],
   });
 
@@ -118,18 +115,18 @@ class KeyBpmGrid extends StatelessWidget {
     return TableRow(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.sm, horizontal: MonoPulseSpacing.xs),
-          child: Text(
-            label,
-            style: MonoPulseTypography.labelMedium,
+          padding: const EdgeInsets.symmetric(
+            vertical: MonoPulseSpacing.sm,
+            horizontal: MonoPulseSpacing.xs,
           ),
+          child: Text(label, style: MonoPulseTypography.labelMedium),
         ),
         Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.xs),
           child: _keyMiniDropdown(
             base,
             keyBases,
-            (v) => onKey(v ?? 'C', modifier),
+            (v) => onKey(v ?? '', modifier),
           ),
         ),
         Padding(

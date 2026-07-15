@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../models/band.dart';
@@ -12,13 +13,11 @@ import '../../utils/member_label.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/user_avatar.dart';
 
 class BandAboutScreen extends ConsumerStatefulWidget {
-
   const BandAboutScreen({required this.band, super.key});
   final Band band;
 
@@ -100,9 +99,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final canManageMembers = ref.watch(
-      canManageBandMembersProvider(_band.id),
-    );
+    final canManageMembers = ref.watch(canManageBandMembersProvider(_band.id));
     // Pushed branch child: title + actions are published for the shell's
     // bottom bar ([← Back] [title] [⋮ Menu]); the top bar is title-only.
     return MenuScopePublisher(
@@ -129,18 +126,20 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
         ],
       ),
       child: Scaffold(
-        appBar: CustomAppBar.build(context, title: 'About ${_band.name}'),
-        body: ListView(
-          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-          children: [
-            _buildBandInfo(),
-            const SizedBox(height: 24),
-            _buildDescriptionSection(),
-            const SizedBox(height: 24),
-            _buildTagsSection(),
-            const SizedBox(height: 24),
-            _buildMembersSection(canManageMembers),
-          ],
+        body: SafeArea(
+          bottom: false,
+          child: ListView(
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+            children: [
+              _buildBandInfo(),
+              const SizedBox(height: 24),
+              _buildDescriptionSection(),
+              const SizedBox(height: 24),
+              _buildTagsSection(),
+              const SizedBox(height: 24),
+              _buildMembersSection(canManageMembers),
+            ],
+          ),
         ),
       ),
     );
@@ -225,7 +224,10 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     VoidCallback? onTap,
   }) {
     final chip = Container(
-      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.md,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
@@ -244,8 +246,11 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
           ),
           if (onTap != null) ...[
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right,
-                size: 16, color: MonoPulseColors.accentOrange),
+            const Icon(
+              Icons.chevron_right,
+              size: 16,
+              color: MonoPulseColors.accentOrange,
+            ),
           ],
         ],
       ),
@@ -438,17 +443,16 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   int get _adminCount =>
       _band.members.where((m) => m.role == BandMember.roleAdmin).length;
 
-  Widget _buildMemberTile(
-    BandMember member,
-    int index,
-    bool canManageMembers,
-  ) {
+  Widget _buildMemberTile(BandMember member, int index, bool canManageMembers) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       onTap: canManageMembers ? () => _showMemberActions(index) : null,
       leading: UserAvatar(
         photoURL: null,
-        displayName: memberLabel(displayName: member.displayName, email: member.email),
+        displayName: memberLabel(
+          displayName: member.displayName,
+          email: member.email,
+        ),
         radius: 20,
       ),
       title: Text(
@@ -491,32 +495,23 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
           ],
         ],
       ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (member.role == BandMember.roleAdmin)
-            const Icon(
-              Icons.star,
-              color: MonoPulseColors.accentOrange,
-              size: 20,
-            ),
-          if (canManageMembers) ...[
-            const SizedBox(width: 4),
-            const Icon(
+      trailing: canManageMembers
+          ? const Icon(
               Icons.more_vert,
               color: MonoPulseColors.textSecondary,
               size: 20,
-            ),
-          ],
-        ],
-      ),
+            )
+          : null,
     );
   }
 
   /// Shows the admin management sheet for the member at [index].
   Future<void> _showMemberActions(int index) async {
     final member = _band.members[index];
-    final name = memberLabel(displayName: member.displayName, email: member.email);
+    final name = memberLabel(
+      displayName: member.displayName,
+      email: member.email,
+    );
 
     await showModalBottomSheet<void>(
       context: context,
@@ -597,11 +592,13 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     }
 
     await _applyMemberChange(
-      () => ref.read(bandFunctionServiceProvider).setMemberRole(
-        bandId: _band.id,
-        targetUid: member.uid,
-        role: newRole,
-      ),
+      () => ref
+          .read(bandFunctionServiceProvider)
+          .setMemberRole(
+            bandId: _band.id,
+            targetUid: member.uid,
+            role: newRole,
+          ),
       _band.copyWith(
         members: List<BandMember>.from(_band.members)
           ..[index] = member.copyWith(role: newRole),
@@ -621,11 +618,13 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
 
     final normalized = MusicRoleIcon.normalizeKeys(result);
     await _applyMemberChange(
-      () => ref.read(bandFunctionServiceProvider).setMemberMusicRoles(
-        bandId: _band.id,
-        targetUid: member.uid,
-        musicRoles: normalized,
-      ),
+      () => ref
+          .read(bandFunctionServiceProvider)
+          .setMemberMusicRoles(
+            bandId: _band.id,
+            targetUid: member.uid,
+            musicRoles: normalized,
+          ),
       _band.copyWith(
         members: List<BandMember>.from(_band.members)
           ..[index] = member.copyWith(musicRoles: normalized),
@@ -642,7 +641,10 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
       return;
     }
 
-    final name = memberLabel(displayName: member.displayName, email: member.email);
+    final name = memberLabel(
+      displayName: member.displayName,
+      email: member.email,
+    );
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -666,10 +668,9 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     if (confirmed != true) return;
 
     await _applyMemberChange(
-      () => ref.read(bandFunctionServiceProvider).removeMember(
-        bandId: _band.id,
-        targetUid: member.uid,
-      ),
+      () => ref
+          .read(bandFunctionServiceProvider)
+          .removeMember(bandId: _band.id, targetUid: member.uid),
       _band.copyWith(
         members: List<BandMember>.from(_band.members)..removeAt(index),
       ),
@@ -787,7 +788,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     } else if (diff.inDays < 30) {
       return '${(diff.inDays / 7).floor()} weeks ago';
     } else {
-      return '${date.day}/${date.month}/${date.year}';
+      return DateFormat.yMMMd().format(date);
     }
   }
 }

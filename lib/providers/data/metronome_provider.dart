@@ -264,18 +264,22 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     return updatedSong;
   }
 
-  /// Resolve a setlist into an ordered song queue. Returns null if the setlist
-  /// is empty or any song id can't be matched in [availableSongs].
+  /// Resolve a setlist into an ordered song queue, skipping entries whose
+  /// songId can't be matched in [availableSongs] instead of failing the whole
+  /// queue — an unresolvable entry (deleted/unavailable song) shouldn't block
+  /// the rest of the setlist from loading. Returns null only when the
+  /// setlist has zero resolvable entries (empty, or every entry unresolved).
   List<Song>? _resolveQueue(Setlist setlist, List<Song>? availableSongs) {
-    if (setlist.songIds.isEmpty) return null;
+    final items = setlist.effectiveItems;
+    if (items.isEmpty) return null;
 
     final resolvedSongs =
         availableSongs ??
-        setlist.songIds
+        items
             .map(
-              (id) => Song(
-                id: id,
-                title: id,
+              (item) => Song(
+                id: item.songId,
+                title: item.songId,
                 artist: '',
                 createdAt: DateTime.fromMillisecondsSinceEpoch(0),
                 updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
@@ -283,9 +287,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
             )
             .toList(growable: false);
     final songsById = {for (final song in resolvedSongs) song.id: song};
-    final queue = setlist.songIds.map((id) => songsById[id]).toList();
-    if (queue.any((song) => song == null)) return null;
-    return queue.cast<Song>();
+    final queue = [
+      for (final item in items)
+        if (songsById[item.songId] case final song?) song,
+    ];
+    if (queue.isEmpty) return null;
+    return queue;
   }
 
   /// Load tempo from a setlist

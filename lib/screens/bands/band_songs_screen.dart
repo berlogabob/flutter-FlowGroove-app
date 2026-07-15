@@ -8,10 +8,11 @@ import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/snackbar.dart';
+import '../../../widgets/app_menu_sheet.dart';
 import '../../../widgets/confirmation_dialog.dart';
-import '../../../widgets/custom_app_bar.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/empty_state.dart';
+import '../../../widgets/menu_items_scope.dart';
 import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
 import '../../../widgets/unified_item/song_card_actions.dart';
 import '../../../widgets/unified_item/unified_item_list.dart';
@@ -21,8 +22,8 @@ import '../../../widgets/unified_item/unified_item_list.dart';
 /// This screen shows all songs that have been shared to the band's
 /// song bank, with filtering by contributor and attribution badges.
 class BandSongsScreen extends ConsumerStatefulWidget {
-
   const BandSongsScreen({required this.band, super.key});
+
   /// The band whose songs to display.
   final Band band;
 
@@ -97,35 +98,43 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
   Widget build(BuildContext context) {
     final songsAsync = ref.watch(bandSongsProvider(widget.band.id));
 
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
+    // Pushed branch child: title + actions are published for the shell's
+    // bottom bar ([← Back] [title] [⋮ Menu]); there is no top app bar. The
+    // "clear filter" action (previously an AppBar icon) moved into the Menu
+    // sheet.
+    return MenuScopePublisher(
+      data: MenuScopeData(
         title: '${widget.band.name} Songs',
-        actions: [
+        items: [
           if (_filterContributor != null)
-            IconButton(
-              icon: const Icon(Icons.filter_alt_off),
-              onPressed: () {
+            AppMenuItem(
+              icon: Icons.filter_alt_off,
+              label: 'Clear filter',
+              onTap: () {
                 setState(() {
                   _filterContributor = null;
                 });
               },
-              tooltip: 'Clear filter',
             ),
         ],
       ),
-      body: songsAsync.when(
-        data: (songs) => _buildContent(context, ref, songs),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: songsAsync.when(
+            data: (songs) => _buildContent(context, ref, songs),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Error: $e')),
+          ),
+        ),
+        floatingActionButton: _canEdit
+            ? FloatingActionButton(
+                heroTag: 'band_songs_fab',
+                onPressed: () => _addSongToBand(context, ref),
+                child: const Icon(Icons.add),
+              )
+            : null,
       ),
-      floatingActionButton: _canEdit
-          ? FloatingActionButton(
-              heroTag: 'band_songs_fab',
-              onPressed: () => _addSongToBand(context, ref),
-              child: const Icon(Icons.add),
-            )
-          : null,
     );
   }
 
@@ -151,10 +160,8 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
                   onDelete: _canEdit
                       ? (index) => _removeFromBand(filteredSongs[index])
                       : null,
-                  additionalActionsBuilder: (index) => buildSongActions(
-                    filteredSongs[index],
-                    bands: const [],
-                  ),
+                  additionalActionsBuilder: (index) =>
+                      buildSongActions(filteredSongs[index], bands: const []),
                 ),
         ),
       ],
@@ -182,7 +189,9 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.lg),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
+              ),
               children: [
                 FilterChip(
                   label: const Text('All'),

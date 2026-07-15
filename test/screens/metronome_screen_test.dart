@@ -57,7 +57,7 @@ void main() {
       expect(find.byType(ToolScreenScaffold), findsOneWidget);
     });
 
-    testWidgets('renders app bar', (tester) async {
+    testWidgets('has no top app bar', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -73,7 +73,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(AppBar), findsOneWidget);
+      expect(find.byType(AppBar), findsNothing);
     });
 
     testWidgets('displays "Metronome" title', (tester) async {
@@ -92,28 +92,8 @@ void main() {
       );
       await tester.pump();
 
-      // Slim top bar + the pushed-mode bottom bar both name the screen.
+      // No top app bar; the pushed-mode bottom bar names the screen.
       expect(find.text('Metronome'), findsOneWidget);
-    });
-
-    testWidgets('app bar has black background', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MediaQuery(
-            data: const MediaQueryData(size: Size(400, 800)),
-            child: ProviderScope(
-              overrides: [
-                metronomeProvider.overrideWith(MetronomeNotifier.new),
-              ],
-              child: const MetronomeScreen(),
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-
-      final appBar = tester.widget<AppBar>(find.byType(AppBar));
-      expect(appBar.backgroundColor, isNotNull);
     });
 
     testWidgets('renders CentralTempoCircle', (tester) async {
@@ -211,9 +191,7 @@ void main() {
       expect(find.byType(SongLibraryBlock), findsOneWidget);
     });
 
-    testWidgets('displays BPM value in central circle', (
-      tester,
-    ) async {
+    testWidgets('displays BPM value in central circle', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -252,9 +230,7 @@ void main() {
       expect(find.text('BPM'), findsOneWidget);
     });
 
-    testWidgets('has Expanded widget for main content', (
-      tester,
-    ) async {
+    testWidgets('has Expanded widget for main content', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -292,9 +268,7 @@ void main() {
       expect(find.byType(Column), findsWidgets);
     });
 
-    testWidgets('has SizedBox spacing between sections', (
-      tester,
-    ) async {
+    testWidgets('has SizedBox spacing between sections', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -333,9 +307,7 @@ void main() {
       expect(find.byType(SafeArea), findsWidgets);
     });
 
-    testWidgets('screen structure matches layout order', (
-      tester,
-    ) async {
+    testWidgets('screen structure matches layout order', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
@@ -352,7 +324,7 @@ void main() {
       await tester.pump();
 
       // Verify all major sections are present
-      expect(find.byType(AppBar), findsOneWidget);
+      expect(find.byType(AppBar), findsNothing);
       expect(find.byType(TimeSignatureBlock), findsOneWidget);
       expect(find.byType(CentralTempoCircle), findsOneWidget);
       expect(find.byType(TempoControlCluster), findsOneWidget);
@@ -361,9 +333,7 @@ void main() {
       expect(find.text('Haptics'), findsNothing);
     });
 
-    testWidgets('toggles haptics from app bar menu', (
-      tester,
-    ) async {
+    testWidgets('toggles haptics from app bar menu', (tester) async {
       final container = ProviderContainer(
         overrides: [metronomeProvider.overrideWith(MetronomeNotifier.new)],
       );
@@ -479,9 +449,7 @@ void main() {
       expect(find.text('Editing Loaded Song'), findsOneWidget);
     });
 
-    testWidgets('play preserves three visible main beats', (
-      tester,
-    ) async {
+    testWidgets('play preserves three visible main beats', (tester) async {
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -638,9 +606,7 @@ void main() {
       expect(find.byKey(const Key('tempo-dial')), findsOneWidget);
     });
 
-    testWidgets('has correct screen dimensions handling', (
-      tester,
-    ) async {
+    testWidgets('has correct screen dimensions handling', (tester) async {
       // Test with different screen sizes
       for (final size in [
         const Size(320, 568), // iPhone SE
