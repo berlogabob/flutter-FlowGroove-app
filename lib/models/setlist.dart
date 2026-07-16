@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'band.dart';
+import 'event_kit.dart';
 import 'setlist_assignment.dart';
 
 part 'setlist.g.dart';
@@ -61,6 +62,7 @@ class Setlist {
     this.items = const [],
     this.totalDuration,
     this.assignments = const {},
+    this.eventKit,
   });
 
   factory Setlist.fromJson(Map<String, dynamic> json) =>
@@ -87,6 +89,11 @@ class Setlist {
     toJson: _assignmentsToJson,
   )
   final Map<String, SetlistAssignment> assignments;
+
+  /// Event Kit (#52): stage plot, crew/guests, rider — inline map, nullable
+  /// for every pre-existing doc.
+  @JsonKey(fromJson: _eventKitFromJson, toJson: _eventKitToJson)
+  final EventKit? eventKit;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
@@ -103,6 +110,7 @@ class Setlist {
     List<SetlistItem>? items,
     Object? totalDuration = _sentinel,
     Map<String, SetlistAssignment>? assignments,
+    Object? eventKit = _sentinel,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -125,6 +133,7 @@ class Setlist {
           ? this.totalDuration
           : totalDuration as int?,
       assignments: assignments ?? this.assignments,
+      eventKit: eventKit == _sentinel ? this.eventKit : eventKit as EventKit?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -282,3 +291,9 @@ List<SetlistItem> _itemsFromJson(dynamic value) {
 List<Map<String, dynamic>> _itemsToJson(List<SetlistItem> value) {
   return value.map((item) => item.toJson()).toList();
 }
+
+EventKit? _eventKitFromJson(dynamic value) => value is Map
+    ? EventKit.fromJson(Map<String, dynamic>.from(value))
+    : null;
+
+Map<String, dynamic>? _eventKitToJson(EventKit? kit) => kit?.toJson();
