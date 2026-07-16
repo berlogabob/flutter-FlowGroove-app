@@ -1,0 +1,3 @@
+Dont work on practice mode owerall right now, because it is not implemented yet. some picies of the practice mode are implemented in different places -> main enterence point will be as new tool from main page. it must be workbook - logbook. with exercises, agenda, and progress tracking, home work, classes / rephershal schedule. ill have conversation with guitar teacher about it. we need to update songCardV2 to link it with songwriter needs and playing students, not to redo all things 3-4 times later. 
+
+we can add practice mode btn as tool right now -> that leadt to placeholder page with "coming soon" message. we can add some basic features like logbook, exercises, and progress tracking later and features we allready have now.

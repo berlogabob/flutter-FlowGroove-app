@@ -14,7 +14,7 @@ it. Drafts go to `site/content/blog/` in the proven `What changed / Why it matte
 
 **Status legend:** ⬜ idea · ✏️ drafted · ✅ published
 
-**Count:** 48 episodes below across 7 seasons. To reach ~120, split any episode
+**Count:** 57 episodes below across 9 seasons (S8–S9 added after the original 48). To reach ~120, split any episode
 marked 🔁 into its per-phase beats (each season has 2–3 splittable ones) — the
 history has the granularity; this bible just sets the narrative spine.
 
@@ -196,6 +196,41 @@ until the launch run.*
 
 The AI arc (E5→E9) is one story: a stable format lets the intelligence live in the user's
 own model, so FlowGroove reads/writes one clean shape and pays no tokens.
+
+---
+
+## Season 9 — The Audit
+*I turned the review guns on my own app before widening the beta: 105 screenshots
+captured by an agent driving a real phone, graded with Nielsen's heuristics, Google
+HEART and Fitts's Law — then six phases of fixes, each verified on-device. Drafts
+held (`draft: true`) until the fix PRs merge.*
+
+- ✏️ **S9E1 — The robot that audited my app** — an agent screenshotted every screen of
+  a real phone, and three old-school UX frameworks turned 105 images into 32 findings.
+  *(devlog/meta; source: UXUI_audit 2026-07-14, issue #107)*
+- ✏️ **S9E2 — The back button that quit my app** — system back exited to the launcher
+  from the two screens a new user hits first; the fix was where routes live, not what
+  they do. *(war-story; source: PR #101, issue #108)*
+- ✏️ **S9E3 — Six songs, five showing** — a setlist count that lied twice: first the
+  display, then my fix; the real bug was an editor silently deleting data on save.
+  *(war-story; source: PRs #101/#105, issue #109)*
+- ✏️ **S9E4 — The test suite that lied to me** — 1,942 passing tests shipped a broken
+  feature, and `| tail` ate the exit code that would have told me. *(war-story/meta;
+  source: phases 3–5)*
+- ✏️ **S9E5 — Everything at your thumbs** — Fitts's Law said the top corners are the
+  most expensive pixels on a phone, so the whole app moved to the bottom bar: Menu tab,
+  Back button, undo snackbars. *(devlog; source: PR #104, issue #114)*
+- ⬜ **S9E6 — Deleting the top of my app** — the title row duplicated the tab label,
+  so it went; every screen got taller for free. *(devlog; source: PR #105, issue #115)*
+- ⬜ **S9E7 — The dead button that was alive** — the audit called it an empty circle;
+  the code called it a microphone level meter with a missing icon. *(war-story;
+  source: PR #105, issue #117)*
+- ⬜ **S9E8 — Measuring my own redesign** — HEART events with a consent switch: now
+  `back_used` and `undo_used` will tell me if the redesign bets paid off. *(devlog;
+  source: PR #106, issue #118)*
+- ⬜ **S9E9 — Five bots and a human** — Haiku, Sonnet and codex fixed my app while I
+  reviewed their diffs; one stash erased another's work and the protocol that came out
+  of it. *(meta/building-with-AI; source: phases 1–6 orchestration)*
 
 ---
 

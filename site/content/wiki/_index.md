@@ -7,6 +7,12 @@ description: "Help and guides for every part of FlowGroove."
 
 Short guides for each screen of the app.
 
+**Getting around:** everything lives in the **bottom bar**. On main screens it
+shows the four tabs plus **Menu (⋯)** — tap Menu for the current screen's
+actions and your Profile. On any opened screen the bar becomes
+**← Back · screen name · ⋯ Menu**. There is no top toolbar; deleted things can
+usually be restored from the **Undo** snackbar that appears at the bottom.
+
 - [Home](home/) — your dashboard
 - [Songs](songs/) — manage your song library
 - [Bands](bands/) — create and join bands

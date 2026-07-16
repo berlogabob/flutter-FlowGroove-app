@@ -276,11 +276,77 @@ so FlowGroove pays no tokens. Richer tools (sections/chords/lab/homework) land w
 - public auth routes:
   `login`, `register`, `forgot-password`
 - shell-based app routes under `/main/...`
-- branches for:
-  `home`, `songs`, `bands`, `setlists`, `profile`, `metronome`, `tuner`
+- **5 shell branches**: `home`, `songs`, `bands`, `setlists`, `profile`
+- **root-navigator pushed routes** (outside the shell, `parentNavigatorKey`):
+  `metronome`, `tuner`, `practice`, `join-band` — pushed so system back always
+  has a screen underneath (PRs #101/#104; the old hidden "Tools branch" made
+  back exit the app)
 - band sub-routes (resolved through `BandRouteResolver`):
   `band-songs`, `band-setlists`, `band-members`, `band-rehearsals` (+ `create-rehearsal`,
   `rehearsal-detail`, `edit-rehearsal`)
+
+### Navigation (bottom-first, since the 2026-07 UX audit — PRs #104/#105)
+
+There is **no top app bar anywhere**. The bottom bar owns navigation and has
+exactly two states, decided by `MainShell`:
+
+- **Root mode** (on a branch root): `[Home][Songs][Bands][Setlists][⋮ Menu]`.
+  The Menu slot replaces the old Profile tab: it opens a bottom sheet
+  (`showAppMenuSheet`, `lib/widgets/app_menu_sheet.dart`) with a mandatory
+  screen-title header, the screen's contextual actions (`AppMenuItem`, with
+  `trailing` toggle support for the tool menus), and a Profile row. A dot badge
+  marks screens that have actions; the slot lights up while the profile branch
+  is active.
+- **Pushed mode** (any pushed screen, branch child or root-pushed tool):
+  `[← Back] [screen title | primaryAction] [⋮ Menu]`
+  (`AppBottomBar`, `lib/widgets/bottom_nav_or_action_bar.dart`). Back pops with
+  a `/main/home` fallback. The title is the location signal; a screen can swap
+  it for a primary action (SetlistView's "Open in Metronome").
+
+Pushed-mode detection (`lib/router/branch_stack_observer.dart`): go_router's
+`currentConfiguration.uri` **never updates for intra-branch pushes** (verified
+on device), so per-branch `NavigatorObserver`s count `PageRoute` depth above
+each branch root (PopupRoutes excluded so sheets/dialogs don't flip the bar),
+OR'd with a non-root-URI check for deep entries. Notifier flushes are
+post-frame — synchronous notification during navigation triggers
+setState-during-build.
+
+Screens publish their menu/title via `MenuScopePublisher` →
+`MenuScopeRegistry` (`lib/widgets/menu_items_scope.dart`): post-frame writes
+only, a location map for roots plus an identity-keyed publisher stack so
+pushed mode surfaces the deepest screen's menu (and hides ⋮ when the pushed
+screen has none). Registrations are removed by token identity — safe against
+`indexedStack` dispose ordering.
+
+Destructive actions use **single-level snackbar undo** (5s,
+`showAppSnackBar(actionLabel:, onAction:, analyticsAction:)`) at
+client-recoverable points: song-structure section delete, setlist delete,
+song-removed-from-setlist, practice-song unload. Member removal keeps a
+confirm dialog — membership is server-authoritative (Cloud Functions) and not
+client-reversible.
+
+### Setlist data model (never-drop, PR #105)
+
+A setlist entry whose `songId` no longer resolves (deleted song, merge
+artifact) is **still an entry**: counts use raw `effectiveItems.length`, the
+editor and view render orphans as removable "Unavailable song" rows
+(`lib/widgets/setlist_song_row.dart`), saves round-trip orphans unchanged, the
+metronome queue plays the resolvable subset, and duplicate-merge rewrites
+`items` (not just the legacy `songIds` mirror, which `toJson` regenerates from
+`effectiveItems`). Orphan cleanup is manual-by-design. History: the pre-audit
+editor silently deleted orphans on save.
+
+### Analytics (HEART, PR #106)
+
+`lib/services/analytics_service.dart`: new events flow through a single
+consent-guarded `_log` choke point (`AnalyticsService.enabled`, driven by
+`analyticsConsentProvider` — "Share usage analytics" switch in
+Profile ▸ Account, default on). Event set per the audit's HEART section:
+`back_used{ui|system}`, `menu_opened`, `undo_shown/undo_used`,
+`filter_zero_results`, `search_song_open`, invite funnel
+(`invite_generated`→`invite_link_opened`→`join_completed`→`band_opened`),
+`tool_opened`, `practice_session`, `rehearsal_created`, `setlist_edited`.
+Legacy static methods predate the choke point and are not consent-gated.
 
 ### State Management
 
