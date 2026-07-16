@@ -310,8 +310,6 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
     final rampActive = ref.watch(
       metronomeProvider.select((s) => s.activeTempoRamp != null),
     );
-    final cadenceUnit = _cadence == TempoRampCadence.bars ? 'bars' : 'seconds';
-
     if (rampActive) {
       return _SheetScaffold(
         title: 'Tempo ramp',
@@ -349,7 +347,7 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
           ],
         ),
         const SizedBox(height: MonoPulseSpacing.lg),
-        _SheetLabel('Advance every $cadenceUnit'),
+        const _SheetLabel('Advance every'),
         const SizedBox(height: MonoPulseSpacing.sm),
         SegmentedButton<TempoRampCadence>(
           segments: const [

@@ -20,6 +20,7 @@ class UnifiedItemList<T extends UnifiedItemModel> extends StatefulWidget {
     this.showCompact = false,
     this.enableReorder = false,
     this.additionalActionsBuilder,
+    this.padding,
   });
   final List<T> items;
   final VoidCallback? onRefresh;
@@ -30,6 +31,7 @@ class UnifiedItemList<T extends UnifiedItemModel> extends StatefulWidget {
   final bool showCompact;
   final bool enableReorder;
   final List<UnifiedItemAction> Function(int)? additionalActionsBuilder;
+  final EdgeInsets? padding;
 
   @override
   State<UnifiedItemList<T>> createState() => _UnifiedItemListState<T>();
@@ -45,6 +47,7 @@ class _UnifiedItemListState<T extends UnifiedItemModel>
       // long-press on the card body instead — matches the gesture-first pattern
       // (tap = edit, swipe = delete).
       buildDefaultDragHandles: false,
+      padding: widget.padding,
       physics: const AlwaysScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: widget.items.length,

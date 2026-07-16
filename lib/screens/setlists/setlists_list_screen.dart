@@ -247,6 +247,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     final canReorder = canEdit && _sortOption == SortOption.manual;
     return UnifiedItemList<SetlistItemAdapter>(
       items: adapters,
+      padding: const EdgeInsets.only(bottom: 96),
       enableReorder: canReorder,
       onReorder: canReorder ? _handleReorder : null,
       onDelete: canEdit ? _handleDelete : null,

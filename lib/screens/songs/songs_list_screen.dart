@@ -865,6 +865,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
   ) {
     return UnifiedItemList<SongItemAdapter>(
       items: songAdapters,
+      padding: const EdgeInsets.only(bottom: 96),
       enableReorder: enableReorder,
       onReorder: _handleReorder,
       onDelete: _deleteSongByIndex,

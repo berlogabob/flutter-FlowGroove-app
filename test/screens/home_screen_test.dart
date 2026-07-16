@@ -133,7 +133,7 @@ void main() {
       expect(find.text('Song'), findsOneWidget);
       expect(find.text('Band'), findsOneWidget);
       expect(find.text('Setlist'), findsOneWidget);
-      expect(find.text('Song Bank'), findsOneWidget);
+      expect(find.text('Practice'), findsOneWidget);
     });
 
     testWidgets('displays tools section', (tester) async {
@@ -177,7 +177,7 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
       expect(find.byIcon(Icons.group_add), findsOneWidget);
       expect(find.byIcon(Icons.playlist_add), findsOneWidget);
-      expect(find.byIcon(Icons.library_music), findsOneWidget);
+      expect(find.byIcon(Icons.menu_book), findsOneWidget);
     });
 
     testWidgets('renders tool buttons with correct icons', (

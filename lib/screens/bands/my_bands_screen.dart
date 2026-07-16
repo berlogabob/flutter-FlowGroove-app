@@ -232,21 +232,15 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           onTap: () => context.goNamed('create-band'),
         ),
         PopupMenuItem<void>(
-          child: const Text('Join Band'),
+          child: const Text('Join band'),
           onTap: () => context.pushNamed('join-band'),
         ),
       ],
-      floatingActionButton: DualFab(
-        primary: FabAction(
-          icon: Icons.add,
-          label: 'Create',
-          onPressed: () => context.goNamed('create-band'),
-        ),
-        secondary: FabAction(
-          icon: Icons.group_add,
-          label: 'Join',
-          onPressed: () => context.pushNamed('join-band'),
-        ),
+      floatingActionButton: SingleFab(
+        icon: Icons.add,
+        tooltip: 'Create band',
+        heroTag: 'bands_fab',
+        onPressed: () => context.goNamed('create-band'),
       ),
       body: _buildBody(bandsAsync),
     );
@@ -354,7 +348,10 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
-      return EmptyState.bands(onCreate: () => context.goNamed('create-band'));
+      return EmptyState.bands(
+        onCreate: () => context.goNamed('create-band'),
+        onJoin: () => context.pushNamed('join-band'),
+      );
     }
     return EmptyState.search(query: _searchQuery);
   }
@@ -362,6 +359,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   Widget _buildBandList(List<BandItemAdapter> adapters) {
     return UnifiedItemList<BandItemAdapter>(
       items: adapters,
+      padding: const EdgeInsets.only(bottom: 96),
       enableReorder: _sortOption == SortOption.manual,
       onReorder: _sortOption == SortOption.manual ? _handleReorder : null,
       onDelete: _handleDelete,

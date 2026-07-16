@@ -357,7 +357,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         ),
       QuickActionButton(
         icon: Icons.library_music,
-        label: 'Song Bank',
+        label: 'Band songs',
         onTap: _handleBandBank,
       ),
     ];

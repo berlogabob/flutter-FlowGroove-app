@@ -3,7 +3,7 @@ import '../../theme/mono_pulse_theme.dart';
 
 /// Sort options for unified lists
 enum SortOption {
-  manual('Manual'),
+  manual('Manual order'),
   alphabetical('Alphabetical'),
   dateAdded('Date Added'),
   dateModified('Date Modified');

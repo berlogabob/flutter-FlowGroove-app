@@ -30,6 +30,7 @@ import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/main_shell.dart';
 import '../screens/metronome_screen.dart';
+import '../screens/practice_placeholder_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
@@ -463,7 +464,7 @@ List<RouteBase> _buildAppRoutes() {
       ],
     ),
 
-    // Tool screens (Metronome/Tuner) and Join Band are pushed on top of the
+    // Tool screens and Join Band are pushed on top of the
     // shell via the root navigator instead of living in a shell branch. That
     // way there's always a shell screen underneath to pop back to, so system
     // back (and the app bar back arrow) return to the app instead of exiting
@@ -474,6 +475,12 @@ List<RouteBase> _buildAppRoutes() {
       name: 'metronome',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const MetronomeScreen(),
+    ),
+    GoRoute(
+      path: '/main/practice',
+      name: 'practice',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const PracticePlaceholderScreen(),
     ),
     GoRoute(
       path: '/main/tuner',
