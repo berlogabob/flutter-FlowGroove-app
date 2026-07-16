@@ -6,6 +6,16 @@ title: "Songs"
 
 Your personal song library.
 
+- **Menu (⋯)** in the bottom bar holds the library tools: **Find duplicates**,
+  **Import from CSV**, **Export to CSV**.
+- The **Key / BPM filter** understands flats and minors — filtering by G# also
+  finds songs saved as Ab, and the **Major/Minor** toggle switches the key
+  chips. BPM presets match the song's exact Our BPM; songs without one stay
+  visible.
+- The pinned button on each song card is your **quick action** — long-press
+  the card's ⋯ menu → *Quick action…* to choose what it does (Metronome,
+  Tuner, Performance sheet, …). The icon changes to match.
+
 - Tap **+** to add a song (title, BPM, key, structure, links).
 - Search to autofill from the online catalog. Matches come from **MusicBrainz**
   (title, artist, album, release info). **Type the artist as well as the title** (e.g.
