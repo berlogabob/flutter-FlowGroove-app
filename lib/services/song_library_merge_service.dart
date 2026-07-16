@@ -112,6 +112,79 @@ class SongLibraryMergeService {
         });
   }
 
+  /// Cluster merge (#81): one merged song survives, every other member is
+  /// deleted, and setlists are rewritten in a SINGLE pass — a setlist that
+  /// referenced two duplicates from the same cluster ends up with one entry
+  /// (looping the pairwise merge would clobber earlier rewrites).
+  Future<void> mergeCluster({
+    required String uid,
+    required Song keeperBefore,
+    required List<Song> duplicates,
+    required Song merged,
+    required List<Setlist> setlists,
+    required SongRepository songRepository,
+    required SetlistRepository setlistRepository,
+  }) async {
+    await songRepository.saveSong(merged, uid: uid);
+
+    final duplicateIds = duplicates.map((s) => s.id).toSet();
+    final changedSetlists = <String>[];
+    for (final setlist in setlists) {
+      final touches = setlist.effectiveItems.any(
+        (item) => duplicateIds.contains(item.songId),
+      );
+      if (!touches) continue;
+
+      final seenItemSongIds = <String>{};
+      final rewrittenItems = <SetlistItem>[];
+      for (final item in setlist.items) {
+        final newSongId = duplicateIds.contains(item.songId)
+            ? keeperBefore.id
+            : item.songId;
+        if (!seenItemSongIds.add(newSongId)) continue;
+        rewrittenItems.add(
+          newSongId == item.songId ? item : item.copyWith(songId: newSongId),
+        );
+      }
+      final rewrittenSongIds = <String>[];
+      for (final id in setlist.songIds) {
+        final replacement = duplicateIds.contains(id) ? keeperBefore.id : id;
+        if (!rewrittenSongIds.contains(replacement)) {
+          rewrittenSongIds.add(replacement);
+        }
+      }
+
+      await setlistRepository.saveSetlist(
+        setlist.copyWith(
+          items: rewrittenItems,
+          songIds: rewrittenSongIds,
+          updatedAt: DateTime.now(),
+        ),
+        uid: uid,
+      );
+      changedSetlists.add(setlist.id);
+    }
+
+    for (final duplicate in duplicates) {
+      await songRepository.deleteSong(duplicate.id, uid: uid);
+    }
+
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('song_merges')
+        .add({
+          'type': 'cluster_merge',
+          'keeperId': keeperBefore.id,
+          'duplicateIds': duplicates.map((s) => s.id).toList(),
+          'keeperBefore': keeperBefore.toJson(),
+          'duplicatesBefore': duplicates.map((s) => s.toJson()).toList(),
+          'mergedSong': merged.toJson(),
+          'rewrittenSetlistIds': changedSetlists,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+  }
+
   Future<Set<String>> loadDismissedPairs(String uid) async {
     final snapshot = await _firestore
         .collection('users')
