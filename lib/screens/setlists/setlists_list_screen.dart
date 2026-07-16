@@ -12,6 +12,7 @@ import '../../services/export/pdf_service.dart';
 import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
@@ -134,6 +135,21 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       await ref
           .read(firestoreProvider)
           .deleteSetlist(setlist.id, uid: user.uid);
+
+      // Show snackbar with undo action
+      if (mounted) {
+        showAppSnackBar(
+          context,
+          'Setlist "${setlist.name}" deleted',
+          actionLabel: 'Undo',
+          onAction: () async {
+            // Re-save the setlist via the same service call used by _saveManualOrder
+            await ref
+                .read(firestoreProvider)
+                .saveSetlist(setlist, uid: user.uid);
+          },
+        );
+      }
     }
   }
 
@@ -180,8 +196,9 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       showBackButton: false, // Hide back button for main tabs
       menuItems: [
         if (canEdit)
-          PopupMenuItem<void>(
-            child: const Text('Create Setlist'),
+          AppMenuItem(
+            icon: Icons.playlist_add,
+            label: 'Create Setlist',
             onTap: () => context.goNamed('create-setlist'),
           ),
       ],

@@ -77,7 +77,8 @@ void main() {
         overrides: overridesFor(songs: Stream<List<Song>>.value([])),
       );
 
-      expect(find.text('Songs'), findsOneWidget);
+      // Slim top bar title + the shell's Songs nav tab label.
+      expect(find.text('Songs'), findsNWidgets(2));
       expect(find.text('Search songs...'), findsOneWidget);
       expect(find.text('Filters:'), findsOneWidget);
       expect(find.byIcon(Icons.sort), findsOneWidget);
@@ -130,7 +131,8 @@ void main() {
       expect(find.text('130 BPM'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
       // Song cards deliberately have no leading icon — text gets the room.
-      expect(find.byIcon(Icons.music_note), findsNothing);
+      // (The single match is the shell's selected Songs nav tab icon.)
+      expect(find.byIcon(Icons.music_note), findsOneWidget);
       expect(find.byTooltip('More'), findsNWidgets(2));
       expect(find.byTooltip('Metronome'), findsNWidgets(2));
 

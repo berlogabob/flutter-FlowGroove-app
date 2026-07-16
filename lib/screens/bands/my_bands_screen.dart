@@ -11,6 +11,7 @@ import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
@@ -227,12 +228,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       title: 'My Bands',
       showBackButton: false, // Hide back button for main tabs
       menuItems: [
-        PopupMenuItem<void>(
-          child: const Text('Create Band'),
+        AppMenuItem(
+          icon: Icons.add,
+          label: 'Create Band',
           onTap: () => context.goNamed('create-band'),
         ),
-        PopupMenuItem<void>(
-          child: const Text('Join band'),
+        AppMenuItem(
+          icon: Icons.group_add_outlined,
+          label: 'Join band',
           onTap: () => context.pushNamed('join-band'),
         ),
       ],

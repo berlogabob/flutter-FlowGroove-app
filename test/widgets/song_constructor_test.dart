@@ -160,7 +160,8 @@ void main() {
       expect(capturedSections!.first.name, equals('Bridge'));
     });
 
-    testWidgets('delete section removes from list', (tester) async {
+    testWidgets('delete section removes from list and shows undo snackbar',
+        (tester) async {
       final sections = [Section(id: '1', name: 'Intro')];
 
       List<Section>? capturedSections;
@@ -183,12 +184,23 @@ void main() {
       await tester.tap(find.byKey(const Key('section_delete_1')).hitTestable());
       await tester.pumpAndSettle();
 
-      // Confirm deletion
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
-      await tester.pumpAndSettle();
-
+      // Section should be deleted immediately (no dialog confirmation)
       expect(capturedSections, isNotNull);
       expect(capturedSections!.isEmpty, isTrue);
+
+      // Snackbar should appear with undo message
+      expect(find.text('Section "Intro" deleted'), findsOneWidget);
+      expect(find.text('Undo'), findsOneWidget);
+
+      // Tap Undo to restore the section
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+
+      // Section should be restored at original index
+      expect(capturedSections, isNotNull);
+      expect(capturedSections!.length, equals(1));
+      expect(capturedSections!.first.id, equals('1'));
+      expect(capturedSections!.first.name, equals('Intro'));
     });
 
     testWidgets('auto-generate creates sections', (tester) async {

@@ -17,6 +17,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/key_utils.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
@@ -304,12 +305,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     );
   }
 
-  void _runAfterPopupClose(Future<void> Function() action) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      unawaited(action());
-    });
-  }
+  // (The app menu sheet already closes itself and defers each action to the
+  // next frame, so the old _runAfterPopupClose wrapper is gone.)
 
   /// Filter and sort songs based on search query, key, BPM, tag, and sort option.
   List<Song> _filterAndSortSongs(List<Song> songs) {
@@ -610,27 +607,24 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
       title: 'Songs',
       showBackButton: false, // Hide back button for main tabs
       menuItems: [
-        PopupMenuItem<void>(
-          enabled: canExport,
+        AppMenuItem(
+          icon: Icons.control_point_duplicate_outlined,
+          label: 'Find duplicates',
           onTap: canExport
-              ? () => _runAfterPopupClose(
-                  () async => context.pushNamed('song-duplicates'),
-                )
+              ? () async => context.pushNamed('song-duplicates')
               : null,
-          child: const Text('Find duplicates'),
         ),
-        PopupMenuItem<void>(
-          onTap: () => _runAfterPopupClose(_handleImport),
-          child: const Text('Import from CSV'),
+        AppMenuItem(
+          icon: Icons.file_upload_outlined,
+          label: 'Import from CSV',
+          onTap: _handleImport,
         ),
-        PopupMenuItem<void>(
-          enabled: canExport,
+        AppMenuItem(
+          icon: Icons.file_download_outlined,
+          label: 'Export to CSV',
           onTap: canExport
-              ? () => _runAfterPopupClose(
-                  () => _handleExport(List<Song>.from(exportSongs)),
-                )
+              ? () => _handleExport(List<Song>.from(exportSongs))
               : null,
-          child: const Text('Export to CSV'),
         ),
       ],
       floatingActionButton: canEdit

@@ -92,6 +92,7 @@ void main() {
       );
       await tester.pump();
 
+      // Slim top bar + the pushed-mode bottom bar both name the screen.
       expect(find.text('Metronome'), findsOneWidget);
     });
 
@@ -384,22 +385,28 @@ void main() {
       expect(find.text('Haptics'), findsNothing);
       expect(container.read(metronomeProvider).hapticsEnabled, isTrue);
 
+      // Menu moved to the bottom bar; it opens the app menu sheet.
       await tester.tap(find.byIcon(Icons.more_horiz));
       await tester.pumpAndSettle();
 
       expect(find.text('Haptics'), findsOneWidget);
-      expect(find.text('On'), findsOneWidget);
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
 
+      // The Haptics row has a live trailing switch, so tapping it toggles in
+      // place WITHOUT closing the sheet.
       await tester.tap(find.text('Haptics'));
       await tester.pumpAndSettle();
 
       expect(container.read(metronomeProvider).hapticsEnabled, isFalse);
+      expect(find.text('Haptics'), findsOneWidget);
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
 
-      await tester.tap(find.byIcon(Icons.more_horiz));
+      // The trailing switch itself toggles back on, still in-sheet.
+      await tester.tap(find.byType(Switch));
       await tester.pumpAndSettle();
 
-      expect(find.text('Haptics'), findsOneWidget);
-      expect(find.text('Off'), findsWidgets);
+      expect(container.read(metronomeProvider).hapticsEnabled, isTrue);
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
     });
 
     testWidgets('edit song menu opens the loaded song editor', (tester) async {

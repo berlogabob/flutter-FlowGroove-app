@@ -1,5 +1,6 @@
 import 'package:flowgroove/services/connectivity_service.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
+import 'package:flowgroove/widgets/app_menu_sheet.dart';
 import 'package:flowgroove/widgets/offline_indicator.dart';
 import 'package:flowgroove/widgets/tools/tool_scaffold.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,7 @@ void main() {
         const ToolScreenScaffold(title: 'Metronome', mainWidget: SizedBox()),
       );
 
+      // Slim top bar + the pushed-mode bottom bar both name the screen.
       expect(find.text('Metronome'), findsOneWidget);
     });
 
@@ -160,8 +162,8 @@ void main() {
       tester,
     ) async {
       final menuItems = [
-        const PopupMenuItem<void>(value: 'save', child: Text('Save')),
-        const PopupMenuItem<void>(value: 'settings', child: Text('Settings')),
+        AppMenuItem(icon: Icons.save, label: 'Save', onTap: () {}),
+        AppMenuItem(icon: Icons.settings, label: 'Settings', onTap: () {}),
       ];
 
       await _pumpToolScaffold(
@@ -209,7 +211,8 @@ void main() {
 
       final columnFinder = find.byType(Column);
       expect(columnFinder, findsWidgets);
-      expect(find.byType(Expanded), findsOneWidget);
+      // Body Expanded (main widget) + the bottom action bar's three slots.
+      expect(find.byType(Expanded), findsWidgets);
     });
 
     testWidgets('renders with SafeArea', (tester) async {

@@ -9,10 +9,12 @@ import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/custom_button.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../widgets/primary_action_bar.dart';
+import '../../widgets/menu_items_scope.dart';
 import 'create_setlist_screen.dart' show SetlistStorageScope;
 
 /// Read-only detail view for a setlist (P1-7 fix).
@@ -50,33 +52,41 @@ class SetlistViewScreen extends ConsumerWidget {
         ? ref.watch(songsProvider)
         : ref.watch(bandSongsProvider(bandId!));
 
-    return Scaffold(
-      appBar: CustomAppBar.build(
-        context,
+    // Publishes into the shell's bottom bar (this is a pushed branch child):
+    // the title slot is replaced by the "Open in Metronome" primary action
+    // (bar becomes [← Back] [Open in Metronome] [⋮]); Edit — previously an
+    // app-bar TextButton — moved into the Menu sheet.
+    return MenuScopePublisher(
+      data: MenuScopeData(
         title: setlist.name,
-        actions: [
+        items: [
           if (canEdit)
-            TextButton(
-              onPressed: () => context.pushNamed(
+            AppMenuItem(
+              icon: Icons.edit_outlined,
+              label: 'Edit Setlist',
+              onTap: () => context.pushNamed(
                 'edit-setlist',
                 pathParameters: {'id': setlist.id},
                 extra: setlist,
               ),
-              child: const Text('Edit'),
             ),
         ],
+        primaryAction: CustomButton(
+          label: 'Open in Metronome',
+          icon: Icons.av_timer,
+          size: ButtonSize.small,
+          onPressed: () => _openInMetronome(context, ref, setlist),
+        ),
       ),
-      body: songsAsync.when(
-        data: (songs) => _buildBody(setlist, songs),
-        loading: () => const LoadingIndicator(),
-        // A failed songs load shouldn't block the setlist details from
-        // showing; song rows just fall back to "unavailable".
-        error: (_, _) => _buildBody(setlist, const []),
-      ),
-      bottomNavigationBar: PrimaryActionBar(
-        label: 'Open in Metronome',
-        icon: Icons.av_timer,
-        onPressed: () => _openInMetronome(context, ref, setlist),
+      child: Scaffold(
+        appBar: CustomAppBar.build(context, title: setlist.name),
+        body: songsAsync.when(
+          data: (songs) => _buildBody(setlist, songs),
+          loading: () => const LoadingIndicator(),
+          // A failed songs load shouldn't block the setlist details from
+          // showing; song rows just fall back to "unavailable".
+          error: (_, _) => _buildBody(setlist, const []),
+        ),
       ),
     );
   }

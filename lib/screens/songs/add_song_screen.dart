@@ -17,8 +17,10 @@ import '../../utils/snackbar.dart';
 import '../../utils/lyrics_sections.dart';
 import '../../utils/song_tags.dart';
 import '../../utils/suggestion_links.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner;
+import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';
 import '../performance_sheet_screen.dart';
@@ -493,12 +495,15 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
           await _autoSave();
         }
       },
-      child: Scaffold(
-        appBar: CustomAppBar.build(
-          context,
+      // Pushed branch child: title + actions are published for the shell's
+      // bottom bar ([← Back] [title] [⋮ Menu]); the top bar is title-only.
+      child: MenuScopePublisher(
+        data: MenuScopeData(
           title: _isEditing ? 'Edit Song' : 'Add Song',
-          menuItems: [
-            PopupMenuItem<void>(
+          items: [
+            AppMenuItem(
+              icon: Icons.queue_music,
+              label: 'Performance sheet',
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => PerformanceSheetScreen(
@@ -512,35 +517,23 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
                   ),
                 ),
               ),
-              child: const Row(
-                children: [
-                  Icon(Icons.queue_music),
-                  SizedBox(width: 8),
-                  Text('Performance sheet'),
-                ],
-              ),
             ),
-            PopupMenuItem<void>(
+            AppMenuItem(
+              icon: Icons.edit_note,
+              label: 'Song editor (map + ChordPro)',
               onTap: _openSongEditor,
-              child: const Row(
-                children: [
-                  Icon(Icons.edit_note),
-                  SizedBox(width: 8),
-                  Text('Song editor (map + ChordPro)'),
-                ],
-              ),
             ),
-            PopupMenuItem<void>(
+            AppMenuItem(
+              icon: Icons.content_paste,
+              label: 'Import lyrics & chords',
               onTap: _importLyrics,
-              child: const Row(
-                children: [
-                  Icon(Icons.content_paste),
-                  SizedBox(width: 8),
-                  Text('Import lyrics & chords'),
-                ],
-              ),
             ),
           ],
+        ),
+        child: Scaffold(
+        appBar: CustomAppBar.build(
+          context,
+          title: _isEditing ? 'Edit Song' : 'Add Song',
         ),
         body: !_formReady
             ? const SizedBox.shrink()
@@ -652,6 +645,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
           label: _isEditing ? 'Save Changes' : 'Save Song',
           onPressed: isSaving ? null : _saveSong,
           isLoading: isSaving,
+        ),
         ),
       ),
     );

@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../theme/mono_pulse_theme.dart';
+import 'app_menu_sheet.dart';
 import 'custom_app_bar.dart';
+import 'menu_items_scope.dart';
 import 'offline_indicator.dart';
 
 /// Standard screen scaffold providing consistent layout across all screens.
 ///
-/// Features:
-/// - CustomAppBar with optional back button and menu
-/// - Offline indicator banner (optional)
-/// - Consistent background color (MonoPulseColors.black)
-/// - SafeArea handling
+/// Bottom-first navigation redesign:
+/// - Top bar is a slim centered title only (no back arrow, no ⋮ menu).
+/// - The screen's [title] and [menuItems] are published into
+///   [MenuScopeRegistry] (via [MenuScopePublisher]) so the shell's bottom bar
+///   can render them: on branch roots the Menu tab opens a sheet with these
+///   items (plus a dot badge when items exist); on pushed branch children the
+///   bar becomes `[← Back] [title] [⋮ Menu]`.
+/// - Offline indicator banner behavior is unchanged.
 ///
 /// Usage:
 /// ```dart
@@ -18,10 +23,9 @@ import 'offline_indicator.dart';
 ///   title: 'Songs',
 ///   body: SingleChildScrollView(child: ...),
 ///   menuItems: [
-///     PopupMenuItem(child: Text('Import'), onTap: _import),
+///     AppMenuItem(icon: Icons.upload, label: 'Import', onTap: _import),
 ///   ],
 ///   floatingActionButton: FloatingActionButton(...),
-///   showBackButton: false, // Hide back button for main tabs
 /// )
 /// ```
 class StandardScreenScaffold extends StatelessWidget {
@@ -35,14 +39,14 @@ class StandardScreenScaffold extends StatelessWidget {
     this.menuItems,
     this.floatingActionButton,
   });
-  /// Screen title displayed in AppBar.
+  /// Screen title displayed in the slim top bar and the bottom bar.
   final String title;
 
   /// Main body content of the screen.
   final Widget body;
 
-  /// Optional menu items for three-dots menu.
-  final List<PopupMenuEntry<dynamic>>? menuItems;
+  /// Contextual actions for the bottom bar's Menu sheet.
+  final List<AppMenuItem>? menuItems;
 
   /// Optional floating action button.
   final Widget? floatingActionButton;
@@ -50,27 +54,25 @@ class StandardScreenScaffold extends StatelessWidget {
   /// Whether to show offline indicator banner.
   final bool showOfflineIndicator;
 
-  /// Whether to show back button in AppBar.
+  /// Legacy knob from the top-bar era; the slim top bar never shows a back
+  /// button (Back lives in the bottom bar). Kept so call sites don't churn.
   final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MonoPulseColors.black,
-      appBar: showBackButton
-          ? CustomAppBar.build(context, title: title, menuItems: menuItems)
-          : CustomAppBar.buildNoBack(
-              context,
-              title: title,
-              menuItems: menuItems,
-            ),
-      body: Column(
-        children: [
-          if (showOfflineIndicator) const OfflineIndicator.banner(),
-          Expanded(child: body),
-        ],
+    return MenuScopePublisher(
+      data: MenuScopeData(title: title, items: menuItems ?? const []),
+      child: Scaffold(
+        backgroundColor: MonoPulseColors.black,
+        appBar: CustomAppBar.build(context, title: title),
+        body: Column(
+          children: [
+            if (showOfflineIndicator) const OfflineIndicator.banner(),
+            Expanded(child: body),
+          ],
+        ),
+        floatingActionButton: floatingActionButton,
       ),
-      floatingActionButton: floatingActionButton,
     );
   }
 }

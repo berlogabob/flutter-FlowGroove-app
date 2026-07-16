@@ -40,6 +40,7 @@ import '../screens/songs/models/song_form_data.dart';
 import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
+import 'branch_stack_observer.dart';
 
 /// Minimal auth surface needed by the app router.
 abstract class AuthRouterClient {
@@ -221,6 +222,7 @@ List<RouteBase> _buildAppRoutes() {
       branches: [
         // Home branch
         StatefulShellBranch(
+          observers: [BranchStackObserver(0)],
           routes: [
             GoRoute(
               path: '/main/home',
@@ -231,6 +233,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Songs branch
         StatefulShellBranch(
+          observers: [BranchStackObserver(1)],
           routes: [
             GoRoute(
               path: '/main/songs',
@@ -277,6 +280,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Bands branch
         StatefulShellBranch(
+          observers: [BranchStackObserver(2)],
           routes: [
             GoRoute(
               path: '/main/bands',
@@ -403,6 +407,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Setlists branch
         StatefulShellBranch(
+          observers: [BranchStackObserver(3)],
           routes: [
             GoRoute(
               path: '/main/setlists',
@@ -482,6 +487,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Profile branch
         StatefulShellBranch(
+          observers: [BranchStackObserver(4)],
           routes: [
             GoRoute(
               path: '/main/profile',

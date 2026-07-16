@@ -1,58 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import '../theme/mono_pulse_theme.dart';
+import 'app_menu_sheet.dart';
 
-/// Custom AppBar with consistent back button and menu across all screens.
+/// Slim top app bar: centered title only (bottom-first navigation redesign).
 ///
-/// Features:
-/// - Circular back button with border (consistent with Mono Pulse design)
-/// - Three dots menu button for screen-specific actions
-/// - Haptic feedback on tap
-/// - 48px minimum touch zones
+/// Back and the `⋮` contextual menu moved to the bottom bar (`AppBottomBar`):
+/// pushed screens get `[← Back] [title] [⋮ Menu]` from the shell (branch
+/// children) or from their own scaffold (root-pushed tools), and branch roots
+/// get the tab bar with the Menu slot. The top bar's only job now is naming
+/// the screen.
 ///
-/// Usage:
-/// ```dart
-/// appBar: CustomAppBar.build(
-///   context,
-///   title: 'Songs',
-///   menuItems: [
-///     PopupMenuItem(child: Text('Import'), onTap: _handleImport),
-///     PopupMenuItem(child: Text('Export'), onTap: _handleExport),
-///   ],
-/// ),
-/// ```
+/// Exception: screens pushed imperatively via `Navigator.push` (Performance
+/// Sheet, Song Editor, AI access) live outside go_router, so the shell's
+/// bottom bar can't serve them — they pass `onBack` (and optionally
+/// `menuItems`) to keep a working back/menu in the top bar until they are
+/// migrated to routes.
 class CustomAppBar {
   CustomAppBar._();
 
-  /// Builds a custom AppBar with back button and menu.
+  /// Builds the slim app bar.
   ///
-  /// [context] - Build context for navigation
-  /// [title] - AppBar title text
-  /// [menuItems] - Screen-specific menu items
-  /// [actions] - Extra action widgets shown before the menu button
-  /// [onBack] - Custom back action (optional, defaults to Navigator.pop)
-  /// [isTool] - Whether this is a tool screen (uses titleLarge typography)
+  /// [title] - centered title text
+  /// [actions] - extra action widgets (right side)
+  /// [onBack] - ONLY for imperatively-pushed screens (see class doc); renders
+  ///   the circular back button. Router-routed screens must leave this null —
+  ///   the bottom bar owns Back.
+  /// [menuItems] - ONLY for imperatively-pushed screens; renders a `⋮` that
+  ///   opens the app menu sheet.
+  /// [isTool] - tool screens use titleLarge typography
   static PreferredSizeWidget build(
     BuildContext context, {
     required String title,
     bool isTool = false,
-    List<PopupMenuEntry<dynamic>>? menuItems,
     List<Widget>? actions,
     VoidCallback? onBack,
+    List<AppMenuItem>? menuItems,
   }) {
     return AppBar(
       backgroundColor: MonoPulseColors.black,
       foregroundColor: MonoPulseColors.textPrimary,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle.light,
-      leading: _backButton(context, onBack),
+      automaticallyImplyLeading: false,
+      leading: onBack != null ? _backButton(onBack) : null,
       title: Text(
         title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style:
             (isTool
                     ? MonoPulseTypography.titleLarge
-                    : MonoPulseTypography.headlineLarge)
+                    : MonoPulseTypography.headlineSmall)
                 .copyWith(
                   color: MonoPulseColors.textHighEmphasis,
                   fontWeight: FontWeight.w700,
@@ -61,72 +60,43 @@ class CustomAppBar {
       centerTitle: true,
       actions: [
         ...?actions,
-        if (menuItems?.isNotEmpty ?? false) _menuButton(menuItems!),
+        if (menuItems?.isNotEmpty ?? false)
+          _menuButton(context, title, menuItems!),
         const SizedBox(width: MonoPulseSpacing.md),
       ],
     );
   }
 
-  /// Builds a custom AppBar with only a back button.
-  static PreferredSizeWidget buildSimple(
-    BuildContext context, {
-    required String title,
-    VoidCallback? onBack,
-  }) => build(context, title: title, onBack: onBack);
-
-  /// Builds a custom AppBar without back button (for main shell tabs).
-  ///
-  /// Use this for screens that are part of the bottom navigation
-  /// and should not have a back button.
-  static PreferredSizeWidget buildNoBack(
-    BuildContext context, {
-    required String title,
-    List<PopupMenuEntry<dynamic>>? menuItems,
-  }) {
-    return AppBar(
-      backgroundColor: MonoPulseColors.black,
-      foregroundColor: MonoPulseColors.textPrimary,
-      elevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.light,
-      leading: const SizedBox(width: MonoPulseSpacing.massive), // Empty space for alignment (48px)
-      title: Text(
-        title,
-        style: MonoPulseTypography.headlineLarge.copyWith(
-          color: MonoPulseColors.textHighEmphasis,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      centerTitle: true,
-      actions: [
-        if (menuItems?.isNotEmpty ?? false) _menuButton(menuItems!),
-        const SizedBox(width: MonoPulseSpacing.md),
-      ],
-    );
-  }
-
-  static Widget _menuButton(List<PopupMenuEntry<dynamic>> menuItems) {
-    return GestureDetector(
-      onTap: HapticFeedback.lightImpact,
-      // minTapTarget touch zone
-      child: SizedBox(
-        width: MonoPulseSpacing.massive, // 48px
-        height: MonoPulseSpacing.massive,
-        child: Center(
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: MonoPulseColors.borderSubtle),
-            ),
-            child: PopupMenuButton<void>(
-              padding: EdgeInsets.zero,
-              icon: const Icon(
+  static Widget _menuButton(
+    BuildContext context,
+    String title,
+    List<AppMenuItem> menuItems,
+  ) {
+    return Semantics(
+      button: true,
+      label: 'Menu',
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          showAppMenuSheet(context, title: title, items: menuItems);
+        },
+        // minTapTarget touch zone
+        child: SizedBox(
+          width: MonoPulseSpacing.massive, // 48px
+          height: MonoPulseSpacing.massive,
+          child: Center(
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: MonoPulseColors.borderSubtle),
+              ),
+              child: const Icon(
                 Icons.more_horiz,
                 color: MonoPulseColors.textSecondary,
                 size: MonoPulseIcons.sizeLarge,
               ),
-              itemBuilder: (_) => menuItems,
             ),
           ),
         ),
@@ -134,28 +104,11 @@ class CustomAppBar {
     );
   }
 
-  static Widget _backButton(BuildContext context, VoidCallback? onBack) {
+  static Widget _backButton(VoidCallback onBack) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        if (onBack != null) {
-          onBack();
-        } else if (context.canPop()) {
-          // Screen was push()ed via go_router — pop it. This covers
-          // Metronome/Tuner/Join Band too: they're pushed on the root
-          // navigator on top of the shell, so there's a shell screen
-          // underneath to return to.
-          context.pop();
-        } else if (Navigator.of(context).canPop()) {
-          // Screen was pushed imperatively (e.g. AI access via Navigator.push);
-          // go_router's pop can't see it, so pop the Navigator directly.
-          Navigator.of(context).pop();
-        } else {
-          // Reached via go()/goNamed() which replaced the stack (e.g. a
-          // deep-link cold start landing directly on Join Band) — nothing to
-          // pop, so fall back home instead of a dead button.
-          context.go('/main/home');
-        }
+        onBack();
       },
       // minTapTarget touch zone
       child: SizedBox(

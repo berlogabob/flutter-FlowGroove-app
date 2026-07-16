@@ -554,11 +554,29 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                           color: MonoPulseColors.textPrimary,
                         ),
                       ),
-                      onDismissed: (_) => setState(() {
-                        _selectedSongs.removeAt(index);
-                        _selectedItems.removeAt(index);
-                        _markAsChanged();
-                      }),
+                      onDismissed: (_) {
+                        final removedSong = _selectedSongs[index];
+                        final removedItem = _selectedItems[index];
+                        setState(() {
+                          _selectedSongs.removeAt(index);
+                          _selectedItems.removeAt(index);
+                          _markAsChanged();
+                        });
+
+                        // Show snackbar with undo action
+                        showAppSnackBar(
+                          context,
+                          'Removed "${removedSong.title}"',
+                          actionLabel: 'Undo',
+                          onAction: () {
+                            setState(() {
+                              _selectedSongs.insert(index, removedSong);
+                              _selectedItems.insert(index, removedItem);
+                              _markAsChanged();
+                            });
+                          },
+                        );
+                      },
                       child: Card(
                         margin: const EdgeInsets.only(
                           bottom: MonoPulseSpacing.md,

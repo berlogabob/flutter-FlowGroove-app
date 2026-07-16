@@ -10,6 +10,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../router/app_router.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
 import '../widgets/metronome/metronome_sheets.dart';
@@ -121,260 +122,89 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     );
   }
 
-  /// Builds menu items for the three dots menu
-  List<PopupMenuEntry<dynamic>> _buildMenuItems(
+  /// Builds items for the bottom-bar Menu sheet.
+  ///
+  /// Sound / Count-in / Ramp live here instead of on the main screen, so the
+  /// metronome stays clean (Mono Pulse: "main window stays clean"). Their
+  /// current values are folded into the row labels; Haptics is a live toggle
+  /// (`trailing` switch rebuilds in-sheet via Riverpod and does not close the
+  /// sheet, so several settings can be flipped in one visit).
+  List<AppMenuItem> _buildMenuItems(
     BuildContext context,
     MetronomeNotifier metronome,
     MetronomeState state, {
     required bool canEditSource,
   }) {
-    final items = <PopupMenuEntry<dynamic>>[];
-
-    // Concert Mode — full-screen stage view (Mono Pulse).
-    items.add(
-      PopupMenuItem<void>(
+    return [
+      // Concert Mode — full-screen stage view (Mono Pulse).
+      AppMenuItem(
+        icon: Icons.theaters_outlined,
+        label: 'Concert Mode',
         onTap: () => Navigator.of(context, rootNavigator: true).push(
           MaterialPageRoute<void>(
             builder: (_) => const ConcertModeScreen(),
             fullscreenDialog: true,
           ),
         ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.theaters_outlined,
-              color: MonoPulseColors.accentOrange,
-              size: 20,
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-            Expanded(
-              child: Text(
-                'Concert Mode',
-                style: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
-    );
-
-    items.add(const PopupMenuDivider(height: 1));
-
-    // Sound / Count-in / Ramp live here instead of on the main screen, so the
-    // metronome stays clean (Mono Pulse: "main window stays clean").
-    PopupMenuItem<void> settingRow({
-      required IconData icon,
-      required String label,
-      required String trailing,
-      required bool active,
-      required VoidCallback onTap,
-    }) {
-      return PopupMenuItem<void>(
-        onTap: onTap,
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: active
-                  ? MonoPulseColors.accentOrange
-                  : MonoPulseColors.textSecondary,
-              size: 20,
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-            Expanded(
-              child: Text(
-                label,
-                style: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
-                ),
-              ),
-            ),
-            Text(
-              trailing,
-              style: MonoPulseTypography.labelMedium.copyWith(
-                color: active
-                    ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textTertiary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    items.add(
-      settingRow(
+      AppMenuItem(
         icon: Icons.graphic_eq,
-        label: 'Sound',
-        trailing: 'Click ›',
-        active: false,
+        label: 'Sound: Click',
         onTap: () => showSoundSheet(context),
       ),
-    );
-
-    items.add(const PopupMenuDivider(height: 1));
-
-    items.add(
-      PopupMenuItem<void>(
-        enabled: false,
-        height: 28,
-        child: Text(
-          'PRACTICE',
-          style: MonoPulseTypography.labelSmall.copyWith(
-            color: MonoPulseColors.textTertiary,
-            letterSpacing: 1.2,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-
-    items.add(
-      settingRow(
+      AppMenuItem(
         icon: Icons.timer_outlined,
-        label: 'Count-in',
-        trailing: state.countInBars > 0 ? '${state.countInBars} bars ›' : 'Off ›',
-        active: state.countInBars > 0,
+        label: state.countInBars > 0
+            ? 'Count-in: ${state.countInBars} bars'
+            : 'Count-in: Off',
         onTap: () => showCountInSheet(context),
       ),
-    );
-
-    items.add(
-      settingRow(
+      AppMenuItem(
         icon: Icons.trending_up,
-        label: 'Ramp',
-        trailing: state.activeTempoRamp != null ? 'On ›' : 'Off ›',
-        active: state.activeTempoRamp != null,
+        label: state.activeTempoRamp != null ? 'Ramp: On' : 'Ramp: Off',
         onTap: () => showRampSheet(context),
       ),
-    );
-
-    items.add(const PopupMenuDivider(height: 1));
-
-    items.add(
-      PopupMenuItem<void>(
+      AppMenuItem(
+        icon: state.hapticsEnabled ? Icons.vibration : Icons.mobile_off,
+        label: 'Haptics',
         onTap: metronome.toggleHaptics,
-        child: Row(
-          children: [
-            Icon(
-              state.hapticsEnabled ? Icons.vibration : Icons.mobile_off,
-              color: state.hapticsEnabled
-                  ? MonoPulseColors.accentOrange
-                  : MonoPulseColors.textTertiary,
-              size: 20,
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-            Expanded(
-              child: Text(
-                'Haptics',
-                style: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
-                ),
-              ),
-            ),
-            Text(
-              state.hapticsEnabled ? 'On' : 'Off',
-              style: MonoPulseTypography.labelMedium.copyWith(
-                color: state.hapticsEnabled
-                    ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textTertiary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        trailing: Consumer(
+          builder: (context, ref, _) {
+            final enabled = ref.watch(
+              metronomeProvider.select((s) => s.hapticsEnabled),
+            );
+            return Switch(
+              value: enabled,
+              activeThumbColor: MonoPulseColors.accentOrange,
+              onChanged: (_) =>
+                  ref.read(metronomeProvider.notifier).toggleHaptics(),
+            );
+          },
         ),
       ),
-    );
-
-    items.add(const PopupMenuDivider(height: 1));
-
-    // Save to Song (only shown when song is loaded)
-    if (state.activeSong != null) {
-      items.add(
-        PopupMenuItem<void>(
-          enabled: canEditSource,
+      // Save to Song (only shown when song is loaded)
+      if (state.activeSong != null) ...[
+        AppMenuItem(
+          icon: Icons.edit_outlined,
+          label: 'Edit Song',
           onTap: canEditSource
               ? () => _navigateToEditSong(context, state)
               : null,
-          child: Row(
-            children: [
-              const Icon(
-                Icons.edit_outlined,
-                color: MonoPulseColors.accentOrange,
-                size: 20,
-              ),
-              const SizedBox(width: MonoPulseSpacing.md),
-              Expanded(
-                child: Text(
-                  'Edit Song',
-                  style: MonoPulseTypography.bodyMedium.copyWith(
-                    color: MonoPulseColors.textHighEmphasis,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
-      );
-
-      items.add(
-        PopupMenuItem<void>(
-          enabled: canEditSource,
+        AppMenuItem(
+          icon: Icons.save_outlined,
+          label: "Save to '${state.activeSong!.title}'",
           onTap: canEditSource
               ? () => _saveMetronomeToSong(context, metronome, state)
               : null,
-          child: Row(
-            children: [
-              const Icon(
-                Icons.save_outlined,
-                color: MonoPulseColors.accentOrange,
-                size: 20,
-              ),
-              const SizedBox(width: MonoPulseSpacing.md),
-              Expanded(
-                child: Text(
-                  "Save to '${state.activeSong!.title}'",
-                  style: MonoPulseTypography.bodyMedium.copyWith(
-                    color: MonoPulseColors.textHighEmphasis,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
         ),
-      );
-    }
-
-    // Save New Song
-    items.add(
-      PopupMenuItem<void>(
-        enabled: canEditSource,
+      ],
+      AppMenuItem(
+        icon: Icons.add_circle_outline,
+        label: 'Save New Song',
         onTap: canEditSource ? () => _navigateToSaveSong(context, state) : null,
-        child: Row(
-          children: [
-            const Icon(
-              Icons.add_circle_outline,
-              color: MonoPulseColors.accentOrange,
-              size: 20,
-            ),
-            const SizedBox(width: MonoPulseSpacing.md),
-            Text(
-              'Save New Song',
-              style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textHighEmphasis,
-              ),
-            ),
-          ],
-        ),
       ),
-    );
-
-    return items;
+    ];
   }
 
   /// Save current metronome settings to the loaded song
@@ -582,5 +412,3 @@ class _MetronomeTransport extends ConsumerWidget {
     );
   }
 }
-
-

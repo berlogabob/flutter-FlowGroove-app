@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../router/branch_stack_observer.dart';
 import '../theme/mono_pulse_theme.dart';
+import '../widgets/app_menu_sheet.dart';
+import '../widgets/bottom_nav_or_action_bar.dart';
 import '../widgets/demo_mode_banner.dart';
+import '../widgets/menu_items_scope.dart';
 
-/// One navigation destination, shared by the portrait [NavigationBar] and the
-/// landscape [NavigationRail] (Mono Pulse: "nav moves to a side rail").
-typedef _NavItem = ({IconData icon, IconData selectedIcon, String label});
-
-const List<_NavItem> _navItems = [
+/// The 4 branch tabs shown in root mode. Profile isn't a tab — its slot is
+/// replaced by Menu (tapping Menu opens a sheet with a Profile row instead of
+/// navigating there directly); the branch itself (index 4) is still reached
+/// via that row, or by any `context.go('/main/profile')` elsewhere.
+const List<AppNavItem> _tabs = [
   (icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home'),
   (icon: Icons.music_note_outlined, selectedIcon: Icons.music_note, label: 'Songs'),
   (icon: Icons.groups_outlined, selectedIcon: Icons.groups, label: 'Bands'),
@@ -17,16 +21,35 @@ const List<_NavItem> _navItems = [
     selectedIcon: Icons.queue_music,
     label: 'Setlists',
   ),
-  (icon: Icons.person_outlined, selectedIcon: Icons.person, label: 'Profile'),
+];
+
+/// The 5 branch root locations, in branch-index order. Used both to clamp
+/// [StatefulNavigationShell.currentIndex] and to detect root vs. pushed mode:
+/// pushed ⇔ the router's current location isn't one of these.
+const List<String> _branchRootLocations = [
+  '/main/home',
+  '/main/songs',
+  '/main/bands',
+  '/main/setlists',
+  '/main/profile',
 ];
 
 /// Main application shell with adaptive navigation.
 /// Works with StatefulShellRoute.indexedStack for proper tab switching.
 ///
-/// Features:
-/// - Portrait: bottom navigation bar. Landscape: left navigation rail.
-/// - Single tap: Navigate to tab or show next screen in branch
-/// - Double tap: Navigate to root screen of each branch
+/// The bottom bar has two mutually exclusive modes (see [AppBottomBar]):
+/// - Root mode (on one of the 5 branch roots): the Home/Songs/Bands/Setlists
+///   tabs plus a Menu slot. Menu replaces the old Profile tab; it opens a
+///   bottom sheet (never navigates) with the current screen's contextual
+///   actions plus a Profile row.
+/// - Pushed mode (any pushed route inside the shell — a branch child like
+///   edit-song): `[← Back] [screen title] [⋮ Menu]`.
+///
+/// Root-pushed tool routes (Metronome/Tuner/Join Band) live outside the shell
+/// entirely (root navigator) — they render their own pushed-mode bar via
+/// their own scaffolds, not this one.
+///
+/// Portrait: bottom bar. Landscape: left rail (same two modes).
 class MainShell extends ConsumerStatefulWidget {
 
   const MainShell({required this.navigationShell, super.key});
@@ -40,12 +63,53 @@ class _MainShellState extends ConsumerState<MainShell> {
   DateTime? _lastTapTime;
   int? _lastTappedIndex;
 
+  // Pushed-mode detection needs BOTH signals:
+  // - BranchStackObserver depth: intra-branch pushes never update the
+  //   router's currentConfiguration.uri (device-verified), only the branch
+  //   navigator sees them.
+  // - URI check: deep entries (initialLocation/deep link straight to a child
+  //   route) build the child without firing observer pushes, so depth stays
+  //   0 while the URI correctly points below the branch root.
+  bool get _pushed {
+    final i = widget.navigationShell.currentIndex;
+    final depths = BranchStackObserver.depths.value;
+    if (i >= 0 && i < depths.length && depths[i] > 0) return true;
+    final uri = GoRouter.maybeOf(context)
+        ?.routerDelegate
+        .currentConfiguration
+        .uri
+        .toString();
+    return uri != null && !_branchRootLocations.contains(uri);
+  }
+
+  String get _branchRoot {
+    final i = widget.navigationShell.currentIndex;
+    return i >= 0 && i < _branchRootLocations.length
+        ? _branchRootLocations[i]
+        : _branchRootLocations.first;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    BranchStackObserver.depths.addListener(_onDepthsChange);
+  }
+
+  @override
+  void dispose() {
+    BranchStackObserver.depths.removeListener(_onDepthsChange);
+    super.dispose();
+  }
+
+  void _onDepthsChange() {
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    // The shell now has exactly 5 branches (Home/Songs/Bands/Setlists/Profile)
-    // matching _navItems — Metronome/Tuner/Join Band are pushed on top of the
-    // shell via the root navigator instead of being branches. Clamp kept as a
-    // harmless guard against out-of-range indices.
+    // The shell has exactly 5 branches (Home/Songs/Bands/Setlists/Profile)
+    // matching _branchRootLocations — Metronome/Tuner/Join Band are pushed on
+    // top of the shell via the root navigator instead of being branches.
     final currentIndex = widget.navigationShell.currentIndex;
     final safeIndex =
         currentIndex >= 0 && currentIndex < 5 ? currentIndex : 0;
@@ -73,34 +137,9 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     return Scaffold(
       body: content,
-      bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: MonoPulseColors.black,
-          border: Border(
-            top: BorderSide(color: MonoPulseColors.borderSubtle),
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: MonoPulseSpacing.sm,
-              vertical: MonoPulseSpacing.sm,
-            ),
-            child: Row(
-              children: [
-                for (var i = 0; i < _navItems.length; i++)
-                  Expanded(
-                    child: _NavTab(
-                      item: _navItems[i],
-                      selected: i == safeIndex,
-                      onTap: () => _onTap(context, i),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
+      bottomNavigationBar: ValueListenableBuilder<int>(
+        valueListenable: MenuScopeRegistry.revision,
+        builder: (context, _, _) => _buildBar(context, safeIndex),
       ),
     );
   }
@@ -109,24 +148,108 @@ class _MainShellState extends ConsumerState<MainShell> {
     return Container(
       width: 76,
       color: MonoPulseColors.blackSurface,
-      // Scrollable so the five tabs never overflow on a short landscape height.
+      // Scrollable so the tabs never overflow on a short landscape height.
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
-        child: Column(
-          children: [
-            for (var i = 0; i < _navItems.length; i++)
+        child: ValueListenableBuilder<int>(
+          valueListenable: MenuScopeRegistry.revision,
+          builder: (context, _, _) => Column(
+            children: [
+              if (_pushed)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: MonoPulseSpacing.lg),
+                  child: NavTab(
+                    item: const (
+                      icon: Icons.arrow_back,
+                      selectedIcon: Icons.arrow_back,
+                      label: 'Back',
+                    ),
+                    selected: false,
+                    onTap: _handleBack,
+                  ),
+                )
+              else
+                for (var i = 0; i < _tabs.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: MonoPulseSpacing.lg),
+                    child: NavTab(
+                      item: _tabs[i],
+                      selected: i == safeIndex,
+                      onTap: () => _onTap(context, i),
+                    ),
+                  ),
               Padding(
                 padding: const EdgeInsets.only(bottom: MonoPulseSpacing.lg),
-                child: _NavTab(
-                  item: _navItems[i],
-                  selected: i == safeIndex,
-                  onTap: () => _onTap(context, i),
+                child: NavTab(
+                  item: const (
+                    icon: Icons.more_horiz,
+                    selectedIcon: Icons.more_horiz,
+                    label: 'Menu',
+                  ),
+                  selected: !_pushed && safeIndex == 4,
+                  showBadge: _currentMenu()?.items.isNotEmpty ?? false,
+                  onTap: () => _openMenu(context),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildBar(BuildContext context, int safeIndex) {
+    if (_pushed) {
+      final entry = _currentMenu();
+      return AppBottomBar.actions(
+        onBack: _handleBack,
+        // No title in the bar: the slim top app-bar title is the location
+        // signal; keeping it out of the bar avoids double titles (tools)
+        // and empty slots (screens without a registered scope).
+        primaryAction: entry?.primaryAction,
+        onMenu: (entry?.items.isNotEmpty ?? false)
+            ? () => _openMenu(context)
+            : null,
+      );
+    }
+
+    return AppBottomBar.tabs(
+      tabs: _tabs,
+      selectedIndex: safeIndex,
+      onTabTap: (i) => _onTap(context, i),
+      onMenuTap: () => _openMenu(context),
+      menuSelected: safeIndex == 4,
+      menuHasBadge: _currentMenu()?.items.isNotEmpty ?? false,
+    );
+  }
+
+  MenuScopeData? _currentMenu() => _pushed
+      // Deepest publisher above the branch root; null when the pushed screen
+      // has no menu (the bar then hides its ⋮ — never the root's menu).
+      ? MenuScopeRegistry.pushedEntryFor(_branchRoot)
+      : MenuScopeRegistry.forLocation(_branchRoot);
+
+  void _openMenu(BuildContext context) {
+    final entry = _currentMenu();
+    final fallbackTitle = !_pushed && widget.navigationShell.currentIndex >= 0
+        && widget.navigationShell.currentIndex < _tabs.length
+        ? _tabs[widget.navigationShell.currentIndex].label
+        : 'Menu';
+    showAppMenuSheet(
+      context,
+      title: entry?.title ?? fallbackTitle,
+      items: entry?.items ?? const [],
+      showProfileRow: !_pushed,
+      ref: ref,
+    );
+  }
+
+  void _handleBack() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/main/home');
+    }
   }
 
   void _onTap(BuildContext context, int index) {
@@ -153,88 +276,8 @@ class _MainShellState extends ConsumerState<MainShell> {
   /// Works on both web and mobile by directly navigating to the branch root URL.
   void _navigateToRootOfBranch(BuildContext context, int branchIndex) {
     // Direct URL navigation - most reliable for web
-    // These URLs correspond to the root of each StatefulShellRoute branch
-    switch (branchIndex) {
-      case 0: // Home
-        context.go('/main/home');
-      case 1: // Songs
-        context.go('/main/songs');
-      case 2: // Bands
-        context.go('/main/bands');
-      case 3: // Setlists
-        context.go('/main/setlists');
-      case 4: // Profile
-        context.go('/main/profile');
+    if (branchIndex >= 0 && branchIndex < _branchRootLocations.length) {
+      context.go(_branchRootLocations[branchIndex]);
     }
-  }
-}
-
-/// A single navigation tab (Mono Pulse): icon on top, label below. When
-/// selected the icon + label turn orange and the label gets a rounded pill
-/// background. Shared by the bottom bar (portrait) and the side rail
-/// (landscape). Keeps a ≥48px tap target.
-class _NavTab extends StatelessWidget {
-  const _NavTab({
-    required this.item,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final _NavItem item;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected
-        ? MonoPulseColors.accentOrange
-        : MonoPulseColors.textTertiary;
-
-    final label = Text(
-      item.label,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: MonoPulseTypography.labelSmall.copyWith(
-        color: color,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-      ),
-    );
-
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: item.label,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(selected ? item.selectedIcon : item.icon, color: color, size: 22),
-              const SizedBox(height: MonoPulseSpacing.xs),
-              // Pill behind the label only when selected (per the doc's tab bar).
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: selected
-                      ? MonoPulseColors.accentOrange15
-                      : MonoPulseColors.transparent,
-                  borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: MonoPulseSpacing.sm,
-                    vertical: MonoPulseSpacing.xxs,
-                  ),
-                  child: label,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

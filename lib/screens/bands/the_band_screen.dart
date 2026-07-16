@@ -16,6 +16,7 @@ import '../../services/avatar_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
 import '../../utils/snackbar.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/dashboard_grid.dart';
 import '../../widgets/greeting_card.dart';
 import '../../widgets/quick_action_button.dart';
@@ -130,155 +131,51 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     );
   }
 
-  /// Build menu items for 3-dots menu
-  List<PopupMenuEntry<dynamic>> _buildMenuItems() {
+  /// Build items for the bottom-bar Menu sheet. Rows with a null onTap render
+  /// disabled (permission-gated actions for non-editors/non-admins).
+  List<AppMenuItem> _buildMenuItems() {
     return [
-      // Edit Band Name
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit ? () => _runAfterMenuCloses(_showEditNameDialog) : null,
-        child: Row(
-          children: [
-            const Icon(Icons.edit, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Edit Band Name',
-              style: TextStyle(
-                color: _canEdit
-                    ? MonoPulseColors.textPrimary
-                    : MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.edit,
+        label: 'Edit Band Name',
+        onTap: _canEdit ? _showEditNameDialog : null,
       ),
-
-      // Edit Description
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit
-            ? () => _runAfterMenuCloses(_showEditDescriptionDialog)
-            : null,
-        child: Row(
-          children: [
-            const Icon(Icons.description, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Edit Description',
-              style: TextStyle(
-                color: _canEdit
-                    ? MonoPulseColors.textPrimary
-                    : MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.description,
+        label: 'Edit Description',
+        onTap: _canEdit ? _showEditDescriptionDialog : null,
       ),
-
-      const PopupMenuDivider(),
-
-      // Add Song
-      PopupMenuItem<void>(
-        onTap: () => _runAfterMenuCloses(_handleAddSong),
-        child: const Row(
-          children: [
-            Icon(Icons.add, size: 20),
-            SizedBox(width: 12),
-            Text('Add Song'),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.add,
+        label: 'Add Song',
+        onTap: _handleAddSong,
       ),
-
-      // Add Setlist
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit ? () => _runAfterMenuCloses(_handleAddSetlist) : null,
-        child: const Row(
-          children: [
-            Icon(Icons.playlist_add, size: 20),
-            SizedBox(width: 12),
-            Text('Add Setlist'),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.playlist_add,
+        label: 'Add Setlist',
+        onTap: _canEdit ? _handleAddSetlist : null,
       ),
-
-      const PopupMenuDivider(),
-
-      // Edit Tags
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit ? () => _runAfterMenuCloses(_handleEditTags) : null,
-        child: Row(
-          children: [
-            const Icon(Icons.label_outline, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Edit Tags',
-              style: TextStyle(
-                color: _canEdit
-                    ? MonoPulseColors.textPrimary
-                    : MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.label_outline,
+        label: 'Edit Tags',
+        onTap: _canEdit ? _handleEditTags : null,
       ),
-
-      // Edit Members
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit ? () => _runAfterMenuCloses(_handleEditMembers) : null,
-        child: Row(
-          children: [
-            const Icon(Icons.people, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Edit Members',
-              style: TextStyle(
-                color: _canEdit
-                    ? MonoPulseColors.textPrimary
-                    : MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.people,
+        label: 'Edit Members',
+        onTap: _canEdit ? _handleEditMembers : null,
       ),
-
-      const PopupMenuDivider(),
-
-      // Change Band Avatar (admin only)
-      PopupMenuItem<void>(
-        enabled: _isBandAdmin,
-        onTap: _isBandAdmin
-            ? () => _runAfterMenuCloses(_handleChangeBandAvatar)
-            : null,
-        child: Row(
-          children: [
-            const Icon(Icons.image, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Change Band Avatar',
-              style: TextStyle(
-                color: _isBandAdmin
-                    ? MonoPulseColors.textPrimary
-                    : MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.image,
+        label: 'Change Band Avatar',
+        onTap: _isBandAdmin ? _handleChangeBandAvatar : null,
       ),
-
       // Remove Band Avatar (admin only, shown only when avatar exists)
       if (_liveBand().photoURL != null && _isBandAdmin)
-        PopupMenuItem<void>(
-          onTap: () => _runAfterMenuCloses(_handleRemoveBandAvatar),
-          child: const Row(
-            children: [
-              Icon(Icons.delete_outline, size: 20),
-              SizedBox(width: 12),
-              Text('Remove Band Avatar'),
-            ],
-          ),
+        AppMenuItem(
+          icon: Icons.delete_outline,
+          label: 'Remove Band Avatar',
+          onTap: _handleRemoveBandAvatar,
         ),
     ];
   }
@@ -401,13 +298,8 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   }
 
   // ==================== Menu Actions ====================
-
-  void _runAfterMenuCloses(VoidCallback action) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      action();
-    });
-  }
+  // (The app menu sheet already closes itself and defers each action to the
+  // next frame, so the old _runAfterMenuCloses wrapper is gone.)
 
   /// Show dialog to edit band name
   Future<void> _showEditNameDialog() async {

@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/section.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/chordpro.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/custom_app_bar.dart';
 import 'chordpro_sync_controller.dart';
 import 'components/import_lyrics_dialog.dart';
@@ -197,32 +198,23 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
         _close();
       },
       child: Scaffold(
-        // Standard AppBar + classic 3-dot menu, consistent with the rest of
-        // the app (#79 UX sweep).
+        // Pushed imperatively (Navigator.push), so it lives outside go_router
+        // and can't use the shell's bottom bar — back + menu stay in the top
+        // bar here (menu opens the app menu sheet).
         appBar: CustomAppBar.build(
           context,
           title: (m.title?.isNotEmpty ?? false) ? m.title! : 'Song editor',
           onBack: _close,
           menuItems: [
-            PopupMenuItem<void>(
+            AppMenuItem(
+              icon: Icons.add,
+              label: 'Add section',
               onTap: _addSection,
-              child: const Row(
-                children: [
-                  Icon(Icons.add, size: 20),
-                  SizedBox(width: MonoPulseSpacing.sm),
-                  Text('Add section'),
-                ],
-              ),
             ),
-            PopupMenuItem<void>(
+            AppMenuItem(
+              icon: Icons.playlist_add,
+              label: 'Import lyrics & chords',
               onTap: _import,
-              child: const Row(
-                children: [
-                  Icon(Icons.playlist_add, size: 20),
-                  SizedBox(width: MonoPulseSpacing.sm),
-                  Text('Import lyrics & chords'),
-                ],
-              ),
             ),
           ],
         ),
