@@ -1,0 +1,47 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../../models/setlist.dart';
+import '../../models/song.dart';
+import '../../utils/snackbar.dart';
+import '../../widgets/share_sheet.dart';
+
+/// Shared setlist share body + delivery modes (#128) — one text builder for
+/// both the personal and band screens, so "Share" and "Copy links" behave
+/// identically everywhere.
+String setlistShareText(Setlist setlist, List<Song> songs) {
+  final buffer = StringBuffer();
+  buffer.writeln('🎵 ${setlist.name}');
+  if (setlist.description != null) buffer.writeln(setlist.description);
+  buffer.writeln();
+  buffer.writeln('Songs:');
+  for (int i = 0; i < songs.length; i++) {
+    final song = songs[i];
+    buffer.writeln('${i + 1}. ${song.title} - ${song.artist}');
+    if (song.spotifyUrl != null) {
+      buffer.writeln('   🎧 ${song.spotifyUrl}');
+    } else {
+      final searchUrl = Uri.encodeComponent('${song.title} ${song.artist}');
+      buffer.writeln('   🔍 https://open.spotify.com/search/$searchUrl');
+    }
+  }
+  buffer.writeln();
+  buffer.writeln('Created with FlowGroove');
+  return buffer.toString();
+}
+
+/// Opens the native share sheet with the setlist links body.
+void shareSetlistLinks(BuildContext context, Setlist setlist, List<Song> songs) {
+  showShareSheet(context, setlistShareText(setlist, songs), subject: setlist.name);
+}
+
+/// Copies the setlist links body to the clipboard with a confirmation.
+Future<void> copySetlistLinks(
+  BuildContext context,
+  Setlist setlist,
+  List<Song> songs,
+) async {
+  await Clipboard.setData(ClipboardData(text: setlistShareText(setlist, songs)));
+  if (!context.mounted) return;
+  showAppSnackBar(context, 'Setlist links copied to clipboard!');
+}
