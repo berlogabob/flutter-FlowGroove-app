@@ -10,10 +10,13 @@ import '../../models/song_lab.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/analytics_service.dart';
+import '../../services/export/lab_markdown.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/chordpro.dart';
 import '../../utils/member_label.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 
@@ -154,10 +157,93 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
       .read(labRepositoryProvider)
       .saveEntry(entry.copyWith(status: status), bandId: widget.bandId);
 
+  // ---- Versions (#70) ----
+
+  Future<void> _saveVersion() async {
+    final result = await showModalBottomSheet<(String, String?, bool)>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const _SaveVersionSheet(),
+    );
+    if (result == null || !mounted) return;
+    final (name, notes, makeCurrent) = result;
+
+    final repo = ref.read(labRepositoryProvider);
+    final now = DateTime.now();
+    final version = SongVersion(
+      id: _uuid.v4(),
+      songId: widget.song.id,
+      bandId: widget.bandId,
+      name: name,
+      status: makeCurrent ? 'current' : 'archived',
+      bpm: widget.song.ourBPM,
+      key: widget.song.ourKey,
+      structureSnapshot: songMapSummary(
+        widget.song.sections.map((s) => s.name).toList(),
+      ),
+      lyricsSnapshot: songToChordPro(widget.song),
+      notes: notes,
+      createdAt: now,
+    );
+    await repo.saveVersion(version, bandId: widget.bandId);
+    if (makeCurrent) {
+      await repo.setCurrentVersion(
+        widget.song.id,
+        version.id,
+        bandId: widget.bandId,
+      );
+    }
+    // The changelog lives in the timeline (never silently overwritten).
+    final uid = ref.read(firebaseAuthProvider).currentUser?.uid ?? '';
+    await repo.saveEntry(
+      SongLabEntry(
+        id: _uuid.v4(),
+        songId: widget.song.id,
+        bandId: widget.bandId,
+        type: LabEntryType.versionChange,
+        title: 'Version: $name',
+        body: notes,
+        versionId: version.id,
+        authorId: uid,
+        createdAt: now,
+        updatedAt: now,
+      ),
+      bandId: widget.bandId,
+    );
+    if (!mounted) return;
+    showAppSnackBar(context, 'Version "$name" saved');
+  }
+
+  Future<void> _exportMarkdown() async {
+    final entries = await ref.read(labEntriesProvider(_key).future);
+    final tasks = await ref.read(labTasksProvider(_key).future);
+    final versions = await ref.read(labVersionsProvider(_key).future);
+    final md = buildLabMarkdown(
+      song: widget.song,
+      entries: entries,
+      tasks: tasks,
+      versions: versions,
+    );
+    final ok = await shareLabMarkdown(md, widget.song.title);
+    if (!ok && mounted) showAppSnackBar(context, 'Export failed');
+  }
+
   @override
   Widget build(BuildContext context) {
     return StandardScreenScaffold(
       title: 'Lab — ${widget.song.title}',
+      menuItems: [
+        AppMenuItem(
+          icon: Icons.bookmark_add_outlined,
+          label: 'Save version',
+          onTap: _saveVersion,
+        ),
+        AppMenuItem(
+          icon: Icons.description_outlined,
+          label: 'Export history (Markdown)',
+          onTap: _exportMarkdown,
+        ),
+      ],
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -742,6 +828,100 @@ class _ComposeTaskSheetState extends State<_ComposeTaskSheet> {
                     );
                   },
                   child: const Text('Add'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Save-version sheet (#70): name, optional notes, mark-current flag.
+class _SaveVersionSheet extends StatefulWidget {
+  const _SaveVersionSheet();
+
+  @override
+  State<_SaveVersionSheet> createState() => _SaveVersionSheetState();
+}
+
+class _SaveVersionSheetState extends State<_SaveVersionSheet> {
+  final _name = TextEditingController();
+  final _notes = TextEditingController();
+  bool _makeCurrent = true;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _notes.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Save version', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 4),
+            Text(
+              'A named snapshot of the song as it is right now — key, BPM, '
+              'structure and the full chord chart.',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: MonoPulseColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: MonoPulseSpacing.md),
+            TextField(
+              controller: _name,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Name (e.g. v0.3, Live, Acoustic)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: MonoPulseSpacing.md),
+            TextField(
+              controller: _notes,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'What changed? (optional)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Mark as current version'),
+              value: _makeCurrent,
+              onChanged: (v) => setState(() => _makeCurrent = v),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: MonoPulseSpacing.sm),
+                ElevatedButton(
+                  onPressed: () {
+                    final name = _name.text.trim();
+                    if (name.isEmpty) return;
+                    Navigator.pop(context, (
+                      name,
+                      _notes.text.trim().isEmpty ? null : _notes.text.trim(),
+                      _makeCurrent,
+                    ));
+                  },
+                  child: const Text('Save'),
                 ),
               ],
             ),
