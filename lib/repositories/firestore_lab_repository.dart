@@ -76,6 +76,16 @@ class FirestoreLabRepository {
   Future<void> deleteTask(String songId, String taskId, {String? bandId}) =>
       _songDoc(songId, bandId: bandId).collection('tasks').doc(taskId).delete();
 
+  /// Open tasks for one song, one-shot (the Practice screen homework list,
+  /// #68/#133).
+  Future<List<SongTask>> listOpenTasks(String songId, {String? bandId}) async {
+    final snap = await _songDoc(songId, bandId: bandId)
+        .collection('tasks')
+        .where('status', whereIn: ['todo', 'doing', 'blocked'])
+        .get();
+    return snap.docs.map((d) => SongTask.fromJson(d.data())).toList();
+  }
+
   /// Open tasks for one song, one-shot (the "before rehearsal" counter, #68).
   Future<int> openTaskCount(String songId, {String? bandId}) async {
     final snap = await _songDoc(songId, bandId: bandId)

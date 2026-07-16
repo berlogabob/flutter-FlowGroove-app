@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/data/data_providers.dart';
 import '../utils/analytics_debug.dart';
 import '../widgets/dashboard_grid.dart';
+import '../widgets/practice_dashboard_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/standard_screen_scaffold.dart';
 import '../widgets/tool_button.dart';
@@ -51,9 +52,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _HomeDashboard(BuildContext context, WidgetRef ref) {
-    // Home leads with actions (#97, launch-review feedback): no greeting card,
-    // no stat counters — the tabs themselves show the library.
+    // Home leads with actions (#97): no greeting card, no stat counters —
+    // the top slot carries the practice dashboard instead (#133).
     return DashboardGrid(
+      greetingCard: const PracticeDashboardCard(),
       statistics: const [],
       quickActions: [
             QuickActionButton(
