@@ -7,7 +7,6 @@ import '../../theme/mono_pulse_theme.dart';
 
 /// Forgot Password Screen - Firebase password reset
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
-  
   const ForgotPasswordScreen({super.key, this.initialEmail});
   final String? initialEmail;
 
@@ -86,8 +85,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reset Password'),
-        backgroundColor: MonoPulseColors.surface,
-        foregroundColor: MonoPulseColors.textPrimary,
+        backgroundColor: context.mp.surface,
+        foregroundColor: context.mp.textPrimary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
@@ -106,7 +105,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               Text(
                 'Forgot Password?',
                 style: MonoPulseTypography.headlineSmall.copyWith(
-                  color: MonoPulseColors.textPrimary,
+                  color: context.mp.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -114,7 +113,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               Text(
                 "Enter your email address and we'll send you instructions to reset your password.",
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -139,7 +138,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         child: Text(
                           _successMessage!,
                           style: MonoPulseTypography.bodyMedium.copyWith(
-                            color: MonoPulseColors.textPrimary,
+                            color: context.mp.textPrimary,
                           ),
                         ),
                       ),
@@ -168,7 +167,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         child: Text(
                           _errorMessage!,
                           style: MonoPulseTypography.bodyMedium.copyWith(
-                            color: MonoPulseColors.textPrimary,
+                            color: context.mp.textPrimary,
                           ),
                         ),
                       ),
@@ -181,27 +180,21 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 enabled: !_isLoading && !_emailSent,
-                style: const TextStyle(color: MonoPulseColors.textPrimary),
+                style: TextStyle(color: context.mp.textPrimary),
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  labelStyle: const TextStyle(
-                    color: MonoPulseColors.textSecondary,
-                  ),
-                  prefixIcon: const Icon(
+                  labelStyle: TextStyle(color: context.mp.textSecondary),
+                  prefixIcon: Icon(
                     Icons.email_outlined,
-                    color: MonoPulseColors.textSecondary,
+                    color: context.mp.textSecondary,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                    borderSide: const BorderSide(
-                      color: MonoPulseColors.borderDefault,
-                    ),
+                    borderSide: BorderSide(color: context.mp.borderDefault),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                    borderSide: const BorderSide(
-                      color: MonoPulseColors.borderDefault,
-                    ),
+                    borderSide: BorderSide(color: context.mp.borderDefault),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(MonoPulseRadius.small),
@@ -226,19 +219,21 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 onPressed: (!_isLoading && !_emailSent) ? _resetPassword : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MonoPulseColors.accentOrange,
-                  foregroundColor: MonoPulseColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
+                  foregroundColor: context.mp.textPrimary,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: MonoPulseSpacing.lg,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                   ),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: MonoPulseColors.textPrimary,
+                          color: context.mp.textPrimary,
                         ),
                       )
                     : _emailSent

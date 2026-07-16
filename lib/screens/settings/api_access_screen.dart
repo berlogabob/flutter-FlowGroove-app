@@ -146,7 +146,7 @@ class _ApiAccessScreenState extends State<ApiAccessScreen> {
               'MCP server locally, and your assistant (Claude, ChatGPT, Gemini) can '
               'read and add songs. FlowGroove never uses your AI tokens.',
               style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
             const SizedBox(height: MonoPulseSpacing.lg),

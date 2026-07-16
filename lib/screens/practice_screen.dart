@@ -45,6 +45,7 @@ class PracticeScreen extends ConsumerWidget {
           _sectionTitle(context, 'Homework'),
           if (homework.isEmpty)
             _quietText(
+              context,
               'Nothing open. Add tasks to a song from its Lab '
               '(song card → Song Lab).',
             )
@@ -83,6 +84,7 @@ class PracticeScreen extends ConsumerWidget {
           _sectionTitle(context, 'Recent sessions'),
           if (sessions.isEmpty)
             _quietText(
+              context,
               'No sessions yet — every metronome run lands here '
               'automatically.',
             )
@@ -99,12 +101,12 @@ class PracticeScreen extends ConsumerWidget {
     child: Text(title, style: MonoPulseTypography.titleMedium),
   );
 
-  Widget _quietText(String text) => Padding(
+  Widget _quietText(BuildContext context, String text) => Padding(
     padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
     child: Text(
       text,
       style: MonoPulseTypography.bodySmall.copyWith(
-        color: MonoPulseColors.textSecondary,
+        color: context.mp.textSecondary,
       ),
     ),
   );
@@ -171,7 +173,7 @@ class PracticeScreen extends ConsumerWidget {
             child: Text(
               label,
               style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
           ),
@@ -183,18 +185,14 @@ class PracticeScreen extends ConsumerWidget {
       rows.add(
         Row(
           children: [
-            const Icon(
-              Icons.music_note,
-              size: 16,
-              color: MonoPulseColors.textSecondary,
-            ),
+            Icon(Icons.music_note, size: 16, color: context.mp.textSecondary),
             const SizedBox(width: MonoPulseSpacing.sm),
             Expanded(child: Text(song, overflow: TextOverflow.ellipsis)),
             Text(
               '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'
               ' · ${s.startBpm} BPM',
               style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
           ],
@@ -214,20 +212,19 @@ class _TimePerSong extends StatelessWidget {
   final PracticeStats stats;
   final Map<String, String> titles;
 
-  // Sequential emphasis, same validated pair as the week bars.
-  static const _colors = [
-    MonoPulseColors.accentOrange,
-    Color(0xFFD9B49A),
-    Color(0xFF8A6A50),
-    MonoPulseColors.borderDefault,
-  ];
-
   @override
   Widget build(BuildContext context) {
     final entries = stats.perSongSeconds.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final top = entries.take(3).toList();
     final restSeconds = entries.skip(3).fold<int>(0, (sum, e) => sum + e.value);
+    // Sequential emphasis, same validated pair as the week bars.
+    final colors = [
+      MonoPulseColors.accentOrange,
+      const Color(0xFFD9B49A),
+      const Color(0xFF8A6A50),
+      context.mp.borderDefault,
+    ];
 
     String name(String id) =>
         id.isEmpty ? 'Freestyle' : titles[id] ?? 'Removed song';
@@ -250,7 +247,7 @@ class _TimePerSong extends StatelessWidget {
                   if (i > 0) const SizedBox(width: 2),
                   Expanded(
                     flex: segments[i].$2,
-                    child: ColoredBox(color: _colors[i]),
+                    child: ColoredBox(color: colors[i]),
                   ),
                 ],
               ],
@@ -267,7 +264,7 @@ class _TimePerSong extends StatelessWidget {
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _colors[i],
+                    color: colors[i],
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -282,7 +279,7 @@ class _TimePerSong extends StatelessWidget {
                 Text(
                   PracticeDashboardCard.formatMinutes(segments[i].$2),
                   style: MonoPulseTypography.bodySmall.copyWith(
-                    color: MonoPulseColors.textSecondary,
+                    color: context.mp.textSecondary,
                   ),
                 ),
               ],

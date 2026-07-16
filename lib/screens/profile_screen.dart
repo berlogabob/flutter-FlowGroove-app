@@ -55,8 +55,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // this screen and every other one (home greeting, band lists) always agree
   // and update together (#91). `ref.read` here so the getters are also safe
   // in bottom-sheet callbacks; build() watches the provider for rebuilds.
-  Map<String, dynamic>? get _userDoc =>
-      ref.read(userDocProvider).asData?.value;
+  Map<String, dynamic>? get _userDoc => ref.read(userDocProvider).asData?.value;
 
   String? get _avatarUrl {
     final doc = _userDoc;
@@ -188,8 +187,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       // readAsBytes() works on web (blob) and mobile; File(path) + putFile does not.
       // The upload writes photoURL to users/{uid}; the live doc stream
       // refreshes this screen and every other avatar in the app.
-      await StorageService()
-          .uploadProfilePicture(await pickedFile.readAsBytes());
+      await StorageService().uploadProfilePicture(
+        await pickedFile.readAsBytes(),
+      );
       if (!mounted) return;
       setState(() => _profilePhotoPath = null);
     } catch (e) {
@@ -212,7 +212,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void _showPhotoOptions() {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: MonoPulseColors.surface,
+      backgroundColor: context.mp.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -226,7 +226,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Icons.send,
                 color: _telegramId != null
                     ? MonoPulseColors.info
-                    : MonoPulseColors.textTertiary,
+                    : context.mp.textTertiary,
               ),
               title: Text(
                 _telegramId != null ? 'Use Telegram Photo' : 'Link Telegram',
@@ -238,9 +238,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             style: TextStyle(color: MonoPulseColors.success),
                           )
                         : null)
-                  : const Text(
+                  : Text(
                       'Import photo from Telegram',
-                      style: TextStyle(color: MonoPulseColors.textTertiary),
+                      style: TextStyle(color: context.mp.textTertiary),
                     ),
               onTap: () async {
                 Navigator.pop(context);
@@ -261,8 +261,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
             ),
             // Google option - only when google-linked
-            if (FirebaseAuth.instance.currentUser?.providerData
-                    .any((p) => p.providerId == 'google.com') ??
+            if (FirebaseAuth.instance.currentUser?.providerData.any(
+                  (p) => p.providerId == 'google.com',
+                ) ??
                 false)
               ListTile(
                 leading: const Icon(Icons.account_circle),
@@ -340,14 +341,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
     // On desktop web Telegram is usually on the phone, not this machine —
     // lead with a QR to scan instead of a deep link that dead-ends.
-    final isDesktopWeb = kIsWeb &&
+    final isDesktopWeb =
+        kIsWeb &&
         getBreakpoint(MediaQuery.of(context).size.width) ==
             ScreenBreakpoint.desktop;
 
     Future<void> copyLink(BuildContext context) async {
       await Clipboard.setData(ClipboardData(text: botLink));
       if (context.mounted) {
-        showAppSnackBar(context, 'Link copied - paste in Telegram to continue.');
+        showAppSnackBar(
+          context,
+          'Link copied - paste in Telegram to continue.',
+        );
       }
     }
 
@@ -363,7 +368,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Text(
                 'Link your Telegram account to automatically import your profile name and photo to FlowGroove.',
                 style: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -373,7 +378,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     padding: const EdgeInsets.all(MonoPulseSpacing.md),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+                      borderRadius: BorderRadius.circular(
+                        MonoPulseRadius.small,
+                      ),
                     ),
                     child: QrImageView(data: botLink, size: 160),
                   ),
@@ -383,7 +390,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: Text(
                     'Scan with your phone - Telegram opens the FlowGroove bot',
                     style: MonoPulseTypography.bodySmall.copyWith(
-                      color: MonoPulseColors.textSecondary,
+                      color: context.mp.textSecondary,
                     ),
                   ),
                 ),
@@ -392,7 +399,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(MonoPulseSpacing.md),
                 decoration: BoxDecoration(
-                  color: MonoPulseColors.surfaceRaised,
+                  color: context.mp.surfaceRaised,
                   borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                 ),
                 child: Column(
@@ -448,7 +455,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 final opened = await telegramService.openBotChat(userId);
                 if (!opened && mounted) {
                   await Clipboard.setData(ClipboardData(text: botLink));
-                  showAppSnackBar(context, 'Could not open Telegram. Link copied to clipboard - paste in Telegram to continue.');
+                  showAppSnackBar(
+                    context,
+                    'Could not open Telegram. Link copied to clipboard - paste in Telegram to continue.',
+                  );
                 }
               },
               icon: const Icon(Icons.send),
@@ -533,16 +543,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       children: [
                         CircleAvatar(
                           radius: 50,
-                          backgroundColor: MonoPulseColors.surfaceRaised,
+                          backgroundColor: context.mp.surfaceRaised,
                           backgroundImage: _getProfileImage(),
                           child: _getProfileImage() == null
                               ? Text(
                                   user?.email?.substring(0, 1).toUpperCase() ??
                                       '?',
-                                  style: MonoPulseTypography.displayLarge.copyWith(
-                                    color: MonoPulseColors.accentOrange,
-                                    fontWeight: MonoPulseTypography.bold,
-                                  ),
+                                  style: MonoPulseTypography.displayLarge
+                                      .copyWith(
+                                        color: MonoPulseColors.accentOrange,
+                                        fontWeight: MonoPulseTypography.bold,
+                                      ),
                                 )
                               : null,
                         ),
@@ -551,15 +562,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             bottom: 0,
                             right: 0,
                             child: Container(
-                              padding: const EdgeInsets.all(MonoPulseSpacing.xs),
+                              padding: const EdgeInsets.all(
+                                MonoPulseSpacing.xs,
+                              ),
                               decoration: const BoxDecoration(
                                 color: MonoPulseColors.accentOrange,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.camera_alt,
                                 size: 16,
-                                color: MonoPulseColors.textPrimary,
+                                color: context.mp.textPrimary,
                               ),
                             ),
                           ),
@@ -607,7 +620,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: MonoPulseTypography.headlineLarge.copyWith(
-                              color: MonoPulseColors.textPrimary,
+                              color: context.mp.textPrimary,
                             ),
                           ),
                         ),
@@ -620,7 +633,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   : displayName;
                               setState(() => _isEditingName = true);
                             },
-                            color: MonoPulseColors.textSecondary,
+                            color: context.mp.textSecondary,
                           ),
                       ],
                     ),
@@ -628,7 +641,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Text(
                     user?.email ?? '',
                     style: MonoPulseTypography.bodyLarge.copyWith(
-                      color: MonoPulseColors.textSecondary,
+                      color: context.mp.textSecondary,
                     ),
                   ),
                 ],
@@ -724,7 +737,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Text(
                 'Delete account',
                 style: MonoPulseTypography.bodySmall.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                   decoration: TextDecoration.underline,
                 ),
               ),
@@ -789,7 +802,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } catch (_) {
       if (!mounted) return;
       Navigator.pop(context); // dismiss progress
-      showAppSnackBar(context, 'Could not delete your account. Please try again.');
+      showAppSnackBar(
+        context,
+        'Could not delete your account. Please try again.',
+      );
     }
   }
 
@@ -801,11 +817,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: MonoPulseSpacing.xs, bottom: MonoPulseSpacing.sm),
+          padding: const EdgeInsets.only(
+            left: MonoPulseSpacing.xs,
+            bottom: MonoPulseSpacing.sm,
+          ),
           child: Text(
             title,
             style: MonoPulseTypography.labelLarge.copyWith(
-              color: MonoPulseColors.textSecondary,
+              color: context.mp.textSecondary,
             ),
           ),
         ),
@@ -839,9 +858,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(height: 8),
               ],
               if (roles.isEmpty)
-                const Text(
+                Text(
                   'Tap edit to add your instruments and roles.',
-                  style: TextStyle(color: MonoPulseColors.textTertiary),
+                  style: TextStyle(color: context.mp.textTertiary),
                 )
               else
                 Wrap(
@@ -854,7 +873,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       label: Text(
                         icon != null ? '$icon $displayName' : displayName,
                         style: MonoPulseTypography.bodySmall.copyWith(
-                          color: MonoPulseColors.textPrimary,
+                          color: context.mp.textPrimary,
                         ),
                       ),
                       backgroundColor: MonoPulseColors.accentOrange10,
@@ -904,7 +923,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
-    required VoidCallback onTap, String? subtitle,
+    required VoidCallback onTap,
+    String? subtitle,
   }) {
     return ListTile(
       leading: Icon(icon, color: MonoPulseColors.accentOrange),
@@ -918,10 +938,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildInfoItem({required String title, required String value}) {
     return ListTile(
       title: Text(title),
-      trailing: Text(
-        value,
-        style: const TextStyle(color: MonoPulseColors.textSecondary),
-      ),
+      trailing: Text(value, style: TextStyle(color: context.mp.textSecondary)),
     );
   }
 }

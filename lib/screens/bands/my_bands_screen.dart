@@ -390,7 +390,6 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 }
 
 class _InviteMemberDialog extends ConsumerStatefulWidget {
-
   const _InviteMemberDialog({required this.band, required this.currentUserId});
   final Band band;
   final String currentUserId;
@@ -539,7 +538,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                     child: Text(
                       _currentError?.message ?? 'An unexpected error occurred',
                       style: MonoPulseTypography.bodySmall.copyWith(
-                        color: MonoPulseColors.textPrimary,
+                        color: context.mp.textPrimary,
                       ),
                     ),
                   ),
@@ -589,7 +588,6 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
 
 /// Action class for View Songs button
 class _ViewSongsAction implements UnifiedItemAction {
-
   _ViewSongsAction({required this.band, required this.onNavigate});
   final Band band;
   final void Function(Band) onNavigate;

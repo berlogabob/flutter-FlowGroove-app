@@ -85,7 +85,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final idToken = event.user.authentication.idToken;
       if (idToken == null) {
-        throw ApiError.auth(message: 'Google sign-in failed: missing ID token.');
+        throw ApiError.auth(
+          message: 'Google sign-in failed: missing ID token.',
+        );
       }
       await ref.read(appUserProvider.notifier).completeWebGoogleSignIn(idToken);
       await _afterLoginSuccess('google');
@@ -111,7 +113,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
 
     if (pendingJoinCode != null) {
-      await context.pushNamed('join-band', queryParameters: {'code': pendingJoinCode});
+      await context.pushNamed(
+        'join-band',
+        queryParameters: {'code': pendingJoinCode},
+      );
     } else {
       context.go('/main/home');
     }
@@ -266,7 +271,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Text(
                 'Sign in to manage your band',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -323,15 +328,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: MonoPulseSpacing.lg,
+                  ),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: MonoPulseColors.textPrimary,
+                          color: context.mp.textPrimary,
                         ),
                       )
                     : const Text('Sign In'),
@@ -376,7 +383,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Text(
                 'Just looking around?',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -395,7 +402,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Text(
                 'Read-only access to explore all features',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: MonoPulseColors.textTertiary,
+                  color: context.mp.textTertiary,
                   fontSize: 11,
                 ),
                 textAlign: TextAlign.center,

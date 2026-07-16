@@ -171,10 +171,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: MonoPulseColors.accentOrange,
               onPrimary: Colors.white,
-              onSurface: MonoPulseColors.textPrimary,
+              onSurface: context.mp.textPrimary,
             ),
           ),
           child: child!,
@@ -412,7 +412,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                           _showEventDetails
                               ? Icons.expand_less
                               : Icons.expand_more,
-                          color: MonoPulseColors.textSecondary,
+                          color: context.mp.textSecondary,
                         ),
                         onPressed: () => setState(
                           () => _showEventDetails = !_showEventDetails,
@@ -428,20 +428,20 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: MonoPulseColors.surfaceRaised,
+                          color: context.mp.surfaceRaised,
                           borderRadius: BorderRadius.circular(
                             MonoPulseRadius.large,
                           ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.calendar_today,
-                          color: MonoPulseColors.textSecondary,
+                          color: context.mp.textSecondary,
                         ),
                       ),
                       title: Text(
                         'Event Date',
                         style: MonoPulseTypography.bodySmall.copyWith(
-                          color: MonoPulseColors.textSecondary,
+                          color: context.mp.textSecondary,
                         ),
                       ),
                       subtitle: Text(
@@ -450,8 +450,8 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                             : 'Tap to select date',
                         style: MonoPulseTypography.bodyLarge.copyWith(
                           color: _eventDate != null
-                              ? MonoPulseColors.textPrimary
-                              : MonoPulseColors.textTertiary,
+                              ? context.mp.textPrimary
+                              : context.mp.textTertiary,
                         ),
                       ),
                       trailing: Row(
@@ -459,15 +459,15 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                         children: [
                           if (_eventDate != null)
                             IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.clear,
-                                color: MonoPulseColors.textSecondary,
+                                color: context.mp.textSecondary,
                               ),
                               onPressed: _clearDate,
                             ),
-                          const Icon(
+                          Icon(
                             Icons.chevron_right,
-                            color: MonoPulseColors.textSecondary,
+                            color: context.mp.textSecondary,
                           ),
                         ],
                       ),
@@ -535,26 +535,22 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                     Container(
                       padding: const EdgeInsets.all(MonoPulseSpacing.xxxl),
                       decoration: BoxDecoration(
-                        border: Border.all(
-                          color: MonoPulseColors.borderDefault,
-                        ),
+                        border: Border.all(color: context.mp.borderDefault),
                         borderRadius: BorderRadius.circular(
                           MonoPulseRadius.medium,
                         ),
                       ),
-                      child: const Column(
+                      child: Column(
                         children: [
                           Icon(
                             Icons.music_note,
                             size: 48,
-                            color: MonoPulseColors.textTertiary,
+                            color: context.mp.textTertiary,
                           ),
-                          SizedBox(height: MonoPulseSpacing.md),
+                          const SizedBox(height: MonoPulseSpacing.md),
                           Text(
                             'No songs added',
-                            style: TextStyle(
-                              color: MonoPulseColors.textSecondary,
-                            ),
+                            style: TextStyle(color: context.mp.textSecondary),
                           ),
                         ],
                       ),
@@ -591,9 +587,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                 MonoPulseRadius.medium,
                               ),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.delete,
-                              color: MonoPulseColors.textPrimary,
+                              color: context.mp.textPrimary,
                             ),
                           ),
                           onDismissed: (_) {
@@ -623,9 +619,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                             song: song,
                             leading: ReorderableDragStartListener(
                               index: index,
-                              child: const Icon(
+                              child: Icon(
                                 Icons.drag_handle,
-                                color: MonoPulseColors.textTertiary,
+                                color: context.mp.textTertiary,
                               ),
                             ),
                             trailing: song == null

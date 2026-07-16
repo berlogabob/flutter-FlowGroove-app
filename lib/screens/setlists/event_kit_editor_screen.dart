@@ -109,7 +109,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MonoPulseColors.black,
+      backgroundColor: context.mp.black,
       bottomNavigationBar: AppBottomBar.actions(
         onBack: () => Navigator.pop(context, _kit),
         title: 'Event kit',
@@ -124,7 +124,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
               'Tap a zone to place people and gear. Long-press a chip to '
               'remove it. Top row is the back of the stage.',
               style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
             const SizedBox(height: MonoPulseSpacing.md),
@@ -134,7 +134,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
               child: Text(
                 '▼ audience ▼',
                 style: MonoPulseTypography.bodySmall.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
               ),
             ),
@@ -169,9 +169,9 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
                 title: Text(
                   '${r.label}${r.qty != null ? ' ×${r.qty}' : ''}',
                   style: r.done
-                      ? const TextStyle(
+                      ? TextStyle(
                           decoration: TextDecoration.lineThrough,
-                          color: MonoPulseColors.textSecondary,
+                          color: context.mp.textSecondary,
                         )
                       : null,
                 ),
@@ -201,7 +201,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
               'Everyone involved in this event — band, crew and guests. '
               'These print in the event-guide PDF.',
               style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
             const SizedBox(height: MonoPulseSpacing.md),
@@ -234,7 +234,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
         'No people yet — band members appear here automatically for band '
         'setlists; add crew above.',
         style: MonoPulseTypography.bodySmall.copyWith(
-          color: MonoPulseColors.textTertiary,
+          color: context.mp.textTertiary,
         ),
       );
     }
@@ -280,7 +280,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: MonoPulseTypography.bodySmall.copyWith(
-                    color: MonoPulseColors.textSecondary,
+                    color: context.mp.textSecondary,
                   ),
                 ),
             ],
@@ -319,8 +319,8 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
           constraints: const BoxConstraints(minHeight: 84),
           padding: const EdgeInsets.all(MonoPulseSpacing.xs),
           decoration: BoxDecoration(
-            color: MonoPulseColors.surface,
-            border: Border.all(color: MonoPulseColors.borderDefault),
+            color: context.mp.surface,
+            border: Border.all(color: context.mp.borderDefault),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Wrap(
@@ -328,11 +328,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
             runSpacing: 2,
             children: [
               if (placements.isEmpty)
-                const Icon(
-                  Icons.add,
-                  size: 14,
-                  color: MonoPulseColors.textTertiary,
-                ),
+                Icon(Icons.add, size: 14, color: context.mp.textTertiary),
               for (final p in placements)
                 GestureDetector(
                   onLongPress: () => _removeFromZone(zoneId, p),

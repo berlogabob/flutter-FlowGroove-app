@@ -37,7 +37,6 @@ import '../setlists/create_setlist_screen.dart';
 /// - Quick actions: Add Song (to band), Add Setlist (to band), Band Bank, Add Member, Rehearsals
 /// - Collapsible/expandable widgets with autosave (via BandAboutScreen for editing)
 class TheBandScreen extends ConsumerStatefulWidget {
-
   const TheBandScreen({required this.band, super.key});
   final Band band;
 
@@ -150,11 +149,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         label: 'Edit Description',
         onTap: _canEdit ? _showEditDescriptionDialog : null,
       ),
-      AppMenuItem(
-        icon: Icons.add,
-        label: 'Add Song',
-        onTap: _handleAddSong,
-      ),
+      AppMenuItem(icon: Icons.add, label: 'Add Song', onTap: _handleAddSong),
       AppMenuItem(
         icon: Icons.playlist_add,
         label: 'Add Setlist',
@@ -226,7 +221,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         icon: Icons.queue_music,
         label: 'Setlists',
         value: setlistCount,
-        color: MonoPulseColors.textSecondary,
+        color: context.mp.textSecondary,
         onTap: () => context.goNamed(
           'band-setlists',
           pathParameters: {'id': widget.band.id},
@@ -237,7 +232,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         icon: Icons.people,
         label: 'Members',
         value: memberCount,
-        color: MonoPulseColors.textSecondary,
+        color: context.mp.textSecondary,
         onTap: _handleEditMembers,
       ),
     ];
@@ -293,7 +288,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
+        border: Border.all(color: context.mp.borderSubtle),
       ),
       child: Row(
         children: [
@@ -310,16 +305,16 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: MonoPulseColors.textPrimary,
+                color: context.mp.textPrimary,
               ),
             ),
           ),
           const SizedBox(width: MonoPulseSpacing.md),
           Text(
             memberCount == 1 ? '1 member' : '$memberCount members',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: MonoPulseColors.textTertiary,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: context.mp.textTertiary),
           ),
         ],
       ),
@@ -538,8 +533,10 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     );
     if (picked == null) return;
     try {
-      final url = await AvatarFunctionService()
-          .setBandAvatar(File(picked.path), _band.id);
+      final url = await AvatarFunctionService().setBandAvatar(
+        File(picked.path),
+        _band.id,
+      );
       if (!mounted) return;
       setState(() => _band = _band.copyWith(photoURL: url));
     } catch (e) {

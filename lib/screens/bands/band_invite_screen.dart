@@ -73,7 +73,7 @@ class BandInviteScreen extends StatelessWidget {
                       Text(
                         'Invite code',
                         style: MonoPulseTypography.bodySmall.copyWith(
-                          color: MonoPulseColors.textTertiary,
+                          color: context.mp.textTertiary,
                         ),
                       ),
                       const SizedBox(height: MonoPulseSpacing.xs),
@@ -107,12 +107,12 @@ class BandInviteScreen extends StatelessWidget {
                     ],
                   ),
                 )
-              : const Center(
+              : Center(
                   child: Padding(
-                    padding: EdgeInsets.all(MonoPulseSpacing.xl),
+                    padding: const EdgeInsets.all(MonoPulseSpacing.xl),
                     child: Text(
                       'No invite code available for this band.',
-                      style: TextStyle(color: MonoPulseColors.textSecondary),
+                      style: TextStyle(color: context.mp.textSecondary),
                     ),
                   ),
                 ),

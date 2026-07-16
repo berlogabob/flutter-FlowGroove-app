@@ -70,7 +70,7 @@ class _RecorderScreenState extends ConsumerState<RecorderScreen> {
               'gets away. Link takes to songs later; linked ones move into '
               "the song's Lab.",
               style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             )
           else
