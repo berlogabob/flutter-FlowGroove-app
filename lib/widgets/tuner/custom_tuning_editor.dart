@@ -93,9 +93,9 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.8,
       ),
-      decoration: const BoxDecoration(
-        color: MonoPulseColors.surface,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: context.mp.surface,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(MonoPulseRadius.xlarge),
         ),
       ),
@@ -109,7 +109,7 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: MonoPulseColors.borderStrong,
+                color: context.mp.borderStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -121,7 +121,7 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             ),
             child: DropdownButtonFormField<TunerPresetScope>(
               initialValue: _scope,
-              dropdownColor: MonoPulseColors.surfaceRaised,
+              dropdownColor: context.mp.surfaceRaised,
               decoration: const InputDecoration(labelText: 'Save preset to'),
               items: _availableScopes
                   .map(
@@ -152,19 +152,19 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
                 Text(
                   'Custom Tuning',
                   style: MonoPulseTypography.headlineSmall.copyWith(
-                    color: MonoPulseColors.textHighEmphasis,
+                    color: context.mp.textHighEmphasis,
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 24),
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
             ),
           ),
 
-          const Divider(height: 1, color: MonoPulseColors.borderSubtle),
+          Divider(height: 1, color: context.mp.borderSubtle),
 
           // Tuning name input
           Padding(
@@ -175,15 +175,15 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             child: TextField(
               controller: _nameController,
               style: MonoPulseTypography.bodyLarge.copyWith(
-                color: MonoPulseColors.textHighEmphasis,
+                color: context.mp.textHighEmphasis,
               ),
               decoration: InputDecoration(
                 hintText: 'Tuning name (e.g., My Open G)',
                 hintStyle: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textTertiary,
+                  color: context.mp.textTertiary,
                 ),
                 filled: true,
-                fillColor: MonoPulseColors.surfaceRaised,
+                fillColor: context.mp.surfaceRaised,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
                   borderSide: BorderSide.none,
@@ -229,7 +229,7 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             ),
           ),
 
-          const Divider(height: 1, color: MonoPulseColors.borderSubtle),
+          Divider(height: 1, color: context.mp.borderSubtle),
 
           // Save button
           Padding(
@@ -308,9 +308,12 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      showAppSnackBar(context, _scope == TunerPresetScope.local
-                ? 'The preset could not be saved.'
-                : 'Sign in and check your band permissions before syncing this preset.');
+      showAppSnackBar(
+        context,
+        _scope == TunerPresetScope.local
+            ? 'The preset could not be saved.'
+            : 'Sign in and check your band permissions before syncing this preset.',
+      );
     }
   }
 }
@@ -376,7 +379,7 @@ class _StringNotePickerState extends State<_StringNotePicker> {
           child: Text(
             widget.stringLabel,
             style: MonoPulseTypography.labelMedium.copyWith(
-              color: MonoPulseColors.textTertiary,
+              color: context.mp.textTertiary,
               fontWeight: MonoPulseTypography.semibold,
             ),
           ),
@@ -437,23 +440,20 @@ class _DropdownSelector<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
+        border: Border.all(color: context.mp.borderSubtle),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           value: value,
           isExpanded: true,
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          dropdownColor: MonoPulseColors.surfaceRaised,
+          dropdownColor: context.mp.surfaceRaised,
           style: MonoPulseTypography.bodyMedium.copyWith(
-            color: MonoPulseColors.textHighEmphasis,
+            color: context.mp.textHighEmphasis,
           ),
-          icon: const Icon(
-            Icons.arrow_drop_down,
-            color: MonoPulseColors.textTertiary,
-          ),
+          icon: Icon(Icons.arrow_drop_down, color: context.mp.textTertiary),
           items: items.map((item) {
             return DropdownMenuItem<T>(
               value: item,

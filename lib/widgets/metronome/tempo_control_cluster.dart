@@ -156,10 +156,10 @@ class _CornerStepButtonState extends State<_CornerStepButton> {
   Widget build(BuildContext context) {
     final color = widget.accent
         ? MonoPulseColors.accentOrange
-        : MonoPulseColors.textSecondary;
+        : context.mp.textSecondary;
     final background = widget.accent
         ? MonoPulseColors.accentOrange10
-        : MonoPulseColors.surfaceRaised;
+        : context.mp.surfaceRaised;
 
     return Semantics(
       button: true,
@@ -183,7 +183,7 @@ class _CornerStepButtonState extends State<_CornerStepButton> {
               border: Border.all(
                 color: widget.accent
                     ? MonoPulseColors.accentOrange.withValues(alpha: 0.5)
-                    : MonoPulseColors.borderDefault,
+                    : context.mp.borderDefault,
                 width: 1.5,
               ),
             ),

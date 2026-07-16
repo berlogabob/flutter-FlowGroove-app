@@ -112,12 +112,12 @@ class _ModePill extends StatelessWidget {
           decoration: BoxDecoration(
             color: isActive
                 ? MonoPulseColors.accentOrange10
-                : MonoPulseColors.surface,
+                : context.mp.surface,
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             border: Border.all(
               color: isActive
                   ? MonoPulseColors.accentOrange
-                  : MonoPulseColors.borderSubtle,
+                  : context.mp.borderSubtle,
               width: 1.5,
             ),
           ),
@@ -129,7 +129,7 @@ class _ModePill extends StatelessWidget {
                   icon,
                   color: isActive
                       ? MonoPulseColors.accentOrange
-                      : MonoPulseColors.textSecondary,
+                      : context.mp.textSecondary,
                   size: 18,
                 ),
                 const SizedBox(width: 8),
@@ -139,7 +139,7 @@ class _ModePill extends StatelessWidget {
                 style: MonoPulseTypography.labelLarge.copyWith(
                   color: isActive
                       ? MonoPulseColors.accentOrange
-                      : MonoPulseColors.textSecondary,
+                      : context.mp.textSecondary,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),

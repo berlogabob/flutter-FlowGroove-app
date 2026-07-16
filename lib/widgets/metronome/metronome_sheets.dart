@@ -15,7 +15,7 @@ Future<void> _showSheet(BuildContext context, Widget child) {
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: MonoPulseColors.blackSurface,
+    backgroundColor: context.mp.blackSurface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
         top: Radius.circular(MonoPulseRadius.xlarge),
@@ -50,7 +50,7 @@ class _SheetScaffold extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: MonoPulseColors.borderDefault,
+                color: context.mp.borderDefault,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -59,7 +59,7 @@ class _SheetScaffold extends StatelessWidget {
           Text(
             title,
             style: MonoPulseTypography.headlineSmall.copyWith(
-              color: MonoPulseColors.textHighEmphasis,
+              color: context.mp.textHighEmphasis,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -119,17 +119,15 @@ class _SoundSheet extends ConsumerWidget {
                 HapticFeedback.selectionClick();
               },
               selectedColor: MonoPulseColors.accentOrange,
-              backgroundColor: MonoPulseColors.surfaceRaised,
+              backgroundColor: context.mp.surfaceRaised,
               labelStyle: MonoPulseTypography.labelMedium.copyWith(
-                color: selected
-                    ? MonoPulseColors.black
-                    : MonoPulseColors.textSecondary,
+                color: selected ? context.mp.black : context.mp.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
               side: BorderSide(
                 color: selected
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.borderSubtle,
+                    : context.mp.borderSubtle,
               ),
             );
           }).toList(),
@@ -168,7 +166,7 @@ class _SoundSheet extends ConsumerWidget {
           onChanged: notifier.setAccentBeatFrequency,
           accentColor: MonoPulseColors.beatModeAccent,
         ),
-        const Divider(color: MonoPulseColors.borderSubtle, height: 1),
+        Divider(color: context.mp.borderSubtle, height: 1),
         _SwitchRow(
           label: 'Visual flash',
           icon: Icons.flash_on,
@@ -214,24 +212,24 @@ class _CountInSheet extends ConsumerWidget {
           children: _options.map((value) {
             final selected = countInBars == value;
             return ChoiceChip(
-              label: Text(value == 0 ? 'Off' : '$value bar${value > 1 ? 's' : ''}'),
+              label: Text(
+                value == 0 ? 'Off' : '$value bar${value > 1 ? 's' : ''}',
+              ),
               selected: selected,
               onSelected: (_) {
                 notifier.setCountInBars(value);
                 HapticFeedback.selectionClick();
               },
               selectedColor: MonoPulseColors.accentOrange,
-              backgroundColor: MonoPulseColors.surfaceRaised,
+              backgroundColor: context.mp.surfaceRaised,
               labelStyle: MonoPulseTypography.labelMedium.copyWith(
-                color: selected
-                    ? MonoPulseColors.black
-                    : MonoPulseColors.textSecondary,
+                color: selected ? context.mp.black : context.mp.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
               side: BorderSide(
                 color: selected
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.borderSubtle,
+                    : context.mp.borderSubtle,
               ),
             );
           }).toList(),
@@ -318,8 +316,8 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
           const SizedBox(height: MonoPulseSpacing.lg),
           FilledButton.icon(
             style: FilledButton.styleFrom(
-              backgroundColor: MonoPulseColors.surfaceRaised,
-              foregroundColor: MonoPulseColors.textPrimary,
+              backgroundColor: context.mp.surfaceRaised,
+              foregroundColor: context.mp.textPrimary,
             ),
             icon: const Icon(Icons.stop),
             label: const Text('Stop ramp'),
@@ -339,11 +337,17 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
         const SizedBox(height: MonoPulseSpacing.md),
         Row(
           children: [
-            Expanded(child: _NumField(label: 'Target BPM', controller: _target)),
+            Expanded(
+              child: _NumField(label: 'Target BPM', controller: _target),
+            ),
             const SizedBox(width: MonoPulseSpacing.md),
-            Expanded(child: _NumField(label: 'Step', controller: _step)),
+            Expanded(
+              child: _NumField(label: 'Step', controller: _step),
+            ),
             const SizedBox(width: MonoPulseSpacing.md),
-            Expanded(child: _NumField(label: 'Every', controller: _every)),
+            Expanded(
+              child: _NumField(label: 'Every', controller: _every),
+            ),
           ],
         ),
         const SizedBox(height: MonoPulseSpacing.lg),
@@ -370,7 +374,7 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
         FilledButton.icon(
           style: FilledButton.styleFrom(
             backgroundColor: MonoPulseColors.accentOrange,
-            foregroundColor: MonoPulseColors.black,
+            foregroundColor: context.mp.black,
           ),
           icon: const Icon(Icons.trending_up),
           label: const Text('Start ramp'),
@@ -394,7 +398,7 @@ class _SheetLabel extends StatelessWidget {
     return Text(
       text,
       style: MonoPulseTypography.bodySmall.copyWith(
-        color: MonoPulseColors.textTertiary,
+        color: context.mp.textTertiary,
       ),
     );
   }
@@ -435,7 +439,7 @@ class _SliderRow extends StatelessWidget {
             Text(
               label,
               style: MonoPulseTypography.labelMedium.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
             Text(
@@ -483,14 +487,14 @@ class _SwitchRow extends StatelessWidget {
             size: 20,
             color: value
                 ? MonoPulseColors.accentOrange
-                : MonoPulseColors.textTertiary,
+                : context.mp.textTertiary,
           ),
           const SizedBox(width: MonoPulseSpacing.md),
           Expanded(
             child: Text(
               label,
               style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textHighEmphasis,
+                color: context.mp.textHighEmphasis,
               ),
             ),
           ),
@@ -523,7 +527,7 @@ class _NumField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: MonoPulseColors.surfaceRaised,
+        fillColor: context.mp.surfaceRaised,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
           borderSide: BorderSide.none,

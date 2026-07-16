@@ -145,7 +145,7 @@ class _PlayPauseButton extends StatelessWidget {
         ),
         child: Icon(
           isPlaying ? Icons.pause : Icons.play_arrow,
-          color: MonoPulseColors.black,
+          color: context.mp.black,
           size: size * 0.5,
         ),
       ),
@@ -181,14 +181,12 @@ class _TransportButton extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: MonoPulseColors.surfaceRaised,
-            border: Border.all(color: MonoPulseColors.borderSubtle),
+            color: context.mp.surfaceRaised,
+            border: Border.all(color: context.mp.borderSubtle),
           ),
           child: Icon(
             icon,
-            color: enabled
-                ? MonoPulseColors.textSecondary
-                : MonoPulseColors.textDisabled,
+            color: enabled ? context.mp.textSecondary : context.mp.textDisabled,
             size: size * 0.4,
           ),
         ),

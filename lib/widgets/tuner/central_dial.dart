@@ -64,9 +64,10 @@ class CentralDial extends ConsumerWidget {
                   signalLabel: switch (state.signalState.name) {
                     // Below the noise floor but with audible input → ask for
                     // a louder note rather than implying nothing is heard.
-                    'noSignal' => state.inputLevelDb > -70
-                        ? 'Too quiet — play one note louder'
-                        : 'Play a note',
+                    'noSignal' =>
+                      state.inputLevelDb > -70
+                          ? 'Too quiet — play one note louder'
+                          : 'Play a note',
                     'unstable' => 'Let the note ring',
                     _ => 'Tap Listen to start',
                   },
@@ -142,8 +143,8 @@ class _InteractiveDialState extends State<_InteractiveDial> {
         height: widget.size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: MonoPulseColors.surface,
-          border: Border.all(color: MonoPulseColors.borderSubtle),
+          color: context.mp.surface,
+          border: Border.all(color: context.mp.borderSubtle),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -330,7 +331,7 @@ class _FrequencyDisplay extends StatelessWidget {
           style: TextStyle(
             fontSize: noteFontSize,
             fontWeight: MonoPulseTypography.bold,
-            color: MonoPulseColors.textHighEmphasis,
+            color: context.mp.textHighEmphasis,
             letterSpacing: -2,
             height: 1,
           ),
@@ -342,7 +343,7 @@ class _FrequencyDisplay extends StatelessWidget {
           Text(
             '${frequency.round()} Hz',
             style: MonoPulseTypography.bodyLarge.copyWith(
-              color: MonoPulseColors.textTertiary,
+              color: context.mp.textTertiary,
               fontWeight: MonoPulseTypography.medium,
               fontSize: subFontSize,
             ),
@@ -355,7 +356,7 @@ class _FrequencyDisplay extends StatelessWidget {
                 ? 'Starting microphone…'
                 : signalLabel,
             style: MonoPulseTypography.bodyLarge.copyWith(
-              color: MonoPulseColors.textTertiary,
+              color: context.mp.textTertiary,
               fontWeight: MonoPulseTypography.medium,
               fontSize: subFontSize,
             ),
@@ -391,11 +392,11 @@ class _CentsDisplay extends StatelessWidget {
     if (isInTune) {
       centsColor = MonoPulseColors.accentOrange;
     } else if (cents.abs() <= 10) {
-      centsColor = MonoPulseColors.textHighEmphasis;
+      centsColor = context.mp.textHighEmphasis;
     } else if (cents.abs() <= 25) {
-      centsColor = MonoPulseColors.textSecondary;
+      centsColor = context.mp.textSecondary;
     } else {
-      centsColor = MonoPulseColors.textTertiary;
+      centsColor = context.mp.textTertiary;
     }
 
     final sign = cents > 0 ? '+' : '';
@@ -478,15 +479,15 @@ class _RadialGradientOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
           radius: 0.9,
           colors: [
-            MonoPulseColors.surfaceRaised, // Lighter center
-            MonoPulseColors.blackSurface, // Darker edges
+            context.mp.surfaceRaised, // Lighter center
+            context.mp.blackSurface, // Darker edges
           ],
-          stops: [0.0, 1.0],
+          stops: const [0.0, 1.0],
         ),
       ),
     );

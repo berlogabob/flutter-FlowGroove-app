@@ -70,6 +70,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
                   painter: TempoDialPainter(
                     bpm: state.bpm.toDouble(),
                     isPlaying: state.isPlaying,
+                    trackColor: context.mp.surfaceOverlay,
                   ),
                   child: Center(
                     child: FittedBox(
@@ -85,13 +86,13 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
                               fontWeight: FontWeight.w700,
                               color: state.isPlaying
                                   ? MonoPulseColors.accentOrange
-                                  : MonoPulseColors.textPrimary,
+                                  : context.mp.textPrimary,
                             ),
                           ),
                           Text(
                             'BPM',
                             style: MonoPulseTypography.bodyLarge.copyWith(
-                              color: MonoPulseColors.textSecondary.withValues(
+                              color: context.mp.textSecondary.withValues(
                                 alpha: 0.7,
                               ),
                             ),
@@ -121,7 +122,6 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
       HapticFeedback.selectionClick();
     }
   }
-
 }
 
 /// Simplified Mono Pulse tempo dial: a thick grey track with an orange
@@ -129,10 +129,14 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
 /// white knob (orange ring) at the arc head. No tick labels — the centred BPM
 /// readout carries the number (audit A6: "simplified dial").
 class TempoDialPainter extends CustomPainter {
-
-  TempoDialPainter({required this.bpm, required this.isPlaying});
+  TempoDialPainter({
+    required this.bpm,
+    required this.isPlaying,
+    required this.trackColor,
+  });
   final double bpm;
   final bool isPlaying;
+  final Color trackColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -143,7 +147,7 @@ class TempoDialPainter extends CustomPainter {
 
     // Grey track (full gauge sweep).
     final trackPaint = Paint()
-      ..color = MonoPulseColors.surfaceOverlay
+      ..color = trackColor
       ..strokeWidth = stroke
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -174,7 +178,9 @@ class TempoDialPainter extends CustomPainter {
     }
 
     // White knob with an orange ring at the arc head.
-    final knob = center + Offset(math.cos(currentAngle), math.sin(currentAngle)) * radius;
+    final knob =
+        center +
+        Offset(math.cos(currentAngle), math.sin(currentAngle)) * radius;
     canvas.drawCircle(
       knob,
       stroke * 0.62,
@@ -193,6 +199,8 @@ class TempoDialPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(TempoDialPainter oldDelegate) {
-    return bpm != oldDelegate.bpm || isPlaying != oldDelegate.isPlaying;
+    return bpm != oldDelegate.bpm ||
+        isPlaying != oldDelegate.isPlaying ||
+        trackColor != oldDelegate.trackColor;
   }
 }

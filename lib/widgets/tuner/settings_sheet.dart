@@ -16,9 +16,9 @@ class TunerSettingsSheet extends ConsumerWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.82,
       ),
-      decoration: const BoxDecoration(
-        color: MonoPulseColors.surface,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: context.mp.surface,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(MonoPulseRadius.large),
         ),
       ),
@@ -38,13 +38,13 @@ class TunerSettingsSheet extends ConsumerWidget {
                   child: Text(
                     'Tuner Settings',
                     style: MonoPulseTypography.titleMedium.copyWith(
-                      color: MonoPulseColors.textHighEmphasis,
+                      color: context.mp.textHighEmphasis,
                     ),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -111,19 +111,19 @@ class TunerSettingsSheet extends ConsumerWidget {
                     onChanged: (_) => notifier.toggleStageModeEnabled(),
                   ),
                   const SizedBox(height: MonoPulseSpacing.lg),
-                  const Divider(color: MonoPulseColors.borderSubtle),
+                  Divider(color: context.mp.borderSubtle),
                   const SizedBox(height: MonoPulseSpacing.md),
                   Text(
                     'Microphone privacy',
                     style: MonoPulseTypography.labelMedium.copyWith(
-                      color: MonoPulseColors.textSecondary,
+                      color: context.mp.textSecondary,
                     ),
                   ),
                   const SizedBox(height: MonoPulseSpacing.sm),
                   Text(
                     'Pitch detection runs locally. Raw microphone audio is never stored or sent to FlowGroove servers.',
                     style: MonoPulseTypography.bodySmall.copyWith(
-                      color: MonoPulseColors.textTertiary,
+                      color: context.mp.textTertiary,
                     ),
                   ),
                 ],
@@ -137,7 +137,6 @@ class TunerSettingsSheet extends ConsumerWidget {
 }
 
 class _SectionLabel extends StatelessWidget {
-
   const _SectionLabel(this.text);
   final String text;
 
@@ -146,7 +145,7 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: MonoPulseTypography.labelMedium.copyWith(
-        color: MonoPulseColors.textSecondary,
+        color: context.mp.textSecondary,
       ),
     );
   }
@@ -164,14 +163,14 @@ class _PresetSummary extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(MonoPulseSpacing.md),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
+        border: Border.all(color: context.mp.borderSubtle),
       ),
       child: Text(
         '$instrument · $tuning',
         style: MonoPulseTypography.bodyMedium.copyWith(
-          color: MonoPulseColors.textHighEmphasis,
+          color: context.mp.textHighEmphasis,
         ),
       ),
     );
@@ -209,7 +208,7 @@ class _SettingSlider extends StatelessWidget {
               Text(
                 valueLabel,
                 style: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
+                  color: context.mp.textHighEmphasis,
                 ),
               ),
             ],
@@ -220,7 +219,7 @@ class _SettingSlider extends StatelessWidget {
             max: max,
             divisions: divisions,
             activeColor: MonoPulseColors.accentOrange,
-            inactiveColor: MonoPulseColors.borderSubtle,
+            inactiveColor: context.mp.borderSubtle,
             onChanged: onChanged,
           ),
         ],
@@ -249,13 +248,13 @@ class _SettingSwitch extends StatelessWidget {
       title: Text(
         title,
         style: MonoPulseTypography.labelMedium.copyWith(
-          color: MonoPulseColors.textSecondary,
+          color: context.mp.textSecondary,
         ),
       ),
       subtitle: Text(
         subtitle,
         style: MonoPulseTypography.bodySmall.copyWith(
-          color: MonoPulseColors.textTertiary,
+          color: context.mp.textTertiary,
         ),
       ),
       value: value,
