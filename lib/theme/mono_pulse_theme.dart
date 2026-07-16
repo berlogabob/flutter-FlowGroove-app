@@ -378,6 +378,23 @@ class MonoPulseBorder {
 
 /// Mono Pulse Dark Theme (ONLY THEME - dark-only)
 class MonoPulseTheme {
+  /// Light variant, "Light (beta)" in Settings (#129). Material surfaces get
+  /// a real light scheme around the brand orange.
+  // ponytail: seed-derived scheme only — widgets that hardcode
+  // MonoPulseColors.* stay dark-toned until the palette migration issue.
+  static ThemeData get lightTheme {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: MonoPulseColors.accentOrange,
+      brightness: Brightness.light,
+    );
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: const Color(0xFFF7F5F2),
+    );
+  }
+
   static ThemeData get theme {
     return ThemeData(
       useMaterial3: true,

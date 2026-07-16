@@ -108,6 +108,7 @@ Future<void> showAppMenuSheet(
                           color: MonoPulseColors.borderSubtle,
                         ),
                         _ProfileRow(ref: ref, sheetContext: sheetContext),
+                        _SettingsRow(sheetContext: sheetContext),
                       ],
                     ],
                   ),
@@ -160,6 +161,37 @@ class _AppMenuRow extends StatelessWidget {
               final onTap = item.onTap!;
               WidgetsBinding.instance.addPostFrameCallback((_) => onTap());
             },
+    );
+  }
+}
+
+/// Global "Settings" row (#129), listed right after Profile on root tabs.
+class _SettingsRow extends StatelessWidget {
+  const _SettingsRow({required this.sheetContext});
+
+  final BuildContext sheetContext;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(
+        Icons.settings_outlined,
+        size: 22,
+        color: MonoPulseColors.textHighEmphasis,
+      ),
+      title: Text(
+        'Settings',
+        style: MonoPulseTypography.bodyMedium.copyWith(
+          color: MonoPulseColors.textHighEmphasis,
+        ),
+      ),
+      onTap: () {
+        final router = GoRouter.of(context);
+        Navigator.of(sheetContext).pop();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          router.pushNamed('settings');
+        });
+      },
     );
   }
 }

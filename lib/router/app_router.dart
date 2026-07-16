@@ -37,6 +37,7 @@ import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/setlists/setlist_view_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/songs/add_song_screen.dart';
+import '../screens/settings/app_settings_screen.dart';
 import '../screens/songs/canonical_browse_screen.dart';
 import '../screens/songs/song_lab_screen.dart';
 import '../screens/songs/models/song_form_data.dart';
@@ -555,6 +556,12 @@ List<RouteBase> _buildAppRoutes() {
               : null,
         );
       },
+    ),
+    GoRoute(
+      path: '/main/settings',
+      name: 'settings',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const AppSettingsScreen(),
     ),
     GoRoute(
       path: '/main/join-band',

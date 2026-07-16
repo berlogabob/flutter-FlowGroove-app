@@ -56,6 +56,45 @@ final songQuickActionProvider =
 /// The song-card action set (pinned quick action + overflow menu) shared by
 /// every screen that renders songs as unified item cards, so the cards behave
 /// identically in the personal and band libraries.
+/// Quick-action picker sheet — shared by the song-card overflow and the
+/// Settings screen (#129).
+Future<void> showQuickActionPicker(BuildContext context, WidgetRef ref) async {
+  final current = ref.read(songQuickActionProvider);
+  final choice = await showModalBottomSheet<String>(
+    context: context,
+    builder: (context) => SafeArea(
+      child: RadioGroup<String>(
+        groupValue: current,
+        onChanged: (v) => Navigator.pop(context, v),
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const ListTile(
+              title: Text('Quick action'),
+              subtitle: Text(
+                'Sets what the pinned button on song cards does',
+              ),
+            ),
+            for (final MapEntry(: key, : value)
+                in SongCardActions.quickActions.entries)
+              RadioListTile<String>(
+                value: key,
+                title: Text(value.$1),
+                secondary: Icon(value.$2),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+  if (choice != null && choice != current) {
+    await ref.read(songQuickActionProvider.notifier).set(choice);
+    if (!context.mounted) return;
+    final (label, _) = SongCardActions.quickActions[choice]!;
+    showAppSnackBar(context, 'Quick action set to $label');
+  }
+}
+
 mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   /// Band the songs on this screen belong to; null in the personal library.
   /// Drives where the metronome/tuner persist song changes.
@@ -145,41 +184,7 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Let the user choose which action is pinned on song cards.
-  Future<void> pickQuickAction() async {
-    final current = ref.read(songQuickActionProvider);
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: RadioGroup<String>(
-          groupValue: current,
-          onChanged: (v) => Navigator.pop(context, v),
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              const ListTile(
-                title: Text('Quick action'),
-                subtitle: Text(
-                  'Sets what the pinned button on song cards does',
-                ),
-              ),
-              for (final MapEntry(: key, : value) in quickActions.entries)
-                RadioListTile<String>(
-                  value: key,
-                  title: Text(value.$1),
-                  secondary: Icon(value.$2),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (choice != null && choice != current) {
-      await ref.read(songQuickActionProvider.notifier).set(choice);
-      if (!mounted) return;
-      final (label, _) = quickActions[choice]!;
-      showAppSnackBar(context, 'Quick action set to $label');
-    }
-  }
+  Future<void> pickQuickAction() => showQuickActionPicker(context, ref);
 
   /// One "Add to band…" entry instead of one per band — opens a picker.
   Future<void> pickBandAndAdd(Song song, List<Band> bands) async {

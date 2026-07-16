@@ -16,6 +16,7 @@ import 'providers/analytics_consent_provider.dart';
 import 'providers/auth/auth_provider.dart';
 import 'providers/keep_screen_on_provider.dart';
 import 'providers/metronome_runtime_providers.dart';
+import 'providers/theme_mode_provider.dart';
 import 'repositories/metronome_session_repository.dart';
 import 'router/app_router.dart';
 import 'services/analytics_service.dart';
@@ -279,9 +280,9 @@ class FlowGrooveApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'FlowGroove',
       debugShowCheckedModeBanner: false,
-      theme: MonoPulseTheme.theme,
+      theme: MonoPulseTheme.lightTheme,
       darkTheme: MonoPulseTheme.theme,
-      themeMode: ThemeMode.dark,
+      themeMode: ref.watch(themeModeProvider),
       routerConfig: appRouter,
       builder: (context, child) {
         // Handle loading state

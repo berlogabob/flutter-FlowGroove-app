@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
+import '../haptics_provider.dart';
 import '../../models/beat_mode.dart';
 import '../../models/metronome_preset.dart';
 import '../../models/metronome_runtime_state.dart';
@@ -62,7 +63,15 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     _wakelock = ref.read(wakelockProvider);
     ref.onDispose(_cleanup);
 
-    return MetronomeState.initial();
+    // Global haptics preference is the single source of truth (#129): the
+    // engine state follows it, both now and on later Settings toggles.
+    ref.listen<bool>(hapticsEnabledProvider, (_, enabled) {
+      if (state.hapticsEnabled != enabled) setHapticsEnabled(enabled);
+    });
+
+    return MetronomeState.initial().copyWith(
+      hapticsEnabled: ref.read(hapticsEnabledProvider),
+    );
   }
 
   /// Start the metronome
@@ -594,10 +603,14 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     setHapticsEnabled(!state.hapticsEnabled);
   }
 
-  /// Set synchronized haptic feedback during playback.
+  /// Set synchronized haptic feedback during playback. Writes through to the
+  /// global haptics preference (#129) so Settings and the Sound sheet agree.
   void setHapticsEnabled(bool enabled) {
     state = state.copyWith(hapticsEnabled: enabled);
     _syncPlaybackConfig();
+    if (ref.read(hapticsEnabledProvider) != enabled) {
+      ref.read(hapticsEnabledProvider.notifier).set(enabled);
+    }
   }
 
   /// Set accent pattern
