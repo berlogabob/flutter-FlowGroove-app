@@ -618,6 +618,11 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
       showBackButton: false, // Hide back button for main tabs
       menuItems: [
         AppMenuItem(
+          icon: Icons.library_music_outlined,
+          label: 'Browse catalog',
+          onTap: () => context.pushNamed('canonical-browse'),
+        ),
+        AppMenuItem(
           icon: Icons.control_point_duplicate_outlined,
           label: 'Find duplicates',
           onTap: canExport

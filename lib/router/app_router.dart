@@ -37,6 +37,7 @@ import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/setlists/setlist_view_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/songs/add_song_screen.dart';
+import '../screens/songs/canonical_browse_screen.dart';
 import '../screens/songs/models/song_form_data.dart';
 import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
@@ -246,6 +247,11 @@ List<RouteBase> _buildAppRoutes() {
                   path: 'duplicates',
                   name: 'song-duplicates',
                   builder: (context, state) => const SongDuplicatesScreen(),
+                ),
+                GoRoute(
+                  path: 'catalog',
+                  name: 'canonical-browse',
+                  builder: (context, state) => const CanonicalBrowseScreen(),
                 ),
                 GoRoute(
                   path: 'add',
