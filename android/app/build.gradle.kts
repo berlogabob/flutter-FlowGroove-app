@@ -38,6 +38,8 @@ android {
 
     defaultConfig {
         applicationId = "com.flowgroove.app"
+        // minSdk deliberately inherits from the pinned Flutter SDK (#44: targetSdk is the
+        // Play-determinism knob and is pinned below; minSdk follows the toolchain).
         minSdk = flutter.minSdkVersion
         targetSdk = 35
         versionCode = flutter.versionCode
