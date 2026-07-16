@@ -19,14 +19,36 @@ class _InMemoryLabRepo extends FirestoreLabRepository {
     : super(firestore: MockFirebaseFirestore(), auth: MockFirebaseAuth());
 
   final entries = <SongLabEntry>[];
+  final tasks = <SongTask>[];
   final _controller = StreamController<List<SongLabEntry>>.broadcast();
+  final _taskController = StreamController<List<SongTask>>.broadcast();
 
   void _emit() => _controller.add(List.of(entries));
+  void _emitTasks() => _taskController.add(List.of(tasks));
 
   @override
   Stream<List<SongLabEntry>> watchEntries(String songId, {String? bandId}) {
     scheduleMicrotask(_emit);
     return _controller.stream;
+  }
+
+  @override
+  Stream<List<SongTask>> watchTasks(String songId, {String? bandId}) {
+    scheduleMicrotask(_emitTasks);
+    return _taskController.stream;
+  }
+
+  @override
+  Future<void> saveTask(SongTask task, {String? bandId}) async {
+    tasks.removeWhere((t) => t.id == task.id);
+    tasks.insert(0, task);
+    _emitTasks();
+  }
+
+  @override
+  Future<void> deleteTask(String songId, String taskId, {String? bandId}) async {
+    tasks.removeWhere((t) => t.id == taskId);
+    _emitTasks();
   }
 
   @override
@@ -125,6 +147,35 @@ void main() {
 
       expect(repo.entries.single.status, 'active');
       expect(repo.entries.single.type, LabEntryType.decision);
+    });
+
+    testWidgets('tasks tab: add task via sheet and cycle status (#68)', (
+      tester,
+    ) async {
+      final repo = await pump(tester);
+
+      await tester.tap(find.text('Tasks'));
+      await tester.pumpAndSettle();
+      expect(find.text('No homework yet'), findsOneWidget);
+
+      await tester.tap(find.text('Add task'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'What needs to be prepared?'),
+        'Learn the solo',
+      );
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+
+      expect(repo.tasks, hasLength(1));
+      expect(repo.tasks.single.title, 'Learn the solo');
+      expect(repo.tasks.single.status, SongTaskStatus.todo);
+      expect(find.text('Learn the solo'), findsOneWidget);
+
+      // Cycle todo → doing via the status chip.
+      await tester.tap(find.text('todo'));
+      await tester.pumpAndSettle();
+      expect(repo.tasks.single.status, SongTaskStatus.doing);
     });
 
     testWidgets('migrates song.notes into the first entry', (tester) async {

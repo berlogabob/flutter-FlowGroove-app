@@ -377,7 +377,7 @@ class _ConfirmedCard extends ConsumerWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               for (final item in setlist.effectiveItems)
-                _songLine(songsById[item.songId]),
+                _songLine(ref, songsById[item.songId]),
             ],
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -399,11 +399,17 @@ class _ConfirmedCard extends ConsumerWidget {
     );
   }
 
-  Widget _songLine(Song? song) {
+  Widget _songLine(WidgetRef ref, Song? song) {
     if (song == null) return const SizedBox.shrink();
+    // "What to prepare" (#68): open Song Lab tasks for this band song.
+    final openTasks =
+        ref.watch(openTaskCountProvider((song.id, band.id))).value ?? 0;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xxs),
-      child: Text('• ${song.title} — ${song.artist}'),
+      child: Text(
+        '• ${song.title} — ${song.artist}'
+        '${openTasks > 0 ? '  ·  $openTasks open task${openTasks == 1 ? '' : 's'}' : ''}',
+      ),
     );
   }
 
