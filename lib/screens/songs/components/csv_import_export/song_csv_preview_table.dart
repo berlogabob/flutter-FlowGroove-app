@@ -8,12 +8,12 @@ import '../../../../theme/mono_pulse_theme.dart';
 
 /// Widget for displaying CSV import preview with validation errors.
 class SongCsvPreviewTable extends StatelessWidget {
-
   const SongCsvPreviewTable({
     required this.songs,
     required this.errors,
     super.key,
   });
+
   /// List of successfully parsed songs.
   final List<Song> songs;
 
@@ -37,7 +37,7 @@ class SongCsvPreviewTable extends StatelessWidget {
         // Errors (if any)
         if (errors.isNotEmpty) _buildErrorsSection(),
         // Preview table
-        _buildPreviewTable(),
+        _buildPreviewTable(context),
       ],
     );
   }
@@ -168,7 +168,7 @@ class SongCsvPreviewTable extends StatelessWidget {
     );
   }
 
-  Widget _buildPreviewTable() {
+  Widget _buildPreviewTable(BuildContext context) {
     return Expanded(
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -176,8 +176,9 @@ class SongCsvPreviewTable extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(MonoPulseSpacing.lg),
             child: DataTable(
-              headingRowColor:
-                  WidgetStateProperty.all(MonoPulseColors.surfaceRaised),
+              headingRowColor: WidgetStateProperty.all(
+                context.mp.surfaceRaised,
+              ),
               columns: const [
                 DataColumn(label: Text('Title')),
                 DataColumn(label: Text('Artist')),

@@ -536,7 +536,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                   Text(
                     'Exact Our BPM; songs without one stay visible',
                     style: MonoPulseTypography.bodySmall.copyWith(
-                      color: MonoPulseColors.textSecondary,
+                      color: context.mp.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -851,7 +851,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
               Text(
                 '${filteredSongs.length} ${filteredSongs.length == 1 ? 'song' : 'songs'}',
                 style: MonoPulseTypography.bodySmall.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
               ),
             ],

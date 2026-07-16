@@ -11,7 +11,6 @@ import '../../../theme/mono_pulse_theme.dart';
 
 /// A collapsible section widget.
 class CollapsibleSection extends StatefulWidget {
-
   const CollapsibleSection({
     required this.title,
     required this.child,
@@ -23,6 +22,7 @@ class CollapsibleSection extends StatefulWidget {
     this.inlinePreview = true,
     this.onExpandedChanged,
   });
+
   /// Section title.
   final String title;
 
@@ -68,9 +68,9 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: MonoPulseColors.surface,
+        color: context.mp.surface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderDefault),
+        border: Border.all(color: context.mp.borderDefault),
       ),
       child: Column(
         children: [
@@ -91,7 +91,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                     duration: const Duration(milliseconds: 200),
                     child: Icon(
                       widget.icon ?? Icons.keyboard_arrow_down,
-                      color: MonoPulseColors.textSecondary,
+                      color: context.mp.textSecondary,
                       size: 20,
                     ),
                   ),
@@ -100,7 +100,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                   Text(
                     widget.title,
                     style: MonoPulseTypography.titleMedium.copyWith(
-                      color: MonoPulseColors.textPrimary,
+                      color: context.mp.textPrimary,
                     ),
                   ),
                   // Inline collapsed preview, right-aligned on the SAME line

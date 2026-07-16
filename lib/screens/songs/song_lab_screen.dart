@@ -352,7 +352,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
                             child: Text(
                               'Done',
                               style: MonoPulseTypography.bodySmall.copyWith(
-                                color: MonoPulseColors.textSecondary,
+                                color: context.mp.textSecondary,
                               ),
                             ),
                           ),
@@ -395,9 +395,9 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
           t.title,
           style: t.isOpen
               ? null
-              : const TextStyle(
+              : TextStyle(
                   decoration: TextDecoration.lineThrough,
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
         ),
         subtitle: Text(
@@ -540,15 +540,15 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
         leading: Icon(
           _typeIcons[e.type],
           color: superseded
-              ? MonoPulseColors.textSecondary
+              ? context.mp.textSecondary
               : MonoPulseColors.accentOrange,
         ),
         title: Text(
           e.title?.isNotEmpty == true ? e.title! : _typeLabel(e.type),
           style: superseded
-              ? const TextStyle(
+              ? TextStyle(
                   decoration: TextDecoration.lineThrough,
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 )
               : null,
         ),
@@ -567,7 +567,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
                 '${e.createdAt.day}/${e.createdAt.month}/${e.createdAt.year}',
               ].join(' · '),
               style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
           ],
@@ -895,7 +895,7 @@ class _SaveVersionSheetState extends State<_SaveVersionSheet> {
               'A named snapshot of the song as it is right now — key, BPM, '
               'structure and the full chord chart.',
               style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
             const SizedBox(height: MonoPulseSpacing.md),

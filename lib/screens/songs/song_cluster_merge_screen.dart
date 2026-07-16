@@ -67,7 +67,7 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MonoPulseColors.black,
+      backgroundColor: context.mp.black,
       bottomNavigationBar: AppBottomBar.actions(
         onBack: () => Navigator.pop(context),
         title: 'Merge ${widget.songs.length} songs',
@@ -86,7 +86,7 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
               'combined from all ${widget.songs.length} songs; the others are '
               'deleted after the merge (setlists are re-pointed).',
               style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
             const SizedBox(height: MonoPulseSpacing.lg),
@@ -124,13 +124,11 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
         width: 180,
         padding: const EdgeInsets.all(MonoPulseSpacing.md),
         decoration: BoxDecoration(
-          color: selected
-              ? MonoPulseColors.accentOrange10
-              : MonoPulseColors.surface,
+          color: selected ? MonoPulseColors.accentOrange10 : context.mp.surface,
           border: Border.all(
             color: selected
                 ? MonoPulseColors.accentOrange
-                : MonoPulseColors.borderDefault,
+                : context.mp.borderDefault,
             width: selected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -145,7 +143,7 @@ class _SongClusterMergeScreenState extends State<SongClusterMergeScreen> {
               style: MonoPulseTypography.bodySmall.copyWith(
                 color: selected
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textTertiary,
+                    : context.mp.textTertiary,
               ),
             ),
             const SizedBox(height: 2),

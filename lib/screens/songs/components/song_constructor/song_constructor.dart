@@ -15,13 +15,13 @@ import 'widgets/section_picker.dart';
 /// Main widget for the Song Structure Constructor.
 /// Supports collapsed (pill visualization) and expanded (vertical list) states.
 class SongConstructor extends StatefulWidget {
-
   const SongConstructor({
     super.key,
     this.initialSections,
     this.onChange,
     this.embedded = false,
   });
+
   /// Callback when the structure changes.
   final void Function(List<Section>)? onChange;
 
@@ -176,9 +176,9 @@ class _SongConstructorState extends State<SongConstructor> {
     if (widget.embedded) return _buildExpandedState();
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: MonoPulseColors.surface,
+        color: context.mp.surface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderDefault),
+        border: Border.all(color: context.mp.borderDefault),
       ),
       child: Column(
         children: [
@@ -195,9 +195,9 @@ class _SongConstructorState extends State<SongConstructor> {
                   AnimatedRotation(
                     turns: _expanded ? 0 : -0.25,
                     duration: const Duration(milliseconds: 200),
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: MonoPulseColors.textSecondary,
+                      color: context.mp.textSecondary,
                       size: 24,
                     ),
                   ),
@@ -208,7 +208,7 @@ class _SongConstructorState extends State<SongConstructor> {
                       'Song Structure',
                       style: MonoPulseTypography.titleMedium.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: MonoPulseColors.textPrimary,
+                        color: context.mp.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -299,19 +299,18 @@ class _SongConstructorState extends State<SongConstructor> {
                       key: ValueKey(section.id),
                       background: Container(
                         alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.only(left: MonoPulseSpacing.xl),
+                        padding: const EdgeInsets.only(
+                          left: MonoPulseSpacing.xl,
+                        ),
                         color: MonoPulseColors.accentOrange,
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(
-                              Icons.edit,
-                              color: MonoPulseColors.textPrimary,
-                            ),
-                            SizedBox(width: 8),
+                            Icon(Icons.edit, color: context.mp.textPrimary),
+                            const SizedBox(width: 8),
                             Text(
                               'Edit',
                               style: TextStyle(
-                                color: MonoPulseColors.textPrimary,
+                                color: context.mp.textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -320,30 +319,31 @@ class _SongConstructorState extends State<SongConstructor> {
                       ),
                       secondaryBackground: Container(
                         alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: MonoPulseSpacing.xl),
+                        padding: const EdgeInsets.only(
+                          right: MonoPulseSpacing.xl,
+                        ),
                         color: MonoPulseColors.error,
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Text(
                               'Delete',
                               style: TextStyle(
-                                color: MonoPulseColors.textPrimary,
+                                color: context.mp.textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(
-                              Icons.delete,
-                              color: MonoPulseColors.textPrimary,
-                            ),
+                            const SizedBox(width: 8),
+                            Icon(Icons.delete, color: context.mp.textPrimary),
                           ],
                         ),
                       ),
                       confirmDismiss: (direction) async {
                         if (direction == DismissDirection.endToStart) {
                           // Swipe left - delete with undo snackbar
-                          final sectionIndex = _sections.indexWhere((s) => s.id == section.id);
+                          final sectionIndex = _sections.indexWhere(
+                            (s) => s.id == section.id,
+                          );
                           if (sectionIndex != -1) {
                             final deletedSection = _sections[sectionIndex];
                             setState(() {
@@ -361,7 +361,10 @@ class _SongConstructorState extends State<SongConstructor> {
                                 analyticsAction: 'section_delete',
                                 onAction: () {
                                   setState(() {
-                                    _sections.insert(sectionIndex, deletedSection);
+                                    _sections.insert(
+                                      sectionIndex,
+                                      deletedSection,
+                                    );
                                   });
                                   _notifyChange();
                                 },

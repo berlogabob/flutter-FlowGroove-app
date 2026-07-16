@@ -210,8 +210,9 @@ class SongForm extends StatelessWidget {
             icon: Icons.link,
             initiallyExpanded: false,
             preview: links.isEmpty
-                ? _previewMuted('No links')
+                ? _previewMuted(context, 'No links')
                 : _previewMuted(
+                    context,
                     links.map((l) => l.type.replaceAll('_', ' ')).join('  ·  '),
                   ),
             child: LinksEditor(
@@ -228,7 +229,7 @@ class SongForm extends StatelessWidget {
             icon: Icons.queue_music,
             initiallyExpanded: false,
             preview: sections.isEmpty
-                ? _previewMuted('No structure yet')
+                ? _previewMuted(context, 'No structure yet')
                 : SizedBox(height: 28, child: PillView(sections: sections)),
             // The song map is full-width, so it stays under the header;
             // the empty-state text fits inline like the other sections.
@@ -246,8 +247,8 @@ class SongForm extends StatelessWidget {
             icon: Icons.notes,
             initiallyExpanded: false,
             preview: notesController.text.trim().isEmpty
-                ? _previewMuted('No notes')
-                : _previewMuted(notesController.text.trim()),
+                ? _previewMuted(context, 'No notes')
+                : _previewMuted(context, notesController.text.trim()),
             child: TextFormField(
               controller: notesController,
               decoration: const InputDecoration(hintText: 'Notes...'),
@@ -261,7 +262,7 @@ class SongForm extends StatelessWidget {
             icon: Icons.label_outline,
             initiallyExpanded: false,
             preview: selectedTags.isEmpty
-                ? _previewMuted('No tags')
+                ? _previewMuted(context, 'No tags')
                 : _previewAccent(selectedTags.join('  ·  ')),
             child: Wrap(
               spacing: MonoPulseSpacing.md,
@@ -273,7 +274,7 @@ class SongForm extends StatelessWidget {
                     label: Text(
                       tag,
                       style: MonoPulseTypography.labelLarge.copyWith(
-                        color: MonoPulseColors.textPrimary,
+                        color: context.mp.textPrimary,
                       ),
                     ),
                     selected: selectedTags.contains(tag),
@@ -362,12 +363,12 @@ Widget _keyBpmPreview({
 }
 
 /// A muted collapsed-preview line (secondary colour, design-system body scale).
-Widget _previewMuted(String text) => Text(
+Widget _previewMuted(BuildContext context, String text) => Text(
   text,
   maxLines: 1,
   overflow: TextOverflow.ellipsis,
   style: MonoPulseTypography.bodySmall.copyWith(
-    color: MonoPulseColors.textSecondary,
+    color: context.mp.textSecondary,
   ),
 );
 
