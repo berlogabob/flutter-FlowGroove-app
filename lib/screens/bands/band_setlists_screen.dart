@@ -346,7 +346,10 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   Future<void> _exportPdf(Setlist setlist) async {
-    final layout = await pickSetlistPdfLayout(context);
+    final layout = await pickSetlistPdfLayout(
+      context,
+      withEventGuide: setlist.eventKit?.isEmpty == false,
+    );
     if (layout == null) return;
     try {
       await PdfService.exportSetlist(

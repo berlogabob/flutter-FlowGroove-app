@@ -180,7 +180,9 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     // (metronome/share/PDF export via _songsForSetlist) read from a warm
     // provider instead of a cold autoDispose read (#80).
     ref.watch(songsProvider);
-    final canEdit = ref.watch(canEditProvider); // false for the shared demo account
+    final canEdit = ref.watch(
+      canEditProvider,
+    ); // false for the shared demo account
 
     return StandardScreenScaffold(
       title: 'Setlists',
@@ -330,7 +332,10 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 
   Future<void> _exportPdf(Setlist setlist) async {
-    final layout = await pickSetlistPdfLayout(context);
+    final layout = await pickSetlistPdfLayout(
+      context,
+      withEventGuide: setlist.eventKit?.isEmpty == false,
+    );
     if (layout == null) return;
     final setlistSongs = await _songsForSetlist(setlist);
     try {
@@ -340,5 +345,4 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       showAppSnackBar(context, 'Error: $e');
     }
   }
-
 }

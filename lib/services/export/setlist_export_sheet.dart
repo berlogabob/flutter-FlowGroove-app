@@ -4,14 +4,17 @@ import 'pdf_service.dart';
 
 /// Bottom sheet that lets the user pick a setlist PDF layout.
 /// Returns null if dismissed.
-Future<SetlistPdfLayout?> pickSetlistPdfLayout(BuildContext context) =>
-    _pickPdfLayout(
-      context,
-      asIsSubtitle: 'One card per song, full detail',
-      compactIcon: Icons.format_list_bulleted,
-      compactSubtitle: 'One line per song, fits on one list',
-      withPack: true,
-    );
+Future<SetlistPdfLayout?> pickSetlistPdfLayout(
+  BuildContext context, {
+  bool withEventGuide = false,
+}) => _pickPdfLayout(
+  context,
+  asIsSubtitle: 'One card per song, full detail',
+  compactIcon: Icons.format_list_bulleted,
+  compactSubtitle: 'One line per song, fits on one list',
+  withPack: true,
+  withEventGuide: withEventGuide,
+);
 
 /// Same picker for a song performance-sheet PDF (#79): "As is" flows across
 /// pages, "Compact" scales everything onto a single A4 page.
@@ -29,6 +32,7 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
   required IconData compactIcon,
   required String compactSubtitle,
   bool withPack = false,
+  bool withEventGuide = false,
 }) {
   return showModalBottomSheet<SetlistPdfLayout>(
     context: context,
@@ -56,6 +60,16 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
                 'Compact setlist + one-page sheet per song',
               ),
               onTap: () => Navigator.pop(context, SetlistPdfLayout.pack),
+            ),
+          if (withEventGuide)
+            ListTile(
+              leading: const Icon(Icons.theater_comedy),
+              title: const Text('Event guide'),
+              subtitle: const Text(
+                'Cover + setlist + stage plot + role cards + rider',
+              ),
+              onTap: () =>
+                  Navigator.pop(context, SetlistPdfLayout.eventGuide),
             ),
         ],
       ),
