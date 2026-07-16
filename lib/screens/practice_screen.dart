@@ -4,10 +4,14 @@ import 'package:go_router/go_router.dart';
 
 import '../models/metronome_session.dart';
 import '../models/song.dart';
+import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
 import '../providers/homework_provider.dart';
 import '../providers/practice_stats_provider.dart';
+import '../screens/songs/components/lab_recording_sheet.dart';
+import '../services/idea_recorder.dart';
 import '../theme/mono_pulse_theme.dart';
+import '../utils/snackbar.dart';
 import '../widgets/practice_dashboard_card.dart';
 import '../widgets/tools/tool_scaffold.dart';
 
@@ -51,6 +55,8 @@ class PracticeScreen extends ConsumerWidget {
           else
             for (final item in homework.take(10)) _homeworkRow(context, item),
           const SizedBox(height: MonoPulseSpacing.lg),
+          _IdeasSection(songs: songs),
+          const SizedBox(height: MonoPulseSpacing.lg),
           _sectionTitle(context, 'Quick start'),
           Row(
             children: [
@@ -67,6 +73,14 @@ class PracticeScreen extends ConsumerWidget {
                   onPressed: () => context.pushNamed('tuner'),
                   icon: const Icon(Icons.tune),
                   label: const Text('Tuner'),
+                ),
+              ),
+              const SizedBox(width: MonoPulseSpacing.md),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: () => captureIdea(context, ref),
+                  icon: const Icon(Icons.mic),
+                  label: const Text('Idea'),
                 ),
               ),
             ],
@@ -137,14 +151,21 @@ class PracticeScreen extends ConsumerWidget {
     DateTime? lastDay;
     final today = DateTime.now();
     for (final s in sessions) {
-      final day = DateTime(s.startedAt.year, s.startedAt.month, s.startedAt.day);
+      final day = DateTime(
+        s.startedAt.year,
+        s.startedAt.month,
+        s.startedAt.day,
+      );
       if (day != lastDay) {
         lastDay = day;
         final label = day == DateTime(today.year, today.month, today.day)
             ? 'Today'
             : day ==
-                  DateTime(today.year, today.month, today.day)
-                      .subtract(const Duration(days: 1))
+                  DateTime(
+                    today.year,
+                    today.month,
+                    today.day,
+                  ).subtract(const Duration(days: 1))
             ? 'Yesterday'
             : '${day.day}/${day.month}/${day.year}';
         rows.add(
@@ -174,9 +195,7 @@ class PracticeScreen extends ConsumerWidget {
               color: MonoPulseColors.textSecondary,
             ),
             const SizedBox(width: MonoPulseSpacing.sm),
-            Expanded(
-              child: Text(song, overflow: TextOverflow.ellipsis),
-            ),
+            Expanded(child: Text(song, overflow: TextOverflow.ellipsis)),
             Text(
               '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'
               ' · ${s.startBpm} BPM',
@@ -214,9 +233,7 @@ class _TimePerSong extends StatelessWidget {
     final entries = stats.perSongSeconds.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final top = entries.take(3).toList();
-    final restSeconds = entries
-        .skip(3)
-        .fold<int>(0, (sum, e) => sum + e.value);
+    final restSeconds = entries.skip(3).fold<int>(0, (sum, e) => sum + e.value);
 
     String name(String id) =>
         id.isEmpty ? 'Freestyle' : titles[id] ?? 'Removed song';
@@ -279,5 +296,123 @@ class _TimePerSong extends StatelessWidget {
           ),
       ],
     );
+  }
+}
+
+/// Ideas inbox (#145): unlinked recordings captured from Home/Practice —
+/// play them and link each to a song, or delete.
+class _IdeasSection extends ConsumerWidget {
+  const _IdeasSection({required this.songs});
+
+  final List<Song> songs;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ideas =
+        ref.watch(labEntriesProvider((ideaInboxSongId, null))).asData?.value ??
+        const <SongLabEntry>[];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: MonoPulseSpacing.sm),
+          child: Text('Ideas', style: MonoPulseTypography.titleMedium),
+        ),
+        if (ideas.isEmpty)
+          Text(
+            'Riffs without a home yet — record one from Home or the Idea '
+            'button below, link it to a song when it finds one.',
+            style: MonoPulseTypography.bodySmall.copyWith(
+              color: MonoPulseColors.textSecondary,
+            ),
+          )
+        else
+          for (final idea in ideas)
+            Card(
+              margin: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
+              child: ListTile(
+                dense: true,
+                leading: const Icon(
+                  Icons.mic_outlined,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: Text(idea.title ?? 'Idea'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (idea.body?.isNotEmpty == true)
+                      Text(
+                        idea.body!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (idea.attachmentIds.isNotEmpty)
+                      LabAudioPlayer(url: idea.attachmentIds.first),
+                  ],
+                ),
+                trailing: PopupMenuButton<String>(
+                  onSelected: (v) => switch (v) {
+                    'link' => _linkToSong(context, ref, idea),
+                    'delete' => _delete(context, ref, idea),
+                    _ => null,
+                  },
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'link', child: Text('Link to song…')),
+                    PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  ],
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
+  Future<void> _linkToSong(
+    BuildContext context,
+    WidgetRef ref,
+    SongLabEntry idea,
+  ) async {
+    final songId = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const ListTile(title: Text('Link idea to song')),
+            for (final song in songs)
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.music_note),
+                title: Text(song.title),
+                subtitle: Text(song.artist),
+                onTap: () => Navigator.pop(sheetContext, song.id),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (songId == null || !context.mounted) return;
+    await linkIdeaToSong(ref, idea, songId: songId);
+    if (context.mounted) {
+      showAppSnackBar(context, "Idea linked — see the song's Lab timeline");
+    }
+  }
+
+  Future<void> _delete(
+    BuildContext context,
+    WidgetRef ref,
+    SongLabEntry idea,
+  ) async {
+    final repo = ref.read(labRepositoryProvider);
+    await repo.deleteEntry(ideaInboxSongId, idea.id);
+    if (context.mounted) {
+      showAppSnackBar(
+        context,
+        'Idea deleted',
+        actionLabel: 'Undo',
+        onAction: () => repo.saveEntry(idea),
+      );
+    }
   }
 }

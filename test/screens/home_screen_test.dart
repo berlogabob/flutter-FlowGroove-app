@@ -103,10 +103,11 @@ void main() {
 
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
 
-      expect(find.byType(ToolButton), findsNWidgets(3));
+      expect(find.byType(ToolButton), findsNWidgets(4));
       expect(find.text('Tuner'), findsOneWidget);
       expect(find.text('Metronome'), findsOneWidget);
       expect(find.text('Rehearsals'), findsOneWidget);
+      expect(find.text('Record idea'), findsOneWidget);
     });
 
     testWidgets('renders quick action buttons with correct icons', (

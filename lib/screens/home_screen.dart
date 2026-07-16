@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/data/data_providers.dart';
+import '../services/idea_recorder.dart';
 import '../utils/analytics_debug.dart';
 import '../widgets/dashboard_grid.dart';
 import '../widgets/practice_dashboard_card.dart';
@@ -58,43 +59,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       greetingCard: const PracticeDashboardCard(),
       statistics: const [],
       quickActions: [
-            QuickActionButton(
-              icon: Icons.add,
-              label: 'Song',
-              onTap: () => context.goNamed('add-song'),
-            ),
-            QuickActionButton(
-              icon: Icons.group_add,
-              label: 'Band',
-              onTap: () => context.goNamed('create-band'),
-            ),
-            QuickActionButton(
-              icon: Icons.playlist_add,
-              label: 'Setlist',
-              onTap: () => context.goNamed('create-setlist'),
-            ),
-            QuickActionButton(
-              icon: Icons.menu_book,
-              label: 'Practice',
-              onTap: () => context.pushNamed('practice'),
-            ),
-          ],
-          tools: [
-            ToolButton(
-              icon: Icons.tune,
-              label: 'Tuner',
-              onTap: () => context.pushNamed('tuner'),
-            ),
-            ToolButton(
-              icon: Icons.speed,
-              label: 'Metronome',
-              onTap: () => context.pushNamed('metronome'),
-            ),
-            ToolButton(
-              icon: Icons.event,
-              label: 'Rehearsals',
-              onTap: () => _openRehearsals(context, ref),
-            ),
+        QuickActionButton(
+          icon: Icons.add,
+          label: 'Song',
+          onTap: () => context.goNamed('add-song'),
+        ),
+        QuickActionButton(
+          icon: Icons.group_add,
+          label: 'Band',
+          onTap: () => context.goNamed('create-band'),
+        ),
+        QuickActionButton(
+          icon: Icons.playlist_add,
+          label: 'Setlist',
+          onTap: () => context.goNamed('create-setlist'),
+        ),
+        QuickActionButton(
+          icon: Icons.menu_book,
+          label: 'Practice',
+          onTap: () => context.pushNamed('practice'),
+        ),
+      ],
+      tools: [
+        ToolButton(
+          icon: Icons.tune,
+          label: 'Tuner',
+          onTap: () => context.pushNamed('tuner'),
+        ),
+        ToolButton(
+          icon: Icons.speed,
+          label: 'Metronome',
+          onTap: () => context.pushNamed('metronome'),
+        ),
+        ToolButton(
+          icon: Icons.event,
+          label: 'Rehearsals',
+          onTap: () => _openRehearsals(context, ref),
+        ),
+        ToolButton(
+          icon: Icons.mic,
+          label: 'Record idea',
+          onTap: () => captureIdea(context, ref),
+        ),
       ],
     );
   }
@@ -140,5 +146,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
 }
