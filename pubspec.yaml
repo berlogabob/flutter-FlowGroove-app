@@ -48,6 +48,7 @@ dependencies:
   # Audio
   flutter_soloud: ^4.0.9
   record: ^7.1.0
+  just_audio: ^0.10.0
 
   # PDF & Export
   pdf: ^3.11.2
