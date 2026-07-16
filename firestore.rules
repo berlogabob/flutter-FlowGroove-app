@@ -215,6 +215,23 @@ service cloud.firestore {
           isValidLinkedSongCommit(request.auth.uid);
         allow update, delete: if false;
       }
+
+      // Song Lab (#66): journal entries, member tasks, version snapshots.
+      // Read = band member; write = non-demo editor/admin; delete also allowed
+      // to the entry author (fix your own note without admin rights).
+      match /{labCollection}/{labDocId} {
+        allow read: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+          isAuthenticated() && isGlobalBandMember(bandId);
+        allow create, update: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+          isAuthenticated() &&
+          isNotDemo(request.auth.uid) &&
+          isGlobalBandEditorOrAdmin(bandId);
+        allow delete: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+          isAuthenticated() &&
+          isNotDemo(request.auth.uid) &&
+          (isGlobalBandEditorOrAdmin(bandId) ||
+            resource.data.authorId == request.auth.uid);
+      }
     }
 
     // ============================================================
@@ -301,6 +318,14 @@ service cloud.firestore {
             isNotDemo(userId) &&
             isValidLinkedSongCommit(userId);
           allow update, delete: if false;
+        }
+
+        // Song Lab (#66) on personal songs: owner-only.
+        match /{labCollection}/{labDocId} {
+          allow read: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+            isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
+          allow create, update, delete: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+            isAuthenticated() && isOwner(userId) && isNotDemo(userId);
         }
       }
 

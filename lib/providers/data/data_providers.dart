@@ -7,6 +7,7 @@ import '../../models/canonical_song.dart';
 import '../../models/rehearsal.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
+import '../../models/song_lab.dart';
 import '../../repositories/repositories.dart';
 import '../../services/band_function_service.dart';
 import '../../services/canonical_song_function_service.dart';
@@ -37,6 +38,37 @@ final songRepositoryProvider = Provider<SongRepository>((ref) {
     auth: ref.watch(firebaseAuthProvider),
   );
 });
+
+/// Song Lab (#66): repository + per-song streams. Family key: (songId, bandId
+/// — null for personal songs).
+final labRepositoryProvider = Provider<FirestoreLabRepository>((ref) {
+  return FirestoreLabRepository(
+    firestore: ref.watch(firebaseFirestoreProvider),
+    auth: ref.watch(firebaseAuthProvider),
+  );
+});
+
+final labEntriesProvider = StreamProvider.autoDispose
+    .family<List<SongLabEntry>, (String, String?)>((ref, key) {
+      final (songId, bandId) = key;
+      return ref
+          .watch(labRepositoryProvider)
+          .watchEntries(songId, bandId: bandId);
+    });
+
+final labTasksProvider = StreamProvider.autoDispose
+    .family<List<SongTask>, (String, String?)>((ref, key) {
+      final (songId, bandId) = key;
+      return ref.watch(labRepositoryProvider).watchTasks(songId, bandId: bandId);
+    });
+
+final labVersionsProvider = StreamProvider.autoDispose
+    .family<List<SongVersion>, (String, String?)>((ref, key) {
+      final (songId, bandId) = key;
+      return ref
+          .watch(labRepositoryProvider)
+          .watchVersions(songId, bandId: bandId);
+    });
 
 /// Provider for the BandRepository.
 ///
