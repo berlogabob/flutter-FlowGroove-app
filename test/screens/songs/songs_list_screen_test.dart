@@ -372,6 +372,34 @@ void main() {
       expect(find.text('Try searching for "missing"'), findsOneWidget);
     });
 
+    testWidgets(
+      'root menu survives the branch first mounting under a child route',
+      (tester) async {
+        // Regression (device 2026-07-16): entering the songs branch for the
+        // first time BELOW its root (e.g. Practice → a song's Lab) made the
+        // songs root register its menu under the child's uri — the Songs
+        // tab's ⋮ then showed only the global Profile/Settings rows.
+        await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/main/songs/add', // deep entry, root never visited
+          overrides: overridesFor(
+            songs: Stream<List<Song>>.value([createTestSong()]),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('route:add-song'), findsOneWidget);
+
+        // Back to the songs root, open the bottom-bar menu.
+        await tester.tap(find.byIcon(Icons.arrow_back));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.more_horiz));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Find duplicates'), findsOneWidget);
+        expect(find.text('Browse catalog'), findsOneWidget);
+      },
+    );
+
     testWidgets('navigates to add song from FAB', (tester) async {
       final router = await pumpRoutedTestApp(
         tester,
