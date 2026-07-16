@@ -91,9 +91,10 @@ void main() {
 
       expect(find.text('Gig Setlist'), findsOneWidget);
       expect(find.text('Practice Setlist'), findsOneWidget);
-      expect(find.text('3 songs'), findsOneWidget);
-      expect(find.text('1 song'), findsOneWidget);
-      expect(find.text('10.05.2026'), findsOneWidget);
+      // #86 rail: counts and event date share one line, dot-separated.
+      expect(find.textContaining('3 songs'), findsOneWidget);
+      expect(find.textContaining('1 song'), findsOneWidget);
+      expect(find.textContaining('10.05.2026'), findsOneWidget);
       expect(find.byIcon(Icons.playlist_play), findsWidgets);
     });
 

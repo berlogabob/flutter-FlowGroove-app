@@ -128,10 +128,11 @@ void main() {
 
       expect(find.text('Song One'), findsOneWidget);
       expect(find.text('Artist One'), findsOneWidget);
-      expect(find.text('120 BPM'), findsOneWidget);
+      // #86 rail: BPM renders as a bare number beside the speed icon.
+      expect(find.text('120'), findsOneWidget);
       expect(find.text('C'), findsOneWidget);
       expect(find.text('Song Two'), findsOneWidget);
-      expect(find.text('130 BPM'), findsOneWidget);
+      expect(find.text('130'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
       expect(
         tester
