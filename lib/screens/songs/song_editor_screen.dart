@@ -140,10 +140,14 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
   }
 
   Future<void> _import() async {
+    final meta = _sync.meta;
     final imported = await showModalBottomSheet<ImportedSong>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => const ImportLyricsDialog(),
+      builder: (_) => ImportLyricsDialog(
+        seedTitle: meta.title,
+        seedArtist: meta.artist,
+      ),
     );
     if (imported == null || imported.sections.isEmpty || !mounted) return;
 

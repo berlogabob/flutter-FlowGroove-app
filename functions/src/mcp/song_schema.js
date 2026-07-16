@@ -1,5 +1,5 @@
 /**
- * Server-side validator for FlowGroove Song JSON (see docs/SONG_JSON_SCHEMA.md).
+ * Server-side validator for FlowGroove Song JSON (see SONG_JSON_SCHEMA.md at repo root).
  * Mirrors the Dart client validator (lib/services/json/song_json_codec.dart) against
  * the same documented schema.
  * ponytail: two small validators, one documented schema. Promote to a shared

@@ -417,10 +417,14 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   /// Opens the paste-import sheet and applies the result (metadata + sections)
   /// to the form, appending the parsed sections to any existing ones.
   Future<void> _importLyrics() async {
+    final form = ref.read(songFormStateProvider).formData;
     final imported = await showModalBottomSheet<ImportedSong>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => const ImportLyricsDialog(),
+      builder: (_) => ImportLyricsDialog(
+        seedTitle: form.title,
+        seedArtist: form.artist,
+      ),
     );
     if (imported == null || !mounted) return;
     _applyImported(imported);

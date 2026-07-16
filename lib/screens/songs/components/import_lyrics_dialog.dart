@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../models/section.dart';
 import '../../../models/song.dart';
+import '../../../services/json/song_ai_prompt.dart';
+import '../../../services/json/song_json_codec.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/chordpro.dart';
+import '../../../utils/snackbar.dart';
 import '../../../widgets/chord_chart_view.dart';
 
 /// Result of the paste-import sheet: the sections plus any song-level metadata
@@ -41,7 +45,12 @@ class ImportedSong {
 /// sections all sync to the form; looser lyrics fall back to [parseSongSections]
 /// for section-splitting only.
 class ImportLyricsDialog extends StatefulWidget {
-  const ImportLyricsDialog({super.key});
+  const ImportLyricsDialog({super.key, this.seedTitle, this.seedArtist});
+
+  /// Pre-typed title/artist from the caller's form — seeds the "Copy AI
+  /// prompt" template (#73) so the user's AI is asked about the right song.
+  final String? seedTitle;
+  final String? seedArtist;
 
   @override
   State<ImportLyricsDialog> createState() => _ImportLyricsDialogState();
@@ -67,6 +76,23 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
 
   ImportedSong get _parsed {
     final text = _controller.text;
+
+    // A pasted AI answer in Song JSON (#73): valid JSON wins, otherwise fall
+    // through — a ChordPro doc also starts with '{' but never decodes as JSON.
+    final trimmed = text.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      final r = const SongJsonCodec().parse(trimmed);
+      if (r.successful.isNotEmpty) {
+        final s = r.successful.first;
+        return ImportedSong(
+          sections: s.sections,
+          title: s.title.isNotEmpty ? s.title : null,
+          artist: s.artist.isNotEmpty ? s.artist : null,
+          ourKey: s.ourKey,
+          ourBpm: s.ourBPM,
+        );
+      }
+    }
 
     // A doc with directives → full ChordPro sync (metadata + structured sections).
     // ponytail: the `{` heuristic is enough; looser lyric pastes have none.
@@ -104,6 +130,22 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
   }
 
   void _import() => Navigator.pop(context, _parsed);
+
+  Future<void> _copyAiPrompt() async {
+    await Clipboard.setData(
+      ClipboardData(
+        text: songImportPrompt(
+          title: widget.seedTitle,
+          artist: widget.seedArtist,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    showAppSnackBar(
+      context,
+      'AI prompt copied — paste it to your AI, then paste its answer here',
+    );
+  }
 
   String _metaLine(ImportedSong p) => [
     if (p.title != null) '“${p.title}”',
@@ -190,8 +232,13 @@ class _ImportLyricsDialogState extends State<ImportLyricsDialog> {
             ],
             const SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                TextButton.icon(
+                  onPressed: _copyAiPrompt,
+                  icon: const Icon(Icons.auto_awesome, size: 18),
+                  label: const Text('Copy AI prompt'),
+                ),
+                const Spacer(),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Cancel'),

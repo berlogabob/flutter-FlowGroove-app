@@ -57,7 +57,7 @@ Gemini CLI / other MCP clients use the same `command` + `args` + `env` shape.
 | `create_song` | write | Add a song from FlowGroove Song JSON. |
 | `update_song` | write | Update a song by id. |
 
-Song shape: see [`docs/SONG_JSON_SCHEMA.md`](../docs/SONG_JSON_SCHEMA.md) — `sections[].chordChart`
+Song shape: see [`SONG_JSON_SCHEMA.md`](../SONG_JSON_SCHEMA.md) — `sections[].chordChart`
 is ChordPro (`[Am]Twinkle [F]star`). Writes are validated server-side and scoped to your
 own library; there are no canonical or delete operations.
 
