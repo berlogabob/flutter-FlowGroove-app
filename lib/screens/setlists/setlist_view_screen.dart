@@ -16,6 +16,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/setlist_song_row.dart';
 import 'create_setlist_screen.dart' show SetlistStorageScope;
+import 'event_kit_editor_screen.dart';
 
 /// Read-only detail view for a setlist (P1-7 fix).
 ///
@@ -52,6 +53,17 @@ class SetlistViewScreen extends ConsumerWidget {
         ? ref.watch(songsProvider)
         : ref.watch(bandSongsProvider(bandId!));
 
+    // Event Kit reads the LIVE setlist (the constructor arg is a
+    // navigation-time snapshot; the editor autosaves, and this keeps the
+    // summary current after popping back).
+    final liveSetlist =
+        (bandId == null
+                ? ref.watch(setlistsProvider).value
+                : ref.watch(bandSetlistsProvider(bandId!)).value)
+            ?.where((s) => s.id == setlist.id)
+            .firstOrNull ??
+        setlist;
+
     // Publishes into the shell's bottom bar (this is a pushed branch child):
     // the title slot is replaced by the "Open in Metronome" primary action
     // (bar becomes [← Back] [Open in Metronome] [⋮]); Edit — previously an
@@ -70,6 +82,12 @@ class SetlistViewScreen extends ConsumerWidget {
                 extra: setlist,
               ),
             ),
+          if (canEdit)
+            AppMenuItem(
+              icon: Icons.theater_comedy_outlined,
+              label: 'Event kit',
+              onTap: () => _openEventKit(context, liveSetlist),
+            ),
         ],
         primaryAction: CustomButton(
           label: 'Open in Metronome',
@@ -82,22 +100,37 @@ class SetlistViewScreen extends ConsumerWidget {
         body: SafeArea(
           bottom: false,
           child: songsAsync.when(
-            data: (songs) => _buildBody(setlist, songs),
+            data: (songs) =>
+                _buildBody(context, liveSetlist, songs, canEdit: canEdit),
             loading: () => const LoadingIndicator(),
             // A failed songs load shouldn't block the setlist details from
             // showing; song rows just fall back to "unavailable".
-            error: (_, _) => _buildBody(setlist, const []),
+            error: (_, _) =>
+                _buildBody(context, liveSetlist, const [], canEdit: canEdit),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBody(Setlist setlist, List<Song> allSongs) {
+  void _openEventKit(BuildContext context, Setlist live) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(setlist: live, bandId: bandId),
+      ),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    Setlist setlist,
+    List<Song> allSongs, {
+    required bool canEdit,
+  }) {
     final songsById = {for (final song in allSongs) song.id: song};
     final items = setlist.effectiveItems;
 
-    if (items.isEmpty) {
+    if (items.isEmpty && (setlist.eventKit?.isEmpty ?? true)) {
       return const EmptyState(
         icon: Icons.music_note,
         message: 'No songs in this setlist',
@@ -106,8 +139,11 @@ class SetlistViewScreen extends ConsumerWidget {
 
     return ListView.builder(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      itemCount: items.length,
+      itemCount: items.length + 1,
       itemBuilder: (context, index) {
+        if (index == items.length) {
+          return _eventKitSummary(context, setlist, canEdit: canEdit);
+        }
         final song = songsById[items[index].songId];
         return SetlistSongRow(
           index: index,
@@ -115,6 +151,46 @@ class SetlistViewScreen extends ConsumerWidget {
           trailing: song == null ? null : _badgesFor(song),
         );
       },
+    );
+  }
+
+  /// Event Kit summary below the songs (#53): what's placed, who's coming,
+  /// what to bring — tap opens the editor (edit-gated).
+  Widget _eventKitSummary(
+    BuildContext context,
+    Setlist setlist, {
+    required bool canEdit,
+  }) {
+    final kit = setlist.eventKit;
+    final empty = kit == null || kit.isEmpty;
+    if (empty && !canEdit) return const SizedBox.shrink();
+
+    final placements = kit == null
+        ? 0
+        : kit.stage.values.fold<int>(0, (sum, zone) => sum + zone.length);
+    final openRider = kit?.rider.where((r) => !r.done).length ?? 0;
+
+    return Card(
+      margin: const EdgeInsets.only(top: MonoPulseSpacing.lg),
+      child: ListTile(
+        leading: const Icon(
+          Icons.theater_comedy_outlined,
+          color: MonoPulseColors.accentOrange,
+        ),
+        title: const Text('Event kit'),
+        subtitle: Text(
+          empty
+              ? 'Stage plot, crew & rider for this gig'
+              : [
+                  if (placements > 0) '$placements on stage',
+                  if (kit.people.isNotEmpty) '${kit.people.length} crew/guests',
+                  if (kit.rider.isNotEmpty)
+                    '$openRider of ${kit.rider.length} rider items open',
+                ].join(' · '),
+        ),
+        trailing: canEdit ? const Icon(Icons.chevron_right) : null,
+        onTap: canEdit ? () => _openEventKit(context, setlist) : null,
+      ),
     );
   }
 
