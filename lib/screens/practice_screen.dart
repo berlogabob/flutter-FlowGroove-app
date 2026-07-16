@@ -69,6 +69,14 @@ class PracticeScreen extends ConsumerWidget {
                   label: const Text('Tuner'),
                 ),
               ),
+              const SizedBox(width: MonoPulseSpacing.md),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: () => context.pushNamed('recorder'),
+                  icon: const Icon(Icons.mic),
+                  label: const Text('Recorder'),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
@@ -137,14 +145,21 @@ class PracticeScreen extends ConsumerWidget {
     DateTime? lastDay;
     final today = DateTime.now();
     for (final s in sessions) {
-      final day = DateTime(s.startedAt.year, s.startedAt.month, s.startedAt.day);
+      final day = DateTime(
+        s.startedAt.year,
+        s.startedAt.month,
+        s.startedAt.day,
+      );
       if (day != lastDay) {
         lastDay = day;
         final label = day == DateTime(today.year, today.month, today.day)
             ? 'Today'
             : day ==
-                  DateTime(today.year, today.month, today.day)
-                      .subtract(const Duration(days: 1))
+                  DateTime(
+                    today.year,
+                    today.month,
+                    today.day,
+                  ).subtract(const Duration(days: 1))
             ? 'Yesterday'
             : '${day.day}/${day.month}/${day.year}';
         rows.add(
@@ -174,9 +189,7 @@ class PracticeScreen extends ConsumerWidget {
               color: MonoPulseColors.textSecondary,
             ),
             const SizedBox(width: MonoPulseSpacing.sm),
-            Expanded(
-              child: Text(song, overflow: TextOverflow.ellipsis),
-            ),
+            Expanded(child: Text(song, overflow: TextOverflow.ellipsis)),
             Text(
               '${PracticeDashboardCard.formatMinutes(s.elapsedSeconds)}'
               ' · ${s.startBpm} BPM',
@@ -214,9 +227,7 @@ class _TimePerSong extends StatelessWidget {
     final entries = stats.perSongSeconds.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final top = entries.take(3).toList();
-    final restSeconds = entries
-        .skip(3)
-        .fold<int>(0, (sum, e) => sum + e.value);
+    final restSeconds = entries.skip(3).fold<int>(0, (sum, e) => sum + e.value);
 
     String name(String id) =>
         id.isEmpty ? 'Freestyle' : titles[id] ?? 'Removed song';

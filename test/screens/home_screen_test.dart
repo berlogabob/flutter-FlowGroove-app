@@ -16,7 +16,6 @@ import '../helpers/test_helpers.dart';
 
 // Test notifier that returns a specific value
 class TestAppUserNotifier extends AppUserNotifier {
-
   TestAppUserNotifier(this.mockUser);
   final AppUser? mockUser;
 
@@ -66,9 +65,7 @@ void main() {
       mockAuth = MockFirebaseAuth();
     });
 
-    testWidgets('renders home screen with dashboard grid', (
-      tester,
-    ) async {
+    testWidgets('renders home screen with dashboard grid', (tester) async {
       await pumpHomeScreen(tester, mockAuth: mockAuth);
 
       expect(find.byType(DashboardGrid), findsOneWidget);
@@ -103,10 +100,13 @@ void main() {
 
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
 
-      expect(find.byType(ToolButton), findsNWidgets(3));
+      // 4 grid tools + the full-width Practice row (#145 rebalance).
+      expect(find.byType(ToolButton), findsNWidgets(5));
       expect(find.text('Tuner'), findsOneWidget);
       expect(find.text('Metronome'), findsOneWidget);
       expect(find.text('Rehearsals'), findsOneWidget);
+      expect(find.text('Recorder'), findsOneWidget);
+      expect(find.text('Practice'), findsOneWidget);
     });
 
     testWidgets('renders quick action buttons with correct icons', (
@@ -122,9 +122,7 @@ void main() {
       expect(find.byIcon(Icons.menu_book), findsOneWidget);
     });
 
-    testWidgets('renders tool buttons with correct icons', (
-      tester,
-    ) async {
+    testWidgets('renders tool buttons with correct icons', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);

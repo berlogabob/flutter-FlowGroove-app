@@ -43,6 +43,7 @@ class DashboardGrid extends StatelessWidget {
     super.key,
     this.greetingCard,
     this.statisticsTitle = 'My Library',
+    this.fullWidthTool,
   });
 
   /// Greeting card widget (optional).
@@ -61,6 +62,10 @@ class DashboardGrid extends StatelessWidget {
 
   /// List of tool buttons.
   final List<ToolButton> tools;
+
+  /// Optional tool rendered as a full-width row under the tools grid
+  /// (Home's Practice entry, #145 feedback).
+  final ToolButton? fullWidthTool;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +97,11 @@ class DashboardGrid extends StatelessWidget {
                       ..._statisticsSection(context, breakpoint),
                       if (statistics.isNotEmpty && tools.isNotEmpty)
                         const SizedBox(height: MonoPulseSpacing.xl),
-                      ..._toolsSection(context, breakpoint, constraints.maxWidth),
+                      ..._toolsSection(
+                        context,
+                        breakpoint,
+                        constraints.maxWidth,
+                      ),
                     ],
                   ),
                 ),
@@ -162,11 +171,15 @@ class DashboardGrid extends StatelessWidget {
     ScreenBreakpoint breakpoint,
     double maxWidth,
   ) {
-    if (tools.isEmpty) return const [];
+    if (tools.isEmpty && fullWidthTool == null) return const [];
     return [
       _buildSectionTitle(context, 'Tools', breakpoint),
       const SizedBox(height: MonoPulseSpacing.md),
       _buildResponsiveToolsGrid(breakpoint, maxWidth),
+      if (fullWidthTool != null) ...[
+        const SizedBox(height: MonoPulseSpacing.md),
+        SizedBox(height: _tileHeight(breakpoint), child: fullWidthTool),
+      ],
     ];
   }
 

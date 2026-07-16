@@ -27,9 +27,14 @@ class LabRecordingResult {
 
 /// Capture-or-attach sheet for Song Lab audio ideas (#69). Capture, don't
 /// edit: record / pick a file, name it, add manual timestamp notes
-/// ("00:42 good chorus entry"). No waveform, no DAW — by design.
+/// ("00:42 good chorus entry"). Live amplitude bars while recording;
+/// no playback waveform, no DAW — by design.
 class LabRecordingSheet extends StatefulWidget {
-  const LabRecordingSheet({super.key});
+  const LabRecordingSheet({this.autoStart = false, super.key});
+
+  /// Start recording as soon as the sheet opens (Home "Audio note", #145) —
+  /// silently ignored when the mic permission is denied or unavailable.
+  final bool autoStart;
 
   @override
   State<LabRecordingSheet> createState() => _LabRecordingSheetState();
@@ -43,13 +48,34 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   bool _recording = false;
   int _elapsed = 0;
   Timer? _ticker;
+  StreamSubscription<Amplitude>? _ampSub;
+  final List<double> _amps = [];
   Uint8List? _bytes;
   String _ext = 'm4a';
   String? _pickedName;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.autoStart && !kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_startGuarded());
+      });
+    }
+  }
+
+  Future<void> _startGuarded() async {
+    try {
+      await _toggleRecord();
+    } catch (_) {
+      // No recorder plugin (tests) or denied mic: the sheet just opens idle.
+    }
+  }
+
+  @override
   void dispose() {
     _ticker?.cancel();
+    _ampSub?.cancel();
     _recorder.dispose();
     _title.dispose();
     _notes.dispose();
@@ -60,6 +86,8 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
     if (_recording) {
       final path = await _recorder.stop();
       _ticker?.cancel();
+      await _ampSub?.cancel();
+      _ampSub = null;
       if (path != null) {
         final bytes = await File(path).readAsBytes();
         setState(() {
@@ -77,14 +105,23 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
     final dir = await getTemporaryDirectory();
     final path =
         '${dir.path}/lab_rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
-    await _recorder.start(
-      const RecordConfig(),
-      path: path,
-    );
+    await _recorder.start(const RecordConfig(), path: path);
     _elapsed = 0;
+    _amps.clear();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _elapsed++);
     });
+    _ampSub = _recorder
+        .onAmplitudeChanged(const Duration(milliseconds: 100))
+        .listen((a) {
+          if (!mounted) return;
+          setState(() {
+            _amps.add(a.current);
+            if (_amps.length > _RecordingWavePainter.maxBars) {
+              _amps.removeAt(0);
+            }
+          });
+        });
     setState(() {
       _recording = true;
       _bytes = null;
@@ -136,10 +173,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Audio idea',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Audio idea', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
               _statusLine,
@@ -149,6 +183,13 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
                     : MonoPulseColors.textSecondary,
               ),
             ),
+            if (_recording) ...[
+              const SizedBox(height: MonoPulseSpacing.sm),
+              CustomPaint(
+                size: const Size(double.infinity, 36),
+                painter: _RecordingWavePainter(List.of(_amps)),
+              ),
+            ],
             const SizedBox(height: MonoPulseSpacing.md),
             Row(
               children: [
@@ -222,6 +263,36 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       ),
     );
   }
+}
+
+/// Rolling live-amplitude bars shown while recording. Input is dBFS from
+/// `record`'s amplitude stream (~-160..0); mapped linearly from a -60dB
+/// floor so speech/instrument levels use most of the bar height.
+class _RecordingWavePainter extends CustomPainter {
+  _RecordingWavePainter(this.amps);
+
+  static const maxBars = 48;
+  final List<double> amps;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = MonoPulseColors.accentOrange
+      ..strokeWidth = size.width / maxBars * 0.6
+      ..strokeCap = StrokeCap.round;
+    final step = size.width / maxBars;
+    final mid = size.height / 2;
+    for (var i = 0; i < amps.length; i++) {
+      final norm = ((amps[i] + 60) / 60).clamp(0.05, 1.0);
+      final h = norm * size.height / 2;
+      final x = (maxBars - amps.length + i) * step + step / 2;
+      canvas.drawLine(Offset(x, mid - h), Offset(x, mid + h), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RecordingWavePainter oldDelegate) =>
+      oldDelegate.amps != amps;
 }
 
 /// Minimal play/pause for a recording entry — capture, don't edit (#69).

@@ -58,44 +58,58 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       greetingCard: const PracticeDashboardCard(),
       statistics: const [],
       quickActions: [
-            QuickActionButton(
-              icon: Icons.add,
-              label: 'Song',
-              onTap: () => context.goNamed('add-song'),
-            ),
-            QuickActionButton(
-              icon: Icons.group_add,
-              label: 'Band',
-              onTap: () => context.goNamed('create-band'),
-            ),
-            QuickActionButton(
-              icon: Icons.playlist_add,
-              label: 'Setlist',
-              onTap: () => context.goNamed('create-setlist'),
-            ),
-            QuickActionButton(
-              icon: Icons.menu_book,
-              label: 'Practice',
-              onTap: () => context.pushNamed('practice'),
-            ),
-          ],
-          tools: [
-            ToolButton(
-              icon: Icons.tune,
-              label: 'Tuner',
-              onTap: () => context.pushNamed('tuner'),
-            ),
-            ToolButton(
-              icon: Icons.speed,
-              label: 'Metronome',
-              onTap: () => context.pushNamed('metronome'),
-            ),
-            ToolButton(
-              icon: Icons.event,
-              label: 'Rehearsals',
-              onTap: () => _openRehearsals(context, ref),
-            ),
+        QuickActionButton(
+          icon: Icons.add,
+          label: 'Song',
+          onTap: () => context.goNamed('add-song'),
+        ),
+        QuickActionButton(
+          icon: Icons.group_add,
+          label: 'Band',
+          onTap: () => context.goNamed('create-band'),
+        ),
+        QuickActionButton(
+          icon: Icons.playlist_add,
+          label: 'Setlist',
+          onTap: () => context.goNamed('create-setlist'),
+        ),
+        // One tap, recording already running (#145 feedback).
+        QuickActionButton(
+          icon: Icons.mic,
+          label: 'Audio note',
+          onTap: () => context.pushNamed(
+            'recorder',
+            queryParameters: {'autostart': '1'},
+          ),
+        ),
       ],
+      tools: [
+        ToolButton(
+          icon: Icons.tune,
+          label: 'Tuner',
+          onTap: () => context.pushNamed('tuner'),
+        ),
+        ToolButton(
+          icon: Icons.speed,
+          label: 'Metronome',
+          onTap: () => context.pushNamed('metronome'),
+        ),
+        ToolButton(
+          icon: Icons.event,
+          label: 'Rehearsals',
+          onTap: () => _openRehearsals(context, ref),
+        ),
+        ToolButton(
+          icon: Icons.graphic_eq,
+          label: 'Recorder',
+          onTap: () => context.pushNamed('recorder'),
+        ),
+      ],
+      fullWidthTool: ToolButton(
+        icon: Icons.menu_book,
+        label: 'Practice',
+        onTap: () => context.pushNamed('practice'),
+      ),
     );
   }
 
@@ -140,5 +154,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
 }

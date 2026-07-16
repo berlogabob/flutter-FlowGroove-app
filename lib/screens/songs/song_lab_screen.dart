@@ -11,7 +11,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/analytics_service.dart';
 import '../../services/export/lab_markdown.dart';
-import '../../services/storage_service.dart';
+import '../../services/idea_recorder.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/chordpro.dart';
 import '../../utils/member_label.dart';
@@ -484,52 +484,9 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
     ),
   );
 
-  /// Record/attach an audio idea (#69): upload to Storage, then a
-  /// `recording` entry with the download URL as its attachment.
-  Future<void> _composeRecording() async {
-    final result = await showModalBottomSheet<LabRecordingResult>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => const LabRecordingSheet(),
-    );
-    if (result == null || !mounted) return;
-
-    final entryId = _uuid.v4();
-    try {
-      final url = await StorageService().uploadLabAudio(
-        result.bytes,
-        bandId: widget.bandId,
-        songId: widget.song.id,
-        entryId: entryId,
-        ext: result.ext,
-      );
-      final uid = ref.read(firebaseAuthProvider).currentUser?.uid ?? '';
-      final now = DateTime.now();
-      await ref
-          .read(labRepositoryProvider)
-          .saveEntry(
-            SongLabEntry(
-              id: entryId,
-              songId: widget.song.id,
-              bandId: widget.bandId,
-              type: LabEntryType.recording,
-              title: result.title,
-              body: result.notes,
-              authorId: uid,
-              createdAt: now,
-              updatedAt: now,
-              attachmentIds: [url],
-            ),
-            bandId: widget.bandId,
-          );
-      unawaited(
-        AnalyticsService.logLabEntryAdded(type: LabEntryType.recording.name),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(context, 'Upload failed: $e');
-    }
-  }
+  /// Record/attach an audio idea (#69) — shared capture path (#145).
+  Future<void> _composeRecording() =>
+      captureIdea(context, ref, songId: widget.song.id, bandId: widget.bandId);
 
   Widget _filterRow() => Padding(
     padding: const EdgeInsets.symmetric(
