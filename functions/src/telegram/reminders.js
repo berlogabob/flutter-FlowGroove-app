@@ -36,24 +36,57 @@ exports.onBandSetlistCreated = functions.firestore
  */
 exports.dailyEventReminder = functions.pubsub
   .schedule("every 24 hours")
-  .onRun(async () => {
-    const now = new Date();
-    const soon = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  .onRun(() => runDailyEventReminder());
 
-    const snap = await db
-      .collectionGroup("setlists")
-      .where("eventDateTime", ">=", now.toISOString())
-      .where("eventDateTime", "<=", soon.toISOString())
-      .get();
+/** Core scan, injectable for tests: `notify(bandId, text)`, `now`. */
+async function runDailyEventReminder({
+  notify = notifyBandMembers,
+  now = new Date(),
+} = {}) {
+  const soon = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-    for (const doc of snap.docs) {
-      const bandId = doc.ref.parent.parent && doc.ref.parent.parent.id;
-      if (!bandId) continue;
-      const data = doc.data();
-      const name = data.name || "Event";
-      const text = `⏰ *Reminder:* "${name}" is coming up in the next 24 hours.`;
-      await notifyBandMembers(bandId, text);
-    }
+  const snap = await db
+    .collectionGroup("setlists")
+    .where("eventDateTime", ">=", now.toISOString())
+    .where("eventDateTime", "<=", soon.toISOString())
+    .get();
 
-    return null;
-  });
+  for (const doc of snap.docs) {
+    const bandId = doc.ref.parent.parent && doc.ref.parent.parent.id;
+    if (!bandId) continue;
+    const data = doc.data();
+    const name = data.name || "Event";
+    const text = `⏰ *Reminder:* "${name}" is coming up in the next 24 hours.`;
+    await notify(bandId, text);
+  }
+
+  // Confirmed rehearsals starting within the window (#57). The confirmed
+  // slot's startTime lives inside the candidateSlots array, so the window
+  // check happens in code; confirmed rehearsals per band are few.
+  const rehearsals = await db
+    .collectionGroup("rehearsals")
+    .where("status", "==", "confirmed")
+    .get();
+
+  for (const doc of rehearsals.docs) {
+    const bandId = doc.ref.parent.parent && doc.ref.parent.parent.id;
+    if (!bandId) continue;
+    const data = doc.data();
+    const slot = (data.candidateSlots || []).find(
+      (s) => s && s.id === data.confirmedSlotId,
+    );
+    if (!slot || !slot.startTime) continue;
+    const start = new Date(slot.startTime);
+    if (isNaN(start) || start < now || start > soon) continue;
+    const title = data.title || "Rehearsal";
+    const where = data.location ? ` at ${data.location}` : "";
+    const text =
+      `🥁 *Rehearsal reminder:* "${title}"${where} ` +
+      `is coming up in the next 24 hours.`;
+    await notify(bandId, text);
+  }
+
+  return null;
+}
+
+exports.runDailyEventReminder = runDailyEventReminder;
