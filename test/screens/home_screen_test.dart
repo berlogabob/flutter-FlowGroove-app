@@ -3,7 +3,6 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/home_screen.dart';
 import 'package:flowgroove/widgets/dashboard_grid.dart';
-import 'package:flowgroove/widgets/greeting_card.dart';
 import 'package:flowgroove/widgets/quick_action_button.dart';
 import 'package:flowgroove/widgets/stat_card.dart';
 import 'package:flowgroove/widgets/tool_button.dart';
@@ -30,9 +29,6 @@ Future<void> pumpHomeScreen(
   WidgetTester tester, {
   required MockFirebaseAuth mockAuth,
   AppUser? user,
-  int songCount = 0,
-  int bandCount = 0,
-  int setlistCount = 0,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -46,9 +42,6 @@ Future<void> pumpHomeScreen(
             songsProvider.overrideWith((ref) => Stream.value([])),
             bandsProvider.overrideWith((ref) => Stream.value([])),
             setlistsProvider.overrideWith((ref) => Stream.value([])),
-            songCountProvider.overrideWith((ref) => songCount),
-            bandCountProvider.overrideWith((ref) => bandCount),
-            setlistCountProvider.overrideWith((ref) => setlistCount),
           ],
           child: const HomeScreen(),
         ),
@@ -81,47 +74,16 @@ void main() {
       expect(find.byType(DashboardGrid), findsOneWidget);
     });
 
-    testWidgets('displays greeting section with user name', (
+    testWidgets('shows no greeting card or stat counters (#97)', (
       tester,
     ) async {
       final mockUser = MockDataHelper.createMockAppUser(displayName: 'John');
 
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
 
-      expect(find.byType(GreetingCard), findsOneWidget);
-      expect(find.text('Hello, John!'), findsOneWidget);
-    });
-
-    testWidgets('displays statistics section with stat cards', (
-      tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
-
-      expect(find.byType(StatCard), findsNWidgets(3));
-      expect(find.text('Songs'), findsOneWidget);
-      expect(find.text('Bands'), findsOneWidget);
-      expect(find.text('Setlists'), findsOneWidget);
-    });
-
-    testWidgets('displays correct statistics counts', (
-      tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpHomeScreen(
-        tester,
-        mockAuth: mockAuth,
-        user: mockUser,
-        songCount: 5,
-        bandCount: 2,
-        setlistCount: 3,
-      );
-
-      expect(find.text('5'), findsOneWidget);
-      expect(find.text('2'), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
+      expect(find.textContaining('Hello,'), findsNothing);
+      expect(find.byType(StatCard), findsNothing);
+      expect(find.text('My Library'), findsNothing);
     });
 
     testWidgets('displays quick actions section', (tester) async {
@@ -145,26 +107,6 @@ void main() {
       expect(find.text('Tuner'), findsOneWidget);
       expect(find.text('Metronome'), findsOneWidget);
       expect(find.text('Rehearsals'), findsOneWidget);
-    });
-
-    testWidgets('displays loading state when user data is loading', (
-      tester,
-    ) async {
-      await pumpHomeScreen(tester, mockAuth: mockAuth);
-
-      expect(find.byType(GreetingCard), findsOneWidget);
-    });
-
-    testWidgets('renders stat cards with correct icons', (
-      tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
-
-      expect(find.byIcon(Icons.music_note), findsOneWidget);
-      expect(find.byIcon(Icons.groups), findsOneWidget);
-      expect(find.byIcon(Icons.queue_music), findsOneWidget);
     });
 
     testWidgets('renders quick action buttons with correct icons', (
@@ -197,16 +139,6 @@ void main() {
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
 
       expect(find.byType(LayoutBuilder), findsWidgets);
-    });
-
-    testWidgets('displays zero counts when no data', (
-      tester,
-    ) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
-
-      expect(find.text('0'), findsNWidgets(3));
     });
   });
 }

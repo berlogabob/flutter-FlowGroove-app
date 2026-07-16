@@ -22,7 +22,7 @@ import 'tool_button.dart';
 /// Usage:
 /// ```dart
 /// DashboardGrid(
-///   greetingCard: GreetingCard(userName: 'John'),
+///   greetingCard: BandHeader(...), // optional header slot
 ///   statistics: [
 ///     StatCard(icon: Icons.music_note, label: 'Songs', value: '42', ...),
 ///     StatCard(icon: Icons.groups, label: 'Bands', value: '3', ...),

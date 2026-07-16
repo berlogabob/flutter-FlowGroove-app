@@ -4,17 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../models/user.dart';
-import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
-import '../theme/mono_pulse_theme.dart';
 import '../utils/analytics_debug.dart';
-import '../utils/responsive_breakpoints.dart';
 import '../widgets/dashboard_grid.dart';
-import '../widgets/greeting_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/standard_screen_scaffold.dart';
-import '../widgets/stat_card.dart';
 import '../widgets/tool_button.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -57,41 +51,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _HomeDashboard(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(appUserProvider);
-    final songCount = ref.watch(songCountProvider);
-    final bandCount = ref.watch(bandCountProvider);
-    final setlistCount = ref.watch(setlistCountProvider);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final breakpoint = getBreakpoint(constraints.maxWidth);
-
-        return DashboardGrid(
-          greetingCard: _buildGreetingCard(ref, userAsync, breakpoint),
-          statistics: [
-            StatCard(
-              icon: Icons.music_note,
-              label: 'Songs',
-              value: songCount.toString(),
-              color: MonoPulseColors.textSecondary,
-              onTap: () => context.goNamed('songs'),
-            ),
-            StatCard(
-              icon: Icons.groups,
-              label: 'Bands',
-              value: bandCount.toString(),
-              color: MonoPulseColors.textSecondary,
-              onTap: () => context.goNamed('bands'),
-            ),
-            StatCard(
-              icon: Icons.queue_music,
-              label: 'Setlists',
-              value: setlistCount.toString(),
-              color: MonoPulseColors.textSecondary,
-              onTap: () => context.goNamed('setlists'),
-            ),
-          ],
-          quickActions: [
+    // Home leads with actions (#97, launch-review feedback): no greeting card,
+    // no stat counters — the tabs themselves show the library.
+    return DashboardGrid(
+      statistics: const [],
+      quickActions: [
             QuickActionButton(
               icon: Icons.add,
               label: 'Song',
@@ -129,9 +93,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               label: 'Rehearsals',
               onTap: () => _openRehearsals(context, ref),
             ),
-          ],
-        );
-      },
+      ],
     );
   }
 
@@ -177,30 +139,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildGreetingCard(
-    WidgetRef ref,
-    AsyncValue<AppUser?> userAsync,
-    ScreenBreakpoint breakpoint,
-  ) {
-    final isCompact = breakpoint != ScreenBreakpoint.mobile;
-
-    return userAsync.when(
-      data: (user) => GreetingCard(
-        userName: user?.displayName ?? 'User',
-        avatarPath: user?.photoURL, // Use photo URL (Telegram or Firebase)
-        subtitle: 'Ready to rock?',
-        isCompact: isCompact,
-      ),
-      loading: () => GreetingCard(
-        userName: 'Loading...',
-        subtitle: '',
-        isCompact: isCompact,
-      ),
-      error: (_, _) => GreetingCard(
-        userName: 'User',
-        subtitle: 'Ready to rock?',
-        isCompact: isCompact,
-      ),
-    );
-  }
 }
