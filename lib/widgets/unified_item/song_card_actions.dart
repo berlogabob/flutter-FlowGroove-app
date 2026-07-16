@@ -99,7 +99,7 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) {
     // ponytail: chosen action missing on this song (no sheet/Spotify/bands)
     // falls back to Practice rather than an empty slot.
-    var quick = ref.read(songQuickActionProvider);
+    var quick = ref.watch(songQuickActionProvider);
     if (!_quickActionAvailable(quick, song, bands)) quick = 'practice';
     final (quickLabel, quickIcon) = quickActions[quick]!;
     return [
@@ -164,8 +164,11 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ),
       ),
     );
-    if (choice != null) {
+    if (choice != null && choice != current) {
       await ref.read(songQuickActionProvider.notifier).set(choice);
+      if (!mounted) return;
+      final (label, _) = quickActions[choice]!;
+      showAppSnackBar(context, 'Quick action set to $label');
     }
   }
 

@@ -192,6 +192,12 @@ GoRouter createRoutedTestRouter({
                     const TestRouteMarker('create-setlist'),
               ),
               GoRoute(
+                path: ':id',
+                name: 'setlist-view',
+                builder: (context, state) =>
+                    const TestRouteMarker('setlist-view'),
+              ),
+              GoRoute(
                 path: ':id/edit',
                 name: 'edit-setlist',
                 builder: (context, state) =>
@@ -229,6 +235,9 @@ Future<GoRouter> pumpRoutedTestApp(
   return router;
 }
 
+/// NOTE: this reports the last top-level `go` location; routes opened with
+/// `pushNamed` do NOT update it. For pushed routes assert the rendered
+/// `TestRouteMarker` text instead.
 Uri currentRouterUri(GoRouter router) {
   return router.routeInformationProvider.value.uri;
 }

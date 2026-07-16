@@ -15,6 +15,9 @@ import '../utils/chordpro.dart';
 import '../utils/snackbar.dart';
 import '../widgets/chord_chart_view.dart';
 import '../widgets/custom_app_bar.dart';
+import 'songs/chordpro_sync_controller.dart';
+import 'songs/components/import_lyrics_dialog.dart';
+import 'songs/song_editor_screen.dart';
 
 /// Full-screen, stage-readable lyrics+chords view for a song. Renders each
 /// section's ChordPro [Section.chordChart] as chords-over-lyrics, keeps the
@@ -210,6 +213,76 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
     Navigator.of(context).pop();
   }
 
+  /// Opens the full-screen Song editor (live map ⇄ ChordPro sync) seeded from
+  /// the current performance sheet data.
+  Future<void> _openSongEditor() async {
+    final result = await Navigator.of(context).push<ImportedSong>(
+      MaterialPageRoute<ImportedSong>(
+        builder: (_) => SongEditorScreen(
+          title: widget.title,
+          sections: widget.sections,
+          artist: widget.song?.artist,
+          songKey: widget.songKey,
+          bpm: widget.bpm,
+          timeTop: widget.timeTop,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    // Update sections from editor result; rebuild the rows
+    setState(() {
+      widget.sections.clear();
+      widget.sections.addAll(result.sections);
+      _recomputeRows();
+    });
+  }
+
+  /// Opens the import lyrics & chords sheet.
+  Future<void> _importLyrics() async {
+    final imported = await showModalBottomSheet<ImportedSong>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const ImportLyricsDialog(),
+    );
+    if (imported == null || imported.sections.isEmpty || !mounted) return;
+
+    var mode = ImportMode.replace;
+    if (widget.sections.isNotEmpty) {
+      final choice = await showDialog<ImportMode>(
+        context: context,
+        builder: (dctx) => AlertDialog(
+          title: const Text('You already have a song map'),
+          content: const Text(
+            'Replace it with the imported one, or append the imported sections?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dctx),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dctx, ImportMode.append),
+              child: const Text('Append'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dctx, ImportMode.replace),
+              child: const Text('Replace'),
+            ),
+          ],
+        ),
+      );
+      if (choice == null || !mounted) return;
+      mode = choice;
+    }
+
+    // Apply imported sections
+    if (mode == ImportMode.replace) {
+      widget.sections.clear();
+    }
+    widget.sections.addAll(imported.sections);
+    setState(() => _recomputeRows());
+  }
+
   @override
   Widget build(BuildContext context) {
     final lyric =
@@ -251,7 +324,10 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
         ],
       ),
       body: _rows.isEmpty
-          ? const _EmptyState()
+          ? _EmptyState(
+              onOpenEditor: _openSongEditor,
+              onImportLyrics: _importLyrics,
+            )
           : ListView.builder(
               controller: _scroll,
               padding: const EdgeInsets.all(MonoPulseSpacing.lg),
@@ -430,20 +506,48 @@ class _Row {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({
+    required this.onOpenEditor,
+    required this.onImportLyrics,
+  });
+
+  final VoidCallback onOpenEditor;
+  final VoidCallback onImportLyrics;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(MonoPulseSpacing.xl),
-        child: Text(
-          'No lyrics or chords yet.\nAdd them to a section to see the '
-          'performance sheet.',
-          textAlign: TextAlign.center,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: MonoPulseColors.textSecondary),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'No lyrics or chords yet.\nAdd them to a section to see the '
+              'performance sheet.',
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: MonoPulseColors.textSecondary),
+            ),
+            const SizedBox(height: MonoPulseSpacing.xl),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: onOpenEditor,
+                  icon: const Icon(Icons.edit_note),
+                  label: const Text('Open song editor'),
+                ),
+                const SizedBox(height: MonoPulseSpacing.md),
+                OutlinedButton.icon(
+                  onPressed: onImportLyrics,
+                  icon: const Icon(Icons.playlist_add),
+                  label: const Text('Import lyrics & chords'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

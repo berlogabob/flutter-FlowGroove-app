@@ -14,6 +14,7 @@ import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/song_library_merge_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/key_utils.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
 import '../../widgets/confirmation_dialog.dart';
@@ -73,7 +74,6 @@ final songsFilterSortProvider =
 
 /// State class for songs filter/sort.
 class SongsFilterSortState {
-
   const SongsFilterSortState({
     this.sortOption = SortOption.alphabetical,
     this.filterText = '',
@@ -334,9 +334,10 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
         }
       }
 
-      // Key filter
-      if (keyFilter != null && song.ourKey != null) {
-        if (song.ourKey!.toLowerCase() != keyFilter.toLowerCase()) {
+      // Key filter (canonicalized: flats == sharps, case-insensitive; a
+      // song with no key never matches a specific key chip).
+      if (keyFilter != null && keyFilter.isNotEmpty) {
+        if (!keyMatchesFilter(song.ourKey, keyFilter)) {
           return false;
         }
       }
@@ -409,8 +410,35 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     ref.read(errorStateProvider.notifier).handleError(apiError);
   }
 
+  /// The 12 chromatic root notes (sharp spelling), used to build both the
+  /// major and minor key filter chips.
+  static const _keyRoots = [
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
+  ];
+
   /// Show filter options bottom sheet.
   void _showFilterOptions() {
+    // Local (non-provider) UI state for the Major/Minor toggle. Declared
+    // here, outside the StatefulBuilder's rebuilding closure, so it
+    // survives setModalState calls. Defaults to whichever mode the current
+    // filter (if any) is already in.
+    var keyIsMinor =
+        canonicalKey(
+          ref.read(songsFilterSortProvider).keyFilter,
+        )?.endsWith('m') ??
+        false;
+
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -418,129 +446,147 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
           final state = ref.read(songsFilterSortProvider);
           final currentKey = state.keyFilter;
           final currentBpm = state.bpmFilter;
+          final canonicalCurrentKey = canonicalKey(currentKey);
 
-          return Container(
-            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Filter Options',
-                  style: MonoPulseTypography.titleLarge.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Key filter
-                const Text(
-                  'Key',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    AppFilterChip(
-                      label: 'All',
-                      selected: currentKey == null,
-                      onSelected: (_) {
-                        ref
-                            .read(songsFilterSortProvider.notifier)
-                            .setKeyFilter(null);
-                        setModalState(() {});
-                      },
+          return SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Filter Options',
+                    style: MonoPulseTypography.titleLarge.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                    ...[
-                      'C',
-                      'C#',
-                      'D',
-                      'D#',
-                      'E',
-                      'F',
-                      'F#',
-                      'G',
-                      'G#',
-                      'A',
-                      'A#',
-                      'B',
-                    ].map(
-                      (key) => AppFilterChip(
-                        label: key,
-                        selected: currentKey == key,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Key filter
+                  const Text(
+                    'Key',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppFilterChip(
+                          label: 'Major',
+                          selected: !keyIsMinor,
+                          onSelected: (_) {
+                            setModalState(() => keyIsMinor = false);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: AppFilterChip(
+                          label: 'Minor',
+                          selected: keyIsMinor,
+                          onSelected: (_) {
+                            setModalState(() => keyIsMinor = true);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      AppFilterChip(
+                        label: 'All',
+                        selected: currentKey == null,
                         onSelected: (_) {
                           ref
                               .read(songsFilterSortProvider.notifier)
-                              .setKeyFilter(key);
+                              .setKeyFilter(null);
                           setModalState(() {});
                         },
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // BPM filter
-                const Text(
-                  'BPM',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButton<int?>(
-                        isExpanded: true,
-                        value: currentBpm,
-                        hint: const Text('Any BPM'),
-                        items: [
-                          const DropdownMenuItem(
-                            child: Text('Any BPM'),
-                          ),
-                          ...[60, 80, 100, 120, 140, 160, 180].map(
-                            (bpm) => DropdownMenuItem(
-                              value: bpm,
-                              child: Text('$bpm BPM'),
-                            ),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          ref
-                              .read(songsFilterSortProvider.notifier)
-                              .setBpmFilter(value);
-                          setModalState(() {});
-                        },
-                      ),
-                    ),
-                    if (currentBpm != null)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          ref
-                              .read(songsFilterSortProvider.notifier)
-                              .setBpmFilter(null);
-                          setModalState(() {});
-                        },
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Clear all filters button
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      ref.read(songsFilterSortProvider.notifier).clearFilters();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Clear All Filters'),
+                      ..._keyRoots.map((root) {
+                        final value = keyIsMinor ? '${root}m' : root;
+                        final selected =
+                            canonicalCurrentKey != null &&
+                            canonicalCurrentKey == canonicalKey(value);
+                        return AppFilterChip(
+                          label: value,
+                          selected: selected,
+                          onSelected: (_) {
+                            ref
+                                .read(songsFilterSortProvider.notifier)
+                                .setKeyFilter(value);
+                            setModalState(() {});
+                          },
+                        );
+                      }),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 8),
-              ],
+                  const SizedBox(height: 16),
+
+                  // BPM filter
+                  const Text(
+                    'BPM',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButton<int?>(
+                          isExpanded: true,
+                          value: currentBpm,
+                          hint: const Text('Any BPM'),
+                          items: [
+                            const DropdownMenuItem(child: Text('Any BPM')),
+                            ...[60, 80, 100, 120, 140, 160, 180].map(
+                              (bpm) => DropdownMenuItem(
+                                value: bpm,
+                                child: Text('$bpm BPM'),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            ref
+                                .read(songsFilterSortProvider.notifier)
+                                .setBpmFilter(value);
+                            setModalState(() {});
+                          },
+                        ),
+                      ),
+                      if (currentBpm != null)
+                        IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            ref
+                                .read(songsFilterSortProvider.notifier)
+                                .setBpmFilter(null);
+                            setModalState(() {});
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Clear all filters button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        ref
+                            .read(songsFilterSortProvider.notifier)
+                            .clearFilters();
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Clear All Filters'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
           );
         },
@@ -556,7 +602,9 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     ref.watch(songQuickActionProvider);
     final exportSongs = songsAsync.value;
     final canExport = exportSongs != null && exportSongs.isNotEmpty;
-    final canEdit = ref.watch(canEditProvider); // false for the shared demo account
+    final canEdit = ref.watch(
+      canEditProvider,
+    ); // false for the shared demo account
 
     return StandardScreenScaffold(
       title: 'Songs',
@@ -957,5 +1005,4 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
       });
     }
   }
-
 }
