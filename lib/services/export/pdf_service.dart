@@ -2,6 +2,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import '../../models/event_kit.dart';
 import '../../models/section.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
@@ -10,7 +11,7 @@ import '../../utils/chordpro.dart';
 /// PDF layout for a setlist export.
 /// [pack] = compact setlist page + every song as a one-page compact sheet
 /// (#84; roster/stage map/schedule pages come later).
-enum SetlistPdfLayout { detailed, compact, pack }
+enum SetlistPdfLayout { detailed, compact, pack, eventGuide }
 
 class PdfService {
   /// Exports a single song's performance sheet (chords over lyrics per section)
@@ -94,7 +95,9 @@ class PdfService {
     final font = await PdfGoogleFonts.robotoRegular();
     final fontBold = await PdfGoogleFonts.robotoBold();
 
-    final songWidgets = layout == SetlistPdfLayout.detailed
+    final songWidgets =
+        layout == SetlistPdfLayout.detailed ||
+            layout == SetlistPdfLayout.eventGuide
         ? _detailedRows(songs, font, fontBold)
         : _compactRows(songs, font, fontBold);
 
@@ -203,10 +206,17 @@ class PdfService {
       }
     }
 
+    // Event guide (#55): stage plot + role cards + rider after the setlist.
+    if (layout == SetlistPdfLayout.eventGuide) {
+      final kit = setlist.eventKit ?? const EventKit();
+      pdf.addPage(_eventGuidePage(setlist, kit, font, fontBold));
+    }
+
     final suffix = switch (layout) {
       SetlistPdfLayout.detailed => '',
       SetlistPdfLayout.compact => '_compact',
       SetlistPdfLayout.pack => '_pack',
+      SetlistPdfLayout.eventGuide => '_event_guide',
     };
     await Printing.layoutPdf(
       onLayout: (format) async => pdf.save(),
@@ -506,5 +516,151 @@ class PdfService {
       );
     }
     return widgets;
+  }
+
+  /// Event-guide page (#55): stage plot (3×3 zone table), role cards and the
+  /// rider checklist — the venue/crew handout after the setlist pages.
+  static pw.Page _eventGuidePage(
+    Setlist setlist,
+    EventKit kit,
+    pw.Font font,
+    pw.Font fontBold,
+  ) {
+    pw.Widget zoneCell(String zoneId) {
+      final placements = kit.stage[zoneId] ?? const <StagePlacement>[];
+      return pw.Container(
+        padding: const pw.EdgeInsets.all(6),
+        constraints: const pw.BoxConstraints(minHeight: 54),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            for (final p in placements)
+              pw.Text(
+                p.kind == 'member' ? '• ${p.label}' : '▪ ${p.label}',
+                style: pw.TextStyle(font: font, fontSize: 9),
+              ),
+          ],
+        ),
+      );
+    }
+
+    final dateLine = [
+      if (setlist.eventDateTime != null) setlist.formattedEventDate,
+      if (setlist.eventLocation != null) setlist.eventLocation!,
+    ].join(' · ');
+
+    return pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(40),
+      build: (context) => pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'Event guide — ${setlist.name}',
+            style: pw.TextStyle(font: fontBold, fontSize: 20),
+          ),
+          if (dateLine.isNotEmpty)
+            pw.Text(dateLine, style: pw.TextStyle(font: font, fontSize: 11)),
+          pw.SizedBox(height: 16),
+          pw.Text(
+            'Stage plot (top = back of stage)',
+            style: pw.TextStyle(font: fontBold, fontSize: 13),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Table(
+            border: pw.TableBorder.all(color: PdfColor.fromHex('BDBDBD')),
+            children: [
+              for (var row = 0; row < 3; row++)
+                pw.TableRow(
+                  children: [
+                    for (var col = 0; col < 3; col++)
+                      zoneCell(stageZoneIds[row * 3 + col]),
+                  ],
+                ),
+            ],
+          ),
+          pw.SizedBox(height: 2),
+          pw.Center(
+            child: pw.Text(
+              'AUDIENCE',
+              style: pw.TextStyle(
+                font: font,
+                fontSize: 8,
+                color: PdfColor.fromHex('757575'),
+              ),
+            ),
+          ),
+          if (kit.people.isNotEmpty) ...[
+            pw.SizedBox(height: 16),
+            pw.Text(
+              'Crew & guests',
+              style: pw.TextStyle(font: fontBold, fontSize: 13),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final p in kit.people)
+                  pw.Container(
+                    width: 160,
+                    padding: const pw.EdgeInsets.all(8),
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border.all(color: PdfColor.fromHex('BDBDBD')),
+                      borderRadius: pw.BorderRadius.circular(4),
+                    ),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          p.name,
+                          style: pw.TextStyle(font: fontBold, fontSize: 11),
+                        ),
+                        pw.Text(
+                          p.role,
+                          style: pw.TextStyle(font: font, fontSize: 9),
+                        ),
+                        if (p.notes != null)
+                          pw.Text(
+                            p.notes!,
+                            style: pw.TextStyle(
+                              font: font,
+                              fontSize: 8,
+                              color: PdfColor.fromHex('757575'),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          if (kit.rider.isNotEmpty) ...[
+            pw.SizedBox(height: 16),
+            pw.Text(
+              'Rider / equipment',
+              style: pw.TextStyle(font: fontBold, fontSize: 13),
+            ),
+            pw.SizedBox(height: 6),
+            for (final r in kit.rider)
+              pw.Text(
+                '${r.done ? '☑' : '☐'}  ${r.label}'
+                '${r.qty != null ? '  ×${r.qty}' : ''}'
+                '${r.notes != null ? '  — ${r.notes}' : ''}',
+                style: pw.TextStyle(font: font, fontSize: 10),
+              ),
+          ],
+          pw.Spacer(),
+          pw.Text(
+            'Generated by FlowGroove',
+            style: pw.TextStyle(
+              font: font,
+              fontSize: 8,
+              color: PdfColor.fromHex('9E9E9E'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
