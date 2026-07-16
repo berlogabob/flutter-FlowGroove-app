@@ -9,10 +9,14 @@ import '../../utils/chordpro.dart';
 /// Exports a song's "our version" as a standard ChordPro `.cho` file and opens
 /// the share sheet. Reuses [songToChordPro] (directives + `[Chord]lyric` lines)
 /// and the same share_plus path as the CSV export.
-Future<bool> shareSongChordPro(Song song) async {
+Future<bool> shareSongChordPro(Song song) =>
+    shareChordProText(songToChordPro(song), song.title);
+
+/// Shares an already-serialized ChordPro document (e.g. the song editor's live
+/// text) as a `.cho` file. (#79 — export from the editor menu.)
+Future<bool> shareChordProText(String text, String title) async {
   try {
-    final text = songToChordPro(song);
-    final fileName = '${_sanitize(song.title)}.cho';
+    final fileName = '${_sanitize(title)}.cho';
     await SharePlus.instance.share(
       ShareParams(
         files: [
@@ -23,7 +27,7 @@ Future<bool> shareSongChordPro(Song song) async {
           ),
         ],
         fileNameOverrides: [fileName],
-        subject: 'FlowGroove — ${song.title}',
+        subject: 'FlowGroove — $title',
       ),
     );
     return true;

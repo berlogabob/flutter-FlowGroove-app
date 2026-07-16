@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/section.dart';
+import '../../services/export/chordpro_export.dart';
+import '../../services/export/pdf_service.dart';
+import '../../services/export/setlist_export_sheet.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/chordpro.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
 import 'chordpro_sync_controller.dart';
@@ -188,6 +192,38 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
     );
   }
 
+  String get _exportTitle {
+    final t = _sync.meta.title;
+    return (t?.isNotEmpty ?? false) ? t! : widget.title;
+  }
+
+  Future<void> _exportPdf() async {
+    final layout = await pickSongSheetPdfLayout(context);
+    if (layout == null) return;
+    final m = _sync.meta;
+    try {
+      await PdfService.exportSongSheet(
+        _exportTitle,
+        _sync.sections,
+        songKey: m.ourKey,
+        bpm: m.ourBpm,
+        timeTop: m.timeTop,
+        fitOnePage: layout == SetlistPdfLayout.compact,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, 'PDF export failed: $e');
+    }
+  }
+
+  Future<void> _exportChordPro() async {
+    _sync.flushPending();
+    final ok = await shareChordProText(_sync.text, _exportTitle);
+    if (!ok && mounted) {
+      showAppSnackBar(context, 'ChordPro export failed');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final m = _sync.meta;
@@ -249,6 +285,16 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
                 icon: Icons.playlist_add,
                 label: 'Import lyrics & chords',
                 onTap: _import,
+              ),
+              AppMenuItem(
+                icon: Icons.picture_as_pdf_outlined,
+                label: 'Export PDF',
+                onTap: _exportPdf,
+              ),
+              AppMenuItem(
+                icon: Icons.description_outlined,
+                label: 'Export ChordPro',
+                onTap: _exportChordPro,
               ),
             ],
           ),
