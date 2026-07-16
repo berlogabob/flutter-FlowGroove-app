@@ -72,6 +72,26 @@ void main() {
       // MenuItemsScope for the shell's bottom bar to render.
       final scope = tester.widget<MenuItemsScope>(find.byType(MenuItemsScope));
       expect(scope.title, 'Edit Song');
+      // Song Lab is reachable from the edit menu (discoverability fix) —
+      // only in edit mode, where a persisted song exists.
+      expect(scope.items.map((i) => i.label), contains('Song Lab'));
+    });
+
+    testWidgets('add mode publishes no Song Lab entry', (tester) async {
+      final mockUser = MockDataHelper.createMockAppUser();
+
+      await pumpAppWidget(
+        tester,
+        const AddSongScreen(),
+        overrides: [
+          firebaseAuthProvider.overrideWith((ref) => mockAuth),
+          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
+          autocompleteSearchProvider.overrideWith(TestAutocompleteNotifier.new),
+        ],
+      );
+
+      final scope = tester.widget<MenuItemsScope>(find.byType(MenuItemsScope));
+      expect(scope.items.map((i) => i.label), isNot(contains('Song Lab')));
     });
 
     testWidgets('displays all form fields with an unset key preview', (
