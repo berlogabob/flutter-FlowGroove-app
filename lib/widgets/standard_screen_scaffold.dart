@@ -66,7 +66,7 @@ class StandardScreenScaffold extends StatelessWidget {
     return MenuScopePublisher(
       data: MenuScopeData(title: title, items: menuItems ?? const []),
       child: Scaffold(
-        backgroundColor: MonoPulseColors.black,
+        backgroundColor: context.mp.black,
         body: SafeArea(
           bottom: false,
           child: Column(

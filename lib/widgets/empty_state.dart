@@ -6,7 +6,6 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent empty state layout for when there
 /// is no data to display, with an optional call-to-action button.
 class EmptyState extends StatelessWidget {
-
   const EmptyState({
     required this.icon,
     required this.message,
@@ -65,6 +64,7 @@ class EmptyState extends StatelessWidget {
           : 'Try different keywords',
     );
   }
+
   /// The icon to display.
   final IconData icon;
 
@@ -99,7 +99,7 @@ class EmptyState extends StatelessWidget {
           Icon(
             icon,
             size: iconSize,
-            color: iconColor ?? MonoPulseColors.textTertiary,
+            color: iconColor ?? context.mp.textTertiary,
           ),
           const SizedBox(height: 16),
           Text(
@@ -112,7 +112,7 @@ class EmptyState extends StatelessWidget {
             Text(
               hint!,
               style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textTertiary,
+                color: context.mp.textTertiary,
               ),
               textAlign: TextAlign.center,
             ),

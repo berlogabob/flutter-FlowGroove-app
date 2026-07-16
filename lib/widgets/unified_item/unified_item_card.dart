@@ -85,7 +85,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: MonoPulseTypography.bodySmall.copyWith(
-                          color: MonoPulseColors.textSecondary,
+                          color: context.mp.textSecondary,
                         ),
                       ),
                     SizedBox(height: showCompact ? 0 : MonoPulseSpacing.xs),
@@ -119,9 +119,12 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         radius: 20,
       );
     } else {
-      avatar = const CircleAvatar(
-        backgroundColor: MonoPulseColors.surfaceRaised,
-        child: Icon(Icons.playlist_play, color: MonoPulseColors.accentOrange),
+      avatar = CircleAvatar(
+        backgroundColor: context.mp.surfaceRaised,
+        child: const Icon(
+          Icons.playlist_play,
+          color: MonoPulseColors.accentOrange,
+        ),
       );
     }
     return [avatar, const SizedBox(width: MonoPulseSpacing.md)];
@@ -149,7 +152,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
         runSpacing: 2,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          _keyChip(displayKey),
+          _keyChip(context, displayKey),
           if (displayBPM != null)
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -173,10 +176,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.content_copy,
                   size: 12,
-                  color: MonoPulseColors.textTertiary,
+                  color: context.mp.textTertiary,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -184,7 +187,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
                       ? 'Added by ${song.contributedBy}'
                       : 'Shared to band',
                   style: MonoPulseTypography.labelSmall.copyWith(
-                    color: MonoPulseColors.textTertiary,
+                    color: context.mp.textTertiary,
                   ),
                 ),
               ],
@@ -217,13 +220,13 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
   /// Key chip — same treatment as the setlist view badges (orange on
   /// orange10); '—' keeps the slot when the key is unset, so card heights
   /// never jump between rows.
-  Widget _keyChip(String? key) {
+  Widget _keyChip(BuildContext context, String? key) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: key != null
             ? MonoPulseColors.accentOrange10
-            : MonoPulseColors.surfaceRaised,
+            : context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
@@ -232,7 +235,7 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
           fontWeight: FontWeight.w700,
           color: key != null
               ? MonoPulseColors.accentOrange
-              : MonoPulseColors.textTertiary,
+              : context.mp.textTertiary,
         ),
       ),
     );

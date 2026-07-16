@@ -65,9 +65,9 @@ class AppBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: MonoPulseColors.black,
-        border: Border(top: BorderSide(color: MonoPulseColors.borderSubtle)),
+      decoration: BoxDecoration(
+        color: context.mp.black,
+        border: Border(top: BorderSide(color: context.mp.borderSubtle)),
       ),
       child: SafeArea(
         top: false,
@@ -76,7 +76,7 @@ class AppBottomBar extends StatelessWidget {
             horizontal: MonoPulseSpacing.sm,
             vertical: MonoPulseSpacing.sm,
           ),
-          child: _isTabs ? _buildTabs() : _buildActions(),
+          child: _isTabs ? _buildTabs() : _buildActions(context),
         ),
       ),
     );
@@ -109,7 +109,7 @@ class AppBottomBar extends StatelessWidget {
     );
   }
 
-  Widget _buildActions() {
+  Widget _buildActions(BuildContext context) {
     return Row(
       children: [
         Expanded(
@@ -140,22 +140,21 @@ class AppBottomBar extends StatelessWidget {
                 // Scale an oversized primary action (e.g. a full button) down
                 // to the slot instead of overflowing on narrow screens.
                 ? FittedBox(fit: BoxFit.scaleDown, child: primaryAction)
-                :
-                (title == null || title!.isEmpty
-                    ? const SizedBox.shrink()
-                    : Semantics(
-                        label: title,
-                        child: Text(
-                          title!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: MonoPulseTypography.labelLarge.copyWith(
-                            color: MonoPulseColors.textPrimary,
-                            fontWeight: FontWeight.w600,
+                : (title == null || title!.isEmpty
+                      ? const SizedBox.shrink()
+                      : Semantics(
+                          label: title,
+                          child: Text(
+                            title!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: MonoPulseTypography.labelLarge.copyWith(
+                              color: context.mp.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      )),
+                        )),
           ),
         ),
         Expanded(
@@ -201,7 +200,7 @@ class NavTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = selected
         ? MonoPulseColors.accentOrange
-        : MonoPulseColors.textTertiary;
+        : context.mp.textTertiary;
 
     final label = Text(
       item.label,
@@ -229,7 +228,11 @@ class NavTab extends StatelessWidget {
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Icon(selected ? item.selectedIcon : item.icon, color: color, size: 22),
+                  Icon(
+                    selected ? item.selectedIcon : item.icon,
+                    color: color,
+                    size: 22,
+                  ),
                   if (showBadge)
                     Positioned(
                       right: -2,

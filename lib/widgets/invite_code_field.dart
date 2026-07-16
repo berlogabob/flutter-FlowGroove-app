@@ -24,25 +24,24 @@ class InviteCodeField extends StatelessWidget {
         vertical: MonoPulseSpacing.lg,
       ),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderDefault),
+        border: Border.all(color: context.mp.borderDefault),
       ),
       child: Text(
         isEmpty ? (placeholder ?? '') : code,
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 26,
-          fontWeight: FontWeight.w600,
-          // Letter-spacing pushes a trailing gap; the leading indent balances it
-          // so centered text stays visually centered.
-          letterSpacing: 8,
-        ).copyWith(
-          color: isEmpty
-              ? MonoPulseColors.textTertiary
-              : MonoPulseColors.textPrimary,
-        ),
+        style:
+            const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 26,
+              fontWeight: FontWeight.w600,
+              // Letter-spacing pushes a trailing gap; the leading indent balances it
+              // so centered text stays visually centered.
+              letterSpacing: 8,
+            ).copyWith(
+              color: isEmpty ? context.mp.textTertiary : context.mp.textPrimary,
+            ),
       ),
     );
   }

@@ -51,7 +51,7 @@ Future<void> showAppMenuSheet(
   AnalyticsService.logMenuOpened(screen: title);
   return showModalBottomSheet<void>(
     context: context,
-    backgroundColor: MonoPulseColors.blackSurface,
+    backgroundColor: context.mp.blackSurface,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
@@ -86,7 +86,7 @@ Future<void> showAppMenuSheet(
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: MonoPulseTypography.titleLarge.copyWith(
-                            color: MonoPulseColors.textHighEmphasis,
+                            color: sheetContext.mp.textHighEmphasis,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -94,7 +94,7 @@ Future<void> showAppMenuSheet(
                     ],
                   ),
                 ),
-                const Divider(height: 1, color: MonoPulseColors.borderSubtle),
+                Divider(height: 1, color: sheetContext.mp.borderSubtle),
                 Flexible(
                   child: ListView(
                     shrinkWrap: true,
@@ -103,10 +103,7 @@ Future<void> showAppMenuSheet(
                       for (final item in items)
                         _AppMenuRow(item: item, sheetContext: sheetContext),
                       if (showProfileRow) ...[
-                        const Divider(
-                          height: 1,
-                          color: MonoPulseColors.borderSubtle,
-                        ),
+                        Divider(height: 1, color: sheetContext.mp.borderSubtle),
                         _ProfileRow(ref: ref, sheetContext: sheetContext),
                         _SettingsRow(sheetContext: sheetContext),
                       ],
@@ -135,8 +132,8 @@ class _AppMenuRow extends StatelessWidget {
     final color = item.destructive
         ? MonoPulseColors.error
         : enabled
-        ? MonoPulseColors.textHighEmphasis
-        : MonoPulseColors.textTertiary;
+        ? context.mp.textHighEmphasis
+        : context.mp.textTertiary;
 
     return ListTile(
       enabled: enabled,
@@ -174,15 +171,15 @@ class _SettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: const Icon(
+      leading: Icon(
         Icons.settings_outlined,
         size: 22,
-        color: MonoPulseColors.textHighEmphasis,
+        color: context.mp.textHighEmphasis,
       ),
       title: Text(
         'Settings',
         style: MonoPulseTypography.bodyMedium.copyWith(
-          color: MonoPulseColors.textHighEmphasis,
+          color: context.mp.textHighEmphasis,
         ),
       ),
       onTap: () {
@@ -229,7 +226,7 @@ class _ProfileRow extends StatelessWidget {
       title: Text(
         displayName?.isNotEmpty ?? false ? displayName! : 'Profile',
         style: MonoPulseTypography.bodyMedium.copyWith(
-          color: MonoPulseColors.textHighEmphasis,
+          color: context.mp.textHighEmphasis,
         ),
       ),
       onTap: () {

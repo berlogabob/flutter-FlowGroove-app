@@ -6,7 +6,6 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a reusable button with support for different
 /// variants (primary, secondary, outline, text) and loading states.
 class CustomButton extends StatelessWidget {
-
   const CustomButton({
     required this.label,
     this.onPressed,
@@ -17,6 +16,7 @@ class CustomButton extends StatelessWidget {
     this.fullWidth = false,
     super.key,
   });
+
   /// The text displayed on the button.
   final String label;
 
@@ -47,7 +47,7 @@ class CustomButton extends StatelessWidget {
 
   Widget _buildButton(BuildContext context) {
     if (isLoading) {
-      return _buildLoadingButton();
+      return _buildLoadingButton(context);
     }
 
     switch (variant) {
@@ -66,14 +66,12 @@ class CustomButton extends StatelessWidget {
         return ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: MonoPulseColors.surface,
+            backgroundColor: context.mp.surface,
             foregroundColor: MonoPulseColors.accentOrange,
             padding: _padding,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-              side: const BorderSide(
-                color: MonoPulseColors.accentOrange,
-              ),
+              side: const BorderSide(color: MonoPulseColors.accentOrange),
             ),
           ),
           child: _buildChild(),
@@ -98,18 +96,16 @@ class CustomButton extends StatelessWidget {
     }
   }
 
-  Widget _buildLoadingButton() {
+  Widget _buildLoadingButton(BuildContext context) {
     final child = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(
+        SizedBox(
           width: 16,
           height: 16,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              MonoPulseColors.textPrimary,
-            ),
+            valueColor: AlwaysStoppedAnimation<Color>(context.mp.textPrimary),
           ),
         ),
         if (label.isNotEmpty) ...[const SizedBox(width: 8), Text(label)],
@@ -165,11 +161,20 @@ class CustomButton extends StatelessWidget {
   EdgeInsetsGeometry get _padding {
     switch (size) {
       case ButtonSize.small:
-        return const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: MonoPulseSpacing.sm);
+        return const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.md,
+          vertical: MonoPulseSpacing.sm,
+        );
       case ButtonSize.medium:
-        return const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxl, vertical: MonoPulseSpacing.md);
+        return const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.xxl,
+          vertical: MonoPulseSpacing.md,
+        );
       case ButtonSize.large:
-        return const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.xxxl, vertical: MonoPulseSpacing.lg);
+        return const EdgeInsets.symmetric(
+          horizontal: MonoPulseSpacing.xxxl,
+          vertical: MonoPulseSpacing.lg,
+        );
     }
   }
 
