@@ -23,6 +23,7 @@ Setlist _$SetlistFromJson(Map<String, dynamic> json) => Setlist(
   assignments: json['assignments'] == null
       ? {}
       : _assignmentsFromJson(json['assignments']),
+  eventKit: _eventKitFromJson(json['eventKit']),
 );
 
 Map<String, dynamic> _$SetlistToJson(Setlist instance) => <String, dynamic>{
@@ -36,6 +37,7 @@ Map<String, dynamic> _$SetlistToJson(Setlist instance) => <String, dynamic>{
   'items': _itemsToJson(instance.items),
   'totalDuration': instance.totalDuration,
   'assignments': _assignmentsToJson(instance.assignments),
+  'eventKit': _eventKitToJson(instance.eventKit),
   'createdAt': _dateTimeToJson(instance.createdAt),
   'updatedAt': _dateTimeToJson(instance.updatedAt),
 };
