@@ -6,6 +6,7 @@ import 'package:flowgroove/screens/settings/app_settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -80,6 +81,39 @@ void main() {
       await tester.tap(find.text('Light β'));
       await tester.pumpAndSettle();
       expect(container.read(themeModeProvider), ThemeMode.light);
+    });
+
+    testWidgets('back arrow is present and pops the route (web escape)', (
+      tester,
+    ) async {
+      final router = GoRouter(
+        initialLocation: '/home',
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (_, __) => const Scaffold(body: Text('home-screen')),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: 'settings',
+            builder: (_, __) => const AppSettingsScreen(),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(child: MaterialApp.router(routerConfig: router)),
+      );
+      await tester.pumpAndSettle();
+      router.pushNamed('settings');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Keep screen on'), findsOneWidget);
+      final back = find.byIcon(Icons.arrow_back);
+      expect(back, findsOneWidget, reason: 'pushed screen must offer Back');
+
+      await tester.tap(back);
+      await tester.pumpAndSettle();
+      expect(find.text('home-screen'), findsOneWidget);
     });
 
     testWidgets('latency stepper adjusts and clamps', (tester) async {

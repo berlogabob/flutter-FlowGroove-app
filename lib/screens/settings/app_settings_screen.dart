@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/analytics_consent_provider.dart';
@@ -7,7 +8,7 @@ import '../../providers/haptics_provider.dart';
 import '../../providers/keep_screen_on_provider.dart';
 import '../../providers/theme_mode_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/standard_screen_scaffold.dart';
+import '../../widgets/bottom_nav_or_action_bar.dart';
 import '../../widgets/unified_item/song_card_actions.dart';
 import 'api_access_screen.dart';
 
@@ -49,130 +50,137 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
     final analyticsConsent = ref.watch(analyticsConsentProvider);
     final themeMode = ref.watch(themeModeProvider);
 
-    return StandardScreenScaffold(
-      title: 'Settings',
-      body: ListView(
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-        children: [
-          _section(context, 'General', [
-            SwitchListTile(
-              secondary: const Icon(
-                Icons.lightbulb_outline,
-                color: MonoPulseColors.accentOrange,
+    // Root-navigator pushed route: the shell's bottom bar isn't underneath,
+    // so this screen renders its own pushed-mode bar — otherwise there is no
+    // way back on web (beta feedback on 0.16.0).
+    return Scaffold(
+      backgroundColor: MonoPulseColors.black,
+      bottomNavigationBar: AppBottomBar.actions(
+        onBack: () => context.pop(),
+        title: 'Settings',
+      ),
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          children: [
+            _section(context, 'General', [
+              SwitchListTile(
+                secondary: const Icon(
+                  Icons.lightbulb_outline,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Keep screen on'),
+                subtitle: const Text('Never dim while FlowGroove is open'),
+                value: keepScreenOn,
+                onChanged: (_) =>
+                    ref.read(keepScreenOnProvider.notifier).toggle(),
               ),
-              title: const Text('Keep screen on'),
-              subtitle: const Text('Never dim while FlowGroove is open'),
-              value: keepScreenOn,
-              onChanged: (_) =>
-                  ref.read(keepScreenOnProvider.notifier).toggle(),
-            ),
-            SwitchListTile(
-              secondary: const Icon(
-                Icons.vibration,
-                color: MonoPulseColors.accentOrange,
+              SwitchListTile(
+                secondary: const Icon(
+                  Icons.vibration,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Haptics'),
+                subtitle: const Text('Vibration feedback, incl. metronome'),
+                value: haptics,
+                onChanged: (_) =>
+                    ref.read(hapticsEnabledProvider.notifier).toggle(),
               ),
-              title: const Text('Haptics'),
-              subtitle: const Text('Vibration feedback, incl. metronome'),
-              value: haptics,
-              onChanged: (_) =>
-                  ref.read(hapticsEnabledProvider.notifier).toggle(),
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.dark_mode_outlined,
-                color: MonoPulseColors.accentOrange,
-              ),
-              title: const Text('Theme'),
-              trailing: SegmentedButton<ThemeMode>(
-                segments: const [
-                  ButtonSegment(
-                    value: ThemeMode.system,
-                    label: Text('Auto'),
-                  ),
-                  ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-                  ButtonSegment(
-                    value: ThemeMode.light,
-                    label: Text('Light β'),
-                  ),
-                ],
-                selected: {themeMode},
-                onSelectionChanged: (s) =>
-                    ref.read(themeModeProvider.notifier).set(s.first),
-              ),
-            ),
-          ]),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          _section(context, 'Songs', [
-            ListTile(
-              leading: const Icon(
-                Icons.push_pin_outlined,
-                color: MonoPulseColors.accentOrange,
-              ),
-              title: const Text('Quick action on song cards'),
-              subtitle: const Text('What the pinned card button does'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => showQuickActionPicker(context, ref),
-            ),
-          ]),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          _section(context, 'Privacy', [
-            SwitchListTile(
-              secondary: const Icon(
-                Icons.analytics_outlined,
-                color: MonoPulseColors.accentOrange,
-              ),
-              title: const Text('Share usage analytics'),
-              subtitle: const Text('Helps us see which features get used'),
-              value: analyticsConsent,
-              onChanged: (_) =>
-                  ref.read(analyticsConsentProvider.notifier).toggle(),
-            ),
-          ]),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          _section(context, 'AI', [
-            ListTile(
-              leading: const Icon(
-                Icons.smart_toy_outlined,
-                color: MonoPulseColors.accentOrange,
-              ),
-              title: const Text('AI access (MCP)'),
-              subtitle: const Text('Connect your own AI to read & add songs'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const ApiAccessScreen(),
+              ListTile(
+                leading: const Icon(
+                  Icons.dark_mode_outlined,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Theme'),
+                trailing: SegmentedButton<ThemeMode>(
+                  segments: const [
+                    ButtonSegment(value: ThemeMode.system, label: Text('Auto')),
+                    ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
+                    ButtonSegment(
+                      value: ThemeMode.light,
+                      label: Text('Light β'),
+                    ),
+                  ],
+                  selected: {themeMode},
+                  onSelectionChanged: (s) =>
+                      ref.read(themeModeProvider.notifier).set(s.first),
                 ),
               ),
-            ),
-          ]),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          _section(context, 'Advanced', [
-            ListTile(
-              leading: const Icon(
-                Icons.timer_outlined,
-                color: MonoPulseColors.accentOrange,
+            ]),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            _section(context, 'Songs', [
+              ListTile(
+                leading: const Icon(
+                  Icons.push_pin_outlined,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Quick action on song cards'),
+                subtitle: const Text('What the pinned card button does'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showQuickActionPicker(context, ref),
               ),
-              title: const Text('Audio latency offset'),
-              subtitle: const Text(
-                'Shift the metronome click if your audio route lags',
+            ]),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            _section(context, 'Privacy', [
+              SwitchListTile(
+                secondary: const Icon(
+                  Icons.analytics_outlined,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Share usage analytics'),
+                subtitle: const Text('Helps us see which features get used'),
+                value: analyticsConsent,
+                onChanged: (_) =>
+                    ref.read(analyticsConsentProvider.notifier).toggle(),
               ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove),
-                    onPressed: () => _setLatency(_latencyMs - 10),
+            ]),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            _section(context, 'AI', [
+              ListTile(
+                leading: const Icon(
+                  Icons.smart_toy_outlined,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('AI access (MCP)'),
+                subtitle: const Text('Connect your own AI to read & add songs'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ApiAccessScreen(),
                   ),
-                  Text('$_latencyMs ms'),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () => _setLatency(_latencyMs + 10),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ]),
-        ],
+            ]),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            _section(context, 'Advanced', [
+              ListTile(
+                leading: const Icon(
+                  Icons.timer_outlined,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Audio latency offset'),
+                subtitle: const Text(
+                  'Shift the metronome click if your audio route lags',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      onPressed: () => _setLatency(_latencyMs - 10),
+                    ),
+                    Text('$_latencyMs ms'),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () => _setLatency(_latencyMs + 10),
+                    ),
+                  ],
+                ),
+              ),
+            ]),
+          ],
+        ),
       ),
     );
   }
