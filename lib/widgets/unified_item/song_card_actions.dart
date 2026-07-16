@@ -121,6 +121,15 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               () => openPerformanceSheet(song),
             ),
           ('Open in Tuner', Icons.tune, () => openInTuner(song)),
+          (
+            'Song Lab',
+            Icons.science_outlined,
+            () => context.pushNamed(
+              'song-lab',
+              pathParameters: {'id': song.id},
+              extra: {'song': song, 'bandId': songActionsBandId},
+            ),
+          ),
           if (bands.isNotEmpty)
             (
               'Add to band…',

@@ -38,6 +38,7 @@ import '../screens/setlists/setlist_view_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/songs/add_song_screen.dart';
 import '../screens/songs/canonical_browse_screen.dart';
+import '../screens/songs/song_lab_screen.dart';
 import '../screens/songs/models/song_form_data.dart';
 import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
@@ -263,6 +264,17 @@ List<RouteBase> _buildAppRoutes() {
                       initialFormData: state.extra is SongFormData
                           ? state.extra! as SongFormData
                           : null,
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: ':id/lab',
+                  name: 'song-lab',
+                  builder: (context, state) {
+                    final extra = state.extra! as Map;
+                    return SongLabScreen(
+                      song: extra['song'] as Song,
+                      bandId: extra['bandId'] as String?,
                     );
                   },
                 ),
