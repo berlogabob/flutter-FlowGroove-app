@@ -11,7 +11,7 @@ import '../csv/song_csv_schema.dart' show SongCsvValidation;
 /// FlowGroove **Song JSON v1** — the stable, documented import/export format that
 /// AI prompt templates (#73) and the MCP endpoint (#74) write against.
 ///
-/// Schema: `docs/SONG_JSON_SCHEMA.md`. Envelope:
+/// Schema: `SONG_JSON_SCHEMA.md` (repo root). Envelope:
 /// `{ "schemaVersion": 1, "songs": [ {song}, ... ] }`. [parse] also accepts a bare
 /// song array or a single song object for convenience.
 class SongJsonCodec {
