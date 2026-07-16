@@ -944,6 +944,10 @@ class AnalyticsService {
     }
   }
 
+  /// E: a Song Lab entry was created (#67). [type] is the LabEntryType name.
+  static Future<void> logLabEntryAdded({required String type}) =>
+      _log(AnalyticsEvents.labEntryAdded, {'type': type});
+
   /// T: back navigation used — the in-app Back button ('ui') or a system
   /// back gesture/button intercepted by a `PopScope` ('system').
   static Future<void> logBackUsed({required String source}) =>

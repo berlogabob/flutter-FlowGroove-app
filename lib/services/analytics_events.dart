@@ -66,6 +66,9 @@ class AnalyticsEvents {
   static const String csvExported = 'csv_exported';
   static const String spotifyLinked = 'spotify_linked';
 
+  // Song Lab (#67)
+  static const String labEntryAdded = 'lab_entry_added';
+
   // HEART framework (UX audit, 2026-07)
   static const String backUsed = 'back_used';
   static const String menuOpened = 'menu_opened';
