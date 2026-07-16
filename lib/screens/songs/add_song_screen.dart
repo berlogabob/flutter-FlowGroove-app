@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/api_error.dart';
@@ -533,6 +534,18 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
               label: 'Import lyrics & chords',
               onTap: _importLyrics,
             ),
+            // Lab needs a persisted song (edit mode) — discoverability fix:
+            // the card-overflow entry alone was too hidden (beta feedback).
+            if (widget.song != null)
+              AppMenuItem(
+                icon: Icons.science_outlined,
+                label: 'Song Lab',
+                onTap: () => context.pushNamed(
+                  'song-lab',
+                  pathParameters: {'id': widget.song!.id},
+                  extra: {'song': widget.song, 'bandId': widget.bandId},
+                ),
+              ),
           ],
         ),
         child: Scaffold(
