@@ -2,8 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart'
-    show kDebugMode, kIsWeb, kReleaseMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -116,7 +115,9 @@ void main() async {
   } on FirebaseException catch (e) {
     if (e.code == 'duplicate-app') {
       // Native auto-init already created [DEFAULT]; safe to continue.
-      debugPrint('ℹ️  Firebase already initialized natively; reusing [DEFAULT]');
+      debugPrint(
+        'ℹ️  Firebase already initialized natively; reusing [DEFAULT]',
+      );
     } else {
       debugPrint('❌ Firebase initialization failed: $e');
       runApp(const FirebaseErrorApp());
@@ -326,7 +327,7 @@ Widget _withDesktopWiki(BuildContext context, Widget app) {
               child: app,
             ),
           ),
-          Container(width: 1, color: MonoPulseColors.borderSubtle),
+          Container(width: 1, color: context.mp.borderSubtle),
           const Expanded(child: WikiPanel()),
         ],
       );

@@ -97,10 +97,7 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                   segments: const [
                     ButtonSegment(value: ThemeMode.system, label: Text('Auto')),
                     ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      label: Text('Light β'),
-                    ),
+                    ButtonSegment(value: ThemeMode.light, label: Text('Light')),
                   ],
                   selected: {themeMode},
                   onSelectionChanged: (s) =>
