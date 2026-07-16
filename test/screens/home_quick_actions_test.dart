@@ -102,8 +102,9 @@ void main() {
 
       expect(find.text('Quick Actions'), findsOneWidget);
       expect(find.text('Song'), findsOneWidget);
-      // #145: idea recorder lives in Tools.
-      expect(find.text('Record idea'), findsOneWidget);
+      // #145: one-tap capture in Quick Actions, full Recorder in Tools.
+      expect(find.text('Audio note'), findsOneWidget);
+      expect(find.text('Recorder'), findsOneWidget);
     });
 
     testWidgets('routes from Home to the Add Song entry screen', (

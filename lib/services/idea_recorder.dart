@@ -27,11 +27,12 @@ Future<void> captureIdea(
   WidgetRef ref, {
   String? songId,
   String? bandId,
+  bool autoStart = false,
 }) async {
   final result = await showModalBottomSheet<LabRecordingResult>(
     context: context,
     isScrollControlled: true,
-    builder: (_) => const LabRecordingSheet(),
+    builder: (_) => LabRecordingSheet(autoStart: autoStart),
   );
   if (result == null || !context.mounted) return;
 
@@ -70,7 +71,7 @@ Future<void> captureIdea(
     if (context.mounted && songId == null) {
       showAppSnackBar(
         context,
-        'Idea saved — link it to a song from Practice → Ideas',
+        'Saved — link it to a song from the Recorder list',
       );
     }
   } catch (e) {

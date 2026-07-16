@@ -32,6 +32,7 @@ import '../screens/login_screen.dart';
 import '../screens/main_shell.dart';
 import '../screens/metronome_screen.dart';
 import '../screens/practice_screen.dart';
+import '../screens/recorder_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/setlists/setlist_view_screen.dart';
@@ -542,6 +543,17 @@ List<RouteBase> _buildAppRoutes() {
       builder: (context, state) {
         AnalyticsService.logToolOpened(tool: 'practice');
         return const PracticeScreen();
+      },
+    ),
+    GoRoute(
+      path: '/main/recorder',
+      name: 'recorder',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        AnalyticsService.logToolOpened(tool: 'recorder');
+        return RecorderScreen(
+          autoStart: state.uri.queryParameters['autostart'] == '1',
+        );
       },
     ),
     GoRoute(

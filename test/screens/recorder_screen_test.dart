@@ -1,13 +1,10 @@
 import 'dart:async';
 
-import 'package:flowgroove/models/metronome_session.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_lab.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
-import 'package:flowgroove/providers/homework_provider.dart';
-import 'package:flowgroove/providers/practice_stats_provider.dart';
 import 'package:flowgroove/repositories/firestore_lab_repository.dart';
-import 'package:flowgroove/screens/practice_screen.dart';
+import 'package:flowgroove/screens/recorder_screen.dart';
 import 'package:flowgroove/services/idea_recorder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,8 +64,8 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
-  SongLabEntry idea() => SongLabEntry(
-    id: 'idea1',
+  SongLabEntry recording() => SongLabEntry(
+    id: 'rec1',
     songId: ideaInboxSongId,
     type: LabEntryType.recording,
     title: 'Riff in E',
@@ -91,15 +88,8 @@ void main() {
         overrides: [
           labRepositoryProvider.overrideWithValue(repo),
           songsProvider.overrideWith((ref) => Stream.value([song])),
-          practiceStatsProvider.overrideWith(
-            (ref) async => PracticeStats.empty,
-          ),
-          practiceSessionsProvider.overrideWith(
-            (ref) async => <MetronomeSession>[],
-          ),
-          myHomeworkProvider.overrideWith((ref) async => <HomeworkItem>[]),
         ],
-        child: const MaterialApp(home: PracticeScreen()),
+        child: const MaterialApp(home: RecorderScreen()),
       ),
     );
     await tester.pump();
@@ -107,33 +97,28 @@ void main() {
     return repo;
   }
 
-  group('Practice Ideas inbox (#145)', () {
-    testWidgets('quiet empty state when no ideas', (tester) async {
+  group('RecorderScreen (#145)', () {
+    testWidgets('record button on top, quiet empty state', (tester) async {
       await pump(tester);
 
-      expect(find.text('Ideas'), findsOneWidget);
-      expect(find.textContaining('Riffs without a home'), findsOneWidget);
+      expect(find.text('Record'), findsOneWidget);
+      expect(find.text('Recordings'), findsOneWidget);
+      expect(find.textContaining('Nothing here yet'), findsOneWidget);
     });
 
-    testWidgets('renders an inbox idea', (tester) async {
-      await pump(tester, inbox: [idea()]);
+    testWidgets('lists inbox recordings as cards', (tester) async {
+      await pump(tester, inbox: [recording()]);
 
       expect(find.text('Riff in E'), findsOneWidget);
-      expect(find.text('hummed on the bus'), findsOneWidget);
+      expect(find.textContaining('hummed on the bus'), findsOneWidget);
     });
 
-    testWidgets('link to song moves the entry out of the inbox', (
+    testWidgets('link to song moves the recording out of the inbox', (
       tester,
     ) async {
-      final repo = await pump(tester, inbox: [idea()]);
+      final repo = await pump(tester, inbox: [recording()]);
 
-      await tester.ensureVisible(find.byIcon(Icons.mic_outlined));
-      await tester.tap(
-        find.descendant(
-          of: find.widgetWithText(ListTile, 'Riff in E'),
-          matching: find.byType(PopupMenuButton<String>),
-        ),
-      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Link to song…'));
       await tester.pumpAndSettle();
@@ -142,21 +127,15 @@ void main() {
 
       expect(repo.entries[ideaInboxSongId], isEmpty);
       expect(repo.entries['s1'], hasLength(1));
-      expect(repo.entries['s1']!.single.id, 'idea1');
+      expect(repo.entries['s1']!.single.id, 'rec1');
       expect(repo.entries['s1']!.single.title, 'Riff in E');
-      expect(find.textContaining('Idea linked'), findsOneWidget);
+      expect(find.textContaining('Linked'), findsOneWidget);
     });
 
-    testWidgets('delete removes the idea with an Undo', (tester) async {
-      final repo = await pump(tester, inbox: [idea()]);
+    testWidgets('delete removes the recording with an Undo', (tester) async {
+      final repo = await pump(tester, inbox: [recording()]);
 
-      await tester.ensureVisible(find.byIcon(Icons.mic_outlined));
-      await tester.tap(
-        find.descendant(
-          of: find.widgetWithText(ListTile, 'Riff in E'),
-          matching: find.byType(PopupMenuButton<String>),
-        ),
-      );
+      await tester.tap(find.byType(PopupMenuButton<String>));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();

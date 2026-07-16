@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/data/data_providers.dart';
-import '../services/idea_recorder.dart';
 import '../utils/analytics_debug.dart';
 import '../widgets/dashboard_grid.dart';
 import '../widgets/practice_dashboard_card.dart';
@@ -74,10 +73,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           label: 'Setlist',
           onTap: () => context.goNamed('create-setlist'),
         ),
+        // One tap, recording already running (#145 feedback).
         QuickActionButton(
-          icon: Icons.menu_book,
-          label: 'Practice',
-          onTap: () => context.pushNamed('practice'),
+          icon: Icons.mic,
+          label: 'Audio note',
+          onTap: () => context.pushNamed(
+            'recorder',
+            queryParameters: {'autostart': '1'},
+          ),
         ),
       ],
       tools: [
@@ -97,11 +100,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onTap: () => _openRehearsals(context, ref),
         ),
         ToolButton(
-          icon: Icons.mic,
-          label: 'Record idea',
-          onTap: () => captureIdea(context, ref),
+          icon: Icons.graphic_eq,
+          label: 'Recorder',
+          onTap: () => context.pushNamed('recorder'),
         ),
       ],
+      fullWidthTool: ToolButton(
+        icon: Icons.menu_book,
+        label: 'Practice',
+        onTap: () => context.pushNamed('practice'),
+      ),
     );
   }
 
