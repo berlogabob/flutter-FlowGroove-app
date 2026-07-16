@@ -14,7 +14,6 @@ import '../../utils/snackbar.dart';
 import '../../widgets/custom_app_bar.dart';
 
 class JoinBandScreen extends ConsumerStatefulWidget {
-
   const JoinBandScreen({super.key, this.inviteCode});
   final String? inviteCode;
 
@@ -91,7 +90,10 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
     // of a real band. Server-side join rules are the real boundary, but block
     // it here too so the demo UI can't even attempt it.
     if (ref.read(isDemoUserProvider)) {
-      showAppSnackBar(context, 'Demo accounts cannot join bands. Sign up to join.');
+      showAppSnackBar(
+        context,
+        'Demo accounts cannot join bands. Sign up to join.',
+      );
       return;
     }
 
@@ -103,7 +105,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
       final joinCode = _codeController.text.trim().toUpperCase();
       await secureStorage.write(key: 'pending_join_code', value: joinCode);
       if (mounted) {
-        context.pushNamed('login');
+        await context.pushNamed('login');
       }
       return;
     }
@@ -140,9 +142,12 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
         // uid` in realtime, so the server-side join propagates the new band on
         // its own. Invalidating here would force a redundant full re-read.
         final name = result.bandName.isNotEmpty ? result.bandName : _band!.name;
-        showAppSnackBar(context, result.alreadyMember
-                  ? 'You are already a member of "$name"'
-                  : 'Joined "$name"!');
+        showAppSnackBar(
+          context,
+          result.alreadyMember
+              ? 'You are already a member of "$name"'
+              : 'Joined "$name"!',
+        );
         context.goNamed('bands');
       }
     } catch (e) {
@@ -182,132 +187,157 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
     final isLoggedIn = userAsync.value != null;
     final isDemo = ref.watch(isDemoUserProvider);
 
-    return Scaffold(
-      appBar: CustomAppBar.buildSimple(context, title: 'Join Band'),
-      body: Stack(
-        children: [
-          // Main content
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Band info card (if loaded)
-                  if (_band != null) ...[
-                    _buildBandInfoCard(),
-                    const SizedBox(height: 24),
-                  ],
+    return PopScope(
+      // On a deep-link cold start this screen is the only route on the stack;
+      // system back would exit the app. Send it Home instead (P0-2).
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/main/home');
+        }
+      },
+      child: Scaffold(
+        appBar: CustomAppBar.buildSimple(context, title: 'Join Band'),
+        body: Stack(
+          children: [
+            // Main content
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Band info card (if loaded)
+                    if (_band != null) ...[
+                      _buildBandInfoCard(),
+                      const SizedBox(height: 24),
+                    ],
 
-                  // Error message
-                  if (_error != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-                      decoration: BoxDecoration(
-                        color: MonoPulseColors.error10,
-                        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+                    // Error message
+                    if (_error != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                        decoration: BoxDecoration(
+                          color: MonoPulseColors.error10,
+                          borderRadius: BorderRadius.circular(
+                            MonoPulseRadius.large,
+                          ),
+                        ),
+                        child: Text(
+                          _error!,
+                          style: const TextStyle(color: MonoPulseColors.error),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                      child: Text(
-                        _error!,
-                        style: const TextStyle(color: MonoPulseColors.error),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Invite code input (if no band loaded)
+                    if (_band == null) ...[
+                      Text(
+                        'Join a band',
+                        style: MonoPulseTypography.headlineSmall.copyWith(
+                          color: MonoPulseColors.textHighEmphasis,
+                        ),
                         textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Invite code input (if no band loaded)
-                  if (_band == null) ...[
-                    Text(
-                      'Join a band',
-                      style: MonoPulseTypography.headlineSmall.copyWith(
-                        color: MonoPulseColors.textHighEmphasis,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.inviteCode != null
-                          ? 'Loading band info...'
-                          : 'Enter invite code',
-                      style: const TextStyle(color: MonoPulseColors.textTertiary),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-
-                    TextFormField(
-                      controller: _codeController,
-                      textCapitalization: TextCapitalization.characters,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _loadBand(),
-                      decoration: const InputDecoration(
-                        labelText: 'Invite Code *',
-                        prefixIcon: Icon(Icons.vpn_key),
-                        hintText: 'ABC123',
-                      ),
-                      validator: (v) => (v == null || v.trim().length < 6)
-                          ? 'Enter 6-char code'
-                          : null,
-                    ),
-                    const SizedBox(height: 24),
-
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _loadBand,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
-                      ),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: MonoPulseColors.textPrimary)
-                          : const Text('Find Band'),
-                    ),
-                  ],
-
-                  // Join button (if band is loaded)
-                  if (_band != null) ...[
-                    ElevatedButton(
-                      onPressed: (_isLoading || isDemo) ? null : _joinBand,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: MonoPulseColors.accentOrange,
-                        padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
-                      ),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: MonoPulseColors.textPrimary)
-                          : Text(isLoggedIn ? 'Join Band' : 'Login to Join'),
-                    ),
-
-                    if (isDemo) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Text(
-                        'Demo accounts cannot join bands. Sign up to join.',
-                        style: MonoPulseTypography.bodySmall.copyWith(
+                        widget.inviteCode != null
+                            ? 'Loading band info...'
+                            : 'Enter invite code',
+                        style: const TextStyle(
                           color: MonoPulseColors.textTertiary,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                    ] else if (!isLoggedIn) ...[
-                      const SizedBox(height: 16),
-                      Text(
-                        'You need to create an account to join this band',
-                        style: MonoPulseTypography.bodySmall.copyWith(
-                          color: MonoPulseColors.textTertiary,
+                      const SizedBox(height: 32),
+
+                      TextFormField(
+                        controller: _codeController,
+                        textCapitalization: TextCapitalization.characters,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _loadBand(),
+                        decoration: const InputDecoration(
+                          labelText: 'Invite Code *',
+                          prefixIcon: Icon(Icons.vpn_key),
+                          hintText: 'ABC123',
                         ),
-                        textAlign: TextAlign.center,
+                        validator: (v) => (v == null || v.trim().length < 6)
+                            ? 'Enter 6-char code'
+                            : null,
+                      ),
+                      const SizedBox(height: 24),
+
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _loadBand,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: MonoPulseSpacing.lg,
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: MonoPulseColors.textPrimary,
+                              )
+                            : const Text('Find Band'),
                       ),
                     ],
+
+                    // Join button (if band is loaded)
+                    if (_band != null) ...[
+                      ElevatedButton(
+                        onPressed: (_isLoading || isDemo) ? null : _joinBand,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: MonoPulseColors.accentOrange,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: MonoPulseSpacing.lg,
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: MonoPulseColors.textPrimary,
+                              )
+                            : Text(isLoggedIn ? 'Join Band' : 'Login to Join'),
+                      ),
+
+                      if (isDemo) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'Demo accounts cannot join bands. Sign up to join.',
+                          style: MonoPulseTypography.bodySmall.copyWith(
+                            color: MonoPulseColors.textTertiary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ] else if (!isLoggedIn) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'You need to create an account to join this band',
+                          style: MonoPulseTypography.bodySmall.copyWith(
+                            color: MonoPulseColors.textTertiary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
-          ),
 
-          // Loading overlay
-          if (_isLoading)
-            ColoredBox(
-              color: MonoPulseColors.black.withValues(alpha: 0.3),
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-        ],
+            // Loading overlay
+            if (_isLoading)
+              ColoredBox(
+                color: MonoPulseColors.black.withValues(alpha: 0.3),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        ),
       ),
     );
   }

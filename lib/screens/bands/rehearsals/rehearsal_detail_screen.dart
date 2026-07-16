@@ -10,6 +10,7 @@ import '../../../providers/data/data_providers.dart';
 import '../../../providers/permissions_provider.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/ics_export.dart';
+import '../../../utils/member_label.dart';
 import '../../../utils/rehearsal_scoring.dart';
 import '../../../utils/snackbar.dart';
 import '../../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
@@ -210,7 +211,7 @@ class _Body extends ConsumerWidget {
         (m) => m.uid == u,
         orElse: () => BandMember(uid: u, role: ''),
       );
-      return m.displayName ?? m.email ?? u;
+      return memberLabel(displayName: m.displayName, email: m.email);
     }).join(', ');
     return Text(
       'Waiting on: $names',
@@ -248,7 +249,7 @@ class _SlotCard extends StatelessWidget {
         (m) => m.uid == u,
         orElse: () => BandMember(uid: u, role: ''),
       );
-      return m.displayName ?? m.email ?? u;
+      return memberLabel(displayName: m.displayName, email: m.email);
     }).join(', ');
 
     return Card(
@@ -411,6 +412,6 @@ class _ConfirmedCard extends ConsumerWidget {
       (m) => m.uid == uid,
       orElse: () => BandMember(uid: uid, role: ''),
     );
-    return m.displayName ?? m.email ?? uid;
+    return memberLabel(displayName: m.displayName, email: m.email);
   }
 }

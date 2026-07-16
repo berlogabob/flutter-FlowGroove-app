@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/member_label.dart';
 import '../../utils/music_role_icon.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/user_avatar.dart';
@@ -44,11 +45,11 @@ class BandMembersScreen extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: UserAvatar(
                     photoURL: null,
-                    displayName: member.displayName ?? member.email,
+                    displayName: memberLabel(displayName: member.displayName, email: member.email),
                     radius: 20,
                   ),
                   title: Text(
-                    member.displayName ?? member.email ?? 'Unknown',
+                    memberLabel(displayName: member.displayName, email: member.email),
                     style: const TextStyle(
                       color: MonoPulseColors.textPrimary,
                       fontWeight: FontWeight.w500,

@@ -233,7 +233,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         ),
         PopupMenuItem<void>(
           child: const Text('Join Band'),
-          onTap: () => context.goNamed('join-band'),
+          onTap: () => context.pushNamed('join-band'),
         ),
       ],
       floatingActionButton: DualFab(
@@ -245,7 +245,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         secondary: FabAction(
           icon: Icons.group_add,
           label: 'Join',
-          onPressed: () => context.goNamed('join-band'),
+          onPressed: () => context.pushNamed('join-band'),
         ),
       ),
       body: _buildBody(bandsAsync),

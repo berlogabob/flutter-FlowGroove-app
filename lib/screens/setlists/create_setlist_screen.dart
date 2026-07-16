@@ -684,7 +684,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
           sourceBandId: _effectiveBandId,
           startIndex: index,
         );
-    if (loaded) context.goNamed('metronome');
+    if (loaded) context.pushNamed('metronome');
   }
 
   Future<void> _openTunerForItem(int index) async {

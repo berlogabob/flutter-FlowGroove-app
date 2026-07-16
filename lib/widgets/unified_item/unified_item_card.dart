@@ -202,8 +202,9 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
     }
     // Setlist subtitle
     else if (item is SetlistItemAdapter) {
-      final setlist = (item as SetlistItemAdapter).setlist;
-      final songCount = setlist.songIds.length;
+      final adapter = item as SetlistItemAdapter;
+      final setlist = adapter.setlist;
+      final songCount = adapter.songIdsLength;
       subtitleWidgets.add(
         Text(
           '$songCount ${songCount == 1 ? 'song' : 'songs'}',

@@ -243,7 +243,7 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       metronome.stop();
     }
     metronome.loadSongTempo(song, sourceBandId: songActionsBandId);
-    context.goNamed('metronome');
+    context.pushNamed('metronome');
   }
 
   void openInTuner(Song song) {

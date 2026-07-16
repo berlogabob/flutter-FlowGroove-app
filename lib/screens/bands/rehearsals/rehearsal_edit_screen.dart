@@ -9,6 +9,7 @@ import '../../../models/setlist.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../utils/member_label.dart';
 import '../../../utils/snackbar.dart';
 import '../../../widgets/standard_screen_scaffold.dart';
 import 'rehearsal_format.dart';
@@ -206,7 +207,7 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
               for (final m in widget.band.members)
                 FilterChip(
                   label: Text(
-                    '${m.displayName ?? m.email ?? m.uid}'
+                    '${memberLabel(displayName: m.displayName, email: m.email)}'
                     '${_roles[m.uid] == null ? '' : ' · ${_roles[m.uid]}'}',
                   ),
                   selected: _roles[m.uid] != null,

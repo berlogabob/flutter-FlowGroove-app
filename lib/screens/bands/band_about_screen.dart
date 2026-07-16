@@ -8,6 +8,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/member_label.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/custom_app_bar.dart';
@@ -459,11 +460,11 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
       onTap: canManageMembers ? () => _showMemberActions(index) : null,
       leading: UserAvatar(
         photoURL: null,
-        displayName: member.displayName ?? member.email,
+        displayName: memberLabel(displayName: member.displayName, email: member.email),
         radius: 20,
       ),
       title: Text(
-        member.displayName ?? member.email ?? 'Unknown',
+        memberLabel(displayName: member.displayName, email: member.email),
         style: const TextStyle(
           color: MonoPulseColors.textPrimary,
           fontWeight: FontWeight.w500,
@@ -527,7 +528,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
   /// Shows the admin management sheet for the member at [index].
   Future<void> _showMemberActions(int index) async {
     final member = _band.members[index];
-    final name = member.displayName ?? member.email ?? 'this member';
+    final name = memberLabel(displayName: member.displayName, email: member.email);
 
     await showModalBottomSheet<void>(
       context: context,
@@ -653,7 +654,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
       return;
     }
 
-    final name = member.displayName ?? member.email ?? 'this member';
+    final name = memberLabel(displayName: member.displayName, email: member.email);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(

@@ -315,7 +315,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
       );
       return;
     }
-    context.goNamed('metronome');
+    await context.pushNamed('metronome');
   }
 
   Future<void> _exportPdf(Setlist setlist) async {

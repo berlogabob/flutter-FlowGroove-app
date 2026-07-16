@@ -35,14 +35,26 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   SortOption _sortOption = SortOption.manual;
   List<Setlist>? _manualOrder; // Store manual order for manual sort mode
 
-  List<SetlistItemAdapter> _filterAndSortSetlists(List<Setlist> setlists) {
+  List<SetlistItemAdapter> _filterAndSortSetlists(
+      List<Setlist> setlists, List<Song>? songs) {
+    // null while the songs stream is loading → adapter falls back to raw count
+    final availableSongIds = songs?.map((s) => s.id).toSet();
+
     // Use manual order if in manual sort mode and we have it
     List<Setlist> setlistsToUse = setlists;
     if (_sortOption == SortOption.manual && _manualOrder != null) {
       setlistsToUse = _manualOrder!;
     }
 
-    var adapters = setlistsToUse.map(SetlistItemAdapter.new).toList();
+    var adapters = setlistsToUse.map((setlist) {
+      // Count only the songs that actually exist
+      final resolvedCount = availableSongIds == null
+          ? null
+          : setlist.effectiveItems
+              .where((item) => availableSongIds.contains(item.songId))
+              .length;
+      return SetlistItemAdapter(setlist, resolvedSongCount: resolvedCount);
+    }).toList();
 
     if (_searchQuery.trim().isNotEmpty) {
       final query = _searchQuery.toLowerCase().trim();
@@ -110,8 +122,10 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 
   Future<void> _handleDelete(int index) async {
+    final songs = ref.read(songsProvider).value;
     final adapters = _filterAndSortSetlists(
       ref.read(setlistsProvider).value ?? [],
+      songs,
     );
     if (index >= adapters.length) return;
     final setlist = adapters[index].setlist;
@@ -124,8 +138,10 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 
   void _handleTap(int index) {
+    final songs = ref.read(songsProvider).value;
     final adapters = _filterAndSortSetlists(
       ref.read(setlistsProvider).value ?? [],
+      songs,
     );
     if (index >= adapters.length) return;
     // Open setlist for editing on tap
@@ -133,8 +149,10 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 
   void _handleEdit(int index) {
+    final songs = ref.read(songsProvider).value;
     final adapters = _filterAndSortSetlists(
       ref.read(setlistsProvider).value ?? [],
+      songs,
     );
     if (index >= adapters.length) return;
     final setlist = adapters[index].setlist;
@@ -148,6 +166,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   @override
   Widget build(BuildContext context) {
     final setlistsAsync = ref.watch(setlistsProvider);
+    final songsAsync = ref.watch(songsProvider);
     final canEdit = ref.watch(canEditProvider); // false for the shared demo account
 
     return StandardScreenScaffold(
@@ -167,13 +186,13 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
               heroTag: 'setlists_fab',
             )
           : null,
-      body: _buildBody(setlistsAsync),
+      body: _buildBody(setlistsAsync, songsAsync),
     );
   }
 
-  Widget _buildBody(AsyncValue<List<Setlist>> setlistsAsync) {
+  Widget _buildBody(AsyncValue<List<Setlist>> setlistsAsync, AsyncValue<List<Song>> songsAsync) {
     return setlistsAsync.when(
-      data: _buildContent,
+      data: (setlists) => _buildContent(setlists, songsAsync),
       loading: () => const LoadingIndicator(),
       error: (e, _) => Center(
         child: ErrorBanner(
@@ -186,9 +205,10 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     );
   }
 
-  Widget _buildContent(List<Setlist> setlists) {
-    final filteredSetlists = _filterAndSortSetlists(setlists);
-
+  Widget _buildContent(List<Setlist> setlists, AsyncValue<List<Song>> songsAsync) {
+    // Don't block setlists on the songs stream: while songs are loading the
+    // adapter falls back to the raw songIds count.
+    final filteredSetlists = _filterAndSortSetlists(setlists, songsAsync.value);
     return Column(
       children: [
         Padding(
@@ -272,7 +292,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       );
       return;
     }
-    context.goNamed('metronome');
+    await context.pushNamed('metronome');
   }
 
   Future<void> _shareSetlist(Setlist setlist) async {
