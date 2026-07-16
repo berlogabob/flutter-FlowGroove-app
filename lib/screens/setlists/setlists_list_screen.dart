@@ -10,6 +10,7 @@ import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
 import '../../services/export/setlist_export_sheet.dart';
+import '../../services/export/setlist_share.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
@@ -17,7 +18,6 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../widgets/share_sheet.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
@@ -268,6 +268,14 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       additionalActionsBuilder: (index) {
         final setlist = adapters[index].setlist;
         return [
+          // Direct-edit shortcut, parity with the band list (#128).
+          if (canEdit)
+            IconAction(
+              icon: Icons.edit,
+              tooltip: 'Edit setlist',
+              color: MonoPulseColors.textSecondary,
+              onPressed: () => _handleEdit(index),
+            ),
           IconAction(
             icon: Icons.av_timer,
             tooltip: 'Open in metronome',
@@ -277,6 +285,7 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
           OverflowMenuAction(
             entries: [
               ('Share', Icons.share, () => _shareSetlist(setlist)),
+              ('Copy links', Icons.link, () => _copyLinks(setlist)),
               ('Export PDF', Icons.picture_as_pdf, () => _exportPdf(setlist)),
             ],
           ),
@@ -311,7 +320,13 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Future<void> _shareSetlist(Setlist setlist) async {
     final songs = await _songsForSetlist(setlist);
     if (!mounted) return;
-    _shareAsLinks(context, setlist, songs);
+    shareSetlistLinks(context, setlist, songs);
+  }
+
+  Future<void> _copyLinks(Setlist setlist) async {
+    final songs = await _songsForSetlist(setlist);
+    if (!mounted) return;
+    await copySetlistLinks(context, setlist, songs);
   }
 
   Future<void> _exportPdf(Setlist setlist) async {
@@ -326,24 +341,4 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
     }
   }
 
-  void _shareAsLinks(BuildContext context, Setlist setlist, List<Song> songs) {
-    final buffer = StringBuffer();
-    buffer.writeln('🎵 ${setlist.name}');
-    if (setlist.description != null) buffer.writeln(setlist.description);
-    buffer.writeln();
-    buffer.writeln('Songs:');
-    for (int i = 0; i < songs.length; i++) {
-      final song = songs[i];
-      buffer.writeln('${i + 1}. ${song.title} - ${song.artist}');
-      if (song.spotifyUrl != null) {
-        buffer.writeln('   🎧 ${song.spotifyUrl}');
-      } else {
-        final searchUrl = Uri.encodeComponent('${song.title} ${song.artist}');
-        buffer.writeln('   🔍 https://open.spotify.com/search/$searchUrl');
-      }
-    }
-    buffer.writeln();
-    buffer.writeln('Created with FlowGroove');
-    showShareSheet(context, buffer.toString(), subject: setlist.name);
-  }
 }

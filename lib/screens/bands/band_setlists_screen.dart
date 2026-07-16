@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +11,7 @@ import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
 import '../../services/export/setlist_export_sheet.dart';
+import '../../services/export/setlist_share.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
@@ -145,6 +145,29 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     await ref
         .read(firestoreProvider)
         .deleteBandSetlist(widget.band.id, setlist.id);
+    // Undo parity with the personal list (#128).
+    if (mounted) {
+      showAppSnackBar(
+        context,
+        'Setlist "${setlist.name}" deleted',
+        actionLabel: 'Undo',
+        analyticsAction: 'setlist_delete',
+        onAction: () async {
+          await ref
+              .read(firestoreProvider)
+              .saveBandSetlist(setlist, widget.band.id);
+        },
+      );
+    }
+  }
+
+  void _viewSetlist(Setlist setlist) {
+    // Read-only view on tap (P1-7), same as the personal list (#128).
+    context.pushNamed(
+      'setlist-view',
+      pathParameters: {'id': setlist.id},
+      extra: setlist,
+    );
   }
 
   void _editSetlist(Setlist setlist) {
@@ -259,6 +282,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
       onDelete: _canDelete
           ? (index) => _deleteSetlist(adapters[index].setlist)
           : null,
+      onTap: (index) => _viewSetlist(adapters[index].setlist),
       onEdit: _canEdit
           ? (index) => _editSetlist(adapters[index].setlist)
           : null,
@@ -266,13 +290,13 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
         final setlist = adapters[index].setlist;
         return [
           if (_canEdit)
-            _SetlistIconAction(
+            IconAction(
               icon: Icons.edit,
               tooltip: 'Edit setlist',
               color: MonoPulseColors.textSecondary,
               onPressed: () => _editSetlist(setlist),
             ),
-          _SetlistIconAction(
+          IconAction(
             icon: Icons.av_timer,
             tooltip: 'Open in metronome',
             color: MonoPulseColors.textSecondary,
@@ -280,6 +304,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
           ),
           OverflowMenuAction(
             entries: [
+              ('Share', Icons.share, () => _shareSetlist(setlist)),
               ('Copy links', Icons.link, () => _shareAsLinks(setlist)),
               ('Export PDF', Icons.picture_as_pdf, () => _exportPdf(setlist)),
             ],
@@ -335,52 +360,15 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     }
   }
 
+  Future<void> _shareSetlist(Setlist setlist) async {
+    final songs = await _songsForSetlist(setlist);
+    if (!mounted) return;
+    shareSetlistLinks(context, setlist, songs);
+  }
+
   Future<void> _shareAsLinks(Setlist setlist) async {
     final songs = await _songsForSetlist(setlist);
     if (!mounted) return;
-    final buffer = StringBuffer();
-    buffer.writeln(setlist.name);
-    if (setlist.description != null) buffer.writeln(setlist.description);
-    buffer.writeln();
-    buffer.writeln('Songs:');
-    for (int i = 0; i < songs.length; i++) {
-      final song = songs[i];
-      buffer.writeln('${i + 1}. ${song.title} - ${song.artist}');
-      if (song.spotifyUrl != null) {
-        buffer.writeln('   ${song.spotifyUrl}');
-      } else {
-        final searchUrl = Uri.encodeComponent('${song.title} ${song.artist}');
-        buffer.writeln('   https://open.spotify.com/search/$searchUrl');
-      }
-    }
-    buffer.writeln();
-    buffer.writeln('Created with FlowGroove');
-
-    await Clipboard.setData(ClipboardData(text: buffer.toString()));
-    if (!mounted) return;
-    showAppSnackBar(context, 'Setlist links copied to clipboard!');
-  }
-}
-
-class _SetlistIconAction implements UnifiedItemAction {
-  _SetlistIconAction({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-    this.color,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(icon, size: 20, color: color),
-      onPressed: onPressed,
-      tooltip: tooltip,
-    );
+    await copySetlistLinks(context, setlist, songs);
   }
 }

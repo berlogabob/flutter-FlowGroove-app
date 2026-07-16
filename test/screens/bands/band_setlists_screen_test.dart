@@ -168,7 +168,7 @@ void main() {
       final firebaseUser = MockUser();
       when(firebaseUser.uid).thenReturn('test-user-id');
 
-      final router = await pumpRoutedTestApp(
+      await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/bands/band-123/setlists',
         routes: _routesFor(band),
@@ -197,11 +197,15 @@ void main() {
 
       expect(find.text('Friday Gig'), findsOneWidget);
       expect(find.byType(FloatingActionButton), findsNothing);
+      // No edit pencil for viewers.
+      expect(find.byIcon(Icons.edit), findsNothing);
 
+      // Tap opens the read-only view for everyone (#128 parity with the
+      // personal list) — viewers get a read path instead of a dead tap.
       await tester.tap(find.text('Friday Gig'));
       await tester.pumpAndSettle();
 
-      expect(currentRouterUri(router).path, '/main/bands/band-123/setlists');
+      expect(find.text('route:setlist-view'), findsOneWidget);
     });
 
     testWidgets('demo admins can read setlists but cannot modify them', (
@@ -310,6 +314,11 @@ List<RouteBase> _routesFor(Band band) {
       path: '/main/setlists/:id/edit',
       name: 'edit-setlist',
       builder: (context, state) => const TestRouteMarker('edit-setlist'),
+    ),
+    GoRoute(
+      path: '/main/setlists/:id',
+      name: 'setlist-view',
+      builder: (context, state) => const TestRouteMarker('setlist-view'),
     ),
   ];
 }
