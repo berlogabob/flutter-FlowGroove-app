@@ -8,7 +8,7 @@ import '../../providers/data/data_providers.dart';
 import '../../services/matching/song_duplicate_detector.dart';
 import '../../services/song_library_merge_service.dart';
 import '../../utils/snackbar.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/menu_items_scope.dart';
 import 'song_merge_dialog.dart';
 
 class SongDuplicatesScreen extends ConsumerStatefulWidget {
@@ -43,39 +43,50 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
   @override
   Widget build(BuildContext context) {
     final songs = ref.watch(songsProvider);
-    return Scaffold(
-      appBar: CustomAppBar.build(context, title: 'Duplicate songs'),
-      body: songs.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Could not load songs: $error')),
-        data: (items) {
-          final matches = _detector
-              .findLibraryDuplicates(items, includePossible: _includePossible)
-              .where((match) => !_dismissed.contains(match.pairKey))
-              .toList();
-          return Column(
-            children: [
-              SwitchListTile(
-                title: const Text('Include possible matches'),
-                subtitle: const Text(
-                  'Shows matches scoring 70-84% and variant conflicts.',
-                ),
-                value: _includePossible,
-                onChanged: (value) => setState(() => _includePossible = value),
-              ),
-              Expanded(
-                child: matches.isEmpty
-                    ? const Center(child: Text('No duplicate songs found.'))
-                    : ListView.builder(
-                        itemCount: matches.length,
-                        itemBuilder: (context, index) =>
-                            _buildMatch(matches[index]),
-                      ),
-              ),
-            ],
-          );
-        },
+    // Pushed branch child: title is published for the shell's bottom bar
+    // ([← Back] [title] [⋮ Menu]); there is no top app bar.
+    return MenuScopePublisher(
+      data: const MenuScopeData(title: 'Duplicate songs'),
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: songs.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) =>
+                Center(child: Text('Could not load songs: $error')),
+            data: (items) {
+              final matches = _detector
+                  .findLibraryDuplicates(
+                    items,
+                    includePossible: _includePossible,
+                  )
+                  .where((match) => !_dismissed.contains(match.pairKey))
+                  .toList();
+              return Column(
+                children: [
+                  SwitchListTile(
+                    title: const Text('Include possible matches'),
+                    subtitle: const Text(
+                      'Shows matches scoring 70-84% and variant conflicts.',
+                    ),
+                    value: _includePossible,
+                    onChanged: (value) =>
+                        setState(() => _includePossible = value),
+                  ),
+                  Expanded(
+                    child: matches.isEmpty
+                        ? const Center(child: Text('No duplicate songs found.'))
+                        : ListView.builder(
+                            itemCount: matches.length,
+                            itemBuilder: (context, index) =>
+                                _buildMatch(matches[index]),
+                          ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }

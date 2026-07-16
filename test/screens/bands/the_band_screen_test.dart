@@ -141,5 +141,84 @@ void main() {
       expect(uri.path, '/main/bands/band-123/setlists');
       expect(find.text('route:band-setlists'), findsOneWidget);
     });
+
+    testWidgets(
+      'shows a compact band header and "Band library" heading, not a '
+      'personal greeting or personal tools (P1-4)',
+      (tester) async {
+        tester.view.physicalSize = const Size(1000, 1200);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final band = MockDataHelper.createMockBand(
+          id: 'band-123',
+          name: 'Teplo',
+          members: [
+            BandMember(uid: 'test-user-id', role: BandMember.roleAdmin),
+          ],
+        );
+        final firebaseUser = MockUser();
+        when(firebaseUser.uid).thenReturn('test-user-id');
+
+        await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/main/bands/band-123',
+          routes: [
+            GoRoute(
+              path: '/main/bands/:id',
+              name: 'the-band',
+              builder: (context, state) => TheBandScreen(band: band),
+            ),
+            GoRoute(
+              path: '/main/bands/:id/rehearsals',
+              name: 'band-rehearsals',
+              builder: (context, state) =>
+                  const TestRouteMarker('band-rehearsals'),
+            ),
+          ],
+          overrides: [
+            bandsProvider.overrideWith(
+              (ref) => Stream<List<Band>>.value([band]),
+            ),
+            currentUserProvider.overrideWithValue(
+              AsyncValue<User?>.data(firebaseUser),
+            ),
+            appUserProvider.overrideWith(
+              () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+            ),
+            bandSongsProvider.overrideWith(
+              (ref, bandId) => Stream<List<Song>>.value([]),
+            ),
+            bandSetlistsProvider.overrideWith(
+              (ref, bandId) => Stream<List<Setlist>>.value([]),
+            ),
+          ],
+        );
+        await tester.pumpAndSettle();
+
+        // No personal-style greeting copy for the band.
+        expect(find.text('Hello, Teplo!'), findsNothing);
+        expect(find.textContaining('Ready to rock'), findsNothing);
+
+        // Band name and member count still shown, in the compact header.
+        expect(find.text('Teplo'), findsOneWidget);
+        expect(find.text('1 member'), findsOneWidget);
+
+        // Statistics section is labeled for the band, not "My Library".
+        expect(find.text('Band library'), findsOneWidget);
+        expect(find.text('My Library'), findsNothing);
+
+        // Personal tools are gone; Rehearsals is reachable as a quick action.
+        expect(find.text('Tuner'), findsNothing);
+        expect(find.text('Metronome'), findsNothing);
+        expect(find.text('Rehearsals'), findsOneWidget);
+
+        await tester.tap(find.text('Rehearsals'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('route:band-rehearsals'), findsOneWidget);
+      },
+    );
   });
 }

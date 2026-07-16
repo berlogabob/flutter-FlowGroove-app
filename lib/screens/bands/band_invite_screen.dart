@@ -6,7 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../models/band.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/menu_items_scope.dart';
 
 /// Invite/share screen: QR code + invite code with copy-link and native share.
 class BandInviteScreen extends StatelessWidget {
@@ -39,71 +39,77 @@ class BandInviteScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasCode = _inviteCode.isNotEmpty;
-    return Scaffold(
-      appBar: CustomAppBar.build(context, title: 'Invite to ${band.name}'),
-      body: hasCode
-          ? SingleChildScrollView(
-              padding: const EdgeInsets.all(MonoPulseSpacing.xl),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-                    ),
-                    child: QrImageView(
-                      data: _joinLink,
-                      size: 220,
-                    ),
-                  ),
-                  const SizedBox(height: MonoPulseSpacing.xl),
-                  Text(
-                    'Invite code',
-                    style: MonoPulseTypography.bodySmall.copyWith(
-                      color: MonoPulseColors.textTertiary,
-                    ),
-                  ),
-                  const SizedBox(height: MonoPulseSpacing.xs),
-                  SelectableText(
-                    _inviteCode,
-                    style: MonoPulseTypography.headlineSmall.copyWith(
-                      color: MonoPulseColors.accentOrange,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: MonoPulseSpacing.xl),
-                  Row(
+    // Pushed branch child: title is published for the shell's bottom bar
+    // ([← Back] [title] [⋮ Menu]); there is no top app bar.
+    return MenuScopePublisher(
+      data: MenuScopeData(title: 'Invite to ${band.name}'),
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: hasCode
+              ? SingleChildScrollView(
+                  padding: const EdgeInsets.all(MonoPulseSpacing.xl),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _copyLink(context),
-                          icon: const Icon(Icons.link),
-                          label: const Text('Copy link'),
+                      Container(
+                        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(
+                            MonoPulseRadius.large,
+                          ),
+                        ),
+                        child: QrImageView(data: _joinLink, size: 220),
+                      ),
+                      const SizedBox(height: MonoPulseSpacing.xl),
+                      Text(
+                        'Invite code',
+                        style: MonoPulseTypography.bodySmall.copyWith(
+                          color: MonoPulseColors.textTertiary,
                         ),
                       ),
-                      const SizedBox(width: MonoPulseSpacing.md),
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: _share,
-                          icon: const Icon(Icons.share),
-                          label: const Text('Share'),
+                      const SizedBox(height: MonoPulseSpacing.xs),
+                      SelectableText(
+                        _inviteCode,
+                        style: MonoPulseTypography.headlineSmall.copyWith(
+                          color: MonoPulseColors.accentOrange,
+                          letterSpacing: 2,
                         ),
+                      ),
+                      const SizedBox(height: MonoPulseSpacing.xl),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _copyLink(context),
+                              icon: const Icon(Icons.link),
+                              label: const Text('Copy link'),
+                            ),
+                          ),
+                          const SizedBox(width: MonoPulseSpacing.md),
+                          Expanded(
+                            child: FilledButton.icon(
+                              onPressed: _share,
+                              icon: const Icon(Icons.share),
+                              label: const Text('Share'),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            )
-          : const Center(
-              child: Padding(
-                padding: EdgeInsets.all(MonoPulseSpacing.xl),
-                child: Text(
-                  'No invite code available for this band.',
-                  style: TextStyle(color: MonoPulseColors.textSecondary),
+                )
+              : const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(MonoPulseSpacing.xl),
+                    child: Text(
+                      'No invite code available for this band.',
+                      style: TextStyle(color: MonoPulseColors.textSecondary),
+                    ),
+                  ),
                 ),
-              ),
-            ),
+        ),
+      ),
     );
   }
 }

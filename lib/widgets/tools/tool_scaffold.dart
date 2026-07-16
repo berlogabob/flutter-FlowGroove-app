@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../widgets/offline_indicator.dart';
 
 /// Responsive breakpoint system for tool screens.
@@ -99,8 +98,8 @@ class ToolTouchTarget {
 /// bottom bar isn't there — this scaffold renders its own pushed-mode bar:
 /// `[← Back] [title] [⋮ Menu]` ([AppBottomBar.actions]). Back pops with a
 /// `/main/home` fallback (deep-link cold start); Menu opens the app menu
-/// sheet with [menuItems] and is hidden when there are none. The top bar is a
-/// slim centered title only.
+/// sheet with [menuItems] and is hidden when there are none. There is no top
+/// app bar — [title] is shown only in the bottom bar's center slot.
 ///
 /// Usage:
 /// ```dart
@@ -122,7 +121,7 @@ class ToolScreenScaffold extends StatelessWidget {
     this.showOfflineIndicator = true,
   });
 
-  /// Screen title displayed in AppBar.
+  /// Screen title displayed in the bottom bar's center slot.
   final String title;
 
   /// Main tool widget (takes most of the screen).
@@ -147,11 +146,6 @@ class ToolScreenScaffold extends StatelessWidget {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: MonoPulseColors.black,
-        appBar: CustomAppBar.build(
-          context,
-          title: title,
-          isTool: true,
-        ),
         body: SafeArea(
           // The bottom bar has its own SafeArea for the home-indicator inset.
           bottom: false,
@@ -185,8 +179,7 @@ class ToolScreenScaffold extends StatelessWidget {
               context.go('/main/home');
             }
           },
-          // No bar title: the slim top app-bar title is the location signal
-          // (avoids the double-title the first cut had on tool screens).
+          title: title,
           onMenu: items.isEmpty
               ? null
               : () => showAppMenuSheet(context, title: title, items: items),
@@ -214,7 +207,9 @@ class ToolScreenScaffold extends StatelessWidget {
 /// ```
 class ToolResponsiveLayout extends StatelessWidget {
   const ToolResponsiveLayout({
-    required this.portraitBlocks, required this.landscapeBlocks, super.key,
+    required this.portraitBlocks,
+    required this.landscapeBlocks,
+    super.key,
     this.landscapeBreakpoint = 600,
   });
 
@@ -262,7 +257,8 @@ class ToolResponsiveLayout extends StatelessWidget {
 /// ```
 class ToolBlock extends StatelessWidget {
   const ToolBlock({
-    required this.child, super.key,
+    required this.child,
+    super.key,
     this.showCard = false,
     this.header,
     this.padding,

@@ -15,24 +15,25 @@ import '../../providers/permissions_provider.dart';
 import '../../services/avatar_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
+import '../../utils/responsive_breakpoints.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/dashboard_grid.dart';
-import '../../widgets/greeting_card.dart';
 import '../../widgets/quick_action_button.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/stat_card.dart';
-import '../../widgets/tool_button.dart';
+import '../../widgets/user_avatar.dart';
 import '../setlists/create_setlist_screen.dart';
 
-/// The Band Screen - displays band dashboard similar to personal page.
+/// The Band Screen - displays band dashboard similar to personal page, but
+/// clearly labeled as the band's data (not the signed-in user's).
 ///
 /// Features (per Issue #13, #21, and #22):
-/// - Band name header (replaces "Hello, username")
-/// - "Ready to rock" section showing band description
+/// - Compact band header: avatar, band name, member count (no personal
+///   "Hello, `<band>`!" greeting copy - that belongs to the Home screen)
 /// - 3-dots menu with: Edit name, Edit description, Add song, Add setlist, Edit tags, Edit members
 /// - Dashboard with band-specific statistics (songs, setlists, members)
-/// - Quick actions: Add Song (to band), Add Setlist (to band), Band Bank, Add Member
+/// - Quick actions: Add Song (to band), Add Setlist (to band), Band Bank, Add Member, Rehearsals
 /// - Collapsible/expandable widgets with autosave (via BandAboutScreen for editing)
 class TheBandScreen extends ConsumerStatefulWidget {
 
@@ -188,10 +189,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         .toString();
 
     return DashboardGrid(
-      greetingCard: _buildBandGreetingCard(),
+      greetingCard: _buildBandHeader(),
+      statisticsTitle: 'Band library',
       statistics: _buildStatistics(userAsync, songCountAsync, setlistCount),
       quickActions: _buildQuickActions(),
-      tools: _buildTools(),
+      tools: const [],
     );
   }
 
@@ -237,7 +239,10 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     ];
   }
 
-  /// Build quick action buttons for band dashboard
+  /// Build quick action buttons for band dashboard. Band-scoped only - Tuner
+  /// and Metronome are personal tools that live on the Home screen, not here.
+  /// Rehearsals is band-scoped, so it lives here instead of a single-item
+  /// Tools section.
   List<QuickActionButton> _buildQuickActions() {
     return [
       QuickActionButton(icon: Icons.add, label: 'Song', onTap: _handleAddSong),
@@ -257,24 +262,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         label: 'Band songs',
         onTap: _handleBandBank,
       ),
-    ];
-  }
-
-  /// Build tool buttons for band dashboard.
-  /// Same order as the home screen tools: Tuner, Metronome, Rehearsals last.
-  List<ToolButton> _buildTools() {
-    return [
-      ToolButton(
-        icon: Icons.tune,
-        label: 'Tuner',
-        onTap: () => context.pushNamed('tuner'),
-      ),
-      ToolButton(
-        icon: Icons.speed,
-        label: 'Metronome',
-        onTap: () => context.pushNamed('metronome'),
-      ),
-      ToolButton(
+      QuickActionButton(
         icon: Icons.event,
         label: 'Rehearsals',
         onTap: () => context.goNamed(
@@ -286,14 +274,51 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     ];
   }
 
-  /// Band greeting card - uses GreetingCard widget with band initials as avatar
-  Widget _buildBandGreetingCard() {
-    final description = widget.band.description;
+  /// Compact band header: avatar, band name, member count on one row. No
+  /// personal-style greeting copy ("Hello, `<band>`! Ready to rock?") - this is
+  /// the band's data, not the signed-in user's, and the greeting made that
+  /// ambiguous (P1-4).
+  Widget _buildBandHeader() {
+    final band = _liveBand();
+    final breakpoint = context.breakpoint;
+    final avatarRadius = ResponsiveSizes.avatarRadius(breakpoint);
+    final memberCount = band.members.length;
 
-    return GreetingCard(
-      userName: widget.band.name,
-      subtitle: description ?? 'Ready to rock?',
-      avatarPath: _liveBand().photoURL,
+    return Container(
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+      decoration: BoxDecoration(
+        color: MonoPulseColors.accentOrange10,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+        border: Border.all(color: MonoPulseColors.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          UserAvatar(
+            photoURL: band.photoURL,
+            displayName: band.name,
+            radius: avatarRadius,
+          ),
+          const SizedBox(width: MonoPulseSpacing.lg),
+          Expanded(
+            child: Text(
+              band.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: MonoPulseColors.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(width: MonoPulseSpacing.md),
+          Text(
+            memberCount == 1 ? '1 member' : '$memberCount members',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: MonoPulseColors.textTertiary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

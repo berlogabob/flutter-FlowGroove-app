@@ -160,7 +160,11 @@ void main() {
     ) async {
       await pumpView(tester);
 
-      expect(find.text('Gig Setlist'), findsOneWidget);
+      // The bottom bar's title slot is replaced by the "Open in Metronome"
+      // primary action (see MenuScopeData.primaryAction), so the setlist
+      // name isn't shown on screen — it's still published as the title.
+      final scope = tester.widget<MenuItemsScope>(find.byType(MenuItemsScope));
+      expect(scope.title, 'Gig Setlist');
       expect(find.text('First Song'), findsOneWidget);
       expect(find.text('Band A'), findsOneWidget);
       expect(find.text('Second Song'), findsOneWidget);
@@ -172,37 +176,37 @@ void main() {
       expect(find.text('90'), findsOneWidget);
     });
 
-    testWidgets('has no editing affordances — no Save Changes, no drag handles', (
-      tester,
-    ) async {
-      await pumpView(tester);
+    testWidgets(
+      'has no editing affordances — no Save Changes, no drag handles',
+      (tester) async {
+        await pumpView(tester);
 
-      expect(find.text('Save Changes'), findsNothing);
-      expect(find.text('Edit Setlist'), findsNothing);
-      expect(find.byIcon(Icons.drag_handle), findsNothing);
-      expect(find.byType(Dismissible), findsNothing);
-    });
+        expect(find.text('Save Changes'), findsNothing);
+        expect(find.text('Edit Setlist'), findsNothing);
+        expect(find.byIcon(Icons.drag_handle), findsNothing);
+        expect(find.byType(Dismissible), findsNothing);
+      },
+    );
 
-    testWidgets('shows an Edit action that pushes the edit screen when canEdit', (
-      tester,
-    ) async {
-      await pumpView(tester);
+    testWidgets(
+      'shows an Edit action that pushes the edit screen when canEdit',
+      (tester) async {
+        await pumpView(tester);
 
-      // Edit moved into the bottom bar's Menu sheet.
-      await tester.tap(find.byIcon(Icons.more_horiz));
-      await tester.pumpAndSettle();
+        // Edit moved into the bottom bar's Menu sheet.
+        await tester.tap(find.byIcon(Icons.more_horiz));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Edit Setlist'), findsOneWidget);
+        expect(find.text('Edit Setlist'), findsOneWidget);
 
-      await tester.tap(find.text('Edit Setlist'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Edit Setlist'));
+        await tester.pumpAndSettle();
 
-      expect(find.text('route:edit-setlist'), findsOneWidget);
-    });
+        expect(find.text('route:edit-setlist'), findsOneWidget);
+      },
+    );
 
-    testWidgets('hides the Edit action when canEdit is false', (
-      tester,
-    ) async {
+    testWidgets('hides the Edit action when canEdit is false', (tester) async {
       await pumpView(tester, canEdit: false);
 
       // No menu items at all -> the bottom bar hides the ⋮ Menu button.

@@ -14,7 +14,11 @@ import '../widgets/menu_items_scope.dart';
 /// via that row, or by any `context.go('/main/profile')` elsewhere.
 const List<AppNavItem> _tabs = [
   (icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home'),
-  (icon: Icons.music_note_outlined, selectedIcon: Icons.music_note, label: 'Songs'),
+  (
+    icon: Icons.music_note_outlined,
+    selectedIcon: Icons.music_note,
+    label: 'Songs',
+  ),
   (icon: Icons.groups_outlined, selectedIcon: Icons.groups, label: 'Bands'),
   (
     icon: Icons.queue_music_outlined,
@@ -51,7 +55,6 @@ const List<String> _branchRootLocations = [
 ///
 /// Portrait: bottom bar. Landscape: left rail (same two modes).
 class MainShell extends ConsumerStatefulWidget {
-
   const MainShell({required this.navigationShell, super.key});
   final StatefulNavigationShell navigationShell;
 
@@ -74,11 +77,9 @@ class _MainShellState extends ConsumerState<MainShell> {
     final i = widget.navigationShell.currentIndex;
     final depths = BranchStackObserver.depths.value;
     if (i >= 0 && i < depths.length && depths[i] > 0) return true;
-    final uri = GoRouter.maybeOf(context)
-        ?.routerDelegate
-        .currentConfiguration
-        .uri
-        .toString();
+    final uri = GoRouter.maybeOf(
+      context,
+    )?.routerDelegate.currentConfiguration.uri.toString();
     return uri != null && !_branchRootLocations.contains(uri);
   }
 
@@ -111,8 +112,7 @@ class _MainShellState extends ConsumerState<MainShell> {
     // matching _branchRootLocations — Metronome/Tuner/Join Band are pushed on
     // top of the shell via the root navigator instead of being branches.
     final currentIndex = widget.navigationShell.currentIndex;
-    final safeIndex =
-        currentIndex >= 0 && currentIndex < 5 ? currentIndex : 0;
+    final safeIndex = currentIndex >= 0 && currentIndex < 5 ? currentIndex : 0;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
     final content = DemoModeBanner(child: widget.navigationShell);
@@ -203,9 +203,7 @@ class _MainShellState extends ConsumerState<MainShell> {
       final entry = _currentMenu();
       return AppBottomBar.actions(
         onBack: _handleBack,
-        // No title in the bar: the slim top app-bar title is the location
-        // signal; keeping it out of the bar avoids double titles (tools)
-        // and empty slots (screens without a registered scope).
+        title: entry?.title,
         primaryAction: entry?.primaryAction,
         onMenu: (entry?.items.isNotEmpty ?? false)
             ? () => _openMenu(context)
@@ -231,8 +229,10 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   void _openMenu(BuildContext context) {
     final entry = _currentMenu();
-    final fallbackTitle = !_pushed && widget.navigationShell.currentIndex >= 0
-        && widget.navigationShell.currentIndex < _tabs.length
+    final fallbackTitle =
+        !_pushed &&
+            widget.navigationShell.currentIndex >= 0 &&
+            widget.navigationShell.currentIndex < _tabs.length
         ? _tabs[widget.navigationShell.currentIndex].label
         : 'Menu';
     showAppMenuSheet(

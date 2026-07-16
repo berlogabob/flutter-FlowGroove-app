@@ -37,8 +37,9 @@ void main() {
         overrides: overridesFor(setlists: Stream<List<Setlist>>.value([])),
       );
 
-      // Slim top bar title + the shell's Setlists nav tab label.
-      expect(find.text('Setlists'), findsNWidgets(2));
+      // No top app bar; only the shell's Setlists nav tab label names the
+      // screen (root screens show no title anywhere else).
+      expect(find.text('Setlists'), findsOneWidget);
       expect(find.text('Search setlists...'), findsOneWidget);
       expect(find.byIcon(Icons.sort), findsOneWidget);
     });
@@ -72,13 +73,12 @@ void main() {
         ),
       ];
 
-      // Cards count only songs that resolve against the library (P0-4 fix),
-      // so the fixture must actually contain s1..s3.
-      final songs = [
-        MockDataHelper.createMockSong(id: 's1', title: 'Song 1'),
-        MockDataHelper.createMockSong(id: 's2', title: 'Song 2'),
-        MockDataHelper.createMockSong(id: 's3', title: 'Song 3'),
-      ];
+      // Card count is the RAW entry count, not filtered against the song
+      // library: an entry whose songId doesn't resolve is still an entry
+      // (setlist.effectiveItems), so only s1 needs to actually exist here
+      // and "Gig Setlist" (3 songIds, only s1 resolves) still shows '3
+      // songs' instead of undercounting to '1 song'.
+      final songs = [MockDataHelper.createMockSong(id: 's1', title: 'Song 1')];
 
       await pumpRoutedTestApp(
         tester,
@@ -208,6 +208,5 @@ void main() {
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
-
   });
 }

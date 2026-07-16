@@ -51,6 +51,8 @@ void main() {
       ) async {
         await pumpBlock(tester, width: width);
 
+        expect(find.text('Beats'), findsOneWidget);
+        expect(find.text('Subdivision'), findsOneWidget);
         expectMainDots(4);
         expect(find.byKey(const Key('main_beat_dot_4')), findsNothing);
         expect(find.byKey(const Key('main-beat-strip-scroll')), findsNothing);
@@ -87,7 +89,9 @@ void main() {
       expectMainDots(12);
     });
 
-    testWidgets('subdivision row fits 6 dots without scrolling', (tester) async {
+    testWidgets('subdivision row fits 6 dots without scrolling', (
+      tester,
+    ) async {
       await pumpBlock(tester, width: 320);
       await tapNTimes(tester, const Key('subdivisions-increment'), 5); // 1 -> 6
 

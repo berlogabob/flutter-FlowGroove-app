@@ -18,7 +18,6 @@ import '../../utils/lyrics_sections.dart';
 import '../../utils/song_tags.dart';
 import '../../utils/suggestion_links.dart';
 import '../../widgets/app_menu_sheet.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner;
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
@@ -289,9 +288,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         Section(id: const Uuid().v4(), name: p.name, chordChart: p.chart),
     ];
     final current = ref.read(songFormStateProvider).formData.sections;
-    ref
-        .read(songFormStateProvider.notifier)
-        .setSections([...current, ...sections]);
+    ref.read(songFormStateProvider.notifier).setSections([
+      ...current,
+      ...sections,
+    ]);
     showAppSnackBar(
       context,
       'Added lyrics (${sections.length} parts) from lyrics.ovh',
@@ -303,7 +303,8 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   /// audio-features is closed to new apps, Deezer needs no auth).
   Future<void> _autofillBpm(SongSuggestion suggestion) async {
     if (_originalBpmController.text.trim().isNotEmpty) return;
-    final bpm = suggestion.bpm ??
+    final bpm =
+        suggestion.bpm ??
         await DeezerService.getBpm(
           title: suggestion.title,
           artist: suggestion.artist,
@@ -496,7 +497,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         }
       },
       // Pushed branch child: title + actions are published for the shell's
-      // bottom bar ([← Back] [title] [⋮ Menu]); the top bar is title-only.
+      // bottom bar ([← Back] [title] [⋮ Menu]); there is no top app bar.
       child: MenuScopePublisher(
         data: MenuScopeData(
           title: _isEditing ? 'Edit Song' : 'Add Song',
@@ -531,121 +532,129 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
           ],
         ),
         child: Scaffold(
-        appBar: CustomAppBar.build(
-          context,
-          title: _isEditing ? 'Edit Song' : 'Add Song',
-        ),
-        body: !_formReady
-            ? const SizedBox.shrink()
-            : ListView(
-                padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-                children: [
-                  // Error banner
-                  if (error != null) ...[
-                    ErrorBanner(
-                      message: error.message,
-                      onRetry: () =>
-                          ref.read(songFormStateProvider.notifier).clearError(),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  // Song form with autocomplete
-                  SongForm(
-                    formKey: _formKey,
-                    titleController: _titleController,
-                    artistController: _artistController,
-                    originalBpmController: _originalBpmController,
-                    ourBpmController: _ourBpmController,
-                    notesController: _notesController,
-                    links: formData.links,
-                    selectedTags: formData.selectedTags,
-                    availableTags: _availableTags,
-                    originalKeyBase: formData.originalKeyBase,
-                    originalKeyModifier: formData.originalKeyModifier,
-                    ourKeyBase: formData.ourKeyBase,
-                    ourKeyModifier: formData.ourKeyModifier,
-                    onOriginalKeyChanged: (b, m) {
-                      ref
-                          .read(songFormStateProvider.notifier)
-                          .updateOriginalKey(b, m);
-                      ref.read(songFormStateProvider.notifier).markAsChanged();
-                    },
-                    onOurKeyChanged: (b, m) {
-                      ref
-                          .read(songFormStateProvider.notifier)
-                          .updateOurKey(b, m);
-                      ref.read(songFormStateProvider.notifier).markAsChanged();
-                    },
-                    onAddLink: (link) {
-                      ref.read(songFormStateProvider.notifier).addLink(link);
-                      ref.read(songFormStateProvider.notifier).markAsChanged();
-                    },
-                    onRemoveLink: (index) {
-                      ref
-                          .read(songFormStateProvider.notifier)
-                          .removeLink(index);
-                      ref.read(songFormStateProvider.notifier).markAsChanged();
-                    },
-                    onTagChanged: (tag, selected) {
-                      ref
-                          .read(songFormStateProvider.notifier)
-                          .toggleTag(tag, selected);
-                      ref.read(songFormStateProvider.notifier).markAsChanged();
-                    },
-                    sections: formData.sections,
-                    onSectionsChanged: (newSections) {
-                      ref
-                          .read(songFormStateProvider.notifier)
-                          .setSections(newSections);
-                      ref.read(songFormStateProvider.notifier).markAsChanged();
-                    },
-                    accentBeats: formData.accentBeats,
-                    regularBeats: formData.regularBeats,
-                    beatModes: formData.beatModes,
-                    onAccentBeatsChanged: (value) {
-                      final notifier = ref.read(songFormStateProvider.notifier);
-                      notifier.updateAccentBeats(value);
-                      notifier.initializeBeatModes();
-                      notifier.markAsChanged();
-                    },
-                    onRegularBeatsChanged: (value) {
-                      final notifier = ref.read(songFormStateProvider.notifier);
-                      notifier.updateRegularBeats(value);
-                      notifier.initializeBeatModes();
-                      notifier.markAsChanged();
-                    },
-                    onBeatModeChanged: (beatIndex, subdivisionIndex, mode) {
-                      final notifier = ref.read(songFormStateProvider.notifier);
-                      notifier.updateBeatMode(
-                        beatIndex,
-                        subdivisionIndex,
-                        mode,
-                      );
-                      notifier.markAsChanged();
-                    },
-                    onSuggestionSelected: _handleSuggestionSelected,
-                    bandId: widget.bandId,
-                    isEditing: _isEditing,
+          body: SafeArea(
+            bottom: false,
+            child: !_formReady
+                ? const SizedBox.shrink()
+                : ListView(
+                    padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                    children: [
+                      // Error banner
+                      if (error != null) ...[
+                        ErrorBanner(
+                          message: error.message,
+                          onRetry: () => ref
+                              .read(songFormStateProvider.notifier)
+                              .clearError(),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      // Song form with autocomplete
+                      SongForm(
+                        formKey: _formKey,
+                        titleController: _titleController,
+                        artistController: _artistController,
+                        originalBpmController: _originalBpmController,
+                        ourBpmController: _ourBpmController,
+                        notesController: _notesController,
+                        links: formData.links,
+                        selectedTags: formData.selectedTags,
+                        availableTags: _availableTags,
+                        originalKeyBase: formData.originalKeyBase,
+                        originalKeyModifier: formData.originalKeyModifier,
+                        ourKeyBase: formData.ourKeyBase,
+                        ourKeyModifier: formData.ourKeyModifier,
+                        onOriginalKeyChanged: (b, m) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .updateOriginalKey(b, m);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        onOurKeyChanged: (b, m) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .updateOurKey(b, m);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        onAddLink: (link) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .addLink(link);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        onRemoveLink: (index) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .removeLink(index);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        onTagChanged: (tag, selected) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .toggleTag(tag, selected);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        sections: formData.sections,
+                        onSectionsChanged: (newSections) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .setSections(newSections);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        accentBeats: formData.accentBeats,
+                        regularBeats: formData.regularBeats,
+                        beatModes: formData.beatModes,
+                        onAccentBeatsChanged: (value) {
+                          final notifier = ref.read(
+                            songFormStateProvider.notifier,
+                          );
+                          notifier.updateAccentBeats(value);
+                          notifier.initializeBeatModes();
+                          notifier.markAsChanged();
+                        },
+                        onRegularBeatsChanged: (value) {
+                          final notifier = ref.read(
+                            songFormStateProvider.notifier,
+                          );
+                          notifier.updateRegularBeats(value);
+                          notifier.initializeBeatModes();
+                          notifier.markAsChanged();
+                        },
+                        onBeatModeChanged: (beatIndex, subdivisionIndex, mode) {
+                          final notifier = ref.read(
+                            songFormStateProvider.notifier,
+                          );
+                          notifier.updateBeatMode(
+                            beatIndex,
+                            subdivisionIndex,
+                            mode,
+                          );
+                          notifier.markAsChanged();
+                        },
+                        onSuggestionSelected: _handleSuggestionSelected,
+                        onSearchWeb: searchOnWeb,
+                        bandId: widget.bandId,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  // Single web-search shortcut — the title autocomplete already
-                  // covers MusicBrainz/Spotify autofill; the old per-source buttons
-                  // were clutter and mostly broken (#78 follow-up).
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      onPressed: searchOnWeb,
-                      icon: const Icon(Icons.search, size: 18),
-                      label: const Text('Search web'),
-                    ),
-                  ),
-                ],
-              ),
-        bottomNavigationBar: PrimaryActionBar(
-          label: _isEditing ? 'Save Changes' : 'Save Song',
-          onPressed: isSaving ? null : _saveSong,
-          isLoading: isSaving,
-        ),
+          ),
+          bottomNavigationBar: PrimaryActionBar(
+            label: _isEditing ? 'Save Changes' : 'Save Song',
+            onPressed: isSaving ? null : _saveSong,
+            isLoading: isSaving,
+          ),
         ),
       ),
     );

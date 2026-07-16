@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import '../../services/mcp_api_key_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/bottom_nav_or_action_bar.dart';
 
 /// Manages per-user API keys for the MCP endpoint: mint (shown once), list, revoke,
 /// plus a short "connect your AI" guide.
@@ -39,7 +39,10 @@ class _ApiAccessScreenState extends State<ApiAccessScreen> {
     );
     if (spec == null || !mounted) return;
     try {
-      final token = await _service.createKey(scope: spec.scope, label: spec.label);
+      final token = await _service.createKey(
+        scope: spec.scope,
+        label: spec.label,
+      );
       if (!mounted) return;
       await _showTokenDialog(token);
       _reload();
@@ -95,8 +98,10 @@ class _ApiAccessScreenState extends State<ApiAccessScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Revoke',
-                style: TextStyle(color: MonoPulseColors.error)),
+            child: const Text(
+              'Revoke',
+              style: TextStyle(color: MonoPulseColors.error),
+            ),
           ),
         ],
       ),
@@ -119,71 +124,76 @@ class _ApiAccessScreenState extends State<ApiAccessScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // Pushed imperatively from Profile (Navigator.push), so it lives
-      // outside go_router and the shell's bottom bar can't serve it — keep an
-      // explicit back button in the top bar.
-      appBar: CustomAppBar.build(
-        context,
-        title: 'AI access (MCP)',
+      // outside go_router and the shell's bottom bar can't serve it — this
+      // screen renders its own pushed-mode bar with an explicit back button.
+      // There is no top app bar.
+      bottomNavigationBar: AppBottomBar.actions(
         onBack: () => Navigator.of(context).pop(),
+        title: 'AI access (MCP)',
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createKey,
         icon: const Icon(Icons.add),
         label: const Text('New key'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-        children: [
-          Text(
-            'Connect your own AI to FlowGroove. Create a key, run the FlowGroove '
-            'MCP server locally, and your assistant (Claude, ChatGPT, Gemini) can '
-            'read and add songs. FlowGroove never uses your AI tokens.',
-            style: MonoPulseTypography.bodyMedium.copyWith(
-              color: MonoPulseColors.textSecondary,
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          children: [
+            Text(
+              'Connect your own AI to FlowGroove. Create a key, run the FlowGroove '
+              'MCP server locally, and your assistant (Claude, ChatGPT, Gemini) can '
+              'read and add songs. FlowGroove never uses your AI tokens.',
+              style: MonoPulseTypography.bodyMedium.copyWith(
+                color: MonoPulseColors.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          const _GuideCard(gatewayUrl: ApiAccessScreen.gatewayUrl),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          const Text('Your keys', style: MonoPulseTypography.titleMedium),
-          const SizedBox(height: MonoPulseSpacing.sm),
-          FutureBuilder<List<ApiKeyInfo>>(
-            future: _keys,
-            builder: (context, snap) {
-              if (snap.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.all(MonoPulseSpacing.xxl),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-              final keys = snap.data ?? const [];
-              if (keys.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
-                  child: Text('No keys yet. Create one to get started.'),
-                );
-              }
-              return Column(
-                children: [
-                  for (final k in keys)
-                    ListTile(
-                      leading: Icon(
-                        k.scope == 'write' ? Icons.edit : Icons.visibility,
-                        color: MonoPulseColors.accentOrange,
-                      ),
-                      title: Text('${k.prefix}…  ·  ${k.scope}'),
-                      subtitle: Text(k.label.isEmpty ? 'No label' : k.label),
-                      trailing: IconButton(
-                        tooltip: 'Revoke',
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () => _revoke(k),
-                      ),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            const _GuideCard(gatewayUrl: ApiAccessScreen.gatewayUrl),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            const Text('Your keys', style: MonoPulseTypography.titleMedium),
+            const SizedBox(height: MonoPulseSpacing.sm),
+            FutureBuilder<List<ApiKeyInfo>>(
+              future: _keys,
+              builder: (context, snap) {
+                if (snap.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.all(MonoPulseSpacing.xxl),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                final keys = snap.data ?? const [];
+                if (keys.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: MonoPulseSpacing.lg,
                     ),
-                ],
-              );
-            },
-          ),
-        ],
+                    child: Text('No keys yet. Create one to get started.'),
+                  );
+                }
+                return Column(
+                  children: [
+                    for (final k in keys)
+                      ListTile(
+                        leading: Icon(
+                          k.scope == 'write' ? Icons.edit : Icons.visibility,
+                          color: MonoPulseColors.accentOrange,
+                        ),
+                        title: Text('${k.prefix}…  ·  ${k.scope}'),
+                        subtitle: Text(k.label.isEmpty ? 'No label' : k.label),
+                        trailing: IconButton(
+                          tooltip: 'Revoke',
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () => _revoke(k),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -282,10 +292,10 @@ class _CreateKeySheetState extends State<_CreateKeySheet> {
           Align(
             alignment: Alignment.centerRight,
             child: FilledButton(
-              onPressed: () => Navigator.pop(
-                context,
-                (scope: _scope, label: _label.text.trim()),
-              ),
+              onPressed: () => Navigator.pop(context, (
+                scope: _scope,
+                label: _label.text.trim(),
+              )),
               child: const Text('Create'),
             ),
           ),

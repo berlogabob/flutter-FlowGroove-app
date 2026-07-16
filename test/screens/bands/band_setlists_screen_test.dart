@@ -6,6 +6,7 @@ import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/bands/band_setlists_screen.dart';
+import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,7 +54,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Band 123 Setlists'), findsOneWidget);
+        // This route tree isn't wrapped in MainShell, so there's no bottom
+        // bar to render the title; the screen still publishes it locally.
+        final scope = tester.widget<MenuItemsScope>(
+          find.byType(MenuItemsScope),
+        );
+        expect(scope.title, 'Band 123 Setlists');
         expect(find.text('Friday Gig'), findsOneWidget);
         expect(find.text('2 songs'), findsOneWidget);
 

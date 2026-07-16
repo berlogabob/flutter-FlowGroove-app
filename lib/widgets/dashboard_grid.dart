@@ -42,10 +42,16 @@ class DashboardGrid extends StatelessWidget {
     required this.tools,
     super.key,
     this.greetingCard,
+    this.statisticsTitle = 'My Library',
   });
 
   /// Greeting card widget (optional).
   final Widget? greetingCard;
+
+  /// Heading shown above the statistics grid. Defaults to the personal
+  /// Home wording; screens for other data owners (e.g. a band) pass their
+  /// own label so the section reads correctly for whoever's data it is.
+  final String statisticsTitle;
 
   /// List of statistics cards.
   final List<StatCard> statistics;
@@ -133,7 +139,7 @@ class DashboardGrid extends StatelessWidget {
   ) {
     if (statistics.isEmpty) return const [];
     return [
-      _buildSectionTitle(context, 'My Library', breakpoint),
+      _buildSectionTitle(context, statisticsTitle, breakpoint),
       const SizedBox(height: MonoPulseSpacing.md),
       _buildResponsiveStatisticsGrid(breakpoint),
     ];

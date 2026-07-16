@@ -323,6 +323,82 @@ void main() {
         expect(state.currentSetlistIndex, 0);
       });
 
+      test(
+        'skips unresolved entries instead of failing the whole queue',
+        () {
+          final container = createContainer();
+
+          // 3 entries, only 2 resolve against availableSongs — an
+          // unresolvable entry (deleted/unavailable song) shouldn't block
+          // the rest of the setlist from loading.
+          final setlist = Setlist(
+            id: 'setlist-1',
+            bandId: 'band-1',
+            name: 'Test Setlist',
+            songIds: ['song-1', 'orphan', 'song-3'],
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          );
+
+          final metronome = container.read(metronomeProvider.notifier);
+          final loaded = metronome.loadSetlistQueue(
+            setlist,
+            availableSongs: [
+              Song(
+                id: 'song-1',
+                title: 'Song 1',
+                artist: '',
+                createdAt: DateTime(2024),
+                updatedAt: DateTime(2024),
+              ),
+              Song(
+                id: 'song-3',
+                title: 'Song 3',
+                artist: '',
+                createdAt: DateTime(2024),
+                updatedAt: DateTime(2024),
+              ),
+            ],
+          );
+
+          expect(loaded, isTrue);
+          final state = container.read(metronomeProvider);
+          expect(
+            state.loadedSetlistSongs.map((s) => s.id).toList(),
+            ['song-1', 'song-3'],
+          );
+        },
+      );
+
+      test('fails only when zero entries resolve', () {
+        final container = createContainer();
+
+        final setlist = Setlist(
+          id: 'setlist-1',
+          bandId: 'band-1',
+          name: 'Test Setlist',
+          songIds: ['orphan-1', 'orphan-2'],
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        );
+
+        final metronome = container.read(metronomeProvider.notifier);
+        final loaded = metronome.loadSetlistQueue(
+          setlist,
+          availableSongs: [
+            Song(
+              id: 'song-1',
+              title: 'Song 1',
+              artist: '',
+              createdAt: DateTime(2024),
+              updatedAt: DateTime(2024),
+            ),
+          ],
+        );
+
+        expect(loaded, isFalse);
+      });
+
       test('clears loadedSong when loading setlist', () {
         final container = createContainer();
 

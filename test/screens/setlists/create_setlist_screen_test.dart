@@ -4,6 +4,7 @@ import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/setlists/create_setlist_screen.dart';
+import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flowgroove/widgets/primary_action_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -152,8 +153,92 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('Create Band Setlist'), findsOneWidget);
+      // No top app bar in this standalone pump (no shell to show it in the
+      // bottom bar); the screen still publishes the title locally.
+      final scope = tester.widget<MenuItemsScope>(find.byType(MenuItemsScope));
+      expect(scope.title, 'Create Band Setlist');
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets(
+      'edit mode renders an unresolvable entry as a placeholder row and '
+      'round-trips it unchanged on save',
+      (tester) async {
+        final firebaseUser = MockUser();
+        when(firebaseUser.uid).thenReturn('test-user-id');
+
+        final firestore = MockFirestoreService();
+        when(
+          firestore.saveSetlist(any, uid: anyNamed('uid')),
+        ).thenAnswer((_) async {});
+
+        // One entry resolves (song-1), one doesn't (orphan-song) — e.g. the
+        // song behind it was deleted. Both must survive editing and saving.
+        final existingSetlist = Setlist(
+          id: 'setlist-1',
+          bandId: '',
+          name: 'Gig Night',
+          items: const [
+            SetlistItem(id: 'item-1', songId: 'song-1'),
+            SetlistItem(id: 'item-2', songId: 'orphan-song'),
+          ],
+          songIds: const ['song-1', 'orphan-song'],
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        );
+        final song = Song(
+          id: 'song-1',
+          title: 'Known Song',
+          artist: 'Known Artist',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              currentUserProvider.overrideWithValue(
+                AsyncValue<User?>.data(firebaseUser),
+              ),
+              firestoreProvider.overrideWithValue(firestore),
+              songsProvider.overrideWith(
+                (ref) => Stream<List<Song>>.value([song]),
+              ),
+              setlistsProvider.overrideWith(
+                (ref) => Stream<List<Setlist>>.value([existingSetlist]),
+              ),
+            ],
+            child: MaterialApp(
+              home: CreateSetlistScreen(setlist: existingSetlist),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Both entries are rendered — the raw count, not just the resolvable
+        // one — and the orphan shows as an "Unavailable song" placeholder
+        // instead of being dropped.
+        expect(find.text('Songs (2)'), findsOneWidget);
+        expect(find.text('Known Song'), findsOneWidget);
+        expect(find.text('Unavailable song'), findsOneWidget);
+
+        await tester.tap(find.widgetWithText(PrimaryActionBar, 'Save Changes'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 350));
+
+        final verification = verify(
+          firestore.saveSetlist(captureAny, uid: 'test-user-id'),
+        )..called(1);
+        final savedSetlist = verification.captured.single as Setlist;
+
+        // No silent deletion: both entries, including the orphan, round-trip
+        // unchanged.
+        expect(savedSetlist.items.map((item) => item.songId).toList(), [
+          'song-1',
+          'orphan-song',
+        ]);
+        expect(savedSetlist.songIds, ['song-1', 'orphan-song']);
+      },
+    );
   });
 }
