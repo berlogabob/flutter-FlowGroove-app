@@ -136,11 +136,13 @@ typedef _StackEntry = ({Object token, String location, MenuScopeData data});
 /// location for as long as this widget is in the tree, and exposes it locally
 /// as a [MenuItemsScope].
 ///
-/// The location key is captured ONCE, on first `didChangeDependencies`
-/// (`GoRouterState.of(context).uri`) — never re-read on rebuild. A kept-alive
-/// branch-root screen that rebuilds while a child route is on top would
-/// otherwise see the CHILD's uri in its own `GoRouterState` and clobber the
-/// child's registry entry with the root's data.
+/// The location key is `GoRouterState.of(context).matchedLocation` — the
+/// route's OWN matched path, resolved per page. NOT `uri`: `uri` is always
+/// the full current location, so a branch root that first mounts UNDER a
+/// child route (deep navigation into a not-yet-visited tab, e.g. Practice →
+/// a song's Lab before ever opening the Songs tab) would register under the
+/// child's uri and the shell's root-menu lookup would miss forever — the ⋮
+/// sheet then shows only the global Profile/Settings rows.
 ///
 /// Writes are deferred to a post-frame callback (never done synchronously
 /// during build/lifecycle) — mutating shared state that an ancestor (the
@@ -174,7 +176,7 @@ class _MenuScopePublisherState extends State<MenuScopePublisher> {
     super.didChangeDependencies();
     if (_location == null) {
       try {
-        _location = GoRouterState.of(context).uri.toString();
+        _location = GoRouterState.of(context).matchedLocation;
       } catch (_) {
         // Not under a GoRoute (imperative push, widget test) — no registry
         // publication; the shell can't see this screen anyway.

@@ -469,17 +469,23 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
     child: Wrap(
       spacing: MonoPulseSpacing.sm,
       children: [
+        // Record leads the row (device feedback: users looked for it and
+        // missed it as the trailing chip) — first slot, accent mic.
+        ActionChip(
+          avatar: Icon(
+            _typeIcons[LabEntryType.recording],
+            size: 18,
+            color: MonoPulseColors.accentOrange,
+          ),
+          label: const Text('+ Record'),
+          onPressed: _composeRecording,
+        ),
         for (final t in _quickTypes)
           ActionChip(
             avatar: Icon(_typeIcons[t], size: 18),
             label: Text('+ ${_typeLabel(t)}'),
             onPressed: () => _compose(t),
           ),
-        ActionChip(
-          avatar: Icon(_typeIcons[LabEntryType.recording], size: 18),
-          label: const Text('+ Recording'),
-          onPressed: _composeRecording,
-        ),
       ],
     ),
   );
