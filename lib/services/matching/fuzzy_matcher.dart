@@ -264,19 +264,24 @@ class FuzzyMatcher {
     final normInputTitle = _normalize(inputTitle);
     final normInputArtist = _normalize(inputArtist);
     final normInputAlbum = _normalize(inputAlbum ?? '');
-    
+
     final normTargetTitle = _normalize(targetTitle);
     final normTargetArtist = _normalize(targetArtist);
     final normTargetAlbum = _normalize(targetAlbum ?? '');
-    
+
     // Calculate individual scores using best algorithm for each
     final titleScore = _calculateTitleScore(normInputTitle, normTargetTitle);
-    final artistScore = _calculateArtistScore(normInputArtist, normTargetArtist);
-    final albumScore = targetAlbum != null && targetAlbum.isNotEmpty &&
+    final artistScore = _calculateArtistScore(
+      normInputArtist,
+      normTargetArtist,
+    );
+    final albumScore =
+        targetAlbum != null &&
+            targetAlbum.isNotEmpty &&
             normTargetAlbum.isNotEmpty
         ? Levenshtein.similarity(normInputAlbum, normTargetAlbum)
         : 0.0;
-    
+
     // Weighted average
     double overallScore;
 
@@ -292,12 +297,13 @@ class FuzzyMatcher {
       final combinedScore = _calculateTitleScore(normInputTitle, combined);
       overallScore = max(titleScore * 0.9, combinedScore);
     } else if (albumScore > 0) {
-      overallScore = (titleScore * 0.5) + (artistScore * 0.3) + (albumScore * 0.2);
+      overallScore =
+          (titleScore * 0.5) + (artistScore * 0.3) + (albumScore * 0.2);
     } else {
       // No album, reweight
       overallScore = (titleScore * 0.65) + (artistScore * 0.35);
     }
-    
+
     return MatchResult(
       overall: overallScore,
       title: titleScore,
@@ -319,16 +325,17 @@ class FuzzyMatcher {
     // shorter one covers, so "Go With the Flow" (tight) ranks above
     // "Go With the Flow (Live at ...)" (loose) instead of a flat 0.9.
     if (s2.contains(s1) || s1.contains(s2)) {
-      final ratio =
-          s1.length < s2.length ? s1.length / s2.length : s2.length / s1.length;
+      final ratio = s1.length < s2.length
+          ? s1.length / s2.length
+          : s2.length / s1.length;
       return 0.55 + 0.4 * ratio; // 0.55..0.95
     }
-    
+
     // Use best of multiple algorithms
     final levenshtein = Levenshtein.similarity(s1, s2);
     final jaroWinkler = JaroWinkler.similarity(s1, s2);
     final tokenSort = TokenSortRatio.similarity(s1, s2);
-    
+
     // Return highest score
     return max(levenshtein, max(jaroWinkler, tokenSort));
   }
@@ -336,11 +343,11 @@ class FuzzyMatcher {
   /// Calculate artist score
   static double _calculateArtistScore(String s1, String s2) {
     if (s1 == s2) return 1;
-    
+
     // Try token sort for artist names (handles "Queen" vs "Queen Band")
     final tokenSort = TokenSortRatio.similarity(s1, s2);
     final levenshtein = Levenshtein.similarity(s1, s2);
-    
+
     return max(tokenSort, levenshtein);
   }
 
@@ -359,7 +366,6 @@ class FuzzyMatcher {
 
 /// Result of multi-field fuzzy match
 class MatchResult {
-
   const MatchResult({
     required this.overall,
     required this.title,
