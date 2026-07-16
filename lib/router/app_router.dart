@@ -31,7 +31,7 @@ import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/main_shell.dart';
 import '../screens/metronome_screen.dart';
-import '../screens/practice_placeholder_screen.dart';
+import '../screens/practice_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
 import '../screens/setlists/setlist_view_screen.dart';
@@ -541,7 +541,7 @@ List<RouteBase> _buildAppRoutes() {
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
         AnalyticsService.logToolOpened(tool: 'practice');
-        return const PracticePlaceholderScreen();
+        return const PracticeScreen();
       },
     ),
     GoRoute(
