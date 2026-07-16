@@ -1,0 +1,19 @@
+My little app for cover bands is #1 on TinyLaunch right now. 🥇
+
+FlowGroove — keep your band in sync: setlists, tempo, concert mode — is sitting in first place, ahead of some genuinely sharp marketing and AI tools. 46 votes as I write this. I did not have that on the card.
+
+A bit of context on why this means something to me:
+
+FlowGroove isn't a startup with a team and a runway. It's one developer solving a problem I kept watching bands hit — the scramble five minutes before a set, the metronome that drifts, the shared setlist that falls apart on bad venue wifi. Unglamorous problems that don't get pitch decks. So seeing musicians (and a launch community) actually rally behind it is a different kind of validation than a vanity metric.
+
+Because that's the honest part: a leaderboard is a good day, not a good product. The number I truly watch is a band opening a setlist right before they walk on stage and everything just working. That's the win that never shows up on a board.
+
+But today the board helps — it puts the app in front of people who've never heard of it. So if you've got ten seconds and this resonates, an upvote genuinely moves the needle:
+
+👉 https://tinylaunch.com/launch/17075/
+
+And if you play in a band, or know someone who does, FlowGroove is free and the demo account is real — three bands, real songs, real setlists, no sign-up: https://flowgroove.app
+
+Thank you to everyone who's voted, shared, or is already using it on stage. This is a better week because of you.
+
+#buildinpublic #indiedev #musictech #flutter #startup #soloDev

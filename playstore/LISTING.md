@@ -40,4 +40,4 @@ Free, no ads. Built by a musician, one devlog at a time — flowgroove.app/blog
   sheet, setlist, metronome, tuner, band members/invite QR. Reuse `UXUI_audit/CAPTURE_BRIEF.md`
   device setup (1260×2800, dark theme).
 - Short screen recording for the foreground-service declaration: metronome playing → screen
-  off → still clicking (see `docs/PLAY_APP_CONTENT.md`).
+  off → still clicking (see `playstore/PLAY_APP_CONTENT.md`).

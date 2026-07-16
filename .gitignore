@@ -202,3 +202,6 @@ flutter_web_debug.log
 
 # Vendored nested git repo (separate project, not part of this app's tree)
 Tack/
+
+# Devvit crosspost app — its own git repo
+reddit-bot/

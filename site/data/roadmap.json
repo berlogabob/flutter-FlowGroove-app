@@ -1,0 +1,662 @@
+{
+  "title": "FlowGroove-app-project",
+  "order": [
+    "Income",
+    "Todo",
+    "Needs Improvements",
+    "In Progress",
+    "Needs Check",
+    "Done",
+    "No Status"
+  ],
+  "items": [
+    {
+      "title": "Spotify-powered search → autofill (BPM/key)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/76",
+      "number": 76,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Improvements"
+    },
+    {
+      "title": "Song Library card",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/86",
+      "number": 86,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Done"
+    },
+    {
+      "title": "Song Card with chords and lyrics.",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/33",
+      "number": 33,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "add song. search song to auto fill",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/75",
+      "number": 75,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "🚀 Google Play Store launch",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/42",
+      "number": 42,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "In Progress"
+    },
+    {
+      "title": "Play Console: org account + first release",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/50",
+      "number": 50,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Todo"
+    },
+    {
+      "title": "website. mobile. no nav bar.",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/36",
+      "number": 36,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Profile screen. User Roles",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/40",
+      "number": 40,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Song data model: lyrics + chords per section",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/62",
+      "number": 62,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Performance / rehearsal view (lyrics+chords, keep-awake, transpose)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/63",
+      "number": 63,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "New song",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/78",
+      "number": 78,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "website. mobile only. Flowgroove icon",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/39",
+      "number": 39,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "website. phone version. buttons",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/35",
+      "number": 35,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Error in dev console",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/38",
+      "number": 38,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "fix tinylaunch icon on website",
+      "url": "https://github.com/berlogabob/flutter-github-issues-todo/issues/51",
+      "number": 51,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "new song add",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/87",
+      "number": 87,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Done"
+    },
+    {
+      "title": "Search shows covers instead of the original song",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/89",
+      "number": 89,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Done"
+    },
+    {
+      "title": "website. Roadmap update",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/37",
+      "number": 37,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "The Band Screen",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/13",
+      "number": 13,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Dev01",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/pull/1",
+      "number": 1,
+      "type": "PullRequest",
+      "state": "MERGED",
+      "status": "Done"
+    },
+    {
+      "title": "[P0] Band/song creation speed + reliability",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/61",
+      "number": 61,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Dev01",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/pull/2",
+      "number": 2,
+      "type": "PullRequest",
+      "state": "MERGED",
+      "status": "Done"
+    },
+    {
+      "title": "Dev01",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/pull/3",
+      "number": 3,
+      "type": "PullRequest",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "SetList",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/80",
+      "number": 80,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Done"
+    },
+    {
+      "title": "Dev01",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/pull/4",
+      "number": 4,
+      "type": "PullRequest",
+      "state": "MERGED",
+      "status": "Done"
+    },
+    {
+      "title": "Dev03 autonomous dev day2",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/pull/5",
+      "number": 5,
+      "type": "PullRequest",
+      "state": "MERGED",
+      "status": "Done"
+    },
+    {
+      "title": "New design",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/pull/6",
+      "number": 6,
+      "type": "PullRequest",
+      "state": "MERGED",
+      "status": "Done"
+    },
+    {
+      "title": "Firebase Analytics Dashboard",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/24",
+      "number": 24,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "user joined the band",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/12",
+      "number": 12,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "grey screen",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/14",
+      "number": 14,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Edit profile",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/15",
+      "number": 15,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "still open",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/16",
+      "number": 16,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "user picture",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/20",
+      "number": 20,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "hide token",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/17",
+      "number": 17,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "Srch20",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/pull/19",
+      "number": 19,
+      "type": "PullRequest",
+      "state": "MERGED",
+      "status": "Done"
+    },
+    {
+      "title": "The Band Screen. 3 dots menu",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/21",
+      "number": 21,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "all widgets on this page must behave an be a copy for look and work ( or maybe literary copy) of widgets from add/edit song. with collapse /expand and autosave of user input",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/22",
+      "number": 22,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "quick action. delete this block. here must be:",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/23",
+      "number": 23,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "[P1] SongCardV2 — Performance Sheet (lyrics + chords)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/34",
+      "number": 34,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "In Progress"
+    },
+    {
+      "title": "highlight screenshots more.",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/41",
+      "number": 41,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "In Progress"
+    },
+    {
+      "title": "Play: pin explicit targetSdk/minSdk (API 35)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/44",
+      "number": 44,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Play: site /delete-account/ page",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/45",
+      "number": 45,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Play: site /support/ page",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/46",
+      "number": 46,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Play: privacy policy microphone disclosure",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/47",
+      "number": 47,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Play: in-app account deletion flow",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/43",
+      "number": 43,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Play Console: App Content forms",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/48",
+      "number": 48,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Play Console: store listing assets",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/49",
+      "number": 49,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "🎤 Event Kit: stage plot, crew cards & rider PDF",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/51",
+      "number": 51,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Event Kit: data model (stage positions, crew/guests, rider)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/52",
+      "number": 52,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Event Kit: stage-plot / scene-map editor UI",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/53",
+      "number": 53,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Event Kit: personal role cards",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/54",
+      "number": 54,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Event Kit: event-guide PDF export",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/55",
+      "number": 55,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "[P3] AI-ready song import + MCP",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/56",
+      "number": 56,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "In Progress"
+    },
+    {
+      "title": "🗓️ Rehearsal scheduler (spike)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/57",
+      "number": 57,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "🎼 Canonical → library import + practice mode",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/58",
+      "number": 58,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Canonical browse + import-to-library UI",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/59",
+      "number": 59,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Improved practice mode",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/60",
+      "number": 60,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Export chords/lyrics: ChordPro + CSV + per-song PDF",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/64",
+      "number": 64,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "In Progress"
+    },
+    {
+      "title": "AI import: stable Song JSON schema + validator (draft before save)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/71",
+      "number": 71,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "AI import: ChordPro + Markdown paste -> draft",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/72",
+      "number": 72,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "AI import: prompt templates (paste your AI result and import)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/73",
+      "number": 73,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "[P5] MCP server for external AI tools",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/74",
+      "number": 74,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "[P4] Song Lab — song history & journal",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/65",
+      "number": 65,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Song Lab: data model + Firestore (entries/tasks/versions)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/66",
+      "number": 66,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Song Lab: timeline + typed entries (note/decision/experiment/problem)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/67",
+      "number": 67,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Song Lab: homework / tasks per member",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/68",
+      "number": 68,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Song Lab: audio recordings / attachments",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/69",
+      "number": 69,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Song Lab: version snapshots + Markdown export",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/70",
+      "number": 70,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Income"
+    },
+    {
+      "title": "Remote MCP connector — one-click OAuth (Claude/ChatGPT)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/77",
+      "number": 77,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "In Progress"
+    },
+    {
+      "title": "ChordPro Song Export -> add \"fit to 1 A4 on export\"",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/79",
+      "number": 79,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "merge songs in library.",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/81",
+      "number": 81,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "setlist ->edit",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/82",
+      "number": 82,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "No Status"
+    },
+    {
+      "title": "check each app screen for 3dot menu",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/83",
+      "number": 83,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "No Status"
+    },
+    {
+      "title": "Create hello@flowgroove.app email.",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/88",
+      "number": 88,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "create privacy@flowgroove.app email",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/90",
+      "number": 90,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "Done"
+    },
+    {
+      "title": "cache problem",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/91",
+      "number": 91,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Cache #1: Remove Hive cache-first layer (phantom songs/bands)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/92",
+      "number": 92,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Cache #2: Avatar single source of truth (stale/flickering avatar)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/93",
+      "number": 93,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Cache #3: Watch live objects instead of value-captured Setlist/Band (stale renames)",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/94",
+      "number": 94,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "Cache #4: Cleanup duplicate/dead data paths + regression tests",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/95",
+      "number": 95,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "Needs Check"
+    },
+    {
+      "title": "freezing on performance sheet",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/96",
+      "number": 96,
+      "type": "Issue",
+      "state": "CLOSED",
+      "status": "No Status"
+    }
+  ]
+}
