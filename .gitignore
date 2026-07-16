@@ -192,6 +192,18 @@ index.html
 # ...but the bare rule above is for Flutter web build output; Hugo blog pages
 # under docs/ are the GitHub Pages deploy and MUST be tracked, or posts 404.
 !docs/blog/**/index.html
+# Same trap for the Flutter web app deployed via docs/ (github.io dev channel):
+# the bare rules above swallowed its core JS from the deploy commit — Pages
+# served an HTML shell with 404s for main.dart.js (blank page, 2026-07-16).
+!docs/index.html
+!docs/main.dart.js
+!docs/flutter.js
+!docs/flutter_bootstrap.js
+!docs/flutter_service_worker.js
+!docs/manifest.json
+!docs/version.json
+!docs/script.html
+!docs/canvaskit/
 # Custom Hugo homepage template (source, not build output) — must be tracked or
 # clean/CI builds render PaperMod's default home instead of the custom landing.
 !site/layouts/index.html

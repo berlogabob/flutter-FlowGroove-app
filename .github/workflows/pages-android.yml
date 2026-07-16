@@ -1,5 +1,11 @@
 name: GitHub Pages And Android APK
 
+# Rapid pushes (release + docs deploy) superseded each other's runs; keep only
+# the latest per ref instead of queueing all of them.
+concurrency:
+  group: pages-android-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
