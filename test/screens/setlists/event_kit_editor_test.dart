@@ -74,6 +74,34 @@ void main() {
       expect(saved.eventKit!.stage['back-left']!.single.kind, 'equipment');
     });
 
+    testWidgets('added crew person appears as a role card (#54)', (
+      tester,
+    ) async {
+      await pump(tester);
+
+      await tester.tap(find.text('Add person'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Name'),
+        'Vera',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Role (Photographer, Manager, +1…)'),
+        'Photographer',
+      );
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Role cards'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      // Vera renders in the crew list AND as a role card.
+      expect(find.text('Vera'), findsNWidgets(2));
+      expect(find.text('Photographer'), findsWidgets);
+    });
+
     testWidgets('rider item toggles done and persists', (tester) async {
       final firestore = await pump(tester);
 

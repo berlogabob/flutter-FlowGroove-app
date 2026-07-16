@@ -10,6 +10,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/member_label.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
+import '../../widgets/user_avatar.dart';
 
 /// Event Kit editor (#53): who stands where (3×3 stage zone grid), crew &
 /// guests, and the rider checklist. Every mutation autosaves the setlist.
@@ -194,6 +195,17 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
               label: const Text('Add rider item'),
               onPressed: _addRiderItem,
             ),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            _sectionTitle('Role cards'),
+            Text(
+              'Everyone involved in this event — band, crew and guests. '
+              'These print in the event-guide PDF.',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: MonoPulseColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: MonoPulseSpacing.md),
+            _roleCards(),
             const SizedBox(height: 96),
           ],
         ),
@@ -205,6 +217,78 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
     padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
     child: Text(t, style: MonoPulseTypography.titleMedium),
   );
+
+  /// Role cards (#54): band members + crew/guests, initials-avatar cards.
+  Widget _roleCards() {
+    final cards = <({String name, String role, String? notes})>[
+      for (final m in _members)
+        (
+          name: memberLabel(displayName: m.displayName, email: m.email),
+          role: m.musicRoles.isEmpty ? 'Band' : m.musicRoles.join(', '),
+          notes: null,
+        ),
+      for (final p in _kit.people) (name: p.name, role: p.role, notes: p.notes),
+    ];
+    if (cards.isEmpty) {
+      return Text(
+        'No people yet — band members appear here automatically for band '
+        'setlists; add crew above.',
+        style: MonoPulseTypography.bodySmall.copyWith(
+          color: MonoPulseColors.textTertiary,
+        ),
+      );
+    }
+    return Wrap(
+      spacing: MonoPulseSpacing.md,
+      runSpacing: MonoPulseSpacing.md,
+      children: [for (final c in cards) _roleCard(c)],
+    );
+  }
+
+  Widget _roleCard(({String name, String role, String? notes}) c) {
+    return SizedBox(
+      width: 150,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(MonoPulseSpacing.md),
+          child: Column(
+            children: [
+              UserAvatar(photoURL: null, displayName: c.name, radius: 22),
+              const SizedBox(height: MonoPulseSpacing.sm),
+              Text(
+                c.name,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: MonoPulseTypography.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                c.role,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: MonoPulseColors.accentOrange,
+                ),
+              ),
+              if (c.notes != null)
+                Text(
+                  c.notes!,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: MonoPulseColors.textSecondary,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _stageGrid() {
     return Column(
