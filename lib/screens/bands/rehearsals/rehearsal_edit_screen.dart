@@ -8,6 +8,7 @@ import '../../../models/rehearsal.dart';
 import '../../../models/setlist.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
+import '../../../services/analytics_service.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/member_label.dart';
 import '../../../utils/snackbar.dart';
@@ -152,6 +153,9 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
 
     try {
       await ref.read(rehearsalRepositoryProvider).saveRehearsal(rehearsal);
+      if (existing == null) {
+        AnalyticsService.logRehearsalCreated(bandId: widget.band.id);
+      }
       if (!mounted) return;
       context.pop();
     } catch (e) {

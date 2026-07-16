@@ -5,10 +5,37 @@ import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/services/analytics_events.dart';
+import 'package:flowgroove/services/analytics_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AnalyticsService', () {
+    // The HEART events (added for the UX audit) route through the private
+    // `_log` choke point, which is the only place `AnalyticsService.enabled`
+    // is checked. `debugLogAttempts` is a @visibleForTesting seam that counts
+    // every event that passed the guard and reached (or attempted to reach)
+    // FirebaseAnalytics — Firebase isn't initialized in the unit test
+    // environment, so this stands in for mocking `FirebaseAnalytics.instance`.
+    group('consent guard (enabled flag)', () {
+      setUp(() {
+        AnalyticsService.debugLogAttempts = 0;
+      });
+      tearDown(() {
+        AnalyticsService.enabled = true;
+      });
+
+      test('enabled=false: a HEART event never reaches FirebaseAnalytics', () async {
+        AnalyticsService.enabled = false;
+        await AnalyticsService.logMenuOpened(screen: 'Songs');
+        expect(AnalyticsService.debugLogAttempts, 0);
+      });
+
+      test('enabled=true: a HEART event passes the guard and is attempted', () async {
+        AnalyticsService.enabled = true;
+        await AnalyticsService.logMenuOpened(screen: 'Songs');
+        expect(AnalyticsService.debugLogAttempts, 1);
+      });
+    });
     group('Event Data Classes', () {
       test('BandCreatedEventData creates correct event', () {
         final band = Band(

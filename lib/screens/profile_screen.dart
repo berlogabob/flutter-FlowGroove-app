@@ -27,6 +27,7 @@ import '../../utils/web_version_loader_export.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/support_sheet.dart';
+import '../providers/analytics_consent_provider.dart';
 import '../providers/keep_screen_on_provider.dart';
 import '../utils/snackbar.dart';
 import 'settings/api_access_screen.dart';
@@ -513,6 +514,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     // Demo is a shared public account: hide all profile-editing affordances.
     final isDemo = ref.watch(isDemoUserProvider);
     final keepScreenOn = ref.watch(keepScreenOnProvider);
+    final analyticsConsent = ref.watch(analyticsConsentProvider);
 
     final displayName =
         appUserAsync.whenOrNull(data: (u) => u?.displayName) ??
@@ -677,6 +679,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 value: keepScreenOn,
                 onChanged: (_) =>
                     ref.read(keepScreenOnProvider.notifier).toggle(),
+              ),
+              SwitchListTile(
+                secondary: const Icon(
+                  Icons.analytics_outlined,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Share usage analytics'),
+                subtitle: const Text(
+                  'Helps us see which features get used',
+                ),
+                value: analyticsConsent,
+                onChanged: (_) =>
+                    ref.read(analyticsConsentProvider.notifier).toggle(),
               ),
             ],
           ),

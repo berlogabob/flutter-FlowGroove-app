@@ -4,6 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../models/band.dart';
+import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/menu_items_scope.dart';
@@ -28,6 +29,7 @@ class BandInviteScreen extends StatelessWidget {
   }
 
   Future<void> _share() async {
+    AnalyticsService.logInviteGenerated(bandId: band.id);
     await SharePlus.instance.share(
       ShareParams(
         text: _shareText,
@@ -39,6 +41,12 @@ class BandInviteScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasCode = _inviteCode.isNotEmpty;
+    if (hasCode) {
+      // "On open": fires once per build of this pushed screen. A
+      // StatelessWidget has no initState to guard a true one-shot without
+      // extra state plumbing — acceptable for a lightweight count event.
+      AnalyticsService.logInviteGenerated(bandId: band.id);
+    }
     // Pushed branch child: title is published for the shell's bottom bar
     // ([← Back] [title] [⋮ Menu]); there is no top app bar.
     return MenuScopePublisher(

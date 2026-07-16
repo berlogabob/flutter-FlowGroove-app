@@ -139,6 +139,7 @@ class _SongConstructorState extends State<SongConstructor> {
       context,
       'Section "${deletedSection.name}" deleted',
       actionLabel: 'Undo',
+      analyticsAction: 'section_delete',
       onAction: () {
         setState(() {
           _sections.insert(index, deletedSection);
@@ -357,6 +358,7 @@ class _SongConstructorState extends State<SongConstructor> {
                                 context,
                                 'Section "${deletedSection.name}" deleted',
                                 actionLabel: 'Undo',
+                                analyticsAction: 'section_delete',
                                 onAction: () {
                                   setState(() {
                                     _sections.insert(sectionIndex, deletedSection);

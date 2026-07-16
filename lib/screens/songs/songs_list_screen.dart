@@ -12,6 +12,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
+import '../../services/analytics_service.dart';
 import '../../services/song_library_merge_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/key_utils.dart';
@@ -121,6 +122,9 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
   List<Song>? _manualOrder; // Store manual order for manual sort mode
   Map<String, int> _tagCloud = {};
   final bool _loadingTagCloud = false;
+  // Dedupes filter_zero_results so it fires once per filter value, not once
+  // per rebuild (build() re-runs on every provider tick).
+  String? _loggedZeroResultsKey;
 
   @override
   void initState() {
@@ -696,6 +700,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     final state = ref.watch(songsFilterSortProvider);
     final canEdit = ref.watch(canEditProvider); // demo account is read-only
 
+    _maybeLogFilterZeroResults(songs, filteredSongs, state);
+
     // Initialize manual order when entering manual sort mode for the first time
     if (state.sortOption == SortOption.manual && _manualOrder == null) {
       setState(() {
@@ -923,8 +929,42 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     );
   }
 
+  /// Logs `filter_zero_results` once per distinct key/BPM filter value that
+  /// produces an empty result set (not on every rebuild, and not for a plain
+  /// search-text miss — the audit scoped this to the key/BPM filters).
+  void _maybeLogFilterZeroResults(
+    List<Song> songs,
+    List<Song> filteredSongs,
+    SongsFilterSortState state,
+  ) {
+    if (songs.isEmpty || filteredSongs.isNotEmpty) {
+      _loggedZeroResultsKey = null;
+      return;
+    }
+    String? filterType;
+    String? value;
+    if (state.keyFilter != null && state.keyFilter!.isNotEmpty) {
+      filterType = 'key';
+      value = state.keyFilter!;
+    } else if (state.bpmFilter != null) {
+      filterType = 'bpm';
+      value = state.bpmFilter.toString();
+    }
+    if (filterType == null || value == null) {
+      _loggedZeroResultsKey = null;
+      return;
+    }
+    final key = '$filterType:$value';
+    if (_loggedZeroResultsKey == key) return;
+    _loggedZeroResultsKey = key;
+    AnalyticsService.logFilterZeroResults(filterType: filterType, value: value);
+  }
+
   /// Navigate to edit song screen.
   void _navigateToEdit(Song song) {
+    if (ref.read(songsFilterSortProvider).filterText.trim().isNotEmpty) {
+      AnalyticsService.logSearchSongOpen();
+    }
     context.pushNamed(
       'edit-song',
       pathParameters: {'id': song.id},

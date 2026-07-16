@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/auth/auth_provider.dart';
+import '../services/analytics_service.dart';
 import '../theme/mono_pulse_theme.dart';
 import 'user_avatar.dart';
 
@@ -47,6 +48,7 @@ Future<void> showAppMenuSheet(
   bool showProfileRow = false,
   WidgetRef? ref,
 }) {
+  AnalyticsService.logMenuOpened(screen: title);
   return showModalBottomSheet<void>(
     context: context,
     backgroundColor: MonoPulseColors.blackSurface,

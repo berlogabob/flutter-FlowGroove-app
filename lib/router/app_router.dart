@@ -12,6 +12,7 @@ import '../models/song.dart';
 import '../models/tuner_launch_context.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
+import '../services/analytics_service.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/bands/band_about_screen.dart';
@@ -133,6 +134,7 @@ GoRouter createAppRouter({
               // /join spinner until the first auth state is known — the
               // refreshListenable re-runs this redirect once it is.
               if (authRefresh != null && !authRefresh.resolved) return null;
+              AnalyticsService.logInviteLinkOpened();
               if (joinCode == null || joinCode.isEmpty) {
                 return isLoggedIn ? '/main/bands' : '/login';
               }
@@ -509,23 +511,32 @@ List<RouteBase> _buildAppRoutes() {
       path: '/main/metronome',
       name: 'metronome',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const MetronomeScreen(),
+      builder: (context, state) {
+        AnalyticsService.logToolOpened(tool: 'metronome');
+        return const MetronomeScreen();
+      },
     ),
     GoRoute(
       path: '/main/practice',
       name: 'practice',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const PracticePlaceholderScreen(),
+      builder: (context, state) {
+        AnalyticsService.logToolOpened(tool: 'practice');
+        return const PracticePlaceholderScreen();
+      },
     ),
     GoRoute(
       path: '/main/tuner',
       name: 'tuner',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => TunerScreen(
-        launchContext: state.extra is TunerLaunchContext
-            ? state.extra! as TunerLaunchContext
-            : null,
-      ),
+      builder: (context, state) {
+        AnalyticsService.logToolOpened(tool: 'tuner');
+        return TunerScreen(
+          launchContext: state.extra is TunerLaunchContext
+              ? state.extra! as TunerLaunchContext
+              : null,
+        );
+      },
     ),
     GoRoute(
       path: '/main/join-band',
