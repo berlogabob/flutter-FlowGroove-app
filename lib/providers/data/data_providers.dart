@@ -62,6 +62,16 @@ final labTasksProvider = StreamProvider.autoDispose
       return ref.watch(labRepositoryProvider).watchTasks(songId, bandId: bandId);
     });
 
+/// One-shot open-task count for a song — the rehearsal "what to prepare"
+/// line (#68). Key: (songId, bandId).
+final openTaskCountProvider = FutureProvider.autoDispose
+    .family<int, (String, String?)>((ref, key) {
+      final (songId, bandId) = key;
+      return ref
+          .watch(labRepositoryProvider)
+          .openTaskCount(songId, bandId: bandId);
+    });
+
 final labVersionsProvider = StreamProvider.autoDispose
     .family<List<SongVersion>, (String, String?)>((ref, key) {
       final (songId, bandId) = key;
