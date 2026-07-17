@@ -405,10 +405,10 @@ class _AutoScrollBar extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.music_note,
                   size: MonoPulseIcons.sizeMedium,
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),
                 const Text('Transpose', style: MonoPulseTypography.labelLarge),
@@ -528,9 +528,9 @@ class _EmptyState extends StatelessWidget {
               'No lyrics or chords yet.\nAdd them to a section to see the '
               'performance sheet.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: MonoPulseColors.textSecondary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: context.mp.textSecondary),
             ),
             const SizedBox(height: MonoPulseSpacing.xl),
             Column(

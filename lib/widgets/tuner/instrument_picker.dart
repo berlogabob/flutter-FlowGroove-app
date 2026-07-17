@@ -21,9 +21,9 @@ class InstrumentPicker extends ConsumerWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.7,
       ),
-      decoration: const BoxDecoration(
-        color: MonoPulseColors.surface,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: context.mp.surface,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(MonoPulseRadius.xlarge),
         ),
       ),
@@ -37,7 +37,7 @@ class InstrumentPicker extends ConsumerWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: MonoPulseColors.borderStrong,
+                color: context.mp.borderStrong,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -57,19 +57,19 @@ class InstrumentPicker extends ConsumerWidget {
                 Text(
                   'Select Instrument',
                   style: MonoPulseTypography.headlineSmall.copyWith(
-                    color: MonoPulseColors.textHighEmphasis,
+                    color: context.mp.textHighEmphasis,
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 24),
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
             ),
           ),
 
-          const Divider(height: 1, color: MonoPulseColors.borderSubtle),
+          Divider(height: 1, color: context.mp.borderSubtle),
 
           // Instrument list
           Flexible(
@@ -111,7 +111,6 @@ class InstrumentPicker extends ConsumerWidget {
 }
 
 class _InstrumentTile extends StatelessWidget {
-
   const _InstrumentTile({
     required this.instrument,
     required this.tunings,
@@ -140,14 +139,14 @@ class _InstrumentTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: isSelected
                   ? MonoPulseColors.accentOrange10
-                  : MonoPulseColors.surfaceRaised,
+                  : context.mp.surfaceRaised,
               borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
             ),
             child: Icon(
               _iconDataFromString(icon: instrument.icon),
               color: isSelected
                   ? MonoPulseColors.accentOrange
-                  : MonoPulseColors.textSecondary,
+                  : context.mp.textSecondary,
               size: 22,
             ),
           ),
@@ -156,7 +155,7 @@ class _InstrumentTile extends StatelessWidget {
             style: MonoPulseTypography.bodyLarge.copyWith(
               color: isSelected
                   ? MonoPulseColors.accentOrange
-                  : MonoPulseColors.textHighEmphasis,
+                  : context.mp.textHighEmphasis,
               fontWeight: isSelected
                   ? MonoPulseTypography.semibold
                   : MonoPulseTypography.regular,
@@ -165,12 +164,12 @@ class _InstrumentTile extends StatelessWidget {
           subtitle: Text(
             instrument.subtitle,
             style: MonoPulseTypography.bodySmall.copyWith(
-              color: MonoPulseColors.textTertiary,
+              color: context.mp.textTertiary,
             ),
           ),
           trailing: Icon(
             isExpanded ? Icons.expand_less : Icons.expand_more,
-            color: MonoPulseColors.textTertiary,
+            color: context.mp.textTertiary,
             size: 20,
           ),
           onTap: onTap,
@@ -226,7 +225,6 @@ class _InstrumentTile extends StatelessWidget {
 }
 
 class _TuningChip extends StatelessWidget {
-
   const _TuningChip({required this.tuning, required this.onTap});
   final Tuning tuning;
   final VoidCallback onTap;
@@ -242,30 +240,26 @@ class _TuningChip extends StatelessWidget {
           vertical: MonoPulseSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: MonoPulseColors.surfaceRaised,
+          color: context.mp.surfaceRaised,
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          border: Border.all(color: MonoPulseColors.borderSubtle),
+          border: Border.all(color: context.mp.borderSubtle),
         ),
         child: Row(
           children: [
-            const Icon(
-              Icons.tune_outlined,
-              color: MonoPulseColors.textTertiary,
-              size: 18,
-            ),
+            Icon(Icons.tune_outlined, color: context.mp.textTertiary, size: 18),
             const SizedBox(width: MonoPulseSpacing.md),
             Expanded(
               child: Text(
                 tuning.name,
                 style: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
               ),
             ),
             Text(
               tuning.notes.join(' · '),
               style: MonoPulseTypography.labelSmall.copyWith(
-                color: MonoPulseColors.textTertiary,
+                color: context.mp.textTertiary,
               ),
             ),
           ],

@@ -54,7 +54,7 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
     // so this screen renders its own pushed-mode bar — otherwise there is no
     // way back on web (beta feedback on 0.16.0).
     return Scaffold(
-      backgroundColor: MonoPulseColors.black,
+      backgroundColor: context.mp.black,
       bottomNavigationBar: AppBottomBar.actions(
         onBack: () => context.pop(),
         title: 'Settings',
@@ -97,10 +97,7 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                   segments: const [
                     ButtonSegment(value: ThemeMode.system, label: Text('Auto')),
                     ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      label: Text('Light β'),
-                    ),
+                    ButtonSegment(value: ThemeMode.light, label: Text('Light')),
                   ],
                   selected: {themeMode},
                   onSelectionChanged: (s) =>

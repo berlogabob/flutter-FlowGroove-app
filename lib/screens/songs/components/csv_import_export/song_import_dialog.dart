@@ -49,7 +49,12 @@ class _SongImportDialogState extends State<SongImportDialog> {
 
   Widget _buildHeader(bool isMobile) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.lg, MonoPulseSpacing.md, MonoPulseSpacing.md, MonoPulseSpacing.md),
+      padding: const EdgeInsets.fromLTRB(
+        MonoPulseSpacing.lg,
+        MonoPulseSpacing.md,
+        MonoPulseSpacing.md,
+        MonoPulseSpacing.md,
+      ),
       child: Row(
         children: [
           const Icon(Icons.upload_file),
@@ -139,7 +144,10 @@ class _SongImportDialogState extends State<SongImportDialog> {
   Future<void> _copyAiPrompt() async {
     await Clipboard.setData(ClipboardData(text: songImportPrompt()));
     if (!mounted) return;
-    showAppSnackBar(context, 'AI prompt copied — paste it into your AI, then paste the result here.');
+    showAppSnackBar(
+      context,
+      'AI prompt copied — paste it into your AI, then paste the result here.',
+    );
   }
 
   Widget _buildAnalysis(SongImportAnalysis analysis) {
@@ -156,7 +164,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
         Text(
           'Library values are preserved. CSV data fills blank fields and combines tags and links.',
           style: MonoPulseTypography.bodyMedium.copyWith(
-            color: MonoPulseColors.textSecondary,
+            color: context.mp.textSecondary,
           ),
         ),
         const SizedBox(height: 16),

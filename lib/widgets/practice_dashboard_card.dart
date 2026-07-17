@@ -66,15 +66,18 @@ class PracticeDashboardCard extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('This week', style: MonoPulseTypography.bodySmall.copyWith(
-            color: MonoPulseColors.textSecondary,
-          )),
+          Text(
+            'This week',
+            style: MonoPulseTypography.bodySmall.copyWith(
+              color: context.mp.textSecondary,
+            ),
+          ),
           const SizedBox(height: 2),
           Text('No practice yet', style: MonoPulseTypography.titleMedium),
           Text(
             tappable ? 'Tap to start' : 'Start the metronome to log time',
             style: MonoPulseTypography.bodySmall.copyWith(
-              color: MonoPulseColors.textSecondary,
+              color: context.mp.textSecondary,
             ),
           ),
         ],
@@ -83,14 +86,17 @@ class PracticeDashboardCard extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('This week', style: MonoPulseTypography.bodySmall.copyWith(
-          color: MonoPulseColors.textSecondary,
-        )),
+        Text(
+          'This week',
+          style: MonoPulseTypography.bodySmall.copyWith(
+            color: context.mp.textSecondary,
+          ),
+        ),
         const SizedBox(height: 2),
         Text(
           formatMinutes(stats.totalSecondsThisWeek),
           style: MonoPulseTypography.headlineLarge.copyWith(
-            color: MonoPulseColors.textPrimary,
+            color: context.mp.textPrimary,
           ),
         ),
         const SizedBox(height: 2),
@@ -101,7 +107,7 @@ class PracticeDashboardCard extends ConsumerWidget {
             if (stats.streakDays > 1) '${stats.streakDays}-day streak 🔥',
           ].join(' · '),
           style: MonoPulseTypography.bodySmall.copyWith(
-            color: MonoPulseColors.textSecondary,
+            color: context.mp.textSecondary,
           ),
         ),
       ],
@@ -131,7 +137,7 @@ class _WeekBars extends StatelessWidget {
           children: [
             for (var i = 0; i < 7; i++) ...[
               if (i > 0) const SizedBox(width: 2), // surface gap between bars
-              _bar(i, maxSeconds),
+              _bar(context, i, maxSeconds),
             ],
           ],
         ),
@@ -151,7 +157,7 @@ class _WeekBars extends StatelessWidget {
                     fontSize: 9,
                     color: i == 6
                         ? MonoPulseColors.accentOrange
-                        : MonoPulseColors.textSecondary,
+                        : context.mp.textSecondary,
                   ),
                 ),
               ),
@@ -162,7 +168,7 @@ class _WeekBars extends StatelessWidget {
     );
   }
 
-  Widget _bar(int index, int maxSeconds) {
+  Widget _bar(BuildContext context, int index, int maxSeconds) {
     final seconds = dailySeconds[index];
     // Zero days keep a 2px baseline stub so the week reads as 7 slots.
     final height = maxSeconds == 0 || seconds == 0
@@ -173,7 +179,7 @@ class _WeekBars extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: seconds == 0
-            ? MonoPulseColors.borderDefault
+            ? context.mp.borderDefault
             : index == 6
             ? PracticeDashboardCard._todayBar
             : PracticeDashboardCard._pastBar,

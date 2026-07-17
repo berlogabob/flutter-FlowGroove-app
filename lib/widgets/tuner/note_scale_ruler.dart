@@ -35,6 +35,7 @@ class NoteScaleRuler extends ConsumerWidget {
               currentNoteIndex: currentNoteIndex,
               scaleIntervals: currentMode.intervals,
               dialSize: dialSize,
+              textTertiary: context.mp.textTertiary,
             ),
           ),
           // Tappable areas - positioned over each note
@@ -69,25 +70,50 @@ class NoteScaleRuler extends ConsumerWidget {
   }
 
   int _noteNameToIndex(String note) {
-    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const notes = [
+      'C',
+      'C#',
+      'D',
+      'D#',
+      'E',
+      'F',
+      'F#',
+      'G',
+      'G#',
+      'A',
+      'A#',
+      'B',
+    ];
     final idx = notes.indexOf(note);
     return idx >= 0 ? idx : 0;
   }
 }
 
 class _NoteScaleRulerPainter extends CustomPainter {
-
   _NoteScaleRulerPainter({
     required this.currentNoteIndex,
     required this.scaleIntervals,
     required this.dialSize,
+    required this.textTertiary,
   });
   final int currentNoteIndex;
   final List<int> scaleIntervals;
   final double dialSize;
+  final Color textTertiary;
 
   static const List<String> _notes = [
-    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
   ];
 
   @override
@@ -112,7 +138,7 @@ class _NoteScaleRulerPainter extends CustomPainter {
       // 1. Orange - Current detected note (where dot is)
       // 2. White - Notes in scale (available but not current)
       // 3. Grey - Notes NOT in scale (unavailable)
-      
+
       Color color;
       double fontSize;
       FontWeight fontWeight;
@@ -138,7 +164,7 @@ class _NoteScaleRulerPainter extends CustomPainter {
         opacity = 0.5;
       } else {
         // Not in scale: GREY (unavailable)
-        color = MonoPulseColors.textTertiary;
+        color = textTertiary;
         fontSize = 11.0;
         fontWeight = MonoPulseTypography.regular;
         tickLength = 6.0;
@@ -189,6 +215,7 @@ class _NoteScaleRulerPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _NoteScaleRulerPainter oldDelegate) {
     return oldDelegate.currentNoteIndex != currentNoteIndex ||
-        oldDelegate.scaleIntervals != scaleIntervals;
+        oldDelegate.scaleIntervals != scaleIntervals ||
+        oldDelegate.textTertiary != textTertiary;
   }
 }

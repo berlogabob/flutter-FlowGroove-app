@@ -180,7 +180,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
               style: MonoPulseTypography.bodySmall.copyWith(
                 color: _recording
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textSecondary,
+                    : context.mp.textSecondary,
               ),
             ),
             if (_recording) ...[
@@ -359,7 +359,7 @@ class _LabAudioPlayerState extends State<LabAudioPlayer> {
                 return Text(
                   _loaded ? '${f(p)} / ${f(total)}' : 'Play',
                   style: MonoPulseTypography.bodySmall.copyWith(
-                    color: MonoPulseColors.textSecondary,
+                    color: context.mp.textSecondary,
                   ),
                 );
               },

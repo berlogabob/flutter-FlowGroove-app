@@ -70,6 +70,7 @@ class MetronomePatternEditor extends StatelessWidget {
               // Accent Beats selector
               Expanded(
                 child: _buildNumberSelector(
+                  context,
                   label: 'Beats per Measure',
                   value: accentBeats,
                   min: 1,
@@ -83,6 +84,7 @@ class MetronomePatternEditor extends StatelessWidget {
               // Regular Beats (subdivisions) selector
               Expanded(
                 child: _buildNumberSelector(
+                  context,
                   label: 'Subdivisions per Beat',
                   value: regularBeats,
                   min: 1,
@@ -96,17 +98,18 @@ class MetronomePatternEditor extends StatelessWidget {
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
           // Visual grid editor
-          _buildBeatGrid(),
+          _buildBeatGrid(context),
           // Legend
           const SizedBox(height: MonoPulseSpacing.md),
-          _buildLegend(),
+          _buildLegend(context),
         ],
       ),
     );
   }
 
   /// Build a number selector with +/- buttons.
-  Widget _buildNumberSelector({
+  Widget _buildNumberSelector(
+    BuildContext context, {
     required String label,
     required int value,
     required int min,
@@ -121,7 +124,7 @@ class MetronomePatternEditor extends StatelessWidget {
         Text(
           label,
           style: MonoPulseTypography.labelMedium.copyWith(
-            color: MonoPulseColors.textSecondary,
+            color: context.mp.textSecondary,
           ),
         ),
         const SizedBox(height: MonoPulseSpacing.xs),
@@ -129,6 +132,7 @@ class MetronomePatternEditor extends StatelessWidget {
           children: [
             // Decrease button
             _buildCircleButton(
+              context,
               key: decreaseButtonKey,
               icon: Icons.remove,
               onPressed: value > min ? () => onChanged?.call(value - 1) : null,
@@ -140,14 +144,14 @@ class MetronomePatternEditor extends StatelessWidget {
                 height: 48,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: MonoPulseColors.surfaceRaised,
+                  color: context.mp.surfaceRaised,
                   borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-                  border: Border.all(color: MonoPulseColors.borderDefault),
+                  border: Border.all(color: context.mp.borderDefault),
                 ),
                 child: Text(
                   value.toString(),
                   style: MonoPulseTypography.headlineMedium.copyWith(
-                    color: MonoPulseColors.textPrimary,
+                    color: context.mp.textPrimary,
                   ),
                 ),
               ),
@@ -155,6 +159,7 @@ class MetronomePatternEditor extends StatelessWidget {
             const SizedBox(width: MonoPulseSpacing.md),
             // Increase button
             _buildCircleButton(
+              context,
               key: increaseButtonKey,
               icon: Icons.add,
               onPressed: value < max ? () => onChanged?.call(value + 1) : null,
@@ -166,7 +171,8 @@ class MetronomePatternEditor extends StatelessWidget {
   }
 
   /// Build a circular button for increment/decrement.
-  Widget _buildCircleButton({
+  Widget _buildCircleButton(
+    BuildContext context, {
     required Key key,
     required IconData icon,
     VoidCallback? onPressed,
@@ -176,7 +182,7 @@ class MetronomePatternEditor extends StatelessWidget {
       height: 48,
       child: Material(
         color: onPressed == null
-            ? MonoPulseColors.surfaceRaised
+            ? context.mp.surfaceRaised
             : MonoPulseColors.accentOrange,
         borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
         child: IconButton(
@@ -185,8 +191,8 @@ class MetronomePatternEditor extends StatelessWidget {
           icon: Icon(
             icon,
             color: onPressed == null
-                ? MonoPulseColors.textDisabled
-                : MonoPulseColors.black,
+                ? context.mp.textDisabled
+                : context.mp.black,
             size: 24,
           ),
         ),
@@ -195,13 +201,13 @@ class MetronomePatternEditor extends StatelessWidget {
   }
 
   /// Build the visual beat grid.
-  Widget _buildBeatGrid() {
+  Widget _buildBeatGrid(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderDefault),
+        border: Border.all(color: context.mp.borderDefault),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,16 +215,16 @@ class MetronomePatternEditor extends StatelessWidget {
           Text(
             'Beat Pattern',
             style: MonoPulseTypography.labelMedium.copyWith(
-              color: MonoPulseColors.textSecondary,
+              color: context.mp.textSecondary,
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.md),
           // Grid header row (subdivision labels)
-          if (regularBeats > 1) _buildSubdivisionHeader(),
+          if (regularBeats > 1) _buildSubdivisionHeader(context),
           // Beat rows
           ...List.generate(
             accentBeats,
-            _buildBeatRow,
+            (beatIndex) => _buildBeatRow(context, beatIndex),
           ),
         ],
       ),
@@ -226,7 +232,7 @@ class MetronomePatternEditor extends StatelessWidget {
   }
 
   /// Build the subdivision header row.
-  Widget _buildSubdivisionHeader() {
+  Widget _buildSubdivisionHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
       child: Row(
@@ -237,7 +243,7 @@ class MetronomePatternEditor extends StatelessWidget {
             child: Text(
               'Beat',
               style: MonoPulseTypography.labelSmall.copyWith(
-                color: MonoPulseColors.textTertiary,
+                color: context.mp.textTertiary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -253,7 +259,7 @@ class MetronomePatternEditor extends StatelessWidget {
                     child: Text(
                       '${subIndex + 1}',
                       style: MonoPulseTypography.labelSmall.copyWith(
-                        color: MonoPulseColors.textTertiary,
+                        color: context.mp.textTertiary,
                       ),
                     ),
                   ),
@@ -267,7 +273,7 @@ class MetronomePatternEditor extends StatelessWidget {
   }
 
   /// Build a single beat row.
-  Widget _buildBeatRow(int beatIndex) {
+  Widget _buildBeatRow(BuildContext context, int beatIndex) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xs),
       child: Row(
@@ -278,7 +284,7 @@ class MetronomePatternEditor extends StatelessWidget {
             child: Text(
               '${beatIndex + 1}',
               style: MonoPulseTypography.labelMedium.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
                 fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
@@ -290,8 +296,9 @@ class MetronomePatternEditor extends StatelessWidget {
             child: Row(
               children: List.generate(
                 regularBeats,
-                (subIndex) =>
-                    Expanded(child: _buildBeatModeButton(beatIndex, subIndex)),
+                (subIndex) => Expanded(
+                  child: _buildBeatModeButton(context, beatIndex, subIndex),
+                ),
               ),
             ),
           ),
@@ -301,7 +308,11 @@ class MetronomePatternEditor extends StatelessWidget {
   }
 
   /// Build an individual beat mode button.
-  Widget _buildBeatModeButton(int beatIndex, int subdivisionIndex) {
+  Widget _buildBeatModeButton(
+    BuildContext context,
+    int beatIndex,
+    int subdivisionIndex,
+  ) {
     final mode = _getBeatMode(beatIndex, subdivisionIndex);
     final color = _getModeColor(mode);
     final icon = _getModeIcon(mode);
@@ -325,16 +336,14 @@ class MetronomePatternEditor extends StatelessWidget {
             shape: BoxShape.circle,
             border: hasBorder
                 ? Border.all(color: color, width: 2)
-                : Border.all(
-                    color: MonoPulseColors.borderDefault,
-                  ),
+                : Border.all(color: context.mp.borderDefault),
           ),
           child: Center(
             child: icon != null
                 ? Icon(
                     icon,
                     color: mode == BeatMode.silent
-                        ? MonoPulseColors.textTertiary
+                        ? context.mp.textTertiary
                         : color,
                     size: 20,
                   )
@@ -377,22 +386,25 @@ class MetronomePatternEditor extends StatelessWidget {
   }
 
   /// Build the legend explaining the beat modes.
-  Widget _buildLegend() {
+  Widget _buildLegend(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildLegendItem(
+          context,
           color: MonoPulseColors.beatModeNormal,
           label: 'Normal',
         ),
         const SizedBox(width: MonoPulseSpacing.xl),
         _buildLegendItem(
+          context,
           color: MonoPulseColors.beatModeAccent,
           label: 'Accent',
           icon: Icons.star,
         ),
         const SizedBox(width: MonoPulseSpacing.xl),
         _buildLegendItem(
+          context,
           color: MonoPulseColors.beatModeSilent,
           label: 'Silent',
           icon: Icons.volume_off,
@@ -402,7 +414,8 @@ class MetronomePatternEditor extends StatelessWidget {
   }
 
   /// Build a single legend item.
-  Widget _buildLegendItem({
+  Widget _buildLegendItem(
+    BuildContext context, {
     required Color color,
     required String label,
     IconData? icon,
@@ -432,7 +445,7 @@ class MetronomePatternEditor extends StatelessWidget {
         Text(
           label,
           style: MonoPulseTypography.labelSmall.copyWith(
-            color: MonoPulseColors.textSecondary,
+            color: context.mp.textSecondary,
           ),
         ),
       ],

@@ -78,7 +78,7 @@ void main() {
       final container = await pump(tester);
 
       expect(container.read(themeModeProvider), ThemeMode.dark);
-      await tester.tap(find.text('Light β'));
+      await tester.tap(find.text('Light'));
       await tester.pumpAndSettle();
       expect(container.read(themeModeProvider), ThemeMode.light);
     });

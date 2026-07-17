@@ -43,9 +43,9 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: horizontalMargin),
       decoration: BoxDecoration(
-        color: MonoPulseColors.blackSurface,
+        color: context.mp.blackSurface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
+        border: Border.all(color: context.mp.borderSubtle),
       ),
       padding: EdgeInsets.all(blockPadding),
       child: Column(
@@ -208,7 +208,7 @@ Widget _buildCircleStrip({
     child: Theme(
       data: Theme.of(context).copyWith(
         scrollbarTheme: ScrollbarThemeData(
-          thumbColor: WidgetStateProperty.all(MonoPulseColors.borderDefault),
+          thumbColor: WidgetStateProperty.all(context.mp.borderDefault),
           thickness: WidgetStateProperty.all(2),
           radius: const Radius.circular(2),
         ),
@@ -265,7 +265,7 @@ class _BeatsRow extends StatelessWidget {
             child: Text(
               'Beats',
               style: MonoPulseTypography.labelSmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
           ),
@@ -375,7 +375,7 @@ class _SubdivisionsRow extends StatelessWidget {
             child: Text(
               'Subdivision',
               style: MonoPulseTypography.labelSmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
           ),
@@ -477,14 +477,18 @@ class _BeatCellStyle {
   final IconData? glyph;
 }
 
-_BeatCellStyle _beatCellStyle(BeatMode mode, bool isActive) {
+_BeatCellStyle _beatCellStyle(
+  BuildContext context,
+  BeatMode mode,
+  bool isActive,
+) {
   switch (mode) {
     case BeatMode.normal:
       return isActive
-          ? const _BeatCellStyle(
+          ? _BeatCellStyle(
               fill: MonoPulseColors.beatModeNormalBright,
               ring: MonoPulseColors.beatModeNormalBright,
-              glyphColor: MonoPulseColors.black,
+              glyphColor: context.mp.black,
             )
           : const _BeatCellStyle(
               fill: MonoPulseColors.accentOrange15,
@@ -493,10 +497,10 @@ _BeatCellStyle _beatCellStyle(BeatMode mode, bool isActive) {
             );
     case BeatMode.accent:
       return isActive
-          ? const _BeatCellStyle(
+          ? _BeatCellStyle(
               fill: MonoPulseColors.beatModeAccentBright,
               ring: MonoPulseColors.beatModeAccentBright,
-              glyphColor: MonoPulseColors.black,
+              glyphColor: context.mp.black,
               glyph: Icons.star,
             )
           : _BeatCellStyle(
@@ -509,10 +513,10 @@ _BeatCellStyle _beatCellStyle(BeatMode mode, bool isActive) {
       // ponytail: solid grey ring, not the doc's dashed ring — a dashed circle
       // needs a CustomPainter; the ⊘ glyph already reads as "muted". Swap to a
       // dashed-border painter if the dashed look is specifically wanted.
-      return const _BeatCellStyle(
+      return _BeatCellStyle(
         fill: MonoPulseColors.transparent,
-        ring: MonoPulseColors.textDisabled,
-        glyphColor: MonoPulseColors.textDisabled,
+        ring: context.mp.textDisabled,
+        glyphColor: context.mp.textDisabled,
         glyph: Icons.block,
       );
   }
@@ -542,7 +546,7 @@ class _BeatModeCircle extends StatelessWidget {
     final circleSize = math
         .min(isSmallScreen ? 16.0 : 20.0, containerSize - 8)
         .clamp(8.0, 20.0);
-    final style = _beatCellStyle(mode, isActive);
+    final style = _beatCellStyle(context, mode, isActive);
 
     return Semantics(
       label: semanticLabel,
@@ -654,12 +658,12 @@ class _BeatButton extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: onTap != null
-                  ? MonoPulseColors.blackElevated
-                  : MonoPulseColors.borderSubtle,
+                  ? context.mp.blackElevated
+                  : context.mp.borderSubtle,
               border: Border.all(
                 color: onTap != null
-                    ? MonoPulseColors.borderDefault
-                    : MonoPulseColors.borderSubtle,
+                    ? context.mp.borderDefault
+                    : context.mp.borderSubtle,
                 width: 1.5,
               ),
             ),
@@ -671,8 +675,8 @@ class _BeatButton extends StatelessWidget {
                     icon,
                     size: iconSize,
                     color: onTap != null
-                        ? MonoPulseColors.textSecondary
-                        : MonoPulseColors.textTertiary,
+                        ? context.mp.textSecondary
+                        : context.mp.textTertiary,
                   ),
                 ),
                 if (showBadge)
@@ -686,7 +690,7 @@ class _BeatButton extends StatelessWidget {
                         color: MonoPulseColors.accentOrange,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: MonoPulseColors.blackSurface,
+                          color: context.mp.blackSurface,
                           width: 1.5,
                         ),
                       ),
@@ -696,7 +700,7 @@ class _BeatButton extends StatelessWidget {
                           style: TextStyle(
                             fontSize: badgeFontSize,
                             fontWeight: FontWeight.bold,
-                            color: MonoPulseColors.black,
+                            color: context.mp.black,
                           ),
                         ),
                       ),

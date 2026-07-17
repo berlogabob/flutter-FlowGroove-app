@@ -47,29 +47,23 @@ class AppFilterChip extends StatelessWidget {
       // Selected state styling
       selectedColor: MonoPulseColors.accentOrange,
       labelStyle: TextStyle(
-        color: selected
-            ? MonoPulseColors.textPrimary
-            : MonoPulseColors.textSecondary,
+        color: selected ? context.mp.textPrimary : context.mp.textSecondary,
         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
       ),
       // Unselected state styling (outlined + muted)
-      backgroundColor: unselectedBackgroundColor ?? MonoPulseColors.surface,
+      backgroundColor: unselectedBackgroundColor ?? context.mp.surface,
       side: BorderSide(
-        color: selected
-            ? Colors.transparent
-            : MonoPulseColors.borderDefault,
+        color: selected ? Colors.transparent : context.mp.borderDefault,
       ),
       // Show checkmark icon when selected
       showCheckmark: selected,
-      checkmarkColor: MonoPulseColors.textPrimary,
+      checkmarkColor: context.mp.textPrimary,
       // Padding and shape
       padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.md,
         vertical: MonoPulseSpacing.sm,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
   }
 }

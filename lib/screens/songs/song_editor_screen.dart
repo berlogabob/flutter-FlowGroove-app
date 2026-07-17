@@ -148,10 +148,8 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
     final imported = await showModalBottomSheet<ImportedSong>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => ImportLyricsDialog(
-        seedTitle: meta.title,
-        seedArtist: meta.artist,
-      ),
+      builder: (_) =>
+          ImportLyricsDialog(seedTitle: meta.title, seedArtist: meta.artist),
     );
     if (imported == null || imported.sections.isEmpty || !mounted) return;
 
@@ -320,10 +318,8 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
       if (m.timeTop != null) '${m.timeTop}/4',
     ];
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: MonoPulseColors.borderDefault),
-        ),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: context.mp.borderDefault)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -355,9 +351,9 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
                     AnimatedRotation(
                       turns: _mapExpanded ? 0.5 : 0,
                       duration: const Duration(milliseconds: 200),
-                      child: const Icon(
+                      child: Icon(
                         Icons.expand_more,
-                        color: MonoPulseColors.textSecondary,
+                        color: context.mp.textSecondary,
                       ),
                     ),
                 ],
@@ -386,7 +382,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
               child: Text(
                 'No sections yet — type ChordPro below, or use Import / Add.',
                 style: MonoPulseTypography.bodySmall.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
               ),
             ),
@@ -450,7 +446,7 @@ class _SongEditorScreenState extends State<SongEditorScreen> {
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: MonoPulseSpacing.xl),
             color: MonoPulseColors.error,
-            child: const Icon(Icons.delete, color: MonoPulseColors.textPrimary),
+            child: Icon(Icons.delete, color: context.mp.textPrimary),
           ),
           onDismissed: (_) => _sync.updateFromMap(
             _sync.sections.where((x) => x.id != s.id).toList(),

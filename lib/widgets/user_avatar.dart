@@ -10,7 +10,7 @@ import '../theme/mono_pulse_theme.dart';
 /// If the network image fails to load (expired URL, offline, blocked), the
 /// avatar falls back to the initial instead of rendering a blank circle.
 ///
-/// Canonical avatar (Mono Pulse audit A8): a raised [MonoPulseColors.surfaceRaised]
+/// Canonical avatar (Mono Pulse audit A8): a raised `context.mp.surfaceRaised`
 /// circle with a subtle ring and a bold [MonoPulseColors.accentOrange] initial.
 /// The same widget is used on the Home greeting, Profile, and band member lists.
 class UserAvatar extends StatefulWidget {
@@ -65,19 +65,16 @@ class _UserAvatarState extends State<UserAvatar> {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.fromBorderSide(
-          BorderSide(color: MonoPulseColors.borderDefault),
+          BorderSide(color: context.mp.borderDefault),
         ),
       ),
       child: CircleAvatar(
         radius: widget.radius,
-        backgroundColor:
-            widget.backgroundColor ?? MonoPulseColors.surfaceRaised,
-        backgroundImage: _showPhoto
-            ? CachedNetworkImageProvider(_url!)
-            : null,
+        backgroundColor: widget.backgroundColor ?? context.mp.surfaceRaised,
+        backgroundImage: _showPhoto ? CachedNetworkImageProvider(_url!) : null,
         onBackgroundImageError: _showPhoto
             ? (_, _) {
                 if (mounted) setState(() => _imageFailed = true);

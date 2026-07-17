@@ -8,7 +8,6 @@ import '../../../theme/mono_pulse_theme.dart';
 /// This widget displays existing links as chips and provides
 /// functionality to add and remove links through a dialog.
 class LinksEditor extends StatelessWidget {
-
   const LinksEditor({
     required this.links,
     required this.onAddLink,
@@ -16,6 +15,7 @@ class LinksEditor extends StatelessWidget {
     this.embedded = false,
     super.key,
   });
+
   /// The current list of links.
   final List<Link> links;
 
@@ -163,7 +163,6 @@ class LinksEditor extends StatelessWidget {
 
 /// Internal chip widget for displaying a single link.
 class _LinkChip extends StatelessWidget {
-
   const _LinkChip({
     required this.link,
     required this.index,
@@ -186,8 +185,9 @@ class _LinkChip extends StatelessWidget {
         webOnlyWindowName: '_blank',
       );
     } else if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Could not open: $url')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not open: $url')));
     }
   }
 
@@ -200,18 +200,11 @@ class _LinkChip extends StatelessWidget {
       onPressed: link.url.trim().isEmpty ? null : () => _open(context),
       label: Text(
         label,
-        style: const TextStyle(
-          fontSize: 12,
-          color: MonoPulseColors.textPrimary,
-        ),
+        style: TextStyle(fontSize: 12, color: context.mp.textPrimary),
       ),
-      deleteIcon: const Icon(
-        Icons.close,
-        size: 16,
-        color: MonoPulseColors.textSecondary,
-      ),
+      deleteIcon: Icon(Icons.close, size: 16, color: context.mp.textSecondary),
       onDeleted: onDeleted,
-      backgroundColor: MonoPulseColors.surfaceOverlay,
+      backgroundColor: context.mp.surfaceOverlay,
     );
   }
 }

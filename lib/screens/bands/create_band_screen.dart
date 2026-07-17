@@ -272,9 +272,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                       _isEditing
                           ? 'Update band information'
                           : 'You can invite members after creating',
-                      style: const TextStyle(
-                        color: MonoPulseColors.textSecondary,
-                      ),
+                      style: TextStyle(color: context.mp.textSecondary),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),

@@ -257,7 +257,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                         Text(
                           'Join a band',
                           style: MonoPulseTypography.headlineSmall.copyWith(
-                            color: MonoPulseColors.textHighEmphasis,
+                            color: context.mp.textHighEmphasis,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -266,9 +266,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                           widget.inviteCode != null
                               ? 'Loading band info...'
                               : 'Enter invite code',
-                          style: const TextStyle(
-                            color: MonoPulseColors.textTertiary,
-                          ),
+                          style: TextStyle(color: context.mp.textTertiary),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
@@ -297,8 +295,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                             ),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: MonoPulseColors.textPrimary,
+                              ? CircularProgressIndicator(
+                                  color: context.mp.textPrimary,
                                 )
                               : const Text('Find Band'),
                         ),
@@ -315,8 +313,8 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                             ),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: MonoPulseColors.textPrimary,
+                              ? CircularProgressIndicator(
+                                  color: context.mp.textPrimary,
                                 )
                               : Text(
                                   isLoggedIn ? 'Join Band' : 'Login to Join',
@@ -328,7 +326,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                           Text(
                             'Demo accounts cannot join bands. Sign up to join.',
                             style: MonoPulseTypography.bodySmall.copyWith(
-                              color: MonoPulseColors.textTertiary,
+                              color: context.mp.textTertiary,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -337,7 +335,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
                           Text(
                             'You need to create an account to join this band',
                             style: MonoPulseTypography.bodySmall.copyWith(
-                              color: MonoPulseColors.textTertiary,
+                              color: context.mp.textTertiary,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -351,7 +349,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
               // Loading overlay
               if (_isLoading)
                 ColoredBox(
-                  color: MonoPulseColors.black.withValues(alpha: 0.3),
+                  color: context.mp.black.withValues(alpha: 0.3),
                   child: const Center(child: CircularProgressIndicator()),
                 ),
             ],
@@ -365,7 +363,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
     return Container(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
         border: Border.all(
           color: MonoPulseColors.accentOrange.withValues(alpha: 0.3),
@@ -386,7 +384,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
               child: Text(
                 _band!.name.isNotEmpty ? _band!.name[0].toUpperCase() : '?',
                 style: MonoPulseTypography.headlineLarge.copyWith(
-                  color: MonoPulseColors.textPrimary,
+                  color: context.mp.textPrimary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -398,7 +396,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
           Text(
             _band!.name,
             style: MonoPulseTypography.headlineMedium.copyWith(
-              color: MonoPulseColors.textHighEmphasis,
+              color: context.mp.textHighEmphasis,
             ),
             textAlign: TextAlign.center,
           ),
@@ -409,7 +407,7 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
             Text(
               _band!.description!,
               style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textTertiary,
+                color: context.mp.textTertiary,
               ),
               textAlign: TextAlign.center,
               maxLines: 3,
@@ -422,16 +420,16 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.people_outline,
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
                 size: 20,
               ),
               const SizedBox(width: 8),
               Text(
                 '${_band!.members.length} member${_band!.members.length == 1 ? '' : 's'}',
                 style: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
               ),
             ],

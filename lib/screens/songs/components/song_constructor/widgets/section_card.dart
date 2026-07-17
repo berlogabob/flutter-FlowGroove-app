@@ -6,7 +6,6 @@ import '../core/theme/app_colors.dart';
 
 /// Card widget for displaying a section in expanded state.
 class SectionCard extends StatelessWidget {
-
   const SectionCard({
     required this.section,
     super.key,
@@ -104,9 +103,9 @@ class SectionCard extends StatelessWidget {
         if (enableDrag && dragIndex != null)
           ReorderableDragStartListener(
             index: dragIndex!,
-            child: const Icon(
+            child: Icon(
               Icons.drag_handle,
-              color: MonoPulseColors.textSecondary,
+              color: context.mp.textSecondary,
               size: 20,
             ),
           ),
@@ -120,11 +119,7 @@ class SectionCard extends StatelessWidget {
             constraints: const BoxConstraints(),
           ),
           const SizedBox(width: 4),
-          const Icon(
-            Icons.drag_handle,
-            color: MonoPulseColors.textSecondary,
-            size: 20,
-          ),
+          Icon(Icons.drag_handle, color: context.mp.textSecondary, size: 20),
         ],
       ],
     );

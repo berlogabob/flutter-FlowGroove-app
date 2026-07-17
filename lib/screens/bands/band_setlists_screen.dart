@@ -293,13 +293,13 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
             IconAction(
               icon: Icons.edit,
               tooltip: 'Edit setlist',
-              color: MonoPulseColors.textSecondary,
+              color: context.mp.textSecondary,
               onPressed: () => _editSetlist(setlist),
             ),
           IconAction(
             icon: Icons.av_timer,
             tooltip: 'Open in metronome',
-            color: MonoPulseColors.textSecondary,
+            color: context.mp.textSecondary,
             onPressed: () => _openInMetronome(setlist),
           ),
           OverflowMenuAction(

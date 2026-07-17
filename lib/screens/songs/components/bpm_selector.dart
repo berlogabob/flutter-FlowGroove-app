@@ -94,18 +94,27 @@ class KeyBpmGrid extends StatelessWidget {
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
         _row(
+          context,
           'Original',
           originalBase,
           originalModifier,
           originalBpmController,
           onOriginalKeyChanged,
         ),
-        _row('Our', ourBase, ourModifier, ourBpmController, onOurKeyChanged),
+        _row(
+          context,
+          'Our',
+          ourBase,
+          ourModifier,
+          ourBpmController,
+          onOurKeyChanged,
+        ),
       ],
     );
   }
 
   TableRow _row(
+    BuildContext context,
     String label,
     String base,
     String modifier,
@@ -124,6 +133,7 @@ class KeyBpmGrid extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.xs),
           child: _keyMiniDropdown(
+            context,
             base,
             keyBases,
             (v) => onKey(v ?? '', modifier),
@@ -132,6 +142,7 @@ class KeyBpmGrid extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.xs),
           child: _keyMiniDropdown(
+            context,
             modifier,
             keyModifiers,
             (v) => onKey(base, v ?? ''),
@@ -152,6 +163,7 @@ class KeyBpmGrid extends StatelessWidget {
 
 /// Shared compact note/accidental dropdown used by the key grid.
 Widget _keyMiniDropdown(
+  BuildContext context,
   String value,
   List<String> items,
   ValueChanged<String?> onChanged,
@@ -159,26 +171,23 @@ Widget _keyMiniDropdown(
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
     decoration: BoxDecoration(
-      color: MonoPulseColors.surfaceRaised,
+      color: context.mp.surfaceRaised,
       borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-      border: Border.all(color: MonoPulseColors.borderDefault),
+      border: Border.all(color: context.mp.borderDefault),
     ),
     child: DropdownButton<String>(
       value: value,
       isDense: true,
       underline: const SizedBox(),
-      dropdownColor: MonoPulseColors.surfaceOverlay,
-      iconEnabledColor: MonoPulseColors.textSecondary,
+      dropdownColor: context.mp.surfaceOverlay,
+      iconEnabledColor: context.mp.textSecondary,
       items: items
           .map(
             (k) => DropdownMenuItem(
               value: k,
               child: Text(
                 k.isEmpty ? '-' : k,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: MonoPulseColors.textPrimary,
-                ),
+                style: TextStyle(fontSize: 13, color: context.mp.textPrimary),
               ),
             ),
           )

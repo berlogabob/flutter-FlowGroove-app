@@ -273,7 +273,7 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
             child: Text(
               'A4 ${state.referenceA4.round()} Hz · ±${state.centsTolerance} cents',
               style: MonoPulseTypography.labelSmall.copyWith(
-                color: MonoPulseColors.textTertiary,
+                color: context.mp.textTertiary,
               ),
             ),
           ),
@@ -288,7 +288,10 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
     final presetScope = ref.read(tunerProvider).selectedPresetScope;
     if (contextData == null || presetId == null) return;
     if (presetScope == TunerPresetScope.local) {
-      showAppSnackBar(context, 'Save this custom preset to your account before linking it.');
+      showAppSnackBar(
+        context,
+        'Save this custom preset to your account before linking it.',
+      );
       return;
     }
 
@@ -338,9 +341,9 @@ class _InstrumentCard extends StatelessWidget {
           vertical: MonoPulseSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: MonoPulseColors.surfaceRaised,
+          color: context.mp.surfaceRaised,
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          border: Border.all(color: MonoPulseColors.borderSubtle),
+          border: Border.all(color: context.mp.borderSubtle),
         ),
         child: Row(
           children: [
@@ -365,14 +368,14 @@ class _InstrumentCard extends StatelessWidget {
                     TextSpan(
                       text: instrumentName,
                       style: MonoPulseTypography.titleMedium.copyWith(
-                        color: MonoPulseColors.textHighEmphasis,
+                        color: context.mp.textHighEmphasis,
                       ),
                     ),
                     if (tuningName.isNotEmpty)
                       TextSpan(
                         text: '  ·  $tuningName',
                         style: MonoPulseTypography.bodyMedium.copyWith(
-                          color: MonoPulseColors.textTertiary,
+                          color: context.mp.textTertiary,
                         ),
                       ),
                   ],
@@ -382,11 +385,7 @@ class _InstrumentCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: MonoPulseSpacing.sm),
-            const Icon(
-              Icons.chevron_right,
-              color: MonoPulseColors.textTertiary,
-              size: 20,
-            ),
+            Icon(Icons.chevron_right, color: context.mp.textTertiary, size: 20),
           ],
         ),
       ),
@@ -410,9 +409,9 @@ class _ErrorCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(MonoPulseSpacing.md),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
+        border: Border.all(color: context.mp.borderSubtle),
       ),
       child: Row(
         children: [
@@ -426,7 +425,7 @@ class _ErrorCard extends StatelessWidget {
             child: Text(
               message,
               style: MonoPulseTypography.bodySmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
           ),
@@ -466,7 +465,7 @@ class _ToneControls extends StatelessWidget {
       children: [
         DropdownButton<String>(
           value: safeNote,
-          dropdownColor: MonoPulseColors.surfaceRaised,
+          dropdownColor: context.mp.surfaceRaised,
           items: notes
               .map(
                 (value) => DropdownMenuItem(value: value, child: Text(value)),
@@ -478,7 +477,7 @@ class _ToneControls extends StatelessWidget {
         ),
         DropdownButton<int>(
           value: safeOctave,
-          dropdownColor: MonoPulseColors.surfaceRaised,
+          dropdownColor: context.mp.surfaceRaised,
           items: List.generate(
             9,
             (value) =>
@@ -520,9 +519,9 @@ class _SongContextCard extends StatelessWidget {
         vertical: MonoPulseSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
+        border: Border.all(color: context.mp.borderSubtle),
       ),
       child: Row(
         children: [
@@ -538,7 +537,7 @@ class _SongContextCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: MonoPulseTypography.labelMedium.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
           ),

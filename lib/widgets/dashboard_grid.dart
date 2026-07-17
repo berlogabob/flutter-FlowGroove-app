@@ -216,7 +216,7 @@ class DashboardGrid extends StatelessWidget {
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.w700,
-        color: MonoPulseColors.textPrimary,
+        color: context.mp.textPrimary,
         fontSize: breakpoint == ScreenBreakpoint.desktop ? 18 : 16,
       ),
     );

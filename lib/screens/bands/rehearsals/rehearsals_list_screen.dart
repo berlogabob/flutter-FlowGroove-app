@@ -120,11 +120,9 @@ class _RehearsalTile extends StatelessWidget {
           trailing: Chip(
             label: Text(
               isPast ? 'Past' : _statusLabel(rehearsal.status),
-              style: isPast
-                  ? const TextStyle(color: MonoPulseColors.textSecondary)
-                  : null,
+              style: isPast ? TextStyle(color: context.mp.textSecondary) : null,
             ),
-            backgroundColor: isPast ? MonoPulseColors.surfaceRaised : null,
+            backgroundColor: isPast ? context.mp.surfaceRaised : null,
             visualDensity: VisualDensity.compact,
           ),
           onTap: () => context.pushNamed(

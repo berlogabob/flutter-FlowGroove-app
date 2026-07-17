@@ -41,7 +41,9 @@ import '../utils/responsive_breakpoints.dart';
 /// ```
 class ToolButton extends StatelessWidget {
   const ToolButton({
-    required this.icon, required this.label, super.key,
+    required this.icon,
+    required this.label,
+    super.key,
     this.isCompact = false,
     this.onTap,
   });
@@ -67,14 +69,12 @@ class ToolButton extends StatelessWidget {
 
     final accent = isEnabled
         ? MonoPulseColors.accentOrange
-        : MonoPulseColors.textTertiary;
+        : context.mp.textTertiary;
 
     // Mono Pulse tile: a uniform horizontal row (icon left, label right) that
     // fills its grid cell, matching Quick Actions for consistent density (A9).
     return Material(
-      color: isEnabled
-          ? MonoPulseColors.surface
-          : MonoPulseColors.surfaceOverlay,
+      color: isEnabled ? context.mp.surface : context.mp.surfaceOverlay,
       borderRadius: BorderRadius.circular(MonoPulseRadius.large),
       child: InkWell(
         onTap: onTap,
@@ -85,11 +85,9 @@ class ToolButton extends StatelessWidget {
             vertical: MonoPulseSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: isEnabled
-                ? MonoPulseColors.surface
-                : MonoPulseColors.surfaceOverlay,
+            color: isEnabled ? context.mp.surface : context.mp.surfaceOverlay,
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-            border: Border.all(color: MonoPulseColors.borderSubtle),
+            border: Border.all(color: context.mp.borderSubtle),
           ),
           child: Row(
             children: [
@@ -115,13 +113,13 @@ class ToolButton extends StatelessWidget {
                     vertical: MonoPulseSpacing.xxs,
                   ),
                   decoration: BoxDecoration(
-                    color: MonoPulseColors.borderStrong,
+                    color: context.mp.borderStrong,
                     borderRadius: BorderRadius.circular(MonoPulseRadius.small),
                   ),
                   child: Text(
                     'Soon',
                     style: MonoPulseTypography.labelSmall.copyWith(
-                      color: MonoPulseColors.textPrimary,
+                      color: context.mp.textPrimary,
                       fontSize: fontSize - 2,
                     ),
                   ),

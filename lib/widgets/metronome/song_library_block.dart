@@ -11,7 +11,12 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 
-typedef _LoadedSongState = ({Song song, Setlist? setlist, String? sourceBandId, List<Song> loadedSetlistSongs});
+typedef _LoadedSongState = ({
+  Song song,
+  Setlist? setlist,
+  String? sourceBandId,
+  List<Song> loadedSetlistSongs,
+});
 
 class SongLibraryBlock extends ConsumerWidget {
   const SongLibraryBlock({super.key});
@@ -39,23 +44,23 @@ class SongLibraryBlock extends ConsumerWidget {
                 vertical: MonoPulseSpacing.md,
               ),
               decoration: BoxDecoration(
-                color: MonoPulseColors.surface,
+                color: context.mp.surface,
                 borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
-                border: Border.all(color: MonoPulseColors.borderSubtle),
+                border: Border.all(color: context.mp.borderSubtle),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.library_music_outlined,
-                    color: MonoPulseColors.textSecondary,
+                    color: context.mp.textSecondary,
                     size: MonoPulseIcons.sizeMedium,
                   ),
                   const SizedBox(width: MonoPulseSpacing.md),
                   Text(
                     'Songs & Setlists',
                     style: MonoPulseTypography.bodyLarge.copyWith(
-                      color: MonoPulseColors.textHighEmphasis,
+                      color: context.mp.textHighEmphasis,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -150,9 +155,9 @@ class _LoadedSongCard extends ConsumerWidget {
         vertical: MonoPulseSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surface,
+        color: context.mp.surface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
+        border: Border.all(color: context.mp.borderSubtle),
       ),
       child: Row(
         children: [
@@ -167,7 +172,7 @@ class _LoadedSongCard extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: MonoPulseTypography.bodyMedium.copyWith(
-                    color: MonoPulseColors.textHighEmphasis,
+                    color: context.mp.textHighEmphasis,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -178,7 +183,7 @@ class _LoadedSongCard extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: MonoPulseTypography.bodySmall.copyWith(
-                    color: MonoPulseColors.textTertiary,
+                    color: context.mp.textTertiary,
                   ),
                 ),
               ],
@@ -188,14 +193,16 @@ class _LoadedSongCard extends ConsumerWidget {
             tooltip: 'Clear loaded song',
             onPressed: () {
               // Cache the current state for undo
-              final cachedState = (
-                song: song,
-                setlist: setlist,
-                sourceBandId: sourceBandId,
-                loadedSetlistSongs: setlist != null
-                    ? ref.read(metronomeProvider).loadedSetlistSongs
-                    : <Song>[],
-              ) as _LoadedSongState;
+              final cachedState =
+                  (
+                        song: song,
+                        setlist: setlist,
+                        sourceBandId: sourceBandId,
+                        loadedSetlistSongs: setlist != null
+                            ? ref.read(metronomeProvider).loadedSetlistSongs
+                            : <Song>[],
+                      )
+                      as _LoadedSongState;
 
               // Clear the loaded content
               onClear();
@@ -225,11 +232,7 @@ class _LoadedSongCard extends ConsumerWidget {
                 },
               );
             },
-            icon: const Icon(
-              Icons.close,
-              color: MonoPulseColors.textSecondary,
-              size: 20,
-            ),
+            icon: Icon(Icons.close, color: context.mp.textSecondary, size: 20),
           ),
         ],
       ),
@@ -267,9 +270,9 @@ class _SongLibrarySheetState extends ConsumerState<_SongLibrarySheet> {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.78,
         ),
-        decoration: const BoxDecoration(
-          color: MonoPulseColors.surfaceRaised,
-          borderRadius: BorderRadius.vertical(
+        decoration: BoxDecoration(
+          color: context.mp.surfaceRaised,
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(MonoPulseRadius.massive),
           ),
         ),
@@ -280,7 +283,7 @@ class _SongLibrarySheetState extends ConsumerState<_SongLibrarySheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: MonoPulseColors.borderDefault,
+                color: context.mp.borderDefault,
                 borderRadius: BorderRadius.circular(MonoPulseRadius.small),
               ),
             ),
@@ -292,17 +295,14 @@ class _SongLibrarySheetState extends ConsumerState<_SongLibrarySheet> {
                     child: Text(
                       'Songs & Setlists',
                       style: MonoPulseTypography.headlineSmall.copyWith(
-                        color: MonoPulseColors.textHighEmphasis,
+                        color: context.mp.textHighEmphasis,
                       ),
                     ),
                   ),
                   IconButton(
                     tooltip: 'Close',
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
-                      Icons.close,
-                      color: MonoPulseColors.textSecondary,
-                    ),
+                    icon: Icon(Icons.close, color: context.mp.textSecondary),
                   ),
                 ],
               ),
@@ -414,12 +414,12 @@ class _LibraryTabButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected
                 ? MonoPulseColors.accentOrange.withValues(alpha: 0.16)
-                : MonoPulseColors.blackElevated,
+                : context.mp.blackElevated,
             border: Border(
               bottom: BorderSide(
                 color: selected
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.borderSubtle,
+                    : context.mp.borderSubtle,
                 width: selected ? 2 : 1,
               ),
             ),
@@ -431,7 +431,7 @@ class _LibraryTabButton extends StatelessWidget {
                 icon,
                 color: selected
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textSecondary,
+                    : context.mp.textSecondary,
               ),
               const SizedBox(width: MonoPulseSpacing.sm),
               Text(
@@ -439,7 +439,7 @@ class _LibraryTabButton extends StatelessWidget {
                 style: MonoPulseTypography.labelLarge.copyWith(
                   color: selected
                       ? MonoPulseColors.accentOrange
-                      : MonoPulseColors.textSecondary,
+                      : context.mp.textSecondary,
                 ),
               ),
             ],
@@ -465,7 +465,7 @@ class _SourceDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String?>(
       initialValue: bandId,
-      dropdownColor: MonoPulseColors.surfaceRaised,
+      dropdownColor: context.mp.surfaceRaised,
       decoration: const InputDecoration(
         labelText: 'Library source',
         prefixIcon: Icon(Icons.folder_outlined),
@@ -575,12 +575,12 @@ class _EmptyLibraryState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: MonoPulseColors.textDisabled, size: 48),
+          Icon(icon, color: context.mp.textDisabled, size: 48),
           const SizedBox(height: MonoPulseSpacing.md),
           Text(
             label,
             style: MonoPulseTypography.bodyLarge.copyWith(
-              color: MonoPulseColors.textTertiary,
+              color: context.mp.textTertiary,
             ),
           ),
         ],
@@ -599,7 +599,7 @@ class _SongCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bpm = song.ourBPM ?? song.originalBPM;
     return Card(
-      color: MonoPulseColors.blackElevated,
+      color: context.mp.blackElevated,
       child: ListTile(
         onTap: onTap,
         leading: const Icon(
@@ -624,7 +624,7 @@ class _SetlistCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final count = setlist.songIds.length;
     return Card(
-      color: MonoPulseColors.blackElevated,
+      color: context.mp.blackElevated,
       child: ListTile(
         onTap: onTap,
         leading: const Icon(

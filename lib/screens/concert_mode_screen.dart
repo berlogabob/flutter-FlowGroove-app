@@ -69,7 +69,7 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
     final song = state.activeSong;
 
     return Scaffold(
-      backgroundColor: MonoPulseColors.black,
+      backgroundColor: context.mp.black,
       body: SafeArea(
         child: Stack(
           children: [
@@ -77,10 +77,7 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
               top: MonoPulseSpacing.sm,
               right: MonoPulseSpacing.sm,
               child: IconButton(
-                icon: const Icon(
-                  Icons.close,
-                  color: MonoPulseColors.textSecondary,
-                ),
+                icon: Icon(Icons.close, color: context.mp.textSecondary),
                 iconSize: 28,
                 tooltip: 'Exit Concert Mode',
                 onPressed: () => Navigator.of(context).pop(),
@@ -93,17 +90,18 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
                 top: MonoPulseSpacing.sm,
                 left: MonoPulseSpacing.sm,
                 child: IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.lyrics_outlined,
-                    color: MonoPulseColors.textSecondary,
+                    color: context.mp.textSecondary,
                   ),
                   iconSize: 28,
                   tooltip: 'Lyrics & chords',
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => PerformanceSheetScreen(
-                        title:
-                            song.title.trim().isEmpty ? 'Song' : song.title.trim(),
+                        title: song.title.trim().isEmpty
+                            ? 'Song'
+                            : song.title.trim(),
                         sections: song.sections,
                         song: song,
                         songKey: song.ourKey,
@@ -130,9 +128,8 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
                     currentBeat: currentMainBeat,
                     onToggle: () =>
                         ref.read(metronomeProvider.notifier).toggle(),
-                    onAdjust: (d) => ref
-                        .read(metronomeProvider.notifier)
-                        .adjustTempoFine(d),
+                    onAdjust: (d) =>
+                        ref.read(metronomeProvider.notifier).adjustTempoFine(d),
                     onPrevious: state.canGoToPreviousSetlistSong
                         ? () => ref
                               .read(metronomeProvider.notifier)
@@ -194,7 +191,7 @@ class _Readout extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: MonoPulseTypography.titleMedium.copyWith(
-              color: MonoPulseColors.textSecondary,
+              color: context.mp.textSecondary,
             ),
           ),
           const SizedBox(height: MonoPulseSpacing.lg),
@@ -209,18 +206,15 @@ class _Readout extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             '$bpm',
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: MonoPulseTypography.fontFamilyDisplay,
               fontSize: 148,
               fontWeight: FontWeight.w700,
               height: 0.9,
               letterSpacing: -4,
-              color: MonoPulseColors.textPrimary,
-              shadows: [
-                Shadow(
-                  color: MonoPulseColors.accentOrange,
-                  blurRadius: 55,
-                ),
+              color: context.mp.textPrimary,
+              shadows: const [
+                Shadow(color: MonoPulseColors.accentOrange, blurRadius: 55),
               ],
             ),
           ),
@@ -228,7 +222,7 @@ class _Readout extends StatelessWidget {
         Text(
           'BPM',
           style: MonoPulseTypography.labelMedium.copyWith(
-            color: MonoPulseColors.textTertiary,
+            color: context.mp.textTertiary,
             letterSpacing: 4,
           ),
         ),
@@ -338,7 +332,7 @@ class _Controls extends StatelessWidget {
                 border: Border.all(
                   color: active
                       ? MonoPulseColors.accentOrange
-                      : MonoPulseColors.borderDefault,
+                      : context.mp.borderDefault,
                 ),
               ),
             );
@@ -372,7 +366,7 @@ class _Controls extends StatelessWidget {
                 ),
                 child: Icon(
                   isPlaying ? Icons.pause : Icons.play_arrow,
-                  color: MonoPulseColors.black,
+                  color: context.mp.black,
                   size: 56,
                 ),
               ),
@@ -417,14 +411,12 @@ class _SkipButton extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: MonoPulseColors.surfaceRaised,
-          border: Border.all(color: MonoPulseColors.borderDefault),
+          color: context.mp.surfaceRaised,
+          border: Border.all(color: context.mp.borderDefault),
         ),
         child: Icon(
           icon,
-          color: enabled
-              ? MonoPulseColors.textSecondary
-              : MonoPulseColors.textTertiary,
+          color: enabled ? context.mp.textSecondary : context.mp.textTertiary,
           size: 32,
         ),
       ),
@@ -457,11 +449,11 @@ class _NudgeButton extends StatelessWidget {
             shape: BoxShape.circle,
             color: accent
                 ? MonoPulseColors.accentOrange15
-                : MonoPulseColors.surfaceRaised,
+                : context.mp.surfaceRaised,
             border: Border.all(
               color: accent
                   ? MonoPulseColors.accentOrange30
-                  : MonoPulseColors.borderDefault,
+                  : context.mp.borderDefault,
             ),
           ),
           child: Text(
@@ -469,7 +461,7 @@ class _NudgeButton extends StatelessWidget {
             style: MonoPulseTypography.titleMedium.copyWith(
               color: accent
                   ? MonoPulseColors.accentOrangeLight
-                  : MonoPulseColors.textSecondary,
+                  : context.mp.textSecondary,
             ),
           ),
         ),

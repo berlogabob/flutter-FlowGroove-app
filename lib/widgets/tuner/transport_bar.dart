@@ -144,7 +144,7 @@ class _MainActionButton extends StatelessWidget {
                 child: Text(
                   label,
                   style: MonoPulseTypography.labelSmall.copyWith(
-                    color: MonoPulseColors.textSecondary,
+                    color: context.mp.textSecondary,
                   ),
                 ),
               ),
@@ -185,8 +185,8 @@ class _VolumeControlState extends State<_VolumeControl> {
     final volumeLabel = widget.volume == 0
         ? 'Mute'
         : widget.volume < 1.0
-            ? 'Volume down (50%)'
-            : 'Volume up (100%)';
+        ? 'Volume down (50%)'
+        : 'Volume up (100%)';
 
     return Semantics(
       button: true,
@@ -199,48 +199,48 @@ class _VolumeControlState extends State<_VolumeControl> {
           onTap: _cycleVolume,
           behavior: HitTestBehavior.opaque,
           child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: MonoPulseColors.borderSubtle, width: 1.5),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(
-              _getVolumeIcon(),
-              color: widget.volume == 0
-                  ? MonoPulseColors.textTertiary
-                  : MonoPulseColors.textSecondary,
-              size: 28,
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: context.mp.borderSubtle, width: 1.5),
             ),
-            // Volume level indicator bar
-            if (widget.volume > 0)
-              Positioned(
-                bottom: 6,
-                child: Container(
-                  width: 20,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: MonoPulseColors.accentOrange,
-                    borderRadius: BorderRadius.circular(1.5),
-                  ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  _getVolumeIcon(),
+                  color: widget.volume == 0
+                      ? context.mp.textTertiary
+                      : context.mp.textSecondary,
+                  size: 28,
                 ),
-              ),
-            // Mute indicator X overlay
-            if (widget.volume == 0)
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: MonoPulseColors.textTertiary.withValues(alpha: 0.3),
-                    width: 2,
+                // Volume level indicator bar
+                if (widget.volume > 0)
+                  Positioned(
+                    bottom: 6,
+                    child: Container(
+                      width: 20,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: MonoPulseColors.accentOrange,
+                        borderRadius: BorderRadius.circular(1.5),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-          ],
-        ),
+                // Mute indicator X overlay
+                if (widget.volume == 0)
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: context.mp.textTertiary.withValues(alpha: 0.3),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -277,33 +277,33 @@ class _CalibrationButton extends StatelessWidget {
           onTap: onTap,
           behavior: HitTestBehavior.opaque,
           child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: MonoPulseColors.borderSubtle, width: 1.5),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const Icon(
-              Icons.tune,
-              color: MonoPulseColors.accentOrange,
-              size: 22,
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: context.mp.borderSubtle, width: 1.5),
             ),
-            Positioned(
-              bottom: 4,
-              child: Text(
-                'A4 ${referenceHz.round()}',
-                style: MonoPulseTypography.labelSmall.copyWith(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(
+                  Icons.tune,
                   color: MonoPulseColors.accentOrange,
-                  fontSize: 7,
-                  fontWeight: MonoPulseTypography.medium,
+                  size: 22,
                 ),
-              ),
+                Positioned(
+                  bottom: 4,
+                  child: Text(
+                    'A4 ${referenceHz.round()}',
+                    style: MonoPulseTypography.labelSmall.copyWith(
+                      color: MonoPulseColors.accentOrange,
+                      fontSize: 7,
+                      fontWeight: MonoPulseTypography.medium,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
           ),
         ),
       ),
@@ -327,7 +327,7 @@ class _InputLevelIndicator extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: MonoPulseColors.borderSubtle, width: 1.5),
+          border: Border.all(color: context.mp.borderSubtle, width: 1.5),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -345,11 +345,7 @@ class _InputLevelIndicator extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(
-              Icons.mic,
-              size: 20,
-              color: MonoPulseColors.textSecondary,
-            ),
+            Icon(Icons.mic, size: 20, color: context.mp.textSecondary),
           ],
         ),
       ),

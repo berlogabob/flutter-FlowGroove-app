@@ -160,7 +160,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                   child: Text(
                     _band.name.isNotEmpty ? _band.name[0].toUpperCase() : '?',
                     style: MonoPulseTypography.headlineLarge.copyWith(
-                      color: MonoPulseColors.textPrimary,
+                      color: context.mp.textPrimary,
                     ),
                   ),
                 ),
@@ -172,14 +172,14 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                       Text(
                         _band.name,
                         style: MonoPulseTypography.headlineMedium.copyWith(
-                          color: MonoPulseColors.textPrimary,
+                          color: context.mp.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Created ${_formatDate(_band.createdAt)}',
                         style: MonoPulseTypography.bodyMedium.copyWith(
-                          color: MonoPulseColors.textSecondary,
+                          color: context.mp.textSecondary,
                         ),
                       ),
                     ],
@@ -277,7 +277,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 Text(
                   'Description',
                   style: MonoPulseTypography.headlineSmall.copyWith(
-                    color: MonoPulseColors.textPrimary,
+                    color: context.mp.textPrimary,
                   ),
                 ),
               ],
@@ -299,8 +299,8 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                     : 'No description yet',
                 style: TextStyle(
                   color: _band.description?.isNotEmpty == true
-                      ? MonoPulseColors.textPrimary
-                      : MonoPulseColors.textSecondary,
+                      ? context.mp.textPrimary
+                      : context.mp.textSecondary,
                 ),
               ),
           ],
@@ -323,7 +323,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 Text(
                   'Tags',
                   style: MonoPulseTypography.headlineSmall.copyWith(
-                    color: MonoPulseColors.textPrimary,
+                    color: context.mp.textPrimary,
                   ),
                 ),
               ],
@@ -354,9 +354,9 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
               ),
             ] else ...[
               if (_tags.isEmpty)
-                const Text(
+                Text(
                   'No tags yet',
-                  style: TextStyle(color: MonoPulseColors.textSecondary),
+                  style: TextStyle(color: context.mp.textSecondary),
                 )
               else
                 Wrap(
@@ -398,15 +398,15 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                     Text(
                       'Members',
                       style: MonoPulseTypography.headlineSmall.copyWith(
-                        color: MonoPulseColors.textPrimary,
+                        color: context.mp.textPrimary,
                       ),
                     ),
                   ],
                 ),
                 Text(
                   '${_band.members.length}',
-                  style: const TextStyle(
-                    color: MonoPulseColors.textSecondary,
+                  style: TextStyle(
+                    color: context.mp.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -414,9 +414,9 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
             ),
             const SizedBox(height: 12),
             if (_band.members.isEmpty)
-              const Text(
+              Text(
                 'No members found',
-                style: TextStyle(color: MonoPulseColors.textSecondary),
+                style: TextStyle(color: context.mp.textSecondary),
               )
             else
               ...List.generate(_band.members.length, (index) {
@@ -428,7 +428,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
               Text(
                 'You are an admin — tap a member to manage their role.',
                 style: MonoPulseTypography.bodySmall.copyWith(
-                  color: MonoPulseColors.textTertiary,
+                  color: context.mp.textTertiary,
                 ),
               ),
             ],
@@ -457,8 +457,8 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
       ),
       title: Text(
         memberLabel(displayName: member.displayName, email: member.email),
-        style: const TextStyle(
-          color: MonoPulseColors.textPrimary,
+        style: TextStyle(
+          color: context.mp.textPrimary,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -467,7 +467,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
         children: [
           Text(
             _formatRole(member.role),
-            style: const TextStyle(color: MonoPulseColors.textSecondary),
+            style: TextStyle(color: context.mp.textSecondary),
           ),
           if (member.musicRoles.isNotEmpty) ...[
             const SizedBox(height: 4),
@@ -496,11 +496,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
         ],
       ),
       trailing: canManageMembers
-          ? const Icon(
-              Icons.more_vert,
-              color: MonoPulseColors.textSecondary,
-              size: 20,
-            )
+          ? Icon(Icons.more_vert, color: context.mp.textSecondary, size: 20)
           : null,
     );
   }
@@ -525,7 +521,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                 child: Text(
                   name,
                   style: MonoPulseTypography.headlineSmall.copyWith(
-                    color: MonoPulseColors.textPrimary,
+                    color: context.mp.textPrimary,
                   ),
                 ),
               ),
@@ -541,7 +537,7 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
                         : Icons.radio_button_unchecked,
                     color: member.role == role
                         ? MonoPulseColors.accentOrange
-                        : MonoPulseColors.textSecondary,
+                        : context.mp.textSecondary,
                   ),
                   title: Text('${_formatRole(role)} role'),
                   onTap: () {

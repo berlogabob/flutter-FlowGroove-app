@@ -275,13 +275,13 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
             IconAction(
               icon: Icons.edit,
               tooltip: 'Edit setlist',
-              color: MonoPulseColors.textSecondary,
+              color: context.mp.textSecondary,
               onPressed: () => _handleEdit(index),
             ),
           IconAction(
             icon: Icons.av_timer,
             tooltip: 'Open in metronome',
-            color: MonoPulseColors.textSecondary,
+            color: context.mp.textSecondary,
             onPressed: () => _openInMetronome(setlist),
           ),
           OverflowMenuAction(

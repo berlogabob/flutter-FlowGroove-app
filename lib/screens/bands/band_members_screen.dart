@@ -34,10 +34,10 @@ class BandMembersScreen extends StatelessWidget {
         body: SafeArea(
           bottom: false,
           child: band.members.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     'No members found',
-                    style: TextStyle(color: MonoPulseColors.textSecondary),
+                    style: TextStyle(color: context.mp.textSecondary),
                   ),
                 )
               : ListView.separated(
@@ -61,8 +61,8 @@ class BandMembersScreen extends StatelessWidget {
                           displayName: member.displayName,
                           email: member.email,
                         ),
-                        style: const TextStyle(
-                          color: MonoPulseColors.textPrimary,
+                        style: TextStyle(
+                          color: context.mp.textPrimary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -71,9 +71,7 @@ class BandMembersScreen extends StatelessWidget {
                         children: [
                           Text(
                             _formatRole(member.role),
-                            style: const TextStyle(
-                              color: MonoPulseColors.textSecondary,
-                            ),
+                            style: TextStyle(color: context.mp.textSecondary),
                           ),
                           if (member.musicRoles.isNotEmpty) ...[
                             const SizedBox(height: 4),

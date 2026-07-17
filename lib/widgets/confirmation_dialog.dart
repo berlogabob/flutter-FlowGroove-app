@@ -6,7 +6,6 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a consistent confirmation dialog for destructive
 /// actions like deletions or irreversible operations.
 class ConfirmationDialog extends StatelessWidget {
-
   const ConfirmationDialog({
     required this.title,
     required this.message,
@@ -16,6 +15,7 @@ class ConfirmationDialog extends StatelessWidget {
     this.isDestructive = true,
     super.key,
   });
+
   /// The title of the dialog.
   final String title;
 
@@ -37,7 +37,7 @@ class ConfirmationDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: MonoPulseColors.surface,
+      backgroundColor: context.mp.surface,
       icon: Icon(
         icon ?? (isDestructive ? Icons.warning_amber : Icons.info_outline),
         color: isDestructive
@@ -48,19 +48,19 @@ class ConfirmationDialog extends StatelessWidget {
       title: Text(
         title,
         textAlign: TextAlign.center,
-        style: const TextStyle(color: MonoPulseColors.textPrimary),
+        style: TextStyle(color: context.mp.textPrimary),
       ),
       content: Text(
         message,
         textAlign: TextAlign.center,
-        style: const TextStyle(color: MonoPulseColors.textSecondary),
+        style: TextStyle(color: context.mp.textSecondary),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
           child: Text(
             cancelLabel,
-            style: const TextStyle(color: MonoPulseColors.textSecondary),
+            style: TextStyle(color: context.mp.textSecondary),
           ),
         ),
         ElevatedButton(
@@ -69,7 +69,7 @@ class ConfirmationDialog extends StatelessWidget {
             backgroundColor: isDestructive
                 ? MonoPulseColors.error
                 : MonoPulseColors.accentOrange,
-            foregroundColor: MonoPulseColors.black,
+            foregroundColor: context.mp.black,
           ),
           child: Text(confirmLabel),
         ),

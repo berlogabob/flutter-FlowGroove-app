@@ -8,7 +8,6 @@ import '../theme/mono_pulse_theme.dart';
 /// throughout the app to display error messages with an optional retry action.
 /// Styled with MonoPulse tokens so it reads correctly on the dark-only theme.
 class ErrorBanner extends StatelessWidget {
-
   const ErrorBanner({
     required this.message,
     this.title,
@@ -17,6 +16,7 @@ class ErrorBanner extends StatelessWidget {
     this.style = ErrorBannerStyle.banner,
     super.key,
   });
+
   /// The error message to display.
   final String message;
 
@@ -36,9 +36,9 @@ class ErrorBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (style) {
       case ErrorBannerStyle.banner:
-        return _buildBanner();
+        return _buildBanner(context);
       case ErrorBannerStyle.card:
-        return _buildCard();
+        return _buildCard(context);
       case ErrorBannerStyle.inline:
         return _buildInline();
     }
@@ -56,7 +56,7 @@ class ErrorBanner extends StatelessWidget {
     );
   }
 
-  Widget _buildBanner() {
+  Widget _buildBanner(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
@@ -70,14 +70,18 @@ class ErrorBanner extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.error_outline,
-                  color: MonoPulseColors.error, size: 24),
+              const Icon(
+                Icons.error_outline,
+                color: MonoPulseColors.error,
+                size: 24,
+              ),
               const SizedBox(width: MonoPulseSpacing.md),
               if (title != null) ...[
                 Text(
                   title!,
-                  style: MonoPulseTypography.titleMedium
-                      .copyWith(color: MonoPulseColors.error),
+                  style: MonoPulseTypography.titleMedium.copyWith(
+                    color: MonoPulseColors.error,
+                  ),
                 ),
                 const SizedBox(width: MonoPulseSpacing.sm),
               ],
@@ -86,8 +90,9 @@ class ErrorBanner extends StatelessWidget {
           const SizedBox(height: MonoPulseSpacing.sm),
           Text(
             message,
-            style: MonoPulseTypography.bodyMedium
-                .copyWith(color: MonoPulseColors.textPrimary),
+            style: MonoPulseTypography.bodyMedium.copyWith(
+              color: context.mp.textPrimary,
+            ),
           ),
           if (showRetry && onRetry != null) ...[
             const SizedBox(height: MonoPulseSpacing.md),
@@ -98,27 +103,32 @@ class ErrorBanner extends StatelessWidget {
     );
   }
 
-  Widget _buildCard() {
+  Widget _buildCard(BuildContext context) {
     return Card(
       color: MonoPulseColors.error10,
       child: Padding(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           children: [
-            const Icon(Icons.error_outline,
-                color: MonoPulseColors.error, size: 48),
+            const Icon(
+              Icons.error_outline,
+              color: MonoPulseColors.error,
+              size: 48,
+            ),
             const SizedBox(height: MonoPulseSpacing.lg),
             if (title != null)
               Text(
                 title!,
-                style: MonoPulseTypography.headlineSmall
-                    .copyWith(color: MonoPulseColors.error),
+                style: MonoPulseTypography.headlineSmall.copyWith(
+                  color: MonoPulseColors.error,
+                ),
               ),
             const SizedBox(height: MonoPulseSpacing.sm),
             Text(
               message,
-              style: MonoPulseTypography.bodyMedium
-                  .copyWith(color: MonoPulseColors.textPrimary),
+              style: MonoPulseTypography.bodyMedium.copyWith(
+                color: context.mp.textPrimary,
+              ),
               textAlign: TextAlign.center,
             ),
             if (showRetry && onRetry != null) ...[
@@ -139,8 +149,9 @@ class ErrorBanner extends StatelessWidget {
         Expanded(
           child: Text(
             message,
-            style: MonoPulseTypography.bodySmall
-                .copyWith(color: MonoPulseColors.error),
+            style: MonoPulseTypography.bodySmall.copyWith(
+              color: MonoPulseColors.error,
+            ),
           ),
         ),
         if (showRetry && onRetry != null)

@@ -67,10 +67,14 @@ class _WikiPanelState extends State<WikiPanel> {
 
   Future<String> _load(String key) async {
     try {
-      return stripFrontMatter(await rootBundle.loadString(wikiAssetForKey(key)));
+      return stripFrontMatter(
+        await rootBundle.loadString(wikiAssetForKey(key)),
+      );
     } catch (_) {
       // Fall back to the index if a screen has no dedicated page yet.
-      return stripFrontMatter(await rootBundle.loadString(wikiAssetForKey('_index')));
+      return stripFrontMatter(
+        await rootBundle.loadString(wikiAssetForKey('_index')),
+      );
     }
   }
 
@@ -80,12 +84,17 @@ class _WikiPanelState extends State<WikiPanel> {
     // main.dart `_withDesktopWiki`), so it has no Scaffold/Material of its own —
     // the toolbar button would assert without this.
     return Material(
-      color: MonoPulseColors.surface,
+      color: context.mp.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(MonoPulseSpacing.lg, MonoPulseSpacing.sm, MonoPulseSpacing.sm, 0),
+            padding: const EdgeInsets.fromLTRB(
+              MonoPulseSpacing.lg,
+              MonoPulseSpacing.sm,
+              MonoPulseSpacing.sm,
+              0,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -99,7 +108,7 @@ class _WikiPanelState extends State<WikiPanel> {
                   style: TextButton.styleFrom(
                     foregroundColor: _pinned
                         ? MonoPulseColors.accentOrange
-                        : MonoPulseColors.textSecondary,
+                        : context.mp.textSecondary,
                   ),
                 ),
               ],
@@ -116,12 +125,15 @@ class _WikiPanelState extends State<WikiPanel> {
                   data: snap.data!,
                   padding: const EdgeInsets.all(MonoPulseSpacing.xl),
                   styleSheet: MarkdownStyleSheet(
-                    h1: MonoPulseTypography.headlineSmall
-                        .copyWith(color: MonoPulseColors.textPrimary),
-                    p: MonoPulseTypography.bodyMedium
-                        .copyWith(color: MonoPulseColors.textSecondary),
-                    listBullet: MonoPulseTypography.bodyMedium
-                        .copyWith(color: MonoPulseColors.textSecondary),
+                    h1: MonoPulseTypography.headlineSmall.copyWith(
+                      color: context.mp.textPrimary,
+                    ),
+                    p: MonoPulseTypography.bodyMedium.copyWith(
+                      color: context.mp.textSecondary,
+                    ),
+                    listBullet: MonoPulseTypography.bodyMedium.copyWith(
+                      color: context.mp.textSecondary,
+                    ),
                     a: const TextStyle(color: MonoPulseColors.accentOrange),
                   ),
                   onTapLink: (text, href, title) {

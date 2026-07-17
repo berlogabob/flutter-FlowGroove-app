@@ -123,10 +123,10 @@ class _MainShellState extends ConsumerState<MainShell> {
           child: Row(
             children: [
               _buildRail(context, safeIndex),
-              const VerticalDivider(
+              VerticalDivider(
                 width: 1,
                 thickness: 1,
-                color: MonoPulseColors.borderSubtle,
+                color: context.mp.borderSubtle,
               ),
               Expanded(child: content),
             ],
@@ -147,7 +147,7 @@ class _MainShellState extends ConsumerState<MainShell> {
   Widget _buildRail(BuildContext context, int safeIndex) {
     return Container(
       width: 76,
-      color: MonoPulseColors.blackSurface,
+      color: context.mp.blackSurface,
       // Scrollable so the tabs never overflow on a short landscape height.
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),

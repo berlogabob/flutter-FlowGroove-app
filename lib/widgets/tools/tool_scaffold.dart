@@ -145,7 +145,7 @@ class ToolScreenScaffold extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: MonoPulseColors.black,
+        backgroundColor: context.mp.black,
         body: SafeArea(
           // The bottom bar has its own SafeArea for the home-indicator inset.
           bottom: false,
@@ -284,7 +284,7 @@ class ToolBlock extends StatelessWidget {
 
     if (showCard) {
       return Card(
-        color: MonoPulseColors.surface,
+        color: context.mp.surface,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -299,12 +299,12 @@ class ToolBlock extends StatelessWidget {
                 child: Text(
                   header!,
                   style: MonoPulseTypography.labelLarge.copyWith(
-                    color: MonoPulseColors.textSecondary,
+                    color: context.mp.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              const Divider(height: 1, color: MonoPulseColors.borderSubtle),
+              Divider(height: 1, color: context.mp.borderSubtle),
             ],
             childWidget,
           ],

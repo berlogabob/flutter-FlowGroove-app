@@ -37,23 +37,23 @@ class SetlistSongRow extends StatelessWidget {
         leading:
             leading ??
             CircleAvatar(
-              backgroundColor: MonoPulseColors.surfaceRaised,
+              backgroundColor: context.mp.surfaceRaised,
               child: Text(
                 '${index + 1}',
-                style: const TextStyle(
-                  color: MonoPulseColors.textSecondary,
+                style: TextStyle(
+                  color: context.mp.textSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
         title: Text(
           song?.title ?? 'Unavailable song',
-          style: const TextStyle(color: MonoPulseColors.textPrimary),
+          style: TextStyle(color: context.mp.textPrimary),
         ),
         subtitle: song != null
             ? Text(
                 song.artist,
-                style: const TextStyle(color: MonoPulseColors.textSecondary),
+                style: TextStyle(color: context.mp.textSecondary),
               )
             : null,
         trailing: song == null ? null : trailing,

@@ -23,21 +23,14 @@ Future<List<String>?> showRolePicker({
 }) {
   return showDialog<List<String>>(
     context: context,
-    builder: (context) => RolePickerDialog(
-      currentRoles: currentRoles,
-      title: title,
-    ),
+    builder: (context) =>
+        RolePickerDialog(currentRoles: currentRoles, title: title),
   );
 }
 
 /// Role picker dialog.
 class RolePickerDialog extends StatefulWidget {
-
-  const RolePickerDialog({
-    required this.currentRoles,
-    super.key,
-    this.title,
-  });
+  const RolePickerDialog({required this.currentRoles, super.key, this.title});
   final List<String> currentRoles;
   final String? title;
 
@@ -88,7 +81,9 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
     if (_searchQuery.isEmpty) return MusicRoleIcon.popularRoles;
     final query = _searchQuery.toLowerCase();
     return MusicRoleIcon.popularRoles
-        .where((r) => MusicRoleIcon.getDisplayName(r).toLowerCase().contains(query))
+        .where(
+          (r) => MusicRoleIcon.getDisplayName(r).toLowerCase().contains(query),
+        )
         .toList();
   }
 
@@ -117,7 +112,10 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                           _textController.clear();
                           setState(() => _searchQuery = '');
                         },
-                        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                        constraints: const BoxConstraints(
+                          minWidth: 48,
+                          minHeight: 48,
+                        ),
                       )
                     : null,
                 border: OutlineInputBorder(
@@ -144,7 +142,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
               Text(
                 'Selected:',
                 style: MonoPulseTypography.labelSmall.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
               ),
               const SizedBox(height: 4),
@@ -155,7 +153,9 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                   final icon = MusicRoleIcon.getIcon(role);
                   final displayName = MusicRoleIcon.getDisplayName(role);
                   return InputChip(
-                    label: Text(icon != null ? '$icon $displayName' : displayName),
+                    label: Text(
+                      icon != null ? '$icon $displayName' : displayName,
+                    ),
                     deleteIcon: const Icon(Icons.close, size: 16),
                     onDeleted: () => _toggleRole(role),
                     selected: true,
@@ -174,19 +174,21 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
             Text(
               'Popular roles:',
               style: MonoPulseTypography.labelSmall.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
             if (_filteredPopular.isEmpty && _searchQuery.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
+                padding: const EdgeInsets.symmetric(
+                  vertical: MonoPulseSpacing.lg,
+                ),
                 child: Center(
                   child: Text(
                     'No matching popular roles.\nType above to add custom role.',
                     textAlign: TextAlign.center,
                     style: MonoPulseTypography.bodySmall.copyWith(
-                      color: MonoPulseColors.textTertiary,
+                      color: context.mp.textTertiary,
                     ),
                   ),
                 ),
@@ -210,26 +212,31 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? MonoPulseColors.accentOrange10
-                            : MonoPulseColors.surfaceOverlay,
-                        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+                            : context.mp.surfaceOverlay,
+                        borderRadius: BorderRadius.circular(
+                          MonoPulseRadius.medium,
+                        ),
                         border: Border.all(
                           color: isSelected
                               ? MonoPulseColors.accentOrange
-                              : MonoPulseColors.textTertiary.withValues(alpha: 0.2),
+                              : context.mp.textTertiary.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (icon != null) Text(icon, style: const TextStyle(fontSize: 16)),
+                          if (icon != null)
+                            Text(icon, style: const TextStyle(fontSize: 16)),
                           if (icon != null) const SizedBox(width: 4),
                           Text(
                             displayName,
                             style: MonoPulseTypography.bodySmall.copyWith(
                               color: isSelected
                                   ? MonoPulseColors.accentOrange
-                                  : MonoPulseColors.textHighEmphasis,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                  : context.mp.textHighEmphasis,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
                             ),
                           ),
                         ],
@@ -250,7 +257,7 @@ class _RolePickerDialogState extends State<RolePickerDialog> {
           onPressed: () => Navigator.pop(context, _selectedRoles),
           style: ElevatedButton.styleFrom(
             backgroundColor: MonoPulseColors.accentOrange,
-            foregroundColor: MonoPulseColors.textPrimary,
+            foregroundColor: context.mp.textPrimary,
           ),
           child: const Text('Save'),
         ),

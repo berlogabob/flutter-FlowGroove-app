@@ -61,7 +61,7 @@ class QuickActionButton extends StatelessWidget {
     // Mono Pulse tile: a uniform horizontal row (icon left, label right) that
     // fills its grid cell — consistent density, no dead gutters (audit A9).
     return Material(
-      color: MonoPulseColors.surface,
+      color: context.mp.surface,
       borderRadius: BorderRadius.circular(MonoPulseRadius.large),
       child: InkWell(
         onTap: onTap,
@@ -72,17 +72,13 @@ class QuickActionButton extends StatelessWidget {
             vertical: MonoPulseSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: MonoPulseColors.surface,
-            border: Border.all(color: MonoPulseColors.borderSubtle),
+            color: context.mp.surface,
+            border: Border.all(color: context.mp.borderSubtle),
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
           child: Row(
             children: [
-              Icon(
-                icon,
-                color: MonoPulseColors.accentOrange,
-                size: iconSize,
-              ),
+              Icon(icon, color: MonoPulseColors.accentOrange, size: iconSize),
               const SizedBox(width: MonoPulseSpacing.sm),
               Expanded(
                 child: Text(

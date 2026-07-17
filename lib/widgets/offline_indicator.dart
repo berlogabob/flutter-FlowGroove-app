@@ -10,7 +10,6 @@ import '../services/connectivity_service.dart';
 /// - chip: Small chip indicator (only shows when offline)
 /// - minimal: Icon-only indicator (only shows when offline)
 class OfflineIndicator extends ConsumerWidget {
-
   const OfflineIndicator.banner({super.key})
     : variant = OfflineIndicatorVariant.banner;
 
@@ -52,12 +51,16 @@ class OfflineIndicator extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 20),
+          const Icon(
+            Icons.wifi_off,
+            color: MonoPulseColors.accentOrange,
+            size: 20,
+          ),
           const SizedBox(width: 8),
           Text(
             'Offline - Some features may be limited',
             style: MonoPulseTypography.bodySmall.copyWith(
-              color: MonoPulseColors.textPrimary,
+              color: context.mp.textPrimary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -68,7 +71,10 @@ class OfflineIndicator extends ConsumerWidget {
 
   Widget _buildChip(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MonoPulseSpacing.md,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: MonoPulseColors.accentOrange10,
         borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
@@ -77,12 +83,16 @@ class OfflineIndicator extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.wifi_off, color: MonoPulseColors.accentOrange, size: 16),
+          const Icon(
+            Icons.wifi_off,
+            color: MonoPulseColors.accentOrange,
+            size: 16,
+          ),
           const SizedBox(width: 6),
           Text(
             'Offline',
             style: MonoPulseTypography.bodySmall.copyWith(
-              color: MonoPulseColors.textPrimary,
+              color: context.mp.textPrimary,
               fontWeight: FontWeight.w500,
             ),
           ),

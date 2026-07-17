@@ -13,8 +13,8 @@ import '../../../../widgets/loading_indicator.dart';
 
 /// Dialog for exporting songs to CSV file.
 class SongExportDialog extends StatefulWidget {
-
   const SongExportDialog({required this.songs, super.key});
+
   /// List of songs to export.
   final List<Song> songs;
 
@@ -46,7 +46,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
                     'Export Songs',
                     style: MonoPulseTypography.headlineLarge.copyWith(
                       fontWeight: MonoPulseTypography.bold,
-                      color: MonoPulseColors.textHighEmphasis,
+                      color: context.mp.textHighEmphasis,
                     ),
                   ),
                 ],
@@ -88,7 +88,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
           'Export ${widget.songs.length} song(s) to CSV file:',
           style: MonoPulseTypography.titleMedium.copyWith(
             fontWeight: FontWeight.w500,
-            color: MonoPulseColors.textHighEmphasis,
+            color: context.mp.textHighEmphasis,
           ),
         ),
         const SizedBox(height: 24),
@@ -122,7 +122,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
           'CSV opens in Excel/Google Sheets. JSON is the FlowGroove Song format — '
           'paste it into an AI to edit, or back into Import.',
           style: MonoPulseTypography.bodyMedium.copyWith(
-            color: MonoPulseColors.textSecondary,
+            color: context.mp.textSecondary,
           ),
         ),
       ],
@@ -143,13 +143,13 @@ class _SongExportDialogState extends State<SongExportDialog> {
           'Export Successful!',
           style: MonoPulseTypography.titleLarge.copyWith(
             fontWeight: MonoPulseTypography.bold,
-            color: MonoPulseColors.textHighEmphasis,
+            color: context.mp.textHighEmphasis,
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Songs exported to CSV',
-          style: TextStyle(color: MonoPulseColors.textSecondary),
+          style: TextStyle(color: context.mp.textSecondary),
         ),
       ],
     );

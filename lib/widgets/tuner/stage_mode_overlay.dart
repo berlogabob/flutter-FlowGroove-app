@@ -14,10 +14,7 @@ import '../../theme/mono_pulse_theme.dart';
 /// Usage: Wrap the main tuner content with this widget.
 /// The overlay is controlled by [TunerState.stageModeActive].
 class StageModeOverlay extends ConsumerStatefulWidget {
-  const StageModeOverlay({
-    required this.child,
-    super.key,
-  });
+  const StageModeOverlay({required this.child, super.key});
 
   final Widget child;
 
@@ -87,11 +84,7 @@ class _StageModeOverlayState extends ConsumerState<StageModeOverlay> {
 
           // Stage mode overlay (shown when active)
           if (state.stageModeActive)
-            Positioned.fill(
-              child: _StageModeContent(
-                onExit: _exitStageMode,
-              ),
-            ),
+            Positioned.fill(child: _StageModeContent(onExit: _exitStageMode)),
         ],
       ),
     );
@@ -115,7 +108,7 @@ class _StageModeContent extends ConsumerWidget {
         curve: MonoPulseAnimation.curveDecelerate,
         opacity: 1,
         child: ColoredBox(
-          color: MonoPulseColors.black,
+          color: context.mp.black,
           child: SafeArea(
             child: Center(
               child: Column(
@@ -124,10 +117,10 @@ class _StageModeContent extends ConsumerWidget {
                   // Large note name
                   Text(
                     state.note.split(RegExp(r'\d')).first,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 120,
                       fontWeight: MonoPulseTypography.bold,
-                      color: MonoPulseColors.textHighEmphasis,
+                      color: context.mp.textHighEmphasis,
                       letterSpacing: -4,
                       height: 1,
                     ),
@@ -137,7 +130,7 @@ class _StageModeContent extends ConsumerWidget {
                   Text(
                     '${state.note} · ${state.frequency.round()} Hz',
                     style: MonoPulseTypography.headlineMedium.copyWith(
-                      color: MonoPulseColors.textTertiary,
+                      color: context.mp.textTertiary,
                       fontWeight: MonoPulseTypography.medium,
                     ),
                   ),
@@ -151,7 +144,7 @@ class _StageModeContent extends ConsumerWidget {
                     Text(
                       '${state.selectedInstrument?.name ?? ''} · ${state.selectedTuning?.name ?? ''}',
                       style: MonoPulseTypography.bodyLarge.copyWith(
-                        color: MonoPulseColors.textTertiary,
+                        color: context.mp.textTertiary,
                       ),
                     ),
                   const SizedBox(height: MonoPulseSpacing.xxxl),
@@ -167,7 +160,7 @@ class _StageModeContent extends ConsumerWidget {
                         child: Text(
                           'Tap to exit Stage Mode',
                           style: MonoPulseTypography.labelSmall.copyWith(
-                            color: MonoPulseColors.textDisabled,
+                            color: context.mp.textDisabled,
                           ),
                         ),
                       );
@@ -198,9 +191,9 @@ class _LargeCentsIndicator extends StatelessWidget {
     } else if (cents.abs() <= 5) {
       centsColor = MonoPulseColors.successGreen;
     } else if (cents.abs() <= 15) {
-      centsColor = MonoPulseColors.textSecondary;
+      centsColor = context.mp.textSecondary;
     } else {
-      centsColor = MonoPulseColors.textTertiary;
+      centsColor = context.mp.textTertiary;
     }
 
     final sign = cents > 0 ? '+' : '';
