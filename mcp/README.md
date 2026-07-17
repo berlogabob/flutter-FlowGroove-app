@@ -65,3 +65,8 @@ own library; there are no canonical or delete operations.
 
 > "List my FlowGroove songs, then add *Zombie* by The Cranberries in Em with the verse
 > and chorus chords over the lyrics."
+
+## Remote connector (no key, no local server)
+
+The one-click OAuth path for claude.ai/ChatGPT lives in
+`functions/src/mcp/remote.js` (`mcpRemote`) — setup runbook: [REMOTE_SETUP.md](REMOTE_SETUP.md).
