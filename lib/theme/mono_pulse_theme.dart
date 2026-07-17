@@ -544,49 +544,57 @@ class MonoPulseTheme {
 
   static ThemeData get theme => _build(MonoPulsePalette.dark, Brightness.dark);
 
+  /// The ColorScheme both themes share, exposed for direct testing (the
+  /// full ThemeData pulls GoogleFonts, which tests can't load).
+  @visibleForTesting
+  static ColorScheme schemeFor(MonoPulsePalette p, Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    final baseScheme = dark
+        ? const ColorScheme.dark()
+        : const ColorScheme.light();
+    return baseScheme.copyWith(
+      primary: MonoPulseColors.accentOrange,
+      primaryContainer: MonoPulseColors.accentOrangeDark,
+      onPrimaryContainer: p.textPrimary,
+      secondary: p.textSecondary,
+      // Pin the *Container slots explicitly: ColorScheme's getters fall
+      // back secondaryContainer→secondary / tertiaryContainer→tertiary,
+      // and copyWith BAKES the base scheme's getter value in — leaving
+      // these unset froze legacy teal #03DAC6 into tonal buttons (the
+      // 0.17.0 cyan-button regression).
+      secondaryContainer: p.textSecondary,
+      onSecondaryContainer: dark
+          ? MonoPulseColors.black
+          : MonoPulseColors.white,
+      tertiary: p.surfaceRaised,
+      onTertiary: p.textPrimary,
+      tertiaryContainer: p.surfaceRaised,
+      onTertiaryContainer: p.textPrimary,
+      surface: p.surface,
+      onSurface: p.textPrimary,
+      surfaceContainerHighest: p.surfaceRaised,
+      onSurfaceVariant: p.textSecondary,
+      outline: p.borderDefault,
+      outlineVariant: p.borderSubtle,
+      error: MonoPulseColors.error,
+      onError: MonoPulseColors.white,
+      errorContainer: MonoPulseColors.error10,
+      onErrorContainer: MonoPulseColors.error,
+      shadow: MonoPulseColors.black,
+    );
+  }
+
   static ThemeData _build(MonoPulsePalette p, Brightness brightness) {
     final dark = brightness == Brightness.dark;
     // White-based hover reads on dark; flip to black-based on light.
     final hover = dark ? MonoPulseColors.stateHover : const Color(0x0A000000);
-    final baseScheme = dark
-        ? const ColorScheme.dark()
-        : const ColorScheme.light();
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       extensions: <ThemeExtension<dynamic>>[p],
 
-      colorScheme: baseScheme.copyWith(
-        primary: MonoPulseColors.accentOrange,
-        primaryContainer: MonoPulseColors.accentOrangeDark,
-        onPrimaryContainer: p.textPrimary,
-        secondary: p.textSecondary,
-        // Pin the *Container slots explicitly: ColorScheme's getters fall
-        // back secondaryContainer→secondary / tertiaryContainer→tertiary,
-        // and copyWith BAKES the base scheme's getter value in — leaving
-        // these unset froze legacy teal #03DAC6 into tonal buttons (the
-        // 0.17.0 cyan-button regression).
-        secondaryContainer: p.textSecondary,
-        onSecondaryContainer: dark
-            ? MonoPulseColors.black
-            : MonoPulseColors.white,
-        tertiary: p.surfaceRaised,
-        onTertiary: p.textPrimary,
-        tertiaryContainer: p.surfaceRaised,
-        onTertiaryContainer: p.textPrimary,
-        surface: p.surface,
-        onSurface: p.textPrimary,
-        surfaceContainerHighest: p.surfaceRaised,
-        onSurfaceVariant: p.textSecondary,
-        outline: p.borderDefault,
-        outlineVariant: p.borderSubtle,
-        error: MonoPulseColors.error,
-        onError: MonoPulseColors.white,
-        errorContainer: MonoPulseColors.error10,
-        onErrorContainer: MonoPulseColors.error,
-        shadow: MonoPulseColors.black,
-      ),
+      colorScheme: schemeFor(p, brightness),
 
       // Scaffold ("black" is the app background slot; paper in light).
       scaffoldBackgroundColor: p.black,

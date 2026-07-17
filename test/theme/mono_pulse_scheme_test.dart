@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   group('MonoPulse ColorScheme derived slots (#149 cyan regression)', () {
     // ColorScheme's getters fall back secondaryContainer→secondary and
     // copyWith bakes the BASE scheme's getter value in — leaving the
@@ -12,12 +10,14 @@ void main() {
     // FilledButton.tonal in 0.17.0.
     const legacyTeal = Color(0xFF03DAC6);
 
-    for (final (name, themeOf) in [
-      ('dark', () => MonoPulseTheme.theme),
-      ('light', () => MonoPulseTheme.lightTheme),
+    for (final (name, palette, brightness) in [
+      ('dark', MonoPulsePalette.dark, Brightness.dark),
+      ('light', MonoPulsePalette.light, Brightness.light),
     ]) {
       test('$name theme has no legacy teal in any scheme slot', () {
-        final s = themeOf().colorScheme;
+        // schemeFor is the exact scheme _build puts into ThemeData; testing
+        // it directly avoids GoogleFonts, which tests cannot load.
+        final s = MonoPulseTheme.schemeFor(palette, brightness);
         final slots = {
           'secondary': s.secondary,
           'secondaryContainer': s.secondaryContainer,
