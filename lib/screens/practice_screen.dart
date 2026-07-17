@@ -55,28 +55,25 @@ class PracticeScreen extends ConsumerWidget {
           _sectionTitle(context, 'Quick start'),
           Row(
             children: [
-              Expanded(
-                child: FilledButton.tonalIcon(
-                  onPressed: () => context.pushNamed('metronome'),
-                  icon: const Icon(Icons.speed),
-                  label: const Text('Metronome'),
-                ),
+              _quickStartButton(
+                context,
+                icon: Icons.speed,
+                label: 'Metronome',
+                route: 'metronome',
               ),
               const SizedBox(width: MonoPulseSpacing.md),
-              Expanded(
-                child: FilledButton.tonalIcon(
-                  onPressed: () => context.pushNamed('tuner'),
-                  icon: const Icon(Icons.tune),
-                  label: const Text('Tuner'),
-                ),
+              _quickStartButton(
+                context,
+                icon: Icons.tune,
+                label: 'Tuner',
+                route: 'tuner',
               ),
               const SizedBox(width: MonoPulseSpacing.md),
-              Expanded(
-                child: FilledButton.tonalIcon(
-                  onPressed: () => context.pushNamed('recorder'),
-                  icon: const Icon(Icons.mic),
-                  label: const Text('Recorder'),
-                ),
+              _quickStartButton(
+                context,
+                icon: Icons.mic,
+                label: 'Recorder',
+                route: 'recorder',
               ),
             ],
           ),
@@ -95,6 +92,21 @@ class PracticeScreen extends ConsumerWidget {
       ),
     );
   }
+
+  /// One-line quick-start button: FittedBox scales the label down instead
+  /// of letting "Metronome"/"Recorder" wrap to two lines at phone width.
+  Widget _quickStartButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String route,
+  }) => Expanded(
+    child: FilledButton.tonalIcon(
+      onPressed: () => context.pushNamed(route),
+      icon: Icon(icon),
+      label: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
+    ),
+  );
 
   Widget _sectionTitle(BuildContext context, String title) => Padding(
     padding: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),

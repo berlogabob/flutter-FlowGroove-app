@@ -105,7 +105,7 @@ check-env-prod: preflight-prod
 # TEST DEPLOYMENT - GitHub Pages (second01 branch)
 # =============================================================================
 
-deploy-test: check-env-test build-web-github
+deploy-test: check-env-test
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║  ⚠️  WARNING: This destroys the Hugo landing page!        ║"
@@ -115,6 +115,13 @@ deploy-test: check-env-test build-web-github
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
 	@read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ] || (echo "Aborted."; exit 1)
+	@$(MAKE) deploy-pages
+
+# Non-interactive Pages deploy (#149): Flutter app at docs/ root — the layout
+# github.io actually serves (Pages source = second01/docs). release-all uses
+# THIS, not Makefile.hugo deploy-all, whose docs/app/ output is gitignored
+# and silently committed nothing.
+deploy-pages: check-env-test build-web-github
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║      Deploying to GitHub Pages (second01 branch)          ║"
@@ -518,7 +525,7 @@ release-all:
 	@$(MAKE) test-fast
 	@./scripts/bump-build-number.sh $(LEVEL)
 	@$(MAKE) deploy-rules deploy-stable
-	@$(MAKE) -f Makefile.hugo deploy-all
+	@$(MAKE) deploy-pages
 	@$(MAKE) release SKIP_BUMP=1
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"

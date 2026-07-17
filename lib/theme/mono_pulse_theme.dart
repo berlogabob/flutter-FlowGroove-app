@@ -562,8 +562,19 @@ class MonoPulseTheme {
         primaryContainer: MonoPulseColors.accentOrangeDark,
         onPrimaryContainer: p.textPrimary,
         secondary: p.textSecondary,
+        // Pin the *Container slots explicitly: ColorScheme's getters fall
+        // back secondaryContainer→secondary / tertiaryContainer→tertiary,
+        // and copyWith BAKES the base scheme's getter value in — leaving
+        // these unset froze legacy teal #03DAC6 into tonal buttons (the
+        // 0.17.0 cyan-button regression).
+        secondaryContainer: p.textSecondary,
+        onSecondaryContainer: dark
+            ? MonoPulseColors.black
+            : MonoPulseColors.white,
         tertiary: p.surfaceRaised,
         onTertiary: p.textPrimary,
+        tertiaryContainer: p.surfaceRaised,
+        onTertiaryContainer: p.textPrimary,
         surface: p.surface,
         onSurface: p.textPrimary,
         surfaceContainerHighest: p.surfaceRaised,
