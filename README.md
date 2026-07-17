@@ -81,10 +81,15 @@ Deploy target:
 
 - Shared song library with metadata, links, unique IDs, and structure editing
 - Tagging, filter/sort, and duplicate detection with field-by-field cluster merge
+- Song Lab: per-song journal (notes/decisions/experiments/problems), tasks that surface as Practice homework, version snapshots, audio recordings with live waveform, Markdown history export
+- Recorder: one-tap Audio note capture on Home (recording auto-starts), unlinked-takes inbox, link any take into a song's Lab later
+- Event Kit for setlists: stage plot editor, per-song role cards, and an event-guide PDF bundled with the setlist export
 - Lyrics + chords performance sheet (ChordPro): keep-awake stage view, live transpose, per-song PDF via the standard 3-dot menu (As is, or Compact — fit one A4 page; key/scale · tempo · time · song-map header), paste-to-import, and a Song ⇄ ChordPro sync codec that round-trips a full chart without losing unknown directives
 - Band management with membership and invite/join flows
 - Rehearsal Planner: propose times, poll member availability (can/maybe/can't), auto-suggest the best slot around required/optional members, confirm with an attached setlist, and export to calendar (.ics)
 - Drag-and-drop setlists with per-gig overrides for key, BPM, notes, and order
+- Practice dashboard (Home) + Practice screen: weekly minutes, streak, 7-day graph, time-per-song split and a session logbook — fed automatically by metronome sessions
+- Dark and light MonoPulse themes (ThemeExtension palette; system-follow supported)
 - Offline-first data flow with Hive-backed local caching
 - Firebase Auth, Firestore, and Storage integration
 - In-app account deletion (Google Play compliant), removing all associated data

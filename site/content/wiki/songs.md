@@ -6,8 +6,8 @@ title: "Songs"
 
 Your personal song library.
 
-- **Menu (⋯)** in the bottom bar holds the library tools: **Find duplicates**,
-  **Import from CSV**, **Export to CSV**.
+- **Menu (⋯)** in the bottom bar holds the library tools: **Browse catalog**,
+  **Find duplicates**, **Import from CSV**, **Export to CSV**.
 - The **Key / BPM filter** understands flats and minors — filtering by G# also
   finds songs saved as Ab, and the **Major/Minor** toggle switches the key
   chips. BPM presets match the song's exact Our BPM; songs without one stay
@@ -47,7 +47,8 @@ Your personal song library.
   header carries key, scale, tempo, time signature and the song map.
 - **CSV** export/import now carries the per-section chords too, so your chart survives
   a trip through a spreadsheet.
-- Song cards show the key **and scale** (e.g. *Am · minor*) and the section count.
+- Song cards lead with the full-width title; below it a meta rail shows the key
+  chip, tempo, and — for band copies — who added the song.
 - Open a song to edit its details or song structure.
 - Songs you add to a band become independent copies in that band — editing the band's
   copy changes only that copy, not your personal song.
@@ -69,3 +70,22 @@ Your personal song library.
   group into one song. The merge is recorded so it's traceable.
 
 - See [AI & Import](../ai-and-import/) to import or connect your own AI.
+
+## Song Lab — the song's journal
+
+Every song has a **Lab** (song card ⋯ menu → *Song Lab*): the story of *your
+version* of the song, kept next to the song itself.
+
+- **Timeline** — typed entries: notes, decisions ("why we play it this way"),
+  experiments, problems. Quick-add chips at the top; filter by type.
+- **+ Record** (first chip, orange mic) — record a take or attach an audio
+  file, with a title and timestamp notes ("00:42 good chorus entry"). A live
+  waveform shows while recording; entries play back inline. Unlinked ideas
+  recorded from Home land in the [Recorder](../practice/) and can be linked
+  into a song's Lab later.
+- **Tasks** — per-song homework with statuses; open tasks across your library
+  show up on the [Practice](../practice/) screen.
+- **Versions** — snapshot the current arrangement (key, tempo, structure,
+  chart) with a name; the change lands in the timeline, so nothing is
+  silently overwritten.
+- **Export history** (Lab ⋯ menu) — the whole journal as Markdown.

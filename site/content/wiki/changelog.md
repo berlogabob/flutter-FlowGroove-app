@@ -5,7 +5,7 @@ description: "What shipped in FlowGroove, when, and why — the human-readable p
 
 # Changelog & Archive
 
-The full FlowGroove history — **336 notable changes** across **237 releases**, from day 0 (2026-02-03) to today. The complete machine-readable log (including chores and every release) lives in `site/data/history.yaml`.
+The full FlowGroove history, from day 0 (2026-02-03) to today. The complete machine-readable log (including chores and every release) lives in `site/data/history.yaml`.
 
 
 ## Genesis
