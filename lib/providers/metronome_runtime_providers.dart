@@ -616,11 +616,18 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
       final onTick = _onTick;
       if (config == null || onTick == null) return;
 
-      _tickIndex = (_tickIndex + 1) % config.totalTicks;
+      // The scheduler skips (not replays) ticks missed during event-loop
+      // stalls; jump the beat position by the same amount so it stays true
+      // to wall time — playing only the current tick, never a burst.
+      final skipped = _scheduler.lastSkippedTicks;
+      _tickIndex = (_tickIndex + 1 + skipped) % config.totalTicks;
       final tick = config.tickForIndex(_tickIndex);
 
       // Count-in logic: skip audio playback during count-in bars
       final countInTotalTicks = config.countInBars * config.totalTicks;
+      if (skipped > 0 && _countInTicks < countInTotalTicks) {
+        _countInTicks += skipped;
+      }
       if (_countInTicks < countInTotalTicks) {
         // During count-in: fire haptics but skip audio
         if (config.hapticsEnabled && tick.shouldPlay) {
