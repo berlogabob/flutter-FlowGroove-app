@@ -137,6 +137,11 @@ const double _kMaxCircleContainer = 48;
 /// Smaller maximum used on narrow screens.
 const double _kMaxCircleContainerSmall = 40;
 
+/// Minimum tap-target extent (Material 48dp). The visible dot stays small, but
+/// the touchable area is padded up to this so beat toggles aren't mis-tap-prone
+/// when the strip shrinks to fit many beats (UX audit F-006).
+const double _kMinTapTarget = 48;
+
 /// Absolute floor for a circle cell. A beat indicator is a real-time status
 /// display first: every beat must stay visible, so we keep shrinking down to
 /// this floor rather than scrolling. At the app's max of 12 beats this still
@@ -556,7 +561,9 @@ class _BeatModeCircle extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
           width: containerSize,
-          height: containerSize,
+          // Width tiles to fit every beat, but the tap target stays >=48dp tall
+          // (the row is already this tall from the +/- buttons). F-006.
+          height: math.max(containerSize, _kMinTapTarget),
           child: Center(
             child: AnimatedContainer(
               duration: MonoPulseAnimation.durationShort,
