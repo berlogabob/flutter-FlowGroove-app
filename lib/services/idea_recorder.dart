@@ -45,6 +45,12 @@ Future<void> captureIdea(
       songId: targetSongId,
       entryId: entryId,
       ext: result.ext,
+      contentType: switch (result.ext) {
+        'wav' => 'audio/wav',
+        'mp3' => 'audio/mpeg',
+        'ogg' => 'audio/ogg',
+        _ => 'audio/mp4',
+      },
     );
     final uid = ref.read(firebaseAuthProvider).currentUser?.uid ?? '';
     final now = DateTime.now();

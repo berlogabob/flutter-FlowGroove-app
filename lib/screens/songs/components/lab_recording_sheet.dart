@@ -8,6 +8,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import '../../../services/audio/pcm_wav_recorder.dart';
 import '../../../theme/mono_pulse_theme.dart';
 
 /// Result of the recording sheet (#69): audio bytes + metadata for upload.
@@ -53,11 +54,16 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   Uint8List? _bytes;
   String _ext = 'm4a';
   String? _pickedName;
+  PcmWavRecorder? _wavRecorder;
+
+  /// Web records uncompressed WAV (~5.3MB/min mono); stop before the 25MB
+  /// Storage cap. Native m4a has no practical cap in one memo.
+  static const int _webMaxSeconds = 240;
 
   @override
   void initState() {
     super.initState();
-    if (widget.autoStart && !kIsWeb) {
+    if (widget.autoStart) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) unawaited(_startGuarded());
       });
@@ -76,6 +82,9 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   void dispose() {
     _ticker?.cancel();
     _ampSub?.cancel();
+    if (_wavRecorder?.isRecording ?? false) {
+      unawaited(_wavRecorder!.cancel());
+    }
     _recorder.dispose();
     _title.dispose();
     _notes.dispose();
@@ -84,44 +93,70 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
 
   Future<void> _toggleRecord() async {
     if (_recording) {
-      final path = await _recorder.stop();
       _ticker?.cancel();
       await _ampSub?.cancel();
       _ampSub = null;
-      if (path != null) {
-        final bytes = await File(path).readAsBytes();
-        setState(() {
-          _bytes = bytes;
-          _ext = 'm4a';
-          _pickedName = null;
-          _recording = false;
-        });
+      final Uint8List? bytes;
+      final String ext;
+      if (kIsWeb) {
+        bytes = await _wavRecorder?.stop();
+        ext = 'wav';
       } else {
-        setState(() => _recording = false);
+        final path = await _recorder.stop();
+        bytes = path == null ? null : await File(path).readAsBytes();
+        ext = 'm4a';
       }
+      setState(() {
+        if (bytes != null && bytes.isNotEmpty) {
+          _bytes = bytes;
+          _ext = ext;
+          _pickedName = null;
+        }
+        _recording = false;
+      });
       return;
     }
     if (!await _recorder.hasPermission()) return;
-    final dir = await getTemporaryDirectory();
-    final path =
-        '${dir.path}/lab_rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
-    await _recorder.start(const RecordConfig(), path: path);
+    if (kIsWeb) {
+      // No filesystem on web: stream PCM16 (the tuner's proven capture path)
+      // and wrap it into WAV on stop (#150).
+      final recorder = _wavRecorder ??= PcmWavRecorder(_recorder);
+      recorder.onLevel = (dbfs) {
+        if (!mounted) return;
+        setState(() {
+          _amps.add(dbfs);
+          if (_amps.length > _RecordingWavePainter.maxBars) {
+            _amps.removeAt(0);
+          }
+        });
+      };
+      await recorder.start();
+    } else {
+      final dir = await getTemporaryDirectory();
+      final path =
+          '${dir.path}/lab_rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      await _recorder.start(const RecordConfig(), path: path);
+      _ampSub = _recorder
+          .onAmplitudeChanged(const Duration(milliseconds: 100))
+          .listen((a) {
+            if (!mounted) return;
+            setState(() {
+              _amps.add(a.current);
+              if (_amps.length > _RecordingWavePainter.maxBars) {
+                _amps.removeAt(0);
+              }
+            });
+          });
+    }
     _elapsed = 0;
     _amps.clear();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _elapsed++);
+      if (!mounted) return;
+      setState(() => _elapsed++);
+      if (kIsWeb && _recording && _elapsed >= _webMaxSeconds) {
+        unawaited(_toggleRecord());
+      }
     });
-    _ampSub = _recorder
-        .onAmplitudeChanged(const Duration(milliseconds: 100))
-        .listen((a) {
-          if (!mounted) return;
-          setState(() {
-            _amps.add(a.current);
-            if (_amps.length > _RecordingWavePainter.maxBars) {
-              _amps.removeAt(0);
-            }
-          });
-        });
     setState(() {
       _recording = true;
       _bytes = null;
@@ -155,9 +190,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
           ? '$_pickedName · ${mb}MB'
           : 'Recording ready · ${mb}MB';
     }
-    return kIsWeb
-        ? 'Attach an audio file (recording: use the mobile app)'
-        : 'Record an idea or attach a file';
+    return 'Record an idea or attach a file';
   }
 
   @override
@@ -193,15 +226,14 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
             const SizedBox(height: MonoPulseSpacing.md),
             Row(
               children: [
-                if (!kIsWeb)
-                  Expanded(
-                    child: FilledButton.tonalIcon(
-                      onPressed: _toggleRecord,
-                      icon: Icon(_recording ? Icons.stop : Icons.mic),
-                      label: Text(_recording ? 'Stop' : 'Record'),
-                    ),
+                Expanded(
+                  child: FilledButton.tonalIcon(
+                    onPressed: _toggleRecord,
+                    icon: Icon(_recording ? Icons.stop : Icons.mic),
+                    label: Text(_recording ? 'Stop' : 'Record'),
                   ),
-                if (!kIsWeb) const SizedBox(width: MonoPulseSpacing.md),
+                ),
+                const SizedBox(width: MonoPulseSpacing.md),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: _recording ? null : _pickFile,
