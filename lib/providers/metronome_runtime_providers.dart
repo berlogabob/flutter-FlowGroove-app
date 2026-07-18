@@ -122,6 +122,35 @@ class WebAudioMetronomeAudioClient implements MetronomeAudioClient {
 
   @override
   Future<void> dispose() async => _engine.dispose();
+
+  /// Direct engine access for the lookahead playback client.
+  AudioEngine get engine => _engine;
+}
+
+/// Audio client that plays nothing — used by [WebAudioLookaheadPlaybackClient]
+/// so the inherited tick handler keeps driving UI/haptics/count-in while the
+/// audio is scheduled ahead on the AudioContext clock instead.
+class _MutedMetronomeAudioClient implements MetronomeAudioClient {
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> preWarmPlayers() async {}
+
+  @override
+  Future<void> playClick({
+    required bool isAccent,
+    required String waveType,
+    required double volume,
+    double? accentFrequency,
+    double? beatFrequency,
+  }) async {}
+
+  @override
+  Future<void> playTest() async {}
+
+  @override
+  Future<void> dispose() async {}
 }
 
 abstract class MetronomeHapticsClient {
@@ -702,6 +731,111 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
   }
 }
 
+/// Web playback client: UI/haptics/count-in ride the (skip-safe)
+/// [WallClockScheduler] via the base class with a muted audio client, while
+/// the actual clicks are scheduled ahead of time on the AudioContext clock —
+/// immune to Dart timer jitter and tab throttling (#152).
+class WebAudioLookaheadPlaybackClient extends FlutterMetronomePlaybackClient {
+  WebAudioLookaheadPlaybackClient({
+    required WebAudioMetronomeAudioClient webAudioClient,
+    required super.hapticsClient,
+  }) : _webAudio = webAudioClient,
+       super(audioClient: _MutedMetronomeAudioClient());
+
+  final WebAudioMetronomeAudioClient _webAudio;
+  Timer? _pumpTimer;
+  double _nextAudioTime = 0;
+  int _audioTickIndex = -1;
+  int _audioTickNumber = 0;
+
+  static const double _lookaheadSeconds = 0.25;
+  static const Duration _pumpInterval = Duration(milliseconds: 100);
+
+  @override
+  Future<void> start(
+    MetronomePlaybackConfig config, {
+    required MetronomePlaybackTickCallback onTick,
+    VoidCallback? onStopped,
+    int initialTick = -1,
+  }) async {
+    await _webAudio.initialize();
+    await super.start(
+      config,
+      onTick: onTick,
+      onStopped: onStopped,
+      initialTick: initialTick,
+    );
+    _audioTickIndex = initialTick;
+    _audioTickNumber = 0;
+    _anchorNextTick(config);
+    _pumpTimer?.cancel();
+    _pumpTimer = Timer.periodic(_pumpInterval, (_) => _pump());
+    _pump();
+  }
+
+  @override
+  Future<void> resetPhase(MetronomePlaybackConfig config) async {
+    _webAudio.engine.cancelScheduled();
+    await super.resetPhase(config);
+    _audioTickIndex = -1;
+    // Mirror the base class: resetPhase treats the count-in as consumed.
+    _audioTickNumber = config.countInBars * config.totalTicks;
+    _anchorNextTick(config);
+  }
+
+  @override
+  Future<void> stop() async {
+    _pumpTimer?.cancel();
+    _pumpTimer = null;
+    _webAudio.engine.cancelScheduled();
+    await super.stop();
+  }
+
+  @override
+  void dispose() {
+    _pumpTimer?.cancel();
+    _pumpTimer = null;
+    super.dispose();
+  }
+
+  void _anchorNextTick(MetronomePlaybackConfig config) {
+    final contextTime = _webAudio.engine.currentContextTime ?? 0;
+    _nextAudioTime = contextTime + config.interval.inMicroseconds / 1e6;
+  }
+
+  void _pump() {
+    final config = _config;
+    if (config == null || config.totalTicks <= 0) return;
+    final engine = _webAudio.engine;
+    final contextTime = engine.currentContextTime;
+    if (contextTime == null) return;
+    final interval = config.interval.inMicroseconds / 1e6;
+    if (interval <= 0) return;
+
+    final horizon = contextTime + _lookaheadSeconds;
+    final countInTotal = config.countInBars * config.totalTicks;
+    while (_nextAudioTime < horizon) {
+      _audioTickIndex = (_audioTickIndex + 1) % config.totalTicks;
+      // If the pump itself was throttled past this tick's moment, advance the
+      // position without scheduling audio (the UI scheduler skips too).
+      final missed = _nextAudioTime < contextTime;
+      if (!missed && _audioTickNumber >= countInTotal) {
+        final tick = config.tickForIndex(_audioTickIndex);
+        if (tick.shouldPlay) {
+          engine.scheduleClick(
+            atTime: _nextAudioTime,
+            waveType: config.waveType,
+            volume: config.volume,
+            frequency: tick.frequency,
+          );
+        }
+      }
+      _audioTickNumber++;
+      _nextAudioTime += interval;
+    }
+  }
+}
+
 class PlatformMetronomePlaybackClient implements MetronomePlaybackClient {
   PlatformMetronomePlaybackClient({
     required this._fallback,
@@ -915,16 +1049,27 @@ final metronomePlaybackClientProvider = Provider<MetronomePlaybackClient>((
     return c;
   }
 
+  // Web: the flutter_soloud PCM timeline and the Android platform channel are
+  // both unavailable. Schedule clicks ahead on the AudioContext clock.
+  if (kIsWeb) {
+    final webAudio = ref.read(metronomeAudioClientProvider);
+    final MetronomePlaybackClient client = webAudio
+            is WebAudioMetronomeAudioClient
+        ? WebAudioLookaheadPlaybackClient(
+            webAudioClient: webAudio,
+            hapticsClient: ref.read(metronomeHapticsProvider),
+          )
+        : FlutterMetronomePlaybackClient(
+            audioClient: webAudio,
+            hapticsClient: ref.read(metronomeHapticsProvider),
+          );
+    ref.onDispose(client.dispose);
+    return client;
+  }
   final fallback = FlutterMetronomePlaybackClient(
     audioClient: ref.read(metronomeAudioClientProvider),
     hapticsClient: ref.read(metronomeHapticsProvider),
   );
-  // Web: the flutter_soloud PCM timeline and the Android platform channel are
-  // both unavailable, so drive ticks through the Web Audio scheduler directly.
-  if (kIsWeb) {
-    ref.onDispose(fallback.dispose);
-    return fallback;
-  }
   final legacy = PlatformMetronomePlaybackClient(fallback: fallback);
   final client = MetronomeFeatureFlags.enablePcmTimelineEngine
       ? PcmTimelineMetronomePlaybackClient(fallback: legacy)

@@ -10,6 +10,7 @@ import 'package:web/web.dart' as web;
 class AudioEngine {
   web.AudioContext? _audioContext;
   bool _initialized = false;
+  final List<(web.OscillatorNode, double)> _scheduled = [];
 
   /// Initialize audio context (must be called after user interaction)
   Future<void> initialize() async {
@@ -26,6 +27,60 @@ class AudioEngine {
 
   /// Web uses lazy AudioContext initialization, so pre-warm is a no-op.
   Future<void> preWarmPlayers() async {}
+
+  /// Current AudioContext time in seconds, or null before initialization.
+  /// This is the audio hardware clock — the reference for [scheduleClick].
+  double? get currentContextTime => _audioContext?.currentTime;
+
+  /// Schedule a click at an exact AudioContext time (lookahead scheduling).
+  /// Unlike [playClick], the oscillator starts on the audio clock, so timing
+  /// is immune to Dart timer jitter and tab throttling.
+  void scheduleClick({
+    required double atTime,
+    required String waveType,
+    required double volume,
+    required double frequency,
+  }) {
+    final context = _audioContext;
+    if (!_initialized || context == null) return;
+
+    try {
+      final oscillator = context.createOscillator();
+      final gainNode = context.createGain();
+      oscillator.type = waveType;
+      oscillator.frequency.value = frequency;
+
+      gainNode.gain.setValueAtTime(0, atTime);
+      gainNode.gain.linearRampToValueAtTime(volume, atTime + 0.001);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, atTime + 0.04);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+      oscillator
+        ..start(atTime)
+        ..stop(atTime + 0.04);
+
+      // Prune finished nodes by time — cheaper than onended JS callbacks.
+      final now = context.currentTime;
+      _scheduled
+        ..removeWhere((entry) => entry.$2 < now)
+        ..add((oscillator, atTime + 0.04));
+    } catch (e) {
+      debugPrint('Error scheduling click: $e');
+    }
+  }
+
+  /// Cancel clicks scheduled via [scheduleClick] that have not played yet.
+  void cancelScheduled() {
+    for (final (oscillator, _) in _scheduled) {
+      try {
+        oscillator.stop(0);
+      } catch (_) {
+        // Already stopped/ended.
+      }
+    }
+    _scheduled.clear();
+  }
 
   /// Play a click sound
   /// [isAccent] - true for accented beat (higher pitch)
@@ -99,6 +154,7 @@ class AudioEngine {
 
   /// Dispose audio resources
   void dispose() {
+    cancelScheduled();
     _audioContext?.close();
     _initialized = false;
   }

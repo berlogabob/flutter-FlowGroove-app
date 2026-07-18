@@ -11,6 +11,17 @@ class AudioEngine {
 
   Future<void> preWarmPlayers() async {}
 
+  double? get currentContextTime => null;
+
+  void scheduleClick({
+    required double atTime,
+    required String waveType,
+    required double volume,
+    required double frequency,
+  }) {}
+
+  void cancelScheduled() {}
+
   Future<void> playClick({
     required bool isAccent,
     required String waveType,
