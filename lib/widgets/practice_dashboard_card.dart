@@ -19,7 +19,7 @@ class PracticeDashboardCard extends ConsumerWidget {
   // dark surface, deltaE 19 apart. Today is also encoded by position
   // (rightmost) and its highlighted weekday letter — never color alone.
   static const _todayBar = MonoPulseColors.accentOrange;
-  static const _pastBar = Color(0xFFD9B49A);
+  static const _pastBar = MonoPulseColors.chartWarmSecondary;
 
   static String formatMinutes(int seconds) {
     final minutes = seconds ~/ 60;

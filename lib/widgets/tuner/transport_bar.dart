@@ -119,8 +119,10 @@ class _MainActionButton extends StatelessWidget {
         width: isActive ? 72 : 80,
         height: 64,
         decoration: BoxDecoration(
+          // Active (tap-to-stop) reads as "pressed in" via the darker shade,
+          // on top of the existing width/icon changes.
           color: isActive
-              ? MonoPulseColors.accentOrange
+              ? MonoPulseColors.accentOrangeDark
               : MonoPulseColors.accentOrange,
           borderRadius: BorderRadius.circular(MonoPulseRadius.huge),
         ),

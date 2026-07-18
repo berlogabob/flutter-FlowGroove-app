@@ -233,8 +233,8 @@ class _TimePerSong extends StatelessWidget {
     // Sequential emphasis, same validated pair as the week bars.
     final colors = [
       MonoPulseColors.accentOrange,
-      const Color(0xFFD9B49A),
-      const Color(0xFF8A6A50),
+      MonoPulseColors.chartWarmSecondary,
+      MonoPulseColors.chartWarmTertiary,
       context.mp.borderDefault,
     ];
 

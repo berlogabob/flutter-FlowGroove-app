@@ -101,7 +101,11 @@ class _SectionPickerState extends State<SectionPicker>
         labelColor: Theme.of(context).colorScheme.onSurface,
         unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
         indicator: BoxDecoration(
-          color: Colors.grey[300],
+          // Same selected-pill treatment as role_picker_widget.dart: a low-alpha
+          // orange tint keeps contrast with onSurface label text in both themes.
+          // The previous Colors.grey[300] was near-invisible against the
+          // near-white label color in the app's default dark theme.
+          color: MonoPulseColors.accentOrange10,
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
@@ -214,7 +218,7 @@ class _SectionPickerState extends State<SectionPicker>
           borderRadius: BorderRadius.circular(AppDimensions.cardBorderRadius),
           border: Border.all(
             color: color != null
-                ? Colors.white.withValues(alpha: 0.5)
+                ? MonoPulseColors.white.withValues(alpha: 0.5)
                 : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
             width: 1.5,
           ),

@@ -92,7 +92,7 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
                 );
               }).toList(),
               underline: Container(),
-              icon: const Icon(Icons.sort, size: 20, color: Colors.grey),
+              icon: Icon(Icons.sort, size: 20, color: context.mp.textSecondary),
             ),
           ),
         ],

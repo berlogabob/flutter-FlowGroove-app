@@ -19,6 +19,11 @@ class SectionColorPalette {
   }
 
   /// Get contrasting text color for a background color.
+  ///
+  /// Intentional exception to the context.mp rule (#132): this contrasts
+  /// against an arbitrary section swatch color, not the app's theme
+  /// surface, so the result is correct regardless of light/dark mode. A
+  /// static helper also has no BuildContext to read context.mp from.
   static Color getContrastingTextColor(Color bgColor) {
     return bgColor.computeLuminance() > 0.5
         ? MonoPulseColors.black

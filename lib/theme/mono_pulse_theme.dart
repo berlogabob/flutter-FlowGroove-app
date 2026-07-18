@@ -177,6 +177,15 @@ class MonoPulseColors {
   static const Color sharedBackground = Color(0xFFFFE0B2);
   static const Color sharedIcon = Color(0xFFFF9800);
 
+  // ============================================
+  // Chart / Data-viz (practice minutes bar charts, #133)
+  // ============================================
+  // Sequential warm-sand pair alongside accentOrange, contrast-validated
+  // only against the dark surface — light-theme contrast is unverified
+  // (light mode is still a beta migration, see theme_mode_provider.dart).
+  static const Color chartWarmSecondary = Color(0xFFD9B49A);
+  static const Color chartWarmTertiary = Color(0xFF8A6A50);
+
   // Special
   static const Color transparent = Colors.transparent;
   static const Color white = Color(0xFFFFFFFF);

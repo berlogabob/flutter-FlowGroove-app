@@ -113,6 +113,11 @@ class Section {
   }
 
   /// Get contrasting text color for this section's background using MonoPulse theme.
+  ///
+  /// Intentional exception to the context.mp rule (#132): this contrasts
+  /// against an arbitrary section swatch color, not the app's theme
+  /// surface, so it's correct regardless of light/dark mode. A model class
+  /// also has no BuildContext to read context.mp from.
   Color get contrastingTextColor {
     final luminance = color.computeLuminance();
     return luminance > 0.5 ? MonoPulseColors.black : MonoPulseColors.textPrimary;
