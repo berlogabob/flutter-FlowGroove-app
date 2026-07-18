@@ -91,8 +91,15 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
     super.dispose();
   }
 
+  bool _stopInFlight = false;
+
   Future<void> _toggleRecord() async {
     if (_recording) {
+      // Double-tap on Stop or the auto-cap timer racing a tap: a second
+      // concurrent stop would drain an already-emptied PCM buffer and
+      // silently overwrite the recording with a headers-only WAV.
+      if (_stopInFlight) return;
+      _stopInFlight = true;
       _ticker?.cancel();
       await _ampSub?.cancel();
       _ampSub = null;
@@ -106,14 +113,18 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
         bytes = path == null ? null : await File(path).readAsBytes();
         ext = 'm4a';
       }
+      // 44 bytes = a WAV header with zero samples — not a recording.
+      final hasAudio =
+          bytes != null && bytes.isNotEmpty && !(ext == 'wav' && bytes.length <= 44);
       setState(() {
-        if (bytes != null && bytes.isNotEmpty) {
+        if (hasAudio) {
           _bytes = bytes;
           _ext = ext;
           _pickedName = null;
         }
         _recording = false;
       });
+      _stopInFlight = false;
       return;
     }
     if (!await _recorder.hasPermission()) return;

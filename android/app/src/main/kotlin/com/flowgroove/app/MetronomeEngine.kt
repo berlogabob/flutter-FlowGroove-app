@@ -162,12 +162,24 @@ internal class AndroidMetronomeEngine(
     // Permanent or transient loss (e.g. an incoming call) stops playback so
     // Dart state stays in sync; ducking requests keep the click running — a
     // metronome the user is playing along to must not silently duck away.
+    // Runs on the main thread, so it must NOT join the render thread like
+    // stop() does (an 800ms main-thread block right as the call UI appears);
+    // signalling is enough — the render thread releases its own track.
     private val focusListener = AudioManager.OnAudioFocusChangeListener { change ->
         when (change) {
             AudioManager.AUDIOFOCUS_LOSS,
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> stop(notifyFlutter = true)
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> stopWithoutJoin()
             else -> Unit
         }
+    }
+
+    private fun stopWithoutJoin() {
+        running?.set(false)
+        running = null
+        renderThread = null
+        releaseWakeLock()
+        abandonAudioFocus()
+        mainHandler.post { onStopped() }
     }
 
     private val vibrator: Vibrator by lazy {

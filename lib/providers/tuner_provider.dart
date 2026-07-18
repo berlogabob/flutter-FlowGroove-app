@@ -416,6 +416,11 @@ class TunerNotifier extends Notifier<TunerState> {
     state = state.copyWith(isStarting: true, errorMessage: null);
     try {
       await _toneGenerator.startTone(state.frequency, state.volume);
+      if (!_toneGenerator.isPlaying) {
+        // A stop landed while the start was awaiting — stay stopped.
+        state = state.copyWith(isPlaying: false, isStarting: false);
+        return;
+      }
       state = state.copyWith(isPlaying: true, isStarting: false);
       unawaited(
         AnalyticsService.logTunerEvent('tuner_tone_started', {
@@ -436,7 +441,12 @@ class TunerNotifier extends Notifier<TunerState> {
   Future<void> stopPlaying() async {
     _toneTimer?.cancel();
     _toneTimer = null;
-    if (!state.isPlaying && !_toneGenerator.isPlaying) return;
+    // isStarting: a Stop tapped while startTone is still awaiting (context
+    // resume on web, engine init on native) must cancel the pending start —
+    // the generators' operation guards make this stopTone call do that.
+    if (!state.isPlaying && !state.isStarting && !_toneGenerator.isPlaying) {
+      return;
+    }
     await _toneGenerator.stopTone();
     state = state.copyWith(isPlaying: false, isStarting: false);
     unawaited(AnalyticsService.logTunerEvent('tuner_tone_stopped'));

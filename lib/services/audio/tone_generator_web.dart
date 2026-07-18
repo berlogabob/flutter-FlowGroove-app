@@ -13,6 +13,9 @@ class ToneGenerator {
   double _currentVolume = 0.5;
   double _currentFrequency = 440;
   bool _disposed = false;
+  // Mirrors the SoLoud impl: a stop that lands while startTone is awaiting
+  // context.resume() must cancel the pending start, not lose the race.
+  int _operationId = 0;
 
   bool get isPlaying => _oscillator != null;
 
@@ -26,10 +29,12 @@ class ToneGenerator {
 
   Future<void> startTone(double frequency, double volume) async {
     if (_disposed) throw StateError('ToneGenerator has been disposed');
+    final operationId = ++_operationId;
     _currentFrequency = frequency.clamp(20.0, 20000.0);
     _currentVolume = volume.clamp(0.0, 1.0);
 
     final context = await _ensureContext();
+    if (operationId != _operationId) return;
     final now = context.currentTime;
 
     final existingGain = _gain;
@@ -58,6 +63,7 @@ class ToneGenerator {
   }
 
   Future<void> stopTone() async {
+    ++_operationId;
     final oscillator = _oscillator;
     final gain = _gain;
     final context = _context;

@@ -6,7 +6,11 @@ class WallClockScheduler {
   Duration _interval = Duration.zero;
   void Function()? _callback;
   int _tickCount = 0;
-  int _nextTargetMs = 0;
+  // Microsecond target accumulator: truncating to whole milliseconds ran the
+  // tick grid up to ~0.2% fast at fractional-ms tempos (e.g. 121 BPM =
+  // 495.868ms), which made the UI/haptic index drift whole beats ahead of the
+  // microsecond-precise web audio pump over a long session.
+  int _nextTargetUs = 0;
   int _pendingSkipped = 0;
   int _lastSkippedTicks = 0;
   int _skippedTickCount = 0;
@@ -27,7 +31,7 @@ class WallClockScheduler {
     _interval = interval;
     _callback = callback;
     _tickCount = 0;
-    _nextTargetMs = 0;
+    _nextTargetUs = 0;
     _pendingSkipped = 0;
     _lastSkippedTicks = 0;
     _skippedTickCount = 0;
@@ -42,24 +46,24 @@ class WallClockScheduler {
 
   void _scheduleNext() {
     if (_callback == null) return;
-    _nextTargetMs += _interval.inMilliseconds;
-    final now = _stopwatch.elapsedMilliseconds;
-    var delayMs = _nextTargetMs - now;
+    _nextTargetUs += _interval.inMicroseconds;
+    final now = _stopwatch.elapsedMicroseconds;
+    var delayUs = _nextTargetUs - now;
     // After an event-loop stall, jump past fully missed targets instead of
     // replaying them as a zero-delay burst (the audible "machine gun" bug).
     // The consumer reads [lastSkippedTicks] to keep its beat position true
     // to wall time.
-    final intervalMs = _interval.inMilliseconds;
+    final intervalUs = _interval.inMicroseconds;
     var skipped = 0;
-    if (delayMs < 0 && intervalMs > 0) {
-      skipped = (-delayMs) ~/ intervalMs;
+    if (delayUs < 0 && intervalUs > 0) {
+      skipped = (-delayUs) ~/ intervalUs;
       if (skipped > 0) {
-        _nextTargetMs += skipped * intervalMs;
-        delayMs = _nextTargetMs - now;
+        _nextTargetUs += skipped * intervalUs;
+        delayUs = _nextTargetUs - now;
       }
     }
     _pendingSkipped = skipped;
-    final delay = delayMs > 0 ? Duration(milliseconds: delayMs) : Duration.zero;
+    final delay = delayUs > 0 ? Duration(microseconds: delayUs) : Duration.zero;
     _timer = Timer(delay, _onTick);
   }
 
