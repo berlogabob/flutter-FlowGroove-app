@@ -229,12 +229,14 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   void _openMenu(BuildContext context) {
     final entry = _currentMenu();
-    // The Menu sheet identifies itself as "Menu" — not the underlying tab's
-    // name ("Home"), which read as the wrong location (UX audit F-003). A
-    // pushed screen that publishes its own menu title still wins.
+    // Use a screen's contextual title only when it actually contributes menu
+    // items (e.g. Songs → "Browse catalog"…). A title-only entry like the Home
+    // root is just the app menu, so it reads as "Menu" — not "Home", which
+    // looked like the wrong location (UX audit F-003).
+    final hasItems = entry != null && entry.items.isNotEmpty;
     showAppMenuSheet(
       context,
-      title: entry?.title ?? 'Menu',
+      title: hasItems ? entry.title : 'Menu',
       items: entry?.items ?? const [],
       showProfileRow: !_pushed,
       ref: ref,
