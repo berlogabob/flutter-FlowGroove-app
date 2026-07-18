@@ -205,7 +205,7 @@ void main() {
       await tester.tap(find.text('Friday Gig'));
       await tester.pumpAndSettle();
 
-      expect(find.text('route:setlist-view'), findsOneWidget);
+      expect(find.text('route:band-setlist-view'), findsOneWidget);
     });
 
     testWidgets('demo admins can read setlists but cannot modify them', (
@@ -319,6 +319,11 @@ List<RouteBase> _routesFor(Band band) {
       path: '/main/setlists/:id',
       name: 'setlist-view',
       builder: (context, state) => const TestRouteMarker('setlist-view'),
+    ),
+    GoRoute(
+      path: '/main/bands/:id/setlists/:setlistId',
+      name: 'band-setlist-view',
+      builder: (context, state) => const TestRouteMarker('band-setlist-view'),
     ),
   ];
 }

@@ -163,17 +163,12 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   void _viewSetlist(Setlist setlist) {
-    // Read-only view on tap (P1-7), same as the personal list (#128). Pass the
-    // band scope so the detail view resolves songs against the BAND library —
-    // without it, bandId is null and every band-copy song id reads as
-    // "Unavailable song".
+    // Read-only view on tap (P1-7). Use the band-scoped detail route so bandId
+    // comes from the path (songs resolve against the BAND library) AND the
+    // shell's pushed-bar title shows the setlist name, not the list title.
     context.pushNamed(
-      'setlist-view',
-      pathParameters: {'id': setlist.id},
-      queryParameters: {
-        'bandId': widget.band.id,
-        'scope': SetlistStorageScope.band.name,
-      },
+      'band-setlist-view',
+      pathParameters: {'id': widget.band.id, 'setlistId': setlist.id},
       extra: setlist,
     );
   }
