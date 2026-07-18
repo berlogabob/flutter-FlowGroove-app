@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/analytics_consent_provider.dart';
 import '../../providers/haptics_provider.dart';
 import '../../providers/keep_screen_on_provider.dart';
 import '../../providers/theme_mode_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/app_version.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
+import '../../widgets/support_sheet.dart';
 import '../../widgets/unified_item/song_card_actions.dart';
 import 'api_access_screen.dart';
 
@@ -25,6 +28,7 @@ class AppSettingsScreen extends ConsumerStatefulWidget {
 class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
   static const _latencyKey = 'metronome_latency_offset_ms';
   int _latencyMs = 0;
+  String _version = 'Loading...';
 
   @override
   void initState() {
@@ -33,6 +37,9 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
       if (mounted) {
         setState(() => _latencyMs = prefs.getInt(_latencyKey) ?? 0);
       }
+    });
+    loadAppVersionString().then((v) {
+      if (mounted) setState(() => _version = v);
     });
   }
 
@@ -93,15 +100,22 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                   color: MonoPulseColors.accentOrange,
                 ),
                 title: const Text('Theme'),
-                trailing: SegmentedButton<ThemeMode>(
-                  segments: const [
-                    ButtonSegment(value: ThemeMode.system, label: Text('Auto')),
-                    ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-                    ButtonSegment(value: ThemeMode.light, label: Text('Light')),
-                  ],
-                  selected: {themeMode},
-                  onSelectionChanged: (s) =>
-                      ref.read(themeModeProvider.notifier).set(s.first),
+                // In `trailing` the 3-segment control squeezed this title
+                // down to a near-zero-width column ("Theme" wrapped one
+                // letter per line). `subtitle` gives both the label and the
+                // control their own full-width row.
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: MonoPulseSpacing.sm),
+                  child: SegmentedButton<ThemeMode>(
+                    segments: const [
+                      ButtonSegment(value: ThemeMode.system, label: Text('Auto')),
+                      ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
+                      ButtonSegment(value: ThemeMode.light, label: Text('Light')),
+                    ],
+                    selected: {themeMode},
+                    onSelectionChanged: (s) =>
+                        ref.read(themeModeProvider.notifier).set(s.first),
+                  ),
                 ),
               ),
             ]),
@@ -176,6 +190,31 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                 ),
               ),
             ]),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            _section(context, 'Support', [
+              ListTile(
+                leading: const Icon(
+                  Icons.headset_mic_outlined,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Contact support'),
+                subtitle: const Text('Reach us on Telegram or WhatsApp'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showSupportSheet(context, appVersion: _version),
+              ),
+            ]),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            _section(context, 'About', [
+              ListTile(
+                title: const Text('Version'),
+                trailing: Text(
+                  _version,
+                  style: TextStyle(color: context.mp.textSecondary),
+                ),
+              ),
+            ]),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            const _MadeByFooter(),
           ],
         ),
       ),
@@ -195,6 +234,40 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
         ),
         Card(child: Column(children: children)),
       ],
+    );
+  }
+}
+
+/// "Made by berloga with ❤️ from 🇵🇹" as one line — "berloga" links out,
+/// heart/flag are emoji only (no duplicated words alongside them).
+class _MadeByFooter extends StatelessWidget {
+  const _MadeByFooter();
+
+  static final Uri _berlogaUrl = Uri.parse('https://t.me/berloga');
+
+  @override
+  Widget build(BuildContext context) {
+    final secondary = TextStyle(color: context.mp.textTertiary, fontSize: 12);
+
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Made by ', style: secondary),
+          GestureDetector(
+            onTap: () =>
+                launchUrl(_berlogaUrl, mode: LaunchMode.externalApplication),
+            child: Text(
+              'berloga',
+              style: secondary.copyWith(
+                color: MonoPulseColors.accentOrange,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+          Text(' with ❤️ from 🇵🇹', style: secondary),
+        ],
+      ),
     );
   }
 }

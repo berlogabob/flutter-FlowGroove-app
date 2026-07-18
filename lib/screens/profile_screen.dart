@@ -10,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -23,10 +22,8 @@ import '../../services/telegram_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/responsive_breakpoints.dart';
-import '../../utils/web_version_loader_export.dart';
 import '../../widgets/role_picker_widget.dart';
 import '../../widgets/standard_screen_scaffold.dart';
-import '../../widgets/support_sheet.dart';
 import '../utils/snackbar.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -37,7 +34,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  String _version = 'Loading...';
   String? _profilePhotoPath;
   bool _isEditingName = false;
   late TextEditingController _nameController;
@@ -46,7 +42,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _loadVersionInfo();
     _loadProfilePhoto();
     _migrateLegacyLocalPhoto();
   }
@@ -113,47 +108,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void dispose() {
     _nameController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadVersionInfo() async {
-    try {
-      String version = '';
-      String buildNumber = '';
-
-      // On web, try to load version from version.json directly
-      if (buildNumber.isEmpty) {
-        try {
-          final webVersion = await loadVersionFromJson();
-          version = webVersion['version'] ?? '';
-          buildNumber = webVersion['buildNumber'] ?? '';
-        } catch (_) {
-          // Ignore web loader errors
-        }
-      }
-
-      // If web loader didn't work, use package_info_plus
-      if (version.isEmpty || buildNumber.isEmpty) {
-        final packageInfo = await PackageInfo.fromPlatform();
-        if (version.isEmpty) version = packageInfo.version;
-        if (buildNumber.isEmpty) buildNumber = packageInfo.buildNumber;
-      }
-
-      if (mounted) {
-        setState(() {
-          if (buildNumber.isNotEmpty && buildNumber != '1') {
-            _version = '$version+$buildNumber';
-          } else {
-            _version = version;
-          }
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _version = '0.13.1+146';
-        });
-      }
-    }
   }
 
   Future<void> _loadProfilePhoto() async {
@@ -534,22 +488,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
-              child: Column(
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   GestureDetector(
                     onTap: isDemo ? null : _showPhotoOptions,
                     child: Stack(
                       children: [
                         CircleAvatar(
-                          radius: 50,
+                          radius: 32,
                           backgroundColor: context.mp.surfaceRaised,
                           backgroundImage: _getProfileImage(),
                           child: _getProfileImage() == null
                               ? Text(
                                   user?.email?.substring(0, 1).toUpperCase() ??
                                       '?',
-                                  style: MonoPulseTypography.displayLarge
+                                  style: MonoPulseTypography.headlineLarge
                                       .copyWith(
                                         color: MonoPulseColors.accentOrange,
                                         fontWeight: MonoPulseTypography.bold,
@@ -563,7 +518,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             right: 0,
                             child: Container(
                               padding: const EdgeInsets.all(
-                                MonoPulseSpacing.xs,
+                                MonoPulseSpacing.xxs,
                               ),
                               decoration: const BoxDecoration(
                                 color: MonoPulseColors.accentOrange,
@@ -571,7 +526,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               ),
                               child: Icon(
                                 Icons.camera_alt,
-                                size: 16,
+                                size: 12,
                                 color: context.mp.textPrimary,
                               ),
                             ),
@@ -579,69 +534,78 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: MonoPulseSpacing.lg),
-                  if (_isEditingName)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  const SizedBox(width: MonoPulseSpacing.lg),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _nameController,
-                            decoration: const InputDecoration(
-                              hintText: 'Enter display name',
-                              isDense: true,
-                            ),
-                            autofocus: true,
-                            onSubmitted: (_) => _saveDisplayName(),
+                        if (_isEditingName)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _nameController,
+                                  decoration: const InputDecoration(
+                                    hintText: 'Enter display name',
+                                    isDense: true,
+                                  ),
+                                  autofocus: true,
+                                  onSubmitted: (_) => _saveDisplayName(),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.check),
+                                onPressed: _saveDisplayName,
+                                color: MonoPulseColors.accentOrange,
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () =>
+                                    setState(() => _isEditingName = false),
+                              ),
+                            ],
+                          )
+                        else
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Lets a long "Firstname 'Nickname' Lastname"
+                              // wrap onto its own short lines instead of
+                              // forcing one wide centered line.
+                              Expanded(
+                                child: Text(
+                                  displayName,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: MonoPulseTypography.headlineSmall
+                                      .copyWith(color: context.mp.textPrimary),
+                                ),
+                              ),
+                              if (!isDemo)
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 16),
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () {
+                                    _nameController.text = displayName == 'User'
+                                        ? ''
+                                        : displayName;
+                                    setState(() => _isEditingName = true);
+                                  },
+                                  color: context.mp.textSecondary,
+                                ),
+                            ],
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.check),
-                          onPressed: _saveDisplayName,
-                          color: MonoPulseColors.accentOrange,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () =>
-                              setState(() => _isEditingName = false),
-                        ),
-                      ],
-                    )
-                  else
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // audit A3: truncate long/Cyrillic names so they never
-                        // overflow the RenderFlex; edit button stays visible.
-                        Flexible(
-                          child: Text(
-                            displayName,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: MonoPulseTypography.headlineLarge.copyWith(
-                              color: context.mp.textPrimary,
-                            ),
-                          ),
-                        ),
-                        if (!isDemo)
-                          IconButton(
-                            icon: const Icon(Icons.edit, size: 18),
-                            onPressed: () {
-                              _nameController.text = displayName == 'User'
-                                  ? ''
-                                  : displayName;
-                              setState(() => _isEditingName = true);
-                            },
+                        const SizedBox(height: MonoPulseSpacing.xxs),
+                        Text(
+                          user?.email ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: MonoPulseTypography.bodyMedium.copyWith(
                             color: context.mp.textSecondary,
                           ),
+                        ),
                       ],
-                    ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user?.email ?? '',
-                    style: MonoPulseTypography.bodyLarge.copyWith(
-                      color: context.mp.textSecondary,
                     ),
                   ),
                 ],
@@ -670,29 +634,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               // Keep screen on / analytics / AI access moved to the global
               // Settings screen (#129) — one control, one home.
-            ],
-          ),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          _buildSection(
-            title: 'Support',
-            children: [
-              _buildMenuItem(
-                icon: Icons.headset_mic_outlined,
-                title: 'Contact support',
-                subtitle: 'Reach us on Telegram or WhatsApp',
-                onTap: () => showSupportSheet(context, appVersion: _version),
-              ),
-            ],
-          ),
-          const SizedBox(height: MonoPulseSpacing.lg),
-          _buildSection(
-            title: 'App Info',
-            children: [
-              _buildInfoItem(title: 'Version', value: _version),
-              _buildInfoItem(
-                title: 'Made by Berloga with love from Portugal',
-                value: '❤️ 🇵🇹',
-              ),
             ],
           ),
           const SizedBox(height: MonoPulseSpacing.xxl),
@@ -731,18 +672,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
           ),
-          Center(
-            child: TextButton(
-              onPressed: _confirmAndDeleteAccount,
-              child: Text(
-                'Delete account',
-                style: MonoPulseTypography.bodySmall.copyWith(
-                  color: context.mp.textSecondary,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
-          ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          _DangerZone(onDeleteAccount: _confirmAndDeleteAccount),
         ],
       ),
     );
@@ -843,44 +774,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         return Padding(
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!isDemo) ...[
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () => _editRoles(roles),
-                    icon: const Icon(Icons.edit, size: 16),
-                    label: const Text('Edit'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-              if (roles.isEmpty)
-                Text(
-                  'Tap edit to add your instruments and roles.',
-                  style: TextStyle(color: context.mp.textTertiary),
-                )
-              else
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: roles.map((role) {
-                    final icon = MusicRoleIcon.getIcon(role);
-                    final displayName = MusicRoleIcon.getDisplayName(role);
-                    return Chip(
-                      label: Text(
-                        icon != null ? '$icon $displayName' : displayName,
-                        style: MonoPulseTypography.bodySmall.copyWith(
-                          color: context.mp.textPrimary,
+              Expanded(
+                child: roles.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: MonoPulseSpacing.xs,
                         ),
+                        child: Text(
+                          'Tap edit to add your instruments and roles.',
+                          style: TextStyle(color: context.mp.textTertiary),
+                        ),
+                      )
+                    : Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: roles.map((role) {
+                          final icon = MusicRoleIcon.getIcon(role);
+                          final displayName = MusicRoleIcon.getDisplayName(
+                            role,
+                          );
+                          return Chip(
+                            label: Text(
+                              icon != null ? '$icon $displayName' : displayName,
+                              style: MonoPulseTypography.bodySmall.copyWith(
+                                color: context.mp.textPrimary,
+                              ),
+                            ),
+                            backgroundColor: MonoPulseColors.accentOrange10,
+                            padding: EdgeInsets.zero,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          );
+                        }).toList(),
                       ),
-                      backgroundColor: MonoPulseColors.accentOrange10,
-                      padding: EdgeInsets.zero,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    );
-                  }).toList(),
+              ),
+              if (!isDemo)
+                TextButton.icon(
+                  onPressed: () => _editRoles(roles),
+                  icon: const Icon(Icons.edit, size: 16),
+                  label: const Text('Edit'),
                 ),
             ],
           ),
@@ -935,10 +870,103 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoItem({required String title, required String value}) {
-    return ListTile(
-      title: Text(title),
-      trailing: Text(value, style: TextStyle(color: context.mp.textSecondary)),
+}
+
+/// GitHub-style collapsible section: starts closed so Delete Account can't be
+/// tapped by accident, tap the header to reveal it.
+class _DangerZone extends StatefulWidget {
+  const _DangerZone({required this.onDeleteAccount});
+
+  final VoidCallback onDeleteAccount;
+
+  @override
+  State<_DangerZone> createState() => _DangerZoneState();
+}
+
+class _DangerZoneState extends State<_DangerZone> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: MonoPulseColors.error.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
+                vertical: MonoPulseSpacing.md,
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    size: 18,
+                    color: MonoPulseColors.error,
+                  ),
+                  const SizedBox(width: MonoPulseSpacing.sm),
+                  const Expanded(
+                    child: Text(
+                      'Danger zone',
+                      style: TextStyle(
+                        color: MonoPulseColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0,
+                    duration: MonoPulseAnimation.durationShort,
+                    child: const Icon(
+                      Icons.expand_more,
+                      color: MonoPulseColors.error,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox(width: double.infinity),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                MonoPulseSpacing.lg,
+                0,
+                MonoPulseSpacing.lg,
+                MonoPulseSpacing.md,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: widget.onDeleteAccount,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'Delete account',
+                    style: TextStyle(
+                      color: MonoPulseColors.error,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            crossFadeState: _expanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: MonoPulseAnimation.durationShort,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -36,6 +36,11 @@ void main() {
       expect(find.text('Theme'), findsOneWidget);
       expect(find.text('Quick action on song cards'), findsOneWidget);
       expect(find.text('Share usage analytics'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('AI access (MCP)'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('AI access (MCP)'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('Audio latency offset'),
@@ -119,10 +124,16 @@ void main() {
     testWidgets('latency stepper adjusts and clamps', (tester) async {
       await pump(tester);
       await tester.scrollUntilVisible(
-        find.text('Audio latency offset'),
+        find.byIcon(Icons.add),
         200,
         scrollable: find.byType(Scrollable).first,
       );
+      // scrollUntilVisible stops as soon as the icon is nominally within the
+      // Scrollable's bounds, which can still be covered by the fixed
+      // AppBottomBar at the very bottom of the test surface — nudge further
+      // so the tap isn't intercepted by the bar.
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -100));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
