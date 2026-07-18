@@ -559,6 +559,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                     ReorderableListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
+                      // No drag-handle column (it squeezed the song name):
+                      // reorder by long-press, matching the list screens.
+                      buildDefaultDragHandles: false,
                       itemCount: _selectedItems.length,
                       onReorderItem: (oldIndex, newIndex) {
                         setState(() {
@@ -570,8 +573,11 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       itemBuilder: (context, index) {
                         final item = _selectedItems[index];
                         final song = _songsById[item.songId];
-                        return Dismissible(
+                        return ReorderableDelayedDragStartListener(
                           key: ValueKey(item.id),
+                          index: index,
+                          child: Dismissible(
+                          key: ValueKey('dismiss_${item.id}'),
                           direction: DismissDirection.endToStart,
                           background: Container(
                             alignment: Alignment.centerRight,
@@ -617,13 +623,6 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                           child: SetlistSongRow(
                             index: index,
                             song: song,
-                            leading: ReorderableDragStartListener(
-                              index: index,
-                              child: Icon(
-                                Icons.drag_handle,
-                                color: context.mp.textTertiary,
-                              ),
-                            ),
                             trailing: song == null
                                 ? null
                                 : Row(
@@ -696,6 +695,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                       ),
                                     ],
                                   ),
+                          ),
                           ),
                         );
                       },

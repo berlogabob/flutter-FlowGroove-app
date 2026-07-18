@@ -12,6 +12,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/app_version.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
 import '../../widgets/support_sheet.dart';
+import '../../widgets/unified_item/setlist_card_actions.dart';
 import '../../widgets/unified_item/song_card_actions.dart';
 import 'api_access_screen.dart';
 
@@ -130,6 +131,19 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                 subtitle: const Text('What the pinned card button does'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => showQuickActionPicker(context, ref),
+              ),
+            ]),
+            const SizedBox(height: MonoPulseSpacing.lg),
+            _section(context, 'Setlists', [
+              ListTile(
+                leading: const Icon(
+                  Icons.push_pin_outlined,
+                  color: MonoPulseColors.accentOrange,
+                ),
+                title: const Text('Quick action on setlist cards'),
+                subtitle: const Text('What the pinned card button does'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showSetlistQuickActionPicker(context, ref),
               ),
             ]),
             const SizedBox(height: MonoPulseSpacing.lg),

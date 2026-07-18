@@ -84,7 +84,12 @@ class FirestoreSetlistRepository implements SetlistRepository {
                     updatedAt: DateTime.now(),
                   );
                 }
-              }).toList();
+              })
+                  // Personal list only: hide band setlists that were
+                  // mis-saved into this collection (they carry a bandId and
+                  // their band-copy song ids read as all-"Unavailable" here).
+                  .where((s) => s.bandId.isEmpty)
+                  .toList();
             } catch (e) {
               debugPrint('❌ Failed to map snapshot: $e');
               return <Setlist>[];
