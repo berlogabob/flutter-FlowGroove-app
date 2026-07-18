@@ -68,6 +68,8 @@ Rehearsal _$RehearsalFromJson(Map<String, dynamic> json) => Rehearsal(
   notes: json['notes'] as String?,
   status: json['status'] as String? ?? 'collecting',
   confirmedSlotId: json['confirmedSlotId'] as String?,
+  responseDeadline: _parseNullableDateTime(json['responseDeadline']),
+  venueType: json['venueType'] as String?,
   createdAt: _parseDateTime(json['createdAt']),
   updatedAt: _parseDateTime(json['updatedAt']),
 );
@@ -88,6 +90,8 @@ Map<String, dynamic> _$RehearsalToJson(Rehearsal instance) => <String, dynamic>{
   'notes': instance.notes,
   'status': instance.status,
   'confirmedSlotId': instance.confirmedSlotId,
+  'responseDeadline': _dateTimeToJson(instance.responseDeadline),
+  'venueType': instance.venueType,
   'createdAt': _dateTimeToJson(instance.createdAt),
   'updatedAt': _dateTimeToJson(instance.updatedAt),
 };

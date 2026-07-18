@@ -88,6 +88,8 @@ class Rehearsal {
     this.notes,
     this.status = statusCollecting,
     this.confirmedSlotId,
+    this.responseDeadline,
+    this.venueType,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -102,6 +104,12 @@ class Rehearsal {
 
   static const String scopePersonal = 'personal';
   static const String scopeBand = 'band';
+
+  // Epic 2 seam: 'studio' is a placeholder value only — nothing acts on
+  // it yet, see docs/superpowers/specs/2026-07-17-rehearsal-booking-design.md.
+  static const String venueUndecided = 'undecided';
+  static const String venueCustom = 'custom';
+  static const String venueStudio = 'studio';
 
   @JsonKey(defaultValue: '')
   final String id;
@@ -126,6 +134,9 @@ class Rehearsal {
   @JsonKey(defaultValue: statusCollecting)
   final String status;
   final String? confirmedSlotId;
+  @JsonKey(fromJson: _parseNullableDateTime, toJson: _dateTimeToJson)
+  final DateTime? responseDeadline;
+  final String? venueType; // venueUndecided | venueCustom | venueStudio
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
@@ -139,6 +150,12 @@ class Rehearsal {
     }
     return null;
   }
+
+  /// [venueType], defaulting from [location] for rehearsals saved before
+  /// the venue selector existed.
+  String get effectiveVenueType =>
+      venueType ??
+      (location == null || location!.isEmpty ? venueUndecided : venueCustom);
 
   Rehearsal copyWith({
     String? id,
@@ -156,6 +173,8 @@ class Rehearsal {
     Object? notes = _sentinel,
     String? status,
     Object? confirmedSlotId = _sentinel,
+    Object? responseDeadline = _sentinel,
+    Object? venueType = _sentinel,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -183,6 +202,10 @@ class Rehearsal {
       confirmedSlotId: confirmedSlotId == _sentinel
           ? this.confirmedSlotId
           : confirmedSlotId as String?,
+      responseDeadline: responseDeadline == _sentinel
+          ? this.responseDeadline
+          : responseDeadline as DateTime?,
+      venueType: venueType == _sentinel ? this.venueType : venueType as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -204,3 +227,6 @@ DateTime _parseDateTime(Object? value) {
 }
 
 String? _dateTimeToJson(DateTime? value) => value?.toIso8601String();
+
+DateTime? _parseNullableDateTime(Object? value) =>
+    value == null ? null : _parseDateTime(value);

@@ -38,6 +38,8 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
   // uid -> 'required' | 'optional' (absent = not invited)
   final Map<String, String> _roles = {};
   String? _setlistId;
+  DateTime? _responseDeadline;
+  late String _venueType;
   bool _saving = false;
 
   @override
@@ -47,6 +49,8 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
     _title = TextEditingController(text: r?.title ?? '');
     _location = TextEditingController(text: r?.location ?? '');
     _notes = TextEditingController(text: r?.notes ?? '');
+    _responseDeadline = r?.responseDeadline;
+    _venueType = r?.effectiveVenueType ?? Rehearsal.venueUndecided;
     if (r != null) {
       _slots.addAll(r.candidateSlots);
       for (final uid in r.requiredMemberUids) {
@@ -101,6 +105,29 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
     });
   }
 
+  Future<void> _pickDeadline() async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _responseDeadline ?? now,
+      firstDate: now.subtract(const Duration(days: 1)),
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: _responseDeadline == null
+          ? const TimeOfDay(hour: 18, minute: 0)
+          : TimeOfDay.fromDateTime(_responseDeadline!),
+      helpText: 'Respond by',
+    );
+    if (time == null) return;
+    setState(() {
+      _responseDeadline =
+          DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    });
+  }
+
   void _cycleRole(String uid) {
     setState(() {
       final current = _roles[uid];
@@ -143,10 +170,15 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
       ],
       setlistId: _setlistId,
       setlistScope: _setlistId == null ? null : Rehearsal.scopeBand,
-      location: _location.text.trim().isEmpty ? null : _location.text.trim(),
+      location: _venueType == Rehearsal.venueCustom &&
+              _location.text.trim().isNotEmpty
+          ? _location.text.trim()
+          : null,
       notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
       status: existing?.status ?? Rehearsal.statusCollecting,
       confirmedSlotId: existing?.confirmedSlotId,
+      responseDeadline: _responseDeadline,
+      venueType: _venueType,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
     );
@@ -181,7 +213,7 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
             decoration: const InputDecoration(labelText: 'Title (optional)'),
             textCapitalization: TextCapitalization.sentences,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           _sectionLabel('Time options'),
           for (final slot in _slots)
             ListTile(
@@ -202,7 +234,28 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
               onPressed: _addSlot,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.sm),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              icon: const Icon(Icons.alarm),
+              label: Text(
+                _responseDeadline == null
+                    ? 'Set response deadline (optional)'
+                    : 'Respond by ${formatDeadline(_responseDeadline!)}',
+              ),
+              onPressed: _pickDeadline,
+            ),
+          ),
+          if (_responseDeadline != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => setState(() => _responseDeadline = null),
+                child: const Text('Clear deadline'),
+              ),
+            ),
+          const SizedBox(height: MonoPulseSpacing.lg),
           _sectionLabel('Members (tap: Required → Optional → off)'),
           Wrap(
             spacing: 8,
@@ -219,7 +272,7 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           _sectionLabel('Setlist (optional)'),
           setlistsAsync.when(
             loading: () => const LinearProgressIndicator(),
@@ -236,21 +289,51 @@ class _RehearsalEditScreenState extends ConsumerState<RehearsalEditScreen> {
               onChanged: (v) => setState(() => _setlistId = v),
             ),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _location,
-            decoration: const InputDecoration(
-              labelText: 'Location (optional)',
-              hintText: 'e.g. Studio A',
-            ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          _sectionLabel('Venue'),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ChoiceChip(
+                label: const Text('Not decided'),
+                selected: _venueType == Rehearsal.venueUndecided,
+                onSelected: (_) =>
+                    setState(() => _venueType = Rehearsal.venueUndecided),
+              ),
+              ChoiceChip(
+                label: const Text('Custom place'),
+                selected: _venueType == Rehearsal.venueCustom,
+                onSelected: (_) =>
+                    setState(() => _venueType = Rehearsal.venueCustom),
+              ),
+              Tooltip(
+                message: 'Coming soon',
+                child: ChoiceChip(
+                  label: const Text('Rehearsal studio'),
+                  selected: _venueType == Rehearsal.venueStudio,
+                  onSelected: null,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          if (_venueType == Rehearsal.venueCustom) ...[
+            const SizedBox(height: MonoPulseSpacing.md),
+            TextField(
+              controller: _location,
+              decoration: const InputDecoration(
+                labelText: 'Location',
+                hintText: 'e.g. Studio A',
+              ),
+            ),
+          ],
+          const SizedBox(height: MonoPulseSpacing.lg),
           TextField(
             controller: _notes,
             decoration: const InputDecoration(labelText: 'Notes (optional)'),
             maxLines: 3,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: MonoPulseSpacing.xxl),
           FilledButton(
             onPressed: _saving ? null : _save,
             child: _saving

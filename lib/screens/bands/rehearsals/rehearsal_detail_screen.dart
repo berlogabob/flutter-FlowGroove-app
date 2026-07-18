@@ -100,7 +100,12 @@ class _Body extends ConsumerWidget {
     await ref.read(rehearsalRepositoryProvider).saveVote(
           band.id,
           rehearsal.id,
-          RehearsalVote(uid: uid, answers: answers, updatedAt: DateTime.now()),
+          RehearsalVote(
+            uid: uid,
+            answers: answers,
+            comment: existing?.comment,
+            updatedAt: DateTime.now(),
+          ),
         );
   }
 
@@ -120,6 +125,47 @@ class _Body extends ConsumerWidget {
         );
   }
 
+  Future<void> _suggestTime(
+    BuildContext context,
+    WidgetRef ref,
+    String uid,
+  ) async {
+    final controller = TextEditingController(text: votes[uid]?.comment ?? '');
+    final text = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Suggest a different time'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'e.g. Sunday 18:00?'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+    if (text == null) return;
+    final existing = votes[uid];
+    await ref.read(rehearsalRepositoryProvider).saveVote(
+          band.id,
+          rehearsal.id,
+          RehearsalVote(
+            uid: uid,
+            answers: existing?.answers ?? const {},
+            comment: text.isEmpty ? null : text,
+            updatedAt: DateTime.now(),
+          ),
+        );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final uid = ref.read(currentUserProvider).value?.uid;
@@ -134,18 +180,26 @@ class _Body extends ConsumerWidget {
       children: [
         Text(rehearsal.title, style: Theme.of(context).textTheme.headlineSmall),
         if (rehearsal.location != null) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: MonoPulseSpacing.xs),
           Row(children: [
             const Icon(Icons.place, size: 16),
-            const SizedBox(width: 4),
+            const SizedBox(width: MonoPulseSpacing.xs),
             Expanded(child: Text(rehearsal.location!)),
           ]),
         ],
+        if (!confirmed && rehearsal.responseDeadline != null) ...[
+          const SizedBox(height: MonoPulseSpacing.xs),
+          Row(children: [
+            const Icon(Icons.alarm, size: 16),
+            const SizedBox(width: MonoPulseSpacing.xs),
+            Text('Respond by ${formatDeadline(rehearsal.responseDeadline!)}'),
+          ]),
+        ],
         if (rehearsal.notes != null) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: MonoPulseSpacing.sm),
           Text(rehearsal.notes!),
         ],
-        const SizedBox(height: 16),
+        const SizedBox(height: MonoPulseSpacing.lg),
 
         if (confirmed)
           _ConfirmedCard(band: band, rehearsal: rehearsal, votes: votes)
@@ -164,11 +218,21 @@ class _Body extends ConsumerWidget {
               onConfirm:
                   canEdit ? () => _confirm(ref, slot.id) : null,
             ),
-          const SizedBox(height: 12),
-          _notVotedNotice(context, uid),
+          const SizedBox(height: MonoPulseSpacing.md),
+          _notVotedNotice(context, ref, uid, canEdit),
+          _suggestionsSection(context),
+          if (uid != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                icon: const Icon(Icons.add_comment_outlined),
+                label: const Text('None of these work — suggest a time'),
+                onPressed: () => _suggestTime(context, ref, uid),
+              ),
+            ),
         ],
 
-        const SizedBox(height: 24),
+        const SizedBox(height: MonoPulseSpacing.xxl),
         if (canEdit) ...[
           if (confirmed)
             OutlinedButton.icon(
@@ -196,7 +260,12 @@ class _Body extends ConsumerWidget {
     );
   }
 
-  Widget _notVotedNotice(BuildContext context, String? uid) {
+  Widget _notVotedNotice(
+    BuildContext context,
+    WidgetRef ref,
+    String? uid,
+    bool canEdit,
+  ) {
     final invited = {
       ...rehearsal.requiredMemberUids,
       ...rehearsal.optionalMemberUids,
@@ -204,7 +273,11 @@ class _Body extends ConsumerWidget {
     final pool = invited.isEmpty
         ? band.members.map((m) => m.uid).toSet()
         : invited;
-    final notVoted = pool.where((u) => votes[u] == null).toList();
+    // A vote doc can exist with no answers (a member left a suggestion via
+    // "suggest a time" without voting on any slot) — that doesn't count as
+    // having responded.
+    final notVoted =
+        pool.where((u) => votes[u]?.answers.isEmpty ?? true).toList();
     if (notVoted.isEmpty) return const SizedBox.shrink();
     final names = notVoted.map((u) {
       final m = band.members.firstWhere(
@@ -213,10 +286,81 @@ class _Body extends ConsumerWidget {
       );
       return memberLabel(displayName: m.displayName, email: m.email);
     }).join(', ');
-    return Text(
-      'Waiting on: $names',
-      style: Theme.of(context).textTheme.bodySmall,
+    final deadlinePassed = rehearsal.responseDeadline != null &&
+        rehearsal.responseDeadline!.isBefore(DateTime.now());
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Waiting on: $names',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        if (canEdit && deadlinePassed)
+          Wrap(
+            spacing: 8,
+            children: [
+              TextButton(
+                onPressed: () async {
+                  try {
+                    await ref
+                        .read(rehearsalFunctionServiceProvider)
+                        .remindVoters(
+                          bandId: band.id,
+                          rehearsalId: rehearsal.id,
+                        );
+                    if (context.mounted) {
+                      showAppSnackBar(context, 'Reminder sent');
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      showAppSnackBar(context, 'Could not send reminder: $e');
+                    }
+                  }
+                },
+                child: const Text('Remind'),
+              ),
+              TextButton(
+                onPressed: () => context.pushNamed(
+                  'edit-rehearsal',
+                  pathParameters: {'id': band.id, 'rid': rehearsal.id},
+                  extra: rehearsal,
+                ),
+                child: const Text('Extend deadline'),
+              ),
+            ],
+          ),
+      ],
     );
+  }
+
+  Widget _suggestionsSection(BuildContext context) {
+    final suggestions = votes.values.where(
+      (v) => v.comment != null && v.comment!.trim().isNotEmpty,
+    );
+    if (suggestions.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: MonoPulseSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Suggestions', style: Theme.of(context).textTheme.titleSmall),
+          for (final v in suggestions)
+            Padding(
+              padding: const EdgeInsets.only(top: MonoPulseSpacing.xs),
+              child: Text('${_memberName(v.uid)}: ${v.comment}'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _memberName(String uid) {
+    final m = band.members.firstWhere(
+      (m) => m.uid == uid,
+      orElse: () => BandMember(uid: uid, role: ''),
+    );
+    return memberLabel(displayName: m.displayName, email: m.email);
   }
 }
 
@@ -287,8 +431,11 @@ class _SlotCard extends StatelessWidget {
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
-            const SizedBox(height: 8),
-            Row(
+            const SizedBox(height: MonoPulseSpacing.sm),
+            Wrap(
+              // _voteButton already right-pads each chip; only runSpacing is
+              // needed here for the gap when chips wrap to a second line.
+              runSpacing: MonoPulseSpacing.xs,
               children: [
                 _voteButton('Can', RehearsalVote.answerCan,
                     MonoPulseColors.successGreen),
@@ -361,7 +508,7 @@ class _ConfirmedCard extends ConsumerWidget {
           children: [
             Row(children: [
               const Icon(Icons.event_available),
-              const SizedBox(width: 8),
+              const SizedBox(width: MonoPulseSpacing.sm),
               Expanded(
                 child: Text(
                   slot == null ? 'Confirmed' : formatSlotRange(slot),
@@ -369,17 +516,17 @@ class _ConfirmedCard extends ConsumerWidget {
                 ),
               ),
             ]),
-            const SizedBox(height: 12),
+            const SizedBox(height: MonoPulseSpacing.md),
             if (attendees.isNotEmpty) Text('Coming: ${attendees.join(', ')}'),
             if (setlist != null) ...[
               const Divider(height: 24),
               Text('Setlist: ${setlist.name}',
                   style: const TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 4),
+              const SizedBox(height: MonoPulseSpacing.xs),
               for (final item in setlist.effectiveItems)
                 _songLine(ref, songsById[item.songId]),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: MonoPulseSpacing.lg),
             FilledButton.icon(
               icon: const Icon(Icons.calendar_month),
               label: const Text('Add to calendar'),

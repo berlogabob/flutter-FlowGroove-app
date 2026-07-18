@@ -61,4 +61,36 @@ async function notifyBandMembers(bandId, text, { exceptUid, send } = {}) {
   return notified;
 }
 
-module.exports = { sendToUser, notifyBandMembers, telegramClient };
+/**
+ * Notifies every consented, Telegram-linked user in an explicit uid list
+ * (e.g. a rehearsal's invited members, rather than the whole band).
+ *
+ * @param {string[]} uids
+ * @param {object} [opts]
+ * @param {string} [opts.exceptUid] - uid to skip (e.g. the actor)
+ * @param {function} [opts.send] - injectable send(telegramId, text) for testing
+ * @returns {Promise<number>} how many users were notified
+ */
+async function notifyUids(uids, text, { exceptUid, send } = {}) {
+  const deliver = send || sendToUser;
+  let notified = 0;
+
+  for (const uid of uids) {
+    if (uid === exceptUid) continue;
+    const userDoc = await db.collection("users").doc(uid).get();
+    if (!userDoc.exists) continue;
+    const user = userDoc.data();
+    if (user.telegramId && user.telegramConsent === true) {
+      try {
+        await deliver(user.telegramId, text);
+        notified++;
+      } catch (e) {
+        console.error(`notifyUids: failed for uid ${uid}:`, e.message);
+      }
+    }
+  }
+
+  return notified;
+}
+
+module.exports = { sendToUser, notifyBandMembers, notifyUids, telegramClient };

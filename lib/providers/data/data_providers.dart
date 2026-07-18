@@ -12,6 +12,7 @@ import '../../repositories/repositories.dart';
 import '../../services/band_function_service.dart';
 import '../../services/canonical_song_function_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/rehearsal_function_service.dart';
 import '../auth/auth_provider.dart';
 
 /// Provider for FirestoreService.
@@ -137,6 +138,14 @@ final canonicalSongFunctionServiceProvider =
 /// Callable Cloud Function wrapper for band membership (join) operations.
 final bandFunctionServiceProvider = Provider<BandFunctionService>((ref) {
   return BandFunctionService();
+});
+
+/// Callable Cloud Function wrapper for rehearsal-plan actions (e.g. remind
+/// non-voters).
+final rehearsalFunctionServiceProvider = Provider<RehearsalFunctionService>((
+  ref,
+) {
+  return RehearsalFunctionService();
 });
 
 /// Searches the canonical song catalog by title/artist query.

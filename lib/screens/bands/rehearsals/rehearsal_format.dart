@@ -9,3 +9,7 @@ String formatSlotRange(CandidateSlot slot) {
   final end = DateFormat('HH:mm').format(slot.endTime);
   return '$day · $start–$end';
 }
+
+/// "Sat, Jul 4 · 18:00" for a response deadline (device local time).
+String formatDeadline(DateTime deadline) =>
+    DateFormat('EEE, MMM d · HH:mm').format(deadline);

@@ -6,6 +6,7 @@
  *   - src/canonical  — canonical song matching
  *   - src/bands      — band membership
  *   - src/avatars    — avatar import callable
+ *   - src/rehearsals — rehearsal plan notifications + actions
  */
 
 // Telegram bot webhook
@@ -52,3 +53,9 @@ exports.shareToTelegram = telegramShare.shareToTelegram;
 const telegramReminders = require("./src/telegram/reminders");
 exports.onBandSetlistCreated = telegramReminders.onBandSetlistCreated;
 exports.dailyEventReminder = telegramReminders.dailyEventReminder;
+
+// Rehearsal plan notifications + actions
+const rehearsals = require("./src/rehearsals");
+exports.onRehearsalCreated = rehearsals.onRehearsalCreated;
+exports.onRehearsalConfirmed = rehearsals.onRehearsalConfirmed;
+exports.remindRehearsalVoters = rehearsals.remindRehearsalVoters;
