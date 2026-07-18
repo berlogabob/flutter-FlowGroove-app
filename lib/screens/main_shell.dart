@@ -229,15 +229,12 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   void _openMenu(BuildContext context) {
     final entry = _currentMenu();
-    final fallbackTitle =
-        !_pushed &&
-            widget.navigationShell.currentIndex >= 0 &&
-            widget.navigationShell.currentIndex < _tabs.length
-        ? _tabs[widget.navigationShell.currentIndex].label
-        : 'Menu';
+    // The Menu sheet identifies itself as "Menu" — not the underlying tab's
+    // name ("Home"), which read as the wrong location (UX audit F-003). A
+    // pushed screen that publishes its own menu title still wins.
     showAppMenuSheet(
       context,
-      title: entry?.title ?? fallbackTitle,
+      title: entry?.title ?? 'Menu',
       items: entry?.items ?? const [],
       showProfileRow: !_pushed,
       ref: ref,
