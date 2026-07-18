@@ -318,6 +318,26 @@ pushed mode surfaces the deepest screen's menu (and hides ⋮ when the pushed
 screen has none). Registrations are removed by token identity — safe against
 `indexedStack` dispose ordering.
 
+**Navigation gotchas (learned 2026-07):**
+- **Full-screen editors must push on the ROOT navigator.** A screen that renders
+  its own `AppBottomBar` and is pushed with plain `Navigator.of(context).push`
+  lands on the shell's *branch* navigator, so the shell's persistent bar stacks
+  *under* it (two Back bars). Use `Navigator.of(context, rootNavigator: true)`.
+  Applies to the performance sheet, song editor, Event Kit, and song-merge
+  screens. (Back handlers must use `Navigator.pop`, not `context.pop()`.)
+- **`BranchStackObserver` leaks across logout.** Flutter doesn't fire
+  `didPop`/`didRemove` on observers when a Navigator is disposed, so on logout
+  the page-count stays > 0; the next login re-pushes the branch root and the
+  shell shows a dead pushed-mode bar over Home. Fixed by resetting the count to
+  1 when the branch root re-mounts (`didPush` with `previousRoute == null`).
+- **A detail route in another branch shows the wrong title.** `push`-ing a
+  route declared in a different `StatefulShellBranch` mounts it on the *current*
+  branch without switching, so `_branchRoot` and the publisher's location key
+  point at different subtrees and `pushedEntryFor` returns the parent list's
+  title. Band setlists therefore use a band-scoped **`band-setlist-view`** route
+  under `/main/bands/:id/setlists/:setlistId` (not the shared
+  `/main/setlists/:id`) so the publisher keys under the active branch.
+
 Destructive actions use **single-level snackbar undo** (5s,
 `showAppSnackBar(actionLabel:, onAction:, analyticsAction:)`) at
 client-recoverable points: song-structure section delete, setlist delete,
