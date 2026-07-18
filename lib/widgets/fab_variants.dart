@@ -44,7 +44,8 @@ class SingleFab extends StatelessWidget {
       onPressed: onPressed,
       tooltip: tooltip,
       backgroundColor: MonoPulseColors.accentOrange,
-      foregroundColor: MonoPulseColors.white,
+      // Black-on-orange per the MonoPulse FAB token (~6.5:1 vs ~3:1 for white). F-007.
+      foregroundColor: MonoPulseColors.black,
       child: Icon(icon),
     );
   }
@@ -131,7 +132,8 @@ class DualFab extends StatelessWidget {
       onPressed: onPressed,
       tooltip: label,
       backgroundColor: MonoPulseColors.accentOrange,
-      foregroundColor: MonoPulseColors.white,
+      // Black-on-orange per the MonoPulse FAB token (~6.5:1 vs ~3:1 for white). F-007.
+      foregroundColor: MonoPulseColors.black,
       child: Icon(icon),
     );
   }

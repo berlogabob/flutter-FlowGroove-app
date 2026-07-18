@@ -101,8 +101,15 @@ class PracticeScreen extends ConsumerWidget {
     required String label,
     required String route,
   }) => Expanded(
-    child: FilledButton.tonalIcon(
+    // Dark surface + orange, matching the Home tool tiles, instead of the
+    // Material tonal grey pill (secondaryContainer). F-005.
+    child: FilledButton.icon(
       onPressed: () => context.pushNamed(route),
+      style: FilledButton.styleFrom(
+        backgroundColor: context.mp.surfaceRaised,
+        foregroundColor: MonoPulseColors.accentOrange,
+        side: BorderSide(color: context.mp.borderDefault),
+      ),
       icon: Icon(icon),
       label: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
     ),
