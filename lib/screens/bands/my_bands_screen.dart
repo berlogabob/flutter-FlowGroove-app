@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -362,7 +364,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   Widget _buildBandList(List<BandItemAdapter> adapters) {
     return UnifiedItemList<BandItemAdapter>(
       items: adapters,
-      padding: const EdgeInsets.only(bottom: 96),
+      padding: const EdgeInsets.only(bottom: 120), // clear the FAB (F-004)
       enableReorder: _sortOption == SortOption.manual,
       onReorder: _sortOption == SortOption.manual ? _handleReorder : null,
       onDelete: _handleDelete,
@@ -374,6 +376,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         return [
           // View Band Songs button - using inline action
           _ViewSongsAction(band: adapter.band, onNavigate: _handleViewSongs),
+          // Overflow menu for parity with Songs/Setlists (UX audit F-008) —
+          // makes Edit/Delete discoverable, not just tap/swipe.
+          OverflowMenuAction(
+            entries: [
+              ('Edit band', Icons.edit, () => _handleEdit(index)),
+              ('Delete', Icons.delete, () => unawaited(_handleDelete(index))),
+            ],
+          ),
         ];
       },
     );

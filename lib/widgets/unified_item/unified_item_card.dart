@@ -221,21 +221,25 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
   /// orange10); '—' keeps the slot when the key is unset, so card heights
   /// never jump between rows.
   Widget _keyChip(BuildContext context, String? key) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: key != null
-            ? MonoPulseColors.accentOrange10
-            : context.mp.surfaceRaised,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        key ?? '—',
-        style: MonoPulseTypography.bodySmall.copyWith(
-          fontWeight: FontWeight.w700,
+    // The '—' placeholder was a cryptic bare dash; a tooltip spells it out. F-010.
+    return Tooltip(
+      message: key != null ? 'Key: $key' : 'Key not set',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
           color: key != null
-              ? MonoPulseColors.accentOrange
-              : context.mp.textTertiary,
+              ? MonoPulseColors.accentOrange10
+              : context.mp.surfaceRaised,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          key ?? '—',
+          style: MonoPulseTypography.bodySmall.copyWith(
+            fontWeight: FontWeight.w700,
+            color: key != null
+                ? MonoPulseColors.accentOrange
+                : context.mp.textTertiary,
+          ),
         ),
       ),
     );
