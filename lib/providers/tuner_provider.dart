@@ -410,6 +410,9 @@ class TunerNotifier extends Notifier<TunerState> {
       return;
     }
     _toneTimer?.cancel();
+    // Explicit Play while muted: a silent tone is indistinguishable from
+    // "tone gen broken" (persisted mute caused exactly that user report).
+    if (state.volume <= 0) setVolume(0.5);
     state = state.copyWith(isStarting: true, errorMessage: null);
     try {
       await _toneGenerator.startTone(state.frequency, state.volume);
