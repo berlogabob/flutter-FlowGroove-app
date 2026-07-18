@@ -144,6 +144,9 @@ class AppBottomBar extends StatelessWidget {
                       ? const SizedBox.shrink()
                       : Semantics(
                           label: title,
+                          // Exclude the child Text so the title isn't announced
+                          // twice ("Recorder\nRecorder"). See UX audit F-002.
+                          excludeSemantics: true,
                           child: Text(
                             title!,
                             maxLines: 1,
@@ -216,6 +219,9 @@ class NavTab extends StatelessWidget {
       button: true,
       selected: selected,
       label: item.label,
+      // The child Icon + Text(item.label) each emit their own semantics; without
+      // excluding them the label announces twice ("Home\nHome"). See UX audit F-002.
+      excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),

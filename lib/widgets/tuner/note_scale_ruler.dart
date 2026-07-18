@@ -15,6 +15,10 @@ class NoteScaleRuler extends ConsumerWidget {
 
   final double dialSize;
 
+  static const List<String> _noteNames = [
+    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(tunerProvider);
@@ -48,18 +52,24 @@ class NoteScaleRuler extends ConsumerWidget {
             final y = radius + noteRadius * math.sin(angleRad);
 
             return Positioned(
-              left: x - 20,
-              top: y - 20,
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  notifier.setTargetNoteByIndex(index);
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  color: Colors.transparent,
+              left: x - 22,
+              top: y - 22,
+              // Label the tap target so screen readers can announce it (UX audit
+              // F-014: these note-select areas were unlabeled clickable nodes).
+              child: Semantics(
+                button: true,
+                label: 'Select note ${_noteNames[index]}',
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    notifier.setTargetNoteByIndex(index);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    color: Colors.transparent,
+                  ),
                 ),
               ),
             );
