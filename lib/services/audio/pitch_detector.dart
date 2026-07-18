@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
@@ -128,10 +129,58 @@ class RecordAudioInput implements AudioInput {
         encoder: AudioEncoder.pcm16bits,
         numChannels: 1,
         streamBufferSize: 4096,
+        // Voice processing mangles musical signal. autoGain/echoCancel/
+        // noiseSuppress default to false and record's web backend maps them
+        // verbatim into getUserMedia constraints, overriding the browser's
+        // processing-ON defaults — do not flip them on.
+        // Bluetooth headset mics use the 8-16 kHz HFP codec — useless for
+        // pitch detection. Keep capture on the built-in mic.
+        androidConfig: AndroidRecordConfig(
+          audioSource: AndroidAudioSource.mic,
+          manageBluetooth: false,
+        ),
+        iosConfig: IosRecordConfig(
+          categoryOptions: [IosAudioCategoryOption.defaultToSpeaker],
+        ),
       ),
     );
+    await _applyIosMeasurementMode();
     _isRecording = true;
     return stream;
+  }
+
+  /// record_ios sets the session category but leaves the mode at `.default`,
+  /// where Apple's voice processing (echo cancellation/AGC) stays active and
+  /// mangles sustained musical tones. `.measurement` disables it. Applied
+  /// after the stream starts so record's own setCategory can't override it.
+  Future<void> _applyIosMeasurementMode() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(
+        const AudioSessionConfiguration(
+          avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+          avAudioSessionCategoryOptions:
+              AVAudioSessionCategoryOptions.defaultToSpeaker,
+          avAudioSessionMode: AVAudioSessionMode.measurement,
+        ),
+      );
+    } catch (error) {
+      // A failed session tweak must never block capture itself.
+      debugPrint('Tuner: could not apply iOS measurement mode: $error');
+    }
+  }
+
+  Future<void> _restoreIosDefaultMode() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
+    try {
+      final session = await AudioSession.instance;
+      // Back to the app-wide playback session set in main(): music category
+      // ignores the ringer switch, so tone gen/metronome stay audible.
+      await session.configure(const AudioSessionConfiguration.music());
+    } catch (error) {
+      debugPrint('Tuner: could not restore iOS audio mode: $error');
+    }
   }
 
   @override
@@ -139,6 +188,7 @@ class RecordAudioInput implements AudioInput {
     if (!_isRecording) return;
     _isRecording = false;
     await _recorder.stop();
+    await _restoreIosDefaultMode();
   }
 
   @override

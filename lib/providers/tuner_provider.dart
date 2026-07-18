@@ -69,6 +69,7 @@ class TunerState {
     this.stageModeActive = false,
     this.stageModeEnabled = false,
     this.musicModeIndex = 0,
+    this.transpositionSemitones = 0,
   });
   final TunerMode mode;
   final double frequency;
@@ -99,6 +100,12 @@ class TunerState {
   final bool stageModeActive;
   final bool stageModeEnabled;
   final int musicModeIndex;
+
+  /// Semitones added to the detected concert pitch when displaying the note
+  /// name, so transposing-instrument players (Bb/Eb/F) read written pitch.
+  /// ponytail: applies to auto-detect display only; manual targets and tone
+  /// generation stay in concert pitch — extend if horn players ask.
+  final int transpositionSemitones;
 
   bool get hasValidPitch =>
       signalState == TunerSignalState.detected ||
@@ -135,6 +142,7 @@ class TunerState {
     bool? stageModeActive,
     bool? stageModeEnabled,
     int? musicModeIndex,
+    int? transpositionSemitones,
   }) {
     return TunerState(
       mode: mode ?? this.mode,
@@ -174,6 +182,8 @@ class TunerState {
       stageModeActive: stageModeActive ?? this.stageModeActive,
       stageModeEnabled: stageModeEnabled ?? this.stageModeEnabled,
       musicModeIndex: musicModeIndex ?? this.musicModeIndex,
+      transpositionSemitones:
+          transpositionSemitones ?? this.transpositionSemitones,
     );
   }
 
@@ -281,6 +291,9 @@ class TunerNotifier extends Notifier<TunerState> {
         droneEnabled: values['droneEnabled'] as bool? ?? false,
         recentPresetIds:
             (values['recentPresetIds'] as List<String>?) ?? const [],
+        transpositionSemitones: ((values['transposition'] as num?)?.toInt() ??
+                0)
+            .clamp(0, 11),
       );
     } catch (error) {
       debugPrint('Unable to restore tuner preferences: $error');
@@ -507,9 +520,16 @@ class TunerNotifier extends Notifier<TunerState> {
     }
 
     final manualTarget = state.manualTargetNote;
-    final detectedNote = frequencyToNote(frequency);
-    final displayNote =
-        manualTarget ?? _stableDetectedNote(detectedNote.displayName);
+    // Auto display reads written pitch for transposing instruments: shift the
+    // note NAME only; frequency/cents math stays in concert pitch.
+    final detectedMidi = TunerNoteMath.midiForFrequency(
+      frequency,
+      state.referenceA4,
+    );
+    final detectedName = TunerNoteMath.noteNameForMidi(
+      detectedMidi + state.transpositionSemitones,
+    );
+    final displayNote = manualTarget ?? _stableDetectedNote(detectedName);
     final rawCents = manualTarget == null
         ? TunerNoteMath.centsFromNearestNote(frequency, state.referenceA4)
         : 1200 *
@@ -642,6 +662,12 @@ class TunerNotifier extends Notifier<TunerState> {
     final tolerance = value.round().clamp(1, 20);
     state = state.copyWith(centsTolerance: tolerance);
     unawaited(_preferences.saveTolerance(tolerance));
+  }
+
+  void setTransposition(int semitones) {
+    final value = semitones.clamp(0, 11);
+    state = state.copyWith(transpositionSemitones: value);
+    unawaited(_preferences.saveTransposition(value));
   }
 
   void setSensitivity(double value) {

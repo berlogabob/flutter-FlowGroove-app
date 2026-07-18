@@ -3,9 +3,57 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/tuner_provider.dart';
+import '../../services/audio/pitch_analysis.dart';
 import '../../theme/mono_pulse_theme.dart';
 import 'note_scale_ruler.dart';
 import 'tick_marks.dart';
+
+/// Angle math shared by the tuner dial's drag tracking and handle rotation.
+///
+/// Two conventions live side by side and must not be mixed up:
+/// - "absolute" angles use the ruler/canvas convention (0°=east, index 0 at
+///   -90°=north) — used for placement math and pointer `.direction` deltas;
+/// - "rotation" angles are deltas for [Transform.rotate] applied to the edge
+///   handle, which is already pre-translated to north, so its rotation is the
+///   absolute angle + 90°.
+abstract final class TunerDialGeometry {
+  static const degreesPerNote = 30.0;
+
+  /// Absolute placement angle (radians) of chromatic index 0-11.
+  /// MUST match note_scale_ruler.dart: -90° + (index * 30°).
+  static double angleForNoteIndex(int noteIndex) {
+    return (-math.pi / 2) + (noteIndex * degreesPerNote) * (math.pi / 180);
+  }
+
+  /// Chromatic index (0-11, C-B) of the note nearest to [frequency].
+  static int chromaticIndexForFrequency(double frequency, double referenceA4) {
+    final midiNote = TunerNoteMath.midiForFrequency(frequency, referenceA4);
+    return ((midiNote % 12) + 12) % 12;
+  }
+
+  /// Rotation for the north-baked edge handle to point at [noteIndex].
+  static double rotationForNoteIndex(int noteIndex) {
+    return angleForNoteIndex(noteIndex) + math.pi / 2;
+  }
+
+  /// Rotation for the north-baked edge handle to point at the note
+  /// nearest to [frequency].
+  static double rotationForFrequency(double frequency, double referenceA4) {
+    return rotationForNoteIndex(
+      chromaticIndexForFrequency(frequency, referenceA4),
+    );
+  }
+
+  /// Inverse of [angleForNoteIndex]: absolute angle → 4th-octave frequency
+  /// at the calibrated A4 reference.
+  static double frequencyForAngle(double angle, double referenceA4) {
+    final angleDeg = angle * 180 / math.pi;
+    final chromaticIndex =
+        (((angleDeg + 90) / degreesPerNote).round() % 12 + 12) % 12;
+    // 4th octave: MIDI 60 (C4) … 71 (B4)
+    return TunerNoteMath.frequencyForMidi(60 + chromaticIndex, referenceA4);
+  }
+}
 
 /// Central Dial widget for Tuner screen
 ///
@@ -72,18 +120,11 @@ class CentralDial extends ConsumerWidget {
                     _ => 'Tap Listen to start',
                   },
                   targetNoteIndex: state.mode == TunerMode.listen
-                      ? (() {
-                          final noteName = state.note.replaceAll(
-                            RegExp(r'\d'),
-                            '',
-                          );
-                          final idx = _noteNameToIndex(noteName);
-                          debugPrint(
-                            '🎵 Dial: state.note=${state.note}, noteName=$noteName, index=$idx',
-                          );
-                          return idx;
-                        }).call()
+                      ? _noteNameToIndex(
+                          state.note.replaceAll(RegExp(r'\d'), ''),
+                        )
                       : null,
+                  referenceA4: state.referenceA4,
                   onFrequencyChanged: notifier.updateFrequency,
                 ),
               ],
@@ -107,6 +148,7 @@ class _InteractiveDial extends StatefulWidget {
     required this.isListening,
     required this.isStarting,
     required this.signalLabel,
+    required this.referenceA4,
     required this.onFrequencyChanged,
     this.targetNoteIndex,
   });
@@ -122,6 +164,7 @@ class _InteractiveDial extends StatefulWidget {
   final bool isStarting;
   final String signalLabel;
   final int? targetNoteIndex; // For manual mode: which note is selected (0-11)
+  final double referenceA4;
   final void Function(double) onFrequencyChanged;
 
   @override
@@ -149,6 +192,10 @@ class _InteractiveDialState extends State<_InteractiveDial> {
         child: Stack(
           alignment: Alignment.center,
           children: [
+            // Radial gradient lens effect — painted FIRST: its tokens are
+            // fully opaque, so anything below it in this Stack is invisible.
+            _RadialGradientOverlay(size: widget.size),
+
             // Center frequency/note display
             _FrequencyDisplay(
               note: widget.note,
@@ -163,21 +210,23 @@ class _InteractiveDialState extends State<_InteractiveDial> {
               signalLabel: widget.signalLabel,
             ),
 
-            // Radial gradient overlay for lens effect
-            _RadialGradientOverlay(size: widget.size),
-
             // Handle or needle based on mode
             if (widget.mode == TunerMode.generate)
               // Generate mode: rotating handle based on frequency
               Transform.rotate(
-                angle: _angleForFrequency(widget.frequency),
+                angle: TunerDialGeometry.rotationForFrequency(
+                  widget.frequency,
+                  widget.referenceA4,
+                ),
                 child: _EdgeHandle(size: widget.size),
               )
             else if (widget.mode == TunerMode.listen &&
                 widget.targetNoteIndex != null)
               // Manual mode: handle points to selected note position (chromatic)
               Transform.rotate(
-                angle: _angleForNoteIndex(widget.targetNoteIndex!),
+                angle: TunerDialGeometry.rotationForNoteIndex(
+                  widget.targetNoteIndex!,
+                ),
                 child: _EdgeHandle(size: widget.size),
               )
             else if (widget.hasValidPitch)
@@ -201,14 +250,12 @@ class _InteractiveDialState extends State<_InteractiveDial> {
     final localPosition = renderObject.globalToLocal(details.globalPosition);
 
     // Calculate current note index from frequency (same as note ruler)
-    const referenceFrequency = 440.0;
-    const referenceNoteIndex = 69;
-    final midiNote =
-        referenceNoteIndex +
-        12 * math.log(widget.frequency / referenceFrequency) / math.ln2;
-    final chromaticIndex =
-        ((midiNote.round() % 12) + 12) % 12; // Ensure positive
-    final currentAngle = _angleForNoteIndex(chromaticIndex);
+    final currentAngle = TunerDialGeometry.angleForNoteIndex(
+      TunerDialGeometry.chromaticIndexForFrequency(
+        widget.frequency,
+        widget.referenceA4,
+      ),
+    );
 
     _startAngle = currentAngle - (localPosition - center).direction;
   }
@@ -223,7 +270,10 @@ class _InteractiveDialState extends State<_InteractiveDial> {
     final angle = (localPosition - center).direction + _startAngle;
 
     // Convert angle to frequency
-    final frequency = _frequencyForAngle(angle);
+    final frequency = TunerDialGeometry.frequencyForAngle(
+      angle,
+      widget.referenceA4,
+    );
     widget.onFrequencyChanged(frequency);
 
     // Haptic feedback on frequency change (every 10 Hz)
@@ -239,56 +289,6 @@ class _InteractiveDialState extends State<_InteractiveDial> {
     HapticFeedback.lightImpact();
   }
 
-  /// Convert frequency to angle (radians)
-  /// MUST match note_scale_ruler.dart: -90° + (chromaticIndex * 30°)
-  double _angleForFrequency(double frequency) {
-    // Convert frequency to MIDI note number
-    const referenceFrequency = 440.0; // A4
-    const referenceNoteIndex = 69; // A4 in MIDI
-    final midiNote =
-        referenceNoteIndex +
-        12 * math.log(frequency / referenceFrequency) / math.ln2;
-
-    // Get chromatic index (0-11, C-B), ensure positive
-    final chromaticIndex = ((midiNote.round() % 12) + 12) % 12;
-
-    // Match note ruler: -90° + (index * 30°)
-    return (-math.pi / 2) + (chromaticIndex * 30.0) * (math.pi / 180);
-  }
-
-  /// Convert angle (radians) to frequency
-  /// MUST match note_scale_ruler.dart: angle = -90° + (index * 30°)
-  double _frequencyForAngle(double angle) {
-    // Reverse the ruler formula: angle = -90° + (index * 30°)
-    // So: index = (angle + 90°) / 30°
-    final angleDeg = angle * 180 / math.pi;
-    final chromaticIndex = (((angleDeg + 90) / 30).round() % 12 + 12) % 12;
-
-    // Convert note index to frequency (4th octave)
-    const noteFrequencies = [
-      261.63, // C4
-      277.18, // C#4
-      293.66, // D4
-      311.13, // D#4
-      329.63, // E4
-      349.23, // F4
-      369.99, // F#4
-      392.00, // G4
-      415.30, // G#4
-      440.00, // A4
-      466.16, // A#4
-      493.88, // B4
-    ];
-
-    return noteFrequencies[chromaticIndex];
-  }
-
-  /// Convert note chromatic index (0-11) to angle for dial handle
-  /// MUST match note_scale_ruler.dart: -90° + (index * 30°)
-  double _angleForNoteIndex(int noteIndex) {
-    // Match the note ruler exactly: -90° + (index * 30°)
-    return (-math.pi / 2) + (noteIndex * 30.0) * (math.pi / 180);
-  }
 }
 
 class _FrequencyDisplay extends StatelessWidget {

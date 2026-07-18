@@ -97,6 +97,20 @@ class TunerSettingsSheet extends ConsumerWidget {
                     divisions: 20,
                     onChanged: notifier.setSensitivity,
                   ),
+                  const _SectionLabel('Transposition'),
+                  const SizedBox(height: MonoPulseSpacing.sm),
+                  _TranspositionSelector(
+                    value: state.transpositionSemitones,
+                    onChanged: notifier.setTransposition,
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.xs),
+                  Text(
+                    'Show detected notes as written pitch for transposing instruments.',
+                    style: MonoPulseTypography.bodySmall.copyWith(
+                      color: context.mp.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.lg),
                   _SettingSwitch(
                     title: 'Haptic Feedback',
                     subtitle:
@@ -171,6 +185,85 @@ class _PresetSummary extends StatelessWidget {
         '$instrument · $tuning',
         style: MonoPulseTypography.bodyMedium.copyWith(
           color: context.mp.textHighEmphasis,
+        ),
+      ),
+    );
+  }
+}
+
+class _TranspositionSelector extends StatelessWidget {
+  const _TranspositionSelector({required this.value, required this.onChanged});
+
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  // Standard transposing instruments: written C sounds a concert pitch this
+  // many semitones LOWER, so displayed names shift UP by the same amount.
+  static const _options = <(String, int)>[
+    ('C', 0), // concert pitch
+    ('Bb', 2), // trumpet, clarinet, tenor/soprano sax
+    ('F', 7), // french horn, english horn
+    ('Eb', 9), // alto/baritone sax
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final (label, semitones) in _options) ...[
+          Expanded(
+            child: _TranspositionChip(
+              label: label,
+              selected: value == semitones,
+              onTap: () => onChanged(semitones),
+            ),
+          ),
+          if (semitones != _options.last.$2)
+            const SizedBox(width: MonoPulseSpacing.sm),
+        ],
+      ],
+    );
+  }
+}
+
+class _TranspositionChip extends StatelessWidget {
+  const _TranspositionChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.sm),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? MonoPulseColors.accentOrange.withValues(alpha: 0.15)
+              : context.mp.surfaceRaised,
+          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+          border: Border.all(
+            color: selected
+                ? MonoPulseColors.accentOrange
+                : context.mp.borderSubtle,
+          ),
+        ),
+        child: Text(
+          label,
+          style: MonoPulseTypography.bodyMedium.copyWith(
+            color: selected
+                ? MonoPulseColors.accentOrange
+                : context.mp.textSecondary,
+            fontWeight: MonoPulseTypography.medium,
+          ),
         ),
       ),
     );

@@ -65,6 +65,22 @@ void main() {
       });
     });
 
+    group('Transposition', () {
+      test('defaults to concert pitch (0 semitones)', () {
+        expect(container.read(tunerProvider).transpositionSemitones, 0);
+      });
+
+      test('setTransposition updates state and clamps to 0-11', () {
+        final notifier = container.read(tunerProvider.notifier);
+        notifier.setTransposition(9);
+        expect(container.read(tunerProvider).transpositionSemitones, 9);
+        notifier.setTransposition(-3);
+        expect(container.read(tunerProvider).transpositionSemitones, 0);
+        notifier.setTransposition(15);
+        expect(container.read(tunerProvider).transpositionSemitones, 11);
+      });
+    });
+
     group('Tuner Notifier Methods', () {
       test('notifier is accessible', () {
         final notifier = container.read(tunerProvider.notifier);

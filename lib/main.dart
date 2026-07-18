@@ -1,3 +1,4 @@
+import 'package:audio_session/audio_session.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,6 +35,19 @@ void main() async {
   // call sites globally instead of guarding each one.
   if (kReleaseMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};
+  }
+
+  // iOS: without an explicit playback session the app inherits soloAmbient,
+  // which obeys the ringer/silent switch — metronome and tuner tone go silent
+  // on muted devices while GarageBand keeps playing. Musicians mute devices on
+  // stage; configure a music session up front (no-op where unsupported).
+  if (!kIsWeb) {
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(const AudioSessionConfiguration.music());
+    } catch (e) {
+      debugPrint('AudioSession configure failed: $e');
+    }
   }
 
   // Global error widget for graceful degradation (prevents full red screen)

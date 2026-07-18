@@ -48,6 +48,8 @@ dependencies:
   # Audio
   flutter_soloud: ^4.0.9
   record: ^7.1.0
+  # Tuner: iOS measurement-mode session (disables voice processing during capture)
+  audio_session: ^0.2.4
   just_audio: ^0.10.0
 
   # PDF & Export
