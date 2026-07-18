@@ -21,8 +21,10 @@ void main() {
   }
 
   group('PracticeDashboardCard (#133)', () {
-    test('formatMinutes renders minutes and hours', () {
-      expect(PracticeDashboardCard.formatMinutes(59), '0 min');
+    test('formatMinutes renders seconds, minutes and hours', () {
+      // Sub-minute shows real seconds, not a misleading "0 min" (UX audit F-020).
+      expect(PracticeDashboardCard.formatMinutes(59), '59s');
+      expect(PracticeDashboardCard.formatMinutes(0), '0s');
       expect(PracticeDashboardCard.formatMinutes(600), '10 min');
       expect(PracticeDashboardCard.formatMinutes(3900), '1h 5m');
     });
