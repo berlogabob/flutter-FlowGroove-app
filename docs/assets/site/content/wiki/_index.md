@@ -17,7 +17,9 @@ usually be restored from the **Undo** snackbar that appears at the bottom.
 - [Songs](songs/) — manage your song library
 - [Bands](bands/) — create and join bands
 - [Setlists](setlists/) — build performance setlists
-- [Profile](profile/) — account and settings
+- [Practice](practice/) — your practice, tracked; homework and the Recorder
+- [Profile](profile/) — your account
+- [Settings](settings/) — app-wide preferences (theme, haptics, screen-on)
 - [Metronome](metronome/) — practice to a steady beat
 - [Tuner](tuner/) — tune your instrument
 - [Concert Mode](concert-mode/) — perform live

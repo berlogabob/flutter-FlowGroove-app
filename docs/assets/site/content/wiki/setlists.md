@@ -20,3 +20,15 @@ Order songs for a performance.
   as **PDF** — **As is** (one detailed card per song) or **Compact** (one line per
   song, fits a single list).
 - The **Open in metronome** button queues the whole setlist in the metronome.
+
+## Event Kit — the show, not just the songs
+
+For setlists tied to a real event:
+
+- **Stage plot** — a simple stage editor: place members, instruments and gear
+  on a stage grid.
+- **Role cards** — who plays what, per song; changes for a song (capo,
+  instrument swap, backing track) live with the setlist.
+- **Event guide PDF** — the setlist export sheet has a *With event guide*
+  toggle: one document with the setlist plus the stage plot and role pages —
+  print it, tape it backstage.
