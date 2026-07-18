@@ -90,9 +90,21 @@ class PcmClickRenderer {
         subdivisionFrequency: config.beatFrequency,
         accentFrequency: config.accentBeatFrequency,
       );
+      final gain = resolveClickGain(
+        mode: mode,
+        isMainBeat: sub == 0,
+        accentEnabled: config.accentEnabled,
+        subdivisionGain: config.subdivisionGain,
+      );
       final mixAt = frameForTick(config, n) - config.latencyOffsetFrames - startFrame;
       if (mixAt > frameCount) continue;
-      _mixVoice(out, mixAt, freq, config.volume, config.waveType);
+      _mixVoice(
+        out,
+        mixAt,
+        freq,
+        (config.volume * gain).clamp(0.0, 1.0),
+        config.waveType,
+      );
     }
     return out;
   }

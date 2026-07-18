@@ -27,6 +27,7 @@ RenderConfig renderConfigFromPlayback(
     beatFrequency: c.beatFrequency,
     accentBeatFrequency: c.accentBeatFrequency,
     volume: c.volume,
+    subdivisionGain: c.subdivisionGain,
     countInBars: c.countInBars,
     latencyOffsetFrames: cal.effectiveOffsetFrames(route, sampleRate),
     waveType: c.waveType,

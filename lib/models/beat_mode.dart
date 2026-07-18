@@ -42,3 +42,19 @@ double resolveClickFrequency({
   if (isMainBeat && accentEnabled) return primaryFrequency;
   return subdivisionFrequency;
 }
+
+/// Relative gain of one metronome cell, mirroring [resolveClickFrequency]'s
+/// tiers: cells on the subdivision pitch tier carry [subdivisionGain], the
+/// main-beat and marked-accent tiers stay at 1.0. Subdivisions default an
+/// octave below the main beat (800 vs 1600 Hz) and read far quieter on small
+/// speakers at equal amplitude.
+double resolveClickGain({
+  required BeatMode mode,
+  required bool isMainBeat,
+  required bool accentEnabled,
+  required double subdivisionGain,
+}) {
+  if (mode == BeatMode.accent) return 1.0;
+  if (isMainBeat && accentEnabled) return 1.0;
+  return subdivisionGain;
+}

@@ -26,6 +26,7 @@ class MetronomeState {
     required this.beatFrequency,
     required this.accentPattern,
     this.accentBeatFrequency = 2000,
+    this.subdivisionGain = 1.4,
     this.hapticsEnabled = true,
     this.accentBeats = 4,
     this.regularBeats = 1,
@@ -91,6 +92,13 @@ class MetronomeState {
   /// (rendered cyan). Surfaced as the "Accent pitch" control.
   @JsonKey(defaultValue: 2000)
   final double accentBeatFrequency;
+
+  /// Relative loudness of subdivision clicks (0.5–2.0). Subdivisions default
+  /// an octave below the main beat and read far quieter on small speakers.
+  // ponytail: 1.4 default is an equal-loudness heuristic for 800 Hz clicks on
+  // phone/laptop speakers; revisit if the default pitches change.
+  @JsonKey(defaultValue: 1.4)
+  final double subdivisionGain;
   @JsonKey(defaultValue: true)
   final bool hapticsEnabled;
   @JsonKey(defaultValue: [])
@@ -137,6 +145,7 @@ class MetronomeState {
     double? accentFrequency,
     double? beatFrequency,
     double? accentBeatFrequency,
+    double? subdivisionGain,
     bool? hapticsEnabled,
     List<bool>? accentPattern,
     int? accentBeats,
@@ -167,6 +176,7 @@ class MetronomeState {
       accentFrequency: accentFrequency ?? this.accentFrequency,
       beatFrequency: beatFrequency ?? this.beatFrequency,
       accentBeatFrequency: accentBeatFrequency ?? this.accentBeatFrequency,
+      subdivisionGain: subdivisionGain ?? this.subdivisionGain,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       accentPattern: accentPattern ?? this.accentPattern,
       accentBeats: accentBeats ?? this.accentBeats,

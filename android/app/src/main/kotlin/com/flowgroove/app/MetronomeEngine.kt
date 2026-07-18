@@ -24,7 +24,9 @@ import kotlin.math.sin
 internal data class NativeMetronomeTick(
     val index: Int,
     val shouldPlay: Boolean,
-    val frequency: Double
+    val frequency: Double,
+    // Relative loudness of this cell (subdivision boost); 1.0 for main/accent.
+    val gain: Double = 1.0
 )
 
 internal data class NativeMetronomeConfig(
@@ -42,7 +44,8 @@ internal data class NativeMetronomeConfig(
                 NativeMetronomeTick(
                     index = (tickMap["index"] as? Number)?.toInt() ?: 0,
                     shouldPlay = tickMap["shouldPlay"] as? Boolean ?: true,
-                    frequency = (tickMap["frequency"] as? Number)?.toDouble() ?: 880.0
+                    frequency = (tickMap["frequency"] as? Number)?.toDouble() ?: 880.0,
+                    gain = (tickMap["gain"] as? Number)?.toDouble() ?: 1.0
                 )
             }.orEmpty().ifEmpty {
                 listOf(
@@ -246,7 +249,7 @@ internal class AndroidMetronomeEngine(
                                 scratch,
                                 (tickFrame - chunkStart).toInt(),
                                 tick.frequency,
-                                active.volume.toDouble(),
+                                (active.volume.toDouble() * tick.gain).coerceIn(0.0, 1.0),
                                 active.waveType
                             )
                             // Enqueue UI/haptic dispatch only for the onset chunk.

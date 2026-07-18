@@ -598,6 +598,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     _syncPlaybackConfig();
   }
 
+  /// Set the relative loudness of subdivision clicks.
+  void setSubdivisionGain(double gain) {
+    state = state.copyWith(subdivisionGain: gain.clamp(0.5, 2.0));
+    _syncPlaybackConfig();
+  }
+
   /// Toggle synchronized haptic feedback during playback.
   void toggleHaptics() {
     setHapticsEnabled(!state.hapticsEnabled);

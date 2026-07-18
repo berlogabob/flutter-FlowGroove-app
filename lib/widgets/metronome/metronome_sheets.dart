@@ -158,6 +158,14 @@ class _SoundSheet extends ConsumerWidget {
           onChanged: notifier.setBeatFrequency,
         ),
         _SliderRow(
+          label: 'Subdivision volume',
+          value: state.subdivisionGain.clamp(0.5, 2.0),
+          min: 0.5,
+          max: 2.0,
+          display: '${(state.subdivisionGain * 100).round()}%',
+          onChanged: notifier.setSubdivisionGain,
+        ),
+        _SliderRow(
           label: 'Accent pitch',
           value: state.accentBeatFrequency.clamp(400, 3000),
           min: 400,

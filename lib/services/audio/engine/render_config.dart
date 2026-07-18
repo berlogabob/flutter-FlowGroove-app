@@ -15,6 +15,7 @@ class RenderConfig {
     required this.volume,
     required this.countInBars,
     required this.latencyOffsetFrames,
+    this.subdivisionGain = 1.4,
     this.waveType = 'sine',
   });
 
@@ -29,6 +30,7 @@ class RenderConfig {
   final double volume;
   final int countInBars;
   final int latencyOffsetFrames;
+  final double subdivisionGain; // relative loudness of subdivision cells
   final String waveType;      // 'sine' | 'square' | 'triangle' | 'sawtooth'
 
   int get safeBeats => beats.clamp(1, 12);

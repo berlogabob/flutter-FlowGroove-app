@@ -238,6 +238,7 @@ class MetronomePlaybackTick {
     required this.isMainBeat,
     required this.shouldPlay,
     required this.frequency,
+    this.gain = 1.0,
     this.isCountIn = false,
   });
 
@@ -247,6 +248,7 @@ class MetronomePlaybackTick {
   final bool isMainBeat;
   final bool shouldPlay;
   final double frequency;
+  final double gain;
   final bool isCountIn;
 }
 
@@ -394,7 +396,9 @@ class PcmTimelineMetronomePlaybackClient implements MetronomePlaybackClient {
           samples,
           cursor,
           isCountIn ? 2100 : tick.frequency,
-          isCountIn ? min(1, config.volume + 0.15) : config.volume,
+          isCountIn
+              ? min(1, config.volume + 0.15)
+              : (config.volume * tick.gain).clamp(0.0, 1.0),
         );
       }
       _samplesUntilTick = intervalSamples;
@@ -449,6 +453,7 @@ class MetronomePlaybackConfig {
     required this.beatFrequency,
     required this.accentBeatFrequency,
     required this.hapticsEnabled,
+    this.subdivisionGain = 1.4,
     this.countInBars = 0,
   });
 
@@ -465,6 +470,7 @@ class MetronomePlaybackConfig {
       beatFrequency: state.beatFrequency,
       accentBeatFrequency: state.accentBeatFrequency,
       hapticsEnabled: state.hapticsEnabled,
+      subdivisionGain: state.subdivisionGain,
       countInBars: state.countInBars,
     );
   }
@@ -480,6 +486,7 @@ class MetronomePlaybackConfig {
   final double beatFrequency; // subdivision pitch
   final double accentBeatFrequency; // marked-accent (cyan) pitch
   final bool hapticsEnabled;
+  final double subdivisionGain; // relative loudness of subdivision cells
   final int countInBars;
 
   int get _safeAccentBeats => accentBeats.clamp(1, 12);
@@ -511,6 +518,12 @@ class MetronomePlaybackConfig {
       subdivisionFrequency: beatFrequency,
       accentFrequency: accentBeatFrequency,
     );
+    final gain = resolveClickGain(
+      mode: mode,
+      isMainBeat: isMainBeat,
+      accentEnabled: accentEnabled,
+      subdivisionGain: subdivisionGain,
+    );
 
     return MetronomePlaybackTick(
       index: normalizedIndex,
@@ -519,6 +532,7 @@ class MetronomePlaybackConfig {
       isMainBeat: isMainBeat,
       shouldPlay: shouldPlay,
       frequency: frequency,
+      gain: gain,
     );
   }
 
@@ -535,6 +549,7 @@ class MetronomePlaybackConfig {
           'index': tick.index,
           'shouldPlay': tick.shouldPlay,
           'frequency': tick.frequency,
+          'gain': tick.gain,
         };
       }),
     };
@@ -713,7 +728,7 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
           _audioClient.playClick(
             isAccent: tick.isMainBeat,
             waveType: config.waveType,
-            volume: config.volume,
+            volume: (config.volume * tick.gain).clamp(0.0, 1.0),
             accentFrequency: tick.frequency,
             beatFrequency: tick.frequency,
           ),
@@ -825,7 +840,7 @@ class WebAudioLookaheadPlaybackClient extends FlutterMetronomePlaybackClient {
           engine.scheduleClick(
             atTime: _nextAudioTime,
             waveType: config.waveType,
-            volume: config.volume,
+            volume: (config.volume * tick.gain).clamp(0.0, 1.0),
             frequency: tick.frequency,
           );
         }
