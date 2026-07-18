@@ -2,11 +2,14 @@ package com.flowgroove.app
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.Build
 import android.os.Handler
+import android.os.PowerManager
+import android.os.Process
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -148,6 +151,24 @@ internal class AndroidMetronomeEngine(
     // stop() never races a track release against a blocked write.
     @Volatile private var running: AtomicBoolean? = null
     private var renderThread: Thread? = null
+    private var wakeLock: PowerManager.WakeLock? = null
+    private var focusRequest: AudioFocusRequest? = null
+    private var legacyFocusRequested = false
+
+    private val audioManager: AudioManager by lazy {
+        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    }
+
+    // Permanent or transient loss (e.g. an incoming call) stops playback so
+    // Dart state stays in sync; ducking requests keep the click running — a
+    // metronome the user is playing along to must not silently duck away.
+    private val focusListener = AudioManager.OnAudioFocusChangeListener { change ->
+        when (change) {
+            AudioManager.AUDIOFOCUS_LOSS,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> stop(notifyFlutter = true)
+            else -> Unit
+        }
+    }
 
     private val vibrator: Vibrator by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -166,6 +187,8 @@ internal class AndroidMetronomeEngine(
             Log.e(TAG, "AudioTrack init failed")
             return
         }
+        acquireWakeLock()
+        requestAudioFocus()
         val sessionRunning = AtomicBoolean(true)
         running = sessionRunning
         renderThread = Thread(
@@ -192,11 +215,82 @@ internal class AndroidMetronomeEngine(
             }
         }
         renderThread = null
+        releaseWakeLock()
+        abandonAudioFocus()
         // The render thread releases its own track in renderLoop's finally; stop()
         // never touches the track, so a timed-out join can't race a release.
         if (notifyFlutter) {
             mainHandler.post { onStopped() }
         }
+    }
+
+    private fun acquireWakeLock() {
+        try {
+            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = pm.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "FlowGroove:MetronomeAudio"
+            ).apply {
+                setReferenceCounted(false)
+                // ponytail: 2h ceiling instead of open-ended; longest realistic
+                // practice session before the user touches the transport again.
+                acquire(2 * 60 * 60 * 1000L)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "wakelock acquire failed", e)
+        }
+    }
+
+    private fun releaseWakeLock() {
+        try {
+            wakeLock?.takeIf { it.isHeld }?.release()
+        } catch (e: Exception) {
+            Log.w(TAG, "wakelock release failed", e)
+        }
+        wakeLock = null
+    }
+
+    @Suppress("DEPRECATION")
+    private fun requestAudioFocus() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build()
+                    )
+                    .setOnAudioFocusChangeListener(focusListener)
+                    .build()
+                focusRequest = request
+                audioManager.requestAudioFocus(request)
+            } else {
+                legacyFocusRequested = true
+                audioManager.requestAudioFocus(
+                    focusListener,
+                    AudioManager.STREAM_MUSIC,
+                    AudioManager.AUDIOFOCUS_GAIN
+                )
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "audio focus request failed", e)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun abandonAudioFocus() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                focusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+            } else if (legacyFocusRequested) {
+                audioManager.abandonAudioFocus(focusListener)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "audio focus abandon failed", e)
+        }
+        focusRequest = null
+        legacyFocusRequested = false
     }
 
     fun dispose() {
@@ -219,6 +313,14 @@ internal class AndroidMetronomeEngine(
         var epochFrame = 0L
 
         try {
+            // Default-priority threads get starved by aggressive vendor CPU
+            // governors (measured: isolated ~100ms-late beats on Android 10 /
+            // Huawei). Urgent-audio priority is what audio pipelines use.
+            try {
+                Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+            } catch (e: Exception) {
+                Log.w(TAG, "setThreadPriority failed", e)
+            }
             track.play()
             while (running.get()) {
                 pendingConfig?.let { pend ->
@@ -286,6 +388,12 @@ internal class AndroidMetronomeEngine(
         } catch (e: Exception) {
             Log.e(TAG, "render loop error", e)
         } finally {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                    Log.i(TAG, "session AudioTrack underruns: ${track.underrunCount}")
+                } catch (_: Exception) {
+                }
+            }
             releaseTrack(track)
         }
     }
