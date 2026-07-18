@@ -14,6 +14,9 @@ Settings sits right under your profile.
 - **Theme** — Dark (default), Light, or follow the system. Light is a full MonoPulse palette (warm paper, white cards), not just flipped Material surfaces.
 - **Quick action on song cards** — choose what the pinned ⏱ button on every
   song card does: Metronome, Tuner, Performance sheet, Spotify, or Add to band.
+- **Quick action on setlist cards** — choose what the pinned button on every
+  setlist card does: Open in metronome, Event kit, Edit setlist, Share, Copy
+  links, or Export PDF.
 - **Share usage analytics** — anonymous usage events that help improve the
   app; switch it off any time and nothing is sent.
 - **AI access (MCP)** — create API keys to connect your own AI
