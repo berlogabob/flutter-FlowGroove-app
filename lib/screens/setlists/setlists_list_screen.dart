@@ -23,6 +23,7 @@ import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
+import 'event_kit_editor_screen.dart';
 
 class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});
@@ -286,6 +287,14 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
           ),
           OverflowMenuAction(
             entries: [
+              if (canEdit)
+                ('Edit setlist', Icons.edit_outlined, () => _handleEdit(index)),
+              if (canEdit)
+                (
+                  'Event kit',
+                  Icons.theater_comedy_outlined,
+                  () => _openEventKit(setlist),
+                ),
               ('Share', Icons.share, () => _shareSetlist(setlist)),
               ('Copy links', Icons.link, () => _copyLinks(setlist)),
               ('Export PDF', Icons.picture_as_pdf, () => _exportPdf(setlist)),
@@ -301,6 +310,16 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Future<List<Song>> _songsForSetlist(Setlist setlist) async {
     final allSongs = await ref.read(songsProvider.future);
     return allSongs.where((s) => setlist.songIds.contains(s.id)).toList();
+  }
+
+  void _openEventKit(Setlist setlist) {
+    // Personal setlist → bandId null. rootNavigator so the editor's bar doesn't
+    // stack under the shell bar.
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(setlist: setlist),
+      ),
+    );
   }
 
   Future<void> _openInMetronome(Setlist setlist) async {

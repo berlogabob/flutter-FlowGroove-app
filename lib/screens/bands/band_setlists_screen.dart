@@ -25,6 +25,7 @@ import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
 import '../../widgets/unified_item/unified_item_model.dart';
 import '../setlists/create_setlist_screen.dart';
+import '../setlists/event_kit_editor_screen.dart';
 
 class BandSetlistsScreen extends ConsumerStatefulWidget {
   const BandSetlistsScreen({required this.band, super.key});
@@ -162,11 +163,28 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   void _viewSetlist(Setlist setlist) {
-    // Read-only view on tap (P1-7), same as the personal list (#128).
+    // Read-only view on tap (P1-7), same as the personal list (#128). Pass the
+    // band scope so the detail view resolves songs against the BAND library —
+    // without it, bandId is null and every band-copy song id reads as
+    // "Unavailable song".
     context.pushNamed(
       'setlist-view',
       pathParameters: {'id': setlist.id},
+      queryParameters: {
+        'bandId': widget.band.id,
+        'scope': SetlistStorageScope.band.name,
+      },
       extra: setlist,
+    );
+  }
+
+  void _openEventKit(Setlist setlist) {
+    // rootNavigator so the editor's bar doesn't stack under the shell bar.
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            EventKitEditorScreen(setlist: setlist, bandId: widget.band.id),
+      ),
     );
   }
 
@@ -191,6 +209,11 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     // Riverpod disposes it mid-load ("disposed during loading state", #80).
     ref.watch(bandSongsProvider(widget.band.id));
     final canEdit = _canEdit;
+    // When the band has exactly one setlist, offer to edit it straight from the
+    // screen menu (with several, per-setlist edit lives on the cards).
+    final onlySetlist = setlistsAsync.value?.length == 1
+        ? setlistsAsync.value!.first
+        : null;
 
     return StandardScreenScaffold(
       title: '${widget.band.name} Setlists',
@@ -201,6 +224,12 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
                 label: 'Create Band Setlist',
                 onTap: _handleCreate,
               ),
+              if (onlySetlist != null)
+                AppMenuItem(
+                  icon: Icons.edit_outlined,
+                  label: 'Edit setlist',
+                  onTap: () => _editSetlist(onlySetlist),
+                ),
             ]
           : null,
       floatingActionButton: canEdit
@@ -304,6 +333,18 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
           ),
           OverflowMenuAction(
             entries: [
+              if (_canEdit)
+                (
+                  'Edit setlist',
+                  Icons.edit_outlined,
+                  () => _editSetlist(setlist),
+                ),
+              if (_canEdit)
+                (
+                  'Event kit',
+                  Icons.theater_comedy_outlined,
+                  () => _openEventKit(setlist),
+                ),
               ('Share', Icons.share, () => _shareSetlist(setlist)),
               ('Copy links', Icons.link, () => _shareAsLinks(setlist)),
               ('Export PDF', Icons.picture_as_pdf, () => _exportPdf(setlist)),

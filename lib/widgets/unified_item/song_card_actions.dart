@@ -248,7 +248,9 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   void openPerformanceSheet(Song song) {
-    Navigator.of(context).push(
+    // rootNavigator: full-screen over the shell so its bottom bar doesn't stack
+    // under the performance sheet's own bar (the double-bar bug).
+    Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
         builder: (_) => PerformanceSheetScreen(
           title: song.title.trim().isEmpty ? 'Song' : song.title.trim(),

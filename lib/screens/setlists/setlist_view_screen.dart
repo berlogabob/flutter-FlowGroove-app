@@ -114,7 +114,9 @@ class SetlistViewScreen extends ConsumerWidget {
   }
 
   void _openEventKit(BuildContext context, Setlist live) {
-    Navigator.of(context).push(
+    // rootNavigator: cover the shell so its bottom bar doesn't stack under the
+    // editor's own bar (the double-bar bug).
+    Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
         builder: (_) => EventKitEditorScreen(setlist: live, bandId: bandId),
       ),
@@ -139,11 +141,8 @@ class SetlistViewScreen extends ConsumerWidget {
 
     return ListView.builder(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      itemCount: items.length + 1,
+      itemCount: items.length,
       itemBuilder: (context, index) {
-        if (index == items.length) {
-          return _eventKitSummary(context, setlist, canEdit: canEdit);
-        }
         final song = songsById[items[index].songId];
         return SetlistSongRow(
           index: index,
@@ -154,45 +153,6 @@ class SetlistViewScreen extends ConsumerWidget {
     );
   }
 
-  /// Event Kit summary below the songs (#53): what's placed, who's coming,
-  /// what to bring — tap opens the editor (edit-gated).
-  Widget _eventKitSummary(
-    BuildContext context,
-    Setlist setlist, {
-    required bool canEdit,
-  }) {
-    final kit = setlist.eventKit;
-    final empty = kit == null || kit.isEmpty;
-    if (empty && !canEdit) return const SizedBox.shrink();
-
-    final placements = kit == null
-        ? 0
-        : kit.stage.values.fold<int>(0, (sum, zone) => sum + zone.length);
-    final openRider = kit?.rider.where((r) => !r.done).length ?? 0;
-
-    return Card(
-      margin: const EdgeInsets.only(top: MonoPulseSpacing.lg),
-      child: ListTile(
-        leading: const Icon(
-          Icons.theater_comedy_outlined,
-          color: MonoPulseColors.accentOrange,
-        ),
-        title: const Text('Event kit'),
-        subtitle: Text(
-          empty
-              ? 'Stage plot, crew & rider for this gig'
-              : [
-                  if (placements > 0) '$placements on stage',
-                  if (kit.people.isNotEmpty) '${kit.people.length} crew/guests',
-                  if (kit.rider.isNotEmpty)
-                    '$openRider of ${kit.rider.length} rider items open',
-                ].join(' · '),
-        ),
-        trailing: canEdit ? const Icon(Icons.chevron_right) : null,
-        onTap: canEdit ? () => _openEventKit(context, setlist) : null,
-      ),
-    );
-  }
 
   /// Key/BPM badges shown when the row's song resolves. Mirrors the
   /// editable rows in `CreateSetlistScreen`.
