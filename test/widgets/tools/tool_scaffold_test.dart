@@ -157,13 +157,15 @@ void main() {
       expect(find.byIcon(Icons.more_horiz), findsOneWidget);
     });
 
-    testWidgets('hides menu when menuItems is null', (tester) async {
+    testWidgets('still shows the menu when menuItems is null (falls back to '
+        'Profile/Settings) — UX audit F-017', (tester) async {
       await _pumpToolScaffold(
         tester,
         const ToolScreenScaffold(title: 'Test', mainWidget: SizedBox()),
       );
 
-      expect(find.byIcon(Icons.more_horiz), findsNothing);
+      // Every tool footer keeps a Menu button for a consistent affordance.
+      expect(find.byIcon(Icons.more_horiz), findsOneWidget);
     });
 
     testWidgets('has no top app bar; title lives in the bottom bar', (

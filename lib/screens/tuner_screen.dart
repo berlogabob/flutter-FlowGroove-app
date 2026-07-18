@@ -8,6 +8,7 @@ import '../providers/tuner_provider.dart';
 import '../services/analytics_service.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
+import '../widgets/app_filter_chip.dart';
 import '../widgets/app_menu_sheet.dart';
 import '../widgets/tools/tool_mode_switcher.dart';
 import '../widgets/tools/tool_scaffold.dart';
@@ -487,10 +488,11 @@ class _ToneControls extends StatelessWidget {
             if (value != null) onNoteChanged(safeNote, value);
           },
         ),
-        FilterChip(
+        // AppFilterChip gives the on-palette orange-selected state instead of
+        // the Material secondaryContainer grey pill. F-005.
+        AppFilterChip(
+          label: 'Drone',
           selected: droneEnabled,
-          label: const Text('Drone'),
-          avatar: const Icon(Icons.waves, size: 18),
           onSelected: (_) => onDroneChanged(),
         ),
       ],

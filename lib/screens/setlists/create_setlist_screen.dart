@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/setlist.dart';
 import '../../models/song.dart';
-import '../../models/tuner_launch_context.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
-import '../../providers/data/metronome_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
@@ -559,6 +556,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                     ReorderableListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
+                      // No drag-handle column (it squeezed the song name):
+                      // reorder by long-press, matching the list screens.
+                      buildDefaultDragHandles: false,
                       itemCount: _selectedItems.length,
                       onReorderItem: (oldIndex, newIndex) {
                         setState(() {
@@ -570,8 +570,11 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       itemBuilder: (context, index) {
                         final item = _selectedItems[index];
                         final song = _songsById[item.songId];
-                        return Dismissible(
+                        return ReorderableDelayedDragStartListener(
                           key: ValueKey(item.id),
+                          index: index,
+                          child: Dismissible(
+                          key: ValueKey('dismiss_${item.id}'),
                           direction: DismissDirection.endToStart,
                           background: Container(
                             alignment: Alignment.centerRight,
@@ -617,13 +620,6 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                           child: SetlistSongRow(
                             index: index,
                             song: song,
-                            leading: ReorderableDragStartListener(
-                              index: index,
-                              child: Icon(
-                                Icons.drag_handle,
-                                color: context.mp.textTertiary,
-                              ),
-                            ),
                             trailing: song == null
                                 ? null
                                 : Row(
@@ -679,23 +675,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                           ),
                                         ),
                                       ],
-                                      IconButton(
-                                        icon: const Icon(Icons.tune, size: 20),
-                                        tooltip: 'Open in Tuner',
-                                        onPressed: () =>
-                                            _openTunerForItem(index),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.av_timer,
-                                          size: 20,
-                                        ),
-                                        tooltip: 'Open in metronome',
-                                        onPressed: () =>
-                                            _openInMetronome(index),
-                                      ),
                                     ],
                                   ),
+                          ),
                           ),
                         );
                       },
@@ -712,85 +694,6 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
             isLoading: _isSaving,
           ),
         ),
-      ),
-    );
-  }
-
-  void _openInMetronome(int index) {
-    if (index < 0 || index >= _selectedItems.length) return;
-    final targetSong = _songsById[_selectedItems[index].songId];
-    if (targetSong == null) {
-      return; // Unavailable-song rows hide this action; defensive no-op.
-    }
-    // Build a draft from current (possibly unsaved) state so the metronome
-    // loads exactly what's on screen. availableSongs only carries the
-    // entries that currently resolve — MetronomeNotifier._resolveQueue skips
-    // the rest instead of refusing to load the whole queue.
-    final resolvedSongs = [
-      for (final item in _selectedItems)
-        if (_songsById[item.songId] case final song?) song,
-    ];
-    final draft = Setlist(
-      id: _setlistId,
-      bandId: _effectiveBandId ?? '',
-      name: _nameController.text.trim(),
-      songIds: _selectedItems.map((item) => item.songId).toList(),
-      items: List<SetlistItem>.from(_selectedItems),
-      createdAt: widget.setlist?.createdAt ?? DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-    final loaded = ref
-        .read(metronomeProvider.notifier)
-        .loadSetlistQueue(
-          draft,
-          availableSongs: resolvedSongs,
-          sourceBandId: _effectiveBandId,
-          startIndex: resolvedSongs.indexWhere(
-            (song) => song.id == targetSong.id,
-          ),
-        );
-    if (loaded) context.pushNamed('metronome');
-  }
-
-  Future<void> _openTunerForItem(int index) async {
-    if (index < 0 || index >= _selectedItems.length) return;
-    final item = _selectedItems[index];
-    final song = _songsById[item.songId];
-    if (song == null) {
-      return; // Unavailable-song rows hide this action; defensive no-op.
-    }
-    final draft = Setlist(
-      id: _setlistId,
-      bandId: _effectiveBandId ?? '',
-      name: _nameController.text.trim(),
-      description: _descriptionController.text.trim().isEmpty
-          ? null
-          : _descriptionController.text.trim(),
-      eventDateTime: _eventDate,
-      eventLocation: _eventLocationController.text.trim().isEmpty
-          ? null
-          : _eventLocationController.text.trim(),
-      songIds: _selectedItems.map((value) => value.songId).toList(),
-      items: List<SetlistItem>.from(_selectedItems),
-      totalDuration: widget.setlist?.totalDuration,
-      assignments: widget.setlist?.assignments ?? const {},
-      createdAt: widget.setlist?.createdAt ?? DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-    await context.pushNamed<void>(
-      'tuner',
-      extra: TunerLaunchContext(
-        song: song,
-        setlist: draft,
-        setlistItemId: item.id,
-        bandId: _effectiveBandId,
-        saveSetlist: (updatedSetlist) async {
-          if (!mounted) return;
-          setState(() {
-            _selectedItems = updatedSetlist.effectiveItems;
-            _hasUnsavedChanges = true;
-          });
-        },
       ),
     );
   }

@@ -20,9 +20,10 @@ import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
+import '../../widgets/unified_item/setlist_card_actions.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
-import '../../widgets/unified_item/unified_item_model.dart';
+import 'event_kit_editor_screen.dart';
 
 class SetlistsListScreen extends ConsumerStatefulWidget {
   const SetlistsListScreen({super.key});
@@ -258,10 +259,11 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
 
   Widget _buildSetlistList(List<SetlistItemAdapter> adapters) {
     final canEdit = ref.watch(canEditProvider); // demo account is read-only
+    final quick = ref.watch(setlistQuickActionProvider);
     final canReorder = canEdit && _sortOption == SortOption.manual;
     return UnifiedItemList<SetlistItemAdapter>(
       items: adapters,
-      padding: const EdgeInsets.only(bottom: 96),
+      padding: const EdgeInsets.only(bottom: 120), // clear the FAB (F-004)
       enableReorder: canReorder,
       onReorder: canReorder ? _handleReorder : null,
       onDelete: canEdit ? _handleDelete : null,
@@ -269,29 +271,17 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
       onEdit: canEdit ? _handleEdit : null,
       additionalActionsBuilder: (index) {
         final setlist = adapters[index].setlist;
-        return [
-          // Direct-edit shortcut, parity with the band list (#128).
-          if (canEdit)
-            IconAction(
-              icon: Icons.edit,
-              tooltip: 'Edit setlist',
-              color: context.mp.textSecondary,
-              onPressed: () => _handleEdit(index),
-            ),
-          IconAction(
-            icon: Icons.av_timer,
-            tooltip: 'Open in metronome',
-            color: context.mp.textSecondary,
-            onPressed: () => _openInMetronome(setlist),
-          ),
-          OverflowMenuAction(
-            entries: [
-              ('Share', Icons.share, () => _shareSetlist(setlist)),
-              ('Copy links', Icons.link, () => _copyLinks(setlist)),
-              ('Export PDF', Icons.picture_as_pdf, () => _exportPdf(setlist)),
-            ],
-          ),
-        ];
+        return buildSetlistActions(
+          quick: quick,
+          canEdit: canEdit,
+          onMetronome: () => _openInMetronome(setlist),
+          onEdit: () => _handleEdit(index),
+          onEventKit: () => _openEventKit(setlist),
+          onShare: () => _shareSetlist(setlist),
+          onCopyLinks: () => _copyLinks(setlist),
+          onExportPdf: () => _exportPdf(setlist),
+          onPickQuickAction: () => showSetlistQuickActionPicker(context, ref),
+        );
       },
     );
   }
@@ -301,6 +291,16 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   Future<List<Song>> _songsForSetlist(Setlist setlist) async {
     final allSongs = await ref.read(songsProvider.future);
     return allSongs.where((s) => setlist.songIds.contains(s.id)).toList();
+  }
+
+  void _openEventKit(Setlist setlist) {
+    // Personal setlist → bandId null. rootNavigator so the editor's bar doesn't
+    // stack under the shell bar.
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EventKitEditorScreen(setlist: setlist),
+      ),
+    );
   }
 
   Future<void> _openInMetronome(Setlist setlist) async {

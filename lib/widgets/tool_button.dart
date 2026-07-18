@@ -70,6 +70,8 @@ class ToolButton extends StatelessWidget {
     final accent = isEnabled
         ? MonoPulseColors.accentOrange
         : context.mp.textTertiary;
+    // Neutral label; only the icon carries the accent (UX audit F-013).
+    final labelColor = isEnabled ? context.mp.textPrimary : context.mp.textTertiary;
 
     // Mono Pulse tile: a uniform horizontal row (icon left, label right) that
     // fills its grid cell, matching Quick Actions for consistent density (A9).
@@ -97,7 +99,7 @@ class ToolButton extends StatelessWidget {
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: accent,
+                    color: labelColor,
                     fontWeight: FontWeight.w600,
                     fontSize: fontSize,
                     height: 1.2,

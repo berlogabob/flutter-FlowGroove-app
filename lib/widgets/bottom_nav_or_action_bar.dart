@@ -120,6 +120,7 @@ class AppBottomBar extends StatelessWidget {
               label: 'Back',
             ),
             selected: false,
+            emphasize: true,
             // Single central place for the in-app Back tap: logs
             // back_used{source: 'ui'} before running the screen's own
             // callback (system back — PopScope etc. — logs separately).
@@ -144,6 +145,9 @@ class AppBottomBar extends StatelessWidget {
                       ? const SizedBox.shrink()
                       : Semantics(
                           label: title,
+                          // Exclude the child Text so the title isn't announced
+                          // twice ("Recorder\nRecorder"). See UX audit F-002.
+                          excludeSemantics: true,
                           child: Text(
                             title!,
                             maxLines: 1,
@@ -167,6 +171,7 @@ class AppBottomBar extends StatelessWidget {
                     label: 'Menu',
                   ),
                   selected: false,
+                  emphasize: true,
                   onTap: onMenu!,
                 ),
         ),
@@ -185,12 +190,18 @@ class NavTab extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.showBadge = false,
+    this.emphasize = false,
     super.key,
   });
 
   final AppNavItem item;
   final bool selected;
   final VoidCallback onTap;
+
+  /// When unselected, use the brighter secondary text color instead of the dim
+  /// tertiary one — for always-unselected actions (Back/Menu) that otherwise
+  /// read as disabled (UX audit F-015).
+  final bool emphasize;
 
   /// Small dot shown near the icon (Menu slot: current screen published
   /// contextual actions).
@@ -200,7 +211,7 @@ class NavTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = selected
         ? MonoPulseColors.accentOrange
-        : context.mp.textTertiary;
+        : (emphasize ? context.mp.textSecondary : context.mp.textTertiary);
 
     final label = Text(
       item.label,
@@ -216,6 +227,9 @@ class NavTab extends StatelessWidget {
       button: true,
       selected: selected,
       label: item.label,
+      // The child Icon + Text(item.label) each emit their own semantics; without
+      // excluding them the label announces twice ("Home\nHome"). See UX audit F-002.
+      excludeSemantics: true,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),

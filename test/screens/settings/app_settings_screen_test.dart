@@ -35,6 +35,17 @@ void main() {
       expect(find.text('Haptics'), findsOneWidget);
       expect(find.text('Theme'), findsOneWidget);
       expect(find.text('Quick action on song cards'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Quick action on setlist cards'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Quick action on setlist cards'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Share usage analytics'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('Share usage analytics'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.text('AI access (MCP)'),
@@ -70,6 +81,13 @@ void main() {
       await tester.pumpAndSettle();
       expect(container.read(keepScreenOnProvider), isFalse);
 
+      // Share-analytics moved below the fold once the Setlists section was
+      // added — scroll it into view before tapping.
+      await tester.scrollUntilVisible(
+        find.widgetWithText(SwitchListTile, 'Share usage analytics'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(
         find.widgetWithText(SwitchListTile, 'Share usage analytics'),
       );

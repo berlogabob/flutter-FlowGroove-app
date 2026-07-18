@@ -435,7 +435,12 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   /// the form, then replaces the form's sections with the edited map.
   Future<void> _openSongEditor() async {
     final formData = ref.read(songFormStateProvider).formData;
-    final result = await Navigator.of(context).push<ImportedSong>(
+    // rootNavigator: full-screen over the shell so its "Edit Song" bar doesn't
+    // stack under the editor's own song-name bar (the double-bar bug).
+    final result = await Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push<ImportedSong>(
       MaterialPageRoute<ImportedSong>(
         builder: (_) => SongEditorScreen(
           title: formData.title.trim().isEmpty ? 'Song' : formData.title.trim(),
@@ -505,12 +510,20 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       // bottom bar ([← Back] [title] [⋮ Menu]); there is no top app bar.
       child: MenuScopePublisher(
         data: MenuScopeData(
-          title: _isEditing ? 'Edit Song' : 'Add Song',
+          // Show the song being edited rather than a generic "Edit Song".
+          title: _isEditing
+              ? (widget.song!.title.trim().isEmpty
+                    ? 'Edit Song'
+                    : widget.song!.title.trim())
+              : 'Add Song',
           items: [
             AppMenuItem(
               icon: Icons.queue_music,
               label: 'Performance sheet',
-              onTap: () => Navigator.of(context).push(
+              // rootNavigator: cover the whole shell so its persistent bottom
+              // bar ("Edit Song") doesn't stack under this screen's own
+              // song-name bar (the double-bar bug).
+              onTap: () => Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute<void>(
                   builder: (_) => PerformanceSheetScreen(
                     title: formData.title.trim().isEmpty

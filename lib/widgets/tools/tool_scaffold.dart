@@ -180,9 +180,15 @@ class ToolScreenScaffold extends StatelessWidget {
             }
           },
           title: title,
-          onMenu: items.isEmpty
-              ? null
-              : () => showAppMenuSheet(context, title: title, items: items),
+          // Every tool footer shows a Menu (UX audit F-017: Recorder/Practice
+          // used to hide it). Screens with their own items show those; screens
+          // without fall back to the Profile/Settings rows.
+          onMenu: () => showAppMenuSheet(
+            context,
+            title: title,
+            items: items,
+            showProfileRow: items.isEmpty,
+          ),
         ),
       ),
     );

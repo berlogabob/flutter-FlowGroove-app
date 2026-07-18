@@ -15,6 +15,10 @@ class NoteScaleRuler extends ConsumerWidget {
 
   final double dialSize;
 
+  static const List<String> _noteNames = [
+    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(tunerProvider);
@@ -48,18 +52,24 @@ class NoteScaleRuler extends ConsumerWidget {
             final y = radius + noteRadius * math.sin(angleRad);
 
             return Positioned(
-              left: x - 20,
-              top: y - 20,
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  notifier.setTargetNoteByIndex(index);
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  color: Colors.transparent,
+              left: x - 22,
+              top: y - 22,
+              // Label the tap target so screen readers can announce it (UX audit
+              // F-014: these note-select areas were unlabeled clickable nodes).
+              child: Semantics(
+                button: true,
+                label: 'Select note ${_noteNames[index]}',
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    notifier.setTargetNoteByIndex(index);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    color: Colors.transparent,
+                  ),
                 ),
               ),
             );
@@ -163,13 +173,14 @@ class _NoteScaleRulerPainter extends CustomPainter {
         tickWidth = 2.0;
         opacity = 0.5;
       } else {
-        // Not in scale: GREY (unavailable)
+        // Not in scale: GREY (unavailable). Opacity lifted from 0.3 so the note
+        // letters (which carry real meaning) clear the legibility floor. F-016.
         color = textTertiary;
         fontSize = 11.0;
         fontWeight = MonoPulseTypography.regular;
         tickLength = 6.0;
         tickWidth = 1.0;
-        opacity = 0.3;
+        opacity = 0.5;
       }
 
       final noteRadius = radius * 1.08;

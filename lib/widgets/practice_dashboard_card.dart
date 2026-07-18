@@ -22,6 +22,9 @@ class PracticeDashboardCard extends ConsumerWidget {
   static const _pastBar = MonoPulseColors.chartWarmSecondary;
 
   static String formatMinutes(int seconds) {
+    // Show real seconds for sub-minute sessions instead of a misleading "0 min"
+    // (UX audit F-020: short metronome runs used to all read "0 min").
+    if (seconds < 60) return '${seconds}s';
     final minutes = seconds ~/ 60;
     if (minutes < 60) return '$minutes min';
     return '${minutes ~/ 60}h ${minutes % 60}m';

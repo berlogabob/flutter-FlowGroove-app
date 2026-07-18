@@ -21,10 +21,11 @@ import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
+import '../../widgets/unified_item/setlist_card_actions.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
-import '../../widgets/unified_item/unified_item_model.dart';
 import '../setlists/create_setlist_screen.dart';
+import '../setlists/event_kit_editor_screen.dart';
 
 class BandSetlistsScreen extends ConsumerStatefulWidget {
   const BandSetlistsScreen({required this.band, super.key});
@@ -162,11 +163,23 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   void _viewSetlist(Setlist setlist) {
-    // Read-only view on tap (P1-7), same as the personal list (#128).
+    // Read-only view on tap (P1-7). Use the band-scoped detail route so bandId
+    // comes from the path (songs resolve against the BAND library) AND the
+    // shell's pushed-bar title shows the setlist name, not the list title.
     context.pushNamed(
-      'setlist-view',
-      pathParameters: {'id': setlist.id},
+      'band-setlist-view',
+      pathParameters: {'id': widget.band.id, 'setlistId': setlist.id},
       extra: setlist,
+    );
+  }
+
+  void _openEventKit(Setlist setlist) {
+    // rootNavigator so the editor's bar doesn't stack under the shell bar.
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            EventKitEditorScreen(setlist: setlist, bandId: widget.band.id),
+      ),
     );
   }
 
@@ -191,6 +204,11 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     // Riverpod disposes it mid-load ("disposed during loading state", #80).
     ref.watch(bandSongsProvider(widget.band.id));
     final canEdit = _canEdit;
+    // When the band has exactly one setlist, offer to edit it straight from the
+    // screen menu (with several, per-setlist edit lives on the cards).
+    final onlySetlist = setlistsAsync.value?.length == 1
+        ? setlistsAsync.value!.first
+        : null;
 
     return StandardScreenScaffold(
       title: '${widget.band.name} Setlists',
@@ -201,6 +219,12 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
                 label: 'Create Band Setlist',
                 onTap: _handleCreate,
               ),
+              if (onlySetlist != null)
+                AppMenuItem(
+                  icon: Icons.edit_outlined,
+                  label: 'Edit setlist',
+                  onTap: () => _editSetlist(onlySetlist),
+                ),
             ]
           : null,
       floatingActionButton: canEdit
@@ -273,6 +297,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   Widget _buildSetlistList(List<SetlistItemAdapter> adapters) {
+    final quick = ref.watch(setlistQuickActionProvider);
     return UnifiedItemList<SetlistItemAdapter>(
       items: adapters,
       enableReorder: _canEdit && _sortOption == SortOption.manual,
@@ -288,28 +313,17 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
           : null,
       additionalActionsBuilder: (index) {
         final setlist = adapters[index].setlist;
-        return [
-          if (_canEdit)
-            IconAction(
-              icon: Icons.edit,
-              tooltip: 'Edit setlist',
-              color: context.mp.textSecondary,
-              onPressed: () => _editSetlist(setlist),
-            ),
-          IconAction(
-            icon: Icons.av_timer,
-            tooltip: 'Open in metronome',
-            color: context.mp.textSecondary,
-            onPressed: () => _openInMetronome(setlist),
-          ),
-          OverflowMenuAction(
-            entries: [
-              ('Share', Icons.share, () => _shareSetlist(setlist)),
-              ('Copy links', Icons.link, () => _shareAsLinks(setlist)),
-              ('Export PDF', Icons.picture_as_pdf, () => _exportPdf(setlist)),
-            ],
-          ),
-        ];
+        return buildSetlistActions(
+          quick: quick,
+          canEdit: _canEdit,
+          onMetronome: () => _openInMetronome(setlist),
+          onEdit: () => _editSetlist(setlist),
+          onEventKit: () => _openEventKit(setlist),
+          onShare: () => _shareSetlist(setlist),
+          onCopyLinks: () => _shareAsLinks(setlist),
+          onExportPdf: () => _exportPdf(setlist),
+          onPickQuickAction: () => showSetlistQuickActionPicker(context, ref),
+        );
       },
     );
   }

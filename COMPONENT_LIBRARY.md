@@ -472,7 +472,16 @@ Wrap the screen (StandardScreenScaffold does it automatically): `MenuScopePublis
 
 ## SetlistSongRow
 
-`lib/widgets/setlist_song_row.dart` — shared setlist row used by both the read-only view and the editor. Pass `song: null` to render the "Unavailable song" placeholder for orphaned entries (never silently drop an entry — audit P0-4).
+`lib/widgets/setlist_song_row.dart` — shared setlist row used by both the read-only view and the editor. Pass `song: null` to render the "Unavailable song" placeholder for orphaned entries (never silently drop an entry — audit P0-4). The editor reorders by long-press (`ReorderableDelayedDragStartListener`, `buildDefaultDragHandles: false`) — no visible drag handle — matching `UnifiedItemList`; its trailing is just key/BPM so titles stay readable.
+
+## Card quick actions (song + setlist)
+
+Song and setlist cards each show **one configurable pinned action icon + a `⋮` overflow**, so the same card behaves identically in the personal and band libraries.
+
+- Songs: `lib/widgets/unified_item/song_card_actions.dart` — `songQuickActionProvider` (`NotifierProvider<_,String>`, prefs `songs.quick_action`), a `quickActions` catalog, `showQuickActionPicker`, and `buildSongActions`.
+- Setlists: `lib/widgets/unified_item/setlist_card_actions.dart` — `setlistQuickActionProvider` (prefs `setlists.quick_action`, default `metronome`), `setlistQuickActions` catalog, `showSetlistQuickActionPicker`, and `buildSetlistActions({quick, canEdit, on<Action>…, onPickQuickAction})`. Edit/Event-kit pins fall back to metronome when `!canEdit`; the overflow ends with a "Quick action…" picker entry.
+
+Both are configurable from Settings (`_section('Songs' | 'Setlists', …)` in `app_settings_screen.dart`). Trailing widgets come from `IconAction` / `OverflowMenuAction` (`unified_item/unified_item_model.dart`).
 
 ## showAppSnackBar (undo support)
 

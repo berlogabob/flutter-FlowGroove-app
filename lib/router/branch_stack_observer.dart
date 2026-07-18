@@ -45,10 +45,17 @@ class BranchStackObserver extends NavigatorObserver {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route is PageRoute) {
+    if (route is! PageRoute) return;
+    if (previousRoute == null) {
+      // First route on a (re-)mounted branch navigator — the stack is just the
+      // root. Reset instead of ++, so a count leaked from a disposed navigator
+      // (Flutter doesn't fire didPop on teardown) can't make the shell think a
+      // child is pushed after logout→login.
+      _pageRoutes = 1;
+    } else {
       _pageRoutes++;
-      _set();
     }
+    _set();
   }
 
   @override

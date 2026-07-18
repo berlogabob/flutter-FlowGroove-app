@@ -102,7 +102,9 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Pinned-quick-action catalog: key → (label, icon).
   static const quickActions = <String, (String, IconData)>{
-    'practice': ('Metronome', Icons.speed),
+    // av_timer (matches Setlists' metronome action) — not Icons.speed, which is
+    // the BPM badge on the same card and read as a duplicate icon. F-010.
+    'practice': ('Metronome', Icons.av_timer),
     'tuner': ('Open in Tuner', Icons.tune),
     'sheet': ('Performance sheet', Icons.queue_music),
     'spotify': ('Play on Spotify', Icons.play_circle_fill),
@@ -150,7 +152,7 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       ),
       OverflowMenuAction(
         entries: [
-          ('Metronome', Icons.speed, () => openInMetronome(song)),
+          ('Metronome', Icons.av_timer, () => openInMetronome(song)),
           if (song.spotifyUrl != null)
             ('Play on Spotify', Icons.play_circle_fill, () => openSpotify(song)),
           if (song.hasSheetContent)
@@ -246,7 +248,9 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   void openPerformanceSheet(Song song) {
-    Navigator.of(context).push(
+    // rootNavigator: full-screen over the shell so its bottom bar doesn't stack
+    // under the performance sheet's own bar (the double-bar bug).
+    Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
         builder: (_) => PerformanceSheetScreen(
           title: song.title.trim().isEmpty ? 'Song' : song.title.trim(),

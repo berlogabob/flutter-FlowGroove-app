@@ -101,8 +101,15 @@ class PracticeScreen extends ConsumerWidget {
     required String label,
     required String route,
   }) => Expanded(
-    child: FilledButton.tonalIcon(
+    // Dark surface + orange, matching the Home tool tiles, instead of the
+    // Material tonal grey pill (secondaryContainer). F-005.
+    child: FilledButton.icon(
       onPressed: () => context.pushNamed(route),
+      style: FilledButton.styleFrom(
+        backgroundColor: context.mp.surfaceRaised,
+        foregroundColor: MonoPulseColors.accentOrange,
+        side: BorderSide(color: context.mp.borderDefault),
+      ),
       icon: Icon(icon),
       label: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
     ),
@@ -125,20 +132,34 @@ class PracticeScreen extends ConsumerWidget {
 
   Widget _homeworkRow(BuildContext context, HomeworkItem item) {
     final due = item.task.dueAt;
+    final now = DateTime.now();
+    final overdue =
+        due != null && due.isBefore(DateTime(now.year, now.month, now.day));
     return Card(
       margin: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
       child: ListTile(
         dense: true,
-        leading: const Icon(
-          Icons.check_circle_outline,
-          color: MonoPulseColors.accentOrange,
+        // Open task → pending circle, not a "done" check; overdue → alert.
+        // (UX audit F-011.)
+        leading: Icon(
+          overdue ? Icons.assignment_late : Icons.radio_button_unchecked,
+          color: overdue
+              ? MonoPulseColors.error
+              : MonoPulseColors.accentOrange,
         ),
         title: Text(item.task.title),
         subtitle: Text(
           [
             item.song.title,
-            if (due != null) 'due ${due.day}/${due.month}',
+            if (due != null)
+              overdue
+                  ? 'overdue (${due.day}/${due.month})'
+                  : 'due ${due.day}/${due.month}',
           ].join(' · '),
+          style: overdue
+              ? MonoPulseTypography.bodySmall
+                  .copyWith(color: MonoPulseColors.error)
+              : null,
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.pushNamed(

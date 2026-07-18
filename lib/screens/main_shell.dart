@@ -229,15 +229,14 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   void _openMenu(BuildContext context) {
     final entry = _currentMenu();
-    final fallbackTitle =
-        !_pushed &&
-            widget.navigationShell.currentIndex >= 0 &&
-            widget.navigationShell.currentIndex < _tabs.length
-        ? _tabs[widget.navigationShell.currentIndex].label
-        : 'Menu';
+    // Use a screen's contextual title only when it actually contributes menu
+    // items (e.g. Songs → "Browse catalog"…). A title-only entry like the Home
+    // root is just the app menu, so it reads as "Menu" — not "Home", which
+    // looked like the wrong location (UX audit F-003).
+    final hasItems = entry != null && entry.items.isNotEmpty;
     showAppMenuSheet(
       context,
-      title: entry?.title ?? fallbackTitle,
+      title: hasItems ? entry.title : 'Menu',
       items: entry?.items ?? const [],
       showProfileRow: !_pushed,
       ref: ref,

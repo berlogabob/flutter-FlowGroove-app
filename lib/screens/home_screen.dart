@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/data/data_providers.dart';
+import '../theme/mono_pulse_theme.dart';
 import '../utils/analytics_debug.dart';
 import '../widgets/dashboard_grid.dart';
 import '../widgets/practice_dashboard_card.dart';
@@ -114,11 +115,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// Tools entry point for rehearsal schedules: one band goes straight to its
-  /// schedule, several bands show a picker first.
+  /// schedule, several bands show a titled picker. Rehearsals are band-scoped,
+  /// so the destination always identifies itself as "Rehearsals" rather than
+  /// silently landing on the plain Bands list (UX audit F-001).
   void _openRehearsals(BuildContext context, WidgetRef ref) {
     final bands = ref.read(bandsProvider).value ?? [];
     if (bands.isEmpty) {
-      context.goNamed('bands');
+      _showRehearsalsEmptyState(context);
       return;
     }
     if (bands.length == 1) {
@@ -135,7 +138,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            const ListTile(title: Text('Choose band')),
+            _rehearsalsSheetHeader(
+              sheetContext,
+              subtitle: 'Rehearsals are per band — choose one to see its schedule.',
+            ),
             for (final band in bands)
               ListTile(
                 leading: const Icon(Icons.event),
@@ -150,6 +156,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _rehearsalsSheetHeader(BuildContext context, {required String subtitle}) {
+    return ListTile(
+      title: const Text('Rehearsals — choose a band',
+          style: MonoPulseTypography.titleMedium),
+      subtitle: Text(subtitle,
+          style: MonoPulseTypography.bodySmall
+              .copyWith(color: context.mp.textSecondary)),
+    );
+  }
+
+  void _showRehearsalsEmptyState(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Rehearsals', style: MonoPulseTypography.titleMedium),
+              const SizedBox(height: MonoPulseSpacing.sm),
+              Text(
+                'Rehearsals are scheduled per band. Join or create a band first, '
+                'then its rehearsal schedule shows up here.',
+                style: MonoPulseTypography.bodySmall
+                    .copyWith(color: context.mp.textSecondary),
+              ),
+              const SizedBox(height: MonoPulseSpacing.lg),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(sheetContext);
+                  context.goNamed('create-band');
+                },
+                icon: const Icon(Icons.group_add),
+                label: const Text('Create a band'),
+              ),
+            ],
+          ),
         ),
       ),
     );

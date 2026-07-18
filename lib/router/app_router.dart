@@ -355,6 +355,27 @@ List<RouteBase> _buildAppRoutes() {
                     builder: (band) => BandSetlistsScreen(band: band),
                   ),
                 ),
+                // Band setlist detail lives UNDER the bands branch (not the
+                // shared /main/setlists/:id) so the shell's pushed-bar title
+                // resolves to the setlist's own name, not the band-setlists
+                // list title, and you stay in the Bands tab.
+                GoRoute(
+                  path: ':id/setlists/:setlistId',
+                  name: 'band-setlist-view',
+                  builder: (context, state) {
+                    final bandId = state.pathParameters['id'];
+                    return SetlistRouteResolver(
+                      setlistId: state.pathParameters['setlistId'],
+                      bandId: bandId,
+                      extra: state.extra as Setlist?,
+                      builder: (live) => SetlistViewScreen(
+                        setlist: live,
+                        bandId: bandId,
+                        storageScope: SetlistStorageScope.band,
+                      ),
+                    );
+                  },
+                ),
                 GoRoute(
                   path: ':id/about',
                   name: 'band-about',

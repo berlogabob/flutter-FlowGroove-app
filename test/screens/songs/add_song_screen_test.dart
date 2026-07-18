@@ -71,7 +71,8 @@ void main() {
       // There is no top app bar; the screen publishes its title into
       // MenuItemsScope for the shell's bottom bar to render.
       final scope = tester.widget<MenuItemsScope>(find.byType(MenuItemsScope));
-      expect(scope.title, 'Edit Song');
+      // Editing shows the song's own name (not a generic 'Edit Song').
+      expect(scope.title, 'Test Song');
       // Song Lab is reachable from the edit menu (discoverability fix) —
       // only in edit mode, where a persisted song exists.
       expect(scope.items.map((i) => i.label), contains('Song Lab'));

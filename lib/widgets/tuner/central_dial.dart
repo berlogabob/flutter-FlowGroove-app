@@ -177,7 +177,11 @@ class _InteractiveDialState extends State<_InteractiveDial> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return Semantics(
+      // Was an unlabeled interactive node (UX audit F-014). Announce its purpose;
+      // exact value is read from the note/frequency readout in the center.
+      label: 'Tuning dial, drag to adjust the reference pitch',
+      child: GestureDetector(
       onPanStart: _onPanStart,
       onPanUpdate: _onPanUpdate,
       onPanEnd: _onPanEnd,
@@ -235,6 +239,7 @@ class _InteractiveDialState extends State<_InteractiveDial> {
           ],
         ),
       ),
+    ),
     );
   }
 

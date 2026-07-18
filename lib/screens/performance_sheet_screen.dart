@@ -217,7 +217,12 @@ class _PerformanceSheetScreenState extends ConsumerState<PerformanceSheetScreen>
   /// Opens the full-screen Song editor (live map ⇄ ChordPro sync) seeded from
   /// the current performance sheet data.
   Future<void> _openSongEditor() async {
-    final result = await Navigator.of(context).push<ImportedSong>(
+    // rootNavigator: stay full-screen over the shell (this screen is itself
+    // root-pushed) so no shell bottom bar stacks under the editor's bar.
+    final result = await Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push<ImportedSong>(
       MaterialPageRoute<ImportedSong>(
         builder: (_) => SongEditorScreen(
           title: widget.title,

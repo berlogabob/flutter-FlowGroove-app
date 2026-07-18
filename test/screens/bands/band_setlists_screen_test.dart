@@ -107,7 +107,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(FloatingActionButton), findsOneWidget);
-      await tester.tap(find.byTooltip('Edit setlist'));
+      // Edit now lives in the card's overflow menu (the standalone pencil was
+      // replaced by a single configurable quick-action icon).
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit setlist'));
       await tester.pumpAndSettle();
 
       expect(find.text('route:edit-setlist'), findsOneWidget);
@@ -205,7 +209,7 @@ void main() {
       await tester.tap(find.text('Friday Gig'));
       await tester.pumpAndSettle();
 
-      expect(find.text('route:setlist-view'), findsOneWidget);
+      expect(find.text('route:band-setlist-view'), findsOneWidget);
     });
 
     testWidgets('demo admins can read setlists but cannot modify them', (
@@ -319,6 +323,11 @@ List<RouteBase> _routesFor(Band band) {
       path: '/main/setlists/:id',
       name: 'setlist-view',
       builder: (context, state) => const TestRouteMarker('setlist-view'),
+    ),
+    GoRoute(
+      path: '/main/bands/:id/setlists/:setlistId',
+      name: 'band-setlist-view',
+      builder: (context, state) => const TestRouteMarker('band-setlist-view'),
     ),
   ];
 }

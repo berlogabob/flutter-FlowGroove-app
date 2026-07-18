@@ -50,8 +50,9 @@ class AppFilterChip extends StatelessWidget {
         color: selected ? context.mp.textPrimary : context.mp.textSecondary,
         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
       ),
-      // Unselected state styling (outlined + muted)
-      backgroundColor: unselectedBackgroundColor ?? context.mp.surface,
+      // Unselected: neutral raised surface per chipTheme (readable, not the old
+      // near-black `surface` / brown tint). F-012.
+      backgroundColor: unselectedBackgroundColor ?? context.mp.surfaceRaised,
       side: BorderSide(
         color: selected ? Colors.transparent : context.mp.borderDefault,
       ),

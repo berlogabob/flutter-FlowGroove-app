@@ -206,12 +206,31 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       final adapter = item as SetlistItemAdapter;
       final songCount = adapter.songIdsLength;
       final setlist = adapter.setlist;
-      return Text(
+      final kit = setlist.eventKit;
+      final kitSet = kit != null && !kit.isEmpty;
+      final meta = Text(
         [
           '$songCount ${songCount == 1 ? 'song' : 'songs'}',
           if (setlist.eventDateTime != null) setlist.formattedEventDate,
         ].join(' · '),
         style: MonoPulseTypography.bodySmall,
+      );
+      if (!kitSet) return meta;
+      // At-a-glance badge: this gig's Event Kit (stage plot/crew/rider) is set up.
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(child: meta),
+          const SizedBox(width: MonoPulseSpacing.sm),
+          const Tooltip(
+            message: 'Event kit set up',
+            child: Icon(
+              Icons.theater_comedy,
+              size: 14,
+              color: MonoPulseColors.accentOrange,
+            ),
+          ),
+        ],
       );
     }
     return const SizedBox.shrink();
@@ -221,21 +240,25 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
   /// orange10); '—' keeps the slot when the key is unset, so card heights
   /// never jump between rows.
   Widget _keyChip(BuildContext context, String? key) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: key != null
-            ? MonoPulseColors.accentOrange10
-            : context.mp.surfaceRaised,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        key ?? '—',
-        style: MonoPulseTypography.bodySmall.copyWith(
-          fontWeight: FontWeight.w700,
+    // The '—' placeholder was a cryptic bare dash; a tooltip spells it out. F-010.
+    return Tooltip(
+      message: key != null ? 'Key: $key' : 'Key not set',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
           color: key != null
-              ? MonoPulseColors.accentOrange
-              : context.mp.textTertiary,
+              ? MonoPulseColors.accentOrange10
+              : context.mp.surfaceRaised,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          key ?? '—',
+          style: MonoPulseTypography.bodySmall.copyWith(
+            fontWeight: FontWeight.w700,
+            color: key != null
+                ? MonoPulseColors.accentOrange
+                : context.mp.textTertiary,
+          ),
         ),
       ),
     );

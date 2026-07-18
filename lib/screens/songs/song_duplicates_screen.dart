@@ -148,7 +148,9 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
   }
 
   Future<void> _mergeCluster(SongCluster cluster) async {
-    final merged = await Navigator.of(context).push<Song>(
+    // rootNavigator: cover the shell so its bottom bar doesn't stack under the
+    // merge screen's own bar (the double-bar bug).
+    final merged = await Navigator.of(context, rootNavigator: true).push<Song>(
       MaterialPageRoute(
         builder: (_) => SongClusterMergeScreen(songs: cluster.songs),
       ),
