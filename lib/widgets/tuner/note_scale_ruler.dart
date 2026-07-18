@@ -173,13 +173,14 @@ class _NoteScaleRulerPainter extends CustomPainter {
         tickWidth = 2.0;
         opacity = 0.5;
       } else {
-        // Not in scale: GREY (unavailable)
+        // Not in scale: GREY (unavailable). Opacity lifted from 0.3 so the note
+        // letters (which carry real meaning) clear the legibility floor. F-016.
         color = textTertiary;
         fontSize = 11.0;
         fontWeight = MonoPulseTypography.regular;
         tickLength = 6.0;
         tickWidth = 1.0;
-        opacity = 0.3;
+        opacity = 0.5;
       }
 
       final noteRadius = radius * 1.08;

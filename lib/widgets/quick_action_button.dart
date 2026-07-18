@@ -84,7 +84,9 @@ class QuickActionButton extends StatelessWidget {
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: MonoPulseColors.accentOrange,
+                    // Neutral label; the orange icon carries the accent so the
+                    // tile grid isn't wall-to-wall orange (UX audit F-013).
+                    color: context.mp.textPrimary,
                     fontWeight: FontWeight.w600,
                     fontSize: fontSize,
                     height: 1.2,
