@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flowgroove/services/api/deezer_service.dart';
 import 'package:flowgroove/services/musicbrainz_service.dart';
 import 'package:flowgroove/services/song_suggestion_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,17 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
+  // Deezer is a real-network source; stub it empty so this end-to-end test
+  // exercises only the MusicBrainz path (otherwise live Deezer hits pollute it).
+  setUp(() {
+    DeezerService.client = MockClient(
+      (_) async => http.Response(json.encode({'data': []}), 200),
+    );
+  });
+  tearDown(() {
+    DeezerService.client = http.Client();
+  });
+
   test('partial title "hit the li" yields suggestions end-to-end (#75/#78)',
       () async {
     // Real MusicBrainz payload for recording:(hit AND the AND li*), captured

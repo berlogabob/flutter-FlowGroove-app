@@ -1,13 +1,29 @@
+import 'dart:convert';
+
 import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/models/musicbrainz_recording.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/repositories/canonical_song_repository.dart';
+import 'package:flowgroove/services/api/deezer_service.dart';
 import 'package:flowgroove/services/musicbrainz_service.dart';
 import 'package:flowgroove/services/song_suggestion_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 void main() {
   group('SongSuggestionService', () {
+    // Deezer is a real-network source; stub it empty by default so these tests
+    // exercise only the canonical/MusicBrainz paths. Individual tests override.
+    setUp(() {
+      DeezerService.client = MockClient(
+        (_) async => http.Response(json.encode({'data': []}), 200),
+      );
+    });
+    tearDown(() {
+      DeezerService.client = http.Client();
+    });
+
     test('includes canonical catalog suggestions', () async {
       final canonicalRepo = _FakeCanonicalSongRepository([
         CanonicalSong(
@@ -109,6 +125,43 @@ void main() {
 
       expect(suggestions, isNotEmpty);
       expect(suggestions.first.artist, 'Metallica');
+    });
+
+    test('includes Deezer suggestions for a matching track', () async {
+      DeezerService.client = MockClient((request) async {
+        if (request.url.path == '/search') {
+          return http.Response(
+            json.encode({
+              'data': [
+                {
+                  'id': 42,
+                  'title': 'La Vie en Rose',
+                  'artist': {'name': 'Flor Damico'},
+                  'album': {'title': 'Endorsements'},
+                  'duration': 200,
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response('not found', 404);
+      });
+
+      final service = SongSuggestionService(
+        musicBrainz: _FakeMusicBrainzService(),
+      );
+
+      final suggestions = await service.getSuggestions(
+        query: 'La Vie en Rose - Flor Damico',
+      );
+
+      final deezer = suggestions.singleWhere(
+        (s) => s.source == SuggestionSource.deezer,
+      );
+      expect(deezer.title, 'La Vie en Rose');
+      expect(deezer.artist, 'Flor Damico');
+      expect(deezer.durationMs, 200 * 1000);
     });
   });
 }

@@ -103,4 +103,49 @@ void main() {
       expect(bpm, isNull);
     });
   });
+
+  group('DeezerService.search', () {
+    test('parses data[] into tracks and maps seconds to ms', () async {
+      DeezerService.client = mockDeezer(
+        searchResults: [
+          {
+            'id': 136338502,
+            'title': 'Ride The Lightning',
+            'artist': {'name': 'Metallica'},
+            'album': {'title': 'Ride the Lightning'},
+            'duration': 397, // seconds
+          },
+        ],
+      );
+
+      final tracks = await DeezerService.search(
+        title: 'Ride the Lightning',
+        artist: 'Metallica',
+      );
+
+      expect(tracks, hasLength(1));
+      expect(tracks.first.id, '136338502');
+      expect(tracks.first.title, 'Ride The Lightning');
+      expect(tracks.first.artist, 'Metallica');
+      expect(tracks.first.album, 'Ride the Lightning');
+      expect(tracks.first.durationMs, 397 * 1000);
+    });
+
+    test('returns [] on network error instead of throwing', () async {
+      DeezerService.client = MockClient((_) async {
+        throw http.ClientException('boom');
+      });
+
+      final tracks = await DeezerService.search(
+        title: 'Ride the Lightning',
+        artist: 'Metallica',
+      );
+      expect(tracks, isEmpty);
+    });
+
+    test('returns [] when both title and artist are empty', () async {
+      final tracks = await DeezerService.search(title: '', artist: '');
+      expect(tracks, isEmpty);
+    });
+  });
 }

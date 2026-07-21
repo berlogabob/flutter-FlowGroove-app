@@ -61,6 +61,7 @@ const _$SuggestionSourceEnumMap = {
   SuggestionSource.group: 'group',
   SuggestionSource.musicbrainz: 'musicbrainz',
   SuggestionSource.spotify: 'spotify',
+  SuggestionSource.deezer: 'deezer',
   SuggestionSource.canonical: 'canonical',
 };
 

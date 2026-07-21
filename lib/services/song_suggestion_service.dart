@@ -1,5 +1,6 @@
 import '../models/song_suggestion.dart';
 import '../repositories/canonical_song_repository.dart';
+import 'api/deezer_service.dart';
 import 'api/spotify_proxy_service.dart';
 import 'matching/fuzzy_matcher.dart';
 import 'musicbrainz_service.dart';
@@ -60,6 +61,7 @@ class SongSuggestionService {
     final results = await Future.wait([
       if (_canonicalRepo != null) _searchCanonical(title, artist),
       _searchSpotify(title, artist),
+      _searchDeezer(title, artist),
       _searchMusicBrainz(title, artist),
     ]);
 
@@ -181,6 +183,42 @@ class SongSuggestionService {
     }
   }
 
+  /// Search Deezer (public, no-auth external source — indexes indie/francophone
+  /// artists MusicBrainz misses; BPM/lyrics fill on selection). Fuzzy-scored +
+  /// filtered like every other source. Off on web when no proxy is configured.
+  Future<List<SongSuggestion>> _searchDeezer(
+    String title,
+    String artist,
+  ) async {
+    try {
+      final tracks = await DeezerService.search(title: title, artist: artist);
+      final suggestions = <SongSuggestion>[];
+      for (final track in tracks) {
+        final match = FuzzyMatcher.calculateMatchScore(
+          inputTitle: title,
+          inputArtist: artist,
+          targetTitle: track.title,
+          targetArtist: track.artist,
+          targetAlbum: track.album,
+        );
+        if (match.overall < 0.6) continue;
+        suggestions.add(
+          SongSuggestion.fromDeezer(
+            id: track.id,
+            title: track.title,
+            artist: track.artist,
+            album: track.album,
+            durationMs: track.durationMs,
+          ).copyWith(matchScore: match.overall),
+        );
+      }
+      return suggestions;
+    } catch (e) {
+      // Non-fatal — Deezer is optional discovery.
+      return [];
+    }
+  }
+
   /// Search MusicBrainz API
   Future<List<SongSuggestion>> _searchMusicBrainz(
     String title,
@@ -274,6 +312,8 @@ class SongSuggestionService {
       return 'spotify:$spotifyId';
     }
 
+    // Deezer suggestions have no cross-source id, so key on title|artist below.
+
     return '${suggestion.title.toLowerCase().trim()}|'
         '${suggestion.artist.toLowerCase().trim()}';
   }
@@ -287,10 +327,12 @@ class SongSuggestionService {
         return 2;
       case SuggestionSource.spotify:
         return 3;
-      case SuggestionSource.canonical:
+      case SuggestionSource.deezer:
         return 4;
-      case SuggestionSource.musicbrainz:
+      case SuggestionSource.canonical:
         return 5;
+      case SuggestionSource.musicbrainz:
+        return 6;
     }
   }
 

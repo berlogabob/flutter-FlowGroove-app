@@ -31,6 +31,7 @@ echo ""
 # Export public runtime values explicitly so envsubst always produces a full file.
 export FIREBASE_API_KEY="${FIREBASE_API_KEY:-}"
 export SPOTIFY_PROXY_URL="${SPOTIFY_PROXY_URL:-}"
+export API_PROXY_URL="${API_PROXY_URL:-}"
 
 # Validate required environment variables
 flowgroove_require_vars FIREBASE_API_KEY
@@ -38,7 +39,7 @@ flowgroove_require_vars FIREBASE_API_KEY
 echo "📄 Building runtime config from local env sources and exported variables..."
 echo ""
 
-SUBSTITUTION_VARS='${FIREBASE_API_KEY} ${SPOTIFY_PROXY_URL}'
+SUBSTITUTION_VARS='${FIREBASE_API_KEY} ${SPOTIFY_PROXY_URL} ${API_PROXY_URL}'
 
 # Replace placeholders using envsubst for safe variable substitution
 # This handles special characters automatically
@@ -54,7 +55,7 @@ else
     cp "$TEMPLATE_FILE" "$OUTPUT_FILE"
 
     # Fallback to sed with proper escaping
-    for var in FIREBASE_API_KEY SPOTIFY_PROXY_URL; do
+    for var in FIREBASE_API_KEY SPOTIFY_PROXY_URL API_PROXY_URL; do
         value="${!var}"
         escaped=$(printf '%s\n' "$value" | sed 's/[&/\[\]^$.*+?{}()|\\]/\\&/g')
         sed -i.bak "s|\${${var}}|${escaped}|g" "$OUTPUT_FILE"
