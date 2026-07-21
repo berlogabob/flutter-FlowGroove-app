@@ -40,6 +40,11 @@ const JWKS = ISSUER
   : null;
 
 const PRM_PATH = "/.well-known/oauth-protected-resource";
+// PRM is served at the origin root, not under RESOURCE_URL's own path (e.g. "/mcp"),
+// so the 401 challenge must point at the origin + PRM_PATH, not RESOURCE_URL + PRM_PATH.
+const PRM_URL = RESOURCE_URL
+  ? `${new URL(RESOURCE_URL).origin}${PRM_PATH}`
+  : PRM_PATH;
 
 function prmDoc() {
   return {
@@ -81,12 +86,12 @@ function buildServer(uid) {
       isError: !!out.error,
     };
   };
-  server.tool("list_songs", "List the user's FlowGroove songs.", {}, call("list_songs"));
-  server.tool("get_song", "Get one song as FlowGroove Song JSON.", { id: z.string() }, call("get_song"));
-  server.tool("export_song", "Export a song as FlowGroove Song JSON.", { id: z.string() }, call("export_song"));
-  server.tool("validate_song", "Validate a song against the schema (no write).", { song }, call("validate_song"));
-  server.tool("create_song", "Create a song from FlowGroove Song JSON.", { song }, call("create_song"));
-  server.tool("update_song", "Update a song by id.", { id: z.string(), song }, call("update_song"));
+  server.tool("list_songs", "List the user's FlowGroove songs.", {}, { readOnlyHint: true }, call("list_songs"));
+  server.tool("get_song", "Get one song as FlowGroove Song JSON.", { id: z.string() }, { readOnlyHint: true }, call("get_song"));
+  server.tool("export_song", "Export a song as FlowGroove Song JSON.", { id: z.string() }, { readOnlyHint: true }, call("export_song"));
+  server.tool("validate_song", "Validate a song against the schema (no write).", { song }, { readOnlyHint: true }, call("validate_song"));
+  server.tool("create_song", "Create a song from FlowGroove Song JSON.", { song }, { readOnlyHint: false, destructiveHint: false }, call("create_song"));
+  server.tool("update_song", "Update a song by id.", { id: z.string(), song }, { readOnlyHint: false, destructiveHint: true }, call("update_song"));
   return server;
 }
 
@@ -100,7 +105,7 @@ app.post("/mcp", async (req, res) => {
   if (!uid) {
     res.set(
       "WWW-Authenticate",
-      `Bearer resource_metadata="${RESOURCE_URL}${PRM_PATH}"`,
+      `Bearer resource_metadata="${PRM_URL}"`,
     );
     res.status(401).json({ error: "unauthorized" });
     return;

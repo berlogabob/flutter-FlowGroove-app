@@ -761,6 +761,30 @@
       "type": "Issue",
       "state": "CLOSED",
       "status": "Needs Check"
+    },
+    {
+      "title": "Web: audio memo recording (Lab/Recorder) is unavailable — attach-file only",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/150",
+      "number": 150,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "No Status"
+    },
+    {
+      "title": "iOS metronome: PCM feeder starvation — dropped beats up to 118s silence on older hardware + audio/animation desync",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/151",
+      "number": 151,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "No Status"
+    },
+    {
+      "title": "Web metronome: WallClockScheduler replays missed ticks as audible catch-up burst — skip or pre-schedule on AudioContext clock",
+      "url": "https://github.com/berlogabob/flutter-FlowGroove-app/issues/152",
+      "number": 152,
+      "type": "Issue",
+      "state": "OPEN",
+      "status": "No Status"
     }
   ]
 }
