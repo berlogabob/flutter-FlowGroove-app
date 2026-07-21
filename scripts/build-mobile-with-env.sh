@@ -67,6 +67,14 @@ fi
 echo "📄 Building mobile target using compile-time defines from:"
 echo "   $SOURCE_LABEL"
 
+# ponytail: drop the gitignored generated registrant so the release build
+# rewrites it in release mode. A stale copy left by a debug/`flutter test` run
+# lists integration_test (a dev_dependency) whose Android classes aren't on the
+# release classpath -> compileReleaseJavaWithJavac fails. Flutter filters
+# dev-deps in release (flutter_plugins.dart injectPlugins releaseMode), but only
+# when it actually regenerates; deleting forces that.
+rm -f android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+
 build_cmd=(flutter build "$TARGET" --release)
 
 add_define() {
