@@ -79,19 +79,22 @@ preferences live in &lt;a href="../settings/"&gt;Settings&lt;/a&gt;.&lt;/p&gt;
 &lt;li&gt;Tapping a setlist opens a &lt;strong&gt;read-only view&lt;/strong&gt; first — editing is behind the
 explicit &lt;strong&gt;Edit&lt;/strong&gt; action (in the Menu sheet), so nothing gets reordered by
 accident.&lt;/li&gt;
-&lt;li&gt;Reorder songs to match your show.&lt;/li&gt;
+&lt;li&gt;In the editor, &lt;strong&gt;long-press a song and drag&lt;/strong&gt; to reorder it.&lt;/li&gt;
 &lt;li&gt;If a song was deleted from the library it still shows in the setlist as
 &lt;strong&gt;&amp;ldquo;Unavailable song&amp;rdquo;&lt;/strong&gt; — the count stays honest and you decide when to
 remove the entry (swipe it away; &lt;strong&gt;Undo&lt;/strong&gt; appears if you change your mind).&lt;/li&gt;
 &lt;li&gt;Deleting a setlist can also be undone from the snackbar for a few seconds.&lt;/li&gt;
 &lt;li&gt;Open a setlist in Concert Mode to perform.&lt;/li&gt;
-&lt;li&gt;From a setlist card&amp;rsquo;s &lt;strong&gt;⋯ menu&lt;/strong&gt;: share the songs as links, or export the setlist
-as &lt;strong&gt;PDF&lt;/strong&gt; — &lt;strong&gt;As is&lt;/strong&gt; (one detailed card per song) or &lt;strong&gt;Compact&lt;/strong&gt; (one line per
-song, fits a single list).&lt;/li&gt;
-&lt;li&gt;The &lt;strong&gt;Open in metronome&lt;/strong&gt; button queues the whole setlist in the metronome.&lt;/li&gt;
+&lt;li&gt;Each setlist card shows &lt;strong&gt;one pinned quick-action button&lt;/strong&gt; plus a &lt;strong&gt;⋯ menu&lt;/strong&gt;.
+Choose what the pinned button does in &lt;strong&gt;Settings → Quick action on setlist
+cards&lt;/strong&gt; (default &lt;strong&gt;Open in metronome&lt;/strong&gt;, which queues the whole setlist).&lt;/li&gt;
+&lt;li&gt;The &lt;strong&gt;⋯ menu&lt;/strong&gt; has: &lt;strong&gt;Edit setlist&lt;/strong&gt;, &lt;strong&gt;Event kit&lt;/strong&gt;, &lt;strong&gt;Share&lt;/strong&gt; (songs as
+links), &lt;strong&gt;Copy links&lt;/strong&gt;, and &lt;strong&gt;Export PDF&lt;/strong&gt; — &lt;strong&gt;As is&lt;/strong&gt; (one detailed card per
+song) or &lt;strong&gt;Compact&lt;/strong&gt; (one line per song, fits a single list).&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 id="event-kit--the-show-not-just-the-songs"&gt;Event Kit — the show, not just the songs&lt;/h2&gt;
-&lt;p&gt;For setlists tied to a real event:&lt;/p&gt;</description></item><item><title>Settings</title><link>https://flowgroove.app/wiki/settings/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/settings/</guid><description>&lt;h1 id="settings"&gt;Settings&lt;/h1&gt;
+&lt;p&gt;Open &lt;strong&gt;Event kit&lt;/strong&gt; from a setlist card&amp;rsquo;s &lt;strong&gt;⋯ menu&lt;/strong&gt;; a small 🎭 badge on the card
+shows once a kit is set up. For setlists tied to a real event:&lt;/p&gt;</description></item><item><title>Settings</title><link>https://flowgroove.app/wiki/settings/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/settings/</guid><description>&lt;h1 id="settings"&gt;Settings&lt;/h1&gt;
 &lt;p&gt;All app-wide preferences in one place. Open &lt;strong&gt;Menu (⋯)&lt;/strong&gt; in the bottom bar —
 Settings sits right under your profile.&lt;/p&gt;</description></item><item><title>Songs</title><link>https://flowgroove.app/wiki/songs/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://flowgroove.app/wiki/songs/</guid><description>&lt;h1 id="songs"&gt;Songs&lt;/h1&gt;
 &lt;p&gt;Your personal song library.&lt;/p&gt;

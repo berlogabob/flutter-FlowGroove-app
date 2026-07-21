@@ -1,7 +1,7 @@
 name: flowgroove
 description: "FlowGroove - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.18.1+342
+version: 0.18.1+343
 
 environment:
   sdk: ^3.12.0
@@ -37,7 +37,11 @@ dependencies:
   connectivity_plus: ^7.0.0
 
   # Wakelock (Phase 2.2)
-  wakelock_plus: ^1.3.0
+  # Pinned: 1.7.0 ships Android sources whose root-package `import IsEnabledMessage`
+  # / `import ToggleMessage` fail to compile under Kotlin 2.2.20
+  # (:wakelock_plus:compileReleaseKotlin — Unresolved reference). Hold the last
+  # known-good release until a fixed one lands.
+  wakelock_plus: 1.6.1
 
   # Navigation
   go_router: ^17.1.0

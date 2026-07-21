@@ -1946,13 +1946,11 @@ class MockWriteBatch extends _i1.Mock implements _i6.WriteBatch {
   );
 
   @override
-  void update(
-    _i6.DocumentReference<Object?>? document,
-    Map<Object, Object?>? data,
-  ) => super.noSuchMethod(
-    Invocation.method(#update, [document, data]),
-    returnValueForMissingStub: null,
-  );
+  void update<T>(_i6.DocumentReference<T>? document, T? data) =>
+      super.noSuchMethod(
+        Invocation.method(#update, [document, data]),
+        returnValueForMissingStub: null,
+      );
 }
 
 /// A class which mocks [Client].

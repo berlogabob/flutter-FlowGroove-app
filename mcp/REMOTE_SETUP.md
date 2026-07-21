@@ -5,8 +5,11 @@ connector → paste one URL → Connect → sign in with Google → done**. No A
 server, no config file. This is powered by `functions/src/mcp/remote.js` (`mcpRemote`) + a
 managed OAuth provider. (The API-key + local-server path in `mcp/` still works for power users.)
 
-**MCP endpoint URL:** `https://us-central1-repsync-app-8685c.cloudfunctions.net/mcpRemote/mcp`
-**PRM URL:** `…/mcpRemote/.well-known/oauth-protected-resource`
+**MCP endpoint URL:** `https://app.flowgroove.app/mcp`
+**PRM URL:** `https://app.flowgroove.app/.well-known/oauth-protected-resource`
+
+(Fronted by a Firebase Hosting rewrite in `firebase.json` → the `mcpRemote` function; the raw
+`https://us-central1-repsync-app-8685c.cloudfunctions.net/mcpRemote/mcp` URL still works too.)
 
 ## Step 1 — Managed OAuth provider (you)
 
@@ -28,11 +31,16 @@ These are public (not secrets). Add to `functions/.env` (loaded automatically) o
 
 ```
 MCP_OAUTH_ISSUER=https://your-tenant.example.com
-MCP_OAUTH_AUDIENCE=https://us-central1-repsync-app-8685c.cloudfunctions.net/mcpRemote/mcp
-MCP_RESOURCE_URL=https://us-central1-repsync-app-8685c.cloudfunctions.net/mcpRemote/mcp
+MCP_OAUTH_AUDIENCE=https://app.flowgroove.app/mcp
+MCP_RESOURCE_URL=https://app.flowgroove.app/mcp
 # optional; defaults to ${MCP_OAUTH_ISSUER}/.well-known/jwks.json
 MCP_JWKS_URL=https://your-tenant.example.com/.well-known/jwks.json
 ```
+
+If using WorkOS AuthKit specifically: `MCP_OAUTH_ISSUER`/`MCP_JWKS_URL` must be the **AuthKit
+domain** (Dashboard → Domains, e.g. `https://your-project.authkit.app`), not the generic
+`api.workos.com/user_management/{client_id}` issuer — the generic one has no
+`registration_endpoint`, which breaks Dynamic Client Registration.
 
 The token must carry the user's **email** (Google login provides it); the server maps
 email → Firebase uid via `admin.auth().getUserByEmail`.
@@ -40,18 +48,18 @@ email → Firebase uid via `admin.auth().getUserByEmail`.
 ## Step 3 — Deploy
 
 ```
-firebase deploy --only functions:mcpRemote
+firebase deploy --only hosting,functions:mcpRemote
 ```
 
 Check it's live:
-- `GET …/mcpRemote/.well-known/oauth-protected-resource` returns JSON with your issuer in
-  `authorization_servers`.
-- `POST …/mcpRemote/mcp` without a token → `401` + `WWW-Authenticate` header.
+- `GET https://app.flowgroove.app/.well-known/oauth-protected-resource` returns JSON with your
+  issuer in `authorization_servers`.
+- `POST https://app.flowgroove.app/mcp` without a token → `401` + `WWW-Authenticate` header.
 
 ## Step 4 — Connect in Claude (you)
 
 Claude **Pro/Max** → **Settings → Connectors → Add custom connector** → URL =
-`…/mcpRemote/mcp` → **Connect** → the Google sign-in popup → authorize. Then chat:
+`https://app.flowgroove.app/mcp` → **Connect** → the Google sign-in popup → authorize. Then chat:
 
 > "List my FlowGroove songs, then add *Zombie* by The Cranberries in Em with the verse and
 > chorus chords over the lyrics."
