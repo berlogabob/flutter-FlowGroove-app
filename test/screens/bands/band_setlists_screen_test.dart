@@ -66,11 +66,17 @@ void main() {
         await tester.tap(find.byType(FloatingActionButton));
         await tester.pumpAndSettle();
 
-        final uri = currentRouterUri(router);
-        expect(uri.path, '/main/setlists/create');
-        expect(uri.queryParameters['bandId'], 'band-123');
-        expect(uri.queryParameters['scope'], 'band');
+        // Pushed (not go'd) so saving returns to this band; a pushed route
+        // doesn't move currentRouterUri, so assert on the rendered marker.
         expect(find.text('route:create-setlist'), findsOneWidget);
+        expect(
+          find.text('uri:/main/setlists/create?bandId=band-123&scope=band'),
+          findsOneWidget,
+        );
+
+        router.pop();
+        await tester.pumpAndSettle();
+        expect(find.text('Friday Gig'), findsOneWidget);
       },
     );
 
