@@ -10,4 +10,6 @@ window.env = {
   
   // Spotify proxy is optional; demo mode leaves it disabled
   SPOTIFY_PROXY_URL: '',
+  // API proxy (Deezer/lyrics CORS shim) is optional; disabled in demo
+  API_PROXY_URL: '',
 };
