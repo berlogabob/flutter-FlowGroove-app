@@ -1919,13 +1919,11 @@ class MockWriteBatch extends _i1.Mock implements _i4.WriteBatch {
   );
 
   @override
-  void update(
-    _i4.DocumentReference<Object?>? document,
-    Map<Object, Object?>? data,
-  ) => super.noSuchMethod(
-    Invocation.method(#update, [document, data]),
-    returnValueForMissingStub: null,
-  );
+  void update<T>(_i4.DocumentReference<T>? document, T? data) =>
+      super.noSuchMethod(
+        Invocation.method(#update, [document, data]),
+        returnValueForMissingStub: null,
+      );
 }
 
 /// A class which mocks [NavigationTracker].

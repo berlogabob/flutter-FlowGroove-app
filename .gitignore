@@ -217,3 +217,6 @@ Tack/
 
 # Devvit crosspost app — its own git repo
 reddit-bot/
+
+# App-audit skill output (screenshots/JSON) — local scratch, not source
+audit/
