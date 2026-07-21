@@ -7,7 +7,6 @@ import '../../../models/song.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
-import '../../../utils/snackbar.dart';
 import '../../../widgets/app_menu_sheet.dart';
 import '../../../widgets/confirmation_dialog.dart';
 import '../../../widgets/custom_text_field.dart';
@@ -252,9 +251,13 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
   }
 
   void _addSongToBand(BuildContext context, WidgetRef ref) {
-    // Navigate to song picker or add new song
-    // For now, we'll just show a snackbar
-    showAppSnackBar(context, 'Song picker coming soon');
+    // Open the song form scoped to this band: the bandId makes the save target
+    // saveBandSong instead of the user's personal library. Pushed, not go'd, so
+    // saving pops back here instead of stranding the user in the Songs tab.
+    context.pushNamed(
+      'add-song',
+      queryParameters: {'bandId': widget.band.id},
+    );
   }
 
   void _editSong(BuildContext context, WidgetRef ref, Song song) {

@@ -103,7 +103,9 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   void _handleCreate() {
-    context.goNamed(
+    // Pushed, not go'd: saving pops back to this band's setlists instead of
+    // dropping the user on the personal Setlists tab.
+    context.pushNamed(
       'create-setlist',
       queryParameters: {
         'bandId': widget.band.id,

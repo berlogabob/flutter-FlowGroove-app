@@ -469,14 +469,17 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     }
   }
 
-  /// Handle add song - navigate to add song screen with bandId
+  /// Handle add song - navigate to add song screen with bandId.
+  /// Pushed, not go'd: a `go` switches the shell to the Songs branch and the
+  /// save pops the user out onto the personal library instead of this band.
   void _handleAddSong() {
-    context.goNamed('add-song', queryParameters: {'bandId': widget.band.id});
+    context.pushNamed('add-song', queryParameters: {'bandId': widget.band.id});
   }
 
-  /// Handle add setlist - navigate to create setlist screen
+  /// Handle add setlist - navigate to create setlist screen (pushed, so saving
+  /// returns to the band; see _handleAddSong).
   void _handleAddSetlist() {
-    context.goNamed(
+    context.pushNamed(
       'create-setlist',
       queryParameters: {
         'bandId': widget.band.id,
