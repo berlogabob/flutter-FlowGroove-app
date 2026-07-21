@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -14,6 +15,25 @@ import '../../utils/chordpro.dart';
 enum SetlistPdfLayout { detailed, compact, pack, eventGuide }
 
 class PdfService {
+  /// Hands the finished PDF to the platform.
+  // ponytail: layoutPdf's web path drops `name` and clicks a target=_blank
+  // anchor long after the tap — iOS Safari blocks it as a popup and returns
+  // true, so the export silently does nothing. sharePdf's anchor carries
+  // download=<name> and isn't blocked. Native keeps the print dialog.
+  static Future<void> _output(Uint8List bytes, String name) => kIsWeb
+      ? Printing.sharePdf(bytes: bytes, filename: name)
+      : Printing.layoutPdf(onLayout: (_) async => bytes, name: name);
+
+  /// Filename-safe title: drops anything a `download` attribute would choke on.
+  static String _fileStem(String title) {
+    final cleaned = title
+        .trim()
+        .replaceAll(RegExp(r'[^\w\s-]'), '')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '_');
+    return cleaned.isEmpty ? 'flowgroove' : cleaned;
+  }
+
   /// Exports a single song's performance sheet (chords over lyrics per section)
   /// to a shareable/printable PDF. [transpose] shifts the chords (display copy);
   /// sections without a ChordPro [Section.chordChart] fall back to their notes.
@@ -78,10 +98,7 @@ class PdfService {
       );
     }
 
-    await Printing.layoutPdf(
-      onLayout: (format) async => pdf.save(),
-      name: '${title.replaceAll(' ', '_')}_sheet.pdf',
-    );
+    await _output(await pdf.save(), '${_fileStem(title)}_sheet.pdf');
   }
 
   static Future<void> exportSetlist(
@@ -218,9 +235,9 @@ class PdfService {
       SetlistPdfLayout.pack => '_pack',
       SetlistPdfLayout.eventGuide => '_event_guide',
     };
-    await Printing.layoutPdf(
-      onLayout: (format) async => pdf.save(),
-      name: '${setlist.name.replaceAll(' ', '_')}_setlist$suffix.pdf',
+    await _output(
+      await pdf.save(),
+      '${_fileStem(setlist.name)}_setlist$suffix.pdf',
     );
   }
 
@@ -536,7 +553,10 @@ class PdfService {
           children: [
             for (final p in placements)
               pw.Text(
-                p.kind == 'member' ? '• ${p.label}' : '▪ ${p.label}',
+                // No emoji here — the embedded PDF font has no emoji glyphs.
+                p.kind == 'member'
+                    ? '• ${p.displayLabel}'
+                    : '▪ ${p.displayLabel}',
                 style: pw.TextStyle(font: font, fontSize: 9),
               ),
           ],

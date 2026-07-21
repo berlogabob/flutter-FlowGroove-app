@@ -20,7 +20,10 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
-  Future<MockFirestoreService> pump(WidgetTester tester) async {
+  Future<MockFirestoreService> pump(
+    WidgetTester tester, {
+    Setlist? withSetlist,
+  }) async {
     final firestore = MockFirestoreService();
     when(firestore.saveSetlist(any, uid: anyNamed('uid')))
         .thenAnswer((_) async {});
@@ -33,7 +36,9 @@ void main() {
           firestoreProvider.overrideWithValue(firestore),
           currentUserProvider.overrideWithValue(AsyncValue<User?>.data(user)),
         ],
-        child: MaterialApp(home: EventKitEditorScreen(setlist: setlist)),
+        child: MaterialApp(
+          home: EventKitEditorScreen(setlist: withSetlist ?? setlist),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -50,7 +55,7 @@ void main() {
       expect(find.byIcon(Icons.add), findsWidgets);
     });
 
-    testWidgets('placing equipment in a zone saves the setlist', (
+    testWidgets('placing catalog gear in a zone saves the setlist', (
       tester,
     ) async {
       final firestore = await pump(tester);
@@ -59,19 +64,66 @@ void main() {
       await tester.tap(find.byIcon(Icons.add).first);
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Equipment (e.g. Amp, Drum kit, Monitor)'),
-        'Drum kit',
-      );
-      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.enterText(find.byType(TextField).first, 'Drum kit');
+      await tester.pumpAndSettle();
+      // Pick it from the catalog results, then confirm the multi-select sheet.
+      // `.last` skips the search field's own EditableText, which also matches.
+      await tester.tap(find.text('Drum kit').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
 
       expect(find.widgetWithText(Chip, 'Drum kit'), findsOneWidget);
       final saved = verify(
         firestore.saveSetlist(captureAny, uid: anyNamed('uid')),
       ).captured.single as Setlist;
-      expect(saved.eventKit!.stage['back-left']!.single.label, 'Drum kit');
-      expect(saved.eventKit!.stage['back-left']!.single.kind, 'equipment');
+      final placed = saved.eventKit!.stage['back-left']!.single;
+      expect(placed.label, 'Drum kit');
+      expect(placed.kind, 'equipment');
+      // The catalog icon is baked in at add time — this is the fix for every
+      // placement rendering the same speaker glyph.
+      expect(placed.icon, '🥁');
+    });
+
+    testWidgets('free-typed gear is still accepted', (tester) async {
+      final firestore = await pump(tester);
+
+      await tester.tap(find.byIcon(Icons.add).first);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, 'Fog juice');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add "Fog juice"'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+
+      final saved = verify(
+        firestore.saveSetlist(captureAny, uid: anyNamed('uid')),
+      ).captured.single as Setlist;
+      expect(saved.eventKit!.stage['back-left']!.single.label, 'Fog juice');
+    });
+
+    testWidgets('legacy placements without an icon resolve one by label', (
+      tester,
+    ) async {
+      // Plots saved before icons existed have icon == null; they used to all
+      // render Icons.speaker.
+      await pump(
+        tester,
+        withSetlist: setlist.copyWith(
+          eventKit: const EventKit(
+            stage: {
+              'back-left': [
+                StagePlacement(kind: 'equipment', label: 'Drum kit'),
+                StagePlacement(kind: 'equipment', label: 'Unknowable thing'),
+              ],
+            },
+          ),
+        ),
+      );
+
+      expect(find.text('🥁'), findsOneWidget);
+      expect(find.text('🔊'), findsOneWidget);
     });
 
     testWidgets('added crew person appears as a role card (#54)', (

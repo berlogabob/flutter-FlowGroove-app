@@ -11,13 +11,21 @@ const stageZoneIds = [
 ];
 
 class StagePlacement {
-  const StagePlacement({required this.kind, required this.label, this.uid});
+  const StagePlacement({
+    required this.kind,
+    required this.label,
+    this.uid,
+    this.icon,
+    this.brand,
+  });
 
   factory StagePlacement.fromJson(Map<String, dynamic> json) =>
       StagePlacement(
         kind: json['kind'] as String? ?? 'equipment',
         label: json['label'] as String? ?? '',
         uid: json['uid'] as String?,
+        icon: json['icon'] as String?,
+        brand: json['brand'] as String?,
       );
 
   /// 'member' | 'equipment'.
@@ -27,10 +35,22 @@ class StagePlacement {
   /// Band member uid when [kind] == 'member'.
   final String? uid;
 
+  /// Emoji baked in at add time. Null on plots saved before icons existed —
+  /// render those through `StageGear.iconFor(label, kind: kind)`.
+  final String? icon;
+
+  /// Optional brand refinement for gear, e.g. 'Ampeg SVT' on a bass amp.
+  final String? brand;
+
+  /// Label as shown to humans (UI chips and the event-guide PDF).
+  String get displayLabel => brand == null ? label : '$label — $brand';
+
   Map<String, dynamic> toJson() => {
     'kind': kind,
     'label': label,
     if (uid != null) 'uid': uid,
+    if (icon != null) 'icon': icon,
+    if (brand != null) 'brand': brand,
   };
 }
 

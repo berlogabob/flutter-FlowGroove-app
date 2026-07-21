@@ -8,7 +8,9 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/member_label.dart';
+import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
+import '../../utils/stage_gear.dart';
 import '../../widgets/bottom_nav_or_action_bar.dart';
 import '../../widgets/user_avatar.dart';
 
@@ -63,12 +65,22 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
   // ---- stage ----
 
   Future<void> _addToZone(String zoneId) async {
-    final placement = await showModalBottomSheet<StagePlacement>(
+    final placements = await showModalBottomSheet<List<StagePlacement>>(
       context: context,
-      builder: (_) => _AddPlacementSheet(members: _members),
+      isScrollControlled: true,
+      builder: (_) => _AddPlacementSheet(
+        members: _members,
+        placedLabels: {
+          for (final list in _kit.stage.values)
+            for (final placement in list) placement.label,
+        },
+      ),
     );
-    if (placement == null) return;
-    final zone = [..._kit.stage[zoneId] ?? const <StagePlacement>[], placement];
+    if (placements == null || placements.isEmpty) return;
+    final zone = [
+      ..._kit.stage[zoneId] ?? const <StagePlacement>[],
+      ...placements,
+    ];
     _mutate(_kit.copyWith(stage: {..._kit.stage, zoneId: zone}));
   }
 
@@ -335,12 +347,12 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
                   child: Chip(
                     visualDensity: VisualDensity.compact,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    avatar: Icon(
-                      p.kind == 'member' ? Icons.person : Icons.speaker,
-                      size: 12,
+                    avatar: Text(
+                      p.icon ?? StageGear.iconFor(p.label, kind: p.kind),
+                      style: const TextStyle(fontSize: 11),
                     ),
                     label: Text(
-                      p.label,
+                      p.displayLabel,
                       style: const TextStyle(fontSize: 10),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -354,78 +366,476 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
   }
 }
 
-class _AddPlacementSheet extends StatelessWidget {
-  const _AddPlacementSheet({required this.members});
+class _AddPlacementSheet extends StatefulWidget {
+  const _AddPlacementSheet({required this.members, required this.placedLabels});
 
   final List<BandMember> members;
+  final Set<String> placedLabels;
 
   @override
-  Widget build(BuildContext context) {
-    final equipment = TextEditingController();
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
+  State<_AddPlacementSheet> createState() => _AddPlacementSheetState();
+}
+
+class _AddPlacementSheetState extends State<_AddPlacementSheet> {
+  final _search = TextEditingController();
+  final List<({StagePlacement placement, GearEntry? entry})> _picks = [];
+  String _query = '';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  bool _memberPicked(BandMember member) =>
+      _picks.any((pick) => pick.placement.uid == member.uid);
+
+  bool _gearPicked(GearEntry entry) =>
+      _picks.any((pick) => pick.entry?.id == entry.id);
+
+  void _toggleMember(BandMember member) {
+    final index = _picks.indexWhere((pick) => pick.placement.uid == member.uid);
+    setState(() {
+      if (index != -1) {
+        _picks.removeAt(index);
+        return;
+      }
+      final label = memberLabel(
+        displayName: member.displayName,
+        email: member.email,
+      );
+      final icon = member.musicRoles.isEmpty
+          ? '🧑'
+          : MusicRoleIcon.getIcon(member.musicRoles.first) ?? '🧑';
+      _picks.add((
+        placement: StagePlacement(
+          kind: 'member',
+          uid: member.uid,
+          label: label,
+          icon: icon,
         ),
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-          children: [
-            Text(
-              'Place in zone',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: MonoPulseSpacing.sm),
-            for (final m in members)
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.person),
-                title: Text(
-                  memberLabel(displayName: m.displayName, email: m.email),
+        entry: null,
+      ));
+    });
+  }
+
+  void _toggleGear(GearEntry entry) {
+    final index = _picks.indexWhere((pick) => pick.entry?.id == entry.id);
+    setState(() {
+      if (index != -1) {
+        _picks.removeAt(index);
+      } else {
+        _picks.add((
+          placement: StagePlacement(
+            kind: 'equipment',
+            label: entry.name,
+            icon: entry.icon,
+          ),
+          entry: entry,
+        ));
+      }
+    });
+  }
+
+  void _addCustomGear(String value) {
+    final label = value.trim();
+    if (label.isEmpty) return;
+    final alreadyPicked = _picks.any(
+      (pick) =>
+          pick.placement.kind == 'equipment' &&
+          pick.placement.label.toLowerCase() == label.toLowerCase(),
+    );
+    setState(() {
+      if (!alreadyPicked) {
+        _picks.add((
+          placement: StagePlacement(
+            kind: 'equipment',
+            label: label,
+            icon: StageGear.iconFor(label),
+          ),
+          entry: null,
+        ));
+      }
+      _search.clear();
+      _query = '';
+    });
+  }
+
+  Future<void> _editBrand(int index) async {
+    final pick = _picks[index];
+    final entry = pick.entry;
+    if (entry == null || !entry.brandable) return;
+    final result = await _pickBrand(
+      context,
+      entry.category,
+      pick.placement.brand,
+    );
+    if (!mounted || result == null) return;
+    final placement = pick.placement;
+    setState(() {
+      _picks[index] = (
+        placement: StagePlacement(
+          kind: placement.kind,
+          uid: placement.uid,
+          label: placement.label,
+          icon: placement.icon,
+          brand: result.isEmpty ? null : result,
+        ),
+        entry: entry,
+      );
+    });
+  }
+
+  Future<String?> _pickBrand(
+    BuildContext context,
+    String category,
+    String? current,
+  ) async {
+    final brands = StageGear.brandsFor(category);
+    var selected = current ?? '';
+    final custom = TextEditingController(
+      text: brands.contains(current) ? '' : current ?? '',
+    );
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Brand (optional)'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final brand in brands)
+                      ChoiceChip(
+                        label: Text(brand),
+                        selected: selected == brand,
+                        onSelected: (isSelected) => setDialogState(() {
+                          selected = isSelected ? brand : '';
+                          custom.clear();
+                        }),
+                      ),
+                  ],
                 ),
-                subtitle: m.musicRoles.isEmpty
-                    ? null
-                    : Text(m.musicRoles.join(', ')),
-                onTap: () => Navigator.pop(
-                  context,
-                  StagePlacement(
-                    kind: 'member',
-                    uid: m.uid,
-                    label: memberLabel(
-                      displayName: m.displayName,
-                      email: m.email,
-                    ),
+                const SizedBox(height: MonoPulseSpacing.md),
+                TextField(
+                  controller: custom,
+                  decoration: const InputDecoration(
+                    labelText: 'Custom brand',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) =>
+                      setDialogState(() => selected = value.trim()),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, ''),
+              child: const Text('Clear'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, selected.trim()),
+              child: const Text('Done'),
+            ),
+          ],
+        ),
+      ),
+    );
+    custom.dispose();
+    return result;
+  }
+
+  Widget _sectionLabel(String label) => Padding(
+    padding: const EdgeInsets.only(top: MonoPulseSpacing.sm, bottom: 4),
+    child: Text(
+      label,
+      style: MonoPulseTypography.labelSmall.copyWith(
+        color: context.mp.textSecondary,
+      ),
+    ),
+  );
+
+  Widget _gearTile(GearEntry entry) {
+    final isSelected = _gearPicked(entry);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: GestureDetector(
+        onTap: () => _toggleGear(entry),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.md,
+            vertical: MonoPulseSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? MonoPulseColors.accentOrange10
+                : context.mp.surfaceOverlay,
+            borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+            border: Border.all(
+              color: isSelected
+                  ? MonoPulseColors.accentOrange
+                  : context.mp.textTertiary.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              Text(entry.icon, style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              Expanded(
+                child: Text(
+                  entry.name,
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: isSelected
+                        ? MonoPulseColors.accentOrange
+                        : context.mp.textHighEmphasis,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                   ),
                 ),
               ),
-            TextField(
-              controller: equipment,
-              decoration: InputDecoration(
-                labelText: 'Equipment (e.g. Amp, Drum kit, Monitor)',
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    final label = equipment.text.trim();
-                    if (label.isEmpty) return;
-                    Navigator.pop(
-                      context,
-                      StagePlacement(kind: 'equipment', label: label),
-                    );
-                  },
+              if (isSelected)
+                const Icon(
+                  Icons.check,
+                  size: 18,
+                  color: MonoPulseColors.accentOrange,
                 ),
-              ),
-              onSubmitted: (v) {
-                final label = v.trim();
-                if (label.isEmpty) return;
-                Navigator.pop(
-                  context,
-                  StagePlacement(kind: 'equipment', label: label),
-                );
-              },
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final trimmedQuery = _query.trim();
+    final gear = StageGear.search(trimmedQuery);
+    final suggestions = trimmedQuery.isEmpty
+        ? StageGear.suggestedFor(
+                widget.members.expand((member) => member.musicRoles),
+              )
+              .map(StageGear.byId)
+              .whereType<GearEntry>()
+              .where(
+                (entry) =>
+                    !widget.placedLabels.contains(entry.name) &&
+                    !_gearPicked(entry),
+              )
+              .toList()
+        : const <GearEntry>[];
+    final hasExactGear = StageGear.catalog.any(
+      (entry) => entry.name.toLowerCase() == trimmedQuery.toLowerCase(),
+    );
+    final gearRows = <Widget>[];
+    String? category;
+    for (final entry in gear) {
+      if (trimmedQuery.isEmpty && category != entry.category) {
+        category = entry.category;
+        gearRows.add(_sectionLabel(category));
+      }
+      gearRows.add(_gearTile(entry));
+    }
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
+        child: SizedBox(
+          height:
+              (mediaQuery.size.height - mediaQuery.viewInsets.bottom) * 0.85,
+          child: Padding(
+            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Add to zone',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: MonoPulseSpacing.sm),
+                TextField(
+                  controller: _search,
+                  decoration: InputDecoration(
+                    hintText: 'Search gear or type your own…',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    suffixIcon: _search.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 20),
+                            onPressed: () {
+                              _search.clear();
+                              setState(() => _query = '');
+                            },
+                            constraints: const BoxConstraints(
+                              minWidth: 48,
+                              minHeight: 48,
+                            ),
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        MonoPulseRadius.small,
+                      ),
+                    ),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: MonoPulseSpacing.md,
+                      vertical: MonoPulseSpacing.sm,
+                    ),
+                  ),
+                  onChanged: (value) => setState(() => _query = value),
+                  // Enter adds the typed text as custom gear, so a quick
+                  // "sandbags<enter>" never needs the tap-the-row detour.
+                  onSubmitted: _addCustomGear,
+                  textInputAction: TextInputAction.search,
+                ),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.only(top: MonoPulseSpacing.sm),
+                    children: [
+                      if (_picks.isNotEmpty) ...[
+                        _sectionLabel('Selected'),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (var i = 0; i < _picks.length; i++)
+                              InputChip(
+                                label: Text(
+                                  '${_picks[i].placement.icon ?? StageGear.iconFor(_picks[i].placement.label, kind: _picks[i].placement.kind)} '
+                                  '${_picks[i].placement.displayLabel}',
+                                ),
+                                deleteIcon: const Icon(Icons.close, size: 16),
+                                onDeleted: () =>
+                                    setState(() => _picks.removeAt(i)),
+                                selected: true,
+                                onSelected: _picks[i].entry?.brandable ?? false
+                                    ? (_) => _editBrand(i)
+                                    : null,
+                                backgroundColor: MonoPulseColors.accentOrange10,
+                                selectedColor: MonoPulseColors.accentOrange10,
+                                padding: EdgeInsets.zero,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: MonoPulseSpacing.sm),
+                      ],
+                      if (suggestions.isNotEmpty) ...[
+                        _sectionLabel('Likely needed'),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final entry in suggestions)
+                              ActionChip(
+                                label: Text('${entry.icon} ${entry.name}'),
+                                onPressed: () => _toggleGear(entry),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: MonoPulseSpacing.sm),
+                      ],
+                      if (widget.members.isNotEmpty) ...[
+                        _sectionLabel('Band members'),
+                        for (final member in widget.members)
+                          Builder(
+                            builder: (context) {
+                              final isSelected = _memberPicked(member);
+                              final icon = member.musicRoles.isEmpty
+                                  ? '🧑'
+                                  : MusicRoleIcon.getIcon(
+                                          member.musicRoles.first,
+                                        ) ??
+                                        '🧑';
+                              return ListTile(
+                                dense: true,
+                                selected: isSelected,
+                                selectedColor: MonoPulseColors.accentOrange,
+                                selectedTileColor:
+                                    MonoPulseColors.accentOrange10,
+                                leading: Text(
+                                  icon,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                                title: Text(
+                                  memberLabel(
+                                    displayName: member.displayName,
+                                    email: member.email,
+                                  ),
+                                ),
+                                subtitle: member.musicRoles.isEmpty
+                                    ? null
+                                    : Text(
+                                        member.musicRoles
+                                            .map(MusicRoleIcon.getDisplayName)
+                                            .join(', '),
+                                      ),
+                                trailing: isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        size: 18,
+                                        color: MonoPulseColors.accentOrange,
+                                      )
+                                    : null,
+                                onTap: () => _toggleMember(member),
+                              );
+                            },
+                          ),
+                      ],
+                      _sectionLabel('Gear'),
+                      ...gearRows,
+                      if (trimmedQuery.isNotEmpty && !hasExactGear)
+                        ListTile(
+                          dense: true,
+                          leading: Text(
+                            StageGear.iconFor(trimmedQuery),
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                          title: Text('Add "$trimmedQuery"'),
+                          onTap: () => _addCustomGear(trimmedQuery),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: MonoPulseSpacing.sm),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: MonoPulseSpacing.sm),
+                    ElevatedButton(
+                      onPressed: _picks.isEmpty
+                          ? null
+                          : () => Navigator.pop(context, [
+                              for (final pick in _picks) pick.placement,
+                            ]),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: MonoPulseColors.accentOrange,
+                        foregroundColor: context.mp.textPrimary,
+                      ),
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: MonoPulseSpacing.md),
-          ],
+          ),
         ),
       ),
     );
