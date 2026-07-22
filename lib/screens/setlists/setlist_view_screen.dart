@@ -7,10 +7,12 @@ import '../../models/song.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
+import '../../services/export/pdf_service.dart';
+import '../../services/export/setlist_export_sheet.dart';
+import '../../services/export/setlist_share.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
-import '../../widgets/custom_button.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/menu_items_scope.dart';
@@ -66,13 +68,28 @@ class SetlistViewScreen extends ConsumerWidget {
         setlist;
 
     // Publishes into the shell's bottom bar (this is a pushed branch child):
-    // the title slot is replaced by the "Open in Metronome" primary action
-    // (bar becomes [← Back] [Open in Metronome] [⋮]); Edit — previously an
-    // app-bar TextButton — moved into the Menu sheet.
+    // the title slot shows the setlist name (bar becomes [← Back] [name] [⋮]);
+    // Open in Metronome / Share / Export to PDF — read actions for everyone —
+    // and the editor-only Edit / Event kit live in the Menu sheet.
     return MenuScopePublisher(
       data: MenuScopeData(
         title: setlist.name,
         items: [
+          AppMenuItem(
+            icon: Icons.av_timer,
+            label: 'Open in Metronome',
+            onTap: () => _openInMetronome(context, ref, liveSetlist),
+          ),
+          AppMenuItem(
+            icon: Icons.share_outlined,
+            label: 'Share',
+            onTap: () => _share(context, ref, liveSetlist),
+          ),
+          AppMenuItem(
+            icon: Icons.picture_as_pdf_outlined,
+            label: 'Export to PDF',
+            onTap: () => _exportPdf(context, ref, liveSetlist),
+          ),
           if (canEdit)
             AppMenuItem(
               icon: Icons.edit_outlined,
@@ -90,12 +107,6 @@ class SetlistViewScreen extends ConsumerWidget {
               onTap: () => _openEventKit(context, liveSetlist),
             ),
         ],
-        primaryAction: CustomButton(
-          label: 'Open in Metronome',
-          icon: Icons.av_timer,
-          size: ButtonSize.small,
-          onPressed: () => _openInMetronome(context, ref, setlist),
-        ),
       ),
       child: Scaffold(
         body: SafeArea(
@@ -169,6 +180,7 @@ class SetlistViewScreen extends ConsumerWidget {
           index: numbers[index],
           song: song,
           trailing: song == null ? null : _badgesFor(song),
+          onTap: song == null ? null : () => _openSong(context, song),
         );
       },
     );
@@ -209,6 +221,30 @@ class SetlistViewScreen extends ConsumerWidget {
     );
   }
 
+  /// Opens the tapped song's editor, band-scoped when this is a band setlist
+  /// (bandId makes the save target the band's copy — see BandSongsScreen).
+  void _openSong(BuildContext context, Song song) {
+    context.pushNamed(
+      'edit-song',
+      pathParameters: {'id': song.id},
+      extra: bandId == null ? song : {'song': song, 'bandId': bandId},
+    );
+  }
+
+  /// The setlist's songs in `songIds` order. The band-songs provider is
+  /// autoDispose, so awaiting `.future` (rather than a cold `.value` read)
+  /// avoids the "disposed during loading" empty result (#80).
+  Future<List<Song>> _resolveSongs(WidgetRef ref, Setlist setlist) async {
+    final allSongs = await ref.read(
+      bandId == null ? songsProvider.future : bandSongsProvider(bandId!).future,
+    );
+    final songsById = {for (final song in allSongs) song.id: song};
+    return setlist.songIds
+        .map((id) => songsById[id])
+        .whereType<Song>()
+        .toList();
+  }
+
   /// Mirrors `SetlistsListScreen._openInMetronome`: loads the current songs,
   /// hands them to the metronome queue, and pushes the metronome screen.
   Future<void> _openInMetronome(
@@ -216,16 +252,15 @@ class SetlistViewScreen extends ConsumerWidget {
     WidgetRef ref,
     Setlist setlist,
   ) async {
-    final allSongs = await ref.read(
-      bandId == null ? songsProvider.future : bandSongsProvider(bandId!).future,
-    );
-    final songs = allSongs
-        .where((s) => setlist.songIds.contains(s.id))
-        .toList();
+    final songs = await _resolveSongs(ref, setlist);
     if (!context.mounted) return;
     final loaded = ref
         .read(metronomeProvider.notifier)
-        .loadSetlistQueue(setlist, availableSongs: songs);
+        .loadSetlistQueue(
+          setlist,
+          availableSongs: songs,
+          sourceBandId: bandId,
+        );
     if (!loaded) {
       showAppSnackBar(
         context,
@@ -234,5 +269,37 @@ class SetlistViewScreen extends ConsumerWidget {
       return;
     }
     await context.pushNamed('metronome');
+  }
+
+  Future<void> _share(
+    BuildContext context,
+    WidgetRef ref,
+    Setlist setlist,
+  ) async {
+    final songs = await _resolveSongs(ref, setlist);
+    if (!context.mounted) return;
+    shareSetlistLinks(context, setlist, songs);
+  }
+
+  Future<void> _exportPdf(
+    BuildContext context,
+    WidgetRef ref,
+    Setlist setlist,
+  ) async {
+    final layout = await pickSetlistPdfLayout(
+      context,
+      withEventGuide: setlist.eventKit?.isEmpty == false,
+    );
+    if (layout == null) return;
+    try {
+      await PdfService.exportSetlist(
+        setlist,
+        await _resolveSongs(ref, setlist),
+        layout: layout,
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      showAppSnackBar(context, 'Error: $e');
+    }
   }
 }

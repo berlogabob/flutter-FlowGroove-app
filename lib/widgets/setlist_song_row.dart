@@ -21,6 +21,7 @@ class SetlistSongRow extends StatelessWidget {
     super.key,
     this.leading,
     this.trailing,
+    this.onTap,
   });
 
   final int index;
@@ -28,12 +29,17 @@ class SetlistSongRow extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
 
+  /// Tap handler; only wired when [song] resolves (an "Unavailable song" row
+  /// stays inert, same guard as [trailing]).
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final song = this.song;
     return Card(
       margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
       child: ListTile(
+        onTap: song == null ? null : onTap,
         leading:
             leading ??
             CircleAvatar(
