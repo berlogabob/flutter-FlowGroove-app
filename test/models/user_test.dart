@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -124,6 +125,18 @@ void main() {
         expect(user.bandIds.length, 5);
         expect(user.bandIds[0], 'band-001');
         expect(user.bandIds[4], 'band-005');
+      });
+
+      test('parses Firestore Timestamp createdAt without throwing', () {
+        final json = {
+          'uid': 'user-id-ts',
+          'createdAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
+        };
+
+        expect(() => AppUser.fromJson(json), returnsNormally);
+
+        final user = AppUser.fromJson(json);
+        expect(user.createdAt.year, 2026);
       });
 
       test('handles user with only email', () {

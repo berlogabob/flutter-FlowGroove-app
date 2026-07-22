@@ -218,7 +218,7 @@ async function createSetlistWithSongs(db, uid, bandId, args) {
   const items = [];
   const invalid = [];
   let created = 0;
-  let reused = 0;
+  let updated = 0;
   let breaks = 0;
 
   for (const entry of entries) {
@@ -242,7 +242,16 @@ async function createSetlistWithSongs(db, uid, bandId, args) {
     const key = `${(song.title || "").toLowerCase()}|${(song.artist || "").toLowerCase()}`;
     let songId = byKey.get(key);
     if (songId) {
-      reused += 1;
+      // Enrich the existing band song with the supplied fields (key, chord
+      // sections, notes, …) instead of bare-reusing it — a re-import fixes
+      // songs that were previously created without their metadata. merge:true
+      // preserves createdAt and any fields not in this payload.
+      batch.set(
+        bandSongsCol(db, bandId).doc(songId),
+        { ...withSectionIds(song), id: songId, updatedAt: now },
+        { merge: true },
+      );
+      updated += 1;
     } else {
       songId = crypto.randomUUID();
       batch.set(bandSongsCol(db, bandId).doc(songId), {
@@ -270,7 +279,7 @@ async function createSetlistWithSongs(db, uid, bandId, args) {
   });
   await batch.commit();
 
-  const out = { id: setlistId, songsCreated: created, songsReused: reused, breaks };
+  const out = { id: setlistId, songsCreated: created, songsUpdated: updated, breaks };
   if (invalid.length) out.warnings = [`skipped ${invalid.length} invalid song(s): ${invalid.join(", ")}`];
   return out;
 }

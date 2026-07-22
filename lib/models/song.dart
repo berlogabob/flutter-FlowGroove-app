@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import 'beat_mode.dart';
@@ -368,12 +369,14 @@ Map<String, String> _beatModesToJson(List<List<BeatMode>> value) {
 DateTime _parseDateTime(dynamic value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
+  if (value is Timestamp) return value.toDate();
   return DateTime.parse(value as String);
 }
 
 DateTime? _parseNullableDateTime(dynamic value) {
   if (value == null) return null;
   if (value is DateTime) return value;
+  if (value is Timestamp) return value.toDate();
   return DateTime.parse(value as String);
 }
 

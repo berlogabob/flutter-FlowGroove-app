@@ -126,7 +126,7 @@ describe("create_setlist_with_songs", () => {
       ],
     });
     assert.equal(out.result.songsCreated, 2);
-    assert.equal(out.result.songsReused, 0);
+    assert.equal(out.result.songsUpdated, 0);
     assert.equal(out.result.breaks, 1);
 
     const songWrites = writes.filter((w) => w.sub === "songs");
@@ -141,18 +141,24 @@ describe("create_setlist_with_songs", () => {
     assert.equal(divider.breakLabel, "EUSTACE");
   });
 
-  it("dedups songs by title+artist against existing band songs", async () => {
+  it("enriches (updates) an existing song matched by title+artist, reusing its id", async () => {
     const { db, writes } = fakeDb(BAND, [
       { id: "existing", title: "Venus", artist: "Shocking Blue" },
     ]);
     const out = await runTool(db, "editor1", "write", "create_setlist_with_songs", {
       bandId: "b",
       name: "AG songlist",
-      entries: [{ type: "song", title: "Venus", artist: "Shocking Blue" }],
+      entries: [
+        { type: "song", title: "Venus", artist: "Shocking Blue", ourKey: "Em" },
+      ],
     });
     assert.equal(out.result.songsCreated, 0);
-    assert.equal(out.result.songsReused, 1);
-    assert.equal(writes.filter((w) => w.sub === "songs").length, 0);
+    assert.equal(out.result.songsUpdated, 1);
+    // The match is UPDATED (not skipped): a write to the existing song id with
+    // the new field, keeping the same id in the setlist.
+    const songWrite = writes.find((w) => w.sub === "songs");
+    assert.equal(songWrite.sid, "existing");
+    assert.equal(songWrite.v.ourKey, "Em");
     const setlist = writes.find((w) => w.sub === "setlists").v;
     assert.deepEqual(setlist.songIds, ["existing"]);
   });

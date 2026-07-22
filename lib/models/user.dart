@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user.g.dart';
@@ -92,6 +93,7 @@ class AppUser {
 DateTime _parseDateTime(dynamic value) {
   if (value == null) return DateTime.now();
   if (value is DateTime) return value;
+  if (value is Timestamp) return value.toDate();
   return DateTime.parse(value as String);
 }
 
