@@ -47,7 +47,7 @@ void main() {
 
     /// Builds a minimal router mirroring production: the view screen is a
     /// pushed child of the setlists branch inside the real [MainShell], so
-    /// the shell's pushed-mode bottom bar ([← Back] [Open in Metronome] [⋮])
+    /// the shell's pushed-mode bottom bar ([← Back] [setlist name] [⋮])
     /// renders. Portrait viewport, because the bottom bar only exists in
     /// portrait (landscape uses the rail).
     Future<GoRouter> pumpView(
@@ -160,9 +160,7 @@ void main() {
     ) async {
       await pumpView(tester);
 
-      // The bottom bar's title slot is replaced by the "Open in Metronome"
-      // primary action (see MenuScopeData.primaryAction), so the setlist
-      // name isn't shown on screen — it's still published as the title.
+      // The setlist name is published as the bottom bar's title.
       final scope = tester.widget<MenuItemsScope>(find.byType(MenuItemsScope));
       expect(scope.title, 'Gig Setlist');
       expect(find.text('First Song'), findsOneWidget);
@@ -209,15 +207,21 @@ void main() {
     testWidgets('hides the Edit action when canEdit is false', (tester) async {
       await pumpView(tester, canEdit: false);
 
-      // No menu items at all -> the bottom bar hides the ⋮ Menu button.
-      expect(find.byIcon(Icons.more_horiz), findsNothing);
+      // Read actions (Metronome/Share/Export) are always present, so the ⋮ Menu
+      // still shows; only the editor-only Edit/Event kit are hidden.
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+
       expect(find.text('Edit Setlist'), findsNothing);
+      expect(find.text('Open in Metronome'), findsOneWidget);
     });
 
-    testWidgets('pushes the metronome screen from the primary action button', (
-      tester,
-    ) async {
+    testWidgets('pushes the metronome screen from the Menu', (tester) async {
       await pumpView(tester);
+
+      // Open in Metronome moved from a primary button into the ⋮ Menu sheet.
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
 
       expect(find.text('Open in Metronome'), findsOneWidget);
 

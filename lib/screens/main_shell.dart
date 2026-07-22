@@ -115,7 +115,13 @@ class _MainShellState extends ConsumerState<MainShell> {
     final safeIndex = currentIndex >= 0 && currentIndex < 5 ? currentIndex : 0;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    final content = DemoModeBanner(child: widget.navigationShell);
+    // CurrentBranchScope tags menus published by branch content with the branch
+    // they're visible on (so cross-branch pushes like edit-song resolve their
+    // own menu — see MenuScopeRegistry.pushedEntryFor).
+    final content = CurrentBranchScope(
+      index: safeIndex,
+      child: DemoModeBanner(child: widget.navigationShell),
+    );
 
     if (isLandscape) {
       return Scaffold(
@@ -221,11 +227,18 @@ class _MainShellState extends ConsumerState<MainShell> {
     );
   }
 
-  MenuScopeData? _currentMenu() => _pushed
-      // Deepest publisher above the branch root; null when the pushed screen
-      // has no menu (the bar then hides its ⋮ — never the root's menu).
-      ? MenuScopeRegistry.pushedEntryFor(_branchRoot)
-      : MenuScopeRegistry.forLocation(_branchRoot);
+  MenuScopeData? _currentMenu() {
+    final i = widget.navigationShell.currentIndex;
+    final branch = (i >= 0 && i < _branchRootLocations.length) ? i : 0;
+    return _pushed
+        // Topmost pushed child visible on the current branch; null when it has
+        // no menu (the bar then hides its ⋮ — never the root's menu).
+        ? MenuScopeRegistry.pushedEntryFor(
+            branch,
+            roots: _branchRootLocations.toSet(),
+          )
+        : MenuScopeRegistry.forLocation(_branchRoot);
+  }
 
   void _openMenu(BuildContext context) {
     final entry = _currentMenu();

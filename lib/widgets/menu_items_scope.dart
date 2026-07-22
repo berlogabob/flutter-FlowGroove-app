@@ -93,12 +93,23 @@ class MenuScopeRegistry {
   /// removal is by token, immune to indexedStack dispose-ordering.
   static final List<_StackEntry> _stack = <_StackEntry>[];
 
-  static void attach(Object token, String location, MenuScopeData data) {
+  static void attach(
+    Object token,
+    String location,
+    int branch,
+    MenuScopeData data,
+  ) {
     final i = _stack.indexWhere((e) => identical(e.token, token));
+    final entry = (
+      token: token,
+      location: location,
+      branch: branch,
+      data: data,
+    );
     if (i >= 0) {
-      _stack[i] = (token: token, location: location, data: data);
+      _stack[i] = entry;
     } else {
-      _stack.add((token: token, location: location, data: data));
+      _stack.add(entry);
     }
     revision.value++;
   }
@@ -108,15 +119,21 @@ class MenuScopeRegistry {
     revision.value++;
   }
 
-  /// The deepest live publisher for a screen pushed ABOVE [branchRoot]
-  /// (location strictly below the root). Null when the pushed screen didn't
-  /// publish a menu — the shell then hides the bar's ⋮ instead of showing
+  /// The menu of the topmost pushed child currently VISIBLE on branch [branch]
+  /// (its branch roots are in [roots] and excluded). Null when the pushed screen
+  /// didn't publish a menu — the shell then hides the bar's ⋮ instead of showing
   /// the root screen's (wrong) menu.
-  static MenuScopeData? pushedEntryFor(String branchRoot) {
+  ///
+  /// Entries are matched by the branch they're shown on, tagged at publish time
+  /// ([CurrentBranchScope]) — NOT by route-location prefix. A cross-branch push
+  /// (e.g. `edit-song`, a `/main/songs` route, opened from the bands branch)
+  /// keeps its route's foreign location but is visible on — and tagged with —
+  /// the bands branch, so its own menu still resolves here. Location prefix
+  /// alone can't tell which navigator a cross-branch push is visible on, and
+  /// would return the parent screen's menu instead (device-verified regression).
+  static MenuScopeData? pushedEntryFor(int branch, {Set<String> roots = const {}}) {
     for (final e in _stack.reversed) {
-      if (e.location != branchRoot && e.location.startsWith(branchRoot)) {
-        return e.data;
-      }
+      if (e.branch == branch && !roots.contains(e.location)) return e.data;
     }
     return null;
   }
@@ -130,7 +147,42 @@ class MenuScopeRegistry {
   }
 }
 
-typedef _StackEntry = ({Object token, String location, MenuScopeData data});
+typedef _StackEntry = ({
+  Object token,
+  String location,
+  int branch,
+  MenuScopeData data,
+});
+
+/// The index of the branch currently visible in the shell, exposed to branch
+/// content so a published menu can be tagged with the branch it's really shown
+/// on. Needed because a route from one branch can be pushed onto another
+/// branch's navigator (e.g. `edit-song`, a `/main/songs` route, opened from the
+/// bands branch) — its location says "songs" but it's visible on "bands", and
+/// only the shell knows that.
+class CurrentBranchScope extends InheritedWidget {
+  const CurrentBranchScope({
+    required this.index,
+    required super.child,
+    super.key,
+  });
+
+  final int index;
+
+  /// Reads WITHOUT registering a dependency: an entry's host branch is fixed at
+  /// publish time and must not change when the visible branch later changes
+  /// (a `dependOn…` here would re-tag orphaned pushed children on tab switch).
+  static int? indexOf(BuildContext context) {
+    final widget = context
+        .getElementForInheritedWidgetOfExactType<CurrentBranchScope>()
+        ?.widget;
+    return widget is CurrentBranchScope ? widget.index : null;
+  }
+
+  @override
+  bool updateShouldNotify(CurrentBranchScope oldWidget) =>
+      index != oldWidget.index;
+}
 
 /// Publishes [data] into [MenuScopeRegistry] under this screen's go_router
 /// location for as long as this widget is in the tree, and exposes it locally
@@ -196,9 +248,12 @@ class _MenuScopePublisherState extends State<MenuScopePublisher> {
     final location = _location;
     if (location == null) return;
     final data = widget.data;
+    // Tag with the branch this screen is visible on (captured now, while the
+    // context is valid) so a cross-branch push resolves to its own menu.
+    final branch = CurrentBranchScope.indexOf(context) ?? -1;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       MenuScopeRegistry.publish(location, data);
-      if (mounted) MenuScopeRegistry.attach(this, location, data);
+      if (mounted) MenuScopeRegistry.attach(this, location, branch, data);
     });
   }
 
