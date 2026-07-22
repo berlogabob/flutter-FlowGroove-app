@@ -38,6 +38,10 @@ const JWKS = ISSUER
       new URL(process.env.MCP_JWKS_URL || `${ISSUER}/.well-known/jwks.json`),
     )
   : null;
+// AuthKit access tokens carry no email claim (only sub) — fetch email from the
+// OIDC userinfo endpoint using the same token. We request the `email` scope.
+const USERINFO_URL =
+  process.env.MCP_USERINFO_URL || (ISSUER ? `${ISSUER}/oauth2/userinfo` : "");
 
 const PRM_PATH = "/.well-known/oauth-protected-resource";
 // PRM is served at the origin root, not under RESOURCE_URL's own path (e.g. "/mcp"),
@@ -50,12 +54,37 @@ function prmDoc() {
   return {
     resource: RESOURCE_URL,
     authorization_servers: ISSUER ? [ISSUER] : [],
-    scopes_supported: ["flowgroove.read", "flowgroove.write"],
+    // Must be scopes the auth server can actually issue — advertising custom
+    // scopes the AuthKit tenant doesn't know makes clients (ChatGPT) request
+    // them and get invalid_scope, killing the OAuth handshake before sign-in.
+    // We don't enforce scopes here anyway (every call runs as write); we only
+    // need the email claim to map email→uid, plus offline_access for refresh.
+    // ponytail: swap to custom scopes only if/when the tenant defines them.
+    scopes_supported: ["openid", "email", "offline_access"],
     bearer_methods_supported: ["header"],
   };
 }
 
-/** Validates the bearer JWT and maps the Google email to a Firebase uid. */
+/** Fetch the user's email from the OIDC userinfo endpoint with their access token. */
+async function userinfoEmail(token) {
+  if (!USERINFO_URL) return null;
+  try {
+    const r = await fetch(USERINFO_URL, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+    if (!r.ok) {
+      console.warn("[mcp] userinfo HTTP", r.status);
+      return null;
+    }
+    const j = await r.json();
+    return j.email || null;
+  } catch (e) {
+    console.warn("[mcp] userinfo error", e.message);
+    return null;
+  }
+}
+
+/** Validates the bearer JWT and maps the user's email to a Firebase uid. */
 async function resolveUid(req) {
   const header = req.get("authorization") || "";
   const m = /^Bearer\s+(.+)$/.exec(header.trim());
@@ -65,11 +94,17 @@ async function resolveUid(req) {
       issuer: ISSUER || undefined,
       audience: AUDIENCE || undefined,
     });
-    const email = payload.email;
-    if (!email) return null;
+    // AuthKit access tokens have no email claim; fall back to userinfo.
+    const email = payload.email || (await userinfoEmail(m[1]));
+    if (!email) {
+      console.warn("[mcp] token ok but no email (token+userinfo)", { sub: payload.sub });
+      return null;
+    }
     const user = await admin.auth().getUserByEmail(String(email));
     return user.uid;
   } catch (e) {
+    // Keep a lean reason — the original silent null made this hard to debug.
+    console.warn("[mcp] resolveUid failed", { code: e.code, message: e.message });
     return null;
   }
 }

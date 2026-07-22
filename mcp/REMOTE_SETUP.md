@@ -66,10 +66,27 @@ Claude **Pro/Max** → **Settings → Connectors → Add custom connector** → 
 
 The song lands in that Google user's library in the app.
 
+## Step 4b — Connect in ChatGPT (you)
+
+Same endpoint, no server change. ChatGPT **Plus / Pro / Business** →
+**Settings → Connectors → Advanced → enable Developer mode** → back on Connectors,
+**Add custom connector** → URL = `https://app.flowgroove.app/mcp` → **Connect** → the
+Google sign-in popup → authorize. ChatGPT registers itself via Dynamic Client
+Registration (same DCR the Claude flow uses), so no key or manifest is needed. Then, with
+the connector enabled in the composer, chat:
+
+> "List my FlowGroove songs, then add *Zombie* by The Cranberries in Em with the verse and
+> chorus chords over the lyrics."
+
+The song lands in that Google user's library — same email→uid mapping as Claude, so sign in
+with the Google account you use in FlowGroove.
+
 ## Notes / limits
 
-- **Platform gating:** the connector UX needs Claude Pro/Max today (ChatGPT: Plus/Pro +
-  developer mode; public listing needs review). Same URL will serve ChatGPT once enabled.
+- **Platform gating:** personal use needs Claude Pro/Max, or ChatGPT Plus/Pro/Business with
+  **Developer mode** (Step 4b). Both use the same URL. A *public directory listing* (so users
+  add it without developer mode) needs the provider off the `-staging` AuthKit tenant plus
+  each platform's connector review — not done yet.
 - **Identity:** email→uid targets users who signed into FlowGroove with the same Google
   account. Email/password-only users need account-linking (follow-up).
 - **Tools:** `list/get/validate/export/create/update_song` — same shared logic as the API-key

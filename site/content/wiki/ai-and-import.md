@@ -30,5 +30,7 @@ Let Claude, ChatGPT or Gemini list and add songs in your library directly.
 
 - **One-click (remote connector):** add FlowGroove as a custom connector in your AI app and
   sign in — no key, no setup. (Rolling out; needs a paid AI plan on some apps.)
+  - **Claude:** Pro/Max → Settings → Connectors. **ChatGPT:** Plus/Pro/Business → turn on
+    Developer mode in Settings → Connectors first, then add the connector.
 - **Advanced (API key):** Profile → **AI access (MCP)** → create a key, then run the local
   FlowGroove MCP server (see `mcp/README.md`) and add it to your client.
