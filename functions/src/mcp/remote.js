@@ -38,10 +38,10 @@ const JWKS = ISSUER
       new URL(process.env.MCP_JWKS_URL || `${ISSUER}/.well-known/jwks.json`),
     )
   : null;
-// AuthKit access tokens carry no email claim (only sub) — fetch email from the
-// OIDC userinfo endpoint using the same token. We request the `email` scope.
-const USERINFO_URL =
-  process.env.MCP_USERINFO_URL || (ISSUER ? `${ISSUER}/oauth2/userinfo` : "");
+// AuthKit access tokens carry no email claim (only sub), and the resource-scoped
+// token isn't valid at the OIDC userinfo endpoint (401) — resolve the email
+// server-side via the WorkOS Management API, keyed by the token's `sub`.
+const WORKOS_API_KEY = process.env.WORKOS_API_KEY || "";
 
 const PRM_PATH = "/.well-known/oauth-protected-resource";
 // PRM is served at the origin root, not under RESOURCE_URL's own path (e.g. "/mcp"),
@@ -65,21 +65,26 @@ function prmDoc() {
   };
 }
 
-/** Fetch the user's email from the OIDC userinfo endpoint with their access token. */
-async function userinfoEmail(token) {
-  if (!USERINFO_URL) return null;
+/** Look up the user's email via the WorkOS Management API by their WorkOS user id (token `sub`). */
+async function workosEmail(sub) {
+  if (!WORKOS_API_KEY) {
+    console.warn("[mcp] WORKOS_API_KEY unset");
+    return null;
+  }
+  if (!sub) return null;
   try {
-    const r = await fetch(USERINFO_URL, {
-      headers: { authorization: `Bearer ${token}` },
-    });
+    const r = await fetch(
+      `https://api.workos.com/user_management/users/${encodeURIComponent(sub)}`,
+      { headers: { authorization: `Bearer ${WORKOS_API_KEY}` } },
+    );
     if (!r.ok) {
-      console.warn("[mcp] userinfo HTTP", r.status);
+      console.warn("[mcp] workos user lookup HTTP", r.status);
       return null;
     }
     const j = await r.json();
     return j.email || null;
   } catch (e) {
-    console.warn("[mcp] userinfo error", e.message);
+    console.warn("[mcp] workos user lookup error", e.message);
     return null;
   }
 }
@@ -94,8 +99,8 @@ async function resolveUid(req) {
       issuer: ISSUER || undefined,
       audience: AUDIENCE || undefined,
     });
-    // AuthKit access tokens have no email claim; fall back to userinfo.
-    const email = payload.email || (await userinfoEmail(m[1]));
+    // AuthKit access tokens have no email claim; resolve it via WorkOS Management API.
+    const email = payload.email || (await workosEmail(payload.sub));
     if (!email) {
       console.warn("[mcp] token ok but no email (token+userinfo)", { sub: payload.sub });
       return null;
