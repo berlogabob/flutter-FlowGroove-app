@@ -130,8 +130,21 @@ function buildServer(uid) {
   server.tool("get_song", "Get one song as FlowGroove Song JSON.", { id: z.string() }, { readOnlyHint: true }, call("get_song"));
   server.tool("export_song", "Export a song as FlowGroove Song JSON.", { id: z.string() }, { readOnlyHint: true }, call("export_song"));
   server.tool("validate_song", "Validate a song against the schema (no write).", { song }, { readOnlyHint: true }, call("validate_song"));
-  server.tool("create_song", "Create a song from FlowGroove Song JSON.", { song }, { readOnlyHint: false, destructiveHint: false }, call("create_song"));
-  server.tool("update_song", "Update a song by id.", { id: z.string(), song }, { readOnlyHint: false, destructiveHint: true }, call("update_song"));
+  server.tool("create_song", "Create a personal song from FlowGroove Song JSON.", { song }, { readOnlyHint: false, destructiveHint: false }, call("create_song"));
+  server.tool("update_song", "Update a personal song by id.", { id: z.string(), song }, { readOnlyHint: false, destructiveHint: true }, call("update_song"));
+  // Band + setlist tools. Bands hold their own song copies and setlists.
+  server.tool("list_bands", "List the bands the user belongs to, with the user's role (admin/editor/viewer). Use a band id for the band_song / setlist tools.", {}, { readOnlyHint: true }, call("list_bands"));
+  server.tool("list_band_songs", "List songs in a band (member only).", { bandId: z.string() }, { readOnlyHint: true }, call("list_band_songs"));
+  server.tool("create_band_song", "Add ONE song to a band from FlowGroove Song JSON (admin/editor only). Map ALL available data, not just title/artist: key -> originalKey/ourKey (e.g. \"Em\"); a chord progression -> sections[] where each labeled part becomes { name, chordChart } (e.g. {name:\"Verse\", chordChart:\"| Am - G - C |\"}); comments/arrangement/bass notes -> notes. Returns the new band song id.", { bandId: z.string(), song }, { readOnlyHint: false, destructiveHint: false }, call("create_band_song"));
+  server.tool("list_setlists", "List a band's setlists (member only).", { bandId: z.string() }, { readOnlyHint: true }, call("list_setlists"));
+  server.tool("create_setlist", "Create a setlist from EXISTING band song ids (admin/editor only). songIds must come from create_band_song or list_band_songs — unknown ids are skipped. To import a fresh list of songs, use create_setlist_with_songs instead.", { bandId: z.string(), name: z.string(), songIds: z.array(z.string()).optional(), description: z.string().optional() }, { readOnlyHint: false, destructiveHint: false }, call("create_setlist"));
+  server.tool(
+    "create_setlist_with_songs",
+    "PREFERRED for 'add these songs to a band as songs and a setlist/playlist'. Creates the band songs AND the setlist in one call (admin/editor only). `entries` is an ORDERED list; each is either a song { type:\"song\", ...FlowGroove Song JSON } or a break/section divider { type:\"break\", breakType, label }. Map ALL song data: key -> ourKey; chord progression -> sections[] { name, chordChart }; comments/bass -> notes. breakType is one of break_pause | set_change | guest_set | encore | backup | custom; use a divider (e.g. { type:\"break\", breakType:\"guest_set\", label:\"EUSTACE\" }) wherever the source list has a labeled section. Songs are deduped by title+artist.",
+    { bandId: z.string(), name: z.string(), description: z.string().optional(), entries: z.array(z.record(z.any())) },
+    { readOnlyHint: false, destructiveHint: false },
+    call("create_setlist_with_songs"),
+  );
   return server;
 }
 

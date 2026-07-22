@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import '../../models/event_kit.dart';
 import '../../models/section.dart';
 import '../../models/setlist.dart';
+import '../../models/setlist_break_type.dart';
 import '../../models/song.dart';
 import '../../utils/chordpro.dart';
 
@@ -112,11 +113,13 @@ class PdfService {
     final font = await PdfGoogleFonts.robotoRegular();
     final fontBold = await PdfGoogleFonts.robotoBold();
 
+    final songById = {for (final s in songs) s.id: s};
+    final items = setlist.effectiveItems;
     final songWidgets =
         layout == SetlistPdfLayout.detailed ||
             layout == SetlistPdfLayout.eventGuide
-        ? _detailedRows(songs, font, fontBold)
-        : _compactRows(songs, font, fontBold);
+        ? _detailedRows(items, songById, font, fontBold)
+        : _compactRows(items, songById, font, fontBold);
 
     pdf.addPage(
       pw.MultiPage(
@@ -373,13 +376,22 @@ class PdfService {
 
   /// Boxed card per song, one row each (original layout).
   static List<pw.Widget> _detailedRows(
-    List<Song> songs,
+    List<SetlistItem> items,
+    Map<String, Song> songById,
     pw.Font font,
     pw.Font fontBold,
   ) {
     final widgets = <pw.Widget>[];
-    for (int i = 0; i < songs.length; i++) {
-      final song = songs[i];
+    var n = 0; // per-section song number, reset by each break
+    for (final item in items) {
+      if (item.isBreak) {
+        widgets.add(_breakDivider(item, fontBold));
+        n = 0;
+        continue;
+      }
+      final song = songById[item.songId];
+      if (song == null) continue; // skip unavailable songs in export
+      n++;
       widgets.add(
         pw.Container(
           margin: const pw.EdgeInsets.only(bottom: 12),
@@ -400,7 +412,7 @@ class PdfService {
                 ),
                 child: pw.Center(
                   child: pw.Text(
-                    '${i + 1}',
+                    '$n',
                     style: pw.TextStyle(
                       font: fontBold,
                       color: PdfColor.fromHex('0D47A1'),
@@ -471,15 +483,49 @@ class PdfService {
     return widgets;
   }
 
+  /// A full-width section/break divider bar (matches a printed setlist).
+  static pw.Widget _breakDivider(SetlistItem item, pw.Font fontBold) {
+    final label = SetlistBreakType.labelFor(
+      item.breakType,
+      item.breakLabel,
+    ).toUpperCase();
+    return pw.Container(
+      width: double.infinity,
+      margin: const pw.EdgeInsets.only(top: 4, bottom: 12),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: pw.BoxDecoration(
+        color: PdfColor.fromHex('EEEEEE'),
+        borderRadius: pw.BorderRadius.circular(4),
+      ),
+      child: pw.Text(
+        label,
+        style: pw.TextStyle(
+          font: fontBold,
+          fontSize: 11,
+          color: PdfColor.fromHex('616161'),
+        ),
+      ),
+    );
+  }
+
   /// One dense line per song so a whole setlist fits on a single list.
   static List<pw.Widget> _compactRows(
-    List<Song> songs,
+    List<SetlistItem> items,
+    Map<String, Song> songById,
     pw.Font font,
     pw.Font fontBold,
   ) {
     final widgets = <pw.Widget>[];
-    for (int i = 0; i < songs.length; i++) {
-      final song = songs[i];
+    var n = 0; // per-section song number, reset by each break
+    for (final item in items) {
+      if (item.isBreak) {
+        widgets.add(_breakDivider(item, fontBold));
+        n = 0;
+        continue;
+      }
+      final song = songById[item.songId];
+      if (song == null) continue;
+      n++;
       final meta = <String>[
         if (song.ourKey != null) song.ourKey!,
         if (song.ourBPM != null) '${song.ourBPM} BPM',
@@ -493,7 +539,7 @@ class PdfService {
               pw.SizedBox(
                 width: 22,
                 child: pw.Text(
-                  '${i + 1}.',
+                  '$n.',
                   style: pw.TextStyle(font: fontBold, fontSize: 11),
                 ),
               ),

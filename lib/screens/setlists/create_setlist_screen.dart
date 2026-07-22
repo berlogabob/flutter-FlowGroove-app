@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/setlist.dart';
+import '../../models/setlist_break_type.dart';
 import '../../models/song.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
@@ -12,6 +13,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
+import '../../widgets/setlist_break_row.dart';
 import '../../widgets/setlist_song_row.dart';
 
 enum SetlistStorageScope { personal, band }
@@ -129,26 +131,132 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     });
   }
 
-  /// Reconciles the picker's chosen (always-resolvable) [songs] against
-  /// `_selectedItems`, reusing each existing item's id/tuningPresetId where
-  /// the song was already selected. Any item that doesn't resolve against
-  /// `_songsById` (an "unavailable song" placeholder) is preserved verbatim
-  /// and appended after the resolved items — the song picker has no way to
-  /// display or deselect an entry it can't resolve, so it never removes one.
+  /// Reconciles the picker's chosen [songs] against `_selectedItems` while
+  /// preserving order and non-song items IN PLACE. Break/divider items and
+  /// unresolvable ("unavailable") song placeholders are kept where they are —
+  /// the picker can't display them, so it never moves or removes them. Existing
+  /// selected songs keep their id/tuningPresetId/position; deselected songs are
+  /// dropped; newly picked songs are appended.
   List<SetlistItem> _reconcileItems(List<Song> songs) {
-    final available = List<SetlistItem>.from(_selectedItems);
-    final resolved = [
-      for (final song in songs)
-        if (available.indexWhere((item) => item.songId == song.id)
-            case final index when index >= 0)
-          available.removeAt(index)
-        else
-          SetlistItem(id: const Uuid().v4(), songId: song.id),
-    ];
-    final orphans = available.where(
-      (item) => !_songsById.containsKey(item.songId),
+    final selectedIds = songs.map((s) => s.id).toSet();
+    final keptSongIds = <String>{};
+    final kept = <SetlistItem>[];
+    for (final item in _selectedItems) {
+      if (item.isBreak) {
+        kept.add(item); // divider — always kept in place
+      } else if (!_songsById.containsKey(item.songId)) {
+        kept.add(item); // orphan/unavailable — kept in place
+      } else if (selectedIds.contains(item.songId)) {
+        kept.add(item);
+        keptSongIds.add(item.songId);
+      }
+      // else: song was deselected in the picker — drop it.
+    }
+    for (final song in songs) {
+      if (!keptSongIds.contains(song.id)) {
+        kept.add(SetlistItem(id: const Uuid().v4(), songId: song.id));
+      }
+    }
+    return kept;
+  }
+
+  Future<void> _addBreak() async {
+    final result = await _pickBreak();
+    if (result == null) return;
+    setState(() {
+      _selectedItems.add(
+        SetlistItem.breakItem(
+          id: const Uuid().v4(),
+          breakType: result.type,
+          label: result.label,
+        ),
+      );
+      _markAsChanged();
+    });
+  }
+
+  Future<void> _editBreak(int index) async {
+    final item = _selectedItems[index];
+    final result = await _pickBreak(
+      initialType: item.breakType,
+      initialLabel: item.breakLabel,
     );
-    return [...resolved, ...orphans];
+    if (result == null) return;
+    setState(() {
+      _selectedItems[index] = item.copyWith(
+        breakType: result.type,
+        breakLabel: result.label,
+      );
+      _markAsChanged();
+    });
+  }
+
+  /// Break-type picker: a chip per [SetlistBreakType] plus an optional custom
+  /// label (e.g. a guest name). Returns null if dismissed.
+  Future<({String type, String? label})?> _pickBreak({
+    String? initialType,
+    String? initialLabel,
+  }) {
+    var selectedType = initialType ?? SetlistBreakType.breakPause.id;
+    final labelController = TextEditingController(text: initialLabel ?? '');
+    return showModalBottomSheet<({String type, String? label})>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheet) => Padding(
+          padding: EdgeInsets.only(
+            left: MonoPulseSpacing.lg,
+            right: MonoPulseSpacing.lg,
+            top: MonoPulseSpacing.lg,
+            bottom: MediaQuery.of(context).viewInsets.bottom + MonoPulseSpacing.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Break', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final t in SetlistBreakType.all)
+                    ChoiceChip(
+                      avatar: Icon(t.icon, size: 16),
+                      label: Text(t.defaultLabel),
+                      selected: selectedType == t.id,
+                      onSelected: (_) => setSheet(() => selectedType = t.id),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: labelController,
+                decoration: const InputDecoration(
+                  labelText: 'Custom label (optional)',
+                  hintText: 'e.g. EUSTACE',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: () {
+                    final label = labelController.text.trim();
+                    Navigator.pop(context, (
+                      type: selectedType,
+                      label: label.isEmpty ? null : label,
+                    ));
+                  },
+                  child: const Text('Save'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).whenComplete(labelController.dispose);
   }
 
   @override
@@ -273,7 +381,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       eventLocation: _eventLocationController.text.trim().isNotEmpty
           ? _eventLocationController.text.trim()
           : null,
-      songIds: items.map((item) => item.songId).toList(),
+      songIds: items
+          .where((item) => !item.isBreak && item.songId.isNotEmpty)
+          .map((item) => item.songId)
+          .toList(),
       items: items,
       totalDuration: widget.setlist?.totalDuration,
       assignments: widget.setlist?.assignments ?? const {},
@@ -496,15 +607,25 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Songs (${_selectedItems.length})',
+                        'Songs (${_selectedItems.where((i) => !i.isBreak).length})',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
-                      TextButton.icon(
-                        onPressed: availableSongsAsync.isLoading
-                            ? null
-                            : _showSongPicker,
-                        icon: const Icon(Icons.add),
-                        label: const Text('Add'),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton.icon(
+                            onPressed: _addBreak,
+                            icon: const Icon(Icons.horizontal_rule),
+                            label: const Text('Break'),
+                          ),
+                          TextButton.icon(
+                            onPressed: availableSongsAsync.isLoading
+                                ? null
+                                : _showSongPicker,
+                            icon: const Icon(Icons.add),
+                            label: const Text('Add'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -569,7 +690,50 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       },
                       itemBuilder: (context, index) {
                         final item = _selectedItems[index];
+                        if (item.isBreak) {
+                          return ReorderableDelayedDragStartListener(
+                            key: ValueKey(item.id),
+                            index: index,
+                            child: Dismissible(
+                              key: ValueKey('dismiss_${item.id}'),
+                              direction: DismissDirection.endToStart,
+                              onDismissed: (_) {
+                                final removed = _selectedItems[index];
+                                setState(() {
+                                  _selectedItems.removeAt(index);
+                                  _markAsChanged();
+                                });
+                                showAppSnackBar(
+                                  context,
+                                  'Removed break',
+                                  actionLabel: 'Undo',
+                                  analyticsAction: 'setlist_break_removed',
+                                  onAction: () => setState(() {
+                                    _selectedItems.insert(index, removed);
+                                    _markAsChanged();
+                                  }),
+                                );
+                              },
+                              child: InkWell(
+                                onTap: () => _editBreak(index),
+                                child: SetlistBreakRow(
+                                  breakType: item.breakType,
+                                  label: item.breakLabel,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
                         final song = _songsById[item.songId];
+                        // Songs number per section (reset after each break).
+                        var songNumber = 0;
+                        for (var i = 0; i < index; i++) {
+                          if (_selectedItems[i].isBreak) {
+                            songNumber = 0;
+                          } else {
+                            songNumber++;
+                          }
+                        }
                         return ReorderableDelayedDragStartListener(
                           key: ValueKey(item.id),
                           index: index,
@@ -618,7 +782,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                             );
                           },
                           child: SetlistSongRow(
-                            index: index,
+                            index: songNumber,
                             song: song,
                             trailing: song == null
                                 ? null

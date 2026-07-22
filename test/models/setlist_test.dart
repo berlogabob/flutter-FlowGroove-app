@@ -36,6 +36,32 @@ void main() {
       expect(restored.songIds, const ['song-1']);
       expect(restored.effectiveItems.single.tuningPresetId, 'guitar_6:drop_d');
     });
+
+    test('break items survive round-trip and are excluded from songIds', () {
+      final setlist = Setlist(
+        id: 'setlist-1',
+        bandId: 'band-1',
+        name: 'Show',
+        items: [
+          const SetlistItem(id: 'i1', songId: 'song-1'),
+          SetlistItem.breakItem(id: 'b1', breakType: 'guest_set', label: 'EUSTACE'),
+          const SetlistItem(id: 'i2', songId: 'song-2'),
+        ],
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+
+      final restored = Setlist.fromJson(setlist.toJson());
+
+      // The break is preserved as an item...
+      expect(restored.effectiveItems, hasLength(3));
+      final divider = restored.effectiveItems[1];
+      expect(divider.isBreak, isTrue);
+      expect(divider.breakType, 'guest_set');
+      expect(divider.breakLabel, 'EUSTACE');
+      // ...but never leaks into songIds (which mirrors songs only).
+      expect(restored.songIds, const ['song-1', 'song-2']);
+    });
     // Test data
     final testDate = DateTime(2024, 5, 10, 18);
     final testSongIds = ['song-1', 'song-2', 'song-3'];

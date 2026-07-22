@@ -17,28 +17,77 @@ class _Sentinel {
   String toString() => '_sentinel';
 }
 
+/// An ordered entry in a setlist: either a song (`type == 'song'`, carries a
+/// [songId]) or a break/section divider (`type == 'break'`, carries a
+/// [breakType] + optional [breakLabel] instead of a song). Breaks visually
+/// divide a set (guest sets, an intermission, an encore/backup pool) the way a
+/// real gig setlist does.
 class SetlistItem {
   const SetlistItem({
     required this.id,
-    required this.songId,
+    this.songId = '',
     this.tuningPresetId,
+    this.type = itemTypeSong,
+    this.breakType,
+    this.breakLabel,
   });
+
+  /// A break/divider entry. [breakType] is a SetlistBreakType id; [label] is
+  /// an optional custom name (e.g. "EUSTACE"), falling back to the type's
+  /// default label when null/empty.
+  factory SetlistItem.breakItem({
+    required String id,
+    required String breakType,
+    String? label,
+  }) => SetlistItem(
+    id: id,
+    type: itemTypeBreak,
+    breakType: breakType,
+    breakLabel: label,
+  );
 
   factory SetlistItem.fromJson(Map<String, dynamic> json) => SetlistItem(
     id: json['id'] as String? ?? '',
     songId: json['songId'] as String? ?? '',
     tuningPresetId: json['tuningPresetId'] as String?,
+    type: json['type'] as String? ?? itemTypeSong,
+    breakType: json['breakType'] as String?,
+    breakLabel: json['breakLabel'] as String?,
   );
+
+  static const String itemTypeSong = 'song';
+  static const String itemTypeBreak = 'break';
 
   final String id;
   final String songId;
   final String? tuningPresetId;
 
-  SetlistItem copyWith({String? id, String? songId, String? tuningPresetId}) {
+  /// `'song'` or `'break'`.
+  final String type;
+
+  /// For break items: a SetlistBreakType id. Null for songs.
+  final String? breakType;
+
+  /// For break items: optional custom label (e.g. a guest name). Null for songs.
+  final String? breakLabel;
+
+  bool get isBreak => type == itemTypeBreak;
+
+  SetlistItem copyWith({
+    String? id,
+    String? songId,
+    String? tuningPresetId,
+    String? type,
+    String? breakType,
+    String? breakLabel,
+  }) {
     return SetlistItem(
       id: id ?? this.id,
       songId: songId ?? this.songId,
       tuningPresetId: tuningPresetId ?? this.tuningPresetId,
+      type: type ?? this.type,
+      breakType: breakType ?? this.breakType,
+      breakLabel: breakLabel ?? this.breakLabel,
     );
   }
 
@@ -46,6 +95,9 @@ class SetlistItem {
     'id': id,
     'songId': songId,
     if (tuningPresetId != null) 'tuningPresetId': tuningPresetId,
+    if (type != itemTypeSong) 'type': type,
+    if (breakType != null) 'breakType': breakType,
+    if (breakLabel != null) 'breakLabel': breakLabel,
   };
 }
 
@@ -143,7 +195,11 @@ class Setlist {
     final json = _$SetlistToJson(this);
     final syncedItems = effectiveItems;
     json['items'] = _itemsToJson(syncedItems);
-    json['songIds'] = syncedItems.map((item) => item.songId).toList();
+    // songIds mirrors song items only — break dividers are not songs.
+    json['songIds'] = syncedItems
+        .where((item) => !item.isBreak && item.songId.isNotEmpty)
+        .map((item) => item.songId)
+        .toList();
     return json;
   }
 
@@ -284,7 +340,8 @@ List<SetlistItem> _itemsFromJson(dynamic value) {
   return value
       .whereType<Map<dynamic, dynamic>>()
       .map((item) => SetlistItem.fromJson(Map<String, dynamic>.from(item)))
-      .where((item) => item.songId.isNotEmpty)
+      // Keep song items that resolve to a songId, plus break/divider items.
+      .where((item) => item.songId.isNotEmpty || item.isBreak)
       .toList();
 }
 

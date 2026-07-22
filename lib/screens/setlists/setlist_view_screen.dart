@@ -14,6 +14,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/menu_items_scope.dart';
+import '../../widgets/setlist_break_row.dart';
 import '../../widgets/setlist_song_row.dart';
 import 'create_setlist_screen.dart' show SetlistStorageScope;
 import 'event_kit_editor_screen.dart';
@@ -139,13 +140,33 @@ class SetlistViewScreen extends ConsumerWidget {
       );
     }
 
+    // Number songs per section — the counter resets after each break, matching
+    // a real printed setlist where each section restarts at 1.
+    var songNumber = 0;
+    final numbers = <int>[];
+    for (final item in items) {
+      if (item.isBreak) {
+        numbers.add(-1);
+        songNumber = 0;
+      } else {
+        numbers.add(songNumber++);
+      }
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       itemCount: items.length,
       itemBuilder: (context, index) {
-        final song = songsById[items[index].songId];
+        final item = items[index];
+        if (item.isBreak) {
+          return SetlistBreakRow(
+            breakType: item.breakType,
+            label: item.breakLabel,
+          );
+        }
+        final song = songsById[item.songId];
         return SetlistSongRow(
-          index: index,
+          index: numbers[index],
           song: song,
           trailing: song == null ? null : _badgesFor(song),
         );

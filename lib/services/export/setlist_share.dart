@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../models/setlist.dart';
+import '../../models/setlist_break_type.dart';
 import '../../models/song.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/share_sheet.dart';
@@ -15,9 +16,21 @@ String setlistShareText(Setlist setlist, List<Song> songs) {
   if (setlist.description != null) buffer.writeln(setlist.description);
   buffer.writeln();
   buffer.writeln('Songs:');
-  for (int i = 0; i < songs.length; i++) {
-    final song = songs[i];
-    buffer.writeln('${i + 1}. ${song.title} - ${song.artist}');
+  final songById = {for (final s in songs) s.id: s};
+  var n = 0; // per-section song number, reset by each break
+  for (final item in setlist.effectiveItems) {
+    if (item.isBreak) {
+      buffer.writeln();
+      buffer.writeln(
+        '— ${SetlistBreakType.labelFor(item.breakType, item.breakLabel).toUpperCase()} —',
+      );
+      n = 0;
+      continue;
+    }
+    final song = songById[item.songId];
+    if (song == null) continue;
+    n++;
+    buffer.writeln('$n. ${song.title} - ${song.artist}');
     if (song.spotifyUrl != null) {
       buffer.writeln('   🎧 ${song.spotifyUrl}');
     } else {
