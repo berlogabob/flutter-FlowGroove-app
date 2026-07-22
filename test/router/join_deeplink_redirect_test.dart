@@ -41,6 +41,11 @@ List<RouteBase> _routes() {
       name: 'join-deeplink',
       builder: (c, s) => marker('join-deeplink'),
     ),
+    GoRoute(
+      path: '/join-welcome',
+      name: 'join-welcome',
+      builder: (c, s) => marker('join-welcome'),
+    ),
     GoRoute(path: '/main/home', name: 'home', builder: (c, s) => marker('home')),
     GoRoute(
       path: '/main/join-band',
@@ -53,6 +58,12 @@ List<RouteBase> _routes() {
       builder: (c, s) => marker('bands'),
     ),
   ];
+}
+
+User _userWithEmail(String? email) {
+  final user = _MockUser();
+  when(() => user.email).thenReturn(email);
+  return user;
 }
 
 void main() {
@@ -69,7 +80,7 @@ void main() {
   });
 
   testWidgets(
-    'join deep link reaches join-band for an already-authenticated user '
+    'join deep link reaches join-band for an already-authenticated real user '
     'whose session restores just after launch',
     (tester) async {
       final controller = StreamController<User?>.broadcast();
@@ -89,13 +100,74 @@ void main() {
       await tester.pump(); // first redirect runs while auth is still unresolved
 
       // Firebase restores the persisted session a moment after cold start.
-      auth.user = _MockUser();
+      auth.user = _userWithEmail('real@user.com');
       controller.add(auth.user);
       await tester.pumpAndSettle();
 
       final uri = router.routeInformationProvider.value.uri;
       expect(uri.path, '/main/join-band');
       expect(uri.queryParameters['code'], 'ABC123');
+    },
+  );
+
+  testWidgets(
+    'join deep link shows the invite Welcome screen for a logged-out visitor',
+    (tester) async {
+      final controller = StreamController<User?>.broadcast();
+      addTearDown(controller.close);
+      final auth = _RaceAuthClient(controller);
+
+      final router = createAppRouter(
+        authClient: auth,
+        enableAuthRedirect: true,
+        initialLocation: '/join?code=ABC123',
+        navigatorKey: GlobalKey<NavigatorState>(),
+        routes: _routes(),
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pump(); // first redirect runs while auth is still unresolved
+
+      // Auth resolves to signed-out.
+      controller.add(null);
+      await tester.pumpAndSettle();
+
+      final uri = router.routeInformationProvider.value.uri;
+      expect(uri.path, '/join-welcome');
+      expect(uri.queryParameters['code'], 'ABC123');
+      expect(uri.path, isNot('/main/join-band'));
+    },
+  );
+
+  testWidgets(
+    'join deep link shows the invite Welcome screen for a demo-authed visitor',
+    (tester) async {
+      final controller = StreamController<User?>.broadcast();
+      addTearDown(controller.close);
+      final auth = _RaceAuthClient(controller);
+
+      final router = createAppRouter(
+        authClient: auth,
+        enableAuthRedirect: true,
+        initialLocation: '/join?code=ABC123',
+        navigatorKey: GlobalKey<NavigatorState>(),
+        routes: _routes(),
+      );
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pump(); // first redirect runs while auth is still unresolved
+
+      // The shared demo account restores just after cold start.
+      auth.user = _userWithEmail('demo@flowgroove.app');
+      controller.add(auth.user);
+      await tester.pumpAndSettle();
+
+      final uri = router.routeInformationProvider.value.uri;
+      expect(uri.path, '/join-welcome');
+      expect(uri.queryParameters['code'], 'ABC123');
+      expect(uri.path, isNot('/main/join-band'));
     },
   );
 }

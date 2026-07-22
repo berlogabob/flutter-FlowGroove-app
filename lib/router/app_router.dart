@@ -22,6 +22,7 @@ import '../screens/bands/band_setlists_screen.dart';
 import '../screens/bands/band_songs_screen.dart';
 import '../screens/bands/create_band_screen.dart';
 import '../screens/bands/join_band_screen.dart';
+import '../screens/bands/join_welcome_screen.dart';
 import '../screens/bands/my_bands_screen.dart';
 import '../screens/bands/rehearsals/rehearsal_detail_screen.dart';
 import '../screens/bands/rehearsals/rehearsal_edit_screen.dart';
@@ -120,8 +121,14 @@ GoRouter createAppRouter({
     redirect: enableAuthRedirect
         ? (context, state) {
             final isLoggedIn = resolvedAuthClient.currentUser != null;
+            // The shared demo account is read-only and must never join a real
+            // band; treat it like a logged-out visitor for the invite flow so
+            // it lands on the Welcome screen (which signs it out before login).
+            final isDemo =
+                resolvedAuthClient.currentUser?.email == 'demo@flowgroove.app';
             final isLoggingIn = state.matchedLocation == '/login';
             final isRegistering = state.matchedLocation == '/register';
+            final isJoinWelcome = state.matchedLocation == '/join-welcome';
             final isOnMain = state.matchedLocation.startsWith('/main');
             final joinCode = state.uri.queryParameters['code'];
 
@@ -142,17 +149,20 @@ GoRouter createAppRouter({
               if (joinCode == null || joinCode.isEmpty) {
                 return isLoggedIn ? '/main/bands' : '/login';
               }
-              if (isLoggedIn) {
+              // A real (non-demo) signed-in user joins directly. A logged-out
+              // OR demo visitor is shown the invite Welcome screen, which
+              // previews the band and hands off to login (stashing the code so
+              // the join resumes afterwards).
+              if (isLoggedIn && !isDemo) {
                 return '/main/join-band?code=$joinCode';
               }
-              unawaited(PendingJoinCodeStore().setPendingJoinCode(joinCode));
-              return '/login';
+              return '/join-welcome?code=$joinCode';
             }
 
             // Not logged in and not on auth pages -> go to login.
             // If a join link (with ?code=) was opened while logged out, stash
             // the code so the login flow can resume the join afterwards.
-            if (!isLoggedIn && !isLoggingIn && !isRegistering) {
+            if (!isLoggedIn && !isLoggingIn && !isRegistering && !isJoinWelcome) {
               if (state.matchedLocation == '/main/join-band' &&
                   joinCode != null &&
                   joinCode.isNotEmpty) {
@@ -218,6 +228,16 @@ List<RouteBase> _buildAppRoutes() {
       name: 'join-deeplink',
       builder: (context, state) =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
+    ),
+    // Invite Welcome screen. The /join redirect sends logged-out and demo
+    // visitors here (with the code preserved) so they see the band they've
+    // been invited to before logging in and auto-joining.
+    GoRoute(
+      path: '/join-welcome',
+      name: 'join-welcome',
+      builder: (context, state) => JoinWelcomeScreen(
+        code: state.uri.queryParameters['code'] ?? '',
+      ),
     ),
 
     // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav

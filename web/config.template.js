@@ -19,7 +19,14 @@ window.env = {
   // When set, all Spotify API calls route through your secure backend
   // See: docs/SPOTIFY_PROXY_SETUP.md
   // =============================================================================
-  SPOTIFY_PROXY_URL: '${SPOTIFY_PROXY_URL}'
+  SPOTIFY_PROXY_URL: '${SPOTIFY_PROXY_URL}',
+
+  // =============================================================================
+  // API PROXY (CORS shim for public no-auth APIs: Deezer, lyrics.ovh)
+  // Web can't call those hosts directly (no CORS header); when set, autofill
+  // routes them through this Cloud Function. No secret involved.
+  // =============================================================================
+  API_PROXY_URL: '${API_PROXY_URL}'
 };
 
 // =============================================================================

@@ -33,6 +33,49 @@ function deriveUidArrays(members) {
 }
 
 /**
+ * Public invite lookup for the join Welcome screen. Callable WITHOUT auth so a
+ * brand-new (logged-out) recipient can see which band they were invited to
+ * before signing in. Returns only a public-safe subset — never members, songs,
+ * or emails. The invite code is already the shared secret.
+ */
+// Pure handler (injectable db) so it can be unit-tested without the emulator.
+async function bandInviteInfo(database, rawCode) {
+  const code = cleanString(rawCode).toUpperCase();
+  if (!code) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "An invite code is required.",
+    );
+  }
+  const snapshot = await database
+    .collection("bands")
+    .where("inviteCode", "==", code)
+    .limit(1)
+    .get();
+  if (snapshot.empty) {
+    throw new functions.https.HttpsError("not-found", "Invalid invite code.");
+  }
+  const doc = snapshot.docs[0];
+  const band = doc.data() || {};
+  const members = Array.isArray(band.members) ? band.members : [];
+  // Best-effort "invited by": the code is band-wide, so we can't know the actual
+  // sharer — surface the admin's DISPLAY NAME only (never email) as a soft hint.
+  const adminMember = members.find((m) => m && m.role === "admin");
+  const adminName = cleanString(adminMember && adminMember.displayName) || null;
+  return {
+    bandId: doc.id,
+    name: band.name || "",
+    memberCount: members.length,
+    adminName,
+  };
+}
+
+exports.bandInviteInfo = bandInviteInfo;
+exports.getBandInviteInfo = functions.https.onCall((request) =>
+  bandInviteInfo(db, (request.data || {}).code),
+);
+
+/**
  * Idempotent, server-authoritative band join.
  *
  * Input: { code } (invite code) or { bandId }.

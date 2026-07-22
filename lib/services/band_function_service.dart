@@ -17,6 +17,25 @@ class JoinBandResult {
   final bool alreadyMember;
 }
 
+/// Public preview of a band for an invite link, returned by
+/// [BandFunctionService.getBandInviteInfo]. Populated by an unauthenticated
+/// callable so a not-yet-signed-in visitor can see what they've been invited to.
+class BandInviteInfo {
+  const BandInviteInfo({
+    required this.bandId,
+    required this.name,
+    required this.memberCount,
+    this.adminName,
+  });
+
+  final String bandId;
+  final String name;
+  final int memberCount;
+
+  /// Display name of an admin, when the server could resolve one.
+  final String? adminName;
+}
+
 /// Callable Cloud Function wrapper for band membership operations.
 ///
 /// Joining is performed server-side (admin SDK) so membership writes are
@@ -46,6 +65,21 @@ class BandFunctionService {
       _withoutNullValues({'code': code, 'bandId': bandId}),
     );
     return _parseResult(result.data);
+  }
+
+  /// Fetches a public preview (name, member count, an admin name) for the band
+  /// behind an invite [code]. Requires no auth so a signed-out visitor opening
+  /// a shared join link can see what they've been invited to before logging in.
+  ///
+  /// Throws a `FirebaseFunctionsException` with code `not-found` when the code
+  /// doesn't resolve to a band (invalid/expired).
+  Future<BandInviteInfo> getBandInviteInfo(String code) async {
+    final callable = _functions.httpsCallable(
+      'getBandInviteInfo',
+      options: _callableOptions,
+    );
+    final result = await callable.call<Map<String, dynamic>>({'code': code});
+    return _parseInviteInfo(result.data);
   }
 
   /// Sets [targetUid]'s permission role (admin/editor/viewer) in [bandId].
@@ -135,6 +169,19 @@ class BandFunctionService {
           stackTrace: st,
         );
     }
+  }
+
+  BandInviteInfo _parseInviteInfo(Map<String, dynamic> data) {
+    final bandId = data['bandId'] as String?;
+    if (bandId == null || bandId.isEmpty) {
+      throw const FormatException('Invalid getBandInviteInfo response.');
+    }
+    return BandInviteInfo(
+      bandId: bandId,
+      name: (data['name'] as String?) ?? '',
+      memberCount: (data['memberCount'] as num?)?.toInt() ?? 0,
+      adminName: data['adminName'] as String?,
+    );
   }
 
   JoinBandResult _parseResult(Map<String, dynamic> data) {

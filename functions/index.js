@@ -21,6 +21,7 @@ exports.ensureCanonicalSong = canonical.ensureCanonicalSong;
 const bands = require("./src/bands");
 exports.joinBand = bands.joinBand;
 exports.updateBandMember = bands.updateBandMember;
+exports.getBandInviteInfo = bands.getBandInviteInfo;
 
 // Account deletion (server-authoritative; Google Play data-deletion requirement)
 const account = require("./src/account");
@@ -45,6 +46,10 @@ exports.removeBandAvatar = bandAvatar.removeBandAvatar;
 const avatars = require("./src/avatars");
 exports.importTelegramAvatar = avatars.importTelegramAvatar;
 exports.importGoogleAvatar = avatars.importGoogleAvatar;
+
+// CORS shim for public no-auth APIs (Deezer, lyrics.ovh) — web autofill only
+const apiProxy = require("./src/api_proxy");
+exports.apiProxy = apiProxy.apiProxy;
 
 // Telegram sharing + notifications
 const telegramShare = require("./src/telegram/share");
