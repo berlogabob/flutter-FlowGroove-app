@@ -211,7 +211,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         label: 'Songs',
         value: songCount,
         color: MonoPulseColors.accentOrange,
-        onTap: () => context.goNamed(
+        onTap: () => context.pushNamed(
           'band-songs',
           pathParameters: {'id': widget.band.id},
           extra: widget.band,
@@ -222,7 +222,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         label: 'Setlists',
         value: setlistCount,
         color: context.mp.textSecondary,
-        onTap: () => context.goNamed(
+        onTap: () => context.pushNamed(
           'band-setlists',
           pathParameters: {'id': widget.band.id},
           extra: widget.band,
@@ -264,7 +264,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
       QuickActionButton(
         icon: Icons.event,
         label: 'Rehearsals',
-        onTap: () => context.goNamed(
+        onTap: () => context.pushNamed(
           'band-rehearsals',
           pathParameters: {'id': widget.band.id},
           extra: widget.band,
@@ -490,7 +490,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   /// Handle edit tags - navigate to band about screen
   void _handleEditTags() {
-    context.goNamed(
+    context.pushNamed(
       'band-about',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
@@ -501,7 +501,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   /// lives there: role changes, remove, etc.). The read-only band-members
   /// screen is reached via the members chip on the About screen.
   void _handleEditMembers() {
-    context.goNamed(
+    context.pushNamed(
       'band-about',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
@@ -510,7 +510,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   /// Handle add member - go straight to the invite/share screen
   void _handleAddMember() {
-    context.goNamed(
+    context.pushNamed(
       'band-invite',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
@@ -519,7 +519,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   /// Handle band bank - navigate to band songs screen
   void _handleBandBank() {
-    context.goNamed(
+    context.pushNamed(
       'band-songs',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
