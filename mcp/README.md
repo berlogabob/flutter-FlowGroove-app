@@ -56,10 +56,21 @@ Gemini CLI / other MCP clients use the same `command` + `args` + `env` shape.
 | `validate_song` | read | Dry-run validate a song object. |
 | `create_song` | write | Add a song from FlowGroove Song JSON. |
 | `update_song` | write | Update a song by id. |
+| `list_bands` | read | Your bands + your role (admin/editor/viewer). |
+| `list_band_songs` | read | Songs in a band (member only). |
+| `create_band_song` | write | Add one song to a band (admin/editor). |
+| `list_setlists` | read | Setlists — personal, or a band's. |
+| `create_setlist` | write | Setlist from existing song ids. |
+| `create_setlist_with_songs` | write | Songs **and** setlist in one call. Preferred for imports. |
+| `delete_setlist` | write | Delete a setlist. The only delete. |
+
+**Personal vs band:** every setlist tool takes an *optional* `bandId`. Omit it and the
+tool acts on your personal library (`users/{uid}/…`); pass it for a band. To move a
+setlist, recreate it in the new scope and `delete_setlist` the old one.
 
 Song shape: see [`SONG_JSON_SCHEMA.md`](../SONG_JSON_SCHEMA.md) — `sections[].chordChart`
 is ChordPro (`[Am]Twinkle [F]star`). Writes are validated server-side and scoped to your
-own library; there are no canonical or delete operations.
+own library / your bands; there are no canonical writes and no song deletes.
 
 ## Try it
 

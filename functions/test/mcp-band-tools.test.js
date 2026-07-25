@@ -8,18 +8,36 @@ const assert = require("node:assert/strict");
 const { getBandRole, runTool } = require("../src/mcp/tools");
 
 // Minimal Firestore stand-in. `writes` records every set() (direct or batched)
-// so we can assert what was written. `bandSongs` seeds bands/{id}/songs so the
-// dedup / songId-validation paths have data to read.
-function fakeDb(bandDoc, bandSongs = []) {
+// and `deletes` every delete(), so we can assert what was written. `songs` seeds
+// the {bands|users}/{id}/songs subcollection so the dedup / songId-validation
+// paths have data to read; `setlistIds` seeds existing setlist docs for delete.
+function fakeDb(bandDoc, songs = [], setlists = []) {
   const writes = [];
-  const songDocs = bandSongs.map((s) => ({ id: s.id, data: () => s }));
+  const deletes = [];
+  const songDocs = songs.map((s) => ({ id: s.id, data: () => s }));
+  // `setlists` seeds existing setlist docs: an id string, or { id, ...data }.
+  const setlistDocs = new Map(
+    setlists.map((s) => (typeof s === "string" ? [s, { id: s }] : [s.id, s])),
+  );
   const docRef = (sub, sid) => ({
     set: async (v) => { writes.push({ sub, sid, v }); },
+    get: async () => ({
+      exists: sub === "setlists" && setlistDocs.has(sid),
+      data: () => setlistDocs.get(sid),
+    }),
+    delete: async () => { deletes.push({ sub, sid }); },
   });
+  const docsFor = (sub) => {
+    if (sub === "songs") return songDocs;
+    if (sub === "setlists") {
+      return [...setlistDocs.values()].map((s) => ({ id: s.id, data: () => s }));
+    }
+    return [];
+  };
   const subCol = (sub) => ({
     doc: (sid) => docRef(sub, sid),
-    limit: () => ({ get: async () => ({ docs: sub === "songs" ? songDocs : [] }) }),
-    get: async () => ({ docs: sub === "songs" ? songDocs : [] }),
+    limit: () => ({ get: async () => ({ docs: docsFor(sub) }) }),
+    get: async () => ({ docs: docsFor(sub) }),
   });
   const db = {
     collection: (name) => ({
@@ -38,7 +56,7 @@ function fakeDb(bandDoc, bandSongs = []) {
       commit: async () => {},
     }),
   };
-  return { db, writes };
+  return { db, writes, deletes };
 }
 
 const BAND = {
@@ -161,5 +179,174 @@ describe("create_setlist_with_songs", () => {
     assert.equal(songWrite.v.ourKey, "Em");
     const setlist = writes.find((w) => w.sub === "setlists").v;
     assert.deepEqual(setlist.songIds, ["existing"]);
+  });
+});
+
+// Omitting bandId targets users/{uid}/{songs,setlists}. The app's personal
+// setlist stream filters on bandId.isEmpty, so bandId MUST be written as "".
+describe("personal scope (no bandId)", () => {
+  it("create_setlist_with_songs writes personal songs + a setlist with bandId ''", async () => {
+    // "stranger" is a non-member of BAND — personal scope must not consult it.
+    const { db, writes } = fakeDb(BAND);
+    const out = await runTool(db, "stranger", "write", "create_setlist_with_songs", {
+      name: "100% No Modern Talking",
+      entries: [
+        { type: "song", title: "Internet Friends", artist: "Knife Party", ourKey: "F" },
+        { type: "song", title: "Fire Hive", artist: "Knife Party" },
+      ],
+    });
+    assert.equal(out.error, undefined);
+    assert.equal(out.result.songsCreated, 2);
+    assert.equal(writes.filter((w) => w.sub === "songs").length, 2);
+    const setlist = writes.find((w) => w.sub === "setlists").v;
+    assert.equal(setlist.bandId, "");
+    assert.equal(setlist.songIds.length, 2);
+  });
+
+  it("create_setlist writes bandId '' and validates ids against the personal bank", async () => {
+    const { db, writes } = fakeDb(BAND, [{ id: "p1", title: "Wrecking Ball", artist: "Miley Cyrus" }]);
+    const out = await runTool(db, "stranger", "write", "create_setlist", {
+      name: "My list",
+      songIds: ["p1", "ghost"],
+    });
+    assert.equal(out.result.songCount, 1);
+    assert.deepEqual(out.result.ignoredSongIds, ["ghost"]);
+    const setlist = writes.find((w) => w.sub === "setlists").v;
+    assert.equal(setlist.bandId, "");
+    assert.deepEqual(setlist.songIds, ["p1"]);
+  });
+});
+
+// Regression: a client sent bandId:"personal" (a placeholder, not a real id)
+// and got "not a member of this band" instead of a personal setlist.
+describe("bandId placeholders mean personal", () => {
+  for (const placeholder of ["personal", "Personal", " personal ", "me", "none", ""]) {
+    it(`treats bandId ${JSON.stringify(placeholder)} as the personal library`, async () => {
+      const { db, writes } = fakeDb(BAND);
+      const out = await runTool(db, "stranger", "write", "create_setlist_with_songs", {
+        bandId: placeholder,
+        name: "My list",
+        entries: [{ type: "song", title: "Fire Hive", artist: "Knife Party" }],
+      });
+      assert.equal(out.error, undefined);
+      assert.equal(writes.find((w) => w.sub === "setlists").v.bandId, "");
+    });
+  }
+
+  it("still rejects a real-looking band id the user is not in", async () => {
+    const { db } = fakeDb(BAND);
+    const out = await runTool(db, "stranger", "write", "create_setlist", {
+      bandId: "31384e08-b57f-40e4-81e4-e8b7cb024b82",
+      name: "My list",
+    });
+    assert.equal(out.status, 403);
+  });
+});
+
+describe("personal alias tools", () => {
+  it("create_personal_setlist uses existing personal song ids", async () => {
+    const { db, writes } = fakeDb(BAND, [
+      { id: "p1", title: "Internet Friends", artist: "Knife Party" },
+      { id: "p2", title: "Fire Hive", artist: "Knife Party" },
+    ]);
+    const out = await runTool(db, "u1", "write", "create_personal_setlist", {
+      name: "100% No Modern Talking",
+      songIds: ["p1", "p2"],
+    });
+    assert.equal(out.result.songCount, 2);
+    const setlist = writes.find((w) => w.sub === "setlists").v;
+    assert.equal(setlist.bandId, "");
+    assert.deepEqual(setlist.songIds, ["p1", "p2"]);
+    // songIds path must NOT re-create the songs.
+    assert.equal(writes.filter((w) => w.sub === "songs").length, 0);
+  });
+
+  it("create_personal_setlist creates songs when given entries", async () => {
+    const { db, writes } = fakeDb(BAND);
+    const out = await runTool(db, "u1", "write", "create_personal_setlist", {
+      name: "EP",
+      entries: [{ type: "song", title: "Tourniquet", artist: "Knife Party" }],
+    });
+    assert.equal(out.result.songsCreated, 1);
+    assert.equal(writes.find((w) => w.sub === "setlists").v.bandId, "");
+  });
+
+  it("add_personal_song_to_setlist appends and keeps the existing items", async () => {
+    const { db, writes } = fakeDb(
+      BAND,
+      [{ id: "p1", title: "Fire Hive", artist: "Knife Party" }],
+      [{ id: "sl1", songIds: ["old"], items: [{ id: "i0", songId: "old" }] }],
+    );
+    const out = await runTool(db, "u1", "write", "add_personal_song_to_setlist", {
+      id: "sl1",
+      songIds: ["p1", "ghost"],
+    });
+    assert.equal(out.result.added, 1);
+    assert.deepEqual(out.result.ignoredSongIds, ["ghost"]);
+    const write = writes.find((w) => w.sub === "setlists").v;
+    assert.deepEqual(write.songIds, ["old", "p1"]);
+    assert.equal(write.items.length, 2);
+  });
+
+  it("add_songs_to_setlist rejects a viewer on a band setlist, with no write", async () => {
+    const { db, writes } = fakeDb(BAND, [{ id: "s1", title: "X", artist: "" }], ["sl1"]);
+    const out = await runTool(db, "viewer1", "write", "add_songs_to_setlist", {
+      bandId: "b",
+      id: "sl1",
+      songIds: ["s1"],
+    });
+    assert.equal(out.status, 403);
+    assert.equal(writes.length, 0);
+  });
+
+  it("list_personal_setlists hides band setlists mis-saved into the personal collection", async () => {
+    const { db } = fakeDb(BAND, [], [
+      { id: "mine", name: "My list", bandId: "", songIds: ["a"] },
+      { id: "strayed", name: "23/07 MAIN COURSE", bandId: "b", songIds: ["x", "y"] },
+    ]);
+    const out = await runTool(db, "u1", "read", "list_personal_setlists", {});
+    assert.deepEqual(out.result.setlists.map((s) => s.name), ["My list"]);
+  });
+
+  it("list_personal_setlists ignores any bandId it is handed", async () => {
+    const { db } = fakeDb(BAND);
+    const out = await runTool(db, "stranger", "read", "list_personal_setlists", {
+      bandId: "b",
+    });
+    assert.equal(out.error, undefined);
+    assert.deepEqual(out.result.setlists, []);
+  });
+});
+
+describe("delete_setlist", () => {
+  it("rejects a viewer deleting a band setlist, with no delete", async () => {
+    const { db, deletes } = fakeDb(BAND, [], ["sl1"]);
+    const out = await runTool(db, "viewer1", "write", "delete_setlist", {
+      bandId: "b",
+      id: "sl1",
+    });
+    assert.equal(out.status, 403);
+    assert.equal(deletes.length, 0);
+  });
+
+  it("deletes a personal setlist", async () => {
+    const { db, deletes } = fakeDb(BAND, [], ["sl1"]);
+    const out = await runTool(db, "u1", "write", "delete_setlist", { id: "sl1" });
+    assert.deepEqual(out.result, { id: "sl1", deleted: true });
+    assert.deepEqual(deletes, [{ sub: "setlists", sid: "sl1" }]);
+  });
+
+  it("returns not_found for a missing setlist, with no delete", async () => {
+    const { db, deletes } = fakeDb(BAND, [], []);
+    const out = await runTool(db, "u1", "write", "delete_setlist", { id: "gone" });
+    assert.equal(out.error, "not_found");
+    assert.equal(deletes.length, 0);
+  });
+
+  it("is a write tool — a read-only key cannot call it", async () => {
+    const { db, deletes } = fakeDb(BAND, [], ["sl1"]);
+    const out = await runTool(db, "u1", "read", "delete_setlist", { id: "sl1" });
+    assert.equal(out.status, 403);
+    assert.equal(deletes.length, 0);
   });
 });
