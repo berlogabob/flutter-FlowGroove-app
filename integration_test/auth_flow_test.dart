@@ -179,8 +179,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
+        // The copy is deliberately account-enumeration-safe — it must NOT
+        // confirm that the address exists. Match the stable middle of
+        // ForgotPasswordScreen._successMessage rather than the old
+        // "Password reset email sent!" wording.
         expect(
-          find.textContaining('Password reset email sent!'),
+          find.textContaining('sent password reset instructions'),
           findsOneWidget,
         );
       },

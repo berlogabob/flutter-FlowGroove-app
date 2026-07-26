@@ -1,29 +1,24 @@
-name: GitHub Pages And Android APK
+name: Android APK (release)
 
 # Rapid pushes (release + docs deploy) superseded each other's runs; keep only
 # the latest per ref instead of queueing all of them.
+# NOTE: exactly ONE top-level `concurrency:` key. A duplicate block here made
+# GitHub reject the whole file — every run failed instantly with 0 jobs.
 concurrency:
   group: pages-android-${{ github.ref }}
   cancel-in-progress: true
 
+# Release tags only. Branch pushes used to trigger this too, which meant a
+# second (redundant) run alongside Checks on every commit — and the web/Pages
+# build here duplicated `make deploy-pages`, which is the real publishing path.
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-      - master
-      - second01
     tags:
       - 'v*'
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages-android-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   # Android APK build + release attach. Intentionally has NO `environment:` so
@@ -133,51 +128,10 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk#flowgroove-android.apk \
             --clobber
 
-  # GitHub Pages deploy. Keeps the `github-pages` environment, so it only runs on
-  # the branches allowed by that environment's policy (never on tags).
-  pages:
-    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Set up Hugo
-        uses: peaceiris/actions-hugo@v3
-        with:
-          hugo-version: latest
-          extended: true
-
-      - name: Flutter pub get
-        run: flutter pub get
-
-      - name: Build GitHub Pages site
-        run: make -f Makefile.hugo hugo-build app-build
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs
-
-      - name: Deploy GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+# The GitHub Pages job that used to live here was removed: it published via
+# actions/deploy-pages, which needs Pages source = "GitHub Actions", but this
+# repo's Pages source is branch second01 /docs (served by the built-in
+# pages-build-deployment run). `make deploy-pages` builds docs/ and pushes it —
+# that is the real publishing path. Two publishers fighting over one site is the
+# "github.io blank page" failure mode; don't reintroduce it without switching
+# the Pages source first.

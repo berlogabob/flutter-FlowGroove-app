@@ -36,8 +36,11 @@
     "telegraf": "^4.16.3",
     "zod": "^3.25.76"
   },
+  "overridesNotes": {
+    "minimatch": "GHSA-mh99-v99m-4gvg (brace-expansion DoS, high) is only fixed in brace-expansion 5.0.8, but minimatch 9 calls it as a default export and 5.x exports { expand } — forcing 5.x under minimatch 9 throws at runtime. minimatch 10.2.5 is written against the 5.x API, so pin minimatch instead and let brace-expansion resolve to 5.x on its own (no brace-expansion override — one would drag it back to the vulnerable 2.x). glob 10 asks for minimatch ^9.0.4; verified by loading minimatch/glob/rimraf/google-auth-library/firebase-admin after install."
+  },
   "overrides": {
-    "brace-expansion": "^2.0.3",
+    "minimatch": "^10.2.5",
     "fast-xml-builder": "^1.1.7",
     "fast-xml-parser": "^5.7.0",
     "form-data": "^4.0.4",
