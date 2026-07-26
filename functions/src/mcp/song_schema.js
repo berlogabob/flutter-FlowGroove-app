@@ -9,7 +9,7 @@ const SCHEMA_VERSION = 1;
 const KEY_RE = /^[A-G][#b]?m?$/;
 const KNOWN = new Set([
   "id", "title", "artist", "originalKey", "ourKey", "originalBPM", "ourBPM",
-  "notes", "tags", "spotifyUrl", "links", "sections",
+  "notes", "tags", "spotifyUrl", "links", "youtubeUrl", "sections",
   "spotifyId", "musicbrainzId", "isrc", "album", "durationMs",
 ]);
 
@@ -71,6 +71,20 @@ function validateSong(raw) {
         }))
     : [];
 
+  // Links per lib/models/link.dart: { type, url, title? }, type defaults "other".
+  // A bare `youtubeUrl` (what LLMs volunteer) folds in as a youtube_original link.
+  const links = (Array.isArray(raw.links) ? raw.links : [])
+    .filter((l) => l && typeof l === "object" && typeof l.url === "string" && l.url.trim())
+    .map((l) => ({
+      type: typeof l.type === "string" && l.type ? l.type : "other",
+      url: l.url.trim(),
+      ...(typeof l.title === "string" && l.title ? { title: l.title } : {}),
+    }));
+  if (typeof raw.youtubeUrl === "string" && raw.youtubeUrl.trim() &&
+      !links.some((l) => l.url === raw.youtubeUrl.trim())) {
+    links.push({ type: "youtube_original", url: raw.youtubeUrl.trim() });
+  }
+
   const unknown = Object.keys(raw).filter((k) => !KNOWN.has(k));
   if (unknown.length) warnings.push(`ignored unknown field(s): ${unknown.join(", ")}`);
 
@@ -88,6 +102,7 @@ function validateSong(raw) {
   if (str("notes")) song.notes = raw.notes;
   if (tags.length) song.tags = tags;
   if (str("spotifyUrl")) song.spotifyUrl = raw.spotifyUrl;
+  if (links.length) song.links = links;
   if (sections.length) song.sections = sections;
   if (str("album")) song.album = raw.album;
   if (str("spotifyId")) song.spotifyId = raw.spotifyId;

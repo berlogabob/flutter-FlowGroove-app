@@ -32,7 +32,8 @@ best-effort import, not a failure.
 | `notes` | string | free text |
 | `tags` | string[] | non-strings dropped |
 | `spotifyUrl` | string | must be a valid URL |
-| `links` | object[] | `{ "url", … }` per `Link.toJson`; invalid url → entry dropped with error |
+| `links` | object[] | `{ "url", "type"?, "title"? }` per `Link.toJson`; `type` defaults to `other`; url-less entry dropped, invalid url → error (client import) |
+| `youtubeUrl` | string | MCP only — convenience alias folded into `links` as `{ type: "youtube_original", url }` |
 | `sections` | object[] | see below |
 | `spotifyId`, `musicbrainzId`, `isrc`, `album` | string | provenance/identity, passed through |
 | `durationMs` | integer | passed through |
