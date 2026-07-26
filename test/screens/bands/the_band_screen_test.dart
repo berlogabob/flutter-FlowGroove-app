@@ -101,7 +101,7 @@ void main() {
       final firebaseUser = MockUser();
       when(firebaseUser.uid).thenReturn('test-user-id');
 
-      final router = await pumpRoutedTestApp(
+      await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/bands/band-123',
         routes: [
@@ -143,9 +143,10 @@ void main() {
       await tester.tap(find.text('Setlists'));
       await tester.pumpAndSettle();
 
-      final uri = currentRouterUri(router);
-      expect(uri.path, '/main/bands/band-123/setlists');
+      // Pushed (not go'd) so Back returns to the band detail; a pushed route
+      // doesn't move currentRouterUri, so assert on the rendered marker.
       expect(find.text('route:band-setlists'), findsOneWidget);
+      expect(find.text('uri:/main/bands/band-123/setlists'), findsOneWidget);
     });
 
     testWidgets(

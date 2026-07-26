@@ -141,5 +141,10 @@ jobs:
       - name: Verify installed dependency graph
         run: npm ls --depth=0
 
+      # Pure unit tests (fake Firestore, no emulator) — the rest of `npm test`
+      # needs the Firestore emulator and lives in firebase-emulator-checks.
+      - name: MCP tool tests
+        run: npm run test:mcp
+
       - name: Audit functions dependencies (high+)
         run: npm audit --omit=dev --audit-level=high
