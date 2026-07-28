@@ -22,12 +22,17 @@ class SetlistSongRow extends StatelessWidget {
     this.leading,
     this.trailing,
     this.onTap,
+    this.performers,
   });
 
   final int index;
   final Song? song;
   final Widget? leading;
   final Widget? trailing;
+
+  /// Who plays this song, pre-formatted (see `performerLabel`). Null/empty
+  /// hides the line entirely.
+  final String? performers;
 
   /// Tap handler; only wired when [song] resolves (an "Unavailable song" row
   /// stays inert, same guard as [trailing]).
@@ -36,9 +41,12 @@ class SetlistSongRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final song = this.song;
+    final performers = this.performers;
+    final showPerformers = song != null && performers != null && performers.isNotEmpty;
     return Card(
       margin: const EdgeInsets.only(bottom: MonoPulseSpacing.md),
       child: ListTile(
+        isThreeLine: showPerformers,
         onTap: song == null ? null : onTap,
         leading:
             leading ??
@@ -57,9 +65,37 @@ class SetlistSongRow extends StatelessWidget {
           style: TextStyle(color: context.mp.textPrimary),
         ),
         subtitle: song != null
-            ? Text(
-                song.artist,
-                style: TextStyle(color: context.mp.textSecondary),
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    song.artist,
+                    style: TextStyle(color: context.mp.textSecondary),
+                  ),
+                  if (showPerformers)
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.person_outline,
+                          size: 14,
+                          color: context.mp.textTertiary,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            performers,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: context.mp.textTertiary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
               )
             : null,
         trailing: song == null ? null : trailing,

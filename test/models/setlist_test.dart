@@ -62,6 +62,54 @@ void main() {
       // ...but never leaks into songIds (which mirrors songs only).
       expect(restored.songIds, const ['song-1', 'song-2']);
     });
+
+    test('performerIds round-trip and stay out of the JSON when empty', () {
+      final setlist = Setlist(
+        id: 'setlist-1',
+        bandId: '',
+        name: 'Album release',
+        items: const [
+          SetlistItem(id: 'i1', songId: 'song-1', performerIds: ['ivan', 'anna']),
+          SetlistItem(id: 'i2', songId: 'song-2'),
+        ],
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+
+      final json = setlist.toJson();
+      final rawItems = json['items']! as List<Map<String, dynamic>>;
+      expect(rawItems.first['performerIds'], ['ivan', 'anna']);
+      expect(rawItems.last.containsKey('performerIds'), isFalse);
+
+      final restored = Setlist.fromJson(json);
+      expect(restored.effectiveItems.first.performerIds, ['ivan', 'anna']);
+      expect(restored.effectiveItems.last.performerIds, isEmpty);
+    });
+
+    test('a tuning override leaves breaks and performers intact', () {
+      final setlist = Setlist(
+        id: 'setlist-1',
+        bandId: '',
+        name: 'Show',
+        items: [
+          const SetlistItem(id: 'i1', songId: 'song-1', performerIds: ['ivan']),
+          SetlistItem.breakItem(id: 'b1', breakType: 'encore', label: 'ENCORE'),
+        ],
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+
+      final restored = Setlist.fromJson(
+        setlist.withItemTuningPreset('i1', 'guitar_6:drop_d').toJson(),
+      );
+
+      expect(restored.effectiveItems.first.tuningPresetId, 'guitar_6:drop_d');
+      expect(restored.effectiveItems.first.performerIds, ['ivan']);
+      final divider = restored.effectiveItems.last;
+      expect(divider.isBreak, isTrue, reason: 'break must stay a break');
+      expect(divider.breakLabel, 'ENCORE');
+      expect(restored.songIds, const ['song-1']);
+    });
     // Test data
     final testDate = DateTime(2024, 5, 10, 18);
     final testSongIds = ['song-1', 'song-2', 'song-3'];

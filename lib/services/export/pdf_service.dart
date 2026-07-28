@@ -4,6 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../../models/event_kit.dart';
+import '../../models/lineup.dart';
 import '../../models/section.dart';
 import '../../models/setlist.dart';
 import '../../models/setlist_break_type.dart';
@@ -13,7 +14,9 @@ import '../../utils/chordpro.dart';
 /// PDF layout for a setlist export.
 /// [pack] = compact setlist page + every song as a one-page compact sheet
 /// (#84; roster/stage map/schedule pages come later).
-enum SetlistPdfLayout { detailed, compact, pack, eventGuide }
+/// [performer] = one musician's copy: the full running order with only their
+/// songs highlighted (needs `performerId`).
+enum SetlistPdfLayout { detailed, compact, pack, eventGuide, performer }
 
 class PdfService {
   /// Hands the finished PDF to the platform.
@@ -102,10 +105,14 @@ class PdfService {
     await _output(await pdf.save(), '${_fileStem(title)}_sheet.pdf');
   }
 
+  /// [performerId] is required by [SetlistPdfLayout.performer] and ignored by
+  /// every other layout: it prints one musician's copy — the whole running
+  /// order, with the songs they play highlighted.
   static Future<void> exportSetlist(
     Setlist setlist,
     List<Song> songs, {
     SetlistPdfLayout layout = SetlistPdfLayout.detailed,
+    String? performerId,
   }) async {
     final pdf = pw.Document();
 
@@ -115,11 +122,13 @@ class PdfService {
 
     final songById = {for (final s in songs) s.id: s};
     final items = setlist.effectiveItems;
+    final lineup = peopleById(setlist.eventKit?.people ?? const []);
+    final performer = performerId == null ? null : lineup[performerId];
     final songWidgets =
         layout == SetlistPdfLayout.detailed ||
             layout == SetlistPdfLayout.eventGuide
-        ? _detailedRows(items, songById, font, fontBold)
-        : _compactRows(items, songById, font, fontBold);
+        ? _detailedRows(items, songById, font, fontBold, lineup)
+        : _compactRows(items, songById, font, fontBold, lineup, performerId);
 
     pdf.addPage(
       pw.MultiPage(
@@ -132,6 +141,13 @@ class PdfService {
               setlist.name,
               style: pw.TextStyle(font: fontBold, fontSize: 24),
             ),
+            if (performer != null)
+              pw.Text(
+                performer.role.isEmpty
+                    ? performer.name
+                    : '${performer.name} — ${performer.role}',
+                style: pw.TextStyle(font: fontBold, fontSize: 13),
+              ),
             if (setlist.description != null) ...[
               pw.SizedBox(height: 4),
               pw.Text(
@@ -148,7 +164,8 @@ class PdfService {
               pw.Row(
                 children: [
                   pw.Text(
-                    '📍 ${setlist.eventLocation}',
+                    // No emoji — the embedded font has no emoji glyphs.
+                    'Venue: ${setlist.eventLocation}',
                     style: pw.TextStyle(font: font, fontSize: 10),
                   ),
                 ],
@@ -188,7 +205,10 @@ class PdfService {
             ),
           ],
         ),
-        build: (context) => songWidgets,
+        build: (context) => [
+          ...songWidgets,
+          ..._lineupSection(items, lineup, font, fontBold),
+        ],
       ),
     );
 
@@ -237,6 +257,7 @@ class PdfService {
       SetlistPdfLayout.compact => '_compact',
       SetlistPdfLayout.pack => '_pack',
       SetlistPdfLayout.eventGuide => '_event_guide',
+      SetlistPdfLayout.performer => '_${_fileStem(performer?.name ?? 'part')}',
     };
     await _output(
       await pdf.save(),
@@ -380,6 +401,7 @@ class PdfService {
     Map<String, Song> songById,
     pw.Font font,
     pw.Font fontBold,
+    Map<String, EventPerson> lineup,
   ) {
     final widgets = <pw.Widget>[];
     var n = 0; // per-section song number, reset by each break
@@ -438,6 +460,18 @@ class PdfService {
                         color: PdfColor.fromHex('B0B0B0'),
                       ),
                     ),
+                    if (performerLabel(item.performerIds, lineup)
+                        case final who when who.isNotEmpty) ...[
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                        who,
+                        style: pw.TextStyle(
+                          font: font,
+                          fontSize: 10,
+                          color: PdfColor.fromHex('616161'),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -483,6 +517,46 @@ class PdfService {
     return widgets;
   }
 
+  /// "Who plays what" cheat sheet appended under the running order: one line
+  /// per person with the song numbers they're on. Empty when nobody is
+  /// assigned, so setlists without a lineup print exactly as before.
+  static List<pw.Widget> _lineupSection(
+    List<SetlistItem> items,
+    Map<String, EventPerson> lineup,
+    pw.Font font,
+    pw.Font fontBold,
+  ) {
+    final byPerformer = songNumbersByPerformer(items);
+    if (byPerformer.isEmpty) return const [];
+    final rows = <pw.Widget>[];
+    // Roster order, so the printed list matches the app's lineup.
+    for (final person in lineup.values) {
+      final numbers = byPerformer[person.id];
+      if (numbers == null || numbers.isEmpty) continue;
+      rows.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 3),
+          child: pw.Text(
+            [
+              person.name,
+              if (person.role.isNotEmpty) person.role,
+              numbers.map((n) => '#$n').join(', '),
+            ].join('  —  '),
+            style: pw.TextStyle(font: font, fontSize: 10),
+          ),
+        ),
+      );
+    }
+    if (rows.isEmpty) return const [];
+    return [
+      pw.SizedBox(height: 16),
+      pw.Divider(color: PdfColor.fromHex('E0E0E0')),
+      pw.Text('Lineup', style: pw.TextStyle(font: fontBold, fontSize: 13)),
+      pw.SizedBox(height: 6),
+      ...rows,
+    ];
+  }
+
   /// A full-width section/break divider bar (matches a printed setlist).
   static pw.Widget _breakDivider(SetlistItem item, pw.Font fontBold) {
     final label = SetlistBreakType.labelFor(
@@ -509,12 +583,17 @@ class PdfService {
   }
 
   /// One dense line per song so a whole setlist fits on a single list.
+  /// With [performerId] set this becomes that musician's copy: the whole
+  /// running order stays (they need it to follow the show) but songs they
+  /// don't play are greyed out.
   static List<pw.Widget> _compactRows(
     List<SetlistItem> items,
     Map<String, Song> songById,
     pw.Font font,
     pw.Font fontBold,
-  ) {
+    Map<String, EventPerson> lineup, [
+    String? performerId,
+  ]) {
     final widgets = <pw.Widget>[];
     var n = 0; // per-section song number, reset by each break
     for (final item in items) {
@@ -526,6 +605,13 @@ class PdfService {
       final song = songById[item.songId];
       if (song == null) continue;
       n++;
+      final mine =
+          performerId == null || item.performerIds.contains(performerId);
+      final dim = PdfColor.fromHex(mine ? '757575' : 'BDBDBD');
+      final ink = mine ? PdfColors.black : PdfColor.fromHex('9E9E9E');
+      final who = performerId == null
+          ? performerLabel(item.performerIds, lineup)
+          : '';
       final meta = <String>[
         if (song.ourKey != null) song.ourKey!,
         if (song.ourBPM != null) '${song.ourBPM} BPM',
@@ -540,7 +626,11 @@ class PdfService {
                 width: 22,
                 child: pw.Text(
                   '$n.',
-                  style: pw.TextStyle(font: fontBold, fontSize: 11),
+                  style: pw.TextStyle(
+                    font: fontBold,
+                    fontSize: 11,
+                    color: ink,
+                  ),
                 ),
               ),
               pw.Expanded(
@@ -549,7 +639,11 @@ class PdfService {
                     children: [
                       pw.TextSpan(
                         text: song.title,
-                        style: pw.TextStyle(font: fontBold, fontSize: 11),
+                        style: pw.TextStyle(
+                          font: mine ? fontBold : font,
+                          fontSize: 11,
+                          color: ink,
+                        ),
                       ),
                       if (song.artist.isNotEmpty)
                         pw.TextSpan(
@@ -557,7 +651,16 @@ class PdfService {
                           style: pw.TextStyle(
                             font: font,
                             fontSize: 11,
-                            color: PdfColor.fromHex('757575'),
+                            color: dim,
+                          ),
+                        ),
+                      if (who.isNotEmpty)
+                        pw.TextSpan(
+                          text: '   $who',
+                          style: pw.TextStyle(
+                            font: font,
+                            fontSize: 9,
+                            color: PdfColor.fromHex('616161'),
                           ),
                         ),
                     ],
@@ -614,6 +717,7 @@ class PdfService {
       if (setlist.eventDateTime != null) setlist.formattedEventDate,
       if (setlist.eventLocation != null) setlist.eventLocation!,
     ].join(' · ');
+    final songNumbers = songNumbersByPerformer(setlist.effectiveItems);
 
     return pw.Page(
       pageFormat: PdfPageFormat.a4,
@@ -686,6 +790,12 @@ class PdfService {
                           p.role,
                           style: pw.TextStyle(font: font, fontSize: 9),
                         ),
+                        if (songNumbers[p.id] case final numbers?
+                            when numbers.isNotEmpty)
+                          pw.Text(
+                            'Songs: ${numbers.map((n) => '#$n').join(', ')}',
+                            style: pw.TextStyle(font: font, fontSize: 9),
+                          ),
                         if (p.notes != null)
                           pw.Text(
                             p.notes!,

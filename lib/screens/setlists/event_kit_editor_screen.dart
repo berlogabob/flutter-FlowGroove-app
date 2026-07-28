@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../models/band.dart';
 import '../../models/event_kit.dart';
+import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
@@ -37,6 +39,10 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
     return bands.where((b) => b.id == widget.bandId).firstOrNull?.members ??
         const [];
   }
+
+  /// Which songs each person is assigned to (set in the setlist editor).
+  Map<String, List<int>> get _songNumbers =>
+      songNumbersByPerformer(widget.setlist.effectiveItems);
 
   Future<void> _save() async {
     final updated = widget.setlist.copyWith(
@@ -158,7 +164,13 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
                 leading: const Icon(Icons.badge_outlined),
                 title: Text(p.name),
                 subtitle: Text(
-                  [p.role, if (p.notes != null) p.notes!].join(' · '),
+                  [
+                    p.role,
+                    if (_songNumbers[p.id] case final songs?
+                        when songs.isNotEmpty)
+                      songs.map((n) => '#$n').join(', '),
+                    if (p.notes != null) p.notes!,
+                  ].join(' · '),
                 ),
                 trailing: IconButton(
                   icon: const Icon(Icons.close, size: 18),
@@ -919,6 +931,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
                     Navigator.pop(
                       context,
                       EventPerson(
+                        id: const Uuid().v4(),
                         name: name,
                         role: _role.text.trim(),
                         notes: _notes.text.trim().isEmpty

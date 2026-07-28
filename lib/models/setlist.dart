@@ -30,6 +30,7 @@ class SetlistItem {
     this.type = itemTypeSong,
     this.breakType,
     this.breakLabel,
+    this.performerIds = const [],
   });
 
   /// A break/divider entry. [breakType] is a SetlistBreakType id; [label] is
@@ -53,6 +54,9 @@ class SetlistItem {
     type: json['type'] as String? ?? itemTypeSong,
     breakType: json['breakType'] as String?,
     breakLabel: json['breakLabel'] as String?,
+    performerIds:
+        (json['performerIds'] as List?)?.whereType<String>().toList() ??
+        const [],
   );
 
   static const String itemTypeSong = 'song';
@@ -71,6 +75,10 @@ class SetlistItem {
   /// For break items: optional custom label (e.g. a guest name). Null for songs.
   final String? breakLabel;
 
+  /// Who plays this song — `EventPerson.id`s from the setlist's Event Kit
+  /// roster. Empty means "everyone / not specified".
+  final List<String> performerIds;
+
   bool get isBreak => type == itemTypeBreak;
 
   SetlistItem copyWith({
@@ -80,14 +88,19 @@ class SetlistItem {
     String? type,
     String? breakType,
     String? breakLabel,
+    List<String>? performerIds,
+    bool clearTuningPreset = false,
   }) {
     return SetlistItem(
       id: id ?? this.id,
       songId: songId ?? this.songId,
-      tuningPresetId: tuningPresetId ?? this.tuningPresetId,
+      tuningPresetId: clearTuningPreset
+          ? null
+          : (tuningPresetId ?? this.tuningPresetId),
       type: type ?? this.type,
       breakType: breakType ?? this.breakType,
       breakLabel: breakLabel ?? this.breakLabel,
+      performerIds: performerIds ?? this.performerIds,
     );
   }
 
@@ -98,6 +111,7 @@ class SetlistItem {
     if (type != itemTypeSong) 'type': type,
     if (breakType != null) 'breakType': breakType,
     if (breakLabel != null) 'breakLabel': breakLabel,
+    if (performerIds.isNotEmpty) 'performerIds': performerIds,
   };
 }
 
@@ -222,22 +236,19 @@ class Setlist {
   }
 
   Setlist withItemTuningPreset(String itemId, String? presetId) {
+    // copyWith, not a fresh SetlistItem: a rebuilt item used to drop the
+    // break type/label and the performers. songIds is rebuilt in toJson().
     final updatedItems = effectiveItems
         .map(
           (item) => item.id == itemId
-              ? SetlistItem(
-                  id: item.id,
-                  songId: item.songId,
+              ? item.copyWith(
                   tuningPresetId: presetId,
+                  clearTuningPreset: presetId == null,
                 )
               : item,
         )
         .toList();
-    return copyWith(
-      items: updatedItems,
-      songIds: updatedItems.map((item) => item.songId).toList(),
-      updatedAt: DateTime.now(),
-    );
+    return copyWith(items: updatedItems, updatedAt: DateTime.now());
   }
 
   String get formattedEventDate {

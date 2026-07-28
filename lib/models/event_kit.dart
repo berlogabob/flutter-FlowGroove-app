@@ -54,28 +54,49 @@ class StagePlacement {
   };
 }
 
-/// Non-band people: photographer, videographer, manager, +1 guests.
+/// Anyone on the event roster: band members, guest musicians, photographer,
+/// manager, +1 guests. [id] is what setlist items reference in
+/// `SetlistItem.performerIds`.
 class EventPerson {
   const EventPerson({
+    required this.id,
     required this.name,
     required this.role,
     this.notes,
     this.uid,
   });
 
-  factory EventPerson.fromJson(Map<String, dynamic> json) => EventPerson(
-    name: json['name'] as String? ?? '',
-    role: json['role'] as String? ?? '',
-    notes: json['notes'] as String?,
-    uid: json['uid'] as String?,
-  );
+  factory EventPerson.fromJson(Map<String, dynamic> json) {
+    final name = json['name'] as String? ?? '';
+    return EventPerson(
+      // ponytail: crew cards saved before ids existed were identified by name.
+      id: json['id'] as String? ?? name,
+      name: name,
+      role: json['role'] as String? ?? '',
+      notes: json['notes'] as String?,
+      uid: json['uid'] as String?,
+    );
+  }
 
+  final String id;
   final String name;
   final String role;
   final String? notes;
+
+  /// Set once this person is a real app user (band member uid).
   final String? uid;
 
+  EventPerson copyWith({String? name, String? role, String? notes, String? uid}) =>
+      EventPerson(
+        id: id,
+        name: name ?? this.name,
+        role: role ?? this.role,
+        notes: notes ?? this.notes,
+        uid: uid ?? this.uid,
+      );
+
   Map<String, dynamic> toJson() => {
+    'id': id,
     'name': name,
     'role': role,
     if (notes != null) 'notes': notes,
