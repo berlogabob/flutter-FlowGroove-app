@@ -8,7 +8,7 @@ library;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'pcm_wav_recorder.dart' show wavFromPcm16;
+import 'audio_note_recorder.dart' show wavFromPcm16;
 
 /// Where the samples live inside a RIFF/WAVE buffer, plus the format needed to
 /// convert between byte offsets and milliseconds.
@@ -100,6 +100,113 @@ Uint8List? trimWav(Uint8List wav, {required int startMs, required int endMs}) {
     channels: info.channels,
   );
 }
+
+// --- ADTS AAC (the native capture format) --------------------------------
+
+/// `sampling_frequency_index` -> Hz, per ISO/IEC 13818-7.
+const _adtsSampleRates = [
+  96000, 88200, 64000, 48000, 44100, 32000,
+  24000, 22050, 16000, 12000, 11025, 8000, 7350,
+];
+
+/// Every AAC-LC frame carries exactly this many samples per channel.
+const _adtsSamplesPerFrame = 1024;
+
+typedef AdtsFrame = ({int offset, int length});
+
+/// Reads one ADTS header, or null if [offset] isn't on a valid frame.
+///
+/// `record` emits `0xF1` (MPEG-4) on iOS/macOS and `0xF9` (MPEG-2) on Android;
+/// both are 7-byte, CRC-less headers, so only the sync bits and the layer bits
+/// are worth checking. A 9-byte CRC header is handled anyway rather than
+/// rejected — the frame length field means the same thing either way.
+({int length, int sampleRate})? _adtsHeader(Uint8List aac, int offset) {
+  if (offset + 7 > aac.length) return null;
+  if (aac[offset] != 0xFF || (aac[offset + 1] & 0xF0) != 0xF0) return null;
+  if ((aac[offset + 1] & 0x06) != 0) return null; // layer must be 00
+  final freqIdx = (aac[offset + 2] >> 2) & 0x0F;
+  if (freqIdx >= _adtsSampleRates.length) return null;
+  final length =
+      ((aac[offset + 3] & 0x03) << 11) |
+      (aac[offset + 4] << 3) |
+      ((aac[offset + 5] >> 5) & 0x07);
+  // A frame must at least contain its own header, and must not overrun.
+  if (length < 7 || offset + length > aac.length) return null;
+  return (length: length, sampleRate: _adtsSampleRates[freqIdx]);
+}
+
+/// Walks a raw ADTS stream into frames. Null if [aac] doesn't start on one.
+///
+/// Frames are self-contained, which is the whole reason native capture can be
+/// compressed and still trimmable: cutting on a frame boundary needs no
+/// decoding, only whole-frame arithmetic.
+List<AdtsFrame>? parseAdtsFrames(Uint8List aac) {
+  if (_adtsHeader(aac, 0) == null) return null;
+  final frames = <AdtsFrame>[];
+  var offset = 0;
+  while (offset < aac.length) {
+    final header = _adtsHeader(aac, offset);
+    // A truncated tail frame ends the stream rather than failing the file.
+    if (header == null) break;
+    frames.add((offset: offset, length: header.length));
+    offset += header.length;
+  }
+  return frames.isEmpty ? null : frames;
+}
+
+/// Sample rate declared by the first frame, or null if [aac] isn't ADTS.
+int? adtsSampleRate(Uint8List aac) => _adtsHeader(aac, 0)?.sampleRate;
+
+/// Duration of an ADTS stream: frames x 1024 / sampleRate.
+int? adtsDurationMs(Uint8List aac) {
+  final frames = parseAdtsFrames(aac);
+  final rate = adtsSampleRate(aac);
+  if (frames == null || rate == null) return null;
+  return frames.length * _adtsSamplesPerFrame * 1000 ~/ rate;
+}
+
+/// Returns [aac] cut to `[startMs, endMs)`, snapped outward to whole frames.
+///
+/// Granularity is one frame — 23.2ms at 44.1kHz — which is finer than anyone
+/// can place a trim handle.
+Uint8List? trimAdts(Uint8List aac, {required int startMs, required int endMs}) {
+  final frames = parseAdtsFrames(aac);
+  final rate = adtsSampleRate(aac);
+  if (frames == null || rate == null || endMs <= startMs) return null;
+
+  final msPerFrame = _adtsSamplesPerFrame * 1000 / rate;
+  final first = (startMs / msPerFrame).floor().clamp(0, frames.length - 1);
+  final last = (endMs / msPerFrame).ceil().clamp(first + 1, frames.length);
+
+  final from = frames[first].offset;
+  final to = frames[last - 1].offset + frames[last - 1].length;
+  return Uint8List.fromList(Uint8List.sublistView(aac, from, to));
+}
+
+// --- format-agnostic entry points ----------------------------------------
+
+/// Trims whichever capture format this take is in — WAV on web, ADTS AAC on
+/// native. Null for anything else (legacy m4a, an imported mp3), which is what
+/// disables the trim UI.
+Uint8List? trimAudio(
+  Uint8List bytes, {
+  required int startMs,
+  required int endMs,
+}) =>
+    _isAdts(bytes)
+    ? trimAdts(bytes, startMs: startMs, endMs: endMs)
+    : trimWav(bytes, startMs: startMs, endMs: endMs);
+
+/// Duration of a WAV or ADTS take, or null if it's neither.
+int? audioDurationMs(Uint8List bytes) =>
+    _isAdts(bytes) ? adtsDurationMs(bytes) : wavDurationMs(bytes);
+
+/// True when the buffer opens with an ADTS syncword rather than `RIFF`.
+bool _isAdts(Uint8List bytes) =>
+    bytes.length >= 2 && bytes[0] == 0xFF && (bytes[1] & 0xF0) == 0xF0;
+
+/// File extensions this app can trim, matched against the Storage object name.
+const trimmableExtensions = {'wav', 'aac'};
 
 int _msFromBytes(int bytes, WavInfo info) =>
     bytes * 1000 ~/ (info.sampleRate * info.channels * info.bytesPerSample);

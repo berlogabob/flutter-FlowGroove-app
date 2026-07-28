@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flowgroove/services/audio/audio_note_edit.dart';
-import 'package:flowgroove/services/audio/pcm_wav_recorder.dart';
+import 'package:flowgroove/services/audio/audio_note_recorder.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _rate = 8000; // small enough to keep fixtures readable
@@ -34,6 +34,41 @@ Uint8List _wavWithListChunk(int ms) {
   ByteData.sublistView(bytes).setUint32(4, bytes.length - 8, Endian.little);
   return bytes;
 }
+
+/// Index into the ADTS sample-rate table: 4 = 44100, 7 = 22050.
+const _freqIdx44k = 4;
+
+/// One synthesised ADTS frame. The payload is opaque to every function under
+/// test, so no encoder is needed — only the 7 header bytes have to be real.
+/// [mpeg2] picks Android's 0xF9 over iOS/macOS's 0xF1.
+Uint8List _adtsFrame({
+  int payload = 100,
+  int freqIdx = _freqIdx44k,
+  bool mpeg2 = false,
+}) {
+  final length = 7 + payload;
+  final f = Uint8List(length);
+  f[0] = 0xFF;
+  f[1] = mpeg2 ? 0xF9 : 0xF1; // sync + id + layer 00 + protection_absent
+  f[2] = (1 << 6) | (freqIdx << 2); // AAC-LC profile, channel cfg high bit 0
+  f[3] = (1 << 6) | ((length >> 11) & 0x03); // channel cfg 1 (mono) + len hi
+  f[4] = (length >> 3) & 0xFF;
+  f[5] = ((length & 0x07) << 5) | 0x1F; // len lo + buffer fullness
+  f[6] = 0xFC; // 1 frame per block
+  return f;
+}
+
+/// [count] identical frames concatenated, as `record` delivers them.
+Uint8List _adts(int count, {int freqIdx = _freqIdx44k, bool mpeg2 = false}) {
+  final out = BytesBuilder();
+  for (var i = 0; i < count; i++) {
+    out.add(_adtsFrame(freqIdx: freqIdx, mpeg2: mpeg2));
+  }
+  return out.toBytes();
+}
+
+/// 1024 samples at 44.1kHz.
+const _frameMs = 1024 * 1000 / 44100; // 23.219...
 
 void main() {
   group('parseWav', () {
@@ -157,6 +192,128 @@ void main() {
       final trimmed = trimWav(wav, startMs: 1500, endMs: 238500)!;
       expect(wavDurationMs(trimmed), 237000);
       expect(parseWav(trimmed)!.sampleRate, 44100);
+    });
+  });
+
+  group('parseAdtsFrames', () {
+    test('walks every frame of a multi-frame stream', () {
+      final frames = parseAdtsFrames(_adts(10))!;
+      expect(frames.length, 10);
+      expect(frames.first.offset, 0);
+      expect(frames.first.length, 107);
+      expect(frames.last.offset, 9 * 107);
+    });
+
+    test('parses Android 0xF9 and iOS 0xF1 headers identically', () {
+      final mpeg4 = parseAdtsFrames(_adts(5))!;
+      final mpeg2 = parseAdtsFrames(_adts(5, mpeg2: true))!;
+      expect(mpeg2.length, mpeg4.length);
+      expect(mpeg2.map((f) => f.length), mpeg4.map((f) => f.length));
+    });
+
+    test('rejects a bad syncword', () {
+      final bytes = _adts(3);
+      bytes[1] = 0x0F;
+      expect(parseAdtsFrames(bytes), isNull);
+    });
+
+    test('rejects a non-zero layer field', () {
+      final bytes = _adts(3);
+      bytes[1] = 0xF7; // layer = 11
+      expect(parseAdtsFrames(bytes), isNull);
+    });
+
+    test('rejects WAV and m4a', () {
+      expect(parseAdtsFrames(_wav(100)), isNull);
+      expect(
+        parseAdtsFrames(
+          Uint8List.fromList([0, 0, 0, 32, ...'ftypM4A '.codeUnits]),
+        ),
+        isNull,
+      );
+    });
+
+    test('stops at a truncated tail frame instead of failing the stream', () {
+      final full = _adts(4);
+      final truncated = Uint8List.sublistView(full, 0, full.length - 40);
+      expect(parseAdtsFrames(Uint8List.fromList(truncated))!.length, 3);
+    });
+  });
+
+  group('adtsDurationMs', () {
+    test('is frames x 1024 / sampleRate', () {
+      expect(adtsDurationMs(_adts(43)), (43 * _frameMs).floor());
+      expect(adtsSampleRate(_adts(1)), 44100);
+    });
+
+    test('reads the rate out of the frequency index', () {
+      expect(adtsSampleRate(_adts(1, freqIdx: 7)), 22050);
+      // Half the rate, so the same frame count is twice the wall time.
+      expect(adtsDurationMs(_adts(10, freqIdx: 7)), 10 * 1024 * 1000 ~/ 22050);
+    });
+
+    test('is null for non-ADTS', () {
+      expect(adtsDurationMs(_wav(100)), isNull);
+    });
+  });
+
+  group('trimAdts', () {
+    test('keeps the frames covering the window', () {
+      // 100 frames ~= 2322ms. Ask for 500..1500ms.
+      final trimmed = trimAdts(_adts(100), startMs: 500, endMs: 1500)!;
+      final kept = parseAdtsFrames(trimmed)!;
+      expect(kept.length, (1500 / _frameMs).ceil() - (500 / _frameMs).floor());
+      expect(adtsDurationMs(trimmed)!, greaterThanOrEqualTo(1000));
+    });
+
+    test('never splits a frame', () {
+      final trimmed = trimAdts(_adts(50), startMs: 111, endMs: 777)!;
+      expect(trimmed.length % 107, 0, reason: 'whole 107-byte frames only');
+      expect(parseAdtsFrames(trimmed), isNotNull);
+    });
+
+    test('copies the right frames out of the source', () {
+      final source = _adts(20);
+      final first = (300 / _frameMs).floor();
+      final trimmed = trimAdts(source, startMs: 300, endMs: 900)!;
+      // Payload bytes are zero in the fixture, so compare the whole header run.
+      expect(
+        trimmed.sublist(0, 7),
+        source.sublist(first * 107, first * 107 + 7),
+      );
+    });
+
+    test('clamps an end past the stream', () {
+      final trimmed = trimAdts(_adts(10), startMs: 0, endMs: 999999)!;
+      expect(parseAdtsFrames(trimmed)!.length, 10);
+    });
+
+    test('returns null for an inverted window or non-ADTS input', () {
+      expect(trimAdts(_adts(10), startMs: 500, endMs: 100), isNull);
+      expect(trimAdts(_wav(100), startMs: 0, endMs: 50), isNull);
+    });
+  });
+
+  group('trimAudio / audioDurationMs dispatch', () {
+    test('routes RIFF to the WAV path', () {
+      final trimmed = trimAudio(_wav(1000), startMs: 200, endMs: 700)!;
+      expect(wavDurationMs(trimmed), 500);
+      expect(audioDurationMs(_wav(2500)), 2500);
+    });
+
+    test('routes an ADTS syncword to the AAC path', () {
+      final trimmed = trimAudio(_adts(100), startMs: 500, endMs: 1500)!;
+      expect(parseAdtsFrames(trimmed), isNotNull);
+      expect(wavDurationMs(trimmed), isNull, reason: 'still AAC, not WAV');
+      expect(audioDurationMs(_adts(43)), (43 * _frameMs).floor());
+    });
+
+    test('refuses m4a and returns null duration', () {
+      final m4a = Uint8List.fromList([
+        0, 0, 0, 32, ...'ftypM4A '.codeUnits, 0, 0, 0, 0,
+      ]);
+      expect(trimAudio(m4a, startMs: 0, endMs: 100), isNull);
+      expect(audioDurationMs(m4a), isNull);
     });
   });
 

@@ -62,7 +62,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       _entry.attachmentIds.isEmpty ? null : _entry.attachmentIds.first;
 
   bool get _canTrim =>
-      _entry.peaks.isNotEmpty && (_url?.contains('.wav') ?? false);
+      _entry.peaks.isNotEmpty && trimmableExtensions.contains(_extOf(_url));
 
   bool get _isTrimmed => _trimStart > 0.001 || _trimEnd < 0.999;
 
@@ -229,7 +229,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       final startMs = _trimStartMs;
       final endMs = _trimEndMs;
       final bytes = await ref.read(audioBytesFetcherProvider)(url);
-      final trimmed = trimWav(bytes, startMs: startMs, endMs: endMs);
+      final trimmed = trimAudio(bytes, startMs: startMs, endMs: endMs);
       if (trimmed == null) {
         if (mounted) {
           showAppSnackBar(
@@ -240,6 +240,9 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
         }
         return;
       }
+      // Re-upload under the SOURCE extension: a different one would write a
+      // second object and orphan the original rather than replacing it.
+      final ext = _extOf(url);
       final newUrl = await ref
           .read(storageServiceProvider)
           .uploadLabAudio(
@@ -247,10 +250,10 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
             bandId: widget.bandId,
             songId: _entry.songId,
             entryId: _entry.id,
-            ext: 'wav',
-            contentType: 'audio/wav',
+            ext: ext,
+            contentType: _mimeOf(ext),
           );
-      final newDurationMs = wavDurationMs(trimmed) ?? (endMs - startMs);
+      final newDurationMs = audioDurationMs(trimmed) ?? (endMs - startMs);
       await _save(
         _entry.copyWith(
           // Overwriting a Storage object mints a fresh download token, so the
@@ -285,18 +288,16 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
     setState(() => _busy = true);
     try {
       var bytes = await ref.read(audioBytesFetcherProvider)(url);
-      var ext = _extOf(url);
+      final ext = _extOf(url);
       // Share what the handles show, even if the trim was never committed.
+      // The format is unchanged by trimming, so the extension stays put.
       if (_isTrimmed) {
-        final trimmed = trimWav(
+        final trimmed = trimAudio(
           bytes,
           startMs: _trimStartMs,
           endMs: _trimEndMs,
         );
-        if (trimmed != null) {
-          bytes = trimmed;
-          ext = 'wav';
-        }
+        if (trimmed != null) bytes = trimmed;
       }
       final name = '${_safeName(_entry.title ?? 'audio note')}.$ext';
       await SharePlus.instance.share(
@@ -316,12 +317,15 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
 
   /// Extension of the stored object. Download URLs percent-encode the path
   /// separators but leave `.ext` intact, so a plain suffix match works.
-  static String _extOf(String url) {
+  /// Empty for a missing URL, which no format matches.
+  static String _extOf(String? url) {
+    if (url == null) return '';
     final match = RegExp(r'\.(\w{1,5})\?').firstMatch(url);
-    return match?.group(1)?.toLowerCase() ?? 'wav';
+    return match?.group(1)?.toLowerCase() ?? '';
   }
 
   static String _mimeOf(String ext) => switch (ext) {
+    'aac' => 'audio/aac',
     'wav' => 'audio/wav',
     'mp3' => 'audio/mpeg',
     'ogg' => 'audio/ogg',

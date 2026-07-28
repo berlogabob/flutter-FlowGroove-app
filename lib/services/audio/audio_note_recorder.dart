@@ -5,23 +5,29 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 
-/// Records via `record`'s PCM16 stream and wraps the result into a WAV
-/// container on stop.
+/// Captures an audio note in whichever sliceable format the platform can
+/// stream, so the editor can always trim it without an ffmpeg-sized dependency.
 ///
-/// This is the capture path for audio memos on every platform (#150): the PCM
-/// stream is the same proven route the tuner uses, and WAV sidesteps
-/// MediaRecorder codec/Safari-playback risk entirely — every platform plays it,
-/// and the bytes stay sliceable so the audio note editor can trim them.
-/// ponytail: WAV costs ~5.3MB/min mono; callers cap duration (Storage rejects
-/// >=25MB). Switch to aacLc streaming if longer memos ever matter — trim would
-/// then need a different strategy.
-class PcmWavRecorder {
-  PcmWavRecorder(this._recorder);
+/// - **native**: `aacLc`, which `record` delivers as self-contained ADTS frames
+///   (one per chunk). ~16 kB/s, so a take can run ~26 min under the 25MB
+///   Storage cap and a shared file stays messenger-sized.
+/// - **web**: `pcm16bits` wrapped into WAV on stop — `record_web` refuses every
+///   stream encoder but PCM. ~88 kB/s, hence the much shorter web cap.
+///
+/// Both are trimmable by `trimAudio` in audio_note_edit.dart; nothing
+/// downstream branches on platform.
+class AudioNoteRecorder {
+  AudioNoteRecorder(this._recorder);
+
+  /// What [stop] returns on this platform.
+  static String get extension => kIsWeb ? 'wav' : 'aac';
+  static String get contentType => kIsWeb ? 'audio/wav' : 'audio/aac';
 
   final AudioRecorder _recorder;
-  final BytesBuilder _pcm = BytesBuilder(copy: false);
+  final BytesBuilder _buffer = BytesBuilder(copy: false);
   final List<double> _levels = [];
   StreamSubscription<Uint8List>? _sub;
+  StreamSubscription<Amplitude>? _ampSub;
   int _sampleRate = 44100;
 
   /// Called with the level of each incoming chunk in dBFS (~-90..0).
@@ -29,12 +35,12 @@ class PcmWavRecorder {
 
   bool get isRecording => _sub != null;
 
-  /// Every chunk level of the take so far, for reducing to waveform peaks.
+  /// Every level of the take so far, for reducing to waveform peaks.
   List<double> get levels => List.unmodifiable(_levels);
 
   Future<void> start() async {
     if (_sub != null) return;
-    _pcm.clear();
+    _buffer.clear();
     _levels.clear();
     _sampleRate = 44100;
     await _recorder.setOnConfigChanged((config) {
@@ -42,7 +48,7 @@ class PcmWavRecorder {
     });
     final stream = await _recorder.startStream(
       const RecordConfig(
-        encoder: AudioEncoder.pcm16bits,
+        encoder: kIsWeb ? AudioEncoder.pcm16bits : AudioEncoder.aacLc,
         numChannels: 1,
         // An explicit size bypasses AudioRecord.getMinBufferSize on Android and
         // hard-fails init on devices that need more; only web requires it.
@@ -57,26 +63,43 @@ class PcmWavRecorder {
       ),
     );
     _sub = stream.listen((chunk) {
-      _pcm.add(chunk);
-      final level = _rmsDbfs(chunk);
-      _levels.add(level);
-      onLevel?.call(level);
+      _buffer.add(chunk);
+      if (kIsWeb) _publish(_rmsDbfs(chunk));
     });
+    if (!kIsWeb) {
+      // AAC chunks aren't PCM, so their bytes say nothing about loudness.
+      // `record` measures amplitude on the mic buffer before encoding, which is
+      // exactly what we want and is encoder-independent.
+      _ampSub = _recorder
+          .onAmplitudeChanged(const Duration(milliseconds: 100))
+          .listen((a) => _publish(a.current));
+    }
   }
 
-  /// Stops capture and returns the recording as WAV bytes.
+  void _publish(double dbfs) {
+    _levels.add(dbfs);
+    onLevel?.call(dbfs);
+  }
+
+  /// Stops capture and returns the take: raw ADTS on native, WAV on web.
   Future<Uint8List> stop() async {
     await _sub?.cancel();
     _sub = null;
+    await _ampSub?.cancel();
+    _ampSub = null;
     await _recorder.stop();
-    return wavFromPcm16(_pcm.takeBytes(), sampleRate: _sampleRate);
+    final raw = _buffer.takeBytes();
+    // ADTS frames are already a playable stream; PCM needs its container.
+    return kIsWeb ? wavFromPcm16(raw, sampleRate: _sampleRate) : raw;
   }
 
   Future<void> cancel() async {
     await _sub?.cancel();
     _sub = null;
+    await _ampSub?.cancel();
+    _ampSub = null;
     await _recorder.stop();
-    _pcm.clear();
+    _buffer.clear();
     _levels.clear();
   }
 

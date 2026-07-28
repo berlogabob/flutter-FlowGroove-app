@@ -46,6 +46,7 @@ Future<void> captureIdea(
       entryId: entryId,
       ext: result.ext,
       contentType: switch (result.ext) {
+        'aac' => 'audio/aac',
         'wav' => 'audio/wav',
         'mp3' => 'audio/mpeg',
         'ogg' => 'audio/ogg',

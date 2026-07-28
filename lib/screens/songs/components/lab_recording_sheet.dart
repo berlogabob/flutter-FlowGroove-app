@@ -7,7 +7,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:record/record.dart';
 
 import '../../../services/audio/audio_note_edit.dart';
-import '../../../services/audio/pcm_wav_recorder.dart';
+import '../../../services/audio/audio_note_recorder.dart';
 import '../../../theme/mono_pulse_theme.dart';
 
 /// Result of the recording sheet (#69): audio bytes + metadata for upload.
@@ -55,14 +55,14 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   Timer? _ticker;
   final List<double> _amps = [];
   Uint8List? _bytes;
-  String _ext = 'wav';
+  String _ext = AudioNoteRecorder.extension;
   String? _pickedName;
   List<int> _peaks = const [];
-  PcmWavRecorder? _wavRecorder;
+  AudioNoteRecorder? _noteRecorder;
 
-  /// Every platform records uncompressed WAV (~5.3MB/min mono) so takes stay
-  /// sliceable for the audio note editor; stop before the 25MB Storage cap.
-  static const int _maxSeconds = 240;
+  /// Stop before the 25MB Storage cap. Native records AAC (~16kB/s, so ~26 min
+  /// fits); web is stuck with uncompressed WAV at ~88kB/s, hence the gulf.
+  static const int _maxSeconds = kIsWeb ? 240 : 1500;
 
   @override
   void initState() {
@@ -85,8 +85,8 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   @override
   void dispose() {
     _ticker?.cancel();
-    if (_wavRecorder?.isRecording ?? false) {
-      unawaited(_wavRecorder!.cancel());
+    if (_noteRecorder?.isRecording ?? false) {
+      unawaited(_noteRecorder!.cancel());
     }
     _recorder.dispose();
     _title.dispose();
@@ -99,19 +99,20 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   Future<void> _toggleRecord() async {
     if (_recording) {
       // Double-tap on Stop or the auto-cap timer racing a tap: a second
-      // concurrent stop would drain an already-emptied PCM buffer and
-      // silently overwrite the recording with a headers-only WAV.
+      // concurrent stop would drain an already-emptied buffer and silently
+      // overwrite the recording with an empty one.
       if (_stopInFlight) return;
       _stopInFlight = true;
       _ticker?.cancel();
-      final levels = _wavRecorder?.levels ?? const <double>[];
-      final bytes = await _wavRecorder?.stop();
-      // 44 bytes = a WAV header with zero samples — not a recording.
-      final hasAudio = bytes != null && bytes.length > 44;
+      final levels = _noteRecorder?.levels ?? const <double>[];
+      final bytes = await _noteRecorder?.stop();
+      // Anything that won't parse as audio (a header-only WAV, an empty AAC
+      // stream) isn't a recording and must not overwrite a good take.
+      final hasAudio = bytes != null && audioDurationMs(bytes) != null;
       setState(() {
         if (hasAudio) {
           _bytes = bytes;
-          _ext = 'wav';
+          _ext = AudioNoteRecorder.extension;
           _peaks = peaksFromLevels(levels);
           _pickedName = null;
         }
@@ -121,10 +122,9 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       return;
     }
     if (!await _recorder.hasPermission()) return;
-    // PCM16 streaming (the tuner's proven capture path) wrapped into WAV on
-    // stop, on every platform (#150): uncompressed bytes stay sliceable, so the
-    // audio note editor can trim a take without an ffmpeg-sized dependency.
-    final recorder = _wavRecorder ??= PcmWavRecorder(_recorder);
+    // Streamed capture in a sliceable format (AAC on native, WAV on web), so
+    // the editor can trim a take without an ffmpeg-sized dependency (#150).
+    final recorder = _noteRecorder ??= AudioNoteRecorder(_recorder);
     recorder.onLevel = (dbfs) {
       if (!mounted) return;
       setState(() {
@@ -173,7 +173,10 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
     if (_recording) {
       final m = (_elapsed ~/ 60).toString().padLeft(2, '0');
       final s = (_elapsed % 60).toString().padLeft(2, '0');
-      return 'Recording… $m:$s';
+      // Warn before the cap stops the take out from under them, not after.
+      final left = _maxSeconds - _elapsed;
+      final warning = left <= 60 ? ' · ${left}s left' : '';
+      return 'Recording… $m:$s$warning';
     }
     if (_bytes != null) {
       final mb = (_bytes!.length / (1024 * 1024)).toStringAsFixed(1);
@@ -181,7 +184,8 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
           ? '$_pickedName · ${mb}MB'
           : 'Recording ready · ${mb}MB';
     }
-    return 'Record an idea or attach a file';
+    const limit = _maxSeconds ~/ 60;
+    return 'Record an idea (up to $limit min) or attach a file';
   }
 
   @override
