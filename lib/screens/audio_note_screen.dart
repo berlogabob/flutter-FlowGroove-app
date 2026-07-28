@@ -88,7 +88,9 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       if (!mounted) return;
       setState(() => _duration = duration ?? Duration.zero);
     } catch (e) {
-      if (mounted) showAppSnackBar(context, "Couldn't load audio: $e", error: true);
+      if (mounted) {
+        showAppSnackBar(context, "Couldn't load audio: $e", error: true);
+      }
       return;
     }
     _subs.addAll([
@@ -213,7 +215,8 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       context: context,
       builder: (_) => const ConfirmationDialog(
         title: 'Save trim?',
-        message: 'This replaces the original recording. The part outside the '
+        message:
+            'This replaces the original recording. The part outside the '
             'handles is gone for good.',
         confirmLabel: 'Trim',
         icon: Icons.content_cut,
@@ -229,7 +232,11 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       final trimmed = trimWav(bytes, startMs: startMs, endMs: endMs);
       if (trimmed == null) {
         if (mounted) {
-          showAppSnackBar(context, "This take's format can't be trimmed", error: true);
+          showAppSnackBar(
+            context,
+            "This take's format can't be trimmed",
+            error: true,
+          );
         }
         return;
       }
@@ -250,11 +257,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
           // old URL 403s — always take the one the upload handed back.
           attachmentIds: [newUrl],
           body: formatMarkers(
-            shiftMarkers(
-              _markers,
-              startMs: startMs,
-              durationMs: newDurationMs,
-            ),
+            shiftMarkers(_markers, startMs: startMs, durationMs: newDurationMs),
           ),
           peaks: trimPeaks(_entry.peaks, _trimStart, _trimEnd),
         ),
@@ -285,7 +288,11 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       var ext = _extOf(url);
       // Share what the handles show, even if the trim was never committed.
       if (_isTrimmed) {
-        final trimmed = trimWav(bytes, startMs: _trimStartMs, endMs: _trimEndMs);
+        final trimmed = trimWav(
+          bytes,
+          startMs: _trimStartMs,
+          endMs: _trimEndMs,
+        );
         if (trimmed != null) {
           bytes = trimmed;
           ext = 'wav';
@@ -294,9 +301,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       final name = '${_safeName(_entry.title ?? 'audio note')}.$ext';
       await SharePlus.instance.share(
         ShareParams(
-          files: [
-            XFile.fromData(bytes, name: name, mimeType: _mimeOf(ext)),
-          ],
+          files: [XFile.fromData(bytes, name: name, mimeType: _mimeOf(ext))],
           // io ignores XFile.name; this is what actually names the file.
           fileNameOverrides: [name],
           subject: _entry.title ?? 'Audio note',
@@ -498,71 +503,91 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        const height = 96.0;
-        return SizedBox(
-          height: height,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTapUp: (d) {
-                    if (totalMs == 0) return;
-                    _seekTo(
-                      ((d.localPosition.dx / width).clamp(0.0, 1.0) * totalMs)
-                          .round(),
-                    );
-                  },
-                  child: CustomPaint(
-                    painter: _WaveformPainter(
-                      peaks: _entry.peaks,
-                      trimStart: _trimStart,
-                      trimEnd: _trimEnd,
-                      playhead: totalMs == 0
-                          ? 0
-                          : (_position.inMilliseconds / totalMs).clamp(0.0, 1.0),
-                      markerFractions: totalMs == 0
-                          ? const []
-                          : [
-                              for (final m in markers)
-                                (m.ms / totalMs).clamp(0.0, 1.0),
-                            ],
-                      dim: context.mp.textSecondary,
+    return Padding(
+      // The handles sit at the ends of the waveform, and Android's back
+      // gesture claims ~20dp at each screen edge — at the list's own 16dp
+      // padding the system swallowed the drag and popped the screen. Inset
+      // far enough that a touch-down on a handle reaches Flutter.
+      padding: const EdgeInsets.symmetric(horizontal: _gestureEdgeInset),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          const height = 96.0;
+          return SizedBox(
+            height: height,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapUp: (d) {
+                      if (totalMs == 0) return;
+                      _seekTo(
+                        ((d.localPosition.dx / width).clamp(0.0, 1.0) * totalMs)
+                            .round(),
+                      );
+                    },
+                    child: CustomPaint(
+                      painter: _WaveformPainter(
+                        peaks: _entry.peaks,
+                        trimStart: _trimStart,
+                        trimEnd: _trimEnd,
+                        playhead: totalMs == 0
+                            ? 0
+                            : (_position.inMilliseconds / totalMs).clamp(
+                                0.0,
+                                1.0,
+                              ),
+                        markerFractions: totalMs == 0
+                            ? const []
+                            : [
+                                for (final m in markers)
+                                  (m.ms / totalMs).clamp(0.0, 1.0),
+                              ],
+                        dim: context.mp.textSecondary,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              _TrimHandle(
-                fraction: _trimStart,
-                width: width,
-                onDrag: (dx) => setState(() {
-                  _trimStart = (_trimStart + dx / width).clamp(
-                    0.0,
-                    _trimEnd - 0.02,
-                  );
-                }),
-              ),
-              _TrimHandle(
-                fraction: _trimEnd,
-                width: width,
-                onDrag: (dx) => setState(() {
-                  _trimEnd = (_trimEnd + dx / width).clamp(
-                    _trimStart + 0.02,
-                    1.0,
-                  );
-                }),
-              ),
-            ],
-          ),
-        );
-      },
+                _TrimHandle(
+                  fraction: _trimStart,
+                  width: width,
+                  onDrag: (dx) => setState(() {
+                    _trimStart = (_trimStart + dx / width).clamp(
+                      0.0,
+                      _trimEnd - 0.02,
+                    );
+                  }),
+                ),
+                _TrimHandle(
+                  fraction: _trimEnd,
+                  width: width,
+                  onDrag: (dx) => setState(() {
+                    _trimEnd = (_trimEnd + dx / width).clamp(
+                      _trimStart + 0.02,
+                      1.0,
+                    );
+                  }),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
+
+/// Extra horizontal inset for the waveform, on top of the list's own padding,
+/// so the trim handles clear Android's ~20dp back-gesture exclusion zone.
+/// Knob — widen if a device reserves more.
+const double _gestureEdgeInset = 24;
+
+/// Touch target for a trim handle. Centring this on the waveform edge would
+/// leave half of it outside the Stack, where hit tests never arrive — at the
+/// untrimmed extremes the handle was only half grabbable.
+const double _handleTouchWidth = 48;
 
 /// A draggable in/out point sitting on top of the waveform.
 class _TrimHandle extends StatelessWidget {
@@ -578,20 +603,32 @@ class _TrimHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const half = _handleTouchWidth / 2;
+    final centre = fraction * width;
+    // Keep the whole touch box inside the Stack…
+    final left = (centre - half).clamp(
+      0.0,
+      (width - _handleTouchWidth).clamp(0.0, double.infinity),
+    );
+    // …but leave the bar itself on the true edge when the box was pushed in.
+    final barOffset = centre - (left + half);
     return Positioned(
-      left: (fraction * width) - 14,
+      left: left,
       top: 0,
       bottom: 0,
-      width: 28,
+      width: _handleTouchWidth,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onHorizontalDragUpdate: (d) => onDrag(d.delta.dx),
         child: Center(
-          child: Container(
-            width: 4,
-            decoration: const BoxDecoration(
-              color: MonoPulseColors.accentOrange,
-              borderRadius: BorderRadius.all(Radius.circular(2)),
+          child: Transform.translate(
+            offset: Offset(barOffset, 0),
+            child: Container(
+              width: 4,
+              decoration: const BoxDecoration(
+                color: MonoPulseColors.accentOrange,
+                borderRadius: BorderRadius.all(Radius.circular(2)),
+              ),
             ),
           ),
         ),
