@@ -263,7 +263,7 @@ void main() {
       final trimmed = trimAdts(_adts(100), startMs: 500, endMs: 1500)!;
       final kept = parseAdtsFrames(trimmed)!;
       expect(kept.length, (1500 / _frameMs).ceil() - (500 / _frameMs).floor());
-      expect(adtsDurationMs(trimmed)!, greaterThanOrEqualTo(1000));
+      expect(adtsDurationMs(trimmed), greaterThanOrEqualTo(1000));
     });
 
     test('never splits a frame', () {
@@ -334,11 +334,71 @@ void main() {
     });
 
     test('never pads past the sample count', () {
-      expect(peaksFromLevels([-10, -20], buckets: 200).length, 2);
+      expect(peaksFromLevels([-10, -20]).length, 2);
     });
 
     test('is empty for no input', () {
       expect(peaksFromLevels(const []), isEmpty);
+    });
+  });
+
+  group('peaksFromWav', () {
+    /// A WAV whose samples ramp 0 -> full scale across [ms].
+    Uint8List rampWav(int ms) {
+      final frames = ms * _rate ~/ 1000;
+      final pcm = Uint8List(frames * 2);
+      final view = ByteData.sublistView(pcm);
+      for (var i = 0; i < frames; i++) {
+        view.setInt16(i * 2, (32767 * i / frames).round(), Endian.little);
+      }
+      return wavFromPcm16(pcm, sampleRate: _rate);
+    }
+
+    test('rises with the audio it describes', () {
+      final peaks = peaksFromWav(rampWav(2000), buckets: 20)!;
+      expect(peaks.length, 20);
+      expect(peaks.first, lessThan(peaks.last));
+      expect(peaks, orderedEquals(List.of(peaks)..sort()));
+      expect(peaks.last, greaterThan(240), reason: 'full scale -> near 255');
+    });
+
+    test('maps silence to zero', () {
+      final silent = wavFromPcm16(Uint8List(1000 * _bytesPerMs), sampleRate: _rate);
+      expect(peaksFromWav(silent, buckets: 8), everyElement(0));
+    });
+
+    test('is null for non-WAV and for an empty data chunk', () {
+      expect(peaksFromWav(Uint8List.fromList('not audio!!!'.codeUnits)), isNull);
+      expect(peaksFromWav(wavFromPcm16(Uint8List(0), sampleRate: _rate)), isNull);
+    });
+
+    test('never returns more bars than there are frames', () {
+      expect(peaksFromWav(rampWav(2))!.length, lessThanOrEqualTo(16));
+    });
+
+    test('handles a full-length take without reading every sample', () {
+      // 4 minutes at 44.1kHz is ~10.6M frames; striding keeps this instant.
+      final wav = wavFromPcm16(
+        Uint8List(240000 * 44100 * 2 ~/ 1000),
+        sampleRate: 44100,
+      );
+      final peaks = peaksFromWav(wav)!;
+      expect(peaks.length, waveformPeakCount);
+    });
+
+    test('reads the first channel of a stereo source', () {
+      const frames = 400;
+      final pcm = Uint8List(frames * 4);
+      final view = ByteData.sublistView(pcm);
+      for (var i = 0; i < frames; i++) {
+        view.setInt16(i * 4, 16384, Endian.little); // left: half scale
+        view.setInt16(i * 4 + 2, 0, Endian.little); // right: silent
+      }
+      final peaks = peaksFromWav(
+        wavFromPcm16(pcm, sampleRate: _rate, channels: 2),
+        buckets: 4,
+      )!;
+      expect(peaks, everyElement(greaterThan(120)));
     });
   });
 

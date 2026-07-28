@@ -79,6 +79,9 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
     _title = TextEditingController(text: _entry.title ?? '');
     _player = widget.player ?? AudioPlayer();
     unawaited(_load());
+    // Independent of the player: a take whose audio won't load should still
+    // get its waveform, and the backfill has nothing to wait for.
+    unawaited(_backfillPeaks());
   }
 
   Future<void> _load() async {
@@ -95,6 +98,13 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       return;
     }
     _subs.addAll([
+      // setUrl only returns a duration when the platform already knows one.
+      // Without this the readout can sit at 0:00 and the trim range collapses
+      // to nothing, because every offset is a fraction of the duration.
+      _player.durationStream.listen((d) {
+        if (!mounted || d == null || d == _duration) return;
+        setState(() => _duration = d);
+      }),
       _player.positionStream.listen((p) {
         if (!mounted) return;
         setState(() => _position = p);
@@ -110,6 +120,26 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
         setState(() => _playing = s.playing);
       }),
     ]);
+  }
+
+  /// Gives takes recorded before peaks existed a waveform, once.
+  ///
+  /// Costs a download, so it only runs when there's something to gain: no
+  /// stored peaks, and a WAV (AAC would need decoding, and legacy m4a can't be
+  /// trimmed anyway so a waveform would only promise something it can't do).
+  /// Silent on failure — this is a nicety, not a feature.
+  Future<void> _backfillPeaks() async {
+    final url = _url;
+    if (url == null || _entry.peaks.isNotEmpty) return;
+    if (_extOf(url) != 'wav') return;
+    try {
+      final bytes = await ref.read(audioBytesFetcherProvider)(url);
+      final peaks = peaksFromWav(bytes);
+      if (peaks == null || peaks.isEmpty || !mounted) return;
+      await _save(_entry.copyWith(peaks: peaks));
+    } catch (_) {
+      // Offline, CORS, a truncated object — the plain slider still works.
+    }
   }
 
   @override

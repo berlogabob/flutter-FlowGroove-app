@@ -113,7 +113,7 @@ const _adtsSampleRates = [
 const adtsSamplesPerFrame = 1024;
 
 /// ADTS `profile` for AAC-LC. Note this is *not* the MPEG-4 AudioObjectType,
-/// which is one higher — see [AdtsConfig.profile].
+/// which is one higher — see `AdtsConfig.profile`.
 const adtsProfileAacLc = 1;
 
 /// A frame's position, total size, and how much of that is header. Trimming
@@ -123,7 +123,7 @@ typedef AdtsFrame = ({int offset, int length, int headerLength});
 
 /// The stream-wide format, read off the first frame.
 ///
-/// [profile] is the raw 2-bit ADTS field (`1` = AAC-LC). The MPEG-4
+/// `profile` is the raw 2-bit ADTS field (`1` = AAC-LC). The MPEG-4
 /// AudioObjectType written into an MP4's AudioSpecificConfig is `profile + 1`;
 /// conflating the two writes "AAC Main" into the container, which iOS often
 /// still plays and Android's MediaCodec does not.
@@ -276,6 +276,38 @@ List<int> peaksFromLevels(List<double> dbfs, {int buckets = waveformPeakCount}) 
       if (dbfs[j] > peak) peak = dbfs[j];
     }
     out[i] = (((peak + 60) / 60).clamp(0.0, 1.0) * 255).round();
+  }
+  return out;
+}
+
+/// Derives waveform peaks from the audio itself, for takes recorded before
+/// peaks were captured at record time.
+///
+/// WAV only: PCM samples can be read directly, whereas AAC would need decoding.
+/// Strides rather than reading every sample — at 25MB that's 13M samples, and
+/// a bar only needs the loudest thing near it, not all of it.
+List<int>? peaksFromWav(Uint8List wav, {int buckets = waveformPeakCount}) {
+  final info = parseWav(wav);
+  if (info == null || info.bytesPerSample != 2 || buckets <= 0) return null;
+  final frame = info.channels * info.bytesPerSample;
+  final frames = info.length ~/ frame;
+  if (frames <= 0) return null;
+
+  final data = ByteData.sublistView(wav);
+  final out = List<int>.filled(math.min(buckets, frames), 0);
+  // Cap the work per bar; a few hundred samples is plenty to find a peak.
+  const maxReadsPerBucket = 256;
+  for (var i = 0; i < out.length; i++) {
+    final start = i * frames ~/ out.length;
+    final end = math.max(start + 1, (i + 1) * frames ~/ out.length);
+    final step = math.max(1, (end - start) ~/ maxReadsPerBucket);
+    var peak = 0;
+    for (var f = start; f < end; f += step) {
+      // First channel only: the second says nearly the same thing about level.
+      final v = data.getInt16(info.offset + f * frame, Endian.little).abs();
+      if (v > peak) peak = v;
+    }
+    out[i] = (peak * 255 / 32768).round().clamp(0, 255);
   }
   return out;
 }
