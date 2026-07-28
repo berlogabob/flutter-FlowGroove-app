@@ -23,6 +23,9 @@
         <!-- Load runtime configuration BEFORE Flutter bootstrap -->
         <!-- This file is injected at build time with environment variables -->
         <script src="config.js"></script>
+        <!-- MP3 encoder for sharing recordings (LGPL). Kept as a separate,
+             unmodified file on purpose — see web/vendor/README.md. -->
+        <script src="vendor/lamejs.iife.js"></script>
     </head>
     <body>
         <!--

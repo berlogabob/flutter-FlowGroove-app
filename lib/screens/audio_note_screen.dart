@@ -10,6 +10,7 @@ import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
 import '../services/audio/audio_note_edit.dart';
 import '../services/audio/m4a_muxer.dart';
+import '../services/audio/mp3_encoder.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
 import '../widgets/app_menu_sheet.dart';
@@ -341,6 +342,16 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       if (m4a != null) {
         bytes = m4a;
         ext = 'm4a';
+      } else {
+        // Web records WAV, which is also a document everywhere. No browser can
+        // encode AAC universally (Firefox and desktop Linux have none), so MP3
+        // is the format that reaches everyone. Null on native and for anything
+        // that isn't WAV, leaving those takes exactly as they were.
+        final mp3 = await encodeWavToMp3(bytes);
+        if (mp3 != null) {
+          bytes = mp3;
+          ext = 'mp3';
+        }
       }
       final name = '${_safeName(_entry.title ?? 'audio note')}.$ext';
       await SharePlus.instance.share(

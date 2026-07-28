@@ -226,6 +226,16 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                   style: TextStyle(color: context.mp.textSecondary),
                 ),
               ),
+              ListTile(
+                title: const Text('Open source licenses'),
+                subtitle: const Text('Libraries FlowGroove is built on'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => showLicensePage(
+                  context: context,
+                  applicationName: 'FlowGroove',
+                  applicationVersion: _version,
+                ),
+              ),
             ]),
             const SizedBox(height: MonoPulseSpacing.lg),
             const _MadeByFooter(),

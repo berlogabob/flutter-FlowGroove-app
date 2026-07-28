@@ -5,7 +5,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb, kReleaseMode;
+import 'package:flutter/foundation.dart'
+    show
+        LicenseEntry,
+        LicenseEntryWithLineBreaks,
+        LicenseRegistry,
+        kDebugMode,
+        kIsWeb,
+        kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -33,6 +40,23 @@ import 'widgets/wiki_panel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // LAME is LGPL and requires acknowledgement with a link (web/vendor/README.md
+  // records how each of its conditions is met). Web-only, but registered
+  // unconditionally so the licenses page reads the same everywhere.
+  LicenseRegistry.addLicense(
+    () => Stream<LicenseEntry>.value(
+      const LicenseEntryWithLineBreaks(<String>['lamejs (LAME)'], '''
+FlowGroove uses lamejs, a JavaScript port of the LAME MP3 encoder, to turn
+recordings made in a browser into MP3 files that messengers can play.
+
+LAME — https://lame.sourceforge.net/
+lamejs — https://github.com/zhuker/lamejs
+
+Licensed under the LGPL. lamejs is loaded as a separate, unmodified script
+(web/vendor/lamejs.iife.js) and can be replaced with your own build.'''),
+    ),
+  );
 
   // debugPrint still emits in release builds; silence the app's ~250 log
   // call sites globally instead of guarding each one.
