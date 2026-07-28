@@ -17,12 +17,14 @@ const req = (uid, token) => (uid ? { auth: { uid, token: token || {} } } : {});
 function build() {
   const deletedUsers = [];
   const deletedFiles = [];
+  const deletedPrefixes = [];
   const fakeAuth = { deleteUser: async (uid) => deletedUsers.push(uid) };
   const fakeBucket = {
     name: "test-bucket",
     file: (p) => ({
       delete: async () => deletedFiles.push(p),
     }),
+    deleteFiles: async ({ prefix }) => deletedPrefixes.push(prefix),
   };
   return {
     fn: functionsTest.wrap(
@@ -30,6 +32,7 @@ function build() {
     ),
     deletedUsers,
     deletedFiles,
+    deletedPrefixes,
   };
 }
 
@@ -66,7 +69,7 @@ describe("deleteAccount callable", function () {
     await db.collection("users").doc("u1").set({ name: "A" });
     await db.collection("users").doc("u1").collection("songs").doc("s1").set({ t: 1 });
     await db.collection("users").doc("u1").collection("setlists").doc("l1").set({ t: 1 });
-    const { fn, deletedUsers, deletedFiles } = build();
+    const { fn, deletedUsers, deletedFiles, deletedPrefixes } = build();
 
     const result = await fn(req("u1"));
     assert.deepEqual(result, { ok: true });
@@ -77,6 +80,16 @@ describe("deleteAccount callable", function () {
     assert.equal(songs.empty, true);
     assert.deepEqual(deletedUsers, ["u1"]);
     assert.deepEqual(deletedFiles, ["profile_pictures/u1.jpg"]);
+  });
+
+  it("wipes the audio notes, which nobody could read once the account is gone", async () => {
+    await db.collection("users").doc("u1").set({ name: "A" });
+    const { fn, deletedPrefixes } = build();
+
+    await fn(req("u1"));
+
+    // Only the personal prefix — band audio survives its members leaving.
+    assert.deepEqual(deletedPrefixes, ["lab_audio/user/u1/"]);
   });
 
   it("dissolves a band where the leaver was the only member", async () => {

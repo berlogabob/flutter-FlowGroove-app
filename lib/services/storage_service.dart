@@ -16,13 +16,21 @@ class StorageService {
     FirebaseStorage? storage,
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
-  })  : _storage = storage ?? FirebaseStorage.instance,
-        _auth = auth ?? FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+  })  : _injectedStorage = storage,
+        _injectedAuth = auth,
+        _injectedFirestore = firestore;
 
-  final FirebaseStorage _storage;
-  final FirebaseAuth _auth;
-  final FirebaseFirestore _firestore;
+  // Resolved on first use, not in the constructor: `.instance` throws unless
+  // Firebase is initialised, and merely constructing this service (or a
+  // provider that holds one) must not require that.
+  final FirebaseStorage? _injectedStorage;
+  final FirebaseAuth? _injectedAuth;
+  final FirebaseFirestore? _injectedFirestore;
+
+  FirebaseStorage get _storage => _injectedStorage ?? FirebaseStorage.instance;
+  FirebaseAuth get _auth => _injectedAuth ?? FirebaseAuth.instance;
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? FirebaseFirestore.instance;
 
   /// Helper method to check if user is authenticated.
   void _requireAuth() {
@@ -295,6 +303,27 @@ class StorageService {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Deletes the object behind a download [url].
+  ///
+  /// `refFromURL` parses the object path back out of the URL, so callers don't
+  /// have to store or re-derive it — which matters because a linked idea's
+  /// object stays under `_inbox/` while its document moves to the song, so the
+  /// path can't be reconstructed from the entry.
+  ///
+  /// Returns true when the object is gone (including when it never existed);
+  /// false when it couldn't be removed, so a caller can retry later.
+  Future<bool> deleteByUrl(String url) async {
+    try {
+      await _storage.refFromURL(url).delete();
+      return true;
+    } on FirebaseException catch (e) {
+      return e.code == 'object-not-found' || e.code == 'not-found';
+    } catch (_) {
+      // Malformed URL, offline, anything else: leave it queued.
+      return false;
     }
   }
 

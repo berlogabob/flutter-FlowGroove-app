@@ -106,7 +106,18 @@ function makeDeleteAccount({ getAuth, getBucket } = {}) {
       // Ignore "object not found" — nothing to remove.
     }
 
-    // 4. Delete the Auth account last, so a failure above leaves the user able
+    // 4. Best-effort delete their audio notes. The read rule on this prefix is
+    //    `request.auth.uid == uid`, so once the Auth account is gone in step 5
+    //    nobody can ever read or remove these — they'd sit in the bucket,
+    //    unreachable and billed, forever. Band audio is left alone: it belongs
+    //    to the band, not the departing member.
+    try {
+      await bucket.deleteFiles({ prefix: `lab_audio/user/${uid}/` });
+    } catch (e) {
+      // Ignore — a leftover object is recoverable, a failed deletion is not.
+    }
+
+    // 5. Delete the Auth account last, so a failure above leaves the user able
     //    to retry. Admin SDK delete bypasses the client recent-login rule.
     const auth = (getAuth || (() => admin.auth()))();
     await auth.deleteUser(uid);

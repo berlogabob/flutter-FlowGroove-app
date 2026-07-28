@@ -13,6 +13,7 @@ import '../../router/app_router.dart';
 import '../../services/analytics_service.dart';
 import '../../services/export/lab_markdown.dart';
 import '../../services/idea_recorder.dart';
+import '../../services/pending_storage_deletes.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/chordpro.dart';
 import '../../utils/member_label.dart';
@@ -146,13 +147,25 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
 
   Future<void> _delete(SongLabEntry entry) async {
     final repo = ref.read(labRepositoryProvider);
+    final pending = ref.read(pendingStorageDeletesProvider);
+    // A recording's audio has to outlive the snackbar for Undo's restored
+    // entry to still play; delete it only once the undo window shuts.
+    final url = entry.type == LabEntryType.recording &&
+            entry.attachmentIds.isNotEmpty
+        ? entry.attachmentIds.first
+        : null;
+    if (url != null) await pending.enqueue(url);
     await repo.deleteEntry(widget.song.id, entry.id, bandId: widget.bandId);
+    if (url != null) unawaited(pending.flushAfter(url, undoGracePeriod));
     if (!mounted) return;
     showAppSnackBar(
       context,
       'Entry deleted',
       actionLabel: 'Undo',
-      onAction: () => repo.saveEntry(entry, bandId: widget.bandId),
+      onAction: () {
+        repo.saveEntry(entry, bandId: widget.bandId);
+        if (url != null) pending.cancel(url);
+      },
     );
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audio_session/audio_session.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -14,6 +16,7 @@ import 'firebase_options.dart';
 import 'models/user.dart';
 import 'providers/analytics_consent_provider.dart';
 import 'providers/auth/auth_provider.dart';
+import 'providers/data/data_providers.dart';
 import 'providers/keep_screen_on_provider.dart';
 import 'providers/metronome_runtime_providers.dart';
 import 'providers/theme_mode_provider.dart';
@@ -248,6 +251,9 @@ void main() async {
     // Log login event for existing user (off the startup critical path)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       analytics?.logLogin(loginMethod: 'auto');
+      // Audio objects whose undo window closed while the app was gone. Failures
+      // stay queued, so this is safe to fire and forget.
+      unawaited(rootContainer.read(pendingStorageDeletesProvider).sweep());
     });
   } else {
     debugPrint('🔑 NO USER: No user found from previous session');

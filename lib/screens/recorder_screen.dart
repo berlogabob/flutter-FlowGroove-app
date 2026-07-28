@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +8,7 @@ import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
 import '../router/app_router.dart';
 import '../services/idea_recorder.dart';
+import '../services/pending_storage_deletes.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
 import 'songs/components/lab_recording_sheet.dart';
@@ -167,13 +170,25 @@ class _RecordingCard extends ConsumerWidget {
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
     final repo = ref.read(labRepositoryProvider);
+    final pending = ref.read(pendingStorageDeletesProvider);
+    // Undo restores the document, and its audio URL only still resolves
+    // because the object outlives the snackbar. Queue the object now, delete
+    // it when the undo window shuts, and drop it from the queue if Undo wins.
+    final url = recording.attachmentIds.isEmpty
+        ? null
+        : recording.attachmentIds.first;
+    if (url != null) await pending.enqueue(url);
     await repo.deleteEntry(ideaInboxSongId, recording.id);
+    if (url != null) unawaited(pending.flushAfter(url, undoGracePeriod));
     if (context.mounted) {
       showAppSnackBar(
         context,
         'Recording deleted',
         actionLabel: 'Undo',
-        onAction: () => repo.saveEntry(recording),
+        onAction: () {
+          repo.saveEntry(recording);
+          if (url != null) pending.cancel(url);
+        },
       );
     }
   }

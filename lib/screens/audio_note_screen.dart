@@ -343,13 +343,24 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       context: context,
       builder: (_) => const ConfirmationDialog(
         title: 'Delete recording?',
-        message: 'The take and its notes are removed.',
+        message: 'The audio and its notes are gone for good — there is no undo '
+            'from here.',
         confirmLabel: 'Delete',
       ),
     );
     if (confirmed != true || !mounted) return;
-    final repo = ref.read(labRepositoryProvider);
-    await repo.deleteEntry(_entry.songId, _entry.id, bandId: widget.bandId);
+    final url = _url;
+    await ref
+        .read(labRepositoryProvider)
+        .deleteEntry(_entry.songId, _entry.id, bandId: widget.bandId);
+    // No undo on this path, so the bytes can go with the document. Queued
+    // first, so a failure here is retried at the next launch instead of
+    // leaking the object.
+    if (url != null) {
+      final pending = ref.read(pendingStorageDeletesProvider);
+      await pending.enqueue(url);
+      unawaited(pending.flush(url));
+    }
     if (!mounted) return;
     context.pop();
   }

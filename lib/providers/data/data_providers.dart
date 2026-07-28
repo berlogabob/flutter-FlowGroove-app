@@ -14,6 +14,7 @@ import '../../repositories/repositories.dart';
 import '../../services/band_function_service.dart';
 import '../../services/canonical_song_function_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/pending_storage_deletes.dart';
 import '../../services/rehearsal_function_service.dart';
 import '../../services/storage_service.dart';
 import '../auth/auth_provider.dart';
@@ -33,6 +34,11 @@ final firestoreProvider = Provider<FirestoreService>((ref) {
 /// without Firebase.
 final storageServiceProvider = Provider<StorageService>((ref) {
   return StorageService();
+});
+
+/// Queue of audio objects awaiting deletion once their undo window closes.
+final pendingStorageDeletesProvider = Provider<PendingStorageDeletes>((ref) {
+  return PendingStorageDeletes(storage: ref.watch(storageServiceProvider));
 });
 
 /// Fetches the bytes behind a Firebase Storage download URL.
