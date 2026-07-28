@@ -9,6 +9,7 @@ import '../../models/song.dart';
 import '../../models/song_lab.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../router/app_router.dart';
 import '../../services/analytics_service.dart';
 import '../../services/export/lab_markdown.dart';
 import '../../services/idea_recorder.dart';
@@ -537,6 +538,9 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
         vertical: MonoPulseSpacing.xs,
       ),
       child: ListTile(
+        onTap: e.type == LabEntryType.recording && e.attachmentIds.isNotEmpty
+            ? () => context.goAudioNote(e, bandId: widget.bandId)
+            : null,
         leading: Icon(
           _typeIcons[e.type],
           color: superseded

@@ -65,6 +65,7 @@ class SongLabEntry {
     this.tags = const [],
     this.visibility = 'band',
     this.attachmentIds = const [],
+    this.peaks = const [],
   });
 
   factory SongLabEntry.fromJson(Map<String, dynamic> json) => SongLabEntry(
@@ -84,6 +85,12 @@ class SongLabEntry {
     updatedAt: _parseDate(json['updatedAt']),
     attachmentIds:
         (json['attachmentIds'] as List?)?.whereType<String>().toList() ??
+        const [],
+    peaks:
+        (json['peaks'] as List?)
+            ?.whereType<num>()
+            .map((v) => v.toInt())
+            .toList() ??
         const [],
   );
 
@@ -114,6 +121,11 @@ class SongLabEntry {
   final DateTime updatedAt;
   final List<String> attachmentIds;
 
+  /// Waveform bars (0..255) for `recording` entries, captured while recording.
+  /// ~800 bytes on the doc, which is what lets the audio note editor draw a
+  /// waveform without downloading the audio. Empty for legacy/attached takes.
+  final List<int> peaks;
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'songId': songId,
@@ -130,26 +142,33 @@ class SongLabEntry {
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
     'attachmentIds': attachmentIds,
+    if (peaks.isNotEmpty) 'peaks': peaks,
   };
 
-  SongLabEntry copyWith({String? title, String? body, String? status}) =>
-      SongLabEntry(
-        id: id,
-        songId: songId,
-        bandId: bandId,
-        type: type,
-        title: title ?? this.title,
-        body: body ?? this.body,
-        sectionId: sectionId,
-        versionId: versionId,
-        status: status ?? this.status,
-        tags: tags,
-        authorId: authorId,
-        visibility: visibility,
-        createdAt: createdAt,
-        updatedAt: DateTime.now(),
-        attachmentIds: attachmentIds,
-      );
+  SongLabEntry copyWith({
+    String? title,
+    String? body,
+    String? status,
+    List<String>? attachmentIds,
+    List<int>? peaks,
+  }) => SongLabEntry(
+    id: id,
+    songId: songId,
+    bandId: bandId,
+    type: type,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    sectionId: sectionId,
+    versionId: versionId,
+    status: status ?? this.status,
+    tags: tags,
+    authorId: authorId,
+    visibility: visibility,
+    createdAt: createdAt,
+    updatedAt: DateTime.now(),
+    attachmentIds: attachmentIds ?? this.attachmentIds,
+    peaks: peaks ?? this.peaks,
+  );
 }
 
 class SongTask {

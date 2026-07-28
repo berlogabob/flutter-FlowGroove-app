@@ -68,6 +68,7 @@ Future<void> captureIdea(
             createdAt: now,
             updatedAt: now,
             attachmentIds: [url],
+            peaks: result.peaks,
           ),
           bandId: bandId,
         );
@@ -107,6 +108,7 @@ Future<void> linkIdeaToSong(
       createdAt: idea.createdAt,
       updatedAt: now,
       attachmentIds: idea.attachmentIds,
+      peaks: idea.peaks,
     ),
   );
   await repo.deleteEntry(ideaInboxSongId, idea.id);

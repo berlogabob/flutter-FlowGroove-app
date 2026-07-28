@@ -2,21 +2,25 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
 
 /// Records via `record`'s PCM16 stream and wraps the result into a WAV
 /// container on stop.
 ///
-/// This is the web capture path for audio memos (#150): the PCM stream is the
-/// same proven route the tuner uses on web, and WAV sidesteps MediaRecorder
-/// codec/Safari-playback risk entirely — every platform plays it.
+/// This is the capture path for audio memos on every platform (#150): the PCM
+/// stream is the same proven route the tuner uses, and WAV sidesteps
+/// MediaRecorder codec/Safari-playback risk entirely — every platform plays it,
+/// and the bytes stay sliceable so the audio note editor can trim them.
 /// ponytail: WAV costs ~5.3MB/min mono; callers cap duration (Storage rejects
-/// >=25MB). Switch to opus/webm if longer memos ever matter.
+/// >=25MB). Switch to aacLc streaming if longer memos ever matter — trim would
+/// then need a different strategy.
 class PcmWavRecorder {
   PcmWavRecorder(this._recorder);
 
   final AudioRecorder _recorder;
   final BytesBuilder _pcm = BytesBuilder(copy: false);
+  final List<double> _levels = [];
   StreamSubscription<Uint8List>? _sub;
   int _sampleRate = 44100;
 
@@ -25,9 +29,13 @@ class PcmWavRecorder {
 
   bool get isRecording => _sub != null;
 
+  /// Every chunk level of the take so far, for reducing to waveform peaks.
+  List<double> get levels => List.unmodifiable(_levels);
+
   Future<void> start() async {
     if (_sub != null) return;
     _pcm.clear();
+    _levels.clear();
     _sampleRate = 44100;
     await _recorder.setOnConfigChanged((config) {
       _sampleRate = config.sampleRate;
@@ -36,12 +44,23 @@ class PcmWavRecorder {
       const RecordConfig(
         encoder: AudioEncoder.pcm16bits,
         numChannels: 1,
-        streamBufferSize: 4096,
+        // An explicit size bypasses AudioRecord.getMinBufferSize on Android and
+        // hard-fails init on devices that need more; only web requires it.
+        streamBufferSize: kIsWeb ? 4096 : null,
+        // Music, not speech: the raw mic rather than a voice-tuned source, so
+        // Android doesn't smear a riff. Knob — drop back to defaultSource if a
+        // device records too hot. autoGain/echoCancel/noiseSuppress are already
+        // off by default and stay off for the same reason.
+        androidConfig: AndroidRecordConfig(
+          audioSource: AndroidAudioSource.mic,
+        ),
       ),
     );
     _sub = stream.listen((chunk) {
       _pcm.add(chunk);
-      onLevel?.call(_rmsDbfs(chunk));
+      final level = _rmsDbfs(chunk);
+      _levels.add(level);
+      onLevel?.call(level);
     });
   }
 
@@ -58,6 +77,7 @@ class PcmWavRecorder {
     _sub = null;
     await _recorder.stop();
     _pcm.clear();
+    _levels.clear();
   }
 
   static double _rmsDbfs(Uint8List chunk) {

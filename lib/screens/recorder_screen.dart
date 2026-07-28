@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/song.dart';
 import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
+import '../router/app_router.dart';
 import '../services/idea_recorder.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
@@ -98,6 +99,7 @@ class _RecordingCard extends ConsumerWidget {
       elevation: 0,
       color: Theme.of(context).colorScheme.surface,
       child: ListTile(
+        onTap: () => context.goAudioNote(recording),
         title: Text(
           recording.title ?? 'Take · ${d.day}/${d.month}',
           style: MonoPulseTypography.titleLarge.copyWith(
@@ -121,11 +123,13 @@ class _RecordingCard extends ConsumerWidget {
         ),
         trailing: PopupMenuButton<String>(
           onSelected: (v) => switch (v) {
+            'edit' => context.goAudioNote(recording),
             'link' => _linkToSong(context, ref),
             'delete' => _delete(context, ref),
             _ => null,
           },
           itemBuilder: (_) => const [
+            PopupMenuItem(value: 'edit', child: Text('Trim & notes…')),
             PopupMenuItem(value: 'link', child: Text('Link to song…')),
             PopupMenuItem(value: 'delete', child: Text('Delete')),
           ],

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 import '../../models/band.dart';
 import '../../models/canonical_song.dart';
@@ -13,6 +15,7 @@ import '../../services/band_function_service.dart';
 import '../../services/canonical_song_function_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/rehearsal_function_service.dart';
+import '../../services/storage_service.dart';
 import '../auth/auth_provider.dart';
 
 /// Provider for FirestoreService.
@@ -24,6 +27,25 @@ import '../auth/auth_provider.dart';
 /// ```
 final firestoreProvider = Provider<FirestoreService>((ref) {
   return FirestoreService();
+});
+
+/// Provider for StorageService — a seam so screens that upload can be tested
+/// without Firebase.
+final storageServiceProvider = Provider<StorageService>((ref) {
+  return StorageService();
+});
+
+/// Fetches the bytes behind a Firebase Storage download URL.
+///
+/// Plain `http` rather than `Reference.getData()`: on web the SDK is literally
+/// `getDownloadURL()` + `http.readBytes` (so there's no CORS advantage), its
+/// 10MB default silently returns null for a typical take, and the tokenised URL
+/// sidesteps the uid-locked read rule on `lab_audio/user/{uid}/…` that would
+/// deny a band member.
+final audioBytesFetcherProvider = Provider<Future<Uint8List> Function(String)>((
+  ref,
+) {
+  return (url) => http.readBytes(Uri.parse(url));
 });
 
 /// Provider for the SongRepository.

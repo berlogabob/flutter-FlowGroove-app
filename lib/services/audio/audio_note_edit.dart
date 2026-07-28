@@ -1,0 +1,219 @@
+/// Pure editing helpers for audio notes: WAV trimming, waveform peaks and the
+/// timestamp comments parsed out of a recording entry's body.
+///
+/// Deliberately plugin-free — no recorder, no player, no Firebase — so every
+/// branch that can silently corrupt a recording is unit-testable.
+library;
+
+import 'dart:math' as math;
+import 'dart:typed_data';
+
+import 'pcm_wav_recorder.dart' show wavFromPcm16;
+
+/// Where the samples live inside a RIFF/WAVE buffer, plus the format needed to
+/// convert between byte offsets and milliseconds.
+typedef WavInfo = ({
+  int offset,
+  int length,
+  int sampleRate,
+  int channels,
+  int bytesPerSample,
+});
+
+/// Locates the `fmt `/`data` chunks of a PCM WAV.
+///
+/// Walks the chunk list rather than assuming the 44-byte header our own
+/// [wavFromPcm16] writes: files picked with "Attach file" routinely carry
+/// `LIST`/`fact` chunks before `data`, and slicing at a hardcoded 44 would cut
+/// into metadata. Returns null for anything that isn't uncompressed PCM.
+WavInfo? parseWav(Uint8List wav) {
+  if (wav.length < 12) return null;
+  final data = ByteData.sublistView(wav);
+  String ascii(int offset) =>
+      String.fromCharCodes(wav.sublist(offset, offset + 4));
+  if (ascii(0) != 'RIFF' || ascii(8) != 'WAVE') return null;
+
+  int? sampleRate;
+  int? channels;
+  int? bitsPerSample;
+  var pos = 12;
+  while (pos + 8 <= wav.length) {
+    final id = ascii(pos);
+    final size = data.getUint32(pos + 4, Endian.little);
+    final body = pos + 8;
+    if (id == 'fmt ' && body + 16 <= wav.length) {
+      if (data.getUint16(body, Endian.little) != 1) return null; // PCM only
+      channels = data.getUint16(body + 2, Endian.little);
+      sampleRate = data.getUint32(body + 4, Endian.little);
+      bitsPerSample = data.getUint16(body + 14, Endian.little);
+    } else if (id == 'data') {
+      if (sampleRate == null || channels == null || bitsPerSample == null) {
+        return null;
+      }
+      // A truncated recording can declare more bytes than it carries.
+      final length = math.min(size, wav.length - body);
+      if (length <= 0) return null;
+      return (
+        offset: body,
+        length: length,
+        sampleRate: sampleRate,
+        channels: channels,
+        bytesPerSample: bitsPerSample ~/ 8,
+      );
+    }
+    // Chunks are word-aligned: odd sizes carry a pad byte.
+    pos = body + size + (size.isOdd ? 1 : 0);
+  }
+  return null;
+}
+
+/// Duration of a PCM WAV in milliseconds, or null if [wav] isn't one.
+int? wavDurationMs(Uint8List wav) {
+  final info = parseWav(wav);
+  if (info == null) return null;
+  return _msFromBytes(info.length, info);
+}
+
+/// Returns [wav] cut down to `[startMs, endMs)`, or null if [wav] isn't PCM
+/// WAV (an m4a take, say — byte-slicing an MPEG-4 container yields garbage).
+///
+/// Offsets snap to frame boundaries; slicing mid-frame shifts the sample phase
+/// and turns the whole recording into noise on stereo or 24-bit sources.
+Uint8List? trimWav(Uint8List wav, {required int startMs, required int endMs}) {
+  final info = parseWav(wav);
+  if (info == null) return null;
+  final frame = info.channels * info.bytesPerSample;
+  final totalMs = _msFromBytes(info.length, info);
+
+  final from = _snap(_bytesFromMs(startMs.clamp(0, totalMs), info), frame);
+  final to = _snap(_bytesFromMs(endMs.clamp(0, totalMs), info), frame);
+  if (to <= from) return null;
+
+  final pcm = Uint8List.sublistView(
+    wav,
+    info.offset + from,
+    info.offset + math.min(to, info.length),
+  );
+  return wavFromPcm16(
+    Uint8List.fromList(pcm),
+    sampleRate: info.sampleRate,
+    channels: info.channels,
+  );
+}
+
+int _msFromBytes(int bytes, WavInfo info) =>
+    bytes * 1000 ~/ (info.sampleRate * info.channels * info.bytesPerSample);
+
+int _bytesFromMs(int ms, WavInfo info) =>
+    ms * info.sampleRate * info.channels * info.bytesPerSample ~/ 1000;
+
+int _snap(int bytes, int frame) => bytes - (bytes % frame);
+
+/// Number of bars stored per recording. ~800 bytes on the Firestore doc, which
+/// is what lets the editor draw a waveform without downloading the audio.
+const waveformPeakCount = 200;
+
+/// Reduces a recording's dBFS level stream to [buckets] bars in 0..255.
+///
+/// Same -60dB floor as the live recording bars, so a take looks the same while
+/// recording and afterwards.
+List<int> peaksFromLevels(List<double> dbfs, {int buckets = waveformPeakCount}) {
+  if (dbfs.isEmpty || buckets <= 0) return const [];
+  final out = List<int>.filled(math.min(buckets, dbfs.length), 0);
+  for (var i = 0; i < out.length; i++) {
+    final start = i * dbfs.length ~/ out.length;
+    final end = math.max(start + 1, (i + 1) * dbfs.length ~/ out.length);
+    var peak = -60.0;
+    for (var j = start; j < end; j++) {
+      if (dbfs[j] > peak) peak = dbfs[j];
+    }
+    out[i] = (((peak + 60) / 60).clamp(0.0, 1.0) * 255).round();
+  }
+  return out;
+}
+
+/// Reslices a stored peak array to the same window a trim applied to the audio,
+/// so committing a trim doesn't need the bytes re-downloaded to redraw.
+List<int> trimPeaks(List<int> peaks, double startFrac, double endFrac) {
+  if (peaks.isEmpty) return const [];
+  final from = (startFrac.clamp(0.0, 1.0) * peaks.length).floor();
+  final to = (endFrac.clamp(0.0, 1.0) * peaks.length).ceil();
+  if (to <= from) return const [];
+  return peaks.sublist(math.min(from, peaks.length - 1), math.min(to, peaks.length));
+}
+
+/// One timestamped comment on a recording.
+typedef AudioMarker = ({int ms, String text});
+
+final _markerLine = RegExp(r'^\s*(\d{1,2}):([0-5]\d)\s+(.+?)\s*$');
+
+/// Parses `00:42 good chorus entry` lines out of an entry body.
+///
+/// ponytail: markers ARE the body text — no new model, no new collection, and
+/// they still export and read as plain notes. Lines that don't match are kept
+/// out of the marker list and preserved by [formatMarkers] callers only if they
+/// re-add them; in practice the whole body is markers.
+List<AudioMarker> parseMarkers(String? body) {
+  if (body == null || body.isEmpty) return const [];
+  final out = <AudioMarker>[];
+  for (final line in body.split('\n')) {
+    final m = _markerLine.firstMatch(line);
+    if (m == null) continue;
+    final ms =
+        (int.parse(m.group(1)!) * 60 + int.parse(m.group(2)!)) * 1000;
+    out.add((ms: ms, text: m.group(3)!));
+  }
+  out.sort((a, b) => a.ms.compareTo(b.ms));
+  return out;
+}
+
+/// Renders markers back to the `MM:SS text` body format.
+String formatMarkers(List<AudioMarker> markers) {
+  final sorted = [...markers]..sort((a, b) => a.ms.compareTo(b.ms));
+  return sorted.map((m) => '${formatTimestamp(m.ms)} ${m.text}').join('\n');
+}
+
+/// `M:SS` for playback readouts, zero-padded `MM:SS` in marker lines.
+String formatTimestamp(int ms, {bool padMinutes = true}) {
+  final total = ms ~/ 1000;
+  final minutes = (total ~/ 60).toString();
+  final seconds = (total % 60).toString().padLeft(2, '0');
+  return '${padMinutes ? minutes.padLeft(2, '0') : minutes}:$seconds';
+}
+
+/// Rebases markers onto a trimmed recording: everything moves back by
+/// [startMs], and anything now outside the take is dropped.
+///
+/// Easy to forget, and forgetting it silently desynchronises every comment.
+List<AudioMarker> shiftMarkers(
+  List<AudioMarker> markers, {
+  required int startMs,
+  required int durationMs,
+}) => [
+  for (final m in markers)
+    if (m.ms >= startMs && m.ms - startMs <= durationMs)
+      (ms: m.ms - startMs, text: m.text),
+];
+
+/// Inserts [marker], replacing any existing one at the same second.
+List<AudioMarker> upsertMarker(List<AudioMarker> markers, AudioMarker marker) {
+  final second = marker.ms ~/ 1000;
+  return [
+    for (final m in markers)
+      if (m.ms ~/ 1000 != second) m,
+    marker,
+  ]..sort((a, b) => a.ms.compareTo(b.ms));
+}
+
+/// Index of the marker the playhead is currently inside, or -1.
+int activeMarkerIndex(List<AudioMarker> markers, int positionMs) {
+  var active = -1;
+  for (var i = 0; i < markers.length; i++) {
+    if (markers[i].ms <= positionMs) {
+      active = i;
+    } else {
+      break;
+    }
+  }
+  return active;
+}

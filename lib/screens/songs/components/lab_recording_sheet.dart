@@ -1,13 +1,12 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import '../../../services/audio/audio_note_edit.dart';
 import '../../../services/audio/pcm_wav_recorder.dart';
 import '../../../theme/mono_pulse_theme.dart';
 
@@ -18,12 +17,17 @@ class LabRecordingResult {
     required this.ext,
     this.title,
     this.notes,
+    this.peaks = const [],
   });
 
   final Uint8List bytes;
   final String ext;
   final String? title;
   final String? notes;
+
+  /// Waveform bars for the audio note editor. Empty for attached files, whose
+  /// levels we never saw.
+  final List<int> peaks;
 }
 
 /// Capture-or-attach sheet for Song Lab audio ideas (#69). Capture, don't
@@ -49,16 +53,16 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   bool _recording = false;
   int _elapsed = 0;
   Timer? _ticker;
-  StreamSubscription<Amplitude>? _ampSub;
   final List<double> _amps = [];
   Uint8List? _bytes;
-  String _ext = 'm4a';
+  String _ext = 'wav';
   String? _pickedName;
+  List<int> _peaks = const [];
   PcmWavRecorder? _wavRecorder;
 
-  /// Web records uncompressed WAV (~5.3MB/min mono); stop before the 25MB
-  /// Storage cap. Native m4a has no practical cap in one memo.
-  static const int _webMaxSeconds = 240;
+  /// Every platform records uncompressed WAV (~5.3MB/min mono) so takes stay
+  /// sliceable for the audio note editor; stop before the 25MB Storage cap.
+  static const int _maxSeconds = 240;
 
   @override
   void initState() {
@@ -81,7 +85,6 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   @override
   void dispose() {
     _ticker?.cancel();
-    _ampSub?.cancel();
     if (_wavRecorder?.isRecording ?? false) {
       unawaited(_wavRecorder!.cancel());
     }
@@ -101,25 +104,15 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       if (_stopInFlight) return;
       _stopInFlight = true;
       _ticker?.cancel();
-      await _ampSub?.cancel();
-      _ampSub = null;
-      final Uint8List? bytes;
-      final String ext;
-      if (kIsWeb) {
-        bytes = await _wavRecorder?.stop();
-        ext = 'wav';
-      } else {
-        final path = await _recorder.stop();
-        bytes = path == null ? null : await File(path).readAsBytes();
-        ext = 'm4a';
-      }
+      final levels = _wavRecorder?.levels ?? const <double>[];
+      final bytes = await _wavRecorder?.stop();
       // 44 bytes = a WAV header with zero samples — not a recording.
-      final hasAudio =
-          bytes != null && bytes.isNotEmpty && !(ext == 'wav' && bytes.length <= 44);
+      final hasAudio = bytes != null && bytes.length > 44;
       setState(() {
         if (hasAudio) {
           _bytes = bytes;
-          _ext = ext;
+          _ext = 'wav';
+          _peaks = peaksFromLevels(levels);
           _pickedName = null;
         }
         _recording = false;
@@ -128,49 +121,33 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       return;
     }
     if (!await _recorder.hasPermission()) return;
-    if (kIsWeb) {
-      // No filesystem on web: stream PCM16 (the tuner's proven capture path)
-      // and wrap it into WAV on stop (#150).
-      final recorder = _wavRecorder ??= PcmWavRecorder(_recorder);
-      recorder.onLevel = (dbfs) {
-        if (!mounted) return;
-        setState(() {
-          _amps.add(dbfs);
-          if (_amps.length > _RecordingWavePainter.maxBars) {
-            _amps.removeAt(0);
-          }
-        });
-      };
-      await recorder.start();
-    } else {
-      final dir = await getTemporaryDirectory();
-      final path =
-          '${dir.path}/lab_rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      await _recorder.start(const RecordConfig(), path: path);
-      _ampSub = _recorder
-          .onAmplitudeChanged(const Duration(milliseconds: 100))
-          .listen((a) {
-            if (!mounted) return;
-            setState(() {
-              _amps.add(a.current);
-              if (_amps.length > _RecordingWavePainter.maxBars) {
-                _amps.removeAt(0);
-              }
-            });
-          });
-    }
+    // PCM16 streaming (the tuner's proven capture path) wrapped into WAV on
+    // stop, on every platform (#150): uncompressed bytes stay sliceable, so the
+    // audio note editor can trim a take without an ffmpeg-sized dependency.
+    final recorder = _wavRecorder ??= PcmWavRecorder(_recorder);
+    recorder.onLevel = (dbfs) {
+      if (!mounted) return;
+      setState(() {
+        _amps.add(dbfs);
+        if (_amps.length > _RecordingWavePainter.maxBars) {
+          _amps.removeAt(0);
+        }
+      });
+    };
+    await recorder.start();
     _elapsed = 0;
     _amps.clear();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _elapsed++);
-      if (kIsWeb && _recording && _elapsed >= _webMaxSeconds) {
+      if (_recording && _elapsed >= _maxSeconds) {
         unawaited(_toggleRecord());
       }
     });
     setState(() {
       _recording = true;
       _bytes = null;
+      _peaks = const [];
     });
   }
 
@@ -182,6 +159,9 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       _bytes = bytes;
       _ext = (file.extension ?? 'm4a').toLowerCase();
       _pickedName = file.name;
+      // We never saw this file's levels; the editor falls back to a plain
+      // seek bar. ponytail: compute peaks from the bytes if it ever matters.
+      _peaks = const [];
       _recording = false;
     });
     if (_title.text.isEmpty && file.name.isNotEmpty) {
@@ -294,6 +274,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
                             notes: _notes.text.trim().isEmpty
                                 ? null
                                 : _notes.text.trim(),
+                            peaks: _peaks,
                           ),
                         )
                       : null,

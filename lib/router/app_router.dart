@@ -9,10 +9,12 @@ import '../models/band.dart';
 import '../models/rehearsal.dart';
 import '../models/setlist.dart';
 import '../models/song.dart';
+import '../models/song_lab.dart';
 import '../models/tuner_launch_context.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
 import '../services/analytics_service.dart';
+import '../screens/audio_note_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/bands/band_about_screen.dart';
@@ -597,6 +599,24 @@ List<RouteBase> _buildAppRoutes() {
         );
       },
     ),
+    // Flat sibling of /main/recorder rather than a child: nesting under a
+    // root-parented route loses the root navigator for the child.
+    GoRoute(
+      path: '/main/audio-note/:id',
+      name: 'audio-note',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final entry = extra?['entry'] as SongLabEntry?;
+        // extra doesn't survive a refresh or a deep link; there's no id-only
+        // lookup for a lab entry, so send them back to the list.
+        if (entry == null) return const RecorderScreen();
+        return AudioNoteScreen(
+          entry: entry,
+          bandId: extra?['bandId'] as String?,
+        );
+      },
+    ),
     GoRoute(
       path: '/main/tuner',
       name: 'tuner',
@@ -723,6 +743,13 @@ extension GoRouterExtension on BuildContext {
   /// instead of exiting the app.
   void goTuner({TunerLaunchContext? launchContext}) =>
       pushNamed('tuner', extra: launchContext);
+
+  /// Open a recording in the audio note editor (trim, waveform, notes, share).
+  void goAudioNote(SongLabEntry entry, {String? bandId}) => pushNamed(
+    'audio-note',
+    pathParameters: {'id': entry.id},
+    extra: {'entry': entry, 'bandId': bandId},
+  );
 
   /// Navigate to login screen.
   void goLogin() => goNamed('login');
