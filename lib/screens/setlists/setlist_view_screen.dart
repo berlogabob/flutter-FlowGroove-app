@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../providers/data/data_providers.dart';
@@ -143,6 +144,7 @@ class SetlistViewScreen extends ConsumerWidget {
   }) {
     final songsById = {for (final song in allSongs) song.id: song};
     final items = setlist.effectiveItems;
+    final lineup = peopleById(setlist.eventKit?.people ?? const []);
 
     if (items.isEmpty && (setlist.eventKit?.isEmpty ?? true)) {
       return const EmptyState(
@@ -179,6 +181,7 @@ class SetlistViewScreen extends ConsumerWidget {
         return SetlistSongRow(
           index: numbers[index],
           song: song,
+          performers: performerLabel(item.performerIds, lineup),
           trailing: song == null ? null : _badgesFor(song),
           onTap: song == null ? null : () => _openSong(context, song),
         );
@@ -286,16 +289,14 @@ class SetlistViewScreen extends ConsumerWidget {
     WidgetRef ref,
     Setlist setlist,
   ) async {
-    final layout = await pickSetlistPdfLayout(
-      context,
-      withEventGuide: setlist.eventKit?.isEmpty == false,
-    );
-    if (layout == null) return;
+    final choice = await pickSetlistPdfExport(context, setlist);
+    if (choice == null) return;
     try {
       await PdfService.exportSetlist(
         setlist,
         await _resolveSongs(ref, setlist),
-        layout: layout,
+        layout: choice.layout,
+        performerId: choice.performerId,
       );
     } catch (e) {
       if (!context.mounted) return;

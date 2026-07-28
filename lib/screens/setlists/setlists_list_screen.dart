@@ -332,14 +332,16 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
   }
 
   Future<void> _exportPdf(Setlist setlist) async {
-    final layout = await pickSetlistPdfLayout(
-      context,
-      withEventGuide: setlist.eventKit?.isEmpty == false,
-    );
-    if (layout == null) return;
+    final choice = await pickSetlistPdfExport(context, setlist);
+    if (choice == null) return;
     final setlistSongs = await _songsForSetlist(setlist);
     try {
-      await PdfService.exportSetlist(setlist, setlistSongs, layout: layout);
+      await PdfService.exportSetlist(
+        setlist,
+        setlistSongs,
+        layout: choice.layout,
+        performerId: choice.performerId,
+      );
     } catch (e) {
       if (!mounted) return;
       showAppSnackBar(context, 'Error: $e');

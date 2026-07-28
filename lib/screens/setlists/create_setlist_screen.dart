@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../models/band.dart';
+import '../../models/event_kit.dart';
+import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../models/setlist_break_type.dart';
 import '../../models/song.dart';
@@ -15,6 +18,7 @@ import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/setlist_break_row.dart';
 import '../../widgets/setlist_song_row.dart';
+import 'performer_sheet.dart';
 
 enum SetlistStorageScope { personal, band }
 
@@ -48,6 +52,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   // rendered as a placeholder row instead of being dropped (see
   // _loadSongsForEditing / _reconcileItems).
   Map<String, Song> _songsById = {};
+  // The Event Kit rides along with the setlist: it holds the lineup roster
+  // that `SetlistItem.performerIds` point at, so the editor must carry it
+  // through a save instead of dropping it.
+  EventKit? _eventKit;
   bool _hasUnsavedChanges = false;
   bool _isSaving = false;
   bool _showEventDetails = false;
@@ -98,6 +106,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       _descriptionController.text = setlist.description ?? '';
       _eventDate = setlist.eventDateTime;
       _eventLocationController.text = setlist.eventLocation ?? '';
+      _eventKit = setlist.eventKit;
       _songsLoaded = setlist.effectiveItems.isEmpty;
       _loadSongsForEditing(setlist);
     }
@@ -340,6 +349,46 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
     );
   }
 
+  /// Band members of the setlist's band, so they can be assigned alongside
+  /// guest placeholders. Empty for a personal setlist.
+  List<BandMember> get _bandMembers {
+    final bandId = _effectiveBandId;
+    if (bandId == null) return const [];
+    final bands = ref.read(bandsProvider).value ?? const [];
+    for (final band in bands) {
+      if (band.id == bandId) return band.members;
+    }
+    return const [];
+  }
+
+  /// Assigns people to the song at [index]. "Plays every song" ids are added
+  /// to every song item, so a pianist who plays the whole set is one tap.
+  Future<void> _assignPerformers(int index, int songNumber) async {
+    final item = _selectedItems[index];
+    final result = await showPerformerSheet(
+      context: context,
+      selected: item.performerIds,
+      kit: _eventKit ?? const EventKit(),
+      members: _bandMembers,
+      songNumber: songNumber + 1,
+      songTitle: _songsById[item.songId]?.title ?? 'Unavailable song',
+    );
+    if (result == null || !mounted) return;
+    setState(() {
+      _eventKit = result.kit;
+      _selectedItems[index] = item.copyWith(performerIds: result.performerIds);
+      if (result.allSongIds.isNotEmpty) {
+        for (var i = 0; i < _selectedItems.length; i++) {
+          final other = _selectedItems[i];
+          if (other.isBreak) continue;
+          final ids = {...other.performerIds, ...result.allSongIds};
+          _selectedItems[i] = other.copyWith(performerIds: ids.toList());
+        }
+      }
+      _markAsChanged();
+    });
+  }
+
   Future<void> _saveSetlist() async {
     if (_isSaving) return;
     if (!_songsLoaded) {
@@ -388,6 +437,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       items: items,
       totalDuration: widget.setlist?.totalDuration,
       assignments: widget.setlist?.assignments ?? const {},
+      eventKit: _eventKit,
       createdAt: _isEditing ? widget.setlist!.createdAt : DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -784,11 +834,34 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                           child: SetlistSongRow(
                             index: songNumber,
                             song: song,
+                            // Assigned people are always materialised into the
+                            // kit roster, so it alone resolves the labels.
+                            performers: performerLabel(
+                              item.performerIds,
+                              peopleById(_eventKit?.people ?? const []),
+                            ),
                             trailing: song == null
                                 ? null
                                 : Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
+                                      IconButton(
+                                        tooltip: 'Who plays this',
+                                        icon: Badge(
+                                          isLabelVisible:
+                                              item.performerIds.isNotEmpty,
+                                          label: Text(
+                                            '${item.performerIds.length}',
+                                          ),
+                                          child: const Icon(
+                                            Icons.person_outline,
+                                          ),
+                                        ),
+                                        onPressed: () => _assignPerformers(
+                                          index,
+                                          songNumber,
+                                        ),
+                                      ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: MonoPulseSpacing.md,

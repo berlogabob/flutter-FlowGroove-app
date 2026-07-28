@@ -13,7 +13,12 @@ void main() {
           ],
         },
         people: [
-          EventPerson(name: 'Vera', role: 'Photographer', notes: 'arrives 19h'),
+          EventPerson(
+            id: 'p1',
+            name: 'Vera',
+            role: 'Photographer',
+            notes: 'arrives 19h',
+          ),
         ],
         rider: [
           RiderItem(label: 'XLR cables', qty: 4),
@@ -28,6 +33,24 @@ void main() {
       expect(back.rider.first.qty, 4);
       expect(back.rider.last.done, isTrue);
       expect(back.isEmpty, isFalse);
+    });
+
+    test('a person saved before ids existed falls back to their name', () {
+      final back = EventKit.fromJson({
+        'people': [
+          {'name': 'Vera', 'role': 'Photographer'},
+        ],
+      });
+      expect(back.people.single.id, 'Vera');
+      expect(back.people.single.uid, isNull);
+    });
+
+    test('linking keeps the id so assignments still resolve', () {
+      const guest = EventPerson(id: 'g1', name: 'Lena', role: 'Violin');
+      final linked = guest.copyWith(uid: 'u1');
+      expect(linked.id, 'g1');
+      expect(linked.uid, 'u1');
+      expect(linked.name, 'Lena');
     });
 
     test('unknown zone ids are dropped on parse', () {
