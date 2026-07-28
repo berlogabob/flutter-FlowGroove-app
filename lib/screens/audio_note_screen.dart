@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../models/song_lab.dart';
 import '../providers/data/data_providers.dart';
 import '../services/audio/audio_note_edit.dart';
+import '../services/audio/m4a_muxer.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/snackbar.dart';
 import '../widgets/app_menu_sheet.dart';
@@ -288,7 +289,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
     setState(() => _busy = true);
     try {
       var bytes = await ref.read(audioBytesFetcherProvider)(url);
-      final ext = _extOf(url);
+      var ext = _extOf(url);
       // Share what the handles show, even if the trim was never committed.
       // The format is unchanged by trimming, so the extension stays put.
       if (_isTrimmed) {
@@ -298,6 +299,18 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
           endMs: _trimEndMs,
         );
         if (trimmed != null) bytes = trimmed;
+      }
+      // Messengers show raw AAC as a grey document; the same frames in an MP4
+      // box get a player. Returns null for anything that isn't ADTS, so legacy
+      // m4a and wav takes fall through untouched.
+      final m4a = m4aFromAdts(
+        bytes,
+        title: _entry.title,
+        artist: 'FlowGroove',
+      );
+      if (m4a != null) {
+        bytes = m4a;
+        ext = 'm4a';
       }
       final name = '${_safeName(_entry.title ?? 'audio note')}.$ext';
       await SharePlus.instance.share(
@@ -325,6 +338,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
   }
 
   static String _mimeOf(String ext) => switch (ext) {
+    'm4a' => 'audio/mp4', // RFC 4337; what a messenger checks for playback
     'aac' => 'audio/aac',
     'wav' => 'audio/wav',
     'mp3' => 'audio/mpeg',

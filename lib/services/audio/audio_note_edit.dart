@@ -110,17 +110,40 @@ const _adtsSampleRates = [
 ];
 
 /// Every AAC-LC frame carries exactly this many samples per channel.
-const _adtsSamplesPerFrame = 1024;
+const adtsSamplesPerFrame = 1024;
 
-typedef AdtsFrame = ({int offset, int length});
+/// ADTS `profile` for AAC-LC. Note this is *not* the MPEG-4 AudioObjectType,
+/// which is one higher — see [AdtsConfig.profile].
+const adtsProfileAacLc = 1;
+
+/// A frame's position, total size, and how much of that is header. Trimming
+/// only needs the first two; remuxing into MP4 needs the third, because MP4
+/// stores bare access units with the ADTS header stripped off.
+typedef AdtsFrame = ({int offset, int length, int headerLength});
+
+/// The stream-wide format, read off the first frame.
+///
+/// [profile] is the raw 2-bit ADTS field (`1` = AAC-LC). The MPEG-4
+/// AudioObjectType written into an MP4's AudioSpecificConfig is `profile + 1`;
+/// conflating the two writes "AAC Main" into the container, which iOS often
+/// still plays and Android's MediaCodec does not.
+typedef AdtsConfig = ({
+  int sampleRate,
+  int freqIndex,
+  int channels,
+  int profile,
+});
 
 /// Reads one ADTS header, or null if [offset] isn't on a valid frame.
 ///
 /// `record` emits `0xF1` (MPEG-4) on iOS/macOS and `0xF9` (MPEG-2) on Android;
-/// both are 7-byte, CRC-less headers, so only the sync bits and the layer bits
-/// are worth checking. A 9-byte CRC header is handled anyway rather than
-/// rejected — the frame length field means the same thing either way.
-({int length, int sampleRate})? _adtsHeader(Uint8List aac, int offset) {
+/// both are 7-byte, CRC-less headers. A 9-byte CRC header parses too — the
+/// frame length field means the same thing either way, only the payload starts
+/// two bytes later.
+({int length, int headerLength, AdtsConfig config})? _adtsHeader(
+  Uint8List aac,
+  int offset,
+) {
   if (offset + 7 > aac.length) return null;
   if (aac[offset] != 0xFF || (aac[offset + 1] & 0xF0) != 0xF0) return null;
   if ((aac[offset + 1] & 0x06) != 0) return null; // layer must be 00
@@ -130,9 +153,23 @@ typedef AdtsFrame = ({int offset, int length});
       ((aac[offset + 3] & 0x03) << 11) |
       (aac[offset + 4] << 3) |
       ((aac[offset + 5] >> 5) & 0x07);
+  // The CRC belongs to the header, so protection changes where audio starts.
+  final headerLength = (aac[offset + 1] & 0x01) == 1 ? 7 : 9;
   // A frame must at least contain its own header, and must not overrun.
-  if (length < 7 || offset + length > aac.length) return null;
-  return (length: length, sampleRate: _adtsSampleRates[freqIdx]);
+  if (length < headerLength || offset + length > aac.length) return null;
+  // Anything other than one raw data block per frame isn't 1024 samples, which
+  // every duration and sample table here assumes.
+  if ((aac[offset + 6] & 0x03) != 0) return null;
+  return (
+    length: length,
+    headerLength: headerLength,
+    config: (
+      sampleRate: _adtsSampleRates[freqIdx],
+      freqIndex: freqIdx,
+      channels: ((aac[offset + 2] & 0x01) << 2) | ((aac[offset + 3] >> 6) & 0x03),
+      profile: (aac[offset + 2] >> 6) & 0x03,
+    ),
+  );
 }
 
 /// Walks a raw ADTS stream into frames. Null if [aac] doesn't start on one.
@@ -148,21 +185,25 @@ List<AdtsFrame>? parseAdtsFrames(Uint8List aac) {
     final header = _adtsHeader(aac, offset);
     // A truncated tail frame ends the stream rather than failing the file.
     if (header == null) break;
-    frames.add((offset: offset, length: header.length));
+    frames.add((
+      offset: offset,
+      length: header.length,
+      headerLength: header.headerLength,
+    ));
     offset += header.length;
   }
   return frames.isEmpty ? null : frames;
 }
 
-/// Sample rate declared by the first frame, or null if [aac] isn't ADTS.
-int? adtsSampleRate(Uint8List aac) => _adtsHeader(aac, 0)?.sampleRate;
+/// Format of an ADTS stream, or null if [aac] isn't one.
+AdtsConfig? adtsConfig(Uint8List aac) => _adtsHeader(aac, 0)?.config;
 
 /// Duration of an ADTS stream: frames x 1024 / sampleRate.
 int? adtsDurationMs(Uint8List aac) {
   final frames = parseAdtsFrames(aac);
-  final rate = adtsSampleRate(aac);
-  if (frames == null || rate == null) return null;
-  return frames.length * _adtsSamplesPerFrame * 1000 ~/ rate;
+  final config = adtsConfig(aac);
+  if (frames == null || config == null) return null;
+  return frames.length * adtsSamplesPerFrame * 1000 ~/ config.sampleRate;
 }
 
 /// Returns [aac] cut to `[startMs, endMs)`, snapped outward to whole frames.
@@ -171,10 +212,10 @@ int? adtsDurationMs(Uint8List aac) {
 /// can place a trim handle.
 Uint8List? trimAdts(Uint8List aac, {required int startMs, required int endMs}) {
   final frames = parseAdtsFrames(aac);
-  final rate = adtsSampleRate(aac);
-  if (frames == null || rate == null || endMs <= startMs) return null;
+  final config = adtsConfig(aac);
+  if (frames == null || config == null || endMs <= startMs) return null;
 
-  final msPerFrame = _adtsSamplesPerFrame * 1000 / rate;
+  final msPerFrame = adtsSamplesPerFrame * 1000 / config.sampleRate;
   final first = (startMs / msPerFrame).floor().clamp(0, frames.length - 1);
   final last = (endMs / msPerFrame).ceil().clamp(first + 1, frames.length);
 

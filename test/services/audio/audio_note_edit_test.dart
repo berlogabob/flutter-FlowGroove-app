@@ -243,11 +243,11 @@ void main() {
   group('adtsDurationMs', () {
     test('is frames x 1024 / sampleRate', () {
       expect(adtsDurationMs(_adts(43)), (43 * _frameMs).floor());
-      expect(adtsSampleRate(_adts(1)), 44100);
+      expect(adtsConfig(_adts(1))!.sampleRate, 44100);
     });
 
     test('reads the rate out of the frequency index', () {
-      expect(adtsSampleRate(_adts(1, freqIdx: 7)), 22050);
+      expect(adtsConfig(_adts(1, freqIdx: 7))!.sampleRate, 22050);
       // Half the rate, so the same frame count is twice the wall time.
       expect(adtsDurationMs(_adts(10, freqIdx: 7)), 10 * 1024 * 1000 ~/ 22050);
     });
