@@ -18,10 +18,13 @@ function optionalString(value) {
   return cleaned.length > 0 ? cleaned : null;
 }
 
+// Unicode-aware: an ASCII-only filter normalized every Cyrillic title AND artist
+// to "", so all of them collapsed onto one canonical id (and the app then showed
+// the first such song's title/artist for every one of them).
 function normalize(value) {
   return cleanString(value)
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
 }

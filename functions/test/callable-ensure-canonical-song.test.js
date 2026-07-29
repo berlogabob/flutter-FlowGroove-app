@@ -154,6 +154,27 @@ describe("ensureCanonicalSong callable", function () {
     );
   });
 
+  it("keeps non-Latin songs on distinct canonical ids", async () => {
+    const first = await callEnsure({
+      title: "День рождения",
+      artist: "Ленинград",
+    });
+    const second = await callEnsure({
+      title: "День рождения",
+      artist: "Ногу Свело!",
+    });
+
+    assert.notEqual(first.canonicalSongId, second.canonicalSongId);
+    assert.equal(await canonicalSongCount(), 2);
+
+    const created = await db
+      .collection("canonical_songs")
+      .doc(first.canonicalSongId)
+      .get();
+    assert.equal(created.data().normalizedTitle, "день рождения");
+    assert.equal(created.data().normalizedArtist, "ленинград");
+  });
+
   it("uses the transaction create path idempotently for normalized matches", async () => {
     const payload = {
       title: "  Concurrent Song! ",
