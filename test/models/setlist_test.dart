@@ -37,6 +37,25 @@ void main() {
       expect(restored.effectiveItems.single.tuningPresetId, 'guitar_6:drop_d');
     });
 
+    test('clearBreakLabel erases a custom label, a bare null does not', () {
+      // A null breakLabel can't be told from "unchanged", so erasing a label in
+      // the break editor used to silently restore the old one.
+      final labelled = SetlistItem.breakItem(
+        id: 'b1',
+        breakType: 'guest_set',
+        label: 'EUSTACE',
+      );
+      expect(labelled.copyWith(breakLabel: null).breakLabel, 'EUSTACE');
+      expect(labelled.copyWith(clearBreakLabel: true).breakLabel, isNull);
+      // And the cleared label stays cleared through a save.
+      final cleared = labelled.copyWith(clearBreakLabel: true);
+      expect(cleared.toJson().containsKey('breakLabel'), isFalse);
+      expect(SetlistItem.fromJson(cleared.toJson()).breakLabel, isNull);
+      // Clearing must not disturb the rest of the item.
+      expect(cleared.breakType, 'guest_set');
+      expect(cleared.isBreak, isTrue);
+    });
+
     test('break items survive round-trip and are excluded from songIds', () {
       final setlist = Setlist(
         id: 'setlist-1',

@@ -90,6 +90,7 @@ class SetlistItem {
     String? breakLabel,
     List<String>? performerIds,
     bool clearTuningPreset = false,
+    bool clearBreakLabel = false,
   }) {
     return SetlistItem(
       id: id ?? this.id,
@@ -99,7 +100,9 @@ class SetlistItem {
           : (tuningPresetId ?? this.tuningPresetId),
       type: type ?? this.type,
       breakType: breakType ?? this.breakType,
-      breakLabel: breakLabel ?? this.breakLabel,
+      // Without the explicit clear, erasing a custom label would silently
+      // restore the old one — a null here can't be told from "unchanged".
+      breakLabel: clearBreakLabel ? null : (breakLabel ?? this.breakLabel),
       performerIds: performerIds ?? this.performerIds,
     );
   }

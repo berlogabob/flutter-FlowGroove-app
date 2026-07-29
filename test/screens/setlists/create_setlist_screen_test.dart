@@ -11,11 +11,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
+import '../../helpers/mocks.dart' show MockDataHelper;
 import '../../helpers/mocks.mocks.dart';
 
 void main() {
   group('CreateSetlistScreen', () {
-    testWidgets('saves a new setlist with the provided bandId', (tester) async {
+    // Was 'saves a new setlist with the provided bandId', which asserted that
+    // `CreateSetlistScreen(bandId: 'band-123')` saved to the PERSONAL
+    // collection. That combination is never produced by the app — every caller
+    // passing a bandId also passes scope: band — and the result was invisible,
+    // because the personal list filters out entries with a bandId. Band scope
+    // is now derived from the setlist, so the case this covers is a genuinely
+    // personal setlist: no band, saved personally.
+    testWidgets('saves a new personal setlist to the personal collection', (
+      tester,
+    ) async {
       final firebaseUser = MockUser();
       when(firebaseUser.uid).thenReturn('test-user-id');
 
@@ -38,9 +48,7 @@ void main() {
               (ref) => Stream<List<Setlist>>.value([]),
             ),
           ],
-          child: const MaterialApp(
-            home: CreateSetlistScreen(bandId: 'band-123'),
-          ),
+          child: const MaterialApp(home: CreateSetlistScreen()),
         ),
       );
       await tester.pumpAndSettle();
@@ -56,7 +64,8 @@ void main() {
       )..called(1);
       final savedSetlist = verification.captured.single as Setlist;
       expect(savedSetlist.name, 'Gig Night');
-      expect(savedSetlist.bandId, 'band-123');
+      expect(savedSetlist.bandId, isEmpty);
+      verifyNever(firestore.saveBandSetlist(any, any));
     });
 
     testWidgets('saves a band-scoped setlist to the shared band collection', (
@@ -109,6 +118,62 @@ void main() {
       expect(savedSetlist.bandId, 'band-123');
       verifyNever(firestore.saveSetlist(any, uid: anyNamed('uid')));
     });
+
+    testWidgets(
+      'a setlist carrying a bandId saves to the band even if scope says personal',
+      (tester) async {
+        // Regression: a caller that forgets `scope` used to send the edit into
+        // users/{uid}/setlists, where the personal list then hid it (it filters
+        // out a non-empty bandId). The save looked fine and the edit was gone.
+        // Scope is derived from the setlist itself so that can't happen.
+        final firebaseUser = MockUser();
+        when(firebaseUser.uid).thenReturn('test-user-id');
+
+        final firestore = MockFirestoreService();
+        when(firestore.saveBandSetlist(any, any)).thenAnswer((_) async {});
+
+        final existing = MockDataHelper.createMockSetlist(
+          id: 'setlist-9',
+          bandId: 'band-123',
+          name: 'Band Gig',
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              currentUserProvider.overrideWithValue(
+                AsyncValue<User?>.data(firebaseUser),
+              ),
+              firestoreProvider.overrideWithValue(firestore),
+              bandSongsProvider.overrideWith(
+                (ref, bandId) => Stream<List<Song>>.value([]),
+              ),
+              setlistsProvider.overrideWith(
+                (ref) => Stream<List<Setlist>>.value([]),
+              ),
+              bandSetlistsProvider.overrideWith(
+                (ref, bandId) => Stream<List<Setlist>>.value([]),
+              ),
+            ],
+            child: MaterialApp(
+              home: CreateSetlistScreen(
+                setlist: existing,
+                // Deliberately wrong — this is what the buggy caller passed.
+                storageScope: SetlistStorageScope.personal,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.widgetWithText(PrimaryActionBar, 'Save Changes'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 350));
+
+        verify(firestore.saveBandSetlist(any, 'band-123')).called(1);
+        verifyNever(firestore.saveSetlist(any, uid: anyNamed('uid')));
+      },
+    );
 
     testWidgets('shows an error instead of throwing when shared save fails', (
       tester,

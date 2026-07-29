@@ -95,9 +95,18 @@ class SetlistViewScreen extends ConsumerWidget {
             AppMenuItem(
               icon: Icons.edit_outlined,
               label: 'Edit Setlist',
+              // Carry the scope through: the editor decides which collection to
+              // save to from these, and without them a band setlist is written
+              // to the personal one — where the list then hides it, because it
+              // filters out entries with a bandId. The save looks like it
+              // worked and the edit is simply gone.
               onTap: () => context.pushNamed(
                 'edit-setlist',
                 pathParameters: {'id': setlist.id},
+                queryParameters: {
+                  'bandId': ?bandId,
+                  'scope': storageScope.name,
+                },
                 extra: setlist,
               ),
             ),

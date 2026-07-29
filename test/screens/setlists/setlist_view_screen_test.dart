@@ -4,6 +4,8 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/screens/main_shell.dart';
+import 'package:flowgroove/screens/setlists/create_setlist_screen.dart'
+    show SetlistStorageScope;
 import 'package:flowgroove/screens/setlists/setlist_view_screen.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +23,13 @@ void main() {
     late Setlist setlist;
     late List<Song> songs;
 
+    /// Query parameters the edit route was actually reached with. The editor
+    /// picks its storage collection from these, so navigating without them
+    /// silently saves a band setlist into the personal one.
+    late Map<String, String> editQuery;
+
     setUp(() {
+      editQuery = const {};
       songs = [
         MockDataHelper.createMockSong(
           id: 's1',
@@ -53,6 +61,8 @@ void main() {
     Future<GoRouter> pumpView(
       WidgetTester tester, {
       bool canEdit = true,
+      String? bandId,
+      SetlistStorageScope storageScope = SetlistStorageScope.personal,
     }) async {
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1;
@@ -92,14 +102,19 @@ void main() {
                       GoRoute(
                         path: 'view/:id',
                         name: 'view',
-                        builder: (context, state) =>
-                            SetlistViewScreen(setlist: setlist),
+                        builder: (context, state) => SetlistViewScreen(
+                          setlist: setlist,
+                          bandId: bandId,
+                          storageScope: storageScope,
+                        ),
                       ),
                       GoRoute(
                         path: ':id/edit',
                         name: 'edit-setlist',
-                        builder: (context, state) =>
-                            const TestRouteMarker('edit-setlist'),
+                        builder: (context, state) {
+                          editQuery = state.uri.queryParameters;
+                          return const TestRouteMarker('edit-setlist');
+                        },
                       ),
                     ],
                   ),
@@ -135,6 +150,15 @@ void main() {
             () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
           ),
           songsProvider.overrideWith((ref) => Stream<List<Song>>.value(songs)),
+          // With a bandId the screen reads the band's songs and setlists
+          // instead of the personal ones; unoverridden they error and
+          // Riverpod's retry timer trips the pending-timer check.
+          bandSongsProvider.overrideWith(
+            (ref, id) => Stream<List<Song>>.value(songs),
+          ),
+          bandSetlistsProvider.overrideWith(
+            (ref, id) => Stream<List<Setlist>>.value([setlist]),
+          ),
           setlistsProvider.overrideWith(
             (ref) => Stream<List<Setlist>>.value([setlist]),
           ),
@@ -203,6 +227,40 @@ void main() {
         expect(find.text('route:edit-setlist'), findsOneWidget);
       },
     );
+
+    testWidgets('carries bandId and scope into the editor for a band setlist', (
+      tester,
+    ) async {
+      // Regression: without these the editor defaults to personal scope and
+      // writes users/{uid}/setlists/{id}. The band document is never touched,
+      // the personal list hides the stray (it filters out a non-empty bandId),
+      // and the user's edit vanishes with no error.
+      await pumpView(
+        tester,
+        bandId: 'band-1',
+        storageScope: SetlistStorageScope.band,
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit Setlist'));
+      await tester.pumpAndSettle();
+
+      expect(editQuery['bandId'], 'band-1');
+      expect(editQuery['scope'], SetlistStorageScope.band.name);
+    });
+
+    testWidgets('omits bandId for a personal setlist', (tester) async {
+      await pumpView(tester);
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit Setlist'));
+      await tester.pumpAndSettle();
+
+      expect(editQuery.containsKey('bandId'), isFalse);
+      expect(editQuery['scope'], SetlistStorageScope.personal.name);
+    });
 
     testWidgets('hides the Edit action when canEdit is false', (tester) async {
       await pumpView(tester, canEdit: false);

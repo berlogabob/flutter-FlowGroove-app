@@ -65,7 +65,14 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
   bool _songsLoaded = true;
 
   bool get _isEditing => widget.setlist != null;
-  bool get _isBandScope => widget.storageScope == SetlistStorageScope.band;
+
+  /// Band scope is *derived*, not just taken from the caller: a setlist that
+  /// carries a bandId is a band setlist, and saving one into the personal
+  /// collection is never right — it writes a document nothing reads, since the
+  /// personal list filters out anything with a bandId. A caller that forgets to
+  /// pass `scope` should not be able to lose the user's edit.
+  bool get _isBandScope =>
+      widget.storageScope == SetlistStorageScope.band || _effectiveBandId != null;
 
   String? get _effectiveBandId {
     final rawBandId = _isEditing ? widget.setlist!.bandId : widget.bandId;
@@ -107,6 +114,12 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       _eventDate = setlist.eventDateTime;
       _eventLocationController.text = setlist.eventLocation ?? '';
       _eventKit = setlist.eventKit;
+      // Populate the rows now, not when the songs finish resolving: the items
+      // come from the setlist and have nothing to wait for. Assigning them
+      // after the await would overwrite anything the user added in the
+      // meantime — "Add break" is reachable immediately, so that edit used to
+      // disappear the moment the song list arrived.
+      _selectedItems = List<SetlistItem>.from(setlist.effectiveItems);
       _songsLoaded = setlist.effectiveItems.isEmpty;
       _loadSongsForEditing(setlist);
     }
@@ -128,15 +141,18 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       _songsLoaded =
           allSongs.isNotEmpty ||
           items.isEmpty; // a failed load never counts as "loaded empty"
-      _songsById = songsById;
-      // Keep every entry, resolvable or not — an unresolvable songId is
-      // still an entry. Unresolved items render as "unavailable song"
-      // placeholder rows (see build()'s itemBuilder) instead of being
-      // silently dropped, which used to permanently delete them on save.
+      // Only the lookup used to render a row — `_selectedItems` was already
+      // populated in initState and may since have been edited, so it must not
+      // be reassigned here.
+      //
+      // Every entry is kept, resolvable or not: an unresolvable songId is
+      // still an entry, and renders as an "unavailable song" placeholder row
+      // (see build()'s itemBuilder) instead of being silently dropped, which
+      // used to permanently delete it on save.
       // ponytail: orphan cleanup is manual-by-design here (the user removes
       // a stale row via the same swipe-to-delete flow as any other row);
       // server-side/automatic cleanup is out of scope.
-      _selectedItems = List<SetlistItem>.from(items);
+      _songsById = songsById;
     });
   }
 
@@ -195,6 +211,9 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       _selectedItems[index] = item.copyWith(
         breakType: result.type,
         breakLabel: result.label,
+        // The picker returns null for an emptied label; say so explicitly or
+        // copyWith reads it as "unchanged" and puts the old label back.
+        clearBreakLabel: result.label == null,
       );
       _markAsChanged();
     });
