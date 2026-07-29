@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/song.dart';
-import '../../models/song_duplicate.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../services/matching/song_cluster.dart';
 import '../../services/matching/song_duplicate_detector.dart';
 import '../../services/song_library_merge_service.dart';
-import 'song_merge_dialog.dart';
+import '../../utils/snackbar.dart';
+import '../../widgets/menu_items_scope.dart';
+import 'song_cluster_merge_screen.dart';
 
+/// Duplicate songs, clustered (#81): similar songs group into one cluster
+/// card ("3 versions"), merged in one pass through the field×song matrix —
+/// no more pairwise whack-a-mole.
 class SongDuplicatesScreen extends ConsumerStatefulWidget {
   const SongDuplicatesScreen({super.key});
 
@@ -41,84 +46,125 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
   @override
   Widget build(BuildContext context) {
     final songs = ref.watch(songsProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Duplicate songs')),
-      body: songs.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) =>
-            Center(child: Text('Could not load songs: $error')),
-        data: (items) {
-          final matches = _detector
-              .findLibraryDuplicates(items, includePossible: _includePossible)
-              .where((match) => !_dismissed.contains(match.pairKey))
-              .toList();
-          return Column(
-            children: [
-              SwitchListTile(
-                title: const Text('Include possible matches'),
-                subtitle: const Text(
-                  'Shows matches scoring 70-84% and variant conflicts.',
+    // Pushed branch child: title is published for the shell's bottom bar
+    // ([← Back] [title] [⋮ Menu]); there is no top app bar.
+    return MenuScopePublisher(
+      data: const MenuScopeData(title: 'Duplicate songs'),
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: songs.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) =>
+                Center(child: Text('Could not load songs: $error')),
+            data: (items) {
+              final matches = _detector
+                  .findLibraryDuplicates(
+                    items,
+                    includePossible: _includePossible,
+                  )
+                  .where((match) => !_dismissed.contains(match.pairKey))
+                  .toList();
+              final clusters = clusterCandidates(matches);
+              return Column(
+                children: [
+                  SwitchListTile(
+                    title: const Text('Include possible matches'),
+                    subtitle: const Text(
+                      'Shows matches scoring 70-84% and variant conflicts.',
+                    ),
+                    value: _includePossible,
+                    onChanged: (value) =>
+                        setState(() => _includePossible = value),
+                  ),
+                  Expanded(
+                    child: clusters.isEmpty
+                        ? const Center(child: Text('No duplicate songs found.'))
+                        : ListView.builder(
+                            padding: const EdgeInsets.only(bottom: 96),
+                            itemCount: clusters.length,
+                            itemBuilder: (context, index) =>
+                                _clusterCard(clusters[index]),
+                          ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _clusterCard(SongCluster cluster) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${cluster.songs.length} similar songs · '
+              '${cluster.maxScore.toStringAsFixed(0)}% match',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 4),
+            for (final s in cluster.songs)
+              Text(
+                '• ${s.title} — ${s.artist}'
+                '${s.canonicalSongId != null ? '  (linked)' : ''}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => _dismissCluster(cluster),
+                  child: const Text('Not duplicates'),
                 ),
-                value: _includePossible,
-                onChanged: (value) => setState(() => _includePossible = value),
-              ),
-              Expanded(
-                child: matches.isEmpty
-                    ? const Center(child: Text('No duplicate songs found.'))
-                    : ListView.builder(
-                        itemCount: matches.length,
-                        itemBuilder: (context, index) =>
-                            _buildMatch(matches[index]),
-                      ),
-              ),
-            ],
-          );
-        },
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: () => _mergeCluster(cluster),
+                  child: const Text('Merge…'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildMatch(SongDuplicateCandidate match) {
-    return ListTile(
-      title: Text('${match.source.title} / ${match.match.title}'),
-      subtitle: Text(
-        '${match.source.artist} / ${match.match.artist} - ${match.score.toStringAsFixed(0)}%${match.variantMismatch ? ' - different variants' : ''}',
-      ),
-      trailing: Wrap(
-        children: [
-          TextButton(
-            onPressed: () => _dismiss(match),
-            child: const Text('Not duplicate'),
-          ),
-          FilledButton(
-            onPressed: () => _merge(match),
-            child: const Text('Review merge'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _dismiss(SongDuplicateCandidate match) async {
+  Future<void> _dismissCluster(SongCluster cluster) async {
     final user = ref.read(firebaseAuthProvider).currentUser;
     if (user == null) return;
-    await _service.dismissPair(user.uid, match.pairKey);
-    if (mounted) setState(() => _dismissed.add(match.pairKey));
+    for (final key in cluster.pairKeys) {
+      await _service.dismissPair(user.uid, key);
+    }
+    if (mounted) setState(() => _dismissed.addAll(cluster.pairKeys));
   }
 
-  Future<void> _merge(SongDuplicateCandidate match) async {
-    final result = await showDialog<(Song, Song, Song)>(
-      context: context,
-      builder: (_) => SongMergeDialog(first: match.source, second: match.match),
+  Future<void> _mergeCluster(SongCluster cluster) async {
+    // rootNavigator: cover the shell so its bottom bar doesn't stack under the
+    // merge screen's own bar (the double-bar bug).
+    final merged = await Navigator.of(context, rootNavigator: true).push<Song>(
+      MaterialPageRoute(
+        builder: (_) => SongClusterMergeScreen(songs: cluster.songs),
+      ),
     );
-    if (result == null || !mounted) return;
+    if (merged == null || !mounted) return;
     final user = ref.read(firebaseAuthProvider).currentUser;
     if (user == null) return;
-    await _service.merge(
+
+    final duplicates = cluster.songs.where((s) => s.id != merged.id).toList();
+    await _service.mergeCluster(
       uid: user.uid,
-      keeperBefore: result.$1,
-      duplicate: result.$2,
-      merged: result.$3,
+      keeperBefore: cluster.songs.firstWhere((s) => s.id == merged.id),
+      duplicates: duplicates,
+      merged: merged,
       setlists: ref.read(setlistsProvider).value ?? [],
       songRepository: ref.read(songRepositoryProvider),
       setlistRepository: ref.read(setlistRepositoryProvider),
@@ -126,9 +172,10 @@ class _SongDuplicatesScreenState extends ConsumerState<SongDuplicatesScreen> {
     ref.invalidate(songsProvider);
     ref.invalidate(setlistsProvider);
     if (mounted) {
-      ScaffoldMessenger.of(
+      showAppSnackBar(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Songs merged.')));
+        'Merged ${cluster.songs.length} songs into "${merged.title}".',
+      );
     }
   }
 }

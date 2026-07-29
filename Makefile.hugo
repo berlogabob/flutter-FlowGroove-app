@@ -47,7 +47,7 @@ hugo-build:
 	@echo "║         Building Hugo Landing Page → docs/                ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@cd site && hugo --minify
+	@cd site && hugo --minify --baseURL "https://berlogabob.github.io/flutter-FlowGroove-app/"
 	@echo "✅ Hugo build complete!"
 	@echo "📊 Size: $$(du -sh docs/ | cut -f1)"
 	@echo ""
@@ -111,7 +111,7 @@ serve:
 	@echo ""
 	@echo "🌐 URL: http://localhost:1313/"
 	@echo ""
-	@cd site && hugo server -D
+	@cd site && hugo server -D --baseURL "https://berlogabob.github.io/flutter-FlowGroove-app/"
 
 # =============================================================================
 # CLEAN

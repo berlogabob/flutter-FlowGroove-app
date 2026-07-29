@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/mono_pulse_theme.dart';
+
 /// A widget for entering BPM (Beats Per Minute) value.
 ///
 /// This widget provides a text field specifically designed for
 /// entering tempo values with numeric keyboard and validation.
 class BpmSelector extends StatelessWidget {
-
   const BpmSelector({
     required this.controller,
     this.label,
@@ -13,6 +14,7 @@ class BpmSelector extends StatelessWidget {
     this.onChanged,
     super.key,
   });
+
   /// Controller for the BPM text field.
   final TextEditingController controller;
 
@@ -31,10 +33,7 @@ class BpmSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
-          Text(
-            label!,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
-          ),
+          Text(label!, style: MonoPulseTypography.labelMedium),
           const SizedBox(height: 4),
         ],
         TextFormField(
@@ -52,108 +51,148 @@ class BpmSelector extends StatelessWidget {
   }
 }
 
-/// A combined widget for selecting key and BPM together.
-///
-/// This is useful for song forms where key and tempo are related.
-class KeyBpmSelector extends StatelessWidget {
-
-  const KeyBpmSelector({
-    required this.base, required this.modifier, required this.bpmController, required this.label, required this.onKeyChanged, super.key,
-    this.keyBases = const ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+/// A compact, column-aligned grid for the Original and Our key + BPM together.
+/// Both rows share the same columns (note · accidental · BPM) so they line up as
+/// a clear grid — used inside a single "Key & BPM" collapsible bubble.
+class KeyBpmGrid extends StatelessWidget {
+  const KeyBpmGrid({
+    required this.originalBase,
+    required this.originalModifier,
+    required this.originalBpmController,
+    required this.onOriginalKeyChanged,
+    required this.ourBase,
+    required this.ourModifier,
+    required this.ourBpmController,
+    required this.onOurKeyChanged,
+    super.key,
+    this.keyBases = const ['', 'C', 'D', 'E', 'F', 'G', 'A', 'B'],
     this.keyModifiers = const ['', '#', 'b', 'm'],
   });
-  /// The selected base note.
-  final String base;
 
-  /// The selected modifier.
-  final String modifier;
+  final String originalBase;
+  final String originalModifier;
+  final TextEditingController originalBpmController;
+  final void Function(String base, String modifier) onOriginalKeyChanged;
 
-  /// Controller for the BPM field.
-  final TextEditingController bpmController;
+  final String ourBase;
+  final String ourModifier;
+  final TextEditingController ourBpmController;
+  final void Function(String base, String modifier) onOurKeyChanged;
 
-  /// Label for this selector group.
-  final String label;
-
-  /// Callback when key selection changes.
-  final Function(String base, String modifier) onKeyChanged;
-
-  /// Available base notes.
   final List<String> keyBases;
-
-  /// Available modifiers.
   final List<String> keyModifiers;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Table(
+      columnWidths: const {
+        0: IntrinsicColumnWidth(),
+        1: IntrinsicColumnWidth(),
+        2: IntrinsicColumnWidth(),
+        3: FlexColumnWidth(),
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+        _row(
+          context,
+          'Original',
+          originalBase,
+          originalModifier,
+          originalBpmController,
+          onOriginalKeyChanged,
         ),
-        const SizedBox(height: 4),
-        IntrinsicHeight(
-          child: Row(
-            children: [
-              _buildMiniDropdown(
-                base,
-                keyBases,
-                (v) => onKeyChanged(v ?? 'C', modifier),
-              ),
-              const SizedBox(width: 4),
-              _buildMiniDropdown(
-                modifier,
-                keyModifiers,
-                (v) => onKeyChanged(base, v ?? ''),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: bpmController,
-                  decoration: const InputDecoration(
-                    labelText: 'BPM',
-                    isDense: true,
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-            ],
-          ),
+        _row(
+          context,
+          'Our',
+          ourBase,
+          ourModifier,
+          ourBpmController,
+          onOurKeyChanged,
         ),
       ],
     );
   }
 
-  Widget _buildMiniDropdown(
-    String value,
-    List<String> items,
-    Function(String?) onChanged,
+  TableRow _row(
+    BuildContext context,
+    String label,
+    String base,
+    String modifier,
+    TextEditingController bpm,
+    void Function(String, String) onKey,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: DropdownButton<String>(
-        value: value,
-        isDense: true,
-        underline: const SizedBox(),
-        items: items
-            .map(
-              (k) => DropdownMenuItem(
-                value: k,
-                child: Text(
-                  k.isEmpty ? '-' : k,
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ),
-            )
-            .toList(),
-        onChanged: onChanged,
-      ),
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: MonoPulseSpacing.sm,
+            horizontal: MonoPulseSpacing.xs,
+          ),
+          child: Text(label, style: MonoPulseTypography.labelMedium),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(MonoPulseSpacing.xs),
+          child: _keyMiniDropdown(
+            context,
+            base,
+            keyBases,
+            (v) => onKey(v ?? '', modifier),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(MonoPulseSpacing.xs),
+          child: _keyMiniDropdown(
+            context,
+            modifier,
+            keyModifiers,
+            (v) => onKey(base, v ?? ''),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(MonoPulseSpacing.xs),
+          child: TextFormField(
+            controller: bpm,
+            decoration: const InputDecoration(labelText: 'BPM', isDense: true),
+            keyboardType: TextInputType.number,
+          ),
+        ),
+      ],
     );
   }
+}
+
+/// Shared compact note/accidental dropdown used by the key grid.
+Widget _keyMiniDropdown(
+  BuildContext context,
+  String value,
+  List<String> items,
+  ValueChanged<String?> onChanged,
+) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
+    decoration: BoxDecoration(
+      color: context.mp.surfaceRaised,
+      borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+      border: Border.all(color: context.mp.borderDefault),
+    ),
+    child: DropdownButton<String>(
+      value: value,
+      isDense: true,
+      underline: const SizedBox(),
+      dropdownColor: context.mp.surfaceOverlay,
+      iconEnabledColor: context.mp.textSecondary,
+      items: items
+          .map(
+            (k) => DropdownMenuItem(
+              value: k,
+              child: Text(
+                k.isEmpty ? '-' : k,
+                style: TextStyle(fontSize: 13, color: context.mp.textPrimary),
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: onChanged,
+    ),
+  );
 }

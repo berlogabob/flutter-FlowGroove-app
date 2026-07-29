@@ -28,6 +28,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/song_suggestion.dart';
 import '../providers/song_autocomplete_provider.dart';
+import '../theme/mono_pulse_theme.dart';
 import 'suggestion_card.dart';
 
 /// Autocomplete TypeAhead widget for song search.
@@ -41,6 +42,7 @@ class AutocompleteTypeAhead extends ConsumerStatefulWidget {
     this.debounceMs = 300,
     this.maxSuggestions = 8,
     this.bandId,
+    this.onSearchWeb,
   });
 
   /// Callback when user selects a suggestion
@@ -63,6 +65,9 @@ class AutocompleteTypeAhead extends ConsumerStatefulWidget {
 
   /// Maximum suggestions to show
   final int maxSuggestions;
+
+  /// Opens the current form's title/artist in web search.
+  final VoidCallback? onSearchWeb;
 
   @override
   ConsumerState<AutocompleteTypeAhead> createState() =>
@@ -146,6 +151,8 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
                   width: MediaQuery.of(context).size.width - 32,
                   child: CompositedTransformFollower(
                     link: _layerLink,
+                    // Anchor below the field, not on top of it (#87).
+                    targetAnchor: Alignment.bottomLeft,
                     offset: const Offset(0, 4),
                     child: _SuggestionDropdown(
                       suggestions: searchState.suggestions,
@@ -212,8 +219,8 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
           suffixIcon: _buildSuffixIcon(searchState.isLoading),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+            horizontal: MonoPulseSpacing.lg,
+            vertical: MonoPulseSpacing.md,
           ),
         ),
         textInputAction: TextInputAction.search,
@@ -230,19 +237,18 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
   }
 
   Widget? _buildSuffixIcon(bool isLoading) {
+    Widget? status;
     if (isLoading) {
-      return const Padding(
-        padding: EdgeInsets.all(12),
+      status = const Padding(
+        padding: EdgeInsets.all(MonoPulseSpacing.md),
         child: SizedBox(
           width: 20,
           height: 20,
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
       );
-    }
-
-    if (_controller.text.isNotEmpty) {
-      return IconButton(
+    } else if (_controller.text.isNotEmpty) {
+      status = IconButton(
         icon: const Icon(Icons.clear, size: 20),
         onPressed: () {
           _controller.clear();
@@ -254,7 +260,18 @@ class _AutocompleteTypeAheadState extends ConsumerState<AutocompleteTypeAhead> {
       );
     }
 
-    return null;
+    if (widget.onSearchWeb == null) return status;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ?status,
+        IconButton(
+          tooltip: 'Search the web',
+          icon: const Icon(Icons.travel_explore),
+          onPressed: widget.onSearchWeb,
+        ),
+      ],
+    );
   }
 }
 
@@ -310,7 +327,7 @@ class _SuggestionDropdown extends StatelessWidget {
 
   Widget _buildErrorState(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -340,7 +357,7 @@ class _SuggestionDropdown extends StatelessWidget {
 
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -364,7 +381,7 @@ class _SuggestionDropdown extends StatelessWidget {
   Widget _buildSuggestionsList(BuildContext context) {
     return ListView.builder(
       shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xs),
       itemCount: suggestions.length,
       itemBuilder: (context, index) {
         final suggestion = suggestions[index];

@@ -40,10 +40,6 @@ class MonoPulseColors {
   static const Color accentOrangeDark = Color(0xFFE64E00);
   static const Color accentOrange10 = Color(0x1AFF5E00); // 10% opacity
 
-  // Deprecated alias for accentOrange10
-  @Deprecated('Use accentOrange10 (identical value)')
-  static const Color accentOrangeSubtle = accentOrange10;
-
   // Beat Mode Colors
   static const Color beatModeNormal = Color(0xFFFF5E00); // Orange
   static const Color beatModeAccent = Color(0xFF00BCD4); // Cyan
@@ -58,10 +54,6 @@ class MonoPulseColors {
   static const Color error = Color(0xFFFF2D55);
   static const Color error10 = Color(0x1AFF2D55);
 
-  // Deprecated alias for error10
-  @Deprecated('Use error10 (identical value)')
-  static const Color errorSubtle = error10;
-
   // Success - Orange or White
   static const Color success = accentOrange;
   static const Color successAlt = textPrimary;
@@ -74,25 +66,13 @@ class MonoPulseColors {
   static const Color successGreen = Color(0xFF4CAF50);
   static const Color successGreen5 = Color(0x0D4CAF50); // 5% opacity
 
-  // Deprecated alias for successGreen5
-  @Deprecated('Use successGreen5 (identical value)')
-  static const Color successGreenSubtle = successGreen5;
-
   // Warning
   static const Color warning = Color(0xFFFF9800);
   static const Color warning5 = Color(0x0DFF9800); // 5% opacity
 
-  // Deprecated alias for warning5
-  @Deprecated('Use warning5 (identical value)')
-  static const Color warningSubtle = warning5;
-
   // Info
   static const Color info = Color(0xFF2196F3);
   static const Color info5 = Color(0x0D2196F3); // 5% opacity
-
-  // Deprecated alias for info5
-  @Deprecated('Use info5 (identical value)')
-  static const Color infoSubtle = info5;
 
   // ============================================
   // Role Colors
@@ -121,25 +101,8 @@ class MonoPulseColors {
   static const Color error20 = Color(0x33FF2D55); // 20%
   static const Color error30 = Color(0x4DFF2D55); // 30%
 
-  // Deprecated aliases for error opacity variants
-  @Deprecated('Use error5 (identical value)')
-  static const Color errorSubtle5 = error5;
-  @Deprecated('Use error20 (identical value)')
-  static const Color errorSubtle20 = error20;
-  @Deprecated('Use error30 (identical value)')
-  static const Color errorSubtle30 = error30;
-
   // Orange opacity variants
-  // NOTE: orangeSubtle15/20/30 are exact duplicates of accentOrange15/20/30.
-  // Prefer the canonical accentOrange{NN} naming below; these are kept as
-  // deprecated aliases to allow incremental migration without breaking callers.
   static const Color orangeSubtle5 = Color(0x0DFF5E00); // 5%
-  @Deprecated('Use accentOrange15 (identical value)')
-  static const Color orangeSubtle15 = accentOrange15; // 15%
-  @Deprecated('Use accentOrange20 (identical value)')
-  static const Color orangeSubtle20 = accentOrange20; // 20%
-  @Deprecated('Use accentOrange30 (identical value)')
-  static const Color orangeSubtle30 = accentOrange30; // 30%
 
   // Accent orange opacity variants (for UI elements) — canonical naming.
   static const Color accentOrange15 = Color(0x26FF5E00); // 15%
@@ -154,10 +117,18 @@ class MonoPulseColors {
   // ============================================
   // Used for hover, focus, pressed, and disabled states on both Material and custom surfaces.
 
-  static const Color stateHover = Color(0x0AFFFFFF); // White @ 4% (subtle hover highlight)
-  static const Color stateFocus = Color(0x1EFF5E00); // Orange @ 12% (accent-colored focus ring)
-  static const Color statePressed = Color(0x29FF5E00); // Orange @ 16% (darker press state)
-  static const Color stateDisabled = Color(0x4D555555); // Disabled text color @ 30% (reduced opacity)
+  static const Color stateHover = Color(
+    0x0AFFFFFF,
+  ); // White @ 4% (subtle hover highlight)
+  static const Color stateFocus = Color(
+    0x1EFF5E00,
+  ); // Orange @ 12% (accent-colored focus ring)
+  static const Color statePressed = Color(
+    0x29FF5E00,
+  ); // Orange @ 16% (darker press state)
+  static const Color stateDisabled = Color(
+    0x4D555555,
+  ); // Disabled text color @ 30% (reduced opacity)
 
   // ============================================
   // Section Colors (for song organization)
@@ -182,8 +153,20 @@ class MonoPulseColors {
 
   /// Complete list of section colors for easy iteration.
   static const List<Color> sectionColors = [
-    section1, section2, section3, section4, section5, section6, section7, section8,
-    section9, section10, section11, section12, section13, section14,
+    section1,
+    section2,
+    section3,
+    section4,
+    section5,
+    section6,
+    section7,
+    section8,
+    section9,
+    section10,
+    section11,
+    section12,
+    section13,
+    section14,
   ];
 
   // ============================================
@@ -194,9 +177,158 @@ class MonoPulseColors {
   static const Color sharedBackground = Color(0xFFFFE0B2);
   static const Color sharedIcon = Color(0xFFFF9800);
 
+  // ============================================
+  // Chart / Data-viz (practice minutes bar charts, #133)
+  // ============================================
+  // Sequential warm-sand pair alongside accentOrange, contrast-validated
+  // only against the dark surface — light-theme contrast is unverified
+  // (light mode is still a beta migration, see theme_mode_provider.dart).
+  static const Color chartWarmSecondary = Color(0xFFD9B49A);
+  static const Color chartWarmTertiary = Color(0xFF8A6A50);
+
   // Special
   static const Color transparent = Colors.transparent;
   static const Color white = Color(0xFFFFFFFF);
+}
+
+/// Theme-dependent neutrals (#132): the 14 names above that must flip
+/// between dark and light. Brand accent, beat, status and section colors are
+/// theme-invariant and stay on [MonoPulseColors]. Widgets read this via
+/// `context.mp` — never reference the dark constants directly for neutrals.
+@immutable
+class MonoPulsePalette extends ThemeExtension<MonoPulsePalette> {
+  const MonoPulsePalette({
+    required this.black,
+    required this.blackSurface,
+    required this.blackElevated,
+    required this.surface,
+    required this.surfaceRaised,
+    required this.surfaceOverlay,
+    required this.borderSubtle,
+    required this.borderDefault,
+    required this.borderStrong,
+    required this.textPrimary,
+    required this.textHighEmphasis,
+    required this.textSecondary,
+    required this.textTertiary,
+    required this.textDisabled,
+  });
+
+  /// App background ("black" keeps the historical name; it's paper in light).
+  final Color black;
+  final Color blackSurface;
+  final Color blackElevated;
+  final Color surface;
+  final Color surfaceRaised;
+  final Color surfaceOverlay;
+  final Color borderSubtle;
+  final Color borderDefault;
+  final Color borderStrong;
+  final Color textPrimary;
+  final Color textHighEmphasis;
+  final Color textSecondary;
+  final Color textTertiary;
+  final Color textDisabled;
+
+  static const dark = MonoPulsePalette(
+    black: MonoPulseColors.black,
+    blackSurface: MonoPulseColors.blackSurface,
+    blackElevated: MonoPulseColors.blackElevated,
+    surface: MonoPulseColors.surface,
+    surfaceRaised: MonoPulseColors.surfaceRaised,
+    surfaceOverlay: MonoPulseColors.surfaceOverlay,
+    borderSubtle: MonoPulseColors.borderSubtle,
+    borderDefault: MonoPulseColors.borderDefault,
+    borderStrong: MonoPulseColors.borderStrong,
+    textPrimary: MonoPulseColors.textPrimary,
+    textHighEmphasis: MonoPulseColors.textHighEmphasis,
+    textSecondary: MonoPulseColors.textSecondary,
+    textTertiary: MonoPulseColors.textTertiary,
+    textDisabled: MonoPulseColors.textDisabled,
+  );
+
+  /// Light MonoPulse: warm paper, white cards, warm-gray borders/inks —
+  /// same surgical orange accent.
+  static const light = MonoPulsePalette(
+    black: Color(0xFFFAF8F5),
+    blackSurface: Color(0xFFF5F2EE),
+    blackElevated: Color(0xFFF0EDE8),
+    surface: Color(0xFFFFFFFF),
+    surfaceRaised: Color(0xFFF5F2EE),
+    surfaceOverlay: Color(0xFFEFECE7),
+    borderSubtle: Color(0xFFE8E4DE),
+    borderDefault: Color(0xFFD8D3CB),
+    borderStrong: Color(0xFFC0BAB0),
+    textPrimary: Color(0xFF1A1815),
+    textHighEmphasis: Color(0xFF000000),
+    textSecondary: Color(0xFF5F5B54),
+    textTertiary: Color(0xFF7A756C),
+    textDisabled: Color(0xFFB5B0A7),
+  );
+
+  @override
+  MonoPulsePalette copyWith({
+    Color? black,
+    Color? blackSurface,
+    Color? blackElevated,
+    Color? surface,
+    Color? surfaceRaised,
+    Color? surfaceOverlay,
+    Color? borderSubtle,
+    Color? borderDefault,
+    Color? borderStrong,
+    Color? textPrimary,
+    Color? textHighEmphasis,
+    Color? textSecondary,
+    Color? textTertiary,
+    Color? textDisabled,
+  }) {
+    return MonoPulsePalette(
+      black: black ?? this.black,
+      blackSurface: blackSurface ?? this.blackSurface,
+      blackElevated: blackElevated ?? this.blackElevated,
+      surface: surface ?? this.surface,
+      surfaceRaised: surfaceRaised ?? this.surfaceRaised,
+      surfaceOverlay: surfaceOverlay ?? this.surfaceOverlay,
+      borderSubtle: borderSubtle ?? this.borderSubtle,
+      borderDefault: borderDefault ?? this.borderDefault,
+      borderStrong: borderStrong ?? this.borderStrong,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textHighEmphasis: textHighEmphasis ?? this.textHighEmphasis,
+      textSecondary: textSecondary ?? this.textSecondary,
+      textTertiary: textTertiary ?? this.textTertiary,
+      textDisabled: textDisabled ?? this.textDisabled,
+    );
+  }
+
+  @override
+  MonoPulsePalette lerp(MonoPulsePalette? other, double t) {
+    if (other == null) return this;
+    Color l(Color a, Color b) => Color.lerp(a, b, t)!;
+    return MonoPulsePalette(
+      black: l(black, other.black),
+      blackSurface: l(blackSurface, other.blackSurface),
+      blackElevated: l(blackElevated, other.blackElevated),
+      surface: l(surface, other.surface),
+      surfaceRaised: l(surfaceRaised, other.surfaceRaised),
+      surfaceOverlay: l(surfaceOverlay, other.surfaceOverlay),
+      borderSubtle: l(borderSubtle, other.borderSubtle),
+      borderDefault: l(borderDefault, other.borderDefault),
+      borderStrong: l(borderStrong, other.borderStrong),
+      textPrimary: l(textPrimary, other.textPrimary),
+      textHighEmphasis: l(textHighEmphasis, other.textHighEmphasis),
+      textSecondary: l(textSecondary, other.textSecondary),
+      textTertiary: l(textTertiary, other.textTertiary),
+      textDisabled: l(textDisabled, other.textDisabled),
+    );
+  }
+}
+
+/// `context.mp` — the theme-aware MonoPulse neutrals. Falls back to dark so
+/// bare-MaterialApp widget tests (no MonoPulse theme) keep working.
+extension MonoPulseContext on BuildContext {
+  MonoPulsePalette get mp =>
+      Theme.of(this).extension<MonoPulsePalette>() ?? MonoPulsePalette.dark;
 }
 
 /// Typography - Inter (cross-platform)
@@ -413,52 +545,82 @@ class MonoPulseBorder {
   static const double bold = 2;
 }
 
-/// Mono Pulse Dark Theme (ONLY THEME - dark-only)
+/// Mono Pulse theme — one parameterized builder (#132): dark and light share
+/// the exact ThemeData structure, differing only by [MonoPulsePalette].
 class MonoPulseTheme {
-  static ThemeData get theme {
+  static ThemeData get lightTheme =>
+      _build(MonoPulsePalette.light, Brightness.light);
+
+  static ThemeData get theme => _build(MonoPulsePalette.dark, Brightness.dark);
+
+  /// The ColorScheme both themes share, exposed for direct testing (the
+  /// full ThemeData pulls GoogleFonts, which tests can't load).
+  @visibleForTesting
+  static ColorScheme schemeFor(MonoPulsePalette p, Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    final baseScheme = dark
+        ? const ColorScheme.dark()
+        : const ColorScheme.light();
+    return baseScheme.copyWith(
+      primary: MonoPulseColors.accentOrange,
+      primaryContainer: MonoPulseColors.accentOrangeDark,
+      onPrimaryContainer: p.textPrimary,
+      secondary: p.textSecondary,
+      // Pin the *Container slots explicitly: ColorScheme's getters fall
+      // back secondaryContainer→secondary / tertiaryContainer→tertiary,
+      // and copyWith BAKES the base scheme's getter value in — leaving
+      // these unset froze legacy teal #03DAC6 into tonal buttons (the
+      // 0.17.0 cyan-button regression).
+      secondaryContainer: p.textSecondary,
+      onSecondaryContainer: dark
+          ? MonoPulseColors.black
+          : MonoPulseColors.white,
+      tertiary: p.surfaceRaised,
+      onTertiary: p.textPrimary,
+      tertiaryContainer: p.surfaceRaised,
+      onTertiaryContainer: p.textPrimary,
+      surface: p.surface,
+      onSurface: p.textPrimary,
+      surfaceContainerHighest: p.surfaceRaised,
+      onSurfaceVariant: p.textSecondary,
+      outline: p.borderDefault,
+      outlineVariant: p.borderSubtle,
+      error: MonoPulseColors.error,
+      onError: MonoPulseColors.white,
+      errorContainer: MonoPulseColors.error10,
+      onErrorContainer: MonoPulseColors.error,
+      shadow: MonoPulseColors.black,
+    );
+  }
+
+  static ThemeData _build(MonoPulsePalette p, Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    // White-based hover reads on dark; flip to black-based on light.
+    final hover = dark ? MonoPulseColors.stateHover : const Color(0x0A000000);
+
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: brightness,
+      extensions: <ThemeExtension<dynamic>>[p],
 
-      // Color Scheme
-      colorScheme: const ColorScheme.dark(
-        primary: MonoPulseColors.accentOrange,
-        primaryContainer: MonoPulseColors.accentOrangeDark,
-        onPrimaryContainer: MonoPulseColors.textPrimary,
+      colorScheme: schemeFor(p, brightness),
 
-        secondary: MonoPulseColors.textSecondary,
-
-        tertiary: MonoPulseColors.surfaceRaised,
-        onTertiary: MonoPulseColors.textPrimary,
-        onSurface: MonoPulseColors.textPrimary,
-        surfaceContainerHighest: MonoPulseColors.surfaceRaised,
-        onSurfaceVariant: MonoPulseColors.textSecondary,
-
-        outline: MonoPulseColors.borderDefault,
-        outlineVariant: MonoPulseColors.borderSubtle,
-
-        error: MonoPulseColors.error,
-        onError: MonoPulseColors.white,
-        errorContainer: MonoPulseColors.error10,
-        onErrorContainer: MonoPulseColors.error,
-
-        shadow: MonoPulseColors.black,
-      ),
-
-      // Scaffold
-      scaffoldBackgroundColor: MonoPulseColors.black,
+      // Scaffold ("black" is the app background slot; paper in light).
+      scaffoldBackgroundColor: p.black,
 
       // AppBar
-      appBarTheme: const AppBarTheme(
-        backgroundColor: MonoPulseColors.black,
-        foregroundColor: MonoPulseColors.textPrimary,
+      appBarTheme: AppBarTheme(
+        backgroundColor: p.black,
+        foregroundColor: p.textPrimary,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: MonoPulseTypography.headlineLarge,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        systemOverlayStyle: dark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
       ),
 
-      // Buttons - Elevated (Primary CTA)
+      // Buttons - Elevated (Primary CTA): black-on-orange in both themes.
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: MonoPulseColors.accentOrange,
@@ -472,32 +634,14 @@ class MonoPulseTheme {
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
           textStyle: MonoPulseTypography.labelLarge,
-        ).copyWith(
-          overlayColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.pressed)) {
-              return MonoPulseColors.statePressed;
-            }
-            if (states.contains(WidgetState.hovered)) {
-              return MonoPulseColors.stateHover;
-            }
-            if (states.contains(WidgetState.focused)) {
-              return MonoPulseColors.stateFocus;
-            }
-            if (states.contains(WidgetState.disabled)) {
-              return MonoPulseColors.stateDisabled;
-            }
-            return null;
-          }),
-        ),
+        ).copyWith(overlayColor: _stateOverlay(hover)),
       ),
 
       // Buttons - Outlined (Secondary)
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: MonoPulseColors.textPrimary,
-          side: const BorderSide(
-            color: MonoPulseColors.borderDefault,
-          ),
+          foregroundColor: p.textPrimary,
+          side: BorderSide(color: p.borderDefault),
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.xl,
             vertical: MonoPulseSpacing.lg,
@@ -506,23 +650,7 @@ class MonoPulseTheme {
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
           textStyle: MonoPulseTypography.labelLarge,
-        ).copyWith(
-          overlayColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.pressed)) {
-              return MonoPulseColors.statePressed;
-            }
-            if (states.contains(WidgetState.hovered)) {
-              return MonoPulseColors.stateHover;
-            }
-            if (states.contains(WidgetState.focused)) {
-              return MonoPulseColors.stateFocus;
-            }
-            if (states.contains(WidgetState.disabled)) {
-              return MonoPulseColors.stateDisabled;
-            }
-            return null;
-          }),
-        ),
+        ).copyWith(overlayColor: _stateOverlay(hover)),
       ),
 
       // Buttons - Text (Tertiary)
@@ -540,15 +668,15 @@ class MonoPulseTheme {
       // Input Fields
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: MonoPulseColors.surfaceRaised,
-        hintStyle: const TextStyle(color: MonoPulseColors.textTertiary),
+        fillColor: p.surfaceRaised,
+        hintStyle: TextStyle(color: p.textTertiary),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          borderSide: const BorderSide(color: MonoPulseColors.borderDefault),
+          borderSide: BorderSide(color: p.borderDefault),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          borderSide: const BorderSide(color: MonoPulseColors.borderDefault),
+          borderSide: BorderSide(color: p.borderDefault),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
@@ -573,12 +701,12 @@ class MonoPulseTheme {
 
       // Cards
       cardTheme: CardThemeData(
-        color: MonoPulseColors.surface,
+        color: p.surface,
         elevation: 0,
         shadowColor: MonoPulseColors.black,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-          side: const BorderSide(color: MonoPulseColors.borderSubtle),
+          side: BorderSide(color: p.borderSubtle),
         ),
       ),
 
@@ -593,37 +721,35 @@ class MonoPulseTheme {
       ),
 
       // Bottom Navigation
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: MonoPulseColors.black,
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: p.black,
         selectedItemColor: MonoPulseColors.accentOrange,
-        unselectedItemColor: MonoPulseColors.textTertiary,
+        unselectedItemColor: p.textTertiary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
 
       // Navigation Bar (Material 3)
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: MonoPulseColors.black,
-        indicatorColor: MonoPulseColors.accentOrangeSubtle,
+        backgroundColor: p.black,
+        indicatorColor: MonoPulseColors.accentOrange10,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return MonoPulseTypography.labelSmall.copyWith(
               color: MonoPulseColors.accentOrange,
             );
           }
-          return MonoPulseTypography.labelSmall.copyWith(
-            color: MonoPulseColors.textTertiary,
-          );
+          return MonoPulseTypography.labelSmall.copyWith(color: p.textTertiary);
         }),
       ),
 
       // Chips
       chipTheme: ChipThemeData(
-        backgroundColor: MonoPulseColors.surfaceRaised,
-        labelStyle: const TextStyle(color: MonoPulseColors.textPrimary),
+        backgroundColor: p.surfaceRaised,
+        labelStyle: TextStyle(color: p.textPrimary),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          side: const BorderSide(color: MonoPulseColors.borderDefault),
+          side: BorderSide(color: p.borderDefault),
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: MonoPulseSpacing.md,
@@ -632,16 +758,16 @@ class MonoPulseTheme {
       ),
 
       // Divider
-      dividerTheme: const DividerThemeData(
-        color: MonoPulseColors.borderSubtle,
+      dividerTheme: DividerThemeData(
+        color: p.borderSubtle,
         thickness: 1,
         space: 1,
       ),
 
       // Snackbar
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: MonoPulseColors.surfaceRaised,
-        contentTextStyle: const TextStyle(color: MonoPulseColors.textPrimary),
+        backgroundColor: p.surfaceRaised,
+        contentTextStyle: TextStyle(color: p.textPrimary),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
         ),
@@ -650,7 +776,7 @@ class MonoPulseTheme {
 
       // Dialog
       dialogTheme: DialogThemeData(
-        backgroundColor: MonoPulseColors.surface,
+        backgroundColor: p.surface,
         titleTextStyle: MonoPulseTypography.headlineLarge,
         contentTextStyle: MonoPulseTypography.bodyMedium,
         shape: RoundedRectangleBorder(
@@ -659,8 +785,9 @@ class MonoPulseTheme {
       ),
 
       // Text Theme
-      // Base text theme loads/registers the Inter family at runtime (google_fonts),
-      // then we override slots with our const MonoPulse styles (fontFamily: 'Inter').
+      // Base text theme loads/registers the Inter family at runtime
+      // (google_fonts), then we override slots with our const MonoPulse
+      // styles (fontFamily: 'Inter').
       textTheme: GoogleFonts.interTextTheme(const TextTheme()).copyWith(
         displayLarge: MonoPulseTypography.displayLarge,
         displayMedium: MonoPulseTypography.displayMedium,
@@ -676,4 +803,20 @@ class MonoPulseTheme {
       ),
     );
   }
+
+  /// Pressed/hover/focus/disabled overlay shared by the button themes.
+  static WidgetStateProperty<Color?> _stateOverlay(Color hover) =>
+      WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.pressed)) {
+          return MonoPulseColors.statePressed;
+        }
+        if (states.contains(WidgetState.hovered)) return hover;
+        if (states.contains(WidgetState.focused)) {
+          return MonoPulseColors.stateFocus;
+        }
+        if (states.contains(WidgetState.disabled)) {
+          return MonoPulseColors.stateDisabled;
+        }
+        return null;
+      });
 }

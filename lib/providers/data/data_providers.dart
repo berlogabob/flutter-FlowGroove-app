@@ -1,17 +1,22 @@
 import 'dart:async';
+import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 import '../../models/band.dart';
 import '../../models/canonical_song.dart';
+import '../../models/rehearsal.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
+import '../../models/song_lab.dart';
 import '../../repositories/repositories.dart';
 import '../../services/band_function_service.dart';
-import '../../services/cache_service.dart';
 import '../../services/canonical_song_function_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/pending_storage_deletes.dart';
+import '../../services/rehearsal_function_service.dart';
+import '../../services/storage_service.dart';
 import '../auth/auth_provider.dart';
 
 /// Provider for FirestoreService.
@@ -23,6 +28,30 @@ import '../auth/auth_provider.dart';
 /// ```
 final firestoreProvider = Provider<FirestoreService>((ref) {
   return FirestoreService();
+});
+
+/// Provider for StorageService — a seam so screens that upload can be tested
+/// without Firebase.
+final storageServiceProvider = Provider<StorageService>((ref) {
+  return StorageService();
+});
+
+/// Queue of audio objects awaiting deletion once their undo window closes.
+final pendingStorageDeletesProvider = Provider<PendingStorageDeletes>((ref) {
+  return PendingStorageDeletes(storage: ref.watch(storageServiceProvider));
+});
+
+/// Fetches the bytes behind a Firebase Storage download URL.
+///
+/// Plain `http` rather than `Reference.getData()`: on web the SDK is literally
+/// `getDownloadURL()` + `http.readBytes` (so there's no CORS advantage), its
+/// 10MB default silently returns null for a typical take, and the tokenised URL
+/// sidesteps the uid-locked read rule on `lab_audio/user/{uid}/…` that would
+/// deny a band member.
+final audioBytesFetcherProvider = Provider<Future<Uint8List> Function(String)>((
+  ref,
+) {
+  return (url) => http.readBytes(Uri.parse(url));
 });
 
 /// Provider for the SongRepository.
@@ -38,6 +67,47 @@ final songRepositoryProvider = Provider<SongRepository>((ref) {
     auth: ref.watch(firebaseAuthProvider),
   );
 });
+
+/// Song Lab (#66): repository + per-song streams. Family key: (songId, bandId
+/// — null for personal songs).
+final labRepositoryProvider = Provider<FirestoreLabRepository>((ref) {
+  return FirestoreLabRepository(
+    firestore: ref.watch(firebaseFirestoreProvider),
+    auth: ref.watch(firebaseAuthProvider),
+  );
+});
+
+final labEntriesProvider = StreamProvider.autoDispose
+    .family<List<SongLabEntry>, (String, String?)>((ref, key) {
+      final (songId, bandId) = key;
+      return ref
+          .watch(labRepositoryProvider)
+          .watchEntries(songId, bandId: bandId);
+    });
+
+final labTasksProvider = StreamProvider.autoDispose
+    .family<List<SongTask>, (String, String?)>((ref, key) {
+      final (songId, bandId) = key;
+      return ref.watch(labRepositoryProvider).watchTasks(songId, bandId: bandId);
+    });
+
+/// One-shot open-task count for a song — the rehearsal "what to prepare"
+/// line (#68). Key: (songId, bandId).
+final openTaskCountProvider = FutureProvider.autoDispose
+    .family<int, (String, String?)>((ref, key) {
+      final (songId, bandId) = key;
+      return ref
+          .watch(labRepositoryProvider)
+          .openTaskCount(songId, bandId: bandId);
+    });
+
+final labVersionsProvider = StreamProvider.autoDispose
+    .family<List<SongVersion>, (String, String?)>((ref, key) {
+      final (songId, bandId) = key;
+      return ref
+          .watch(labRepositoryProvider)
+          .watchVersions(songId, bandId: bandId);
+    });
 
 /// Provider for the BandRepository.
 ///
@@ -67,6 +137,14 @@ final setlistRepositoryProvider = Provider<SetlistRepository>((ref) {
   );
 });
 
+/// Provider for the RehearsalRepository.
+final rehearsalRepositoryProvider = Provider<RehearsalRepository>((ref) {
+  return FirestoreRehearsalRepository(
+    firestore: ref.watch(firebaseFirestoreProvider),
+    auth: ref.watch(firebaseAuthProvider),
+  );
+});
+
 /// Provider for the CanonicalSongRepository.
 ///
 /// Canonical songs are global, read-only catalog records used to deduplicate
@@ -90,6 +168,14 @@ final bandFunctionServiceProvider = Provider<BandFunctionService>((ref) {
   return BandFunctionService();
 });
 
+/// Callable Cloud Function wrapper for rehearsal-plan actions (e.g. remind
+/// non-voters).
+final rehearsalFunctionServiceProvider = Provider<RehearsalFunctionService>((
+  ref,
+) {
+  return RehearsalFunctionService();
+});
+
 /// Searches the canonical song catalog by title/artist query.
 final canonicalSongSearchProvider =
     FutureProvider.family<List<CanonicalSong>, String>((ref, query) async {
@@ -100,428 +186,95 @@ final canonicalSongSearchProvider =
       return repo.search(query: normalizedQuery);
     });
 
-/// Provider for the CacheService.
-///
-/// Usage:
-/// ```dart
-/// final cache = ref.read(cacheProvider);
-/// await cache.cacheSongs(uid, songs);
-/// ```
-final cacheProvider = Provider<CacheService>((ref) {
-  return CacheService();
-});
+// Offline support comes from Firestore's built-in persistence (enabled in
+// main.dart), so these providers expose the raw real-time streams. The old
+// Hive cache-first wrappers raced the live stream and could re-emit stale
+// data after fresh data (#91 phantom items).
 
-/// Notifier that implements cache-first strategy for songs.
-///
-/// Strategy:
-/// 1. Return cached data immediately
-/// 2. Fetch from network in background
-/// 3. Update cache and notify listeners
-///
-/// IMPORTANT: Properly disposes stream subscriptions to prevent memory leaks.
-class CachedSongsNotifier extends Notifier<AsyncValue<List<Song>>> {
-  StreamSubscription<List<Song>>? _subscription;
-
-  @override
-  AsyncValue<List<Song>> build() {
-    return const AsyncValue.loading();
-  }
-
-  void dispose() {
-    _subscription?.cancel();
-    _subscription = null;
-  }
-
-  /// Loads songs using cache-first strategy.
-  Future<void> loadSongs(String uid) async {
-    // Step 1: Return cached data immediately
-    final cache = ref.read(cacheProvider);
-    final cachedSongs = await cache.getCachedSongs(uid);
-
-    if (cachedSongs.isNotEmpty) {
-      debugPrint(
-        '📦 CACHE HIT: Loaded ${cachedSongs.length} cached songs for user $uid',
-      );
-      state = AsyncValue.data(cachedSongs);
-    } else {
-      debugPrint('📦 CACHE MISS: No cached songs for user $uid, loading...');
-      state = const AsyncValue.loading();
-    }
-
-    // Step 2: Fetch from network in background
-    try {
-      final songRepo = ref.read(songRepositoryProvider);
-      final songs = await songRepo.watchSongs(uid).first;
-
-      // Step 3: Update cache and notify listeners
-      await cache.cacheSongs(uid, songs);
-      debugPrint(
-        '🌐 ONLINE: Successfully loaded ${songs.length} songs from network for user $uid',
-      );
-      state = AsyncValue.data(songs);
-    } catch (e, st) {
-      debugPrint('❌ OFFLINE/ERROR: Failed to load songs from network: $e');
-      // If network fails, keep cached data if available
-      if (cachedSongs.isNotEmpty) {
-        debugPrint(
-          '📦 FALLBACK: Using ${cachedSongs.length} cached songs due to network error',
-        );
-        state = AsyncValue.data(cachedSongs);
-      } else {
-        debugPrint('⚠️ NO DATA: No cache available, showing error state');
-        state = AsyncValue.error(e, st);
-      }
-    }
-  }
-
-  /// Watches songs with cache-first strategy and real-time updates.
-  void watchSongsWithCache(String uid) {
-    // Cancel existing subscription if any
-    _subscription?.cancel();
-
-    // Load initial cached data
-    loadSongs(uid);
-
-    // Set up real-time listener
-    final songRepo = ref.read(songRepositoryProvider);
-    final cache = ref.read(cacheProvider);
-
-    _subscription = songRepo
-        .watchSongs(uid)
-        .listen(
-          (songs) async {
-            // Update cache on every real-time update
-            await cache.cacheSongs(uid, songs);
-            debugPrint(
-              '🔄 REAL-TIME: Updated ${songs.length} songs from Firestore stream',
-            );
-            state = AsyncValue.data(songs);
-          },
-          onError: (Object error, StackTrace stackTrace) {
-            debugPrint('❌ STREAM ERROR: Real-time song stream error: $error');
-            // On error, try to show cached data
-            cache.getCachedSongs(uid).then((cachedSongs) {
-              if (cachedSongs.isNotEmpty) {
-                debugPrint(
-                  '📦 STREAM FALLBACK: Using ${cachedSongs.length} cached songs',
-                );
-                state = AsyncValue.data(cachedSongs);
-              } else {
-                debugPrint(
-                  '⚠️ STREAM NO CACHE: No cache available for stream error',
-                );
-                state = AsyncValue.error(error, stackTrace);
-              }
-            });
-          },
-        );
-  }
-}
-
-/// Provider for songs with cache-first strategy.
-final cachedSongsProvider =
-    NotifierProvider<CachedSongsNotifier, AsyncValue<List<Song>>>(() {
-      return CachedSongsNotifier();
-    });
-
-/// Stream provider that watches songs for the current user with caching.
-///
-/// This provider:
-/// 1. Immediately returns cached data if available
-/// 2. Updates cache from network stream in background
-/// 3. Continues to work offline with cached data
+/// Stream provider that watches songs for the current user.
 final songsProvider = StreamProvider<List<Song>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
 
-  // Handle loading and error states properly
   return userAsync.when(
     data: (user) {
       if (user == null) return Stream.value([]);
-
-      final cache = ref.watch(cacheProvider);
       final songRepo = ref.watch(songRepositoryProvider);
-
-      // Return a stream that first emits cached data, then network updates
-      return Stream.multi((listener) {
-        bool hasEmittedCache = false;
-
-        // Emit cached data immediately
-        cache.getCachedSongs(user.uid).then((cachedSongs) {
-          if (cachedSongs.isNotEmpty && !listener.isClosed) {
-            listener.add(cachedSongs);
-            hasEmittedCache = true;
-          }
-        });
-
-        // Listen to network updates
-        final subscription = songRepo
-            .watchSongs(user.uid)
-            .listen(
-              (songs) async {
-                // Update cache
-                await cache.cacheSongs(user.uid, songs);
-                if (!listener.isClosed) {
-                  listener.add(songs);
-                }
-              },
-              onError: (Object error) {
-                // On error, emit cached data if not already emitted
-                if (!hasEmittedCache && !listener.isClosed) {
-                  cache.getCachedSongs(user.uid).then((cachedSongs) {
-                    if (!listener.isClosed) {
-                      listener.add(cachedSongs);
-                    }
-                  });
-                }
-              },
-            );
-
-        listener.onCancel = subscription.cancel;
-      });
+      return songRepo.watchSongs(user.uid);
     },
     loading: () => Stream.value([]),
     error: (error, stack) => Stream.value([]),
   );
 });
 
-/// Notifier for the currently selected band.
-class SelectedBandNotifier extends Notifier<Band?> {
-  @override
-  Band? build() => null;
-
-  void select(Band? band) {
-    state = band;
-  }
-}
-
-/// Provider for the selected band state.
-final selectedBandProvider = NotifierProvider<SelectedBandNotifier, Band?>(() {
-  return SelectedBandNotifier();
-});
-
-/// Notifier that implements cache-first strategy for bands.
-///
-/// IMPORTANT: Properly disposes resources to prevent memory leaks.
-class CachedBandsNotifier extends Notifier<AsyncValue<List<Band>>> {
-  @override
-  AsyncValue<List<Band>> build() {
-    return const AsyncValue.loading();
-  }
-
-  void dispose() {
-    // No stream subscriptions to cancel in this notifier
-  }
-
-  /// Loads bands using cache-first strategy.
-  Future<void> loadBands(String uid) async {
-    final cache = ref.read(cacheProvider);
-    final cachedBands = await cache.getCachedBands(uid);
-
-    if (cachedBands.isNotEmpty) {
-      state = AsyncValue.data(cachedBands);
-    } else {
-      state = const AsyncValue.loading();
-    }
-
-    try {
-      final bandRepo = ref.read(bandRepositoryProvider);
-      final bands = await bandRepo.watchBands(uid).first;
-
-      await cache.cacheBands(uid, bands);
-      state = AsyncValue.data(bands);
-    } catch (e, st) {
-      if (cachedBands.isNotEmpty) {
-        state = AsyncValue.data(cachedBands);
-      } else {
-        state = AsyncValue.error(e, st);
-      }
-    }
-  }
-}
-
-/// Provider for bands with cache-first strategy.
-final cachedBandsProvider =
-    NotifierProvider<CachedBandsNotifier, AsyncValue<List<Band>>>(() {
-      return CachedBandsNotifier();
-    });
-
-/// Stream provider that watches bands for the current user with caching.
+/// Stream provider that watches bands for the current user.
 final bandsProvider = StreamProvider<List<Band>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
 
   return userAsync.when(
     data: (user) {
       if (user == null) return Stream.value([]);
-
-      final cache = ref.watch(cacheProvider);
       final bandRepo = ref.watch(bandRepositoryProvider);
-
-      return Stream.multi((listener) {
-        bool hasEmittedCache = false;
-
-        cache.getCachedBands(user.uid).then((cachedBands) {
-          if (cachedBands.isNotEmpty && !listener.isClosed) {
-            listener.add(cachedBands);
-            hasEmittedCache = true;
-          }
-        });
-
-        final subscription = bandRepo
-            .watchBands(user.uid)
-            .listen(
-              (bands) async {
-                await cache.cacheBands(user.uid, bands);
-                if (!listener.isClosed) {
-                  listener.add(bands);
-                }
-              },
-              onError: (Object error) {
-                if (!hasEmittedCache && !listener.isClosed) {
-                  cache.getCachedBands(user.uid).then((cachedBands) {
-                    if (!listener.isClosed) {
-                      listener.add(cachedBands);
-                    }
-                  });
-                }
-              },
-            );
-
-        listener.onCancel = subscription.cancel;
-      });
+      return bandRepo.watchBands(user.uid);
     },
     loading: () => Stream.value([]),
     error: (error, stack) => Stream.value([]),
   );
 });
 
-/// Notifier that implements cache-first strategy for setlists.
-///
-/// IMPORTANT: Properly disposes resources to prevent memory leaks.
-class CachedSetlistsNotifier extends Notifier<AsyncValue<List<Setlist>>> {
-  @override
-  AsyncValue<List<Setlist>> build() {
-    return const AsyncValue.loading();
-  }
-
-  void dispose() {
-    // No stream subscriptions to cancel in this notifier
-  }
-
-  /// Loads setlists using cache-first strategy.
-  Future<void> loadSetlists(String uid) async {
-    final cache = ref.read(cacheProvider);
-    final cachedSetlists = await cache.getCachedSetlists(uid);
-
-    if (cachedSetlists.isNotEmpty) {
-      state = AsyncValue.data(cachedSetlists);
-    } else {
-      state = const AsyncValue.loading();
-    }
-
-    try {
-      final setlistRepo = ref.read(setlistRepositoryProvider);
-      final setlists = await setlistRepo.watchSetlists(uid).first;
-
-      await cache.cacheSetlists(uid, setlists);
-      state = AsyncValue.data(setlists);
-    } catch (e, st) {
-      if (cachedSetlists.isNotEmpty) {
-        state = AsyncValue.data(cachedSetlists);
-      } else {
-        state = AsyncValue.error(e, st);
-      }
-    }
-  }
-}
-
-/// Provider for setlists with cache-first strategy.
-final cachedSetlistsProvider =
-    NotifierProvider<CachedSetlistsNotifier, AsyncValue<List<Setlist>>>(() {
-      return CachedSetlistsNotifier();
-    });
-
 /// Stream provider that watches setlists for the current user.
 final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
 
-  debugPrint(
-    '🔵 setlistsProvider: userAsync.value = ${userAsync.value?.email ?? "NULL"}',
-  );
-
   return userAsync.when(
     data: (user) {
-      if (user == null) {
-        debugPrint('🔴 setlistsProvider: user is null, returning empty stream');
-        return Stream.value([]);
-      }
-
-      debugPrint('🟢 setlistsProvider: user=${user.email}, uid=${user.uid}');
-
+      if (user == null) return Stream.value([]);
       final setlistRepo = ref.watch(setlistRepositoryProvider);
-      final stream = setlistRepo.watchSetlists(user.uid);
-      debugPrint('🔵 setlistsProvider: stream created');
-      return stream;
+      return setlistRepo.watchSetlists(user.uid);
     },
-    loading: () {
-      debugPrint('🟡 setlistsProvider: loading, returning empty stream');
-      return const Stream.empty();
-    },
-    error: (error, stack) {
-      debugPrint('🔴 setlistsProvider: error=$error');
-      return Stream.value([]);
-    },
+    // Stream.value, not Stream.empty: an empty stream never emits, leaving the
+    // provider in loading forever (Setlists screen hang) — matches songs/bands.
+    loading: () => Stream.value([]),
+    error: (error, stack) => Stream.value([]),
   );
 });
 
+// Per-band family providers are autoDispose: their Firestore listeners close
+// when no screen is watching them, so visiting N bands does not leave N
+// permanent snapshot listeners open for the whole session.
+
 /// Stream provider that watches shared setlists for a band.
-final bandSetlistsProvider = StreamProvider.family<List<Setlist>, String>((
-  ref,
-  bandId,
-) {
+final bandSetlistsProvider =
+    StreamProvider.autoDispose.family<List<Setlist>, String>((ref, bandId) {
   final setlistRepo = ref.watch(setlistRepositoryProvider);
   return setlistRepo.watchBandSetlists(bandId);
 });
 
-/// Stream provider that watches band songs with caching.
-final bandSongsProvider = StreamProvider.family<List<Song>, String>((
-  ref,
-  bandId,
-) {
-  final cache = ref.watch(cacheProvider);
+/// Stream provider that watches rehearsals for a band.
+final bandRehearsalsProvider =
+    StreamProvider.autoDispose.family<List<Rehearsal>, String>((ref, bandId) {
+  final repo = ref.watch(rehearsalRepositoryProvider);
+  return repo.watchRehearsals(bandId);
+});
+
+/// Stream provider that watches a single rehearsal ((bandId, rehearsalId)).
+final rehearsalProvider =
+    StreamProvider.autoDispose.family<Rehearsal?, (String, String)>((ref, key) {
+  final repo = ref.watch(rehearsalRepositoryProvider);
+  return repo.watchRehearsal(key.$1, key.$2);
+});
+
+/// Stream provider that watches votes for a rehearsal ((bandId, rehearsalId)).
+final rehearsalVotesProvider = StreamProvider.autoDispose
+    .family<Map<String, RehearsalVote>, (String, String)>((ref, key) {
+  final repo = ref.watch(rehearsalRepositoryProvider);
+  return repo.watchVotes(key.$1, key.$2);
+});
+
+/// Stream provider that watches band songs.
+final bandSongsProvider =
+    StreamProvider.autoDispose.family<List<Song>, String>((ref, bandId) {
   final songRepo = ref.watch(songRepositoryProvider);
-
-  return Stream.multi((listener) {
-    bool hasEmittedCache = false;
-
-    cache.getCachedBandSongs(bandId).then((cachedSongs) {
-      if (cachedSongs.isNotEmpty && !listener.isClosed) {
-        listener.add(cachedSongs);
-        hasEmittedCache = true;
-      }
-    });
-
-    final subscription = songRepo
-        .watchBandSongs(bandId)
-        .listen(
-          (songs) async {
-            await cache.cacheBandSongs(bandId, songs);
-            if (!listener.isClosed) {
-              listener.add(songs);
-            }
-          },
-          onError: (Object error) {
-            if (!hasEmittedCache && !listener.isClosed) {
-              cache.getCachedBandSongs(bandId).then((cachedSongs) {
-                if (!listener.isClosed) {
-                  listener.add(cachedSongs);
-                }
-              });
-            }
-          },
-        );
-
-    listener.onCancel = subscription.cancel;
-  });
+  return songRepo.watchBandSongs(bandId);
 });
 
 /// Provider that returns the count of songs.
@@ -538,17 +291,18 @@ final bandCountProvider = Provider<int>((ref) {
 
 /// Provider that returns the count of setlists.
 final setlistCountProvider = Provider<int>((ref) {
-  final count =
-      ref
+  return ref
           .watch(setlistsProvider)
           .whenOrNull(data: (setlists) => setlists.length) ??
       0;
-  debugPrint('🔵 setlistCountProvider: count=$count');
-  return count;
 });
 
 /// Provider that returns the count of shared setlists for a band.
-final bandSetlistCountProvider = Provider.family<int, String>((ref, bandId) {
+///
+/// autoDispose so it does not pin the autoDispose [bandSetlistsProvider] stream
+/// alive after the band screen is gone.
+final bandSetlistCountProvider =
+    Provider.autoDispose.family<int, String>((ref, bandId) {
   return ref
           .watch(bandSetlistsProvider(bandId))
           .whenOrNull(data: (setlists) => setlists.length) ??

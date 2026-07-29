@@ -10,7 +10,7 @@ summary: "FlowGroove launching soon on TinyLaunch — early access details and l
 
 # 🚀 FlowGroove on TinyLaunch
 
-**Launch Date:** May 1, 2026  
+**Launch Date:** June 29, 2026 (next Monday batch, ~11:00 MSK)  
 **Status:** Pre-Launch  
 **Launch Type:** Premium ($39)
 
@@ -21,8 +21,8 @@ summary: "FlowGroove launching soon on TinyLaunch — early access details and l
 FlowGroove is a **free real-time setlist sync app for cover bands**. Built by a solo developer between rehearsals, it helps musicians:
 
 ✅ Auto-detect BPM & key for any song  
-✅ Sync setlists across all devices in <500ms  
-✅ Work offline (perfect for basement rehears)  
+✅ Sync setlists across all devices in real time  
+✅ Work offline (perfect for basement rehearsals)  
 ✅ Use stage-ready dark mode for gigs  
 
 **No corporate team. No venture capital. Just a musician who got tired of the chaos.**
@@ -34,7 +34,7 @@ FlowGroove is a **free real-time setlist sync app for cover bands**. Built by a 
 TinyLaunch is the perfect platform to launch FlowGroove because:
 
 - **Solo maker friendly** — Built for indie creators
-- **High-quality backlinks** — DR 66+ for SEO
+- **High-quality backlinks** — DR 72 for SEO
 - **Community support** — Early adopters who love indie products
 - **Premium launch** — Validates the product with $39 price point
 
@@ -42,25 +42,25 @@ TinyLaunch is the perfect platform to launch FlowGroove because:
 
 ## Launch Checklist
 
-### Pre-Launch (Complete by April 28)
+### Pre-Launch (Complete by June 26)
 - [ ] Finalize landing page content
 - [ ] Record demo video (15-second sync demo)
 - [ ] Complete TinyLaunch profile
-- [ ] Prepare launch post for X/Twitter
+- [ ] Prepare launch post for Telegram & Reddit
 - [ ] Draft Reddit posts (r/FlutterDev, r/SomebodyMakeThis)
 - [ ] Email announcement template
 - [ ] Social media graphics
 - [ ] Ko-fi goals configured ($50, $200)
 
-### Launch Day (May 1)
-- [ ] Post on X/Twitter
+### Launch Day (June 29)
+- [ ] Post to Telegram channel
 - [ ] Post on Reddit
 - [ ] Contact boost list (15 friends) for upvotes
 - [ ] Monitor comments and respond within 24h
 - [ ] Track Ko-fi donations
 - [ ] Update launch status
 
-### Post-Launch (May 2-7)
+### Post-Launch (June 30 - July 6)
 - [ ] Respond to all remaining comments
 - [ ] Analyze traffic (GA4, Clarity)
 - [ ] Thank boost list participants
@@ -82,7 +82,7 @@ Amadora, Portugal | NIF: 518200736
 
 Want early access before the TinyLaunch launch?
 
-[Try the Demo](app/) or [Support the Dev on Ko-fi](https://ko-fi.com/flowgroove)
+[Try the Demo](https://app.flowgroove.app/) or [Support the Dev on Ko-fi](https://ko-fi.com/flowgroove)
 
 ---
 
@@ -98,4 +98,4 @@ Want early access before the TinyLaunch launch?
 
 ---
 
-**Stay tuned for the launch! Follow [@flowgroove_app](https://twitter.com/flowgroove_app) for updates.**
+**Stay tuned for the launch.** Updates go out on [Telegram](https://t.me/flowgrooveapp) and [Reddit](https://www.reddit.com/r/flowgroove/).

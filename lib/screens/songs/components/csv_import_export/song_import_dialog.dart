@@ -6,10 +6,13 @@ import 'package:flowgroove/models/song_import_plan.dart';
 import 'package:flowgroove/services/csv/song_csv_parser.dart';
 import 'package:flowgroove/services/csv/song_csv_service.dart';
 import 'package:flowgroove/services/csv/song_import_analyzer.dart';
+import 'package:flowgroove/services/json/song_ai_prompt.dart';
+import 'package:flowgroove/services/json/song_json_codec.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../theme/mono_pulse_theme.dart';
+import '../../../../utils/snackbar.dart';
 import '../../../../widgets/loading_indicator.dart';
 
 class SongImportDialog extends StatefulWidget {
@@ -46,14 +49,19 @@ class _SongImportDialogState extends State<SongImportDialog> {
 
   Widget _buildHeader(bool isMobile) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      padding: const EdgeInsets.fromLTRB(
+        MonoPulseSpacing.lg,
+        MonoPulseSpacing.md,
+        MonoPulseSpacing.md,
+        MonoPulseSpacing.md,
+      ),
       child: Row(
         children: [
           const Icon(Icons.upload_file),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Import songs from CSV',
+              'Import songs (CSV or JSON)',
               style:
                   (isMobile
                           ? MonoPulseTypography.titleLarge
@@ -80,7 +88,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
   Widget _buildImportOptions() {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
           child: Column(
@@ -88,7 +96,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
               const Icon(Icons.table_view_outlined, size: 56),
               const SizedBox(height: 20),
               const Text(
-                'Choose a CSV file or paste CSV data. The complete file will be compared with your library before anything is saved.',
+                'Choose a CSV file, or paste CSV or FlowGroove Song JSON (e.g. from an AI). Everything is compared with your library and previewed before anything is saved.',
                 textAlign: TextAlign.center,
                 style: MonoPulseTypography.bodyLarge,
               ),
@@ -110,6 +118,22 @@ class _SongImportDialogState extends State<SongImportDialog> {
                   label: const Text('Paste from clipboard'),
                 ),
               ),
+              const SizedBox(height: 24),
+              const Text(
+                "No file? Ask your own AI. Copy a prompt, paste it into "
+                "ChatGPT/Claude/Gemini, then paste its result back here.",
+                textAlign: TextAlign.center,
+                style: MonoPulseTypography.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: _copyAiPrompt,
+                  icon: const Icon(Icons.auto_awesome),
+                  label: const Text('Copy AI prompt'),
+                ),
+              ),
             ],
           ),
         ),
@@ -117,9 +141,18 @@ class _SongImportDialogState extends State<SongImportDialog> {
     );
   }
 
+  Future<void> _copyAiPrompt() async {
+    await Clipboard.setData(ClipboardData(text: songImportPrompt()));
+    if (!mounted) return;
+    showAppSnackBar(
+      context,
+      'AI prompt copied — paste it into your AI, then paste the result here.',
+    );
+  }
+
   Widget _buildAnalysis(SongImportAnalysis analysis) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       children: [
         Text(
           'Ready to import',
@@ -131,7 +164,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
         Text(
           'Library values are preserved. CSV data fills blank fields and combines tags and links.',
           style: MonoPulseTypography.bodyMedium.copyWith(
-            color: MonoPulseColors.textSecondary,
+            color: context.mp.textSecondary,
           ),
         ),
         const SizedBox(height: 16),
@@ -224,7 +257,7 @@ class _SongImportDialogState extends State<SongImportDialog> {
   Widget _buildFooter() {
     final analysis = _analysis;
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Row(
         children: [
           if (analysis != null)
@@ -262,12 +295,19 @@ class _SongImportDialogState extends State<SongImportDialog> {
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       final content = data?.text ?? '';
-      final result = content.trim().isEmpty
-          ? SongParseResult(
-              successful: const [],
-              errors: ['Clipboard is empty'],
-            )
-          : await _service.importFromString(content);
+      final trimmed = content.trim();
+      final SongParseResult result;
+      if (trimmed.isEmpty) {
+        result = SongParseResult(
+          successful: const [],
+          errors: ['Clipboard is empty'],
+        );
+      } else if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        // Looks like JSON → FlowGroove Song JSON.
+        result = const SongJsonCodec().parse(content);
+      } else {
+        result = await _service.importFromString(content);
+      }
       if (!mounted) return;
       _setResult(result);
     } catch (error) {

@@ -1,7 +1,18 @@
+import 'dart:async';
+
+import 'package:audio_session/audio_session.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show
+        LicenseEntry,
+        LicenseEntryWithLineBreaks,
+        LicenseRegistry,
+        kDebugMode,
+        kIsWeb,
+        kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -10,19 +21,61 @@ import 'analytics/metronome_analytics.dart';
 import 'config/config_validator.dart';
 import 'firebase_options.dart';
 import 'models/user.dart';
+import 'providers/analytics_consent_provider.dart';
 import 'providers/auth/auth_provider.dart';
+import 'providers/data/data_providers.dart';
+import 'providers/keep_screen_on_provider.dart';
 import 'providers/metronome_runtime_providers.dart';
+import 'providers/theme_mode_provider.dart';
 import 'repositories/metronome_session_repository.dart';
 import 'router/app_router.dart';
 import 'services/analytics_service.dart';
 import 'services/metronome_preferences.dart';
 import 'theme/mono_pulse_theme.dart';
 import 'utils/analytics_debug.dart';
+import 'utils/responsive_breakpoints.dart';
 import 'widgets/config_error_widget.dart';
 import 'widgets/loading_indicator.dart';
+import 'widgets/wiki_panel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // LAME is LGPL and requires acknowledgement with a link (web/vendor/README.md
+  // records how each of its conditions is met). Web-only, but registered
+  // unconditionally so the licenses page reads the same everywhere.
+  LicenseRegistry.addLicense(
+    () => Stream<LicenseEntry>.value(
+      const LicenseEntryWithLineBreaks(<String>['lamejs (LAME)'], '''
+FlowGroove uses lamejs, a JavaScript port of the LAME MP3 encoder, to turn
+recordings made in a browser into MP3 files that messengers can play.
+
+LAME — https://lame.sourceforge.net/
+lamejs — https://github.com/zhuker/lamejs
+
+Licensed under the LGPL. lamejs is loaded as a separate, unmodified script
+(web/vendor/lamejs.iife.js) and can be replaced with your own build.'''),
+    ),
+  );
+
+  // debugPrint still emits in release builds; silence the app's ~250 log
+  // call sites globally instead of guarding each one.
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
+
+  // iOS: without an explicit playback session the app inherits soloAmbient,
+  // which obeys the ringer/silent switch — metronome and tuner tone go silent
+  // on muted devices while GarageBand keeps playing. Musicians mute devices on
+  // stage; configure a music session up front (no-op where unsupported).
+  if (!kIsWeb) {
+    try {
+      final session = await AudioSession.instance;
+      await session.configure(const AudioSessionConfiguration.music());
+    } catch (e) {
+      debugPrint('AudioSession configure failed: $e');
+    }
+  }
 
   // Global error widget for graceful degradation (prevents full red screen)
   ErrorWidget.builder = (details) {
@@ -103,7 +156,9 @@ void main() async {
   } on FirebaseException catch (e) {
     if (e.code == 'duplicate-app') {
       // Native auto-init already created [DEFAULT]; safe to continue.
-      debugPrint('ℹ️  Firebase already initialized natively; reusing [DEFAULT]');
+      debugPrint(
+        'ℹ️  Firebase already initialized natively; reusing [DEFAULT]',
+      );
     } else {
       debugPrint('❌ Firebase initialization failed: $e');
       runApp(const FirebaseErrorApp());
@@ -115,31 +170,37 @@ void main() async {
     return;
   }
 
-  // Initialize Firebase Analytics ONLY on mobile (not web)
+  // Firebase Analytics (mobile only). Grab the singleton now (cheap) but defer
+  // the awaited init/collection/connection/app-open work to after the first
+  // frame so it never blocks startup. Events logged before the deferred enable
+  // are buffered by Firebase Analytics.
   FirebaseAnalytics? analytics;
   if (!kIsWeb) {
     analytics = FirebaseAnalytics.instance;
-    debugPrint('📊 Firebase Analytics initialized');
-
-    // Initialize Analytics Service
-    await AnalyticsService.initialize();
-
-    // Enable analytics collection (explicitly)
-    await analytics.setAnalyticsCollectionEnabled(true);
-    debugPrint('📊 Analytics collection enabled');
-
-    // Enable debug mode for development
     AnalyticsDebug.enableDebugMode();
-
-    // Test analytics connection
-    await AnalyticsDebug.testConnection();
-
-    // Log app open event
-    await AnalyticsDebug.logAppOpen();
-    debugPrint('📊 App open event logged');
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await AnalyticsService.initialize();
+        await analytics!.setAnalyticsCollectionEnabled(true);
+        await AnalyticsDebug.testConnection();
+        await AnalyticsDebug.logAppOpen();
+        debugPrint('📊 Analytics initialized (deferred, off critical path)');
+      } catch (e) {
+        debugPrint('⚠️ Deferred analytics init failed: $e');
+      }
+    });
   } else {
     debugPrint('ℹ️  Web platform - skipping Analytics initialization');
   }
+
+  // Enable Firestore offline persistence on every platform (mobile has it on
+  // by default, web does not). This replaces the removed Hive data cache:
+  // first paint comes from the SDK's disk cache and self-corrects live (#91).
+  try {
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+    );
+  } catch (_) {}
 
   // Enable Firebase Auth persistence for Android
   try {
@@ -158,6 +219,15 @@ void main() async {
   }
 
   final rootContainer = ProviderContainer();
+
+  // Apply the global "keep screen on" preference (default on). Reading the
+  // provider constructs the notifier, which loads the stored value and applies
+  // the wakelock — providers are lazy, so it must be read once at startup.
+  rootContainer.read(keepScreenOnProvider);
+
+  // Apply the global "share usage analytics" preference (default on). Same
+  // lazy-provider-construction pattern as keepScreenOnProvider above.
+  rootContainer.read(analyticsConsentProvider);
 
   // Pre-initialize audio engine for instant first beat (deferred to avoid blocking startup)
   if (!kIsWeb) {
@@ -202,8 +272,13 @@ void main() async {
     debugPrint('   UID: ${currentUser.uid}');
     debugPrint('   Email verified: ${currentUser.emailVerified}');
 
-    // Log login event for existing user
-    await analytics?.logLogin(loginMethod: 'auto');
+    // Log login event for existing user (off the startup critical path)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      analytics?.logLogin(loginMethod: 'auto');
+      // Audio objects whose undo window closed while the app was gone. Failures
+      // stay queued, so this is safe to fire and forget.
+      unawaited(rootContainer.read(pendingStorageDeletesProvider).sweep());
+    });
   } else {
     debugPrint('🔑 NO USER: No user found from previous session');
   }
@@ -228,17 +303,17 @@ class FlowGrooveApp extends ConsumerWidget {
 
     // Set up auth state listener for navigation with logging
     ref.listen<AsyncValue<AppUser?>>(appUserProvider, (previous, next) {
+      // Log-only: navigation is owned by the router redirect (refreshListenable
+      // re-runs on every authStateChanges) and the login/register screens. This
+      // listener must NOT call appRouter.go(...) — doing so on cold-start auth
+      // restore raced and clobbered the /join deep-link redirect, dumping users
+      // on Home instead of the Join Band screen.
       next.whenOrNull(
         data: (user) {
           if (user != null && previous?.value == null) {
-            // User just logged in - navigate to home
             debugPrint('🔑 Auth Event: USER_LOGIN - email=${user.email}');
-            // Use the global appRouter directly (not from context)
-            appRouter.go('/main/home');
           } else if (user == null && previous?.value != null) {
-            // User just logged out - navigate to login
             debugPrint('🔑 Auth Event: USER_LOGOUT - previous user logged out');
-            appRouter.go('/login');
           } else if (user != null) {
             // Auth state restored (app resume/refresh)
             debugPrint('🔑 Auth Event: AUTH_RESTORED - email=${user.email}');
@@ -250,9 +325,9 @@ class FlowGrooveApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'FlowGroove',
       debugShowCheckedModeBanner: false,
-      theme: MonoPulseTheme.theme,
+      theme: MonoPulseTheme.lightTheme,
       darkTheme: MonoPulseTheme.theme,
-      themeMode: ThemeMode.dark,
+      themeMode: ref.watch(themeModeProvider),
       routerConfig: appRouter,
       builder: (context, child) {
         // Handle loading state
@@ -260,7 +335,7 @@ class FlowGrooveApp extends ConsumerWidget {
         return userAsync.when(
           data: (user) {
             debugPrint('🟢 Auth state: DATA - user=${user?.email ?? "NULL"}');
-            return child ?? const SizedBox.shrink();
+            return _withDesktopWiki(context, child ?? const SizedBox.shrink());
           },
           loading: () {
             debugPrint('🟡 Auth state: LOADING');
@@ -269,12 +344,39 @@ class FlowGrooveApp extends ConsumerWidget {
           error: (error, stack) {
             debugPrint('🔴 Auth state: ERROR - $error');
             debugPrint('Stack: $stack');
-            return child ?? const SizedBox.shrink();
+            return _withDesktopWiki(context, child ?? const SizedBox.shrink());
           },
         );
       },
     );
   }
+}
+
+/// On desktop, render the app in a fixed 480px phone-width column with the
+/// wiki panel on the right. `app` is the root navigator (the builder's
+/// `child`), so all its dialogs/menus/overlays stay inside the left column.
+Widget _withDesktopWiki(BuildContext context, Widget app) {
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      if (getBreakpoint(constraints.maxWidth) != ScreenBreakpoint.desktop) {
+        return app;
+      }
+      final mq = MediaQuery.of(context);
+      return Row(
+        children: [
+          SizedBox(
+            width: 480,
+            child: MediaQuery(
+              data: mq.copyWith(size: Size(480, mq.size.height)),
+              child: app,
+            ),
+          ),
+          Container(width: 1, color: context.mp.borderSubtle),
+          const Expanded(child: WikiPanel()),
+        ],
+      );
+    },
+  );
 }
 
 /// Error app displayed when configuration validation fails

@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:uuid/uuid.dart';
 
+import '../haptics_provider.dart';
 import '../../models/beat_mode.dart';
 import '../../models/metronome_preset.dart';
 import '../../models/metronome_runtime_state.dart';
@@ -21,13 +23,13 @@ import '../../services/analytics_service.dart';
 import '../../services/audio/audio_focus_manager.dart';
 import '../../services/metronome_preferences.dart';
 import '../../services/wakelock_controller.dart';
+import 'data_providers.dart';
 
 /// Metronome Notifier class
 ///
 /// Manages metronome state and provides methods to control it.
 /// Uses Riverpod Notifier pattern for state management.
 class MetronomeNotifier extends Notifier<MetronomeState> {
-
   /// Default constructor
   MetronomeNotifier();
   late MetronomeAudioClient _audioClient;
@@ -44,6 +46,16 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   MetronomeSession? _activeSession;
   Stopwatch? _sessionStopwatch;
 
+  /// Fresh setlist+songs waiting to be applied. Set when a live update arrives
+  /// while the metronome is playing; consumed on stop / next / prev so the queue
+  /// doesn't reshuffle mid-rehearsal. See [syncLoadedSetlist].
+  (Setlist, List<Song>)? _pendingSync;
+
+  /// Live subscriptions to the source setlist/song providers for the loaded
+  /// setlist, so reorders and tempo-map edits propagate into the loaded queue.
+  ProviderSubscription<AsyncValue<List<Setlist>>>? _setlistSub;
+  ProviderSubscription<AsyncValue<List<Song>>>? _songsSub;
+
   @override
   MetronomeState build() {
     _audioClient = ref.read(metronomeAudioClientProvider);
@@ -51,7 +63,15 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     _wakelock = ref.read(wakelockProvider);
     ref.onDispose(_cleanup);
 
-    return MetronomeState.initial();
+    // Global haptics preference is the single source of truth (#129): the
+    // engine state follows it, both now and on later Settings toggles.
+    ref.listen<bool>(hapticsEnabledProvider, (_, enabled) {
+      if (state.hapticsEnabled != enabled) setHapticsEnabled(enabled);
+    });
+
+    return MetronomeState.initial().copyWith(
+      hapticsEnabled: ref.read(hapticsEnabledProvider),
+    );
   }
 
   /// Start the metronome
@@ -90,6 +110,9 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       playbackPhase: MetronomePlaybackPhase.stopped,
     );
     _finishSession(MetronomeSessionCompletion.stopped);
+
+    // Apply any live setlist update that arrived while we were playing.
+    _applyPendingSyncIfAny();
 
     // Release audio focus when metronome stops
     unawaited(AudioFocusManager().releaseFocus());
@@ -180,6 +203,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Load tempo and metronome settings from a song
   void loadSongTempo(Song song, {String? sourceBandId}) {
+    _cancelLiveSources();
+    _pendingSync = null;
     state = state.copyWith(
       loadedSong: song,
       loadedSetlist: null,
@@ -248,21 +273,22 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     return updatedSong;
   }
 
-  /// Load tempo from a setlist
-  bool loadSetlistQueue(
-    Setlist setlist, {
-    List<Song>? availableSongs,
-    String? sourceBandId,
-  }) {
-    if (setlist.songIds.isEmpty) return false;
+  /// Resolve a setlist into an ordered song queue, skipping entries whose
+  /// songId can't be matched in [availableSongs] instead of failing the whole
+  /// queue — an unresolvable entry (deleted/unavailable song) shouldn't block
+  /// the rest of the setlist from loading. Returns null only when the
+  /// setlist has zero resolvable entries (empty, or every entry unresolved).
+  List<Song>? _resolveQueue(Setlist setlist, List<Song>? availableSongs) {
+    final items = setlist.effectiveItems;
+    if (items.isEmpty) return null;
 
     final resolvedSongs =
         availableSongs ??
-        setlist.songIds
+        items
             .map(
-              (id) => Song(
-                id: id,
-                title: id,
+              (item) => Song(
+                id: item.songId,
+                title: item.songId,
                 artist: '',
                 createdAt: DateTime.fromMillisecondsSinceEpoch(0),
                 updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
@@ -270,32 +296,175 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
             )
             .toList(growable: false);
     final songsById = {for (final song in resolvedSongs) song.id: song};
-    final queue = setlist.songIds.map((id) => songsById[id]).toList();
-    if (queue.any((song) => song == null)) return false;
+    final queue = [
+      for (final item in items)
+        if (songsById[item.songId] case final song?) song,
+    ];
+    if (queue.isEmpty) return null;
+    return queue;
+  }
 
-    final resolvedQueue = queue.cast<Song>();
+  /// Load tempo from a setlist
+  bool loadSetlistQueue(
+    Setlist setlist, {
+    List<Song>? availableSongs,
+    String? sourceBandId,
+    int startIndex = 0,
+  }) {
+    final resolvedQueue = _resolveQueue(setlist, availableSongs);
+    if (resolvedQueue == null) return false;
+
+    _pendingSync = null;
+    final index = startIndex.clamp(0, resolvedQueue.length - 1);
     state = state.copyWith(
       loadedSong: null,
       loadedSetlist: setlist,
       loadedSetlistSongs: List.unmodifiable(resolvedQueue),
       sourceBandId: sourceBandId,
-      currentSetlistIndex: 0,
+      currentSetlistIndex: index,
       bpmSource: BpmSource.setlist,
       activePresetId: null,
       activePresetName: null,
     );
-    _applySongSettings(resolvedQueue.first, resetPhase: true);
+    _applySongSettings(resolvedQueue[index], resetPhase: true);
+    _watchLiveSources(sourceBandId);
+    return true;
+  }
+
+  /// Refresh the currently-loaded setlist from fresh data (e.g. a live Firestore
+  /// update after a reorder or tempo-map edit). No-op unless [freshSetlist] is the
+  /// setlist currently loaded. Preserves the active song by id. While playing, the
+  /// update is stashed and applied on stop / next / prev to avoid reshuffling
+  /// mid-rehearsal.
+  void syncLoadedSetlist(Setlist freshSetlist, List<Song> freshSongs) {
+    final current = state.loadedSetlist;
+    if (current == null || current.id != freshSetlist.id) return;
+    // Don't replace a working queue with invalid/incomplete data.
+    if (_resolveQueue(freshSetlist, freshSongs) == null) return;
+    if (state.isPlaying) {
+      _pendingSync = (freshSetlist, freshSongs);
+      return;
+    }
+    _applySync(freshSetlist, freshSongs);
+  }
+
+  /// Subscribe to the live setlist/song providers for [bandId] (null = personal)
+  /// so changes flow into the loaded queue via [syncLoadedSetlist]. Replaces any
+  /// existing subscriptions.
+  void _watchLiveSources(String? bandId) {
+    _cancelLiveSources();
+    _setlistSub = ref.listen(
+      bandId == null ? setlistsProvider : bandSetlistsProvider(bandId),
+      (_, _) => _syncFromLiveSources(),
+    );
+    _songsSub = ref.listen(
+      bandId == null ? songsProvider : bandSongsProvider(bandId),
+      (_, _) => _syncFromLiveSources(),
+    );
+  }
+
+  void _cancelLiveSources() {
+    _setlistSub?.close();
+    _songsSub?.close();
+    _setlistSub = null;
+    _songsSub = null;
+  }
+
+  void _syncFromLiveSources() {
+    final loaded = state.loadedSetlist;
+    if (loaded == null) return;
+    final bandId = state.sourceBandId;
+    final setlists =
+        (bandId == null
+                ? ref.read(setlistsProvider)
+                : ref.read(bandSetlistsProvider(bandId)))
+            .value;
+    final songs =
+        (bandId == null
+                ? ref.read(songsProvider)
+                : ref.read(bandSongsProvider(bandId)))
+            .value;
+    if (setlists == null || songs == null) return;
+    final fresh = setlists.where((s) => s.id == loaded.id).firstOrNull;
+    if (fresh == null) return;
+    syncLoadedSetlist(fresh, songs);
+  }
+
+  void _applyPendingSyncIfAny() {
+    final pending = _pendingSync;
+    if (pending == null) return;
+    _pendingSync = null;
+    _applySync(pending.$1, pending.$2);
+  }
+
+  void _applySync(Setlist freshSetlist, List<Song> freshSongs) {
+    final resolved = _resolveQueue(freshSetlist, freshSongs);
+    if (resolved == null) return;
+
+    final currentId = state.currentSetlistSong?.id;
+    var index = currentId == null
+        ? state.currentSetlistIndex
+        : resolved.indexWhere((song) => song.id == currentId);
+    if (index < 0) index = state.currentSetlistIndex;
+    index = index.clamp(0, resolved.length - 1);
+
+    // Nothing changed (same order, same per-song settings, same position).
+    if (index == state.currentSetlistIndex &&
+        _queueEquals(state.loadedSetlistSongs, resolved)) {
+      // Metadata-only change (e.g. rename): refresh the setlist object so
+      // banners show the new name, without reshuffling or resetting the
+      // click (#91).
+      if (state.loadedSetlist?.name != freshSetlist.name) {
+        state = state.copyWith(loadedSetlist: freshSetlist);
+      }
+      return;
+    }
+
+    state = state.copyWith(
+      loadedSetlist: freshSetlist,
+      loadedSetlistSongs: List.unmodifiable(resolved),
+      currentSetlistIndex: index,
+      bpmSource: BpmSource.setlist,
+    );
+    _applySongSettings(resolved[index], resetPhase: true);
+  }
+
+  bool _queueEquals(List<Song> a, List<Song> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      final x = a[i];
+      final y = b[i];
+      if (x.id != y.id ||
+          x.ourBPM != y.ourBPM ||
+          x.originalBPM != y.originalBPM ||
+          x.accentBeats != y.accentBeats ||
+          x.regularBeats != y.regularBeats ||
+          !_beatModesEqual(x.beatModes, y.beatModes)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _beatModesEqual(List<List<BeatMode>> a, List<List<BeatMode>> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (!listEquals(a[i], b[i])) return false;
+    }
     return true;
   }
 
   /// Move to next song in setlist
   void nextSetlistSong() {
+    // Apply any pending live update first so we navigate within the new order.
+    _applyPendingSyncIfAny();
     if (!state.canGoToNextSetlistSong) return;
     _activateSetlistSong(state.currentSetlistIndex + 1);
   }
 
   /// Move to previous song in setlist
   void previousSetlistSong() {
+    _applyPendingSyncIfAny();
     if (!state.canGoToPreviousSetlistSong) return;
     _activateSetlistSong(state.currentSetlistIndex - 1);
   }
@@ -313,6 +482,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   /// Clear loaded song/setlist
   void clearLoadedContent() {
+    _cancelLiveSources();
+    _pendingSync = null;
     state = state.copyWith(
       loadedSong: null,
       loadedSetlist: null,
@@ -421,15 +592,31 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     _syncPlaybackConfig();
   }
 
+  /// Set the marked-accent (cyan) cell frequency.
+  void setAccentBeatFrequency(double frequency) {
+    state = state.copyWith(accentBeatFrequency: frequency);
+    _syncPlaybackConfig();
+  }
+
+  /// Set the relative loudness of subdivision clicks.
+  void setSubdivisionGain(double gain) {
+    state = state.copyWith(subdivisionGain: gain.clamp(0.5, 2.0));
+    _syncPlaybackConfig();
+  }
+
   /// Toggle synchronized haptic feedback during playback.
   void toggleHaptics() {
     setHapticsEnabled(!state.hapticsEnabled);
   }
 
-  /// Set synchronized haptic feedback during playback.
+  /// Set synchronized haptic feedback during playback. Writes through to the
+  /// global haptics preference (#129) so Settings and the Sound sheet agree.
   void setHapticsEnabled(bool enabled) {
     state = state.copyWith(hapticsEnabled: enabled);
     _syncPlaybackConfig();
+    if (ref.read(hapticsEnabledProvider) != enabled) {
+      ref.read(hapticsEnabledProvider.notifier).set(enabled);
+    }
   }
 
   /// Set accent pattern
@@ -554,6 +741,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
 
   Future<void> _startPlaybackSafely({required int initialTick}) async {
     try {
+      await _ensureNotificationPermission();
       await _playbackClient.start(
         MetronomePlaybackConfig.fromState(state),
         onTick: _handlePlaybackTick,
@@ -562,6 +750,26 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
       );
     } catch (error) {
       debugPrint('[MetronomeNotifier] Playback start failed: $error');
+    }
+  }
+
+  /// Best-effort: ask for POST_NOTIFICATIONS on Android 13+ so the foreground
+  /// service notification is visible. A denied permission does NOT block
+  /// playback — the service still runs. Any plugin/platform failure (e.g. no
+  /// platform binding in a unit test, or a transient channel error) is
+  /// swallowed here so it never prevents `_playbackClient.start(...)` from
+  /// running.
+  Future<void> _ensureNotificationPermission() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      final status = await Permission.notification.status;
+      if (status.isDenied) {
+        await Permission.notification.request();
+      }
+    } catch (error) {
+      debugPrint(
+        '[MetronomeNotifier] Notification permission check failed: $error',
+      );
     }
   }
 
@@ -617,6 +825,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   void _cleanup() {
+    _cancelLiveSources();
     _debounceTimer?.cancel();
     _rampTimer?.cancel();
     _debounceTimer = null;
@@ -649,6 +858,7 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
     final stopwatch = _sessionStopwatch;
     if (session == null || stopwatch == null) return;
     stopwatch.stop();
+    AnalyticsService.logPracticeSession(lengthMs: stopwatch.elapsedMilliseconds);
     _activeSession = null;
     _sessionStopwatch = null;
     final completedSession = MetronomeSession(

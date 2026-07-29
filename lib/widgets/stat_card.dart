@@ -30,7 +30,7 @@ import 'app_card.dart';
 ///   icon: Icons.groups,
 ///   label: 'Bands',
 ///   value: '3',
-///   color: MonoPulseColors.textSecondary,
+///   color: context.mp.textSecondary,
 ///   aspectRatio: 4.0,
 /// )
 /// ```
@@ -99,7 +99,7 @@ class StatCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: MonoPulseColors.textTertiary,
+              color: context.mp.textTertiary,
               fontSize: labelFontSize,
               height: 1,
             ),

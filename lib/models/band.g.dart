@@ -30,8 +30,10 @@ Map<String, dynamic> _$BandMemberToJson(BandMember instance) =>
 Band _$BandFromJson(Map<String, dynamic> json) => Band(
   id: json['id'] as String? ?? '',
   name: json['name'] as String? ?? '',
-  description: json['description'] as String?,
   createdBy: json['createdBy'] as String? ?? '',
+  createdAt: _parseDateTime(json['createdAt']),
+  description: json['description'] as String?,
+  photoURL: json['photoURL'] as String?,
   members: json['members'] == null ? [] : _membersFromJson(json['members']),
   memberUids:
       (json['memberUids'] as List<dynamic>?)
@@ -49,13 +51,13 @@ Band _$BandFromJson(Map<String, dynamic> json) => Band(
   tags:
       (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
   inviteCode: json['inviteCode'] as String?,
-  createdAt: _parseDateTime(json['createdAt']),
 );
 
 Map<String, dynamic> _$BandToJson(Band instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
   'description': instance.description,
+  'photoURL': instance.photoURL,
   'createdBy': instance.createdBy,
   'members': _membersToJson(instance.members),
   'memberUids': instance.memberUids,

@@ -3,15 +3,18 @@ library;
 
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/services/csv/song_csv_service.dart';
+import 'package:flowgroove/services/json/song_json_codec.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../theme/mono_pulse_theme.dart';
+import '../../../../utils/snackbar.dart';
 import '../../../../widgets/loading_indicator.dart';
 
 /// Dialog for exporting songs to CSV file.
 class SongExportDialog extends StatefulWidget {
-
   const SongExportDialog({required this.songs, super.key});
+
   /// List of songs to export.
   final List<Song> songs;
 
@@ -33,18 +36,17 @@ class _SongExportDialogState extends State<SongExportDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
               child: Row(
                 children: [
-                  Icon(Icons.file_download),
-                  SizedBox(width: 12),
+                  const Icon(Icons.file_download),
+                  const SizedBox(width: 12),
                   Text(
-                    'Export Songs to CSV',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: MonoPulseColors.textHighEmphasis,
+                    'Export Songs',
+                    style: MonoPulseTypography.headlineLarge.copyWith(
+                      fontWeight: MonoPulseTypography.bold,
+                      color: context.mp.textHighEmphasis,
                     ),
                   ),
                 ],
@@ -54,7 +56,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
 
             // Content
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
               child: _buildContent(),
             ),
 
@@ -86,7 +88,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
           'Export ${widget.songs.length} song(s) to CSV file:',
           style: MonoPulseTypography.titleMedium.copyWith(
             fontWeight: FontWeight.w500,
-            color: MonoPulseColors.textHighEmphasis,
+            color: context.mp.textHighEmphasis,
           ),
         ),
         const SizedBox(height: 24),
@@ -108,11 +110,19 @@ class _SongExportDialogState extends State<SongExportDialog> {
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        // Copy FlowGroove Song JSON (round-trips with paste-import; AI-friendly)
+        OutlinedButton.icon(
+          onPressed: _copyJson,
+          icon: const Icon(Icons.data_object),
+          label: const Text('Copy as JSON'),
+        ),
         const SizedBox(height: 16),
         Text(
-          'CSV file can be opened in Excel, Google Sheets, or imported back to FlowGroove',
+          'CSV opens in Excel/Google Sheets. JSON is the FlowGroove Song format — '
+          'paste it into an AI to edit, or back into Import.',
           style: MonoPulseTypography.bodyMedium.copyWith(
-            color: MonoPulseColors.textSecondary,
+            color: context.mp.textSecondary,
           ),
         ),
       ],
@@ -120,27 +130,26 @@ class _SongExportDialogState extends State<SongExportDialog> {
   }
 
   Widget _buildSuccessContent() {
-    return const Column(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
+        const Icon(
           Icons.check_circle,
           color: MonoPulseColors.successGreen,
           size: 64,
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Text(
           'Export Successful!',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: MonoPulseColors.textHighEmphasis,
+          style: MonoPulseTypography.titleLarge.copyWith(
+            fontWeight: MonoPulseTypography.bold,
+            color: context.mp.textHighEmphasis,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           'Songs exported to CSV',
-          style: TextStyle(color: MonoPulseColors.textSecondary),
+          style: TextStyle(color: context.mp.textSecondary),
         ),
       ],
     );
@@ -148,7 +157,7 @@ class _SongExportDialogState extends State<SongExportDialog> {
 
   Widget _buildFooter() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -169,6 +178,13 @@ class _SongExportDialogState extends State<SongExportDialog> {
       _exported = success;
       _isLoading = false;
     });
+  }
+
+  Future<void> _copyJson() async {
+    final jsonStr = const SongJsonCodec().exportToString(widget.songs);
+    await Clipboard.setData(ClipboardData(text: jsonStr));
+    if (!mounted) return;
+    showAppSnackBar(context, '${widget.songs.length} song(s) copied as JSON');
   }
 
   Future<void> _exportAndShare() async {

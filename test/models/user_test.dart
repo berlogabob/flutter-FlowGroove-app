@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -124,6 +125,18 @@ void main() {
         expect(user.bandIds.length, 5);
         expect(user.bandIds[0], 'band-001');
         expect(user.bandIds[4], 'band-005');
+      });
+
+      test('parses Firestore Timestamp createdAt without throwing', () {
+        final json = {
+          'uid': 'user-id-ts',
+          'createdAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
+        };
+
+        expect(() => AppUser.fromJson(json), returnsNormally);
+
+        final user = AppUser.fromJson(json);
+        expect(user.createdAt.year, 2026);
       });
 
       test('handles user with only email', () {
@@ -567,6 +580,21 @@ void main() {
         expect(copiedUser.bandIds.length, 3);
         expect(copiedUser.bandIds.contains('band-3'), true);
       });
+    });
+  });
+
+  group('AppUser.photoSource', () {
+    test('round-trips and copyWith clears via null', () {
+      final user = AppUser(
+        uid: 'u1',
+        createdAt: DateTime.utc(2026),
+        photoURL: 'https://example.com/u1.jpg',
+        photoSource: 'telegram',
+      );
+      expect(user.toJson()['photoSource'], 'telegram');
+      expect(AppUser.fromJson(user.toJson()).photoSource, 'telegram');
+      expect(user.copyWith(photoSource: 'upload').photoSource, 'upload');
+      expect(user.copyWith(photoSource: null).photoSource, isNull);
     });
   });
 }

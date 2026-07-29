@@ -21,11 +21,14 @@ void main() {
         final completer = Completer<void>();
 
         scheduler.start(const Duration(milliseconds: intervalMs), () {
-          final expectedTime = (tickCount + 1) * intervalMs;
+          // Wall-clock position includes ticks the scheduler skipped after
+          // event-loop stalls (skips keep phase; they don't accumulate drift).
+          final position = scheduler.tickCount + scheduler.skippedTickCount;
+          final expectedTime = position * intervalMs;
           final actualTime = stopwatch.elapsedMilliseconds;
           drifts.add(actualTime - expectedTime);
           tickCount++;
-          if (tickCount >= expectedTickCount) {
+          if (position >= expectedTickCount) {
             if (!completer.isCompleted) completer.complete();
           }
         });
@@ -44,13 +47,16 @@ void main() {
         final maxDrift = drifts.map((d) => d.abs()).reduce((a, b) => a > b ? a : b);
         final finalDrift = drifts.last.abs();
 
-        print('Ticks fired: $tickCount');
+        print('Ticks fired: $tickCount (skipped: ${scheduler.skippedTickCount})');
         print('Cumulative absolute drift: ${cumulativeDriftMs}ms');
         print('Average drift per tick: ${avgDrift.toStringAsFixed(2)}ms');
         print('Max single-tick drift: ${maxDrift}ms');
         print('Final tick drift: ${finalDrift}ms');
 
-        expect(tickCount, greaterThanOrEqualTo(expectedTickCount - 1));
+        expect(
+          tickCount + scheduler.skippedTickCount,
+          greaterThanOrEqualTo(expectedTickCount - 1),
+        );
         // The WallClockScheduler is self-correcting: the final tick's drift
         // represents the true cumulative drift (not the sum of absolute drifts).
         // Use final tick drift as the measure of scheduler accuracy.

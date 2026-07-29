@@ -1,30 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../models/api_error.dart';
+import '../../models/section.dart';
 import '../../models/song.dart';
 import '../../models/song_suggestion.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
+import '../../services/api/deezer_service.dart';
+import '../../services/api/lyrics_service.dart';
+import '../../services/api/spotify_proxy_service.dart';
+import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
+import '../../utils/lyrics_sections.dart';
 import '../../utils/song_tags.dart';
-import '../../widgets/custom_app_bar.dart';
-import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
+import '../../utils/suggestion_links.dart';
+import '../../widgets/app_menu_sheet.dart';
+import '../../widgets/error_banner.dart' show ErrorBanner;
+import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
 import '../../widgets/suggestion_selection_dialog.dart';
+import '../performance_sheet_screen.dart';
+import 'components/import_lyrics_dialog.dart';
 import 'components/song_form.dart';
 import 'models/song_form_data.dart';
+import 'song_editor_screen.dart';
 import 'utils/add_song_screen_helper.dart';
 
 /// Screen for adding or editing a song with comprehensive error handling.
 class AddSongScreen extends ConsumerStatefulWidget {
-
   const AddSongScreen({
     super.key,
     this.song,
     this.bandId,
     this.initialFormData,
   });
+
   /// The song to edit. If null, a new song will be created.
   final Song? song;
 
@@ -45,6 +59,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   late TextEditingController _originalBpmController;
   late TextEditingController _ourBpmController;
   late TextEditingController _notesController;
+
+  /// True once the post-frame _initControllers has reset/seeded the global
+  /// form provider — the form body isn't rendered before that (#78).
+  bool _formReady = false;
 
   bool get _isEditing => widget.song != null;
 
@@ -74,6 +92,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _initControllers();
+        // Body is gated on this: the global form provider still holds the
+        // previous song until _initControllers resets it, so rendering the
+        // form one frame early flashes stale data (#78).
+        setState(() => _formReady = true);
       }
     });
     WidgetsBinding.instance.addObserver(this);
@@ -134,6 +156,11 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       ref
           .read(songFormStateProvider.notifier)
           .initFromFormData(widget.initialFormData!);
+    } else {
+      // Fresh add: the provider is global, so without a reset the form shows
+      // the previous session's song and the exit autosave re-writes it as a
+      // duplicate (#78).
+      ref.read(songFormStateProvider.notifier).reset();
     }
 
     final formData = ref.read(songFormStateProvider).formData;
@@ -174,7 +201,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
 
     // Initialize beat modes for new songs or songs without metronome settings
     if (formData.beatModes.isEmpty) {
-      ref.read(songFormStateProvider.notifier).setSections(formData.sections);
+      ref.read(songFormStateProvider.notifier).initializeBeatModes();
     }
   }
 
@@ -223,6 +250,113 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         _titleController.text = suggestion.title;
         _artistController.text = suggestion.artist;
     }
+
+    // Record where this came from — auto-fill the Links list from everything
+    // we know (MusicBrainz/Spotify deep links + YouTube/chords/lyrics search).
+    ref
+        .read(songFormStateProvider.notifier)
+        .addLinks(linksForSuggestion(suggestion));
+
+    // Suggestions carry no BPM at search time — fetch it now (one lazy call)
+    // and fill what the user hasn't set.
+    final spotifyId = suggestion.spotifyId;
+    if (spotifyId != null && spotifyId.isNotEmpty) {
+      await _autofillFromSpotify(spotifyId);
+    } else {
+      await _autofillBpm(suggestion);
+    }
+
+    await _autofillLyrics(suggestion);
+  }
+
+  /// Fetches plain lyric text (lyrics.ovh) and appends it to the song as
+  /// Verse/Chorus sections, so it shows in the song editor + performance sheet
+  /// (which render Section.chordChart, not notes). Best-effort — no chords.
+  Future<void> _autofillLyrics(SongSuggestion suggestion) async {
+    // Skip if the song already has lyric content, so re-selecting a suggestion
+    // never clobbers the user's sections or duplicates the lyrics.
+    final existing = ref.read(songFormStateProvider).formData.sections;
+    if (existing.any((s) => (s.chordChart ?? '').trim().isNotEmpty)) return;
+    final lyrics = await LyricsService.getLyrics(
+      title: suggestion.title,
+      artist: suggestion.artist,
+    );
+    if (lyrics == null || !mounted) return;
+    final parts = lyricsToSections(lyrics);
+    if (parts.isEmpty) return;
+    final sections = [
+      for (final p in parts)
+        Section(id: const Uuid().v4(), name: p.name, chordChart: p.chart),
+    ];
+    final current = ref.read(songFormStateProvider).formData.sections;
+    ref.read(songFormStateProvider.notifier).setSections([
+      ...current,
+      ...sections,
+    ]);
+    showAppSnackBar(
+      context,
+      'Added lyrics (${sections.length} parts) from lyrics.ovh',
+    );
+  }
+
+  /// Fills BPM for a non-Spotify suggestion: from the suggestion itself when
+  /// it has one (canonical), otherwise from Deezer (#76 — Spotify
+  /// audio-features is closed to new apps, Deezer needs no auth).
+  Future<void> _autofillBpm(SongSuggestion suggestion) async {
+    if (_originalBpmController.text.trim().isNotEmpty) return;
+    final bpm =
+        suggestion.bpm ??
+        await DeezerService.getBpm(
+          title: suggestion.title,
+          artist: suggestion.artist,
+        );
+    if (bpm == null || bpm <= 0 || !mounted) return;
+    if (_originalBpmController.text.trim().isNotEmpty) return;
+    // The controller's listener syncs this into the form provider.
+    _originalBpmController.text = bpm.toString();
+    showAppSnackBar(context, 'Filled $bpm BPM from Deezer');
+  }
+
+  /// Fills BPM and key from Spotify audio-features for [spotifyId], without
+  /// overwriting a BPM the user already typed.
+  Future<void> _autofillFromSpotify(String spotifyId) async {
+    if (_originalBpmController.text.trim().isNotEmpty) return;
+    try {
+      final features = await SpotifyProxyService.getAudioFeatures(spotifyId);
+      if (features == null || !mounted) return;
+      if (features.bpm > 0) {
+        // The controller's listener syncs this into the form provider.
+        _originalBpmController.text = features.bpm.toString();
+      }
+      _applySpotifyKey(features.musicalKey);
+      if (mounted) {
+        showAppSnackBar(
+          context,
+          'Filled ${features.bpm} BPM · ${features.musicalKey} from Spotify',
+        );
+      }
+    } catch (_) {
+      // Non-fatal — autofill is best-effort (e.g. audio-features unavailable).
+    }
+  }
+
+  /// Parses a Spotify key string like "C# minor" into the form's base+modifier.
+  void _applySpotifyKey(String musicalKey) {
+    final parts = musicalKey.trim().split(' ');
+    if (parts.isEmpty || parts.first.isEmpty) return;
+    final token = parts.first; // e.g. "C#"
+    final base = token.replaceAll(RegExp('[#bm]'), '');
+    if (base.isEmpty) return;
+    var modifier = '';
+    if (token.contains('#')) {
+      modifier = '#';
+    } else if (token.contains('b')) {
+      modifier = 'b';
+    }
+    if (parts.length > 1 && parts[1].toLowerCase() == 'minor') modifier = 'm';
+    ref
+        .read(songFormStateProvider.notifier)
+        .updateOriginalKey(base.substring(0, 1).toUpperCase(), modifier);
   }
 
   @override
@@ -248,21 +382,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
   @override
   set currentError(ApiError? value) {
     ref.read(songFormStateProvider.notifier).setError(value);
-  }
-
-  @override
-  void applyMusicBrainzSuggestion(SongSuggestion suggestion, {int? bpm}) {
-    final notifier = ref.read(songFormStateProvider.notifier);
-    final currentBpm = ref.read(songFormStateProvider).formData.originalBpm;
-
-    notifier.selectSuggestion(suggestion);
-    _titleController.text = suggestion.title;
-    _artistController.text = suggestion.artist;
-
-    if (bpm != null && currentBpm.trim().isEmpty) {
-      notifier.updateOriginalBpm(bpm.toString());
-      _originalBpmController.text = bpm.toString();
-    }
   }
 
   /// Save the song to Firestore with duplicate check.
@@ -296,6 +415,81 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     }
   }
 
+  /// Opens the paste-import sheet and applies the result (metadata + sections)
+  /// to the form, appending the parsed sections to any existing ones.
+  Future<void> _importLyrics() async {
+    final form = ref.read(songFormStateProvider).formData;
+    final imported = await showModalBottomSheet<ImportedSong>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => ImportLyricsDialog(
+        seedTitle: form.title,
+        seedArtist: form.artist,
+      ),
+    );
+    if (imported == null || !mounted) return;
+    _applyImported(imported);
+  }
+
+  /// Opens the full-screen Song editor (live map ⇄ ChordPro sync) seeded from
+  /// the form, then replaces the form's sections with the edited map.
+  Future<void> _openSongEditor() async {
+    final formData = ref.read(songFormStateProvider).formData;
+    // rootNavigator: full-screen over the shell so its "Edit Song" bar doesn't
+    // stack under the editor's own song-name bar (the double-bar bug).
+    final result = await Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push<ImportedSong>(
+      MaterialPageRoute<ImportedSong>(
+        builder: (_) => SongEditorScreen(
+          title: formData.title.trim().isEmpty ? 'Song' : formData.title.trim(),
+          sections: formData.sections,
+          artist: formData.artist,
+          songKey: formData.ourKey,
+          bpm: int.tryParse(formData.ourBpm),
+          timeTop: formData.accentBeats,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    _applyImported(result, replaceSections: true);
+  }
+
+  /// Applies parsed song metadata + sections to the form. Controllers drive
+  /// title/artist/bpm (setting `.text` fires their listeners); key/time/sections
+  /// go straight through the notifier. [replaceSections] replaces the section
+  /// list (the editor returns the whole map); otherwise it appends.
+  void _applyImported(ImportedSong imported, {bool replaceSections = false}) {
+    final notifier = ref.read(songFormStateProvider.notifier);
+    if (imported.title != null && imported.title!.isNotEmpty) {
+      _titleController.text = imported.title!;
+    }
+    if (imported.artist != null && imported.artist!.isNotEmpty) {
+      _artistController.text = imported.artist!;
+    }
+    if (imported.ourBpm != null) {
+      _ourBpmController.text = imported.ourBpm.toString();
+    }
+    if (imported.ourKey != null && imported.ourKey!.isNotEmpty) {
+      final k = imported.ourKey!;
+      notifier.updateOurKey(
+        k[0].toUpperCase(),
+        k.length > 1 ? k.substring(1) : '',
+      );
+    }
+    if (imported.timeTop != null) {
+      notifier.updateAccentBeats(imported.timeTop!);
+    }
+    if (replaceSections) {
+      notifier.setSections(imported.sections);
+    } else if (imported.sections.isNotEmpty) {
+      final existing = ref.read(songFormStateProvider).formData.sections;
+      notifier.setSections([...existing, ...imported.sections]);
+    }
+    notifier.markAsChanged();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch form state for reactive updates
@@ -312,105 +506,185 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
           await _autoSave();
         }
       },
-      child: Scaffold(
-        appBar: CustomAppBar.build(
-          context,
-          title: _isEditing ? 'Edit Song' : 'Add Song',
-        ),
-        body: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Error banner
-            if (error != null) ...[
-              ErrorBanner(
-                message: error.message,
-                onRetry: () =>
-                    ref.read(songFormStateProvider.notifier).clearError(),
-              ),
-              const SizedBox(height: 16),
-            ],
-            // Song form with autocomplete
-            SongForm(
-              formKey: _formKey,
-              titleController: _titleController,
-              artistController: _artistController,
-              originalBpmController: _originalBpmController,
-              ourBpmController: _ourBpmController,
-              notesController: _notesController,
-              links: formData.links,
-              selectedTags: formData.selectedTags,
-              availableTags: _availableTags,
-              originalKeyBase: formData.originalKeyBase,
-              originalKeyModifier: formData.originalKeyModifier,
-              ourKeyBase: formData.ourKeyBase,
-              ourKeyModifier: formData.ourKeyModifier,
-              onOriginalKeyChanged: (b, m) {
-                ref
-                    .read(songFormStateProvider.notifier)
-                    .updateOriginalKey(b, m);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onOurKeyChanged: (b, m) {
-                ref.read(songFormStateProvider.notifier).updateOurKey(b, m);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onAddLink: (link) {
-                ref.read(songFormStateProvider.notifier).addLink(link);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onRemoveLink: (index) {
-                ref.read(songFormStateProvider.notifier).removeLink(index);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onTagChanged: (tag, selected) {
-                ref
-                    .read(songFormStateProvider.notifier)
-                    .toggleTag(tag, selected);
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              onCopyFromOriginal: () {
-                ref.read(songFormStateProvider.notifier).copyFromOriginal();
-                _ourBpmController.text = _originalBpmController.text;
-                ref.read(songFormStateProvider.notifier).markAsChanged();
-              },
-              isEditing: _isEditing,
-            ),
-            const SizedBox(height: 24),
-            // Search buttons row
-            Align(
-              alignment: Alignment.centerRight,
-              child: Wrap(
-                spacing: 4,
-                children: [
-                  TextButton.icon(
-                    onPressed: showMusicBrainzSearch,
-                    icon: const Icon(Icons.search, size: 18),
-                    label: const Text('MusicBrainz'),
+      // Pushed branch child: title + actions are published for the shell's
+      // bottom bar ([← Back] [title] [⋮ Menu]); there is no top app bar.
+      child: MenuScopePublisher(
+        data: MenuScopeData(
+          // Show the song being edited rather than a generic "Edit Song".
+          title: _isEditing
+              ? (widget.song!.title.trim().isEmpty
+                    ? 'Edit Song'
+                    : widget.song!.title.trim())
+              : 'Add Song',
+          items: [
+            AppMenuItem(
+              icon: Icons.queue_music,
+              label: 'Performance sheet',
+              // rootNavigator: cover the whole shell so its persistent bottom
+              // bar ("Edit Song") doesn't stack under this screen's own
+              // song-name bar (the double-bar bug).
+              onTap: () => Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => PerformanceSheetScreen(
+                    title: formData.title.trim().isEmpty
+                        ? 'Song'
+                        : formData.title.trim(),
+                    sections: formData.sections,
+                    songKey: formData.ourKey,
+                    bpm: int.tryParse(formData.ourBpm),
+                    timeTop: formData.accentBeats,
                   ),
-                  TextButton.icon(
-                    onPressed: showSpotifySearch,
-                    icon: const Icon(Icons.music_note, size: 18),
-                    label: const Text('Spotify'),
-                  ),
-                  TextButton.icon(
-                    onPressed: fetchTrackAnalysis,
-                    icon: const Icon(Icons.analytics, size: 18),
-                    label: const Text('BPM/Key'),
-                  ),
-                  TextButton.icon(
-                    onPressed: searchOnWeb,
-                    icon: const Icon(Icons.search, size: 18),
-                    label: const Text('Web'),
-                  ),
-                ],
+                ),
               ),
             ),
+            AppMenuItem(
+              icon: Icons.edit_note,
+              label: 'Song editor (map + ChordPro)',
+              onTap: _openSongEditor,
+            ),
+            AppMenuItem(
+              icon: Icons.content_paste,
+              label: 'Import lyrics & chords',
+              onTap: _importLyrics,
+            ),
+            // Lab needs a persisted song (edit mode) — discoverability fix:
+            // the card-overflow entry alone was too hidden (beta feedback).
+            if (widget.song != null)
+              AppMenuItem(
+                icon: Icons.science_outlined,
+                label: 'Song Lab',
+                onTap: () => context.pushNamed(
+                  'song-lab',
+                  pathParameters: {'id': widget.song!.id},
+                  extra: {'song': widget.song, 'bandId': widget.bandId},
+                ),
+              ),
           ],
         ),
-        bottomNavigationBar: PrimaryActionBar(
-          label: _isEditing ? 'Save Changes' : 'Save Song',
-          onPressed: isSaving ? null : _saveSong,
-          isLoading: isSaving,
+        child: Scaffold(
+          body: SafeArea(
+            bottom: false,
+            child: !_formReady
+                ? const SizedBox.shrink()
+                : ListView(
+                    padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+                    children: [
+                      // Error banner
+                      if (error != null) ...[
+                        ErrorBanner(
+                          message: error.message,
+                          onRetry: () => ref
+                              .read(songFormStateProvider.notifier)
+                              .clearError(),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      // Song form with autocomplete
+                      SongForm(
+                        formKey: _formKey,
+                        titleController: _titleController,
+                        artistController: _artistController,
+                        originalBpmController: _originalBpmController,
+                        ourBpmController: _ourBpmController,
+                        notesController: _notesController,
+                        links: formData.links,
+                        selectedTags: formData.selectedTags,
+                        availableTags: _availableTags,
+                        originalKeyBase: formData.originalKeyBase,
+                        originalKeyModifier: formData.originalKeyModifier,
+                        ourKeyBase: formData.ourKeyBase,
+                        ourKeyModifier: formData.ourKeyModifier,
+                        onOriginalKeyChanged: (b, m) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .updateOriginalKey(b, m);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        onOurKeyChanged: (b, m) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .updateOurKey(b, m);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        onAddLink: (link) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .addLink(link);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        onRemoveLink: (index) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .removeLink(index);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        onTagChanged: (tag, selected) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .toggleTag(tag, selected);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        sections: formData.sections,
+                        onSectionsChanged: (newSections) {
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .setSections(newSections);
+                          ref
+                              .read(songFormStateProvider.notifier)
+                              .markAsChanged();
+                        },
+                        accentBeats: formData.accentBeats,
+                        regularBeats: formData.regularBeats,
+                        beatModes: formData.beatModes,
+                        onAccentBeatsChanged: (value) {
+                          final notifier = ref.read(
+                            songFormStateProvider.notifier,
+                          );
+                          notifier.updateAccentBeats(value);
+                          notifier.initializeBeatModes();
+                          notifier.markAsChanged();
+                        },
+                        onRegularBeatsChanged: (value) {
+                          final notifier = ref.read(
+                            songFormStateProvider.notifier,
+                          );
+                          notifier.updateRegularBeats(value);
+                          notifier.initializeBeatModes();
+                          notifier.markAsChanged();
+                        },
+                        onBeatModeChanged: (beatIndex, subdivisionIndex, mode) {
+                          final notifier = ref.read(
+                            songFormStateProvider.notifier,
+                          );
+                          notifier.updateBeatMode(
+                            beatIndex,
+                            subdivisionIndex,
+                            mode,
+                          );
+                          notifier.markAsChanged();
+                        },
+                        onSuggestionSelected: _handleSuggestionSelected,
+                        onSearchWeb: searchOnWeb,
+                        bandId: widget.bandId,
+                      ),
+                    ],
+                  ),
+          ),
+          bottomNavigationBar: PrimaryActionBar(
+            label: _isEditing ? 'Save Changes' : 'Save Song',
+            onPressed: isSaving ? null : _saveSong,
+            isLoading: isSaving,
+          ),
         ),
       ),
     );

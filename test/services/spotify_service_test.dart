@@ -58,7 +58,7 @@ void main() {
         final trackJson = {
           'id': 'track1',
           'name': 'Test Song',
-          'artists': [],
+          'artists': <dynamic>[],
           'album': {'name': 'Test Album'},
           'duration_ms': null,
           'external_urls': null,
@@ -298,9 +298,14 @@ void main() {
           );
         });
 
-        // Note: We can't easily inject the mock client into the static service
-        // This test demonstrates the expected behavior with mocked responses
-        // In production, dependency injection would be used
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
+
+        final tracks = await SpotifyService.search('test');
+        expect(tracks, hasLength(1));
+        expect(tracks.first.name, 'Test Song');
+        expect(tracks.first.artist, 'Test Artist');
+        expect(tracks.first.durationMs, 180000);
       });
 
       test('handles empty search results', () async {
@@ -313,13 +318,17 @@ void main() {
           }
           return http.Response(
             json.encode({
-              'tracks': {'items': []},
+              'tracks': {'items': <dynamic>[]},
             }),
             200,
           );
         });
 
-        // Test structure for empty results handling
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
+
+        final tracks = await SpotifyService.search('nothing');
+        expect(tracks, isEmpty);
       });
 
       test('handles 401 unauthorized error', () async {
@@ -333,7 +342,13 @@ void main() {
           return http.Response('Unauthorized', 401);
         });
 
-        // Test structure for 401 handling
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
+
+        await expectLater(
+          SpotifyService.search('test'),
+          throwsA(isA<ApiError>()),
+        );
       });
 
       test('handles 403 forbidden error', () async {
@@ -347,7 +362,13 @@ void main() {
           return http.Response('Forbidden', 403);
         });
 
-        // Test structure for 403 handling
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
+
+        await expectLater(
+          SpotifyService.search('test'),
+          throwsA(isA<ApiError>()),
+        );
       });
 
       test('handles 429 rate limit error', () async {
@@ -361,16 +382,26 @@ void main() {
           return http.Response('Rate Limited', 429);
         });
 
-        // Test structure for 429 handling
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
+
+        await expectLater(
+          SpotifyService.search('test'),
+          throwsA(isA<ApiError>()),
+        );
       });
 
-      test('handles network timeout', () async {
+      test('wraps client exceptions in ApiError', () async {
         mockClient = MockClient((request) async {
-          await Future.delayed(const Duration(seconds: 10));
-          return http.Response('Timeout', 500);
+          throw http.ClientException('connection failed');
         });
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
 
-        // Test structure for timeout handling
+        await expectLater(
+          SpotifyService.search('test'),
+          throwsA(isA<ApiError>()),
+        );
       });
 
       test('handles server error (500)', () async {
@@ -384,7 +415,13 @@ void main() {
           return http.Response('Internal Server Error', 500);
         });
 
-        // Test structure for 500 error handling
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
+
+        await expectLater(
+          SpotifyService.search('test'),
+          throwsA(isA<ApiError>()),
+        );
       });
     });
 
@@ -414,7 +451,13 @@ void main() {
           );
         });
 
-        // Test structure for successful audio features fetch
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
+
+        final features = await SpotifyService.getAudioFeatures('track1');
+        expect(features, isNotNull);
+        expect(features!.bpm, 121);
+        expect(features.key, 5);
       });
 
       test('returns null for invalid track ID (404)', () async {
@@ -428,7 +471,11 @@ void main() {
           return http.Response('Not Found', 404);
         });
 
-        // Test structure for 404 handling
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
+
+        final features = await SpotifyService.getAudioFeatures('bad-id');
+        expect(features, isNull);
       });
 
       test('handles token expiration and retry', () async {
@@ -455,7 +502,13 @@ void main() {
           );
         });
 
-        // Test structure for token refresh retry logic
+        SpotifyService.client = mockClient;
+        SpotifyService.resetAuth();
+
+        final features = await SpotifyService.getAudioFeatures('track1');
+        expect(callCount, 2);
+        expect(features, isNotNull);
+        expect(features!.bpm, 121);
       });
     });
 

@@ -180,6 +180,93 @@ void main() {
         expect(updated.album, isNull);
       },
     );
+
+    test('editing a band song updates the band copy, not the library', () async {
+      final existing = Song(
+        id: 'band-song-1',
+        title: 'Wonderwall',
+        artist: 'Oasis',
+        ourBPM: 87,
+        bandId: 'band-1',
+        isCopy: true,
+        createdAt: DateTime(2026, 5),
+        updatedAt: DateTime(2026, 5, 2),
+      );
+
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..initFromSong(existing)
+        ..updateOurBpm('140');
+
+      final success = await notifier.saveSong(
+        songRepo: repository,
+        uid: 'user-1',
+        bandId: 'band-1',
+        isEditing: true,
+        existingSong: existing,
+      );
+
+      expect(success, isTrue);
+      expect(repository.updatedBandSong, isNotNull);
+      expect(repository.updatedBandSong!.id, 'band-song-1');
+      expect(repository.updatedBandSong!.ourBPM, 140);
+      // The personal library must not be touched.
+      expect(repository.updatedSong, isNull);
+      expect(repository.savedSong, isNull);
+    });
+  });
+
+  group('new-song draft id (issue #78 duplicates)', () {
+    late ProviderContainer container;
+    late _RecordingSongRepository repository;
+
+    setUp(() {
+      container = ProviderContainer();
+      repository = _RecordingSongRepository();
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+
+    test('autoSave reuses the same song id across calls', () async {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Hit the Lights');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      notifier.updateArtist('Metallica');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      expect(repository.savedSongs, hasLength(2));
+      expect(repository.savedSongs[0].id, repository.savedSongs[1].id);
+    });
+
+    test('manual save after autoSave keeps the autosaved id', () async {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Hit the Lights');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      notifier.updateArtist('Metallica');
+      await notifier.saveSong(songRepo: repository, uid: 'user-1');
+
+      expect(repository.savedSongs, hasLength(2));
+      expect(repository.savedSongs[0].id, repository.savedSongs[1].id);
+    });
+
+    test('reset starts a fresh draft id', () async {
+      final notifier = container.read(songFormStateProvider.notifier)
+        ..updateTitle('Song A');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      notifier.reset();
+      notifier.updateTitle('Song B');
+      await notifier.autoSave(songRepo: repository, uid: 'user-1');
+
+      expect(repository.savedSongs, hasLength(2));
+      expect(
+        repository.savedSongs[0].id,
+        isNot(repository.savedSongs[1].id),
+      );
+    });
   });
 }
 
@@ -223,6 +310,7 @@ class _RecordingSongRepository implements SongRepository {
   Song? updatedSong;
   Song? savedBandSong;
   Song? updatedBandSong;
+  final savedSongs = <Song>[];
 
   @override
   Future<void> addSongToBand({
@@ -261,6 +349,7 @@ class _RecordingSongRepository implements SongRepository {
   @override
   Future<void> saveSong(Song song, {String? uid}) async {
     savedSong = song;
+    savedSongs.add(song);
   }
 
   @override

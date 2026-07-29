@@ -12,7 +12,6 @@ import '../../theme/mono_pulse_theme.dart';
 ///
 /// This is a STATIC widget (Stage 1 - no interactivity).
 class TickMarks extends StatelessWidget {
-
   const TickMarks({required this.size, super.key});
   final double size;
 
@@ -21,15 +20,17 @@ class TickMarks extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(painter: _TickMarksPainter(size: size)),
+      child: CustomPaint(
+        painter: _TickMarksPainter(size: size, palette: context.mp),
+      ),
     );
   }
 }
 
 class _TickMarksPainter extends CustomPainter {
-
-  _TickMarksPainter({required this.size});
+  _TickMarksPainter({required this.size, required this.palette});
   final double size;
+  final MonoPulsePalette palette;
 
   @override
   void paint(Canvas canvas, Size canvasSize) {
@@ -88,9 +89,7 @@ class _TickMarksPainter extends CustomPainter {
         Offset(x1, y1),
         Offset(x2, y2),
         tickPaint
-          ..color = isMajor
-              ? MonoPulseColors.borderDefault
-              : MonoPulseColors.borderSubtle,
+          ..color = isMajor ? palette.borderDefault : palette.borderSubtle,
       );
 
       // Draw labels for major ticks
@@ -102,10 +101,8 @@ class _TickMarksPainter extends CustomPainter {
         // Draw main label (e.g., "A4") - 14px Regular per brandbook
         labelPaint.text = TextSpan(
           text: label,
-          style: const TextStyle(
-            fontSize: 14,
-            color: MonoPulseColors.textTertiary,
-            fontWeight: MonoPulseTypography.regular,
+          style: MonoPulseTypography.bodyMedium.copyWith(
+            color: palette.textTertiary,
           ),
         );
         labelPaint.layout();
@@ -122,10 +119,8 @@ class _TickMarksPainter extends CustomPainter {
 
           labelPaint.text = TextSpan(
             text: subLabel,
-            style: const TextStyle(
-              fontSize: 14,
-              color: MonoPulseColors.textTertiary,
-              fontWeight: MonoPulseTypography.regular,
+            style: MonoPulseTypography.bodyMedium.copyWith(
+              color: palette.textTertiary,
             ),
           );
           labelPaint.layout();
@@ -142,5 +137,6 @@ class _TickMarksPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _TickMarksPainter oldDelegate) =>
+      oldDelegate.size != size || oldDelegate.palette != palette;
 }

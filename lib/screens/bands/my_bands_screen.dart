@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,11 +12,15 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
+import '../../widgets/invite_code_field.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/share_sheet.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/unified_item/adapters/band_item_adapter.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
@@ -39,11 +45,28 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   List<Band>? _manualOrder;
 
   /// Filter and sort bands based on search query and sort option.
+  /// Manual order reconciled with the live band list: saved order first (using
+  /// the live band objects), newly created bands appended, and left/deleted
+  /// bands dropped. Without this the saved snapshot drifts from the live stream
+  /// — a created band wouldn't appear and a left band wouldn't disappear, even
+  /// though the home count (which reads the live stream) already changed.
+  List<Band> _orderedBands(List<Band> bands) {
+    if (_manualOrder == null) return List<Band>.from(bands);
+    final byId = {for (final b in bands) b.id: b};
+    final ordered = <Band>[];
+    for (final saved in _manualOrder!) {
+      final live = byId.remove(saved.id);
+      if (live != null) ordered.add(live);
+    }
+    ordered.addAll(byId.values); // bands created since the order was saved
+    return ordered;
+  }
+
   List<BandItemAdapter> _filterAndSortBands(List<Band> bands) {
     // Apply manual order if in manual sort mode
     List<Band> bandsToUse = bands;
     if (_sortOption == SortOption.manual && _manualOrder != null) {
-      bandsToUse = _manualOrder!;
+      bandsToUse = _orderedBands(bands);
     }
 
     // Convert bands to adapters
@@ -96,6 +119,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   /// Handle band reordering (manual sort mode).
   void _handleReorder(int oldIndex, int newIndex) {
+    // Displayed indices only map onto _manualOrder in manual mode with no
+    // active search filter; otherwise a reorder would corrupt the saved order.
+    if (_sortOption != SortOption.manual || _searchQuery.trim().isNotEmpty) {
+      return;
+    }
     // Update manual order when reordering (same as songs_list_screen.dart)
     if (_manualOrder != null &&
         oldIndex >= 0 &&
@@ -118,9 +146,12 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   /// Handle band deletion with confirmation.
   Future<bool> _handleDelete(int index) async {
     final bands = ref.read(bandsProvider).value;
-    if (bands == null || index >= bands.length) return false;
+    if (bands == null) return false;
+    // Resolve via the same filtered/sorted list the UI shows, not the raw list.
+    final adapters = _filterAndSortBands(bands);
+    if (index >= adapters.length) return false;
 
-    final band = bands[index];
+    final band = adapters[index].band;
     final confirmed = await ConfirmationDialog.showDeleteDialog(
       context,
       title: 'Leave Band',
@@ -133,39 +164,30 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       final user = userAsync.value;
       if (user != null) {
         try {
-          final bandRepo = ref.read(bandRepositoryProvider);
-
-          // Remove user from global band members
-          final updatedMembers = band.members
-              .where((m) => m.uid != user.uid)
-              .toList();
-          final updatedBand = band.copyWith(members: updatedMembers);
-          await bandRepo.saveBandToGlobal(updatedBand);
-
-          // Remove from user's bands collection
-          await bandRepo.removeUserFromBand(band.id, userId: user.uid);
+          // Leaving is server-authoritative: updateBandMember rewrites the
+          // band's memberUids and deletes the personal band ref atomically, so
+          // the bands stream (which watches global memberUids) updates the list
+          // and home count in lockstep. A direct client write to the global
+          // band doc is admin-gated and would be denied for ordinary members.
+          await ref
+              .read(bandFunctionServiceProvider)
+              .removeMember(bandId: band.id, targetUid: user.uid);
 
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Successfully left the band')),
-            );
+            showAppSnackBar(context, 'Successfully left the band');
           }
           return true;
         } on ApiError catch (e) {
           _handleStreamError(e, StackTrace.current);
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(e.message)));
+            showAppSnackBar(context, e.message);
           }
           return false; // Don't dismiss on error
         } catch (e, stackTrace) {
           final error = ApiError.fromException(e, stackTrace: stackTrace);
           _handleStreamError(error, stackTrace);
           if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(error.message)));
+            showAppSnackBar(context, error.message);
           }
           return false; // Don't dismiss on error
         }
@@ -177,9 +199,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   /// Handle band edit - navigate to edit screen.
   void _handleEdit(int index) {
     final bands = ref.read(bandsProvider).value;
-    if (bands == null || index >= bands.length) return;
+    if (bands == null) return;
+    final adapters = _filterAndSortBands(bands);
+    if (index >= adapters.length) return;
 
-    final band = bands[index];
+    final band = adapters[index].band;
     context.pushNamed(
       'edit-band',
       pathParameters: {'id': band.id},
@@ -190,9 +214,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   /// Handle band tap - navigate to the band screen.
   void _handleTap(int index) {
     final bands = ref.read(bandsProvider).value;
-    if (bands == null || index >= bands.length) return;
+    if (bands == null) return;
+    final adapters = _filterAndSortBands(bands);
+    if (index >= adapters.length) return;
 
-    final band = bands[index];
+    final band = adapters[index].band;
     context.goNamed('the-band', pathParameters: {'id': band.id}, extra: band);
   }
 
@@ -204,26 +230,22 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
       title: 'My Bands',
       showBackButton: false, // Hide back button for main tabs
       menuItems: [
-        PopupMenuItem<void>(
-          child: const Text('Create Band'),
+        AppMenuItem(
+          icon: Icons.add,
+          label: 'Create Band',
           onTap: () => context.goNamed('create-band'),
         ),
-        PopupMenuItem<void>(
-          child: const Text('Join Band'),
-          onTap: () => context.goNamed('join-band'),
+        AppMenuItem(
+          icon: Icons.group_add_outlined,
+          label: 'Join band',
+          onTap: () => context.pushNamed('join-band'),
         ),
       ],
-      floatingActionButton: DualFab(
-        primary: FabAction(
-          icon: Icons.add,
-          label: 'Create',
-          onPressed: () => context.goNamed('create-band'),
-        ),
-        secondary: FabAction(
-          icon: Icons.group_add,
-          label: 'Join',
-          onPressed: () => context.goNamed('join-band'),
-        ),
+      floatingActionButton: SingleFab(
+        icon: Icons.add,
+        tooltip: 'Create band',
+        heroTag: 'bands_fab',
+        onPressed: () => context.goNamed('create-band'),
       ),
       body: _buildBody(bandsAsync),
     );
@@ -269,10 +291,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   Widget _buildContent(BuildContext context, WidgetRef ref, List<Band> bands) {
     final filteredBands = _filterAndSortBands(bands);
 
-    // Initialize manual order when entering manual sort mode for the first time
-    if (_sortOption == SortOption.manual && _manualOrder == null) {
-      setState(() {
-        _manualOrder = List<Band>.from(bands);
+    // Keep the manual-order hint aligned with the live set (first build, plus
+    // whenever a band was created or left) so reorder indices match what's
+    // shown. Reconcile after the frame to avoid setState during build.
+    if (_sortOption == SortOption.manual &&
+        (_manualOrder == null || _manualOrder!.length != bands.length)) {
+      final reconciled = _orderedBands(bands);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _manualOrder = reconciled);
       });
     }
 
@@ -327,7 +353,10 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 
   Widget _buildEmptyState(bool isEmpty) {
     if (isEmpty) {
-      return EmptyState.bands(onCreate: () => context.goNamed('create-band'));
+      return EmptyState.bands(
+        onCreate: () => context.goNamed('create-band'),
+        onJoin: () => context.pushNamed('join-band'),
+      );
     }
     return EmptyState.search(query: _searchQuery);
   }
@@ -335,6 +364,7 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   Widget _buildBandList(List<BandItemAdapter> adapters) {
     return UnifiedItemList<BandItemAdapter>(
       items: adapters,
+      padding: const EdgeInsets.only(bottom: 120), // clear the FAB (F-004)
       enableReorder: _sortOption == SortOption.manual,
       onReorder: _sortOption == SortOption.manual ? _handleReorder : null,
       onDelete: _handleDelete,
@@ -346,6 +376,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
         return [
           // View Band Songs button - using inline action
           _ViewSongsAction(band: adapter.band, onNavigate: _handleViewSongs),
+          // Overflow menu for parity with Songs/Setlists (UX audit F-008) —
+          // makes Edit/Delete discoverable, not just tap/swipe.
+          OverflowMenuAction(
+            entries: [
+              ('Edit band', Icons.edit, () => _handleEdit(index)),
+              ('Delete', Icons.delete, () => unawaited(_handleDelete(index))),
+            ],
+          ),
         ];
       },
     );
@@ -362,7 +400,6 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
 }
 
 class _InviteMemberDialog extends ConsumerStatefulWidget {
-
   const _InviteMemberDialog({required this.band, required this.currentUserId});
   final Band band;
   final String currentUserId;
@@ -433,10 +470,17 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
   Future<void> _shareInvite() async {
     const String domain = 'flowgroove.app';
 
+    // Path-based join link: opens the installed app directly via Android App
+    // Links (intent-filter pathPrefix /join + /.well-known/assetlinks.json),
+    // and in a browser the /join/ page redirects into the web app. A hash-
+    // fragment URL can't be used here because Android App Links never receive
+    // the URL fragment.
+    final joinLink = 'https://$domain/join/?code=$_inviteCode';
+
     final message =
         '🎸 Join my band "${widget.band.name}" on FlowGroove!\n\n'
         'Use code: $_inviteCode\n'
-        'Or click the link to join: https://$domain/join-band?code=$_inviteCode\n\n'
+        'Or click the link to join: $joinLink\n\n'
         'Download FlowGroove: https://$domain';
 
     final uri = Uri.parse('sms:?body=${Uri.encodeComponent(message)}');
@@ -449,124 +493,29 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
   }
 
   void _showShareOptions(String message) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.copy),
-              title: const Text('Copy to clipboard'),
-              onTap: () {
-                Clipboard.setData(ClipboardData(text: message));
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Copied to clipboard!')),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.share),
-              title: const Text('Share via...'),
-              onTap: () {
-                Navigator.pop(context);
-                _shareText(message);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.email),
-              title: const Text('Email'),
-              onTap: () {
-                Navigator.pop(context);
-                final emailUri = Uri(
-                  scheme: 'mailto',
-                  queryParameters: {
-                    'subject': 'Join my band "${widget.band.name}"',
-                    'body': message,
-                  },
-                );
-                launchUrl(emailUri);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.telegram),
-              title: const Text('Telegram'),
-              onTap: () {
-                Navigator.pop(context);
-                final telegramUri = Uri.parse(
-                  'https://t.me/share/url?url=${Uri.encodeComponent(message)}',
-                );
-                launchUrl(telegramUri, mode: LaunchMode.externalApplication);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.link),
-              title: const Text('WhatsApp'),
-              onTap: () {
-                Navigator.pop(context);
-                final whatsappUri = Uri.parse(
-                  'https://wa.me/?text=${Uri.encodeComponent(message)}',
-                );
-                launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-              },
-            ),
-          ],
-        ),
-      ),
+    showShareSheet(
+      context,
+      message,
+      subject: 'Join my band "${widget.band.name}"',
     );
-  }
-
-  Future<void> _shareText(String text) async {
-    try {
-      await Clipboard.setData(ClipboardData(text: text));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Link copied! Paste in any app to share.'),
-          ),
-        );
-      }
-    } on ApiError catch (e) {
-      _handleError(e);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
-    } catch (e, stackTrace) {
-      final error = ApiError.fromException(e, stackTrace: stackTrace);
-      _handleError(error);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
-    }
   }
 
   Future<void> _copyToClipboard() async {
     try {
       await Clipboard.setData(ClipboardData(text: _inviteCode));
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Code copied!')));
+        showAppSnackBar(context, 'Code copied!');
       }
     } on ApiError catch (e) {
       _handleError(e);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        showAppSnackBar(context, e.message);
       }
     } catch (e, stackTrace) {
       final error = ApiError.fromException(e, stackTrace: stackTrace);
       _handleError(error);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        showAppSnackBar(context, error.message);
       }
     }
   }
@@ -583,9 +532,9 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
             Container(
               padding: const EdgeInsets.all(MonoPulseSpacing.md),
               decoration: BoxDecoration(
-                color: MonoPulseColors.errorSubtle,
+                color: MonoPulseColors.error10,
                 borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-                border: Border.all(color: MonoPulseColors.errorSubtle20),
+                border: Border.all(color: MonoPulseColors.error20),
               ),
               child: Row(
                 children: [
@@ -599,7 +548,7 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
                     child: Text(
                       _currentError?.message ?? 'An unexpected error occurred',
                       style: MonoPulseTypography.bodySmall.copyWith(
-                        color: MonoPulseColors.textPrimary,
+                        color: context.mp.textPrimary,
                       ),
                     ),
                   ),
@@ -610,19 +559,9 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
           ],
           const Text('Share this code with band members:'),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-            decoration: BoxDecoration(
-              color: MonoPulseColors.surface,
-              borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-            ),
-            child: Text(
-              _isRegenerating ? 'Generating...' : _inviteCode,
-              style: MonoPulseTypography.headlineLarge.copyWith(
-                letterSpacing: 2,
-                color: MonoPulseColors.textPrimary,
-              ),
-            ),
+          InviteCodeField(
+            code: _isRegenerating ? '' : _inviteCode,
+            placeholder: 'Generating…',
           ),
           const SizedBox(height: 16),
           Row(
@@ -659,7 +598,6 @@ class _InviteMemberDialogState extends ConsumerState<_InviteMemberDialog> {
 
 /// Action class for View Songs button
 class _ViewSongsAction implements UnifiedItemAction {
-
   _ViewSongsAction({required this.band, required this.onNavigate});
   final Band band;
   final void Function(Band) onNavigate;

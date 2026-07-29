@@ -1,0 +1,17 @@
+{
+  "name": "flowgroove-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCP server that lets your own AI read and add songs in FlowGroove.",
+  "type": "module",
+  "bin": {
+    "flowgroove-mcp": "server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  }
+}

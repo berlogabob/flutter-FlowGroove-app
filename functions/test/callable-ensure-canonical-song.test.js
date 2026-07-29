@@ -31,17 +31,17 @@ describe("ensureCanonicalSong callable", function () {
 
   it("rejects unauthenticated callers", async () => {
     await assert.rejects(
-      () => wrappedEnsureCanonicalSong({ title: "Song", artist: "Artist" }),
+      () => wrappedEnsureCanonicalSong({ data: { title: "Song", artist: "Artist" } }),
       (error) => error.code === "unauthenticated",
     );
   });
 
   it("rejects demo users", async () => {
     await assert.rejects(
-      () => wrappedEnsureCanonicalSong(
-        { title: "Song", artist: "Artist" },
-        authContext("demo-user", { demo: true }),
-      ),
+      () => wrappedEnsureCanonicalSong({
+        data: { title: "Song", artist: "Artist" },
+        ...authContext("demo-user", { demo: true }),
+      }),
       (error) => error.code === "failed-precondition",
     );
   });
@@ -50,10 +50,10 @@ describe("ensureCanonicalSong callable", function () {
     await db.collection("users").doc("demo-user").set({ accessRole: "demo" });
 
     await assert.rejects(
-      () => wrappedEnsureCanonicalSong(
-        { title: "Song", artist: "Artist" },
-        authContext("demo-user"),
-      ),
+      () => wrappedEnsureCanonicalSong({
+        data: { title: "Song", artist: "Artist" },
+        ...authContext("demo-user"),
+      }),
       (error) => error.code === "failed-precondition",
     );
   });
@@ -154,6 +154,27 @@ describe("ensureCanonicalSong callable", function () {
     );
   });
 
+  it("keeps non-Latin songs on distinct canonical ids", async () => {
+    const first = await callEnsure({
+      title: "День рождения",
+      artist: "Ленинград",
+    });
+    const second = await callEnsure({
+      title: "День рождения",
+      artist: "Ногу Свело!",
+    });
+
+    assert.notEqual(first.canonicalSongId, second.canonicalSongId);
+    assert.equal(await canonicalSongCount(), 2);
+
+    const created = await db
+      .collection("canonical_songs")
+      .doc(first.canonicalSongId)
+      .get();
+    assert.equal(created.data().normalizedTitle, "день рождения");
+    assert.equal(created.data().normalizedArtist, "ленинград");
+  });
+
   it("uses the transaction create path idempotently for normalized matches", async () => {
     const payload = {
       title: "  Concurrent Song! ",
@@ -233,7 +254,7 @@ function authContext(uid, token = {}) {
 }
 
 function callEnsure(payload) {
-  return wrappedEnsureCanonicalSong(payload, authContext("user-1"));
+  return wrappedEnsureCanonicalSong({ data: payload, ...authContext("user-1") });
 }
 
 function isDuplicateCanonicalError(error) {

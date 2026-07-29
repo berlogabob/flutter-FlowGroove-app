@@ -194,6 +194,8 @@ class SongCsvSerializer {
             .toRadixString(16)
             .toUpperCase()
             .padLeft(8, '0');
+      case 'chart':
+        return section.chordChart;
       default:
         return null;
     }

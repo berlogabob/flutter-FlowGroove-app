@@ -1,35 +1,42 @@
+import 'dart:io';
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../models/band.dart';
 import '../../models/user.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/permissions_provider.dart';
+import '../../services/analytics_service.dart';
+import '../../services/avatar_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/analytics_debug.dart';
+import '../../utils/responsive_breakpoints.dart';
+import '../../utils/snackbar.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/dashboard_grid.dart';
-import '../../widgets/greeting_card.dart';
 import '../../widgets/quick_action_button.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/stat_card.dart';
-import '../../widgets/tool_button.dart';
+import '../../widgets/user_avatar.dart';
 import '../setlists/create_setlist_screen.dart';
 
-/// The Band Screen - displays band dashboard similar to personal page.
+/// The Band Screen - displays band dashboard similar to personal page, but
+/// clearly labeled as the band's data (not the signed-in user's).
 ///
 /// Features (per Issue #13, #21, and #22):
-/// - Band name header (replaces "Hello, username")
-/// - "Ready to rock" section showing band description
+/// - Compact band header: avatar, band name, member count (no personal
+///   "Hello, `<band>`!" greeting copy - that belongs to the Home screen)
 /// - 3-dots menu with: Edit name, Edit description, Add song, Add setlist, Edit tags, Edit members
 /// - Dashboard with band-specific statistics (songs, setlists, members)
-/// - Quick actions: Add Song (to band), Add Setlist (to band), Band Bank, Add Member
+/// - Quick actions: Add Song (to band), Add Setlist (to band), Band Bank, Add Member, Rehearsals
 /// - Collapsible/expandable widgets with autosave (via BandAboutScreen for editing)
 class TheBandScreen extends ConsumerStatefulWidget {
-
   const TheBandScreen({required this.band, super.key});
   final Band band;
 
@@ -38,6 +45,7 @@ class TheBandScreen extends ConsumerStatefulWidget {
 }
 
 class _TheBandScreenState extends ConsumerState<TheBandScreen> {
+  late Band _band;
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   bool _isSaving = false;
@@ -45,10 +53,29 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
   @override
   void initState() {
     super.initState();
+    _band = widget.band;
     _nameController = TextEditingController(text: widget.band.name);
     _descriptionController = TextEditingController(
       text: widget.band.description ?? '',
     );
+    // Log screen view once per navigation, not on every rebuild.
+    try {
+      AnalyticsDebug.logScreenView(
+        screenName: 'TheBandScreen',
+        screenClass: 'TheBandScreen',
+      );
+    } catch (_) {}
+    // HEART "adoption" fallback: cheaply detecting "first open after join"
+    // isn't available here, so this fires on every open — see report.
+    AnalyticsService.logBandOpened(bandId: widget.band.id);
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        FirebaseAnalytics.instance.logScreenView(
+          screenName: 'TheBandScreen',
+          screenClass: 'TheBandScreen',
+        );
+      }
+    } catch (_) {}
   }
 
   @override
@@ -56,6 +83,32 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  /// Whether the current user is a band admin (avatar edits are admin-only).
+  bool get _isBandAdmin {
+    if (ref.read(isDemoUserProvider)) return false;
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return false;
+    final member = widget.band.members.firstWhere(
+      (m) => m.uid == user.uid,
+      orElse: () => BandMember(uid: '', role: ''),
+    );
+    return member.role == BandMember.roleAdmin;
+  }
+
+  /// The band as currently stored (from the live bands stream), falling back to
+  /// the optimistic local copy then the passed-in band. Reading from the stream
+  /// keeps the avatar (and other live fields) correct after tab switches, since
+  /// the passed-in widget.band is only a snapshot from navigation time.
+  Band _liveBand() {
+    final bands = ref.watch(bandsProvider).asData?.value;
+    if (bands != null) {
+      for (final b in bands) {
+        if (b.id == widget.band.id) return b;
+      }
+    }
+    return _band;
   }
 
   /// Check if user can edit the band (admin or editor only)
@@ -75,22 +128,6 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   @override
   Widget build(BuildContext context) {
-    try {
-      AnalyticsDebug.logScreenView(
-        screenName: 'TheBandScreen',
-        screenClass: 'TheBandScreen',
-      );
-    } catch (_) {}
-
-    try {
-      if (Firebase.apps.isNotEmpty) {
-        FirebaseAnalytics.instance.logScreenView(
-          screenName: 'TheBandScreen',
-          screenClass: 'TheBandScreen',
-        );
-      }
-    } catch (_) {}
-
     return StandardScreenScaffold(
       title: widget.band.name,
       body: _buildBandDashboard(),
@@ -98,119 +135,48 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     );
   }
 
-  /// Build menu items for 3-dots menu
-  List<PopupMenuEntry<dynamic>> _buildMenuItems() {
+  /// Build items for the bottom-bar Menu sheet. Rows with a null onTap render
+  /// disabled (permission-gated actions for non-editors/non-admins).
+  List<AppMenuItem> _buildMenuItems() {
     return [
-      // Edit Band Name
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit ? () => _runAfterMenuCloses(_showEditNameDialog) : null,
-        child: Row(
-          children: [
-            const Icon(Icons.edit, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Edit Band Name',
-              style: TextStyle(
-                color: _canEdit
-                    ? MonoPulseColors.textPrimary
-                    : MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.edit,
+        label: 'Edit Band Name',
+        onTap: _canEdit ? _showEditNameDialog : null,
       ),
-
-      // Edit Description
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit
-            ? () => _runAfterMenuCloses(_showEditDescriptionDialog)
-            : null,
-        child: Row(
-          children: [
-            const Icon(Icons.description, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Edit Description',
-              style: TextStyle(
-                color: _canEdit
-                    ? MonoPulseColors.textPrimary
-                    : MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.description,
+        label: 'Edit Description',
+        onTap: _canEdit ? _showEditDescriptionDialog : null,
       ),
-
-      const PopupMenuDivider(),
-
-      // Add Song
-      PopupMenuItem<void>(
-        onTap: () => _runAfterMenuCloses(_handleAddSong),
-        child: const Row(
-          children: [
-            Icon(Icons.add, size: 20),
-            SizedBox(width: 12),
-            Text('Add Song'),
-          ],
-        ),
+      AppMenuItem(icon: Icons.add, label: 'Add Song', onTap: _handleAddSong),
+      AppMenuItem(
+        icon: Icons.playlist_add,
+        label: 'Add Setlist',
+        onTap: _canEdit ? _handleAddSetlist : null,
       ),
-
-      // Add Setlist
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit ? () => _runAfterMenuCloses(_handleAddSetlist) : null,
-        child: const Row(
-          children: [
-            Icon(Icons.playlist_add, size: 20),
-            SizedBox(width: 12),
-            Text('Add Setlist'),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.label_outline,
+        label: 'Edit Tags',
+        onTap: _canEdit ? _handleEditTags : null,
       ),
-
-      const PopupMenuDivider(),
-
-      // Edit Tags
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit ? () => _runAfterMenuCloses(_handleEditTags) : null,
-        child: Row(
-          children: [
-            const Icon(Icons.label_outline, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Edit Tags',
-              style: TextStyle(
-                color: _canEdit
-                    ? MonoPulseColors.textPrimary
-                    : MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.people,
+        label: 'Edit Members',
+        onTap: _canEdit ? _handleEditMembers : null,
       ),
-
-      // Edit Members
-      PopupMenuItem<void>(
-        enabled: _canEdit,
-        onTap: _canEdit ? () => _runAfterMenuCloses(_handleEditMembers) : null,
-        child: Row(
-          children: [
-            const Icon(Icons.people, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Edit Members',
-              style: TextStyle(
-                color: _canEdit
-                    ? MonoPulseColors.textPrimary
-                    : MonoPulseColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
+      AppMenuItem(
+        icon: Icons.image,
+        label: 'Change Band Avatar',
+        onTap: _isBandAdmin ? _handleChangeBandAvatar : null,
       ),
+      // Remove Band Avatar (admin only, shown only when avatar exists)
+      if (_liveBand().photoURL != null && _isBandAdmin)
+        AppMenuItem(
+          icon: Icons.delete_outline,
+          label: 'Remove Band Avatar',
+          onTap: _handleRemoveBandAvatar,
+        ),
     ];
   }
 
@@ -222,10 +188,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         .toString();
 
     return DashboardGrid(
-      greetingCard: _buildBandGreetingCard(),
+      greetingCard: _buildBandHeader(),
+      statisticsTitle: 'Band library',
       statistics: _buildStatistics(userAsync, songCountAsync, setlistCount),
       quickActions: _buildQuickActions(),
-      tools: _buildTools(),
+      tools: const [],
     );
   }
 
@@ -244,7 +211,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         label: 'Songs',
         value: songCount,
         color: MonoPulseColors.accentOrange,
-        onTap: () => context.goNamed(
+        onTap: () => context.pushNamed(
           'band-songs',
           pathParameters: {'id': widget.band.id},
           extra: widget.band,
@@ -254,8 +221,8 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         icon: Icons.queue_music,
         label: 'Setlists',
         value: setlistCount,
-        color: MonoPulseColors.textSecondary,
-        onTap: () => context.goNamed(
+        color: context.mp.textSecondary,
+        onTap: () => context.pushNamed(
           'band-setlists',
           pathParameters: {'id': widget.band.id},
           extra: widget.band,
@@ -265,13 +232,16 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         icon: Icons.people,
         label: 'Members',
         value: memberCount,
-        color: MonoPulseColors.textSecondary,
+        color: context.mp.textSecondary,
         onTap: _handleEditMembers,
       ),
     ];
   }
 
-  /// Build quick action buttons for band dashboard
+  /// Build quick action buttons for band dashboard. Band-scoped only - Tuner
+  /// and Metronome are personal tools that live on the Home screen, not here.
+  /// Rehearsals is band-scoped, so it lives here instead of a single-item
+  /// Tools section.
   List<QuickActionButton> _buildQuickActions() {
     return [
       QuickActionButton(icon: Icons.add, label: 'Song', onTap: _handleAddSong),
@@ -288,46 +258,72 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
         ),
       QuickActionButton(
         icon: Icons.library_music,
-        label: 'Song Bank',
+        label: 'Band songs',
         onTap: _handleBandBank,
       ),
-    ];
-  }
-
-  /// Build tool buttons for band dashboard
-  List<ToolButton> _buildTools() {
-    return [
-      ToolButton(
-        icon: Icons.tune,
-        label: 'Tuner',
-        onTap: () => context.goNamed('tuner'),
-      ),
-      ToolButton(
-        icon: Icons.speed,
-        label: 'Metronome',
-        onTap: () => context.goNamed('metronome'),
+      QuickActionButton(
+        icon: Icons.event,
+        label: 'Rehearsals',
+        onTap: () => context.pushNamed(
+          'band-rehearsals',
+          pathParameters: {'id': widget.band.id},
+          extra: widget.band,
+        ),
       ),
     ];
   }
 
-  /// Band greeting card - uses GreetingCard widget with band initials as avatar
-  Widget _buildBandGreetingCard() {
-    final description = widget.band.description;
+  /// Compact band header: avatar, band name, member count on one row. No
+  /// personal-style greeting copy ("Hello, `<band>`! Ready to rock?") - this is
+  /// the band's data, not the signed-in user's, and the greeting made that
+  /// ambiguous (P1-4).
+  Widget _buildBandHeader() {
+    final band = _liveBand();
+    final breakpoint = context.breakpoint;
+    final avatarRadius = ResponsiveSizes.avatarRadius(breakpoint);
+    final memberCount = band.members.length;
 
-    return GreetingCard(
-      userName: widget.band.name,
-      subtitle: description ?? 'Ready to rock?',
+    return Container(
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+      decoration: BoxDecoration(
+        color: MonoPulseColors.accentOrange10,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+        border: Border.all(color: context.mp.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          UserAvatar(
+            photoURL: band.photoURL,
+            displayName: band.name,
+            radius: avatarRadius,
+          ),
+          const SizedBox(width: MonoPulseSpacing.lg),
+          Expanded(
+            child: Text(
+              band.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: context.mp.textPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(width: MonoPulseSpacing.md),
+          Text(
+            memberCount == 1 ? '1 member' : '$memberCount members',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: context.mp.textTertiary),
+          ),
+        ],
+      ),
     );
   }
 
   // ==================== Menu Actions ====================
-
-  void _runAfterMenuCloses(VoidCallback action) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      action();
-    });
-  }
+  // (The app menu sheet already closes itself and defers each action to the
+  // next frame, so the old _runAfterMenuCloses wrapper is gone.)
 
   /// Show dialog to edit band name
   Future<void> _showEditNameDialog() async {
@@ -386,15 +382,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Band name updated successfully')),
-        );
+        showAppSnackBar(context, 'Band name updated successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating band name: $e')));
+        showAppSnackBar(context, 'Error updating band name: $e');
       }
     } finally {
       if (mounted) {
@@ -464,15 +456,11 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Description updated successfully')),
-        );
+        showAppSnackBar(context, 'Description updated successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating description: $e')),
-        );
+        showAppSnackBar(context, 'Error updating description: $e');
       }
     } finally {
       if (mounted) {
@@ -481,14 +469,17 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     }
   }
 
-  /// Handle add song - navigate to add song screen with bandId
+  /// Handle add song - navigate to add song screen with bandId.
+  /// Pushed, not go'd: a `go` switches the shell to the Songs branch and the
+  /// save pops the user out onto the personal library instead of this band.
   void _handleAddSong() {
-    context.goNamed('add-song', queryParameters: {'bandId': widget.band.id});
+    context.pushNamed('add-song', queryParameters: {'bandId': widget.band.id});
   }
 
-  /// Handle add setlist - navigate to create setlist screen
+  /// Handle add setlist - navigate to create setlist screen (pushed, so saving
+  /// returns to the band; see _handleAddSong).
   void _handleAddSetlist() {
-    context.goNamed(
+    context.pushNamed(
       'create-setlist',
       queryParameters: {
         'bandId': widget.band.id,
@@ -499,26 +490,28 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   /// Handle edit tags - navigate to band about screen
   void _handleEditTags() {
-    context.goNamed(
+    context.pushNamed(
       'band-about',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
     );
   }
 
-  /// Handle edit members - navigate to band about screen
+  /// Handle edit members - navigate to band about screen (member management
+  /// lives there: role changes, remove, etc.). The read-only band-members
+  /// screen is reached via the members chip on the About screen.
   void _handleEditMembers() {
-    context.goNamed(
+    context.pushNamed(
       'band-about',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
     );
   }
 
-  /// Handle add member - navigate to band about screen for member management
+  /// Handle add member - go straight to the invite/share screen
   void _handleAddMember() {
-    context.goNamed(
-      'band-about',
+    context.pushNamed(
+      'band-invite',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
     );
@@ -526,10 +519,46 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
 
   /// Handle band bank - navigate to band songs screen
   void _handleBandBank() {
-    context.goNamed(
+    context.pushNamed(
       'band-songs',
       pathParameters: {'id': widget.band.id},
       extra: widget.band,
     );
+  }
+
+  Future<void> _handleChangeBandAvatar() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+    try {
+      final url = await AvatarFunctionService().setBandAvatar(
+        File(picked.path),
+        _band.id,
+      );
+      if (!mounted) return;
+      setState(() => _band = _band.copyWith(photoURL: url));
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Avatar upload failed: $e')),
+      );
+    }
+  }
+
+  Future<void> _handleRemoveBandAvatar() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await AvatarFunctionService().removeBandAvatar(_band.id);
+      if (!mounted) return;
+      setState(() => _band = _band.copyWith(photoURL: null));
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Avatar removal failed: $e')),
+      );
+    }
   }
 }

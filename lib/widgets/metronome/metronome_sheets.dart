@@ -7,6 +7,7 @@ import '../../models/metronome_tempo_range.dart';
 import '../../models/tempo_ramp.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
 
 /// Shared bottom-sheet launcher for the metronome tool panels.
 Future<void> _showSheet(BuildContext context, Widget child) {
@@ -14,7 +15,7 @@ Future<void> _showSheet(BuildContext context, Widget child) {
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: MonoPulseColors.blackSurface,
+    backgroundColor: context.mp.blackSurface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
         top: Radius.circular(MonoPulseRadius.xlarge),
@@ -49,7 +50,7 @@ class _SheetScaffold extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: MonoPulseColors.borderDefault,
+                color: context.mp.borderDefault,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -58,7 +59,7 @@ class _SheetScaffold extends StatelessWidget {
           Text(
             title,
             style: MonoPulseTypography.headlineSmall.copyWith(
-              color: MonoPulseColors.textHighEmphasis,
+              color: context.mp.textHighEmphasis,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -118,17 +119,15 @@ class _SoundSheet extends ConsumerWidget {
                 HapticFeedback.selectionClick();
               },
               selectedColor: MonoPulseColors.accentOrange,
-              backgroundColor: MonoPulseColors.surfaceRaised,
+              backgroundColor: context.mp.surfaceRaised,
               labelStyle: MonoPulseTypography.labelMedium.copyWith(
-                color: selected
-                    ? MonoPulseColors.black
-                    : MonoPulseColors.textSecondary,
+                color: selected ? context.mp.black : context.mp.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
               side: BorderSide(
                 color: selected
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.borderSubtle,
+                    : context.mp.borderSubtle,
               ),
             );
           }).toList(),
@@ -143,7 +142,7 @@ class _SoundSheet extends ConsumerWidget {
           onChanged: notifier.setVolume,
         ),
         _SliderRow(
-          label: 'Accent pitch',
+          label: 'Primary pitch',
           value: state.accentFrequency.clamp(400, 2000),
           min: 400,
           max: 2000,
@@ -151,14 +150,31 @@ class _SoundSheet extends ConsumerWidget {
           onChanged: notifier.setAccentFrequency,
         ),
         _SliderRow(
-          label: 'Beat pitch',
+          label: 'Subdivision pitch',
           value: state.beatFrequency.clamp(200, 1500),
           min: 200,
           max: 1500,
           display: '${state.beatFrequency.round()} Hz',
           onChanged: notifier.setBeatFrequency,
         ),
-        const Divider(color: MonoPulseColors.borderSubtle, height: 1),
+        _SliderRow(
+          label: 'Subdivision volume',
+          value: state.subdivisionGain.clamp(0.5, 2.0),
+          min: 0.5,
+          max: 2.0,
+          display: '${(state.subdivisionGain * 100).round()}%',
+          onChanged: notifier.setSubdivisionGain,
+        ),
+        _SliderRow(
+          label: 'Accent pitch',
+          value: state.accentBeatFrequency.clamp(400, 3000),
+          min: 400,
+          max: 3000,
+          display: '${state.accentBeatFrequency.round()} Hz',
+          onChanged: notifier.setAccentBeatFrequency,
+          accentColor: MonoPulseColors.beatModeAccent,
+        ),
+        Divider(color: context.mp.borderSubtle, height: 1),
         _SwitchRow(
           label: 'Visual flash',
           icon: Icons.flash_on,
@@ -204,24 +220,24 @@ class _CountInSheet extends ConsumerWidget {
           children: _options.map((value) {
             final selected = countInBars == value;
             return ChoiceChip(
-              label: Text(value == 0 ? 'Off' : '$value bar${value > 1 ? 's' : ''}'),
+              label: Text(
+                value == 0 ? 'Off' : '$value bar${value > 1 ? 's' : ''}',
+              ),
               selected: selected,
               onSelected: (_) {
                 notifier.setCountInBars(value);
                 HapticFeedback.selectionClick();
               },
               selectedColor: MonoPulseColors.accentOrange,
-              backgroundColor: MonoPulseColors.surfaceRaised,
+              backgroundColor: context.mp.surfaceRaised,
               labelStyle: MonoPulseTypography.labelMedium.copyWith(
-                color: selected
-                    ? MonoPulseColors.black
-                    : MonoPulseColors.textSecondary,
+                color: selected ? context.mp.black : context.mp.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
               side: BorderSide(
                 color: selected
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.borderSubtle,
+                    : context.mp.borderSubtle,
               ),
             );
           }).toList(),
@@ -291,9 +307,7 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
       ref.read(metronomeProvider.notifier).startTempoRamp(ramp);
       Navigator.of(context).maybePop();
     } on ArgumentError catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message.toString())),
-      );
+      showAppSnackBar(context, e.message.toString());
     }
   }
 
@@ -302,8 +316,6 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
     final rampActive = ref.watch(
       metronomeProvider.select((s) => s.activeTempoRamp != null),
     );
-    final cadenceUnit = _cadence == TempoRampCadence.bars ? 'bars' : 'seconds';
-
     if (rampActive) {
       return _SheetScaffold(
         title: 'Tempo ramp',
@@ -312,8 +324,8 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
           const SizedBox(height: MonoPulseSpacing.lg),
           FilledButton.icon(
             style: FilledButton.styleFrom(
-              backgroundColor: MonoPulseColors.surfaceRaised,
-              foregroundColor: MonoPulseColors.textPrimary,
+              backgroundColor: context.mp.surfaceRaised,
+              foregroundColor: context.mp.textPrimary,
             ),
             icon: const Icon(Icons.stop),
             label: const Text('Stop ramp'),
@@ -333,15 +345,21 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
         const SizedBox(height: MonoPulseSpacing.md),
         Row(
           children: [
-            Expanded(child: _NumField(label: 'Target BPM', controller: _target)),
+            Expanded(
+              child: _NumField(label: 'Target BPM', controller: _target),
+            ),
             const SizedBox(width: MonoPulseSpacing.md),
-            Expanded(child: _NumField(label: 'Step', controller: _step)),
+            Expanded(
+              child: _NumField(label: 'Step', controller: _step),
+            ),
             const SizedBox(width: MonoPulseSpacing.md),
-            Expanded(child: _NumField(label: 'Every', controller: _every)),
+            Expanded(
+              child: _NumField(label: 'Every', controller: _every),
+            ),
           ],
         ),
         const SizedBox(height: MonoPulseSpacing.lg),
-        _SheetLabel('Advance every $cadenceUnit'),
+        const _SheetLabel('Advance every'),
         const SizedBox(height: MonoPulseSpacing.sm),
         SegmentedButton<TempoRampCadence>(
           segments: const [
@@ -364,7 +382,7 @@ class _RampSheetState extends ConsumerState<_RampSheet> {
         FilledButton.icon(
           style: FilledButton.styleFrom(
             backgroundColor: MonoPulseColors.accentOrange,
-            foregroundColor: MonoPulseColors.black,
+            foregroundColor: context.mp.black,
           ),
           icon: const Icon(Icons.trending_up),
           label: const Text('Start ramp'),
@@ -388,7 +406,7 @@ class _SheetLabel extends StatelessWidget {
     return Text(
       text,
       style: MonoPulseTypography.bodySmall.copyWith(
-        color: MonoPulseColors.textTertiary,
+        color: context.mp.textTertiary,
       ),
     );
   }
@@ -402,6 +420,7 @@ class _SliderRow extends StatelessWidget {
     required this.max,
     required this.display,
     required this.onChanged,
+    this.accentColor,
   });
 
   final String label;
@@ -411,8 +430,14 @@ class _SliderRow extends StatelessWidget {
   final String display;
   final ValueChanged<double> onChanged;
 
+  /// Active color for the value readout and slider track. Defaults to the
+  /// standard orange accent; the marked-accent pitch row passes the cyan
+  /// beat-map color so the control reads as the accent control.
+  final Color? accentColor;
+
   @override
   Widget build(BuildContext context) {
+    final color = accentColor ?? MonoPulseColors.accentOrange;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -422,13 +447,13 @@ class _SliderRow extends StatelessWidget {
             Text(
               label,
               style: MonoPulseTypography.labelMedium.copyWith(
-                color: MonoPulseColors.textSecondary,
+                color: context.mp.textSecondary,
               ),
             ),
             Text(
               display,
               style: MonoPulseTypography.labelMedium.copyWith(
-                color: MonoPulseColors.accentOrange,
+                color: color,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -438,7 +463,7 @@ class _SliderRow extends StatelessWidget {
           value: value.clamp(min, max),
           min: min,
           max: max,
-          activeColor: MonoPulseColors.accentOrange,
+          activeColor: color,
           onChanged: onChanged,
         ),
       ],
@@ -470,20 +495,20 @@ class _SwitchRow extends StatelessWidget {
             size: 20,
             color: value
                 ? MonoPulseColors.accentOrange
-                : MonoPulseColors.textTertiary,
+                : context.mp.textTertiary,
           ),
           const SizedBox(width: MonoPulseSpacing.md),
           Expanded(
             child: Text(
               label,
               style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textHighEmphasis,
+                color: context.mp.textHighEmphasis,
               ),
             ),
           ),
           Switch(
             value: value,
-            activeColor: MonoPulseColors.accentOrange,
+            activeThumbColor: MonoPulseColors.accentOrange,
             onChanged: (v) {
               onChanged(v);
               HapticFeedback.selectionClick();
@@ -510,7 +535,7 @@ class _NumField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: MonoPulseColors.surfaceRaised,
+        fillColor: context.mp.surfaceRaised,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
           borderSide: BorderSide.none,

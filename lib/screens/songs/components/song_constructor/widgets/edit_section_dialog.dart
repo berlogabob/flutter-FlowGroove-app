@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
+import '../../../../../utils/snackbar.dart';
+import '../../../../../widgets/chord_chart_view.dart';
 
 /// Dialog for editing a section's name, duration, and notes.
 class EditSectionDialog extends StatefulWidget {
@@ -15,6 +18,7 @@ class EditSectionDialog extends StatefulWidget {
 class _EditSectionDialogState extends State<EditSectionDialog> {
   late TextEditingController _nameController;
   late TextEditingController _notesController;
+  late TextEditingController _chordController;
   late int _duration;
   String? _selectedTemplate;
 
@@ -23,6 +27,8 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.section.name);
     _notesController = TextEditingController(text: widget.section.notes);
+    _chordController =
+        TextEditingController(text: widget.section.chordChart ?? '');
     _duration = widget.section.duration;
     _selectedTemplate = Section.templates.contains(widget.section.name)
         ? widget.section.name
@@ -33,6 +39,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
   void dispose() {
     _nameController.dispose();
     _notesController.dispose();
+    _chordController.dispose();
     super.dispose();
   }
 
@@ -105,7 +112,7 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 for (int i = 1; i <= 4; i++)
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 4),
+                      padding: const EdgeInsets.only(right: MonoPulseSpacing.xs),
                       child: ElevatedButton(
                         onPressed: () {
                           setState(() {
@@ -161,6 +168,34 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
               maxLength: 100,
             ),
             const SizedBox(height: 16),
+            // Lyrics + chords (ChordPro) field with live preview
+            TextField(
+              controller: _chordController,
+              decoration: const InputDecoration(
+                labelText: 'Lyrics & chords (ChordPro)',
+                hintText: '[Am]Twinkle [F]little [C]star',
+                helperText: 'Put a chord in [brackets] before its syllable.',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 5,
+              minLines: 2,
+              onChanged: (_) => setState(() {}),
+            ),
+            if (_chordController.text.trim().isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text('Preview:', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 4),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(MonoPulseSpacing.md),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ChordChartView(chart: _chordController.text),
+              ),
+            ],
+            const SizedBox(height: 16),
             // Action buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -173,17 +208,14 @@ class _EditSectionDialogState extends State<EditSectionDialog> {
                 ElevatedButton(
                   onPressed: () {
                     if (_nameController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Section name cannot be empty'),
-                        ),
-                      );
+                      showAppSnackBar(context, 'Section name cannot be empty');
                       return;
                     }
                     Navigator.pop(context, {
                       'name': _nameController.text.trim(),
                       'notes': _notesController.text.trim(),
                       'duration': _duration,
+                      'chordChart': _chordController.text.trim(),
                     });
                   },
                   child: const Text('Save'),

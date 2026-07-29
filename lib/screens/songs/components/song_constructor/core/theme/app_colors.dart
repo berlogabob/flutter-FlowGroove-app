@@ -7,22 +7,8 @@ class SectionColorPalette {
   SectionColorPalette._();
 
   /// Primary section colors (14 colors from MonoPulse design system).
-  static List<Color> get sectionColors => [
-    MonoPulseColors.section1, // Pink
-    MonoPulseColors.section2, // Purple
-    MonoPulseColors.section3, // Deep Purple
-    MonoPulseColors.section4, // Indigo
-    MonoPulseColors.section5, // Light Blue
-    MonoPulseColors.section6, // Cyan
-    MonoPulseColors.section7, // Teal
-    MonoPulseColors.section8, // Green
-    MonoPulseColors.section9, // Light Green
-    MonoPulseColors.section10, // Lime
-    MonoPulseColors.section11, // Yellow
-    MonoPulseColors.section12, // Amber
-    MonoPulseColors.section13, // Orange
-    MonoPulseColors.section14, // Deep Orange
-  ];
+  /// Delegates to the canonical list rather than re-listing it.
+  static List<Color> get sectionColors => MonoPulseColors.sectionColors;
 
   /// Get color at index with fallback.
   static Color getColorAt(int index) {
@@ -33,6 +19,11 @@ class SectionColorPalette {
   }
 
   /// Get contrasting text color for a background color.
+  ///
+  /// Intentional exception to the context.mp rule (#132): this contrasts
+  /// against an arbitrary section swatch color, not the app's theme
+  /// surface, so the result is correct regardless of light/dark mode. A
+  /// static helper also has no BuildContext to read context.mp from.
   static Color getContrastingTextColor(Color bgColor) {
     return bgColor.computeLuminance() > 0.5
         ? MonoPulseColors.black

@@ -16,8 +16,10 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import '../config/metronome_feature_flags.dart';
 import '../models/beat_mode.dart';
 import '../models/metronome_state.dart';
+import '../services/audio/engine/unified_engine_playback_client.dart';
 import '../services/audio/metronome_audio_engine.dart';
 import '../services/audio/wall_clock_scheduler.dart';
+import '../services/audio/web_audio_engine.dart';
 
 abstract class MetronomeAudioClient {
   Future<void> initialize();
@@ -78,6 +80,77 @@ class AudioEngineMetronomeAudioClient implements MetronomeAudioClient {
   Future<void> dispose() {
     return MetronomeAudioEngine.instance.dispose();
   }
+}
+
+/// Web metronome audio client backed by the browser Web Audio API.
+///
+/// On web, `flutter_soloud` (used by [AudioEngineMetronomeAudioClient] and the
+/// PCM timeline client) is unreliable and produces no sound without a dedicated
+/// SoLoud web worker setup. This client routes clicks through the lightweight,
+/// browser-safe [AudioEngine] instead, which lazily creates an `AudioContext`
+/// on the first click (after a user gesture).
+class WebAudioMetronomeAudioClient implements MetronomeAudioClient {
+  WebAudioMetronomeAudioClient();
+
+  final AudioEngine _engine = AudioEngine();
+
+  @override
+  Future<void> initialize() => _engine.initialize();
+
+  @override
+  Future<void> preWarmPlayers() => _engine.preWarmPlayers();
+
+  @override
+  Future<void> playClick({
+    required bool isAccent,
+    required String waveType,
+    required double volume,
+    double? accentFrequency,
+    double? beatFrequency,
+  }) {
+    return _engine.playClick(
+      isAccent: isAccent,
+      waveType: waveType,
+      volume: volume,
+      accentFrequency: accentFrequency,
+      beatFrequency: beatFrequency,
+    );
+  }
+
+  @override
+  Future<void> playTest() => _engine.playTest();
+
+  @override
+  Future<void> dispose() async => _engine.dispose();
+
+  /// Direct engine access for the lookahead playback client.
+  AudioEngine get engine => _engine;
+}
+
+/// Audio client that plays nothing — used by [WebAudioLookaheadPlaybackClient]
+/// so the inherited tick handler keeps driving UI/haptics/count-in while the
+/// audio is scheduled ahead on the AudioContext clock instead.
+class _MutedMetronomeAudioClient implements MetronomeAudioClient {
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> preWarmPlayers() async {}
+
+  @override
+  Future<void> playClick({
+    required bool isAccent,
+    required String waveType,
+    required double volume,
+    double? accentFrequency,
+    double? beatFrequency,
+  }) async {}
+
+  @override
+  Future<void> playTest() async {}
+
+  @override
+  Future<void> dispose() async {}
 }
 
 abstract class MetronomeHapticsClient {
@@ -142,7 +215,10 @@ class SystemMetronomeHapticsClient implements MetronomeHapticsClient {
 }
 
 final metronomeAudioClientProvider = Provider<MetronomeAudioClient>((ref) {
-  final client = AudioEngineMetronomeAudioClient();
+  // Web has no working flutter_soloud path; use the Web Audio API engine.
+  final MetronomeAudioClient client = kIsWeb
+      ? WebAudioMetronomeAudioClient()
+      : AudioEngineMetronomeAudioClient();
   ref.onDispose(client.dispose);
   return client;
 });
@@ -162,6 +238,7 @@ class MetronomePlaybackTick {
     required this.isMainBeat,
     required this.shouldPlay,
     required this.frequency,
+    this.gain = 1.0,
     this.isCountIn = false,
   });
 
@@ -171,6 +248,7 @@ class MetronomePlaybackTick {
   final bool isMainBeat;
   final bool shouldPlay;
   final double frequency;
+  final double gain;
   final bool isCountIn;
 }
 
@@ -258,11 +336,7 @@ class PcmTimelineMetronomePlaybackClient implements MetronomePlaybackClient {
   Future<void> resetPhase(MetronomePlaybackConfig config) async {
     if (!_running) return;
     final onTick = _onTick;
-    await start(
-      config,
-      onTick: onTick ?? (_) {},
-      onStopped: _onStopped,
-    );
+    await start(config, onTick: onTick ?? (_) {}, onStopped: _onStopped);
   }
 
   @override
@@ -322,7 +396,9 @@ class PcmTimelineMetronomePlaybackClient implements MetronomePlaybackClient {
           samples,
           cursor,
           isCountIn ? 2100 : tick.frequency,
-          isCountIn ? min(1, config.volume + 0.15) : config.volume,
+          isCountIn
+              ? min(1, config.volume + 0.15)
+              : (config.volume * tick.gain).clamp(0.0, 1.0),
         );
       }
       _samplesUntilTick = intervalSamples;
@@ -375,7 +451,9 @@ class MetronomePlaybackConfig {
     required this.accentEnabled,
     required this.accentFrequency,
     required this.beatFrequency,
+    required this.accentBeatFrequency,
     required this.hapticsEnabled,
+    this.subdivisionGain = 1.4,
     this.countInBars = 0,
   });
 
@@ -390,7 +468,9 @@ class MetronomePlaybackConfig {
       accentEnabled: state.accentEnabled,
       accentFrequency: state.accentFrequency,
       beatFrequency: state.beatFrequency,
+      accentBeatFrequency: state.accentBeatFrequency,
       hapticsEnabled: state.hapticsEnabled,
+      subdivisionGain: state.subdivisionGain,
       countInBars: state.countInBars,
     );
   }
@@ -402,9 +482,11 @@ class MetronomePlaybackConfig {
   final String waveType;
   final double volume;
   final bool accentEnabled;
-  final double accentFrequency;
-  final double beatFrequency;
+  final double accentFrequency; // primary / main-beat pitch
+  final double beatFrequency; // subdivision pitch
+  final double accentBeatFrequency; // marked-accent (cyan) pitch
   final bool hapticsEnabled;
+  final double subdivisionGain; // relative loudness of subdivision cells
   final int countInBars;
 
   int get _safeAccentBeats => accentBeats.clamp(1, 12);
@@ -428,12 +510,20 @@ class MetronomePlaybackConfig {
     final isMainBeat = subdivisionIndex == 0;
     final mode = _modeFor(beatIndex, subdivisionIndex);
     final shouldPlay = mode != BeatMode.silent;
-    final baseFrequency = isMainBeat && accentEnabled
-        ? accentFrequency
-        : beatFrequency;
-    final frequency = mode == BeatMode.accent
-        ? baseFrequency + 300.0
-        : baseFrequency;
+    final frequency = resolveClickFrequency(
+      mode: mode,
+      isMainBeat: isMainBeat,
+      accentEnabled: accentEnabled,
+      primaryFrequency: accentFrequency,
+      subdivisionFrequency: beatFrequency,
+      accentFrequency: accentBeatFrequency,
+    );
+    final gain = resolveClickGain(
+      mode: mode,
+      isMainBeat: isMainBeat,
+      accentEnabled: accentEnabled,
+      subdivisionGain: subdivisionGain,
+    );
 
     return MetronomePlaybackTick(
       index: normalizedIndex,
@@ -442,6 +532,7 @@ class MetronomePlaybackConfig {
       isMainBeat: isMainBeat,
       shouldPlay: shouldPlay,
       frequency: frequency,
+      gain: gain,
     );
   }
 
@@ -458,6 +549,7 @@ class MetronomePlaybackConfig {
           'index': tick.index,
           'shouldPlay': tick.shouldPlay,
           'frequency': tick.frequency,
+          'gain': tick.gain,
         };
       }),
     };
@@ -530,8 +622,12 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
   @override
   Future<void> update(MetronomePlaybackConfig config) async {
     _config = config;
+    // Swap interval in place: restarting the scheduler here reset the phase, so
+    // the next click fired a full interval after any button tap — an audible
+    // pause (worst at slow tempos) that read as playback "freezing". `_tickIndex`
+    // lives on this client, so the beat sequence stays continuous.
     if (_onTick != null) {
-      _scheduler.start(config.interval, _handleTick);
+      _scheduler.updateInterval(config.interval);
     }
   }
 
@@ -564,11 +660,18 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
       final onTick = _onTick;
       if (config == null || onTick == null) return;
 
-      _tickIndex = (_tickIndex + 1) % config.totalTicks;
+      // The scheduler skips (not replays) ticks missed during event-loop
+      // stalls; jump the beat position by the same amount so it stays true
+      // to wall time — playing only the current tick, never a burst.
+      final skipped = _scheduler.lastSkippedTicks;
+      _tickIndex = (_tickIndex + 1 + skipped) % config.totalTicks;
       final tick = config.tickForIndex(_tickIndex);
 
       // Count-in logic: skip audio playback during count-in bars
       final countInTotalTicks = config.countInBars * config.totalTicks;
+      if (skipped > 0 && _countInTicks < countInTotalTicks) {
+        _countInTicks += skipped;
+      }
       if (_countInTicks < countInTotalTicks) {
         // During count-in: fire haptics but skip audio
         if (config.hapticsEnabled && tick.shouldPlay) {
@@ -625,7 +728,7 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
           _audioClient.playClick(
             isAccent: tick.isMainBeat,
             waveType: config.waveType,
-            volume: config.volume,
+            volume: (config.volume * tick.gain).clamp(0.0, 1.0),
             accentFrequency: tick.frequency,
             beatFrequency: tick.frequency,
           ),
@@ -639,6 +742,111 @@ class FlutterMetronomePlaybackClient implements MetronomePlaybackClient {
       debugPrint(
         '[MetronomePlayback] tick error ($_consecutiveErrors consecutive): $error\n$stackTrace',
       );
+    }
+  }
+}
+
+/// Web playback client: UI/haptics/count-in ride the (skip-safe)
+/// [WallClockScheduler] via the base class with a muted audio client, while
+/// the actual clicks are scheduled ahead of time on the AudioContext clock —
+/// immune to Dart timer jitter and tab throttling (#152).
+class WebAudioLookaheadPlaybackClient extends FlutterMetronomePlaybackClient {
+  WebAudioLookaheadPlaybackClient({
+    required WebAudioMetronomeAudioClient webAudioClient,
+    required super.hapticsClient,
+  }) : _webAudio = webAudioClient,
+       super(audioClient: _MutedMetronomeAudioClient());
+
+  final WebAudioMetronomeAudioClient _webAudio;
+  Timer? _pumpTimer;
+  double _nextAudioTime = 0;
+  int _audioTickIndex = -1;
+  int _audioTickNumber = 0;
+
+  static const double _lookaheadSeconds = 0.25;
+  static const Duration _pumpInterval = Duration(milliseconds: 100);
+
+  @override
+  Future<void> start(
+    MetronomePlaybackConfig config, {
+    required MetronomePlaybackTickCallback onTick,
+    VoidCallback? onStopped,
+    int initialTick = -1,
+  }) async {
+    await _webAudio.initialize();
+    await super.start(
+      config,
+      onTick: onTick,
+      onStopped: onStopped,
+      initialTick: initialTick,
+    );
+    _audioTickIndex = initialTick;
+    _audioTickNumber = 0;
+    _anchorNextTick(config);
+    _pumpTimer?.cancel();
+    _pumpTimer = Timer.periodic(_pumpInterval, (_) => _pump());
+    _pump();
+  }
+
+  @override
+  Future<void> resetPhase(MetronomePlaybackConfig config) async {
+    _webAudio.engine.cancelScheduled();
+    await super.resetPhase(config);
+    _audioTickIndex = -1;
+    // Mirror the base class: resetPhase treats the count-in as consumed.
+    _audioTickNumber = config.countInBars * config.totalTicks;
+    _anchorNextTick(config);
+  }
+
+  @override
+  Future<void> stop() async {
+    _pumpTimer?.cancel();
+    _pumpTimer = null;
+    _webAudio.engine.cancelScheduled();
+    await super.stop();
+  }
+
+  @override
+  void dispose() {
+    _pumpTimer?.cancel();
+    _pumpTimer = null;
+    super.dispose();
+  }
+
+  void _anchorNextTick(MetronomePlaybackConfig config) {
+    final contextTime = _webAudio.engine.currentContextTime ?? 0;
+    _nextAudioTime = contextTime + config.interval.inMicroseconds / 1e6;
+  }
+
+  void _pump() {
+    final config = _config;
+    if (config == null || config.totalTicks <= 0) return;
+    final engine = _webAudio.engine;
+    final contextTime = engine.currentContextTime;
+    if (contextTime == null) return;
+    final interval = config.interval.inMicroseconds / 1e6;
+    if (interval <= 0) return;
+
+    final horizon = contextTime + _lookaheadSeconds;
+    final countInTotal = config.countInBars * config.totalTicks;
+    while (_nextAudioTime < horizon) {
+      _audioTickIndex = (_audioTickIndex + 1) % config.totalTicks;
+      // If the pump itself was throttled past this tick's moment, advance the
+      // position without scheduling audio (the UI scheduler skips too).
+      final missed = _nextAudioTime < contextTime;
+      if (!missed && _audioTickNumber >= countInTotal) {
+        final tick = config.tickForIndex(_audioTickIndex);
+        if (tick.shouldPlay) {
+          engine.scheduleClick(
+            atTime: _nextAudioTime,
+            waveType: config.waveType,
+            volume: (config.volume * tick.gain).clamp(0.0, 1.0),
+            frequency: tick.frequency,
+          );
+        }
+      }
+      _audioTickNumber++;
+      _nextAudioTime += interval;
     }
   }
 }
@@ -814,9 +1022,65 @@ class PlatformMetronomePlaybackClient implements MetronomePlaybackClient {
   }
 }
 
+/// Android plays through the native foreground service
+/// ([PlatformMetronomePlaybackClient]) so the metronome survives backgrounding,
+/// screen-off, and calls. All other native platforms keep the Dart unified
+/// engine; web uses the Flutter/Web Audio fallback.
+bool useNativeAndroidPlayback({
+  required bool isWeb,
+  required TargetPlatform platform,
+}) => !isWeb && platform == TargetPlatform.android;
+
 final metronomePlaybackClientProvider = Provider<MetronomePlaybackClient>((
   ref,
 ) {
+  // Android: route through the native foreground service so playback survives
+  // backgrounding, screen-off, and calls. Checked first so the unified engine
+  // (flutter_soloud) is never constructed on Android.
+  if (useNativeAndroidPlayback(
+    isWeb: kIsWeb,
+    platform: defaultTargetPlatform,
+  )) {
+    final fallback = FlutterMetronomePlaybackClient(
+      audioClient: ref.read(metronomeAudioClientProvider),
+      hapticsClient: ref.read(metronomeHapticsProvider),
+    );
+    final client = PlatformMetronomePlaybackClient(fallback: fallback);
+    ref.onDispose(client.dispose);
+    return client;
+  }
+
+  // Unified engine branch: built BEFORE the legacy chain so we never init the
+  // legacy SoLoud-backed MetronomeAudioEngine alongside the unified sink (whose
+  // recover()/close() call a process-wide SoLoud.deinit()). Mutually exclusive.
+  // Checked first (even ahead of the web branch's fallback construction)
+  // so the legacy `FlutterMetronomePlaybackClient` fallback is never
+  // needlessly allocated when the unified engine is active.
+  if (!kIsWeb && MetronomeFeatureFlags.enableUnifiedEngine) {
+    final c = UnifiedEnginePlaybackClient(
+      haptics: ref.read(metronomeHapticsProvider),
+    );
+    ref.onDispose(c.dispose);
+    return c;
+  }
+
+  // Web: the flutter_soloud PCM timeline and the Android platform channel are
+  // both unavailable. Schedule clicks ahead on the AudioContext clock.
+  if (kIsWeb) {
+    final webAudio = ref.read(metronomeAudioClientProvider);
+    final MetronomePlaybackClient client = webAudio
+            is WebAudioMetronomeAudioClient
+        ? WebAudioLookaheadPlaybackClient(
+            webAudioClient: webAudio,
+            hapticsClient: ref.read(metronomeHapticsProvider),
+          )
+        : FlutterMetronomePlaybackClient(
+            audioClient: webAudio,
+            hapticsClient: ref.read(metronomeHapticsProvider),
+          );
+    ref.onDispose(client.dispose);
+    return client;
+  }
   final fallback = FlutterMetronomePlaybackClient(
     audioClient: ref.read(metronomeAudioClientProvider),
     hapticsClient: ref.read(metronomeHapticsProvider),

@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+import 'package:http/http.dart' as http;
 import '../../config/env_config.dart';
 import '../../models/api_error.dart';
 
@@ -34,7 +34,17 @@ class SpotifyService {
 
   static String? _accessToken;
   static DateTime? _tokenExpiry;
-  static final Dio _dio = Dio();
+
+  /// HTTP client, replaceable in tests.
+  @visibleForTesting
+  static http.Client client = http.Client();
+
+  /// Reset cached auth state (for testing)
+  @visibleForTesting
+  static void resetAuth() {
+    _accessToken = null;
+    _tokenExpiry = null;
+  }
 
   static void _assertDirectClientModeAllowed() {
     if (kIsWeb) {
@@ -60,19 +70,17 @@ class SpotifyService {
         utf8.encode('$_clientId:$_clientSecret'),
       );
 
-      final response = await _dio.post(
-        'https://accounts.spotify.com/api/token',
-        options: Options(
-          headers: {
-            'Authorization': 'Basic $credentials',
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        ),
-        data: 'grant_type=client_credentials',
+      final response = await client.post(
+        Uri.parse('https://accounts.spotify.com/api/token'),
+        headers: {
+          'Authorization': 'Basic $credentials',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'grant_type=client_credentials',
       );
 
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
+        final data = json.decode(response.body) as Map<String, dynamic>;
         _accessToken = data['access_token'] as String;
         final expiresIn = data['expires_in'] as int;
         _tokenExpiry = DateTime.now().add(Duration(seconds: expiresIn - 60));
@@ -112,15 +120,13 @@ class SpotifyService {
       final encodedQuery = Uri.encodeComponent(query);
       final url = '$_baseUrl/search?q=$encodedQuery&type=track&limit=10';
 
-      final response = await _dio.get(
-        url,
-        options: Options(
-          headers: {'Authorization': 'Bearer $_accessToken'},
-        ),
+      final response = await client.get(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer $_accessToken'},
       );
 
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
+        final data = json.decode(response.body) as Map<String, dynamic>;
         final tracks = data['tracks']['items'] as List<dynamic>? ?? [];
         return tracks
             .map((t) => SpotifyTrack.fromJson(t as Map<String, dynamic>))
@@ -175,16 +181,14 @@ class SpotifyService {
 
     try {
       final url = '$_baseUrl/audio-features/$trackId';
-      final response = await _dio.get(
-        url,
-        options: Options(
-          headers: {'Authorization': 'Bearer $_accessToken'},
-        ),
+      final response = await client.get(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer $_accessToken'},
       );
 
       if (response.statusCode == 200) {
         return SpotifyAudioFeatures.fromJson(
-          response.data as Map<String, dynamic>,
+          json.decode(response.body) as Map<String, dynamic>,
         );
       } else if (response.statusCode == 401) {
         // Token expired, try to re-authenticate

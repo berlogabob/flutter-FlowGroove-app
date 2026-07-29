@@ -1,10 +1,12 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../../models/section.dart';
 import '../../../../../theme/mono_pulse_theme.dart';
+import '../../../../../utils/snackbar.dart';
 import 'widgets/edit_section_dialog.dart';
 import 'widgets/pill_view.dart';
 import 'widgets/section_card.dart';
@@ -13,13 +15,22 @@ import 'widgets/section_picker.dart';
 /// Main widget for the Song Structure Constructor.
 /// Supports collapsed (pill visualization) and expanded (vertical list) states.
 class SongConstructor extends StatefulWidget {
+  const SongConstructor({
+    super.key,
+    this.initialSections,
+    this.onChange,
+    this.embedded = false,
+  });
 
-  const SongConstructor({super.key, this.initialSections, this.onChange});
   /// Callback when the structure changes.
-  final Function(List<Section>)? onChange;
+  final void Function(List<Section>)? onChange;
 
   /// Initial sections (optional).
   final List<Section>? initialSections;
+
+  /// When true, render only the editable section list (no own header/pill), for
+  /// embedding inside a [CollapsibleSection] that provides the header + preview.
+  final bool embedded;
 
   @override
   State<SongConstructor> createState() => _SongConstructorState();
@@ -34,7 +45,24 @@ class _SongConstructorState extends State<SongConstructor> {
   @override
   void initState() {
     super.initState();
-    _sections = widget.initialSections ?? [];
+    _sections = List<Section>.from(widget.initialSections ?? const []);
+  }
+
+  @override
+  void didUpdateWidget(SongConstructor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The host form loads the song's sections one frame after first build
+    // (provider init is deferred to a post-frame callback). Adopt the incoming
+    // sections when they actually change, so previously-saved song maps are not
+    // stuck on the empty snapshot captured in initState. Section equality is by
+    // id, so in-progress content edits (rename/duration/colour) won't clobber.
+    final incoming = widget.initialSections ?? const <Section>[];
+    final previous = oldWidget.initialSections ?? const <Section>[];
+    if (!listEquals(previous, incoming) && !listEquals(_sections, incoming)) {
+      setState(() {
+        _sections = List<Section>.from(incoming);
+      });
+    }
   }
 
   void _notifyChange() {
@@ -48,7 +76,7 @@ class _SongConstructorState extends State<SongConstructor> {
   }
 
   void _showSectionPicker() {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) => Dialog(
         child: Container(
@@ -87,6 +115,7 @@ class _SongConstructorState extends State<SongConstructor> {
             name: result['name'] as String?,
             notes: result['notes'] as String?,
             duration: result['duration'] as int?,
+            chordChart: result['chordChart'] as String?,
           );
         }
       });
@@ -95,38 +124,28 @@ class _SongConstructorState extends State<SongConstructor> {
   }
 
   void _deleteSection(Section section) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Section'),
-        content: Text('Delete "${section.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                // Remove by index using ID comparison
-                final index = _sections.indexWhere((s) => s.id == section.id);
-                if (index != -1) {
-                  _sections = _sections
-                      .where((s) => s.id != section.id)
-                      .toList();
-                }
-              });
-              _notifyChange();
-              Navigator.pop(dialogContext);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    // ponytail: single-level undo via snackbar; editor undo stack only if beta asks
+    final index = _sections.indexWhere((s) => s.id == section.id);
+    if (index == -1) return;
+
+    final deletedSection = _sections[index];
+    setState(() {
+      _sections = _sections.where((s) => s.id != section.id).toList();
+    });
+    _notifyChange();
+
+    // Show snackbar with undo action
+    showAppSnackBar(
+      context,
+      'Section "${deletedSection.name}" deleted',
+      actionLabel: 'Undo',
+      analyticsAction: 'section_delete',
+      onAction: () {
+        setState(() {
+          _sections.insert(index, deletedSection);
+        });
+        _notifyChange();
+      },
     );
   }
 
@@ -153,11 +172,13 @@ class _SongConstructorState extends State<SongConstructor> {
 
   @override
   Widget build(BuildContext context) {
+    // Embedded: no own header/pill — the host CollapsibleSection supplies those.
+    if (widget.embedded) return _buildExpandedState();
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: MonoPulseColors.surface,
+        color: context.mp.surface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderDefault),
+        border: Border.all(color: context.mp.borderDefault),
       ),
       child: Column(
         children: [
@@ -174,9 +195,9 @@ class _SongConstructorState extends State<SongConstructor> {
                   AnimatedRotation(
                     turns: _expanded ? 0 : -0.25,
                     duration: const Duration(milliseconds: 200),
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: MonoPulseColors.textSecondary,
+                      color: context.mp.textSecondary,
                       size: 24,
                     ),
                   ),
@@ -187,14 +208,14 @@ class _SongConstructorState extends State<SongConstructor> {
                       'Song Structure',
                       style: MonoPulseTypography.titleMedium.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: MonoPulseColors.textPrimary,
+                        color: context.mp.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   // Auto-Generate button (always rendered, just hidden when collapsed)
                   Padding(
-                    padding: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.only(left: MonoPulseSpacing.sm),
                     child: IgnorePointer(
                       ignoring: !_expanded,
                       child: AnimatedOpacity(
@@ -213,8 +234,8 @@ class _SongConstructorState extends State<SongConstructor> {
                           ),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 4,
+                              horizontal: MonoPulseSpacing.xs,
+                              vertical: MonoPulseSpacing.xs,
                             ),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -237,7 +258,7 @@ class _SongConstructorState extends State<SongConstructor> {
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: MonoPulseSpacing.lg,
-                  vertical: 8,
+                  vertical: MonoPulseSpacing.sm,
                 ),
                 child: _buildExpandedState(),
               ),
@@ -248,7 +269,7 @@ class _SongConstructorState extends State<SongConstructor> {
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: MonoPulseSpacing.lg,
-                vertical: 8,
+                vertical: MonoPulseSpacing.sm,
               ),
               child: SizedBox(height: 36, child: PillView(sections: _sections)),
             ),
@@ -278,19 +299,18 @@ class _SongConstructorState extends State<SongConstructor> {
                       key: ValueKey(section.id),
                       background: Container(
                         alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.only(left: 20),
+                        padding: const EdgeInsets.only(
+                          left: MonoPulseSpacing.xl,
+                        ),
                         color: MonoPulseColors.accentOrange,
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(
-                              Icons.edit,
-                              color: MonoPulseColors.textPrimary,
-                            ),
-                            SizedBox(width: 8),
+                            Icon(Icons.edit, color: context.mp.textPrimary),
+                            const SizedBox(width: 8),
                             Text(
                               'Edit',
                               style: TextStyle(
-                                color: MonoPulseColors.textPrimary,
+                                color: context.mp.textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -299,35 +319,58 @@ class _SongConstructorState extends State<SongConstructor> {
                       ),
                       secondaryBackground: Container(
                         alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
+                        padding: const EdgeInsets.only(
+                          right: MonoPulseSpacing.xl,
+                        ),
                         color: MonoPulseColors.error,
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Text(
                               'Delete',
                               style: TextStyle(
-                                color: MonoPulseColors.textPrimary,
+                                color: context.mp.textPrimary,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(
-                              Icons.delete,
-                              color: MonoPulseColors.textPrimary,
-                            ),
+                            const SizedBox(width: 8),
+                            Icon(Icons.delete, color: context.mp.textPrimary),
                           ],
                         ),
                       ),
                       confirmDismiss: (direction) async {
                         if (direction == DismissDirection.endToStart) {
-                          // Swipe left - delete directly (no dialog for swipe)
-                          setState(() {
-                            _sections = _sections
-                                .where((s) => s.id != section.id)
-                                .toList();
-                          });
-                          _notifyChange();
+                          // Swipe left - delete with undo snackbar
+                          final sectionIndex = _sections.indexWhere(
+                            (s) => s.id == section.id,
+                          );
+                          if (sectionIndex != -1) {
+                            final deletedSection = _sections[sectionIndex];
+                            setState(() {
+                              _sections = _sections
+                                  .where((s) => s.id != section.id)
+                                  .toList();
+                            });
+                            _notifyChange();
+
+                            if (mounted) {
+                              showAppSnackBar(
+                                context,
+                                'Section "${deletedSection.name}" deleted',
+                                actionLabel: 'Undo',
+                                analyticsAction: 'section_delete',
+                                onAction: () {
+                                  setState(() {
+                                    _sections.insert(
+                                      sectionIndex,
+                                      deletedSection,
+                                    );
+                                  });
+                                  _notifyChange();
+                                },
+                              );
+                            }
+                          }
                           return true; // Dismiss the item
                         } else if (direction == DismissDirection.startToEnd) {
                           // Swipe right - edit
@@ -352,7 +395,7 @@ class _SongConstructorState extends State<SongConstructor> {
         // Empty state message
         if (_sections.isEmpty) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.lg),
             child: Text(
               'No sections yet',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(

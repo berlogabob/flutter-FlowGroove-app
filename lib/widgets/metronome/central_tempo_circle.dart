@@ -70,6 +70,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
                   painter: TempoDialPainter(
                     bpm: state.bpm.toDouble(),
                     isPlaying: state.isPlaying,
+                    trackColor: context.mp.surfaceOverlay,
                   ),
                   child: Center(
                     child: FittedBox(
@@ -85,13 +86,13 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
                               fontWeight: FontWeight.w700,
                               color: state.isPlaying
                                   ? MonoPulseColors.accentOrange
-                                  : MonoPulseColors.textPrimary,
+                                  : context.mp.textPrimary,
                             ),
                           ),
                           Text(
                             'BPM',
                             style: MonoPulseTypography.bodyLarge.copyWith(
-                              color: MonoPulseColors.textSecondary.withValues(
+                              color: context.mp.textSecondary.withValues(
                                 alpha: 0.7,
                               ),
                             ),
@@ -121,93 +122,85 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
       HapticFeedback.selectionClick();
     }
   }
-
 }
 
-/// Custom painter for the fixed tempo scale and moving BPM indicator.
+/// Simplified Mono Pulse tempo dial: a thick grey track with an orange
+/// progress arc filling from the start of the gauge to the current BPM, and a
+/// white knob (orange ring) at the arc head. No tick labels — the centred BPM
+/// readout carries the number (audit A6: "simplified dial").
 class TempoDialPainter extends CustomPainter {
-
-  TempoDialPainter({required this.bpm, required this.isPlaying});
+  TempoDialPainter({
+    required this.bpm,
+    required this.isPlaying,
+    required this.trackColor,
+  });
   final double bpm;
   final bool isPlaying;
+  final Color trackColor;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
-    final radius = math.min(size.width, size.height) / 2 - 20;
+    final radius = math.min(size.width, size.height) / 2 - 14;
+    final stroke = (radius * 0.16).clamp(10.0, 18.0);
+    final rect = Rect.fromCircle(center: center, radius: radius);
 
-    final ringPaint = Paint()
-      ..color = MonoPulseColors.textTertiary.withValues(alpha: 0.3)
-      ..strokeWidth = 4
+    // Grey track (full gauge sweep).
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..strokeWidth = stroke
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
     canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
+      rect,
       TempoDialScale.startAngle,
       TempoDialScale.sweepAngle,
       false,
-      ringPaint,
+      trackPaint,
     );
 
-    _drawTickMarks(canvas, center, radius);
-    _drawBpmHandle(canvas, center, radius);
-  }
+    // Orange progress arc from the gauge start to the current BPM.
+    final currentAngle = TempoDialScale.bpmToAngle(bpm);
+    final progressSweep = currentAngle - TempoDialScale.startAngle;
+    final progressPaint = Paint()
+      ..color = MonoPulseColors.accentOrange
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    if (progressSweep > 0) {
+      canvas.drawArc(
+        rect,
+        TempoDialScale.startAngle,
+        progressSweep,
+        false,
+        progressPaint,
+      );
+    }
 
-  void _drawTickMarks(Canvas canvas, Offset center, double radius) {
-    final tickPaint = Paint()
-      ..color = MonoPulseColors.textTertiary.withValues(alpha: 0.5)
-      ..strokeWidth = 2;
-    final labelPainter = TextPainter(
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
+    // White knob with an orange ring at the arc head.
+    final knob =
+        center +
+        Offset(math.cos(currentAngle), math.sin(currentAngle)) * radius;
+    canvas.drawCircle(
+      knob,
+      stroke * 0.62,
+      Paint()
+        ..color = MonoPulseColors.accentOrange
+        ..style = PaintingStyle.fill,
     );
-
-    for (final tick in TempoDialScale.majorLabels) {
-      final angle = TempoDialScale.bpmToAngle(tick);
-      final start =
-          center + Offset(math.cos(angle), math.sin(angle)) * (radius - 10);
-      final end = center + Offset(math.cos(angle), math.sin(angle)) * radius;
-      canvas.drawLine(start, end, tickPaint);
-
-      final labelPosition =
-          center + Offset(math.cos(angle), math.sin(angle)) * (radius - 30);
-      labelPainter.text = TextSpan(
-        text: tick.toString(),
-        style: MonoPulseTypography.bodySmall.copyWith(
-          color: MonoPulseColors.textTertiary,
-          fontWeight: FontWeight.w700,
-        ),
-      );
-      labelPainter.layout();
-      labelPainter.paint(
-        canvas,
-        labelPosition - Offset(labelPainter.width / 2, labelPainter.height / 2),
-      );
-    }
-  }
-
-  void _drawBpmHandle(Canvas canvas, Offset center, double radius) {
-    final angle = TempoDialScale.bpmToAngle(bpm);
-    final handle = center + Offset(math.cos(angle), math.sin(angle)) * radius;
-
-    if (isPlaying) {
-      final glowPaint = Paint()
-        ..color = MonoPulseColors.accentOrange.withValues(alpha: 0.3)
-        ..style = PaintingStyle.fill
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-      canvas.drawCircle(handle, 12, glowPaint);
-    }
-
-    final handlePaint = Paint()
-      ..color = isPlaying
-          ? MonoPulseColors.accentOrange
-          : MonoPulseColors.textTertiary
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(handle, 8, handlePaint);
+    canvas.drawCircle(
+      knob,
+      stroke * 0.42,
+      Paint()
+        ..color = MonoPulseColors.white
+        ..style = PaintingStyle.fill,
+    );
   }
 
   @override
   bool shouldRepaint(TempoDialPainter oldDelegate) {
-    return bpm != oldDelegate.bpm || isPlaying != oldDelegate.isPlaying;
+    return bpm != oldDelegate.bpm ||
+        isPlaying != oldDelegate.isPlaying ||
+        trackColor != oldDelegate.trackColor;
   }
 }

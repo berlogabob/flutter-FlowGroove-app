@@ -6,10 +6,14 @@ import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
+import 'package:flowgroove/theme/mono_pulse_theme.dart';
+import 'package:flowgroove/widgets/unified_item/song_card_actions.dart';
+import 'package:flowgroove/widgets/unified_item/unified_item_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/metronome_test_runtime.dart';
 import '../../helpers/routed_test_harness.dart';
@@ -75,6 +79,8 @@ void main() {
         overrides: overridesFor(songs: Stream<List<Song>>.value([])),
       );
 
+      // No top app bar; only the shell's Songs nav tab label names the
+      // screen (root screens show no title anywhere else).
       expect(find.text('Songs'), findsOneWidget);
       expect(find.text('Search songs...'), findsOneWidget);
       expect(find.text('Filters:'), findsOneWidget);
@@ -122,13 +128,27 @@ void main() {
 
       expect(find.text('Song One'), findsOneWidget);
       expect(find.text('Artist One'), findsOneWidget);
-      expect(find.text('120 BPM'), findsOneWidget);
+      // #86 rail: BPM renders as a bare number beside the speed icon.
+      expect(find.text('120'), findsOneWidget);
       expect(find.text('C'), findsOneWidget);
       expect(find.text('Song Two'), findsOneWidget);
-      expect(find.text('130 BPM'), findsOneWidget);
+      expect(find.text('130'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
-      expect(find.byIcon(Icons.music_note), findsWidgets);
-      expect(find.byTooltip('Open in Tuner'), findsNWidgets(2));
+      expect(
+        tester
+            .widgetList<UnifiedItemBadge>(find.byType(UnifiedItemBadge))
+            .map((badge) => badge.color),
+        everyElement(MonoPulseColors.textTertiary),
+      );
+      // Song cards deliberately have no leading icon — text gets the room.
+      // (The single match is the shell's selected Songs nav tab icon.)
+      expect(find.byIcon(Icons.music_note), findsOneWidget);
+      expect(find.byTooltip('More'), findsNWidgets(2));
+      expect(find.byTooltip('Metronome'), findsNWidgets(2));
+
+      await tester.tap(find.byTooltip('More').first);
+      await tester.pumpAndSettle();
+      expect(find.text('Open in Tuner'), findsOneWidget);
     });
 
     testWidgets('shows metronome action for songs with tempo data', (
@@ -149,11 +169,9 @@ void main() {
         overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
       );
 
-      expect(find.byTooltip('Open in Metronome'), findsOneWidget);
-      expect(
-        find.byKey(const ValueKey('open-in-metronome-action')),
-        findsOneWidget,
-      );
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      expect(find.text('Metronome'), findsOneWidget);
     });
 
     testWidgets('shows metronome action for saved beat pattern settings', (
@@ -173,7 +191,9 @@ void main() {
         overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
       );
 
-      expect(find.byTooltip('Open in Metronome'), findsOneWidget);
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      expect(find.text('Metronome'), findsOneWidget);
     });
 
     testWidgets('opens song settings in metronome without starting playback', (
@@ -231,11 +251,14 @@ void main() {
       );
       await tester.pump();
 
-      await tester.tap(find.byTooltip('Open in Metronome'));
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Metronome'));
       await tester.pumpAndSettle();
 
       final metronomeState = container.read(metronomeProvider);
-      expect(currentRouterUri(router).path, '/main/metronome');
+      // metronome is a pushed route: the router's reported URI goes stale,
+      // so the rendered marker is the navigation signal.
       expect(find.text('route:metronome'), findsOneWidget);
       expect(metronomeState.loadedSong?.id, 'metronome-song');
       expect(metronomeState.bpm, 142);
@@ -243,6 +266,75 @@ void main() {
       expect(metronomeState.regularBeats, 2);
       expect(metronomeState.beatModes, song.beatModes);
       expect(metronomeState.isPlaying, isFalse);
+    });
+
+    testWidgets('user can pick which quick action is pinned', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(
+          songs: Stream<List<Song>>.value([createTestSong()]),
+        ),
+      );
+
+      expect(find.byTooltip('Metronome'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Quick action…'));
+      await tester.pumpAndSettle();
+      expect(find.text('Quick action'), findsOneWidget);
+      expect(
+        find.text('Sets what the pinned button on song cards does'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Open in Tuner'));
+      await tester.pumpAndSettle();
+
+      expect(find.byTooltip('Open in Tuner'), findsOneWidget);
+      expect(find.byTooltip('Metronome'), findsNothing);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString(SongQuickActionNotifier.prefsKey), 'tuner');
+    });
+
+    testWidgets('"Add to band…" opens a picker listing all bands', (
+      tester,
+    ) async {
+      final bands = [
+        Band(
+          id: 'band-1',
+          name: 'First Band',
+          createdBy: 'test-user-id',
+          createdAt: DateTime(2024),
+        ),
+        Band(
+          id: 'band-2',
+          name: 'Second Band',
+          createdBy: 'test-user-id',
+          createdAt: DateTime(2024),
+        ),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(
+          songs: Stream<List<Song>>.value([createTestSong()]),
+          bands: Stream<List<Band>>.value(bands),
+        ),
+      );
+
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      // One menu entry, not one per band.
+      expect(find.text('Add to band…'), findsOneWidget);
+      expect(find.text('First Band'), findsNothing);
+
+      await tester.tap(find.text('Add to band…'));
+      await tester.pumpAndSettle();
+      expect(find.text('First Band'), findsOneWidget);
+      expect(find.text('Second Band'), findsOneWidget);
     });
 
     testWidgets('filters songs by title', (tester) async {
@@ -279,6 +371,34 @@ void main() {
       expect(find.text('No results found'), findsOneWidget);
       expect(find.text('Try searching for "missing"'), findsOneWidget);
     });
+
+    testWidgets(
+      'root menu survives the branch first mounting under a child route',
+      (tester) async {
+        // Regression (device 2026-07-16): entering the songs branch for the
+        // first time BELOW its root (e.g. Practice → a song's Lab) made the
+        // songs root register its menu under the child's uri — the Songs
+        // tab's ⋮ then showed only the global Profile/Settings rows.
+        await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/main/songs/add', // deep entry, root never visited
+          overrides: overridesFor(
+            songs: Stream<List<Song>>.value([createTestSong()]),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('route:add-song'), findsOneWidget);
+
+        // Back to the songs root, open the bottom-bar menu.
+        await tester.tap(find.byIcon(Icons.arrow_back));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.more_horiz));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Find duplicates'), findsOneWidget);
+        expect(find.text('Browse catalog'), findsOneWidget);
+      },
+    );
 
     testWidgets('navigates to add song from FAB', (tester) async {
       final router = await pumpRoutedTestApp(
@@ -321,9 +441,9 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Import Songs from CSV'), findsOneWidget);
-      expect(find.text('Select CSV File'), findsOneWidget);
-      expect(find.text('Paste from Clipboard'), findsOneWidget);
+      expect(find.text('Import songs (CSV or JSON)'), findsOneWidget);
+      expect(find.text('Select CSV file'), findsOneWidget);
+      expect(find.text('Paste from clipboard'), findsOneWidget);
     });
 
     testWidgets('opens CSV export dialog from app bar menu', (tester) async {
@@ -343,7 +463,7 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      expect(find.text('Export Songs to CSV'), findsOneWidget);
+      expect(find.text('Export Songs'), findsOneWidget);
       expect(find.text('Export 1 song(s) to CSV file:'), findsOneWidget);
       expect(find.text('Save to Device'), findsOneWidget);
       expect(find.text('Share'), findsOneWidget);
@@ -359,6 +479,79 @@ void main() {
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets(
+      'key filter matches a flat-stored key against its sharp chip (Ab == G#)',
+      (tester) async {
+        final songs = [
+          createTestSong(
+            id: '1',
+            title: 'Flat Song',
+            artist: 'A',
+            ourKey: 'Ab',
+          ),
+          createTestSong(id: '2', title: 'C Song', artist: 'B', ourKey: 'C'),
+          createTestSong(id: '3', title: 'No Key Song', artist: 'D'),
+        ];
+
+        await pumpRoutedTestApp(
+          tester,
+          initialLocation: '/main/songs',
+          overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+        );
+
+        // Open the Key / BPM filter sheet and select the G# chip (major,
+        // the default toggle state).
+        await tester.tap(find.text('Key / BPM'));
+        await tester.pumpAndSettle();
+        // The BPM semantics subtitle renders in the sheet; the 'Exact N BPM'
+        // dropdown ITEMS only exist while the dropdown is open, so they are
+        // not asserted here.
+        expect(
+          find.text('Exact Our BPM; songs without one stay visible'),
+          findsOneWidget,
+        );
+        await tester.tap(find.text('G#'));
+        await tester.pumpAndSettle();
+
+        // Dismiss the bottom sheet via the barrier.
+        await tester.tapAt(const Offset(10, 10));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Flat Song'), findsOneWidget);
+        expect(find.text('C Song'), findsNothing);
+        // A song with no key must never match a specific key filter.
+        expect(find.text('No Key Song'), findsNothing);
+      },
+    );
+
+    testWidgets('Major/Minor toggle produces a minor-suffixed key filter', (
+      tester,
+    ) async {
+      final songs = [
+        createTestSong(id: '1', title: 'Minor Song', artist: 'A', ourKey: 'cm'),
+        createTestSong(id: '2', title: 'Major Song', artist: 'B', ourKey: 'C'),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+      );
+
+      await tester.tap(find.text('Key / BPM'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Minor'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cm'));
+      await tester.pumpAndSettle();
+
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Minor Song'), findsOneWidget);
+      expect(find.text('Major Song'), findsNothing);
     });
   });
 }

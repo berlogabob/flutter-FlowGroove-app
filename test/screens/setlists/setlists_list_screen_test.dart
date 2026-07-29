@@ -37,6 +37,8 @@ void main() {
         overrides: overridesFor(setlists: Stream<List<Setlist>>.value([])),
       );
 
+      // No top app bar; only the shell's Setlists nav tab label names the
+      // screen (root screens show no title anywhere else).
       expect(find.text('Setlists'), findsOneWidget);
       expect(find.text('Search setlists...'), findsOneWidget);
       expect(find.byIcon(Icons.sort), findsOneWidget);
@@ -71,19 +73,28 @@ void main() {
         ),
       ];
 
+      // Card count is the RAW entry count, not filtered against the song
+      // library: an entry whose songId doesn't resolve is still an entry
+      // (setlist.effectiveItems), so only s1 needs to actually exist here
+      // and "Gig Setlist" (3 songIds, only s1 resolves) still shows '3
+      // songs' instead of undercounting to '1 song'.
+      final songs = [MockDataHelper.createMockSong(id: 's1', title: 'Song 1')];
+
       await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/setlists',
         overrides: overridesFor(
           setlists: Stream<List<Setlist>>.value(setlists),
+          songs: Stream<List<Song>>.value(songs),
         ),
       );
 
       expect(find.text('Gig Setlist'), findsOneWidget);
       expect(find.text('Practice Setlist'), findsOneWidget);
-      expect(find.text('3 songs'), findsOneWidget);
-      expect(find.text('1 song'), findsOneWidget);
-      expect(find.text('10.05.2026'), findsOneWidget);
+      // #86 rail: counts and event date share one line, dot-separated.
+      expect(find.textContaining('3 songs'), findsOneWidget);
+      expect(find.textContaining('1 song'), findsOneWidget);
+      expect(find.textContaining('10.05.2026'), findsOneWidget);
       expect(find.byIcon(Icons.playlist_play), findsWidgets);
     });
 
@@ -130,6 +141,33 @@ void main() {
       expect(find.text('Try searching for "missing"'), findsOneWidget);
     });
 
+    testWidgets('tapping a setlist card opens the read-only view screen', (
+      tester,
+    ) async {
+      final setlists = [
+        MockDataHelper.createMockSetlist(id: '1', name: 'Gig Setlist'),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/setlists',
+        overrides: overridesFor(
+          setlists: Stream<List<Setlist>>.value(setlists),
+        ),
+      );
+
+      await tester.tap(find.text('Gig Setlist'));
+      await tester.pumpAndSettle();
+
+      // Note: pushNamed() from inside a StatefulShellBranch pushes onto the
+      // branch's own nested Navigator and doesn't update
+      // router.routeInformationProvider — the marker screen is the reliable
+      // signal that the right route rendered (same pattern used for the
+      // metronome push in songs_list_screen_test.dart).
+      expect(find.text('route:setlist-view'), findsOneWidget);
+      expect(find.text('route:edit-setlist'), findsNothing);
+    });
+
     testWidgets('navigates to create setlist from FAB', (tester) async {
       final router = await pumpRoutedTestApp(
         tester,
@@ -171,6 +209,5 @@ void main() {
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
-
   });
 }

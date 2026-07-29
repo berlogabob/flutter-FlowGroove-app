@@ -47,7 +47,12 @@ class SetlistItemAdapter extends UnifiedItemModel {
   };
 
   // Type-specific properties
-  int get songIdsLength => setlist.songIds.length;
+  //
+  // Raw entry count — NOT filtered against any consumer's song corpus. An
+  // entry whose songId doesn't resolve is still an entry (see setlist.dart's
+  // effectiveItems); undercounting here is what made a 6-entry setlist show
+  // "5 songs" on the card while the editor then deleted the 6th on save.
+  int get songIdsLength => setlist.effectiveItems.length;
   String? get bandName => setlist.bandId;
   String? get eventDate => setlist.formattedEventDate;
   String? get eventLocation => setlist.eventLocation;

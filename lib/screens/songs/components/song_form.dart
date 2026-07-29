@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../../models/beat_mode.dart';
 import '../../../models/link.dart';
+import '../../../models/section.dart';
+import '../../../models/song_suggestion.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/song_tags.dart';
+import '../../../widgets/autocomplete_type_ahead.dart';
 import '../../../widgets/tag_input_dialog.dart';
 import 'bpm_selector.dart';
+import 'collapsible_section.dart';
 import 'links_editor.dart';
+import 'metronome_pattern_editor.dart';
+import 'song_constructor/song_constructor.dart';
+import 'song_constructor/widgets/pill_view.dart';
 
 /// A comprehensive form widget for adding or editing songs.
 ///
@@ -15,7 +23,6 @@ import 'links_editor.dart';
 /// - Notes field
 /// - Tags selection
 class SongForm extends StatelessWidget {
-
   const SongForm({
     required this.formKey,
     required this.titleController,
@@ -35,10 +42,20 @@ class SongForm extends StatelessWidget {
     required this.onAddLink,
     required this.onRemoveLink,
     required this.onTagChanged,
-    required this.isEditing,
-    this.onCopyFromOriginal,
+    required this.sections,
+    required this.onSectionsChanged,
+    required this.accentBeats,
+    required this.regularBeats,
+    required this.beatModes,
+    required this.onBeatModeChanged,
+    required this.onAccentBeatsChanged,
+    required this.onRegularBeatsChanged,
+    required this.onSearchWeb,
+    this.onSuggestionSelected,
+    this.bandId,
     super.key,
   });
+
   /// Form key for validation.
   final GlobalKey<FormState> formKey;
 
@@ -79,25 +96,54 @@ class SongForm extends StatelessWidget {
   final String ourKeyModifier;
 
   /// Callback when original key changes.
-  final Function(String, String) onOriginalKeyChanged;
+  final void Function(String, String) onOriginalKeyChanged;
 
   /// Callback when "our" key changes.
-  final Function(String, String) onOurKeyChanged;
+  final void Function(String, String) onOurKeyChanged;
 
   /// Callback when a link is added.
-  final Function(Link) onAddLink;
+  final void Function(Link) onAddLink;
 
   /// Callback when a link is removed.
-  final Function(int) onRemoveLink;
+  final void Function(int) onRemoveLink;
 
   /// Callback when a tag selection changes.
-  final Function(String tag, bool selected) onTagChanged;
+  final void Function(String tag, bool selected) onTagChanged;
 
-  /// Callback when copy from original is triggered.
-  final VoidCallback? onCopyFromOriginal;
+  /// Current song structure sections (the "song scheme").
+  final List<Section> sections;
 
-  /// Whether we are in edit mode (vs. add mode).
-  final bool isEditing;
+  /// Callback when the song structure changes.
+  final void Function(List<Section>) onSectionsChanged;
+
+  /// Beats per measure (metronome grid rows).
+  final int accentBeats;
+
+  /// Subdivisions per beat (metronome grid columns).
+  final int regularBeats;
+
+  /// 2D beat-mode grid (beats × subdivisions).
+  final List<List<BeatMode>> beatModes;
+
+  /// Callback when a single cell in the beat grid changes.
+  final void Function(int beatIndex, int subdivisionIndex, BeatMode mode)
+  onBeatModeChanged;
+
+  /// Callback when the beats-per-measure count changes.
+  final ValueChanged<int> onAccentBeatsChanged;
+
+  /// Callback when the subdivisions-per-beat count changes.
+  final ValueChanged<int> onRegularBeatsChanged;
+
+  /// Opens a web search for the current title and artist.
+  final VoidCallback onSearchWeb;
+
+  /// Callback when a song suggestion is picked from the title autocomplete.
+  /// When null, the autocomplete search box is hidden.
+  final ValueChanged<SongSuggestion>? onSuggestionSelected;
+
+  /// Band context for scoping song suggestions.
+  final String? bandId;
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +151,17 @@ class SongForm extends StatelessWidget {
       key: formKey,
       child: Column(
         children: [
+          // Song search autocomplete: type to find an existing song and
+          // autofill the form. Only shown when a handler is wired.
+          if (onSuggestionSelected != null) ...[
+            AutocompleteTypeAhead(
+              onSuggestionSelected: onSuggestionSelected!,
+              onSearchWeb: onSearchWeb,
+              bandId: bandId,
+              hint: 'Search a song to autofill…',
+            ),
+            const SizedBox(height: MonoPulseSpacing.lg),
+          ],
           // Title field
           TextFormField(
             controller: titleController,
@@ -113,101 +170,144 @@ class SongForm extends StatelessWidget {
             validator: (v) =>
                 (v == null || v.trim().isEmpty) ? 'Title required' : null,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MonoPulseSpacing.lg),
           // Artist field
           TextFormField(
             controller: artistController,
             decoration: const InputDecoration(labelText: 'Artist'),
             textInputAction: TextInputAction.done,
           ),
-          const SizedBox(height: 24),
-          // Original key and BPM
-          KeyBpmSelector(
-            base: originalKeyBase,
-            modifier: originalKeyModifier,
-            bpmController: originalBpmController,
-            label: 'Original',
-            onKeyChanged: onOriginalKeyChanged,
-          ),
-          const SizedBox(height: 24),
-          // Our key and BPM section header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Our Key & BPM',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              TextButton.icon(
-                onPressed: onCopyFromOriginal,
-                icon: const Icon(Icons.copy, size: 16),
-                label: const Text('Copy'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Our key and BPM
-          KeyBpmSelector(
-            base: ourKeyBase,
-            modifier: ourKeyModifier,
-            bpmController: ourBpmController,
-            label: 'Our',
-            onKeyChanged: onOurKeyChanged,
-          ),
-          const SizedBox(height: 24),
-          // Links editor
-          LinksEditor(
-            links: links,
-            onAddLink: onAddLink,
-            onRemoveLink: onRemoveLink,
-          ),
-          const SizedBox(height: 24),
-          // Notes field
-          const Text('Notes', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: notesController,
-            decoration: const InputDecoration(hintText: 'Notes...'),
-            maxLines: 3,
-          ),
-          const SizedBox(height: MonoPulseSpacing.xxxl),
-          // Tags selection
-          const Text(
-            'Tags',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: MonoPulseColors.textPrimary,
+          const SizedBox(height: MonoPulseSpacing.xxl),
+          // Key & BPM — one collapsible bubble. Collapsed shows Our (or Original
+          // when Our isn't set); expanded shows an aligned Original/Our grid.
+          CollapsibleSection(
+            title: 'Key & BPM',
+            icon: Icons.music_note,
+            initiallyExpanded: false,
+            preview: _keyBpmPreview(
+              originalBase: originalKeyBase,
+              originalModifier: originalKeyModifier,
+              originalBpm: originalBpmController.text,
+              ourBase: ourKeyBase,
+              ourModifier: ourKeyModifier,
+              ourBpm: ourBpmController.text,
+            ),
+            child: KeyBpmGrid(
+              originalBase: originalKeyBase,
+              originalModifier: originalKeyModifier,
+              originalBpmController: originalBpmController,
+              onOriginalKeyChanged: onOriginalKeyChanged,
+              ourBase: ourKeyBase,
+              ourModifier: ourKeyModifier,
+              ourBpmController: ourBpmController,
+              onOurKeyChanged: onOurKeyChanged,
             ),
           ),
-          const SizedBox(height: MonoPulseSpacing.md),
-          Wrap(
-            spacing: MonoPulseSpacing.md,
-            runSpacing: MonoPulseSpacing.sm,
-            children: [
-              // Predefined suggestions plus any custom tags already selected.
-              for (final tag in {...availableTags, ...selectedTags})
-                FilterChip(
-                  label: Text(
-                    tag,
-                    style: const TextStyle(
-                      color: MonoPulseColors.textPrimary,
-                    ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          // Links — collapsible bubble.
+          CollapsibleSection(
+            title: 'Links',
+            icon: Icons.link,
+            initiallyExpanded: false,
+            preview: links.isEmpty
+                ? _previewMuted(context, 'No links')
+                : _previewMuted(
+                    context,
+                    links.map((l) => l.type.replaceAll('_', ' ')).join('  ·  '),
                   ),
-                  selected: selectedTags.contains(tag),
-                  onSelected: (selected) => onTagChanged(tag, selected),
-                  selectedColor: MonoPulseColors.accentOrangeSubtle,
-                  checkmarkColor: MonoPulseColors.accentOrange,
+            child: LinksEditor(
+              embedded: true,
+              links: links,
+              onAddLink: onAddLink,
+              onRemoveLink: onRemoveLink,
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          // Song structure ("scheme") — collapsible with a song-map preview.
+          CollapsibleSection(
+            title: 'Song Structure',
+            icon: Icons.queue_music,
+            initiallyExpanded: false,
+            preview: sections.isEmpty
+                ? _previewMuted(context, 'No structure yet')
+                : SizedBox(height: 28, child: PillView(sections: sections)),
+            // The song map is full-width, so it stays under the header;
+            // the empty-state text fits inline like the other sections.
+            inlinePreview: sections.isEmpty,
+            child: SongConstructor(
+              embedded: true,
+              initialSections: sections,
+              onChange: onSectionsChanged,
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          // Notes — collapsible with a snippet preview.
+          CollapsibleSection(
+            title: 'Notes',
+            icon: Icons.notes,
+            initiallyExpanded: false,
+            preview: notesController.text.trim().isEmpty
+                ? _previewMuted(context, 'No notes')
+                : _previewMuted(context, notesController.text.trim()),
+            child: TextFormField(
+              controller: notesController,
+              decoration: const InputDecoration(hintText: 'Notes...'),
+              maxLines: 3,
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          // Tags — collapsible with the selected tags as preview.
+          CollapsibleSection(
+            title: 'Tags',
+            icon: Icons.label_outline,
+            initiallyExpanded: false,
+            preview: selectedTags.isEmpty
+                ? _previewMuted(context, 'No tags')
+                : _previewAccent(selectedTags.join('  ·  ')),
+            child: Wrap(
+              spacing: MonoPulseSpacing.md,
+              runSpacing: MonoPulseSpacing.sm,
+              children: [
+                // Predefined suggestions plus any custom tags already selected.
+                for (final tag in {...availableTags, ...selectedTags})
+                  FilterChip(
+                    label: Text(
+                      tag,
+                      style: MonoPulseTypography.labelLarge.copyWith(
+                        color: context.mp.textPrimary,
+                      ),
+                    ),
+                    selected: selectedTags.contains(tag),
+                    onSelected: (selected) => onTagChanged(tag, selected),
+                    selectedColor: MonoPulseColors.accentOrange10,
+                    checkmarkColor: MonoPulseColors.accentOrange,
+                  ),
+                ActionChip(
+                  avatar: const Icon(
+                    Icons.add,
+                    size: 18,
+                    color: MonoPulseColors.accentOrange,
+                  ),
+                  label: const Text('Add tag'),
+                  onPressed: () => _editTags(context),
                 ),
-              ActionChip(
-                avatar: const Icon(
-                  Icons.add,
-                  size: 18,
-                  color: MonoPulseColors.accentOrange,
-                ),
-                label: const Text('Add tag'),
-                onPressed: () => _editTags(context),
-              ),
-            ],
+              ],
+            ),
+          ),
+          const SizedBox(height: MonoPulseSpacing.lg),
+          // Metronome beat-grid editor (collapsible)
+          CollapsibleSection(
+            title: 'Metronome Settings',
+            icon: Icons.music_note,
+            initiallyExpanded: false,
+            child: MetronomePatternEditor(
+              accentBeats: accentBeats,
+              regularBeats: regularBeats,
+              beatModes: beatModes,
+              onBeatModeChanged: onBeatModeChanged,
+              onAccentBeatsChanged: onAccentBeatsChanged,
+              onRegularBeatsChanged: onRegularBeatsChanged,
+            ),
           ),
         ],
       ),
@@ -237,3 +337,47 @@ class SongForm extends StatelessWidget {
     }
   }
 }
+
+/// Collapsed preview for the Key & BPM bubble: just the effective scale + BPM
+/// (Our when set, otherwise Original), with no "Our"/"Original" label since
+/// which one it is doesn't matter at a glance.
+Widget _keyBpmPreview({
+  required String originalBase,
+  required String originalModifier,
+  required String originalBpm,
+  required String ourBase,
+  required String ourModifier,
+  required String ourBpm,
+}) {
+  final origKey = '$originalBase$originalModifier';
+  final ourKey = '$ourBase$ourModifier';
+  final oBpm = originalBpm.trim();
+  final uBpm = ourBpm.trim();
+  final key = ourKey.isNotEmpty ? ourKey : origKey;
+  final bpm = uBpm.isNotEmpty ? uBpm : oBpm;
+  final parts = <String>[
+    key.isEmpty ? '—' : key,
+    if (bpm.isNotEmpty) '$bpm BPM',
+  ];
+  return _previewAccent(parts.join('  ·  '));
+}
+
+/// A muted collapsed-preview line (secondary colour, design-system body scale).
+Widget _previewMuted(BuildContext context, String text) => Text(
+  text,
+  maxLines: 1,
+  overflow: TextOverflow.ellipsis,
+  style: MonoPulseTypography.bodySmall.copyWith(
+    color: context.mp.textSecondary,
+  ),
+);
+
+/// A highlighted collapsed-preview line (accent colour) for the "live" value.
+Widget _previewAccent(String text) => Text(
+  text,
+  maxLines: 1,
+  overflow: TextOverflow.ellipsis,
+  style: MonoPulseTypography.bodySmall.copyWith(
+    color: MonoPulseColors.accentOrange,
+  ),
+);

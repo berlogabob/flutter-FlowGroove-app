@@ -19,12 +19,15 @@ MetronomeState _$MetronomeStateFromJson(Map<String, dynamic> json) =>
       accentEnabled: json['accentEnabled'] as bool? ?? true,
       accentFrequency: (json['accentFrequency'] as num?)?.toDouble() ?? 1600,
       beatFrequency: (json['beatFrequency'] as num?)?.toDouble() ?? 800,
-      hapticsEnabled: json['hapticsEnabled'] as bool? ?? true,
       accentPattern:
           (json['accentPattern'] as List<dynamic>?)
               ?.map((e) => e as bool)
               .toList() ??
           [],
+      accentBeatFrequency:
+          (json['accentBeatFrequency'] as num?)?.toDouble() ?? 2000,
+      subdivisionGain: (json['subdivisionGain'] as num?)?.toDouble() ?? 1.4,
+      hapticsEnabled: json['hapticsEnabled'] as bool? ?? true,
       accentBeats: (json['accentBeats'] as num?)?.toInt() ?? 4,
       regularBeats: (json['regularBeats'] as num?)?.toInt() ?? 1,
       beatModes:
@@ -79,6 +82,8 @@ Map<String, dynamic> _$MetronomeStateToJson(MetronomeState instance) =>
       'accentEnabled': instance.accentEnabled,
       'accentFrequency': instance.accentFrequency,
       'beatFrequency': instance.beatFrequency,
+      'accentBeatFrequency': instance.accentBeatFrequency,
+      'subdivisionGain': instance.subdivisionGain,
       'hapticsEnabled': instance.hapticsEnabled,
       'accentPattern': instance.accentPattern,
       'accentBeats': instance.accentBeats,

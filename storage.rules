@@ -1,11 +1,46 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /profile_pictures/{userId=**} {
+    // Personal avatars live at profile_pictures/{uid}.jpg (flat, single
+    // segment). Match the filename and compare it to the owner's uid so the
+    // flat .jpg object is authorized correctly.
+    match /profile_pictures/{fileName} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
-      allow delete: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null &&
+        fileName == request.auth.uid + '.jpg';
+      allow delete: if request.auth != null &&
+        fileName == request.auth.uid + '.jpg';
     }
+
+    // Band avatars live at band_avatars/{bandId} (no extension). Writes are
+    // server-only: the setBandAvatar / removeBandAvatar callables verify band
+    // admin status with the Admin SDK and write via it (bypassing rules).
+    // Cross-service firestore.get() in Storage rules proved unreliable, so we
+    // do not authorize client writes here.
+    match /band_avatars/{bandId} {
+      allow read: if request.auth != null;
+      allow write, delete: if false;
+    }
+
+    // Song Lab audio ideas (#69): lab_audio/{ownerType}/{ownerId}/{songId}/{file}.
+    // Personal path is owner-locked. Band path mirrors band_avatars: reads for
+    // any signed-in user (URLs carry unguessable ids); writes are size-capped
+    // and authenticated — cross-service firestore.get() membership checks
+    // proved unreliable here (see band_avatars note above).
+    // ponytail: app-level gating for band writes; move to a callable if abused.
+    match /lab_audio/user/{uid}/{songId}/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid &&
+        request.resource.size < 25 * 1024 * 1024;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+    match /lab_audio/band/{bandId}/{songId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        request.resource.size < 25 * 1024 * 1024;
+      allow delete: if request.auth != null;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

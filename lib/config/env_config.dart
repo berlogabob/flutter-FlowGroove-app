@@ -71,6 +71,16 @@ class EnvConfig {
   /// Get Spotify Proxy URL
   String get spotifyProxyUrlConfig => get('SPOTIFY_PROXY_URL');
 
+  /// CORS-shim proxy fronting public no-auth APIs (Deezer, lyrics.ovh) so web
+  /// can reach them. Null on mobile (direct calls work there).
+  String? get apiProxyUrl {
+    final url = get('API_PROXY_URL');
+    if (url.isNotEmpty && !_isPlaceholder(url)) {
+      return url;
+    }
+    return null;
+  }
+
   /// Check if Spotify credentials are configured
   bool get isSpotifyConfigured {
     if (kIsWeb) {
@@ -136,6 +146,8 @@ class EnvConfig {
         return const String.fromEnvironment('TELEGRAM_BOT_TOKEN');
       case 'SPOTIFY_PROXY_URL':
         return const String.fromEnvironment('SPOTIFY_PROXY_URL');
+      case 'API_PROXY_URL':
+        return const String.fromEnvironment('API_PROXY_URL');
       default:
         return '';
     }

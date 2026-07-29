@@ -83,7 +83,10 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
           decoration: BoxDecoration(
             color: _selectedColor,
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.black26, width: 2),
+            border: Border.all(
+              color: MonoPulseColors.black.withValues(alpha: 0.26),
+              width: 2,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -196,12 +199,12 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
           border: Border.all(
             color: _selectedColor == color
                 ? Theme.of(context).colorScheme.primary
-                : Colors.transparent,
+                : MonoPulseColors.transparent,
             width: 3,
           ),
         ),
         child: _selectedColor == color
-            ? const Icon(Icons.check, color: Colors.white, size: 20)
+            ? const Icon(Icons.check, color: MonoPulseColors.white, size: 20)
             : null,
       ),
     );
@@ -326,7 +329,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog>
                   border: Border.all(
                     color: _selectedColor == SectionColorPalette.sectionColors[i]
                         ? Theme.of(context).colorScheme.primary
-                        : Colors.transparent,
+                        : MonoPulseColors.transparent,
                     width: 2,
                   ),
                 ),
@@ -401,25 +404,27 @@ class _HexPresetChip extends StatelessWidget {
 
   final Color color;
   final String hex;
-  final Function(String, Color) onTap;
+  final void Function(String, Color) onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => onTap(hex, color),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm, vertical: MonoPulseSpacing.xs),
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-          border: Border.all(color: Colors.black26),
+          border: Border.all(color: MonoPulseColors.black.withValues(alpha: 0.26)),
         ),
         child: Text(
           hex,
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w700,
-            color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+            color: color.computeLuminance() > 0.5
+                ? MonoPulseColors.black
+                : MonoPulseColors.white,
           ),
         ),
       ),

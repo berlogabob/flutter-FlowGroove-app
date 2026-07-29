@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../theme/mono_pulse_theme.dart';
-import 'adapters/song_item_adapter.dart';
 import 'unified_item_model.dart';
 
 /// Trailing actions widget for unified items
@@ -28,29 +25,6 @@ class UnifiedItemTrailingActions<T extends UnifiedItemModel>
   @override
   Widget build(BuildContext context) {
     final List<Widget> actions = [];
-
-    // Add Spotify play button for songs
-    if (item is SongItemAdapter) {
-      final song = item as SongItemAdapter;
-      if (song.spotifyUrl != null) {
-        actions.add(
-          IconButton(
-            icon: const Icon(
-              Icons.play_circle_fill,
-              color: MonoPulseColors.beatModeAccent,
-              size: 28,
-            ),
-            onPressed: () async {
-              final uri = Uri.parse(song.spotifyUrl!);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              }
-            },
-            tooltip: 'Play on Spotify',
-          ),
-        );
-      }
-    }
 
     // Add custom actions
     actions.addAll(customActions.map((action) => action.build(context)));

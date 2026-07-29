@@ -12,6 +12,7 @@ import '../repositories/song_repository.dart';
 import '../screens/songs/models/song_form_data.dart';
 import '../services/analytics_service.dart';
 import '../services/matching/fuzzy_matcher.dart';
+import '../theme/mono_pulse_theme.dart';
 import '../utils/song_tags.dart';
 import 'data/data_providers.dart';
 
@@ -79,6 +80,16 @@ class SongFormState {
 
 /// Notifier for managing song form state.
 class SongFormStateNotifier extends Notifier<SongFormState> {
+  /// Stable id for the new song being drafted. Reused by every autosave and
+  /// the manual save so repeated saves overwrite one Firestore doc instead of
+  /// minting a new copy each time (#78).
+  String? _draftId;
+
+  String _newSongId(bool isEditing, Song? existingSong) {
+    if (isEditing && existingSong != null) return existingSong.id;
+    return _draftId ??= const Uuid().v4();
+  }
+
   @override
   SongFormState build() {
     return SongFormState.initial();
@@ -86,10 +97,12 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
   /// Initialize form with existing song data.
   void initFromSong(Song song) {
+    _draftId = null;
     state = SongFormState.fromSong(song);
   }
 
   void initFromFormData(SongFormData formData) {
+    _draftId = null;
     state = SongFormState(formData: formData);
   }
 
@@ -249,17 +262,6 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     markAsChanged();
   }
 
-  /// Copy from original.
-  void copyFromOriginal() {
-    state = state.copyWith(
-      formData: state.formData.copyWith(
-        ourKeyBase: state.formData.originalKeyBase,
-        ourKeyModifier: state.formData.originalKeyModifier,
-        ourBpm: state.formData.originalBpm,
-      ),
-    );
-    markAsChanged();
-  }
 
   /// Initialize beat modes.
   void initializeBeatModes() {
@@ -283,9 +285,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
     try {
       final song = state.formData.toSong(
-        id: isEditing && existingSong != null
-            ? existingSong.id
-            : const Uuid().v4(),
+        id: _newSongId(isEditing, existingSong),
         createdAt: isEditing && existingSong != null
             ? existingSong.createdAt
             : DateTime.now(),
@@ -367,9 +367,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
     try {
       final song = state.formData.toSong(
-        id: isEditing && existingSong != null
-            ? existingSong.id
-            : const Uuid().v4(),
+        id: _newSongId(isEditing, existingSong),
         createdAt: isEditing && existingSong != null
             ? existingSong.createdAt
             : DateTime.now(),
@@ -402,11 +400,13 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
   /// Reset form to initial state.
   void reset() {
+    _draftId = null;
     state = SongFormState.initial();
   }
 
   /// Reset form from song.
   void resetFromSong(Song song) {
+    _draftId = null;
     state = SongFormState.fromSong(song);
   }
 
@@ -438,6 +438,20 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
       formData: state.formData.copyWith(
         title: suggestion.title,
         artist: suggestion.artist,
+      ),
+    );
+    markAsChanged();
+  }
+
+  /// Merge provenance links into the form, skipping any URL already present so
+  /// re-accepting a suggestion (or existing links) never duplicates.
+  void addLinks(List<Link> links) {
+    final existing = state.formData.links.map((l) => l.url).toSet();
+    final toAdd = links.where((l) => existing.add(l.url)).toList();
+    if (toAdd.isEmpty) return;
+    state = state.copyWith(
+      formData: state.formData.copyWith(
+        links: [...state.formData.links, ...toAdd],
       ),
     );
     markAsChanged();
@@ -566,12 +580,16 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     bool isEditing = false,
     Song? existingSong,
   }) async {
-    // Check for duplicates
-    final duplicate = await checkForDuplicates(
-      songRepo: songRepo,
-      uid: uid,
-      bandId: bandId,
-    );
+    // Duplicate detection only applies when adding a new song. When editing an
+    // existing song it would match the song against itself and falsely block
+    // the save with a "Similar Song Exists" warning.
+    final duplicate = isEditing
+        ? null
+        : await checkForDuplicates(
+            songRepo: songRepo,
+            uid: uid,
+            bandId: bandId,
+          );
 
     // If duplicate found and not already using suggestion, show warning
     if (duplicate != null && !state.isUsingSuggestion) {
@@ -599,7 +617,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+        icon: const Icon(Icons.warning_amber_rounded, color: MonoPulseColors.warning),
         title: const Text('Similar Song Exists'),
         content: Column(
           mainAxisSize: MainAxisSize.min,

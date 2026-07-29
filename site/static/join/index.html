@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Join a band on FlowGroove</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      // Web fallback for the join deep link. On Android with the app installed,
+      // the OS opens the app directly (App Links) and never loads this page.
+      // In a browser, forward into the Flutter web app (served at https://app.flowgroove.app/ with
+      // hash routing), preserving the invite code.
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var code = params.get('code') || '';
+        var target =
+          'https://app.flowgroove.app/#/main/join-band?code=' + encodeURIComponent(code);
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Redirecting you to FlowGroove…</p>
+    <p><a id="fallback" href="https://app.flowgroove.app/">Open FlowGroove</a></p>
+    <script>
+      // Keep the manual fallback link in sync with the code, just in case.
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var code = params.get('code') || '';
+        document.getElementById('fallback').href =
+          'https://app.flowgroove.app/#/main/join-band?code=' + encodeURIComponent(code);
+      })();
+    </script>
+  </body>
+</html>

@@ -6,6 +6,7 @@ import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/bands/band_setlists_screen.dart';
+import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,18 +54,29 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('Band 123 Setlists'), findsOneWidget);
+        // This route tree isn't wrapped in MainShell, so there's no bottom
+        // bar to render the title; the screen still publishes it locally.
+        final scope = tester.widget<MenuItemsScope>(
+          find.byType(MenuItemsScope),
+        );
+        expect(scope.title, 'Band 123 Setlists');
         expect(find.text('Friday Gig'), findsOneWidget);
         expect(find.text('2 songs'), findsOneWidget);
 
         await tester.tap(find.byType(FloatingActionButton));
         await tester.pumpAndSettle();
 
-        final uri = currentRouterUri(router);
-        expect(uri.path, '/main/setlists/create');
-        expect(uri.queryParameters['bandId'], 'band-123');
-        expect(uri.queryParameters['scope'], 'band');
+        // Pushed (not go'd) so saving returns to this band; a pushed route
+        // doesn't move currentRouterUri, so assert on the rendered marker.
         expect(find.text('route:create-setlist'), findsOneWidget);
+        expect(
+          find.text('uri:/main/setlists/create?bandId=band-123&scope=band'),
+          findsOneWidget,
+        );
+
+        router.pop();
+        await tester.pumpAndSettle();
+        expect(find.text('Friday Gig'), findsOneWidget);
       },
     );
 
@@ -101,7 +113,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(FloatingActionButton), findsOneWidget);
-      await tester.tap(find.byTooltip('Edit setlist'));
+      // Edit now lives in the card's overflow menu (the standalone pencil was
+      // replaced by a single configurable quick-action icon).
+      await tester.tap(find.byTooltip('More'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit setlist'));
       await tester.pumpAndSettle();
 
       expect(find.text('route:edit-setlist'), findsOneWidget);
@@ -162,7 +178,7 @@ void main() {
       final firebaseUser = MockUser();
       when(firebaseUser.uid).thenReturn('test-user-id');
 
-      final router = await pumpRoutedTestApp(
+      await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/bands/band-123/setlists',
         routes: _routesFor(band),
@@ -191,11 +207,15 @@ void main() {
 
       expect(find.text('Friday Gig'), findsOneWidget);
       expect(find.byType(FloatingActionButton), findsNothing);
+      // No edit pencil for viewers.
+      expect(find.byIcon(Icons.edit), findsNothing);
 
+      // Tap opens the read-only view for everyone (#128 parity with the
+      // personal list) — viewers get a read path instead of a dead tap.
       await tester.tap(find.text('Friday Gig'));
       await tester.pumpAndSettle();
 
-      expect(currentRouterUri(router).path, '/main/bands/band-123/setlists');
+      expect(find.text('route:band-setlist-view'), findsOneWidget);
     });
 
     testWidgets('demo admins can read setlists but cannot modify them', (
@@ -304,6 +324,16 @@ List<RouteBase> _routesFor(Band band) {
       path: '/main/setlists/:id/edit',
       name: 'edit-setlist',
       builder: (context, state) => const TestRouteMarker('edit-setlist'),
+    ),
+    GoRoute(
+      path: '/main/setlists/:id',
+      name: 'setlist-view',
+      builder: (context, state) => const TestRouteMarker('setlist-view'),
+    ),
+    GoRoute(
+      path: '/main/bands/:id/setlists/:setlistId',
+      name: 'band-setlist-view',
+      builder: (context, state) => const TestRouteMarker('band-setlist-view'),
     ),
   ];
 }

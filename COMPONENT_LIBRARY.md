@@ -442,3 +442,47 @@ When adding new components:
 5. ✅ Run `flutter analyze` to catch lint violations
 6. ✅ Update this file with the new component
 
+
+## AppBottomBar
+
+`lib/widgets/bottom_nav_or_action_bar.dart` — the app's single bottom bar (there is no top app bar).
+
+### Modes
+- `AppBottomBar.tabs(tabs:, selectedIndex:, onTabTap:, onMenuTap:, menuSelected:, menuHasBadge:)` — root mode: 4 nav tabs + the ⋮ Menu slot (dot badge when the screen published actions).
+- `AppBottomBar.actions({required onBack, title, primaryAction, onMenu})` — pushed mode: `[← Back][title|primaryAction][⋮]`. `primaryAction` wins the center slot; ⋮ renders only when `onMenu != null`.
+
+### Rules
+- One bar per screen. Root-pushed screens (tools, join-band) instantiate `.actions` themselves; shell branches get it from `MainShell`.
+- All items carry `Semantics(button:, label:)`.
+
+## AppMenuItem / showAppMenuSheet
+
+`lib/widgets/app_menu_sheet.dart` — the contextual menu bottom sheet (replaces PopupMenuButton app-wide).
+
+### Props
+- `AppMenuItem(icon, label, onTap, {destructive, trailing})` — `trailing` (e.g. a `Switch`) keeps the sheet OPEN and runs `onTap` in place; rows without it close the sheet, then run `onTap` post-frame.
+- `showAppMenuSheet(context, {required title, required items, showProfileRow, ref})` — the `title` header is mandatory (audit P1-2: sheets without context confused users). `showProfileRow` appends the avatar+name Profile row (root mode only).
+
+## MenuScopePublisher / MenuScopeRegistry
+
+`lib/widgets/menu_items_scope.dart` — how screens tell the shell what the bar/sheet should show.
+
+### Usage
+Wrap the screen (StandardScreenScaffold does it automatically): `MenuScopePublisher(data: MenuScopeData(title:, items:, primaryAction:), child: ...)`. Publications are post-frame only — never write during build (screen-blanking regression class). Location captured once on first didChangeDependencies.
+
+## SetlistSongRow
+
+`lib/widgets/setlist_song_row.dart` — shared setlist row used by both the read-only view and the editor. Pass `song: null` to render the "Unavailable song" placeholder for orphaned entries (never silently drop an entry — audit P0-4). The editor reorders by long-press (`ReorderableDelayedDragStartListener`, `buildDefaultDragHandles: false`) — no visible drag handle — matching `UnifiedItemList`; its trailing is just key/BPM so titles stay readable.
+
+## Card quick actions (song + setlist)
+
+Song and setlist cards each show **one configurable pinned action icon + a `⋮` overflow**, so the same card behaves identically in the personal and band libraries.
+
+- Songs: `lib/widgets/unified_item/song_card_actions.dart` — `songQuickActionProvider` (`NotifierProvider<_,String>`, prefs `songs.quick_action`), a `quickActions` catalog, `showQuickActionPicker`, and `buildSongActions`.
+- Setlists: `lib/widgets/unified_item/setlist_card_actions.dart` — `setlistQuickActionProvider` (prefs `setlists.quick_action`, default `metronome`), `setlistQuickActions` catalog, `showSetlistQuickActionPicker`, and `buildSetlistActions({quick, canEdit, on<Action>…, onPickQuickAction})`. Edit/Event-kit pins fall back to metronome when `!canEdit`; the overflow ends with a "Quick action…" picker entry.
+
+Both are configurable from Settings (`_section('Songs' | 'Setlists', …)` in `app_settings_screen.dart`). Trailing widgets come from `IconAction` / `OverflowMenuAction` (`unified_item/unified_item_model.dart`).
+
+## showAppSnackBar (undo support)
+
+`lib/utils/snackbar.dart` — `showAppSnackBar(context, message, {error, actionLabel, onAction, analyticsAction})`. With `actionLabel`/`onAction` it renders a 5s SnackBar action — the app's single-level undo pattern (section delete, setlist delete, setlist-song removal, practice unload). `analyticsAction` logs `undo_shown`/`undo_used`. Member removal must NOT use this (server-authoritative; keep a confirm dialog).

@@ -101,7 +101,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   /// Builds a single requirement row with checkmark or bullet.
   Widget _buildRequirement(String text, bool isMet) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: MonoPulseSpacing.xs),
       child: Row(
         children: [
           Icon(
@@ -109,7 +109,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             size: 16,
             color: isMet
                 ? MonoPulseColors.successGreen
-                : MonoPulseColors.textTertiary,
+                : context.mp.textTertiary,
           ),
           const SizedBox(width: 8),
           Text(
@@ -117,7 +117,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             style: MonoPulseTypography.bodySmall.copyWith(
               color: isMet
                   ? MonoPulseColors.successGreen
-                  : MonoPulseColors.textSecondary,
+                  : context.mp.textSecondary,
             ),
           ),
         ],
@@ -146,7 +146,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Text(
                 'Join FlowGroove',
                 style: MonoPulseTypography.headlineMedium.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
+                  color: context.mp.textHighEmphasis,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -154,7 +154,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Text(
                 'Create an account to manage your band repertoire',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -218,15 +218,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ElevatedButton(
                 onPressed: _isLoading ? null : _register,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: MonoPulseSpacing.lg,
+                  ),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: MonoPulseColors.textPrimary,
+                          color: context.mp.textPrimary,
                         ),
                       )
                     : const Text('Create Account'),

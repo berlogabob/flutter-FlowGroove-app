@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../theme/mono_pulse_theme.dart';
-import '../../widgets/custom_app_bar.dart';
+import '../../widgets/app_menu_sheet.dart';
+import '../../widgets/bottom_nav_or_action_bar.dart';
 import '../../widgets/offline_indicator.dart';
 
 /// Responsive breakpoint system for tool screens.
@@ -90,19 +92,20 @@ class ToolTouchTarget {
   }
 }
 
-/// Base scaffold for all tool screens.
+/// Base scaffold for all tool screens (Metronome/Tuner/Practice).
 ///
-/// Provides consistent structure:
-/// - AppBar with back button, title, 3-dot menu
-/// - Main tool widget (takes available space)
-/// - Optional bottom transport bar
-/// - No bottom navigation bar (tools are full-screen)
+/// Tools are pushed on the ROOT navigator (outside the shell), so the shell's
+/// bottom bar isn't there — this scaffold renders its own pushed-mode bar:
+/// `[← Back] [title] [⋮ Menu]` ([AppBottomBar.actions]). Back pops with a
+/// `/main/home` fallback (deep-link cold start); Menu opens the app menu
+/// sheet with [menuItems] and is hidden when there are none. There is no top
+/// app bar — [title] is shown only in the bottom bar's center slot.
 ///
 /// Usage:
 /// ```dart
 /// ToolScreenScaffold(
 ///   title: 'Metronome',
-///   menuItems: [...],
+///   menuItems: [AppMenuItem(...), ...],
 ///   mainWidget: CentralTempoCircle(),
 ///   bottomWidget: BottomTransportBar(),
 /// )
@@ -118,7 +121,7 @@ class ToolScreenScaffold extends StatelessWidget {
     this.showOfflineIndicator = true,
   });
 
-  /// Screen title displayed in AppBar.
+  /// Screen title displayed in the bottom bar's center slot.
   final String title;
 
   /// Main tool widget (takes most of the screen).
@@ -130,25 +133,22 @@ class ToolScreenScaffold extends StatelessWidget {
   /// Optional bottom widget (e.g., transport bar).
   final Widget? bottomWidget;
 
-  /// Menu items for 3-dot menu.
-  final List<PopupMenuEntry<dynamic>>? menuItems;
+  /// Contextual actions for the bottom bar's Menu sheet.
+  final List<AppMenuItem>? menuItems;
 
   /// Whether to show offline indicator.
   final bool showOfflineIndicator;
 
   @override
   Widget build(BuildContext context) {
+    final items = menuItems ?? const <AppMenuItem>[];
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: MonoPulseColors.black,
-        appBar: CustomAppBar.build(
-          context,
-          title: title,
-          menuItems: menuItems,
-          isTool: true,
-        ),
+        backgroundColor: context.mp.black,
         body: SafeArea(
+          // The bottom bar has its own SafeArea for the home-indicator inset.
+          bottom: false,
           child: Column(
             children: [
               if (showOfflineIndicator) const OfflineIndicator.banner(),
@@ -165,6 +165,29 @@ class ToolScreenScaffold extends StatelessWidget {
                 bottomWidget!,
               ],
             ],
+          ),
+        ),
+        bottomNavigationBar: AppBottomBar.actions(
+          onBack: () {
+            if (context.canPop()) {
+              // Tools are pushed on the root navigator on top of the shell,
+              // so there's a shell screen underneath to return to.
+              context.pop();
+            } else {
+              // Reached via go()/deep link that replaced the stack — nothing
+              // to pop, fall back home instead of a dead button.
+              context.go('/main/home');
+            }
+          },
+          title: title,
+          // Every tool footer shows a Menu (UX audit F-017: Recorder/Practice
+          // used to hide it). Screens with their own items show those; screens
+          // without fall back to the Profile/Settings rows.
+          onMenu: () => showAppMenuSheet(
+            context,
+            title: title,
+            items: items,
+            showProfileRow: items.isEmpty,
           ),
         ),
       ),
@@ -190,7 +213,9 @@ class ToolScreenScaffold extends StatelessWidget {
 /// ```
 class ToolResponsiveLayout extends StatelessWidget {
   const ToolResponsiveLayout({
-    required this.portraitBlocks, required this.landscapeBlocks, super.key,
+    required this.portraitBlocks,
+    required this.landscapeBlocks,
+    super.key,
     this.landscapeBreakpoint = 600,
   });
 
@@ -238,7 +263,8 @@ class ToolResponsiveLayout extends StatelessWidget {
 /// ```
 class ToolBlock extends StatelessWidget {
   const ToolBlock({
-    required this.child, super.key,
+    required this.child,
+    super.key,
     this.showCard = false,
     this.header,
     this.padding,
@@ -264,7 +290,7 @@ class ToolBlock extends StatelessWidget {
 
     if (showCard) {
       return Card(
-        color: MonoPulseColors.surface,
+        color: context.mp.surface,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -279,12 +305,12 @@ class ToolBlock extends StatelessWidget {
                 child: Text(
                   header!,
                   style: MonoPulseTypography.labelLarge.copyWith(
-                    color: MonoPulseColors.textSecondary,
+                    color: context.mp.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              const Divider(height: 1, color: MonoPulseColors.borderSubtle),
+              Divider(height: 1, color: context.mp.borderSubtle),
             ],
             childWidget,
           ],

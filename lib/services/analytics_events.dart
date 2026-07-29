@@ -65,6 +65,23 @@ class AnalyticsEvents {
   static const String pdfExported = 'pdf_exported';
   static const String csvExported = 'csv_exported';
   static const String spotifyLinked = 'spotify_linked';
+
+  // Song Lab (#67)
+  static const String labEntryAdded = 'lab_entry_added';
+
+  // HEART framework (UX audit, 2026-07)
+  static const String backUsed = 'back_used';
+  static const String menuOpened = 'menu_opened';
+  static const String undoShown = 'undo_shown';
+  static const String undoUsed = 'undo_used';
+  static const String filterZeroResults = 'filter_zero_results';
+  static const String searchSongOpen = 'search_song_open';
+  static const String inviteGenerated = 'invite_generated';
+  static const String inviteLinkOpened = 'invite_link_opened';
+  static const String bandOpened = 'band_opened';
+  static const String toolOpened = 'tool_opened';
+  static const String practiceSession = 'practice_session';
+  static const String rehearsalCreated = 'rehearsal_created';
 }
 
 /// User property names

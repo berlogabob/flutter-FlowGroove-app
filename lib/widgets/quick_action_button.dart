@@ -57,45 +57,41 @@ class QuickActionButton extends StatelessWidget {
     final breakpoint = context.breakpoint;
     final iconSize = ResponsiveSizes.iconSize(breakpoint);
     final fontSize = ResponsiveSizes.buttonFontSize(breakpoint);
-    final minSize = ResponsiveSizes.minCardHeight(breakpoint);
 
+    // Mono Pulse tile: a uniform horizontal row (icon left, label right) that
+    // fills its grid cell — consistent density, no dead gutters (audit A9).
     return Material(
-      color: MonoPulseColors.surface,
+      color: context.mp.surface,
       borderRadius: BorderRadius.circular(MonoPulseRadius.large),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: isCompact ? MonoPulseSpacing.md : MonoPulseSpacing.lg,
-            vertical: isCompact ? MonoPulseSpacing.xs : MonoPulseSpacing.sm,
+          padding: const EdgeInsets.symmetric(
+            horizontal: MonoPulseSpacing.md,
+            vertical: MonoPulseSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: MonoPulseColors.surface,
-            border: Border.all(color: MonoPulseColors.borderDefault),
+            color: context.mp.surface,
+            border: Border.all(color: context.mp.borderSubtle),
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
-              Icon(
-                icon,
-                color: MonoPulseColors.accentOrange,
-                size: iconSize,
-              ),
-              SizedBox(height: isCompact ? 4 : 8),
-              FittedBox(
-                fit: BoxFit.scaleDown,
+              Icon(icon, color: MonoPulseColors.accentOrange, size: iconSize),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              Expanded(
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: MonoPulseColors.accentOrange,
+                    // Neutral label; the orange icon carries the accent so the
+                    // tile grid isn't wall-to-wall orange (UX audit F-013).
+                    color: context.mp.textPrimary,
                     fontWeight: FontWeight.w600,
                     fontSize: fontSize,
                     height: 1.2,
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

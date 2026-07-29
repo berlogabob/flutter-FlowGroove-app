@@ -22,9 +22,9 @@ class DetectionModeToggle extends ConsumerWidget {
       height: 40,
       padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
+        border: Border.all(color: context.mp.borderSubtle),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -57,7 +57,6 @@ class DetectionModeToggle extends ConsumerWidget {
 }
 
 class _ModeOption extends StatelessWidget {
-
   const _ModeOption({
     required this.label,
     required this.icon,
@@ -82,9 +81,7 @@ class _ModeOption extends StatelessWidget {
           vertical: MonoPulseSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: isActive
-              ? MonoPulseColors.accentOrangeSubtle
-              : Colors.transparent,
+          color: isActive ? MonoPulseColors.accentOrange10 : Colors.transparent,
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
         ),
         child: Row(
@@ -95,7 +92,7 @@ class _ModeOption extends StatelessWidget {
               size: 16,
               color: isActive
                   ? MonoPulseColors.accentOrange
-                  : MonoPulseColors.textTertiary,
+                  : context.mp.textTertiary,
             ),
             const SizedBox(width: MonoPulseSpacing.xs),
             Text(
@@ -103,9 +100,10 @@ class _ModeOption extends StatelessWidget {
               style: MonoPulseTypography.labelMedium.copyWith(
                 color: isActive
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.textTertiary,
-                fontWeight:
-                    isActive ? MonoPulseTypography.semibold : MonoPulseTypography.regular,
+                    : context.mp.textTertiary,
+                fontWeight: isActive
+                    ? MonoPulseTypography.semibold
+                    : MonoPulseTypography.regular,
               ),
             ),
           ],

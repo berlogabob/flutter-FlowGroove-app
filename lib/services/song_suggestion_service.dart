@@ -1,23 +1,26 @@
 import '../models/song_suggestion.dart';
 import '../repositories/canonical_song_repository.dart';
-import '../repositories/song_repository.dart';
+import 'api/deezer_service.dart';
+import 'api/spotify_proxy_service.dart';
 import 'matching/fuzzy_matcher.dart';
 import 'musicbrainz_service.dart';
 
 /// Song Suggestion Service
 ///
-/// Orchestrates song suggestions from multiple sources:
-/// 1. User's personal library
-/// 2. Band/group libraries
+/// Orchestrates song autofill suggestions from EXTERNAL sources only:
+/// 1. Canonical song catalog
+/// 2. Spotify
 /// 3. MusicBrainz API
-/// 4. Local canonical database
+///
+/// The user's own/band library is deliberately NOT searched here — autofill
+/// is for pulling in new song metadata, and library hits crowded out the web
+/// results (#78). Save-time duplicate detection covers the "already have it"
+/// case separately.
 ///
 /// Usage:
 /// ```dart
 /// final service = SongSuggestionService(
-///   songRepo: SongRepository(),
 ///   musicBrainz: MusicBrainzService(),
-///   userId: currentUser.uid,
 /// );
 ///
 /// final suggestions = await service.getSuggestions(
@@ -28,17 +31,11 @@ import 'musicbrainz_service.dart';
 class SongSuggestionService {
 
   SongSuggestionService({
-    required this._songRepo,
     required this._musicBrainz,
-    required this._userId,
     this._canonicalRepo,
-    this._bandId,
   });
-  final SongRepository _songRepo;
   final CanonicalSongRepository? _canonicalRepo;
   final MusicBrainzService _musicBrainz;
-  final String _userId;
-  final String? _bandId;
 
   /// Get suggestions as user types
   ///
@@ -62,9 +59,9 @@ class SongSuggestionService {
 
     // Search all sources in parallel
     final results = await Future.wait([
-      _searchPersonal(title, artist),
-      if (_bandId case final bandId?) _searchGroup(title, artist, bandId),
       if (_canonicalRepo != null) _searchCanonical(title, artist),
+      _searchSpotify(title, artist),
+      _searchDeezer(title, artist),
       _searchMusicBrainz(title, artist),
     ]);
 
@@ -75,7 +72,24 @@ class SongSuggestionService {
     }
 
     // Deduplicate and sort
-    final deduplicated = _deduplicateSuggestions(allSuggestions);
+    var deduplicated = _deduplicateSuggestions(allSuggestions);
+
+    // ponytail: bare query has no artist field — when a suggestion's artist
+    // is literally in what the user typed ("ride the lightning METALLICA"),
+    // it's the original, not a cover; boost it above the same-title ties.
+    // Naive substring; tighten to token matching if short names misfire.
+    if (artist.isEmpty) {
+      final q = query.toLowerCase();
+      deduplicated = deduplicated.map((s) {
+        final a = s.artist.toLowerCase().trim();
+        return a.length >= 3 && q.contains(a)
+            ? s.copyWith(
+                matchScore: (s.matchScore + 0.1).clamp(0.0, 1.0),
+              )
+            : s;
+      }).toList();
+    }
+
     deduplicated.sort((a, b) => b.matchScore.compareTo(a.matchScore));
 
     // Limit results
@@ -128,95 +142,79 @@ class SongSuggestionService {
     }
   }
 
-  /// Search user's personal song library
-  Future<List<SongSuggestion>> _searchPersonal(
+  /// Search Spotify (primary external source — gives popularity ranking now and
+  /// BPM/key on selection). Skipped when Spotify isn't configured. Results are
+  /// fuzzy-scored + filtered against the query, like every other source.
+  Future<List<SongSuggestion>> _searchSpotify(
     String title,
     String artist,
   ) async {
+    if (!SpotifyProxyService.isConfigured) return [];
     try {
-      // Get user's songs from repository
-      final songs = await _songRepo.getSongs(_userId);
+      final query = [title, artist].where((s) => s.isNotEmpty).join(' ').trim();
+      if (query.isEmpty) return [];
 
+      final tracks = await SpotifyProxyService.search(query);
       final suggestions = <SongSuggestion>[];
-
-      for (final song in songs) {
-        final matchResult = FuzzyMatcher.calculateMatchScore(
+      for (final track in tracks) {
+        final match = FuzzyMatcher.calculateMatchScore(
           inputTitle: title,
           inputArtist: artist,
-          targetTitle: song.title,
-          targetArtist: song.artist,
-          targetAlbum: song.album,
+          targetTitle: track.name,
+          targetArtist: track.artist,
+          targetAlbum: track.album,
         );
-
-        // Only include good matches
-        if (matchResult.overall >= 0.6) {
-          suggestions.add(
-            SongSuggestion(
-              id: song.id,
-              title: song.title,
-              artist: song.artist,
-              source: SuggestionSource.personal,
-              type: matchResult.isExactMatch
-                  ? SuggestionType.exact
-                  : SuggestionType.similar,
-              matchScore: matchResult.overall,
-              bpm: song.originalBPM ?? song.ourBPM,
-              key: song.originalKey ?? song.ourKey,
-              canonicalSongId: song.canonicalSongId,
-              musicBrainzId: song.musicbrainzId,
-              matchReasons: _buildMatchReasons(matchResult),
-            ),
-          );
-        }
+        if (match.overall < 0.6) continue;
+        suggestions.add(
+          SongSuggestion.fromSpotify(
+            id: track.id,
+            title: track.name,
+            artist: track.artist,
+            spotifyId: track.id,
+            album: track.album,
+            durationMs: track.durationMs,
+          ).copyWith(matchScore: match.overall),
+        );
       }
-
       return suggestions;
     } catch (e) {
-      // Return empty list on error (don't break UX)
+      // Non-fatal — Spotify is optional discovery.
       return [];
     }
   }
 
-  /// Search band/group song library
-  Future<List<SongSuggestion>> _searchGroup(
+  /// Search Deezer (public, no-auth external source — indexes indie/francophone
+  /// artists MusicBrainz misses; BPM/lyrics fill on selection). Fuzzy-scored +
+  /// filtered like every other source. Off on web when no proxy is configured.
+  Future<List<SongSuggestion>> _searchDeezer(
     String title,
     String artist,
-    String bandId,
   ) async {
     try {
-      // Get band's songs from repository
-      final songs = await _songRepo.getBandSongs(bandId);
-
+      final tracks = await DeezerService.search(title: title, artist: artist);
       final suggestions = <SongSuggestion>[];
-
-      for (final song in songs) {
-        final matchResult = FuzzyMatcher.calculateMatchScore(
+      for (final track in tracks) {
+        final match = FuzzyMatcher.calculateMatchScore(
           inputTitle: title,
           inputArtist: artist,
-          targetTitle: song.title,
-          targetArtist: song.artist,
-          targetAlbum: song.album,
+          targetTitle: track.title,
+          targetArtist: track.artist,
+          targetAlbum: track.album,
         );
-
-        if (matchResult.overall >= 0.6) {
-          suggestions.add(
-            SongSuggestion.fromGroupSong(
-              id: song.id,
-              title: song.title,
-              artist: song.artist,
-              bandId: bandId,
-              bandName: 'Band', // TODO: Get actual band name
-              bpm: (song.originalBPM ?? song.ourBPM)?.toString(),
-              key: song.originalKey ?? song.ourKey,
-              canonicalSongId: song.canonicalSongId,
-              musicBrainzId: song.musicbrainzId,
-            ),
-          );
-        }
+        if (match.overall < 0.6) continue;
+        suggestions.add(
+          SongSuggestion.fromDeezer(
+            id: track.id,
+            title: track.title,
+            artist: track.artist,
+            album: track.album,
+            durationMs: track.durationMs,
+          ).copyWith(matchScore: match.overall),
+        );
       }
-
       return suggestions;
     } catch (e) {
+      // Non-fatal — Deezer is optional discovery.
       return [];
     }
   }
@@ -231,22 +229,36 @@ class SongSuggestionService {
       final recordings = await _musicBrainz.searchRecording(
         title: title,
         artist: artist,
-        limit: 5,
+        limit: 8,
       );
 
-      return recordings
-          .map(
-            (rec) => SongSuggestion.fromMusicBrainz(
-              id: rec.id,
-              title: rec.title,
-              artist: rec.artist,
-              musicBrainzId: rec.id,
-              durationMs: rec.lengthMs,
-              releaseYear: rec.releaseYear,
-              album: rec.album,
-            ),
-          )
-          .toList();
+      // Score and filter each recording against the query, exactly like the
+      // other sources — MusicBrainz returns many loose / same-title / foreign
+      // (e.g. Cyrillic) matches that must not be promoted to the top with a
+      // flat score. (#75)
+      final suggestions = <SongSuggestion>[];
+      for (final rec in recordings) {
+        final match = FuzzyMatcher.calculateMatchScore(
+          inputTitle: title,
+          inputArtist: artist,
+          targetTitle: rec.title,
+          targetArtist: rec.artist,
+          targetAlbum: rec.album,
+        );
+        if (match.overall < 0.6) continue;
+        suggestions.add(
+          SongSuggestion.fromMusicBrainz(
+            id: rec.id,
+            title: rec.title,
+            artist: rec.artist,
+            musicBrainzId: rec.id,
+            durationMs: rec.lengthMs,
+            releaseYear: rec.releaseYear,
+            album: rec.album,
+          ).copyWith(matchScore: match.overall),
+        );
+      }
+      return suggestions;
     } catch (e) {
       // MusicBrainz errors are expected (rate limits, network, etc.)
       // Return empty list - not critical
@@ -295,6 +307,13 @@ class SongSuggestionService {
       return 'canonical:$canonicalSongId';
     }
 
+    final spotifyId = suggestion.spotifyId;
+    if (spotifyId != null && spotifyId.isNotEmpty) {
+      return 'spotify:$spotifyId';
+    }
+
+    // Deezer suggestions have no cross-source id, so key on title|artist below.
+
     return '${suggestion.title.toLowerCase().trim()}|'
         '${suggestion.artist.toLowerCase().trim()}';
   }
@@ -306,10 +325,14 @@ class SongSuggestionService {
         return 1;
       case SuggestionSource.group:
         return 2;
-      case SuggestionSource.canonical:
+      case SuggestionSource.spotify:
         return 3;
-      case SuggestionSource.musicbrainz:
+      case SuggestionSource.deezer:
         return 4;
+      case SuggestionSource.canonical:
+        return 5;
+      case SuggestionSource.musicbrainz:
+        return 6;
     }
   }
 
@@ -334,29 +357,6 @@ class SongSuggestionService {
 
     // No separator found - treat entire query as title
     return _QueryParts(title: trimmed, artist: '');
-  }
-
-  /// Build match reasons list
-  List<String> _buildMatchReasons(MatchResult match) {
-    final reasons = <String>[];
-
-    if (match.title >= 0.95) {
-      reasons.add('Exact title match');
-    } else if (match.title >= 0.85) {
-      reasons.add('Close title match');
-    }
-
-    if (match.artist >= 0.95) {
-      reasons.add('Exact artist match');
-    } else if (match.artist >= 0.85) {
-      reasons.add('Close artist match');
-    }
-
-    if (match.album > 0) {
-      reasons.add('Album match');
-    }
-
-    return reasons;
   }
 }
 

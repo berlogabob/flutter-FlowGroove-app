@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../models/link.dart';
 import '../../../theme/mono_pulse_theme.dart';
 
@@ -7,24 +8,61 @@ import '../../../theme/mono_pulse_theme.dart';
 /// This widget displays existing links as chips and provides
 /// functionality to add and remove links through a dialog.
 class LinksEditor extends StatelessWidget {
-
   const LinksEditor({
     required this.links,
     required this.onAddLink,
     required this.onRemoveLink,
+    this.embedded = false,
     super.key,
   });
+
   /// The current list of links.
   final List<Link> links;
 
   /// Callback when a link is added.
-  final Function(Link link) onAddLink;
+  final void Function(Link link) onAddLink;
 
   /// Callback when a link is removed.
-  final Function(int index) onRemoveLink;
+  final void Function(int index) onRemoveLink;
+
+  /// When true, render only the chips + an "Add link" button (no own header),
+  /// for embedding inside a [CollapsibleSection] that supplies the title.
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
+    if (embedded) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (links.isNotEmpty) ...[
+            Wrap(
+              spacing: 8,
+              children: links
+                  .asMap()
+                  .entries
+                  .map(
+                    (e) => _LinkChip(
+                      link: e.value,
+                      index: e.key,
+                      onDeleted: () => onRemoveLink(e.key),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _showAddLinkDialog(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Add link'),
+            ),
+          ),
+        ],
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -61,7 +99,7 @@ class LinksEditor extends StatelessWidget {
   }
 
   void _showAddLinkDialog(BuildContext context) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) {
         final urlController = TextEditingController();
@@ -125,7 +163,6 @@ class LinksEditor extends StatelessWidget {
 
 /// Internal chip widget for displaying a single link.
 class _LinkChip extends StatelessWidget {
-
   const _LinkChip({
     required this.link,
     required this.index,
@@ -135,23 +172,39 @@ class _LinkChip extends StatelessWidget {
   final int index;
   final VoidCallback onDeleted;
 
+  /// Open the link's URL externally (new tab on web). Best-effort — shows a
+  /// snackbar if it can't be launched, mirroring the app's other launch sites.
+  Future<void> _open(BuildContext context) async {
+    final url = link.url.trim();
+    if (url.isEmpty) return;
+    final uri = Uri.tryParse(url);
+    if (uri != null && await canLaunchUrl(uri)) {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+        webOnlyWindowName: '_blank',
+      );
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not open: $url')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Chip(
+    // Show the service name (title) when present, else the humanised type.
+    final label = link.title ?? link.type.replaceAll('_', ' ');
+    return RawChip(
+      // RawChip carries both a tap (open) and a delete action.
+      onPressed: link.url.trim().isEmpty ? null : () => _open(context),
       label: Text(
-        link.type.replaceAll('_', ' '),
-        style: const TextStyle(
-          fontSize: 12,
-          color: MonoPulseColors.textPrimary,
-        ),
+        label,
+        style: TextStyle(fontSize: 12, color: context.mp.textPrimary),
       ),
-      deleteIcon: const Icon(
-        Icons.close,
-        size: 16,
-        color: MonoPulseColors.textSecondary,
-      ),
+      deleteIcon: Icon(Icons.close, size: 16, color: context.mp.textSecondary),
       onDeleted: onDeleted,
-      backgroundColor: MonoPulseColors.surfaceOverlay,
+      backgroundColor: context.mp.surfaceOverlay,
     );
   }
 }

@@ -29,18 +29,15 @@ class SongCsvService {
   Future<SongParseResult> importFromFile() async {
     try {
       // Pick file
-      final result = await FilePicker.pickFiles(
+      final platformFile = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: ['csv'],
-        allowMultiple: false,
-        withData: true,
       );
 
-      if (result == null || result.files.isEmpty) {
+      if (platformFile == null) {
         return SongParseResult(successful: [], errors: ['No file selected']);
       }
 
-      final platformFile = result.files.single;
       final content = await _readPickedFile(platformFile);
       if (content == null) {
         return SongParseResult(
@@ -157,13 +154,13 @@ class SongCsvService {
           id: '',
           name: 'Intro',
           duration: 4,
-          colorValue: MonoPulseColors.section5.withValues(alpha: 1).value,
+          colorValue: MonoPulseColors.section5.withValues(alpha: 1).toARGB32(),
         ),
         Section(
           id: '',
           name: 'Verse',
           duration: 8,
-          colorValue: MonoPulseColors.section8.withValues(alpha: 1).value,
+          colorValue: MonoPulseColors.section8.withValues(alpha: 1).toARGB32(),
         ),
       ],
     );
@@ -172,13 +169,8 @@ class SongCsvService {
   }
 
   Future<String?> _readPickedFile(PlatformFile file) async {
-    final bytes = file.bytes;
-    if (bytes != null) {
-      return utf8.decode(bytes, allowMalformed: true);
-    }
-
     try {
-      return await file.xFile.readAsString();
+      return utf8.decode(await file.readAsBytes(), allowMalformed: true);
     } catch (_) {
       return null;
     }

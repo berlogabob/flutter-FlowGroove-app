@@ -25,6 +25,24 @@ class AnalyticsService {
   static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
   static bool _debugMode = kDebugMode;
 
+  /// Whether analytics events are allowed to leave the device. Wired from
+  /// `analyticsConsentProvider` at startup and on toggle (mirrors how
+  /// `keepScreenOnProvider` drives the wakelock). Defaults to true so
+  /// behavior is unchanged until the provider's async load resolves.
+  ///
+  /// Only the [_log] choke point (used by the HEART events below) respects
+  /// this flag — see the note above that section for why the ~40 pre-existing
+  /// methods in this file are not gated.
+  static bool enabled = true;
+
+  /// Test seam: counts every event that passed the [enabled] guard and
+  /// reached (or attempted to reach) `FirebaseAnalytics`, regardless of
+  /// whether the SDK call itself succeeds. Firebase isn't initialized in the
+  /// unit test environment, so tests assert on this counter instead of
+  /// mocking `FirebaseAnalytics.instance`.
+  @visibleForTesting
+  static int debugLogAttempts = 0;
+
   /// Enable or disable debug mode (logs events to console)
   static void setDebugMode(bool enabled) {
     _debugMode = enabled;
@@ -897,6 +915,107 @@ class AnalyticsService {
   }
 
   // ============================================================
+  // HEART FRAMEWORK EVENTS (UX audit, 2026-07)
+  // ============================================================
+  //
+  // The ~40 methods above predate this file's central choke point: each
+  // calls `_analytics.logEvent` directly inside its own try/catch, so there
+  // was no shared helper to retrofit the `enabled` guard onto without
+  // touching every one of them — out of scope here, so they're left as-is
+  // and remain ungated by consent. Every method below is new and routes
+  // through [_log], the only place that checks [enabled].
+
+  /// Central choke point for the HEART events below.
+  static Future<void> _log(
+    String name, [
+    Map<String, Object>? parameters,
+  ]) async {
+    if (!enabled) return;
+    debugLogAttempts++;
+    try {
+      await _analytics.logEvent(name: name, parameters: parameters);
+      if (_debugMode) {
+        debugPrint(
+          '📊 Event: $name${parameters != null ? ' $parameters' : ''}',
+        );
+      }
+    } catch (e) {
+      _logError(name, e);
+    }
+  }
+
+  /// E: a Song Lab entry was created (#67). [type] is the LabEntryType name.
+  static Future<void> logLabEntryAdded({required String type}) =>
+      _log(AnalyticsEvents.labEntryAdded, {'type': type});
+
+  /// T: back navigation used — the in-app Back button ('ui') or a system
+  /// back gesture/button intercepted by a `PopScope` ('system').
+  static Future<void> logBackUsed({required String source}) =>
+      _log(AnalyticsEvents.backUsed, {'source': source});
+
+  /// T: the app-wide `⋮` menu sheet was opened. [screen] is the sheet's title.
+  static Future<void> logMenuOpened({required String screen}) =>
+      _log(AnalyticsEvents.menuOpened, {'screen': screen});
+
+  /// T: an undo-capable snackbar was shown for [action].
+  static Future<void> logUndoShown({required String action}) =>
+      _log(AnalyticsEvents.undoShown, {'action': action});
+
+  /// T: the user tapped Undo on a snackbar shown for [action].
+  static Future<void> logUndoUsed({required String action}) =>
+      _log(AnalyticsEvents.undoUsed, {'action': action});
+
+  /// T: a key or BPM filter on the songs list produced zero results.
+  static Future<void> logFilterZeroResults({
+    required String filterType,
+    required String value,
+  }) => _log(AnalyticsEvents.filterZeroResults, {
+    'filter_type': filterType,
+    'value': value,
+  });
+
+  /// T: a song card was opened while a search query was active.
+  static Future<void> logSearchSongOpen() =>
+      _log(AnalyticsEvents.searchSongOpen);
+
+  /// A: a band invite (QR/code/link) was generated or shared.
+  static Future<void> logInviteGenerated({required String bandId}) =>
+      _log(AnalyticsEvents.inviteGenerated, {AnalyticsParams.bandId: bandId});
+
+  /// A: an external invite link/App Link was opened (before join completes).
+  static Future<void> logInviteLinkOpened() =>
+      _log(AnalyticsEvents.inviteLinkOpened);
+
+  /// A: a band screen was opened. Ponytail version of the audit's
+  /// "first open after join" (`joined_band_opened`) — cheaply attributing
+  /// "first" isn't available at this call site, so this fires on every open
+  /// of `TheBandScreen`; see the report for detail.
+  static Future<void> logBandOpened({required String bandId}) =>
+      _log(AnalyticsEvents.bandOpened, {AnalyticsParams.bandId: bandId});
+
+  /// E: a tool screen (metronome/tuner/practice) was opened.
+  static Future<void> logToolOpened({required String tool}) =>
+      _log(AnalyticsEvents.toolOpened, {'tool': tool});
+
+  /// E: a metronome practice segment ran from start to stop/navigate.
+  static Future<void> logPracticeSession({required int lengthMs}) =>
+      _log(AnalyticsEvents.practiceSession, {'length_ms': lengthMs});
+
+  /// R: a rehearsal proposal was created (not edits).
+  static Future<void> logRehearsalCreated({required String bandId}) =>
+      _log(AnalyticsEvents.rehearsalCreated, {AnalyticsParams.bandId: bandId});
+
+  /// R: a setlist save completed. Ponytail version of the audit's "second
+  /// member" attribution — that needs member context this call site doesn't
+  /// cheaply have, so [isBand] (shared band setlist vs. personal) stands in
+  /// for it; see the report. Reuses the `setlist_edited` event name already
+  /// reserved by the legacy (currently uncalled) `logSetlistEdited` above —
+  /// the two are never invoked from the same call site so there's no real
+  /// collision, just a shared GA4 event name with a different param shape.
+  static Future<void> logSetlistSaved({required bool isBand}) =>
+      _log(AnalyticsEvents.setlistEdited, {'is_band': isBand});
+
+  // ============================================================
   // UTILITY METHODS
   // ============================================================
 
@@ -925,7 +1044,7 @@ class AnalyticsService {
   }
 
   /// Log error helper
-  static void _logError(String method, error) {
+  static void _logError(String method, dynamic error) {
     debugPrint('❌ Analytics Error in $method: $error');
   }
 }

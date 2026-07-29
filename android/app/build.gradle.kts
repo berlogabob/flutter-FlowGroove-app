@@ -22,7 +22,9 @@ if (hasReleaseSigning) {
 
 android {
     namespace = "com.flowgroove.app"
-    compileSdk = flutter.compileSdkVersion
+    // compileSdk 36: required by androidx deps (browser/activity/core) pulled by plugins.
+    // targetSdk stays 35 (Play's minimum) — compileSdk and targetSdk are independent.
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -36,8 +38,10 @@ android {
 
     defaultConfig {
         applicationId = "com.flowgroove.app"
+        // minSdk deliberately inherits from the pinned Flutter SDK (#44: targetSdk is the
+        // Play-determinism knob and is pinned below; minSdk follows the toolchain).
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

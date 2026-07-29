@@ -80,9 +80,14 @@ void main() {
         await harness.clearUserData(credential.user!.uid);
       });
 
+      // watchSetlists is the PERSONAL stream: it filters out anything with a
+      // bandId, because band setlists mis-saved into users/{uid}/setlists carry
+      // band-copy song ids and render as all-"Unavailable". So a setlist under
+      // test here must be personal (bandId ''), or it is correctly never
+      // emitted. Doc-level writes are covered by the tests above.
       final setlist = buildSetlist(
         id: harness.uniqueId('watch'),
-        bandId: harness.uniqueId('band'),
+        bandId: '',
         name: 'Watch Me',
       );
 

@@ -17,13 +17,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// - Linux: libsecret
 class SecureStorageService {
 
-  SecureStorageService()
-      : _storage = const FlutterSecureStorage(
-          // Configure options for better security
-          aOptions: AndroidOptions(
-            encryptedSharedPreferences: true,
-          ),
-        );
+  SecureStorageService() : _storage = const FlutterSecureStorage();
   final FlutterSecureStorage _storage;
 
   /// Keys for secure storage

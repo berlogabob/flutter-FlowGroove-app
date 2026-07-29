@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../../../models/section.dart';
+import '../../../../../theme/mono_pulse_theme.dart';
 import '../core/theme/app_colors.dart';
 
 /// Pill visualization widget for collapsed state.
@@ -30,20 +32,34 @@ class PillView extends StatelessWidget {
         ).colorScheme.primaryContainer.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppDimensions.pillBorderRadius),
       ),
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       child: Row(
-        children: sections.map((section) {
-          return Expanded(
-            flex: section.duration,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 1),
-              decoration: BoxDecoration(
-                color: section.color,
-                borderRadius: BorderRadius.circular(4),
+        children: [
+          for (var i = 0; i < sections.length; i++)
+            Expanded(
+              flex: sections[i].duration,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 1),
+                decoration: BoxDecoration(
+                  color: sections[i].color,
+                  // First/last chips follow the outer pill's curve
+                  // (concentric — Flutter clamps the radius to fit, keeping
+                  // it offset from the outer edge by the padding). Inner
+                  // edges stay square-ish.
+                  borderRadius: BorderRadius.horizontal(
+                    left: Radius.circular(
+                      i == 0 ? AppDimensions.pillBorderRadius : 4,
+                    ),
+                    right: Radius.circular(
+                      i == sections.length - 1
+                          ? AppDimensions.pillBorderRadius
+                          : 4,
+                    ),
+                  ),
+                ),
               ),
             ),
-          );
-        }).toList(),
+        ],
       ),
     );
   }

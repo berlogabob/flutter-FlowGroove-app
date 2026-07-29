@@ -323,6 +323,82 @@ void main() {
         expect(state.currentSetlistIndex, 0);
       });
 
+      test(
+        'skips unresolved entries instead of failing the whole queue',
+        () {
+          final container = createContainer();
+
+          // 3 entries, only 2 resolve against availableSongs — an
+          // unresolvable entry (deleted/unavailable song) shouldn't block
+          // the rest of the setlist from loading.
+          final setlist = Setlist(
+            id: 'setlist-1',
+            bandId: 'band-1',
+            name: 'Test Setlist',
+            songIds: ['song-1', 'orphan', 'song-3'],
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          );
+
+          final metronome = container.read(metronomeProvider.notifier);
+          final loaded = metronome.loadSetlistQueue(
+            setlist,
+            availableSongs: [
+              Song(
+                id: 'song-1',
+                title: 'Song 1',
+                artist: '',
+                createdAt: DateTime(2024),
+                updatedAt: DateTime(2024),
+              ),
+              Song(
+                id: 'song-3',
+                title: 'Song 3',
+                artist: '',
+                createdAt: DateTime(2024),
+                updatedAt: DateTime(2024),
+              ),
+            ],
+          );
+
+          expect(loaded, isTrue);
+          final state = container.read(metronomeProvider);
+          expect(
+            state.loadedSetlistSongs.map((s) => s.id).toList(),
+            ['song-1', 'song-3'],
+          );
+        },
+      );
+
+      test('fails only when zero entries resolve', () {
+        final container = createContainer();
+
+        final setlist = Setlist(
+          id: 'setlist-1',
+          bandId: 'band-1',
+          name: 'Test Setlist',
+          songIds: ['orphan-1', 'orphan-2'],
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        );
+
+        final metronome = container.read(metronomeProvider.notifier);
+        final loaded = metronome.loadSetlistQueue(
+          setlist,
+          availableSongs: [
+            Song(
+              id: 'song-1',
+              title: 'Song 1',
+              artist: '',
+              createdAt: DateTime(2024),
+              updatedAt: DateTime(2024),
+            ),
+          ],
+        );
+
+        expect(loaded, isFalse);
+      });
+
       test('clears loadedSong when loading setlist', () {
         final container = createContainer();
 
@@ -351,6 +427,102 @@ void main() {
         final state = container.read(metronomeProvider);
         expect(state.loadedSetlist, equals(setlist));
         // Note: loadedSong may or may not be cleared depending on implementation
+      });
+    });
+
+    group('syncLoadedSetlist', () {
+      Song song(String id, {int? bpm, List<List<BeatMode>>? beatModes}) => Song(
+        id: id,
+        title: id,
+        artist: '',
+        ourBPM: bpm,
+        beatModes: beatModes ?? const [],
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+
+      Setlist setlistWith(List<String> ids) => Setlist(
+        id: 'setlist-1',
+        bandId: 'band-1',
+        name: 'Test',
+        songIds: ids,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+
+      test('applies new order + tempo while keeping the active song', () {
+        final container = createContainer();
+        final metronome = container.read(metronomeProvider.notifier);
+
+        metronome.loadSetlistQueue(
+          setlistWith(['s1', 's2', 's3']),
+          availableSongs: [song('s1', bpm: 100), song('s2', bpm: 120), song('s3', bpm: 140)],
+        );
+        metronome.nextSetlistSong(); // active = s2
+
+        // Reorder to [s3, s1, s2] and bump s2's tempo + beatModes.
+        metronome.syncLoadedSetlist(
+          setlistWith(['s3', 's1', 's2']),
+          [
+            song('s1', bpm: 100),
+            song('s2', bpm: 200, beatModes: [
+              [BeatMode.accent],
+            ]),
+            song('s3', bpm: 140),
+          ],
+        );
+
+        final state = container.read(metronomeProvider);
+        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), ['s3', 's1', 's2']);
+        // Active song stays s2, now at the new index.
+        expect(state.currentSetlistIndex, 2);
+        expect(state.activeSong!.id, 's2');
+        expect(state.bpm, 200);
+        expect(state.beatModes[0][0], BeatMode.accent);
+      });
+
+      test('clamps without crashing when active song is removed', () {
+        final container = createContainer();
+        final metronome = container.read(metronomeProvider.notifier);
+
+        metronome.loadSetlistQueue(
+          setlistWith(['s1', 's2', 's3']),
+          availableSongs: [song('s1'), song('s2'), song('s3')],
+        );
+        metronome.nextSetlistSong(); // active = s2
+
+        metronome.syncLoadedSetlist(
+          setlistWith(['s1', 's3']),
+          [song('s1'), song('s3')],
+        );
+
+        final state = container.read(metronomeProvider);
+        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), ['s1', 's3']);
+        expect(state.currentSetlistIndex, inInclusiveRange(0, 1));
+      });
+
+      test('ignores a setlist that is not the loaded one', () {
+        final container = createContainer();
+        final metronome = container.read(metronomeProvider.notifier);
+
+        metronome.loadSetlistQueue(
+          setlistWith(['s1', 's2']),
+          availableSongs: [song('s1'), song('s2')],
+        );
+
+        final other = Setlist(
+          id: 'other',
+          bandId: 'band-1',
+          name: 'Other',
+          songIds: ['x1'],
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        );
+        metronome.syncLoadedSetlist(other, [song('x1')]);
+
+        final state = container.read(metronomeProvider);
+        expect(state.loadedSetlist!.id, 'setlist-1');
+        expect(state.loadedSetlistSongs.map((s) => s.id).toList(), ['s1', 's2']);
       });
     });
 

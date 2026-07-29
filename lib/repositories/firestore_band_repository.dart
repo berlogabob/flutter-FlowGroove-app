@@ -87,34 +87,23 @@ class FirestoreBandRepository implements BandRepository {
   @override
   Stream<List<Band>> watchBands(String uid) {
     try {
+      // Watch the GLOBAL band documents directly via the derived memberUids
+      // array. This makes the stream reactive to member/role changes inside a
+      // band (joins, leaves, role edits) in real time — the previous approach
+      // watched only the user's band-reference list and did a one-shot get()
+      // per band, so changes to the band itself (e.g. a new member) never
+      // propagated until the screen was rebuilt. It is also a single realtime
+      // query instead of N serial reads.
       return _firestore
-          .collection('users')
-          .doc(uid)
           .collection('bands')
+          .where('memberUids', arrayContains: uid)
           .snapshots()
-          .asyncMap((snapshot) async {
-            final bandIds = snapshot.docs.map((doc) => doc.id).toList();
-
-            if (bandIds.isEmpty) return <Band>[];
-
+          .map((snapshot) {
             final bands = <Band>[];
-            for (final bandId in bandIds) {
-              try {
-                final bandDoc = await _firestore
-                    .collection('bands')
-                    .doc(bandId)
-                    .get();
-                if (bandDoc.exists) {
-                  final data = bandDoc.data()!;
-                  data['id'] = bandDoc.id;
-                  bands.add(Band.fromJson(data));
-                }
-              } on FirebaseException catch (e) {
-                if (e.code == 'not-found') {
-                  continue;
-                }
-                rethrow;
-              }
+            for (final doc in snapshot.docs) {
+              final data = doc.data();
+              data['id'] = doc.id;
+              bands.add(Band.fromJson(data));
             }
             return bands;
           })

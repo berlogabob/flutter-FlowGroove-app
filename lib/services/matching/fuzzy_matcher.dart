@@ -264,29 +264,46 @@ class FuzzyMatcher {
     final normInputTitle = _normalize(inputTitle);
     final normInputArtist = _normalize(inputArtist);
     final normInputAlbum = _normalize(inputAlbum ?? '');
-    
+
     final normTargetTitle = _normalize(targetTitle);
     final normTargetArtist = _normalize(targetArtist);
     final normTargetAlbum = _normalize(targetAlbum ?? '');
-    
+
     // Calculate individual scores using best algorithm for each
     final titleScore = _calculateTitleScore(normInputTitle, normTargetTitle);
-    final artistScore = _calculateArtistScore(normInputArtist, normTargetArtist);
-    final albumScore = targetAlbum != null && targetAlbum.isNotEmpty &&
+    final artistScore = _calculateArtistScore(
+      normInputArtist,
+      normTargetArtist,
+    );
+    final albumScore =
+        targetAlbum != null &&
+            targetAlbum.isNotEmpty &&
             normTargetAlbum.isNotEmpty
         ? Levenshtein.similarity(normInputAlbum, normTargetAlbum)
         : 0.0;
-    
+
     // Weighted average
     double overallScore;
-    
-    if (albumScore > 0) {
-      overallScore = (titleScore * 0.5) + (artistScore * 0.3) + (albumScore * 0.2);
+
+    if (normInputArtist.isEmpty) {
+      // Single-field query: there's no separate artist field, so the user may
+      // have typed the artist inline (e.g. "light my fire the doors"). Also
+      // score against "title + artist" combined and take the better of the two,
+      // so typing the right artist ranks the correct recording ABOVE same-title
+      // covers instead of leaving every same-title result tied on title alone.
+      // ponytail: 0.9 damping on the title-only path keeps Jaro-Winkler noise
+      // between unrelated titles (~0.6) under the 0.6 cutoff.
+      final combined = _normalize('$targetTitle $targetArtist');
+      final combinedScore = _calculateTitleScore(normInputTitle, combined);
+      overallScore = max(titleScore * 0.9, combinedScore);
+    } else if (albumScore > 0) {
+      overallScore =
+          (titleScore * 0.5) + (artistScore * 0.3) + (albumScore * 0.2);
     } else {
       // No album, reweight
       overallScore = (titleScore * 0.65) + (artistScore * 0.35);
     }
-    
+
     return MatchResult(
       overall: overallScore,
       title: titleScore,
@@ -299,17 +316,26 @@ class FuzzyMatcher {
   static double _calculateTitleScore(String s1, String s2) {
     // Try exact match first
     if (s1 == s2) return 1;
-    
-    // Try contains match
+
+    // An empty side matches nothing (guards `contains('')` scoring 0.9
+    // against titles that normalize away entirely).
+    if (s1.isEmpty || s2.isEmpty) return 0;
+
+    // Partial (substring) match — score by how much of the longer title the
+    // shorter one covers, so "Go With the Flow" (tight) ranks above
+    // "Go With the Flow (Live at ...)" (loose) instead of a flat 0.9.
     if (s2.contains(s1) || s1.contains(s2)) {
-      return 0.9;
+      final ratio = s1.length < s2.length
+          ? s1.length / s2.length
+          : s2.length / s1.length;
+      return 0.55 + 0.4 * ratio; // 0.55..0.95
     }
-    
+
     // Use best of multiple algorithms
     final levenshtein = Levenshtein.similarity(s1, s2);
     final jaroWinkler = JaroWinkler.similarity(s1, s2);
     final tokenSort = TokenSortRatio.similarity(s1, s2);
-    
+
     // Return highest score
     return max(levenshtein, max(jaroWinkler, tokenSort));
   }
@@ -317,11 +343,11 @@ class FuzzyMatcher {
   /// Calculate artist score
   static double _calculateArtistScore(String s1, String s2) {
     if (s1 == s2) return 1;
-    
+
     // Try token sort for artist names (handles "Queen" vs "Queen Band")
     final tokenSort = TokenSortRatio.similarity(s1, s2);
     final levenshtein = Levenshtein.similarity(s1, s2);
-    
+
     return max(tokenSort, levenshtein);
   }
 
@@ -330,14 +356,16 @@ class FuzzyMatcher {
     return s
         .toLowerCase()
         .trim()
-        .replaceAll(RegExp(r'[^\w\s]'), '') // Remove punctuation
-        .replaceAll(RegExp(r'\s+'), ' '); // Normalize whitespace
+        // Remove punctuation, keeping letters/digits in ANY script — Dart's
+        // \w is ASCII-only and silently erased Cyrillic titles (#78).
+        .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), '')
+        .replaceAll(RegExp(r'\s+'), ' ') // Normalize whitespace
+        .trim();
   }
 }
 
 /// Result of multi-field fuzzy match
 class MatchResult {
-
   const MatchResult({
     required this.overall,
     required this.title,

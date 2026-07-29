@@ -151,53 +151,6 @@ class FirestoreService {
     }
   }
 
-  /// Watches bands for a user by fetching from the global collection.
-  ///
-  /// First gets the user's band IDs from their collection,
-  /// then fetches full band data from the global 'bands' collection.
-  Stream<List<Band>> watchBands(String uid) {
-    try {
-      return _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('bands')
-          .snapshots()
-          .asyncMap((snapshot) async {
-            final bandIds = snapshot.docs.map((doc) => doc.id).toList();
-
-            if (bandIds.isEmpty) return <Band>[];
-
-            // Fetch full band data from global collection
-            final bands = <Band>[];
-            for (final bandId in bandIds) {
-              try {
-                final bandDoc = await _firestore
-                    .collection('bands')
-                    .doc(bandId)
-                    .get();
-                if (bandDoc.exists) {
-                  final data = bandDoc.data()!;
-                  data['id'] = bandDoc.id; // Set the document ID
-                  bands.add(Band.fromJson(data));
-                }
-              } on FirebaseException catch (e) {
-                if (e.code == 'not-found') {
-                  // Band was deleted, skip it
-                  continue;
-                }
-                rethrow;
-              }
-            }
-            return bands;
-          })
-          .handleError((Object error, StackTrace stackTrace) {
-            throw ApiError.fromException(error, stackTrace: stackTrace);
-          });
-    } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
   // ============================================================
   // Setlist Operations
   // ============================================================
@@ -268,45 +221,6 @@ class FirestoreService {
       }
       throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
-      throw ApiError.fromException(e, stackTrace: stackTrace);
-    }
-  }
-
-  /// Watches setlists for a user in real-time.
-  Stream<List<Setlist>> watchSetlists(String uid) {
-    try {
-      return FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('setlists')
-          .snapshots()
-          .map(
-            (snapshot) => snapshot.docs.map((doc) {
-              try {
-                return Setlist.fromJson(doc.data());
-              } catch (e, stackTrace) {
-                debugPrint('Failed to parse setlist ${doc.id}: $e');
-                debugPrint('Stack trace: $stackTrace');
-                // Return a default setlist with error info
-                return Setlist(
-                  id: doc.id,
-                  bandId: '',
-                  name: 'Error loading setlist',
-                  description: 'Failed to load: $e',
-                  createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                );
-              }
-            }).toList(),
-          )
-          .handleError((Object error, StackTrace stackTrace) {
-            debugPrint('Stream error in watchSetlists: $error');
-            debugPrint('Stack trace: $stackTrace');
-            throw ApiError.fromException(error, stackTrace: stackTrace);
-          });
-    } catch (e, stackTrace) {
-      debugPrint('Error setting up watchSetlists: $e');
-      debugPrint('Stack trace: $stackTrace');
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
   }
@@ -457,6 +371,48 @@ class FirestoreService {
     }
   }
 
+  /// Writes a band to BOTH the global `bands/{id}` collection and the user's
+  /// `users/{uid}/bands/{id}` reference in a single atomic batch (one round
+  /// trip) instead of two sequential `set` calls — used on band create/edit.
+  Future<void> saveBandBatch(Band band, {String? uid}) async {
+    try {
+      final userId = uid ?? _currentUserId;
+      final data = band.toJson();
+      final batch = _firestore.batch()
+        ..set(_firestore.collection('bands').doc(band.id), data)
+        ..set(
+          _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('bands')
+              .doc(band.id),
+          data,
+        );
+      await batch.commit().timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: saveBandBatch timed out after ${_firestoreTimeout.inSeconds}s for band ${band.id}',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to save this band.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
   /// Gets a band by invite code from global collection.
   Future<Band?> getBandByInviteCode(String code) async {
     try {
@@ -465,13 +421,24 @@ class FirestoreService {
           .collection('bands')
           .where('inviteCode', isEqualTo: code)
           .limit(1)
-          .get();
+          .get()
+          .timeout(_firestoreTimeout);
 
       if (snapshot.docs.isEmpty) return null;
       final doc = snapshot.docs.first;
       final data = doc.data();
       data['id'] = doc.id; // Set the document ID
       return Band.fromJson(data);
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: getBandByInviteCode timed out after ${_firestoreTimeout.inSeconds}s',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'not-found') {
         return null;
@@ -490,8 +457,19 @@ class FirestoreService {
           .collection('bands')
           .where('inviteCode', isEqualTo: code)
           .limit(1)
-          .get();
+          .get()
+          .timeout(_firestoreTimeout);
       return snapshot.docs.isNotEmpty;
+    } on TimeoutException catch (e, stackTrace) {
+      debugPrint(
+        '⏱️ TIMEOUT: isInviteCodeTaken timed out after ${_firestoreTimeout.inSeconds}s',
+      );
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
     } on FirebaseException catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {

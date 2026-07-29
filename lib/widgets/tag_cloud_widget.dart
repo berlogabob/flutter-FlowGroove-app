@@ -23,50 +23,52 @@ class TagCloudWidget extends StatelessWidget {
     }
 
     final tags = tagCounts.entries.take(maxTags).toList();
-    final maxCount = tags.isNotEmpty ? tags.first.value : 1;
 
     return SizedBox(
       height: 40,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: tags.length + 1, // +1 for "All" chip
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            // "All" chip
+      // Right-edge fade signals the row scrolls horizontally (F-021: the last
+      // chip used to clip flush against the screen edge with no affordance).
+      child: ShaderMask(
+        shaderCallback: (rect) => const LinearGradient(
+          colors: [Colors.white, Colors.white, Colors.transparent],
+          stops: [0.0, 0.9, 1.0],
+        ).createShader(rect),
+        blendMode: BlendMode.dstIn,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(right: MonoPulseSpacing.xl),
+          itemCount: tags.length + 1, // +1 for "All" chip
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              // "All" chip
+              return Padding(
+                padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
+                child: AppFilterChip(
+                  label: 'All',
+                  selected: selectedTag == null,
+                  onSelected: (_) => onTagSelected(null),
+                ),
+              );
+            }
+
+            final entry = tags[index - 1];
+            final tag = entry.key;
+            final count = entry.value;
+
+            // Neutral unselected chips (no orange "brown" tint); orange is
+            // reserved for the selected state only. F-012.
             return Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
               child: AppFilterChip(
-                label: 'All',
-                selected: selectedTag == null,
-                onSelected: (_) => onTagSelected(null),
+                label: '$tag ($count)',
+                selected: selectedTag == tag,
+                onSelected: (_) =>
+                    onTagSelected(selectedTag == tag ? null : tag),
               ),
             );
-          }
-
-          final entry = tags[index - 1];
-          final tag = entry.key;
-          final count = entry.value;
-          final intensity = count / maxCount;
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: AppFilterChip(
-              label: '$tag ($count)',
-              selected: selectedTag == tag,
-              onSelected: (_) => onTagSelected(selectedTag == tag ? null : tag),
-              unselectedBackgroundColor: _getTagColor(intensity),
-            ),
-          );
-        },
+          },
+        ),
       ),
-    );
-  }
-
-  Color _getTagColor(double intensity) {
-    // Light orange based on intensity
-    final opacity = 0.1 + (intensity * 0.2);
-    return MonoPulseColors.accentOrange.withValues(
-      alpha: opacity.clamp(0.1, 0.3),
     );
   }
 }

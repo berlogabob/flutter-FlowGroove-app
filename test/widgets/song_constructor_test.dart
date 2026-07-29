@@ -160,7 +160,8 @@ void main() {
       expect(capturedSections!.first.name, equals('Bridge'));
     });
 
-    testWidgets('delete section removes from list', (tester) async {
+    testWidgets('delete section removes from list and shows undo snackbar',
+        (tester) async {
       final sections = [Section(id: '1', name: 'Intro')];
 
       List<Section>? capturedSections;
@@ -183,12 +184,23 @@ void main() {
       await tester.tap(find.byKey(const Key('section_delete_1')).hitTestable());
       await tester.pumpAndSettle();
 
-      // Confirm deletion
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Delete'));
-      await tester.pumpAndSettle();
-
+      // Section should be deleted immediately (no dialog confirmation)
       expect(capturedSections, isNotNull);
       expect(capturedSections!.isEmpty, isTrue);
+
+      // Snackbar should appear with undo message
+      expect(find.text('Section "Intro" deleted'), findsOneWidget);
+      expect(find.text('Undo'), findsOneWidget);
+
+      // Tap Undo to restore the section
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+
+      // Section should be restored at original index
+      expect(capturedSections, isNotNull);
+      expect(capturedSections!.length, equals(1));
+      expect(capturedSections!.first.id, equals('1'));
+      expect(capturedSections!.first.name, equals('Intro'));
     });
 
     testWidgets('auto-generate creates sections', (tester) async {
@@ -237,6 +249,66 @@ void main() {
       // Find the pill container
       expect(find.byType(Container), findsWidgets);
     });
+
+    testWidgets(
+      'adopts sections that arrive after the first build (regression)',
+      (tester) async {
+        // Reproduces the add/edit screen behaviour: the song's sections are not
+        // present on the first build and arrive one frame later (provider init
+        // is deferred to a post-frame callback). Previously SongConstructor
+        // snapshotted the empty list in initState and never updated, so saved
+        // song maps showed empty.
+        final hostKey = GlobalKey<_DeferredSectionsHostState>();
+        await tester.pumpWidget(
+          _DeferredSectionsHost(
+            key: hostKey,
+            deferredSections: [
+              Section(id: '1', name: 'Intro'),
+              Section(id: '2', name: 'Verse', duration: 2),
+              Section(id: '3', name: 'Chorus', duration: 2),
+            ],
+          ),
+        );
+
+        // First build: no sections yet -> empty placeholder in the pill view.
+        expect(find.text('No structure yet'), findsOneWidget);
+
+        // Sections arrive one frame later.
+        hostKey.currentState!.loadSections();
+        await tester.pump();
+
+        // The map must reflect the loaded sections, not the empty snapshot.
+        expect(find.text('No structure yet'), findsNothing);
+
+        // And the real section names render once expanded.
+        await expandSongConstructor(tester);
+        expect(find.text('Intro'), findsOneWidget);
+        expect(find.text('Chorus'), findsOneWidget);
+      },
+    );
+
+    testWidgets('keeps in-progress edits when an equal list is re-supplied', (
+      tester,
+    ) async {
+      // A parent rebuild that re-supplies the same sections (by id) must not
+      // clobber edits the user just made inside the constructor.
+      final hostKey = GlobalKey<_DeferredSectionsHostState>();
+      final sections = [Section(id: '1', name: 'Intro')];
+      await tester.pumpWidget(
+        _DeferredSectionsHost(key: hostKey, deferredSections: sections),
+      );
+      hostKey.currentState!.loadSections();
+      await tester.pump();
+
+      await expandSongConstructor(tester);
+      expect(find.text('Intro'), findsOneWidget);
+
+      // Parent rebuilds with an id-equal list (e.g. unrelated form keystroke).
+      hostKey.currentState!.rebuildWithEqualList();
+      await tester.pump();
+
+      expect(find.text('Intro'), findsOneWidget);
+    });
   });
 
   group('SongFormData with sections integration', () {
@@ -259,4 +331,41 @@ Future<void> expandSongConstructor(WidgetTester tester) async {
   await tester.tap(find.byIcon(Icons.keyboard_arrow_down).hitTestable());
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 250));
+}
+
+/// Host that mimics the add/edit song screen: sections are absent on the first
+/// build and arrive one frame later (the screen defers `initFromSong` to a
+/// post-frame callback).
+class _DeferredSectionsHost extends StatefulWidget {
+  const _DeferredSectionsHost({required this.deferredSections, super.key});
+
+  final List<Section> deferredSections;
+
+  @override
+  State<_DeferredSectionsHost> createState() => _DeferredSectionsHostState();
+}
+
+class _DeferredSectionsHostState extends State<_DeferredSectionsHost> {
+  List<Section> _sections = const [];
+
+  void loadSections() => setState(() => _sections = widget.deferredSections);
+
+  /// Re-supply a fresh list with the same section ids (mirrors how
+  /// SongFormData.copyWith rebuilds the list on every unrelated form change).
+  void rebuildWithEqualList() => setState(
+    () => _sections = widget.deferredSections
+        .map((s) => Section(id: s.id, name: s.name, duration: s.duration))
+        .toList(),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: SongConstructor(initialSections: _sections),
+        ),
+      ),
+    );
+  }
 }

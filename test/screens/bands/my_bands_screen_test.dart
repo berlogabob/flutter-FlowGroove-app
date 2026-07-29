@@ -34,7 +34,7 @@ void main() {
       expect(find.byIcon(Icons.sort), findsOneWidget);
     });
 
-    testWidgets('displays create and join floating action buttons', (
+    testWidgets('displays one create floating action button', (
       tester,
     ) async {
       await pumpRoutedTestApp(
@@ -43,9 +43,8 @@ void main() {
         overrides: overridesFor(Stream<List<Band>>.value([])),
       );
 
-      expect(find.byTooltip('Create'), findsOneWidget);
-      expect(find.byTooltip('Join'), findsOneWidget);
-      expect(find.byIcon(Icons.add), findsWidgets);
+      expect(find.byType(FloatingActionButton), findsOneWidget);
+      expect(find.byTooltip('Create band'), findsOneWidget);
       expect(find.byIcon(Icons.group_add), findsOneWidget);
     });
 
@@ -59,6 +58,7 @@ void main() {
       expect(find.text('No bands yet'), findsOneWidget);
       expect(find.text('Create a band to get started'), findsOneWidget);
       expect(find.text('Create Band'), findsOneWidget);
+      expect(find.text('Join band'), findsOneWidget);
     });
 
     testWidgets('displays list of bands with descriptions and member counts', (
@@ -143,24 +143,46 @@ void main() {
         overrides: overridesFor(Stream<List<Band>>.value([])),
       );
 
-      await tester.tap(find.byTooltip('Create'));
+      await tester.tap(find.byTooltip('Create band'));
       await tester.pumpAndSettle();
 
       expect(currentRouterUri(router).path, '/main/bands/create');
       expect(find.text('route:create-band'), findsOneWidget);
     });
 
-    testWidgets('navigates to join band from join FAB', (tester) async {
+    testWidgets('navigates to join band from empty state CTA', (tester) async {
       final router = await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/bands',
         overrides: overridesFor(Stream<List<Band>>.value([])),
       );
 
-      await tester.tap(find.byTooltip('Join'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Join band'));
       await tester.pumpAndSettle();
 
-      expect(currentRouterUri(router).path, '/main/join-band');
+      // join-band is a pushed route: the reported URI goes stale; the
+      // rendered marker is the navigation signal.
+      expect(find.text('route:join-band'), findsOneWidget);
+    });
+
+    testWidgets('navigates to join band from the screen menu', (tester) async {
+      final router = await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/bands',
+        overrides: overridesFor(
+          Stream<List<Band>>.value([
+            MockDataHelper.createMockBand(id: '1', name: 'Jazz Quartet'),
+          ]),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Join band'));
+      await tester.pumpAndSettle();
+
+      // join-band is a pushed route: the reported URI goes stale; the
+      // rendered marker is the navigation signal.
       expect(find.text('route:join-band'), findsOneWidget);
     });
 

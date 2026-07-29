@@ -130,10 +130,7 @@ void main() {
           beatModes: beatModes,
         );
 
-        final song = formData.toSong(
-          id: 'song-1',
-          createdAt: DateTime(2024),
-        );
+        final song = formData.toSong(id: 'song-1', createdAt: DateTime(2024));
 
         expect(song.title, 'Test Song');
         expect(song.artist, 'Test Artist');
@@ -152,14 +149,13 @@ void main() {
           artist: 'Test Artist',
         );
 
-        final song = formData.toSong(
-          id: 'song-2',
-          createdAt: DateTime(2024),
-        );
+        final song = formData.toSong(id: 'song-2', createdAt: DateTime(2024));
 
         expect(song.accentBeats, 4);
         expect(song.regularBeats, 1);
         expect(song.beatModes, isEmpty);
+        expect(song.originalKey, isNull);
+        expect(song.ourKey, isNull);
       });
 
       test('creates Song with band sharing fields and metronome settings', () {
@@ -345,7 +341,7 @@ void main() {
         expect(formData.originalBpm, '120');
         expect(formData.ourBpm, '125');
         expect(formData.notes, 'Test notes');
-        expect(formData.originalKey, 'C');
+        expect(formData.originalKey, isEmpty);
         expect(formData.ourKey, 'dm');
         expect(formData.spotifyUrl, 'https://spotify.com/track');
         expect(formData.links.length, 1);
@@ -367,10 +363,7 @@ void main() {
         );
         formData.updateBeatMode(0, 0, BeatMode.accent);
 
-        final song = formData.toSong(
-          id: 'song-1',
-          createdAt: DateTime(2024),
-        );
+        final song = formData.toSong(id: 'song-1', createdAt: DateTime(2024));
 
         expect(song.title, 'Full Song');
         expect(song.artist, 'Full Artist');

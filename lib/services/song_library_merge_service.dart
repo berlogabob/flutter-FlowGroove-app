@@ -50,14 +50,46 @@ class SongLibraryMergeService {
 
     final changedSetlists = <String>[];
     for (final setlist in setlists) {
-      if (!setlist.songIds.contains(duplicate.id)) continue;
-      final rewritten = <String>[];
+      // effectiveItems covers both legacy (songIds-only) and modern
+      // (items-based) setlists, so this catches the duplicate either way.
+      final containsDuplicate = setlist.effectiveItems.any(
+        (item) => item.songId == duplicate.id,
+      );
+      if (!containsDuplicate) continue;
+
+      // Rewrite items (the source of truth once a setlist has any) — this is
+      // what toJson()/effectiveItems actually persist. Rewriting only
+      // songIds here is a no-op for a setlist that already has items, since
+      // effectiveItems prefers items over songIds.
+      final seenItemSongIds = <String>{};
+      final rewrittenItems = <SetlistItem>[];
+      for (final item in setlist.items) {
+        final newSongId = item.songId == duplicate.id
+            ? keeperBefore.id
+            : item.songId;
+        if (!seenItemSongIds.add(newSongId)) continue; // dedupe, keep first
+        rewrittenItems.add(
+          newSongId == item.songId ? item : item.copyWith(songId: newSongId),
+        );
+      }
+
+      // Keep the legacy songIds rewrite too: for a setlist whose items are
+      // still empty, effectiveItems falls back to songIds, so this is what
+      // actually gets persisted for those.
+      final rewrittenSongIds = <String>[];
       for (final id in setlist.songIds) {
         final replacement = id == duplicate.id ? keeperBefore.id : id;
-        if (!rewritten.contains(replacement)) rewritten.add(replacement);
+        if (!rewrittenSongIds.contains(replacement)) {
+          rewrittenSongIds.add(replacement);
+        }
       }
+
       await setlistRepository.saveSetlist(
-        setlist.copyWith(songIds: rewritten, updatedAt: DateTime.now()),
+        setlist.copyWith(
+          items: rewrittenItems,
+          songIds: rewrittenSongIds,
+          updatedAt: DateTime.now(),
+        ),
         uid: uid,
       );
       changedSetlists.add(setlist.id);
@@ -74,6 +106,79 @@ class SongLibraryMergeService {
           'duplicateId': duplicate.id,
           'keeperBefore': keeperBefore.toJson(),
           'duplicateBefore': duplicate.toJson(),
+          'mergedSong': merged.toJson(),
+          'rewrittenSetlistIds': changedSetlists,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+  }
+
+  /// Cluster merge (#81): one merged song survives, every other member is
+  /// deleted, and setlists are rewritten in a SINGLE pass — a setlist that
+  /// referenced two duplicates from the same cluster ends up with one entry
+  /// (looping the pairwise merge would clobber earlier rewrites).
+  Future<void> mergeCluster({
+    required String uid,
+    required Song keeperBefore,
+    required List<Song> duplicates,
+    required Song merged,
+    required List<Setlist> setlists,
+    required SongRepository songRepository,
+    required SetlistRepository setlistRepository,
+  }) async {
+    await songRepository.saveSong(merged, uid: uid);
+
+    final duplicateIds = duplicates.map((s) => s.id).toSet();
+    final changedSetlists = <String>[];
+    for (final setlist in setlists) {
+      final touches = setlist.effectiveItems.any(
+        (item) => duplicateIds.contains(item.songId),
+      );
+      if (!touches) continue;
+
+      final seenItemSongIds = <String>{};
+      final rewrittenItems = <SetlistItem>[];
+      for (final item in setlist.items) {
+        final newSongId = duplicateIds.contains(item.songId)
+            ? keeperBefore.id
+            : item.songId;
+        if (!seenItemSongIds.add(newSongId)) continue;
+        rewrittenItems.add(
+          newSongId == item.songId ? item : item.copyWith(songId: newSongId),
+        );
+      }
+      final rewrittenSongIds = <String>[];
+      for (final id in setlist.songIds) {
+        final replacement = duplicateIds.contains(id) ? keeperBefore.id : id;
+        if (!rewrittenSongIds.contains(replacement)) {
+          rewrittenSongIds.add(replacement);
+        }
+      }
+
+      await setlistRepository.saveSetlist(
+        setlist.copyWith(
+          items: rewrittenItems,
+          songIds: rewrittenSongIds,
+          updatedAt: DateTime.now(),
+        ),
+        uid: uid,
+      );
+      changedSetlists.add(setlist.id);
+    }
+
+    for (final duplicate in duplicates) {
+      await songRepository.deleteSong(duplicate.id, uid: uid);
+    }
+
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('song_merges')
+        .add({
+          'type': 'cluster_merge',
+          'keeperId': keeperBefore.id,
+          'duplicateIds': duplicates.map((s) => s.id).toList(),
+          'keeperBefore': keeperBefore.toJson(),
+          'duplicatesBefore': duplicates.map((s) => s.toJson()).toList(),
           'mergedSong': merged.toJson(),
           'rewrittenSetlistIds': changedSetlists,
           'createdAt': FieldValue.serverTimestamp(),

@@ -41,7 +41,6 @@ class TempoControlCluster extends ConsumerWidget {
                   child: _CornerStepButton(
                     label: '−5',
                     semanticLabel: 'Decrease tempo by 5',
-                    accent: false,
                     onStep: () => notifier.adjustTempoFine(-5),
                   ),
                 ),
@@ -51,7 +50,6 @@ class TempoControlCluster extends ConsumerWidget {
                   child: _CornerStepButton(
                     label: '+5',
                     semanticLabel: 'Increase tempo by 5',
-                    accent: true,
                     onStep: () => notifier.adjustTempoFine(5),
                   ),
                 ),
@@ -63,7 +61,6 @@ class TempoControlCluster extends ConsumerWidget {
                   child: _CornerStepButton(
                     label: '−1',
                     semanticLabel: 'Decrease tempo by 1',
-                    accent: false,
                     repeat: true,
                     onStep: () => notifier.adjustTempoFine(-1),
                   ),
@@ -74,7 +71,6 @@ class TempoControlCluster extends ConsumerWidget {
                   child: _CornerStepButton(
                     label: '+1',
                     semanticLabel: 'Increase tempo by 1',
-                    accent: true,
                     repeat: true,
                     onStep: () => notifier.adjustTempoFine(1),
                   ),
@@ -94,14 +90,12 @@ class _CornerStepButton extends StatefulWidget {
   const _CornerStepButton({
     required this.label,
     required this.semanticLabel,
-    required this.accent,
     required this.onStep,
     this.repeat = false,
   });
 
   final String label;
   final String semanticLabel;
-  final bool accent;
   final VoidCallback onStep;
   final bool repeat;
 
@@ -154,12 +148,10 @@ class _CornerStepButtonState extends State<_CornerStepButton> {
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.accent
-        ? MonoPulseColors.accentOrange
-        : MonoPulseColors.textSecondary;
-    final background = widget.accent
-        ? MonoPulseColors.accentOrange10
-        : MonoPulseColors.surfaceRaised;
+    // Increment and decrement share one neutral style so neither reads as
+    // primary/disabled; orange is reserved for the Play transport (UX audit F-009).
+    final color = context.mp.textSecondary;
+    final background = context.mp.surfaceRaised;
 
     return Semantics(
       button: true,
@@ -181,9 +173,7 @@ class _CornerStepButtonState extends State<_CornerStepButton> {
               shape: BoxShape.circle,
               color: background,
               border: Border.all(
-                color: widget.accent
-                    ? MonoPulseColors.accentOrange.withValues(alpha: 0.5)
-                    : MonoPulseColors.borderDefault,
+                color: context.mp.borderDefault,
                 width: 1.5,
               ),
             ),

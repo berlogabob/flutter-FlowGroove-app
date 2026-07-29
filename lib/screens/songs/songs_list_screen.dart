@@ -8,14 +8,17 @@ import '../../models/api_error.dart';
 import '../../models/band.dart';
 import '../../models/song.dart';
 import '../../models/song_import_plan.dart';
-import '../../models/tuner_launch_context.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
-import '../../providers/data/metronome_provider.dart';
+import '../../providers/permissions_provider.dart';
+import '../../services/analytics_service.dart';
 import '../../services/song_library_merge_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/key_utils.dart';
+import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
@@ -24,9 +27,9 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/tag_cloud_widget.dart';
 import '../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../widgets/unified_item/song_card_actions.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
-import '../../widgets/unified_item/unified_item_model.dart';
 import 'components/csv_import_export/csv_import_export.dart';
 
 /// Notifier for songs filter/sort state.
@@ -73,7 +76,6 @@ final songsFilterSortProvider =
 
 /// State class for songs filter/sort.
 class SongsFilterSortState {
-
   const SongsFilterSortState({
     this.sortOption = SortOption.alphabetical,
     this.filterText = '',
@@ -113,12 +115,16 @@ class SongsListScreen extends ConsumerStatefulWidget {
   ConsumerState<SongsListScreen> createState() => _SongsListScreenState();
 }
 
-class _SongsListScreenState extends ConsumerState<SongsListScreen> {
+class _SongsListScreenState extends ConsumerState<SongsListScreen>
+    with SongCardActions {
   ApiError? _currentError;
   final TextEditingController _filterController = TextEditingController();
   List<Song>? _manualOrder; // Store manual order for manual sort mode
   Map<String, int> _tagCloud = {};
   final bool _loadingTagCloud = false;
+  // Dedupes filter_zero_results so it fires once per filter value, not once
+  // per rebuild (build() re-runs on every provider tick).
+  String? _loggedZeroResultsKey;
 
   @override
   void initState() {
@@ -199,12 +205,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
       if (user == null) {
         if (!mounted) return;
         closeProgress();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error: User not logged in'),
-            backgroundColor: MonoPulseColors.error,
-          ),
-        );
+        showAppSnackBar(context, 'Error: User not logged in', error: true);
         return;
       }
 
@@ -278,12 +279,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to import songs'),
-            backgroundColor: MonoPulseColors.error,
-          ),
-        );
+        showAppSnackBar(context, 'Failed to import songs', error: true);
       }
 
       // Refresh songs list
@@ -291,12 +287,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     } catch (e) {
       if (!mounted) return;
       closeProgress();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Import error: $e'),
-          backgroundColor: MonoPulseColors.error,
-        ),
-      );
+      showAppSnackBar(context, 'Import error: $e', error: true);
     }
   }
 
@@ -318,12 +309,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     );
   }
 
-  void _runAfterPopupClose(Future<void> Function() action) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      unawaited(action());
-    });
-  }
+  // (The app menu sheet already closes itself and defers each action to the
+  // next frame, so the old _runAfterPopupClose wrapper is gone.)
 
   /// Filter and sort songs based on search query, key, BPM, tag, and sort option.
   List<Song> _filterAndSortSongs(List<Song> songs) {
@@ -348,9 +335,10 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         }
       }
 
-      // Key filter
-      if (keyFilter != null && song.ourKey != null) {
-        if (song.ourKey!.toLowerCase() != keyFilter.toLowerCase()) {
+      // Key filter (canonicalized: flats == sharps, case-insensitive; a
+      // song with no key never matches a specific key chip).
+      if (keyFilter != null && keyFilter.isNotEmpty) {
+        if (!keyMatchesFilter(song.ourKey, keyFilter)) {
           return false;
         }
       }
@@ -423,8 +411,35 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     ref.read(errorStateProvider.notifier).handleError(apiError);
   }
 
+  /// The 12 chromatic root notes (sharp spelling), used to build both the
+  /// major and minor key filter chips.
+  static const _keyRoots = [
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
+  ];
+
   /// Show filter options bottom sheet.
   void _showFilterOptions() {
+    // Local (non-provider) UI state for the Major/Minor toggle. Declared
+    // here, outside the StatefulBuilder's rebuilding closure, so it
+    // survives setModalState calls. Defaults to whichever mode the current
+    // filter (if any) is already in.
+    var keyIsMinor =
+        canonicalKey(
+          ref.read(songsFilterSortProvider).keyFilter,
+        )?.endsWith('m') ??
+        false;
+
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -432,129 +447,153 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           final state = ref.read(songsFilterSortProvider);
           final currentKey = state.keyFilter;
           final currentBpm = state.bpmFilter;
+          final canonicalCurrentKey = canonicalKey(currentKey);
 
-          return Container(
-            padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Filter Options',
-                  style: MonoPulseTypography.titleLarge.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Key filter
-                const Text(
-                  'Key',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    AppFilterChip(
-                      label: 'All',
-                      selected: currentKey == null,
-                      onSelected: (_) {
-                        ref
-                            .read(songsFilterSortProvider.notifier)
-                            .setKeyFilter(null);
-                        setModalState(() {});
-                      },
+          return SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Filter Options',
+                    style: MonoPulseTypography.titleLarge.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                    ...[
-                      'C',
-                      'C#',
-                      'D',
-                      'D#',
-                      'E',
-                      'F',
-                      'F#',
-                      'G',
-                      'G#',
-                      'A',
-                      'A#',
-                      'B',
-                    ].map(
-                      (key) => AppFilterChip(
-                        label: key,
-                        selected: currentKey == key,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Key filter
+                  const Text(
+                    'Key',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppFilterChip(
+                          label: 'Major',
+                          selected: !keyIsMinor,
+                          onSelected: (_) {
+                            setModalState(() => keyIsMinor = false);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: AppFilterChip(
+                          label: 'Minor',
+                          selected: keyIsMinor,
+                          onSelected: (_) {
+                            setModalState(() => keyIsMinor = true);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      AppFilterChip(
+                        label: 'All',
+                        selected: currentKey == null,
                         onSelected: (_) {
                           ref
                               .read(songsFilterSortProvider.notifier)
-                              .setKeyFilter(key);
+                              .setKeyFilter(null);
                           setModalState(() {});
                         },
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // BPM filter
-                const Text(
-                  'BPM',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButton<int?>(
-                        isExpanded: true,
-                        value: currentBpm,
-                        hint: const Text('Any BPM'),
-                        items: [
-                          const DropdownMenuItem(
-                            child: Text('Any BPM'),
-                          ),
-                          ...[60, 80, 100, 120, 140, 160, 180].map(
-                            (bpm) => DropdownMenuItem(
-                              value: bpm,
-                              child: Text('$bpm BPM'),
-                            ),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          ref
-                              .read(songsFilterSortProvider.notifier)
-                              .setBpmFilter(value);
-                          setModalState(() {});
-                        },
-                      ),
-                    ),
-                    if (currentBpm != null)
-                      IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          ref
-                              .read(songsFilterSortProvider.notifier)
-                              .setBpmFilter(null);
-                          setModalState(() {});
-                        },
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Clear all filters button
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      ref.read(songsFilterSortProvider.notifier).clearFilters();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Clear All Filters'),
+                      ..._keyRoots.map((root) {
+                        final value = keyIsMinor ? '${root}m' : root;
+                        final selected =
+                            canonicalCurrentKey != null &&
+                            canonicalCurrentKey == canonicalKey(value);
+                        return AppFilterChip(
+                          label: value,
+                          selected: selected,
+                          onSelected: (_) {
+                            ref
+                                .read(songsFilterSortProvider.notifier)
+                                .setKeyFilter(value);
+                            setModalState(() {});
+                          },
+                        );
+                      }),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 8),
-              ],
+                  const SizedBox(height: 16),
+
+                  // BPM filter
+                  const Text(
+                    'BPM',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    'Exact Our BPM; songs without one stay visible',
+                    style: MonoPulseTypography.bodySmall.copyWith(
+                      color: context.mp.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButton<int?>(
+                          isExpanded: true,
+                          value: currentBpm,
+                          hint: const Text('Any BPM'),
+                          items: [
+                            const DropdownMenuItem(child: Text('Any BPM')),
+                            ...[60, 80, 100, 120, 140, 160, 180].map(
+                              (bpm) => DropdownMenuItem(
+                                value: bpm,
+                                child: Text('Exact $bpm BPM'),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            ref
+                                .read(songsFilterSortProvider.notifier)
+                                .setBpmFilter(value);
+                            setModalState(() {});
+                          },
+                        ),
+                      ),
+                      if (currentBpm != null)
+                        IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            ref
+                                .read(songsFilterSortProvider.notifier)
+                                .setBpmFilter(null);
+                            setModalState(() {});
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Clear all filters button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        ref
+                            .read(songsFilterSortProvider.notifier)
+                            .clearFilters();
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Clear All Filters'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
           );
         },
@@ -566,41 +605,50 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   Widget build(BuildContext context) {
     final songsAsync = ref.watch(songsProvider);
     final bandsAsync = ref.watch(bandsProvider);
+    // Rebuild cards when the pinned quick action changes.
+    ref.watch(songQuickActionProvider);
     final exportSongs = songsAsync.value;
     final canExport = exportSongs != null && exportSongs.isNotEmpty;
+    final canEdit = ref.watch(
+      canEditProvider,
+    ); // false for the shared demo account
 
     return StandardScreenScaffold(
       title: 'Songs',
       showBackButton: false, // Hide back button for main tabs
       menuItems: [
-        PopupMenuItem<void>(
-          enabled: canExport,
-          onTap: canExport
-              ? () => _runAfterPopupClose(
-                  () async => context.pushNamed('song-duplicates'),
-                )
-              : null,
-          child: const Text('Find duplicates'),
+        AppMenuItem(
+          icon: Icons.library_music_outlined,
+          label: 'Browse catalog',
+          onTap: () => context.pushNamed('canonical-browse'),
         ),
-        PopupMenuItem<void>(
-          onTap: () => _runAfterPopupClose(_handleImport),
-          child: const Text('Import from CSV'),
-        ),
-        PopupMenuItem<void>(
-          enabled: canExport,
+        AppMenuItem(
+          icon: Icons.control_point_duplicate_outlined,
+          label: 'Find duplicates',
           onTap: canExport
-              ? () => _runAfterPopupClose(
-                  () => _handleExport(List<Song>.from(exportSongs)),
-                )
+              ? () async => context.pushNamed('song-duplicates')
               : null,
-          child: const Text('Export to CSV'),
+        ),
+        AppMenuItem(
+          icon: Icons.file_upload_outlined,
+          label: 'Import from CSV',
+          onTap: _handleImport,
+        ),
+        AppMenuItem(
+          icon: Icons.file_download_outlined,
+          label: 'Export to CSV',
+          onTap: canExport
+              ? () => _handleExport(List<Song>.from(exportSongs))
+              : null,
         ),
       ],
-      floatingActionButton: SingleFab(
-        icon: Icons.add,
-        onPressed: () => context.goNamed('add-song'),
-        heroTag: 'songs_fab',
-      ),
+      floatingActionButton: canEdit
+          ? SingleFab(
+              icon: Icons.add,
+              onPressed: () => context.goNamed('add-song'),
+              heroTag: 'songs_fab',
+            )
+          : null,
       body: _buildBody(songsAsync, bandsAsync),
     );
   }
@@ -655,6 +703,9 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     final filteredSongs = _filterAndSortSongs(songs);
     final bands = bandsAsync.value ?? [];
     final state = ref.watch(songsFilterSortProvider);
+    final canEdit = ref.watch(canEditProvider); // demo account is read-only
+
+    _maybeLogFilterZeroResults(songs, filteredSongs, state);
 
     // Initialize manual order when entering manual sort mode for the first time
     if (state.sortOption == SortOption.manual && _manualOrder == null) {
@@ -667,8 +718,8 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     final songAdapters = filteredSongs.map((song) {
       return SongItemAdapter(
         song,
-        onEdit: () => _navigateToEdit(song),
-        onDelete: () => _deleteSong(song),
+        onEdit: canEdit ? () => _navigateToEdit(song) : null,
+        onDelete: canEdit ? () => _deleteSong(song) : null,
         onTap: () => _navigateToEdit(song),
       );
     }).toList();
@@ -767,7 +818,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: MonoPulseSpacing.lg,
-              vertical: 8,
+              vertical: MonoPulseSpacing.sm,
             ),
             child: _buildTagCloud(songs),
           ),
@@ -776,7 +827,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: MonoPulseSpacing.lg,
-            vertical: 8,
+            vertical: MonoPulseSpacing.sm,
           ),
           child: Row(
             children: [
@@ -792,7 +843,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: MonoPulseSpacing.md,
-                    vertical: 8,
+                    vertical: MonoPulseSpacing.sm,
                   ),
                 ),
               ),
@@ -800,7 +851,7 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
               Text(
                 '${filteredSongs.length} ${filteredSongs.length == 1 ? 'song' : 'songs'}',
                 style: MonoPulseTypography.bodySmall.copyWith(
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                 ),
               ),
             ],
@@ -873,80 +924,52 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
   ) {
     return UnifiedItemList<SongItemAdapter>(
       items: songAdapters,
+      padding: const EdgeInsets.only(bottom: 120), // clear the FAB (F-004)
       enableReorder: enableReorder,
       onReorder: _handleReorder,
       onDelete: _deleteSongByIndex,
       onEdit: _navigateToEditByIndex,
       additionalActionsBuilder: (index) =>
-          _buildSongActions(songAdapters[index], bands),
+          buildSongActions(songAdapters[index].song, bands: bands),
     );
   }
 
-  List<UnifiedItemAction> _buildSongActions(
-    SongItemAdapter adapter,
-    List<Band> bands,
+  /// Logs `filter_zero_results` once per distinct key/BPM filter value that
+  /// produces an empty result set (not on every rebuild, and not for a plain
+  /// search-text miss — the audit scoped this to the key/BPM filters).
+  void _maybeLogFilterZeroResults(
+    List<Song> songs,
+    List<Song> filteredSongs,
+    SongsFilterSortState state,
   ) {
-    return [
-      _OpenInTunerAction(onPressed: () => _openInTuner(adapter.song)),
-      if (_hasMetronomeData(adapter.song))
-        _OpenInMetronomeAction(onPressed: () => _openInMetronome(adapter.song)),
-      if (bands.isNotEmpty) _buildAddToBandAction(adapter, bands),
-    ];
-  }
-
-  bool _hasMetronomeData(Song song) {
-    return song.ourBPM != null ||
-        song.originalBPM != null ||
-        song.accentBeats != 4 ||
-        song.regularBeats != 1 ||
-        song.beatModes.isNotEmpty;
-  }
-
-  /// Build "Add to Band" action for the trailing actions.
-  UnifiedItemAction _buildAddToBandAction(
-    SongItemAdapter adapter,
-    List<Band> bands,
-  ) {
-    return _AddToBandAction(
-      adapter: adapter,
-      bands: bands,
-      context: context,
-      ref: ref,
-      onAddToBand: _addToBand,
-    );
-  }
-
-  void _openInMetronome(Song song) {
-    final metronome = ref.read(metronomeProvider.notifier);
-    if (ref.read(metronomeProvider).isPlaying) {
-      metronome.stop();
+    if (songs.isEmpty || filteredSongs.isNotEmpty) {
+      _loggedZeroResultsKey = null;
+      return;
     }
-    metronome.loadSongTempo(song);
-    context.goNamed('metronome');
-  }
-
-  void _openInTuner(Song song) {
-    final user = ref.read(currentUserProvider).value;
-    unawaited(
-      context.pushNamed<void>(
-        'tuner',
-        extra: TunerLaunchContext(
-          song: song,
-          saveSong: user == null
-              ? null
-              : (updatedSong) async {
-                  await ref
-                      .read(songRepositoryProvider)
-                      .saveSong(updatedSong, uid: user.uid);
-                  ref.invalidate(songsProvider);
-                },
-        ),
-      ),
-    );
+    String? filterType;
+    String? value;
+    if (state.keyFilter != null && state.keyFilter!.isNotEmpty) {
+      filterType = 'key';
+      value = state.keyFilter!;
+    } else if (state.bpmFilter != null) {
+      filterType = 'bpm';
+      value = state.bpmFilter.toString();
+    }
+    if (filterType == null || value == null) {
+      _loggedZeroResultsKey = null;
+      return;
+    }
+    final key = '$filterType:$value';
+    if (_loggedZeroResultsKey == key) return;
+    _loggedZeroResultsKey = key;
+    AnalyticsService.logFilterZeroResults(filterType: filterType, value: value);
   }
 
   /// Navigate to edit song screen.
   void _navigateToEdit(Song song) {
+    if (ref.read(songsFilterSortProvider).filterText.trim().isNotEmpty) {
+      AnalyticsService.logSearchSongOpen();
+    }
     context.pushNamed(
       'edit-song',
       pathParameters: {'id': song.id},
@@ -989,16 +1012,12 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
     } on ApiError catch (e) {
       _handleStreamError(e, StackTrace.current);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
+      showAppSnackBar(context, e.message);
     } catch (e, stackTrace) {
       final error = ApiError.fromException(e, stackTrace: stackTrace);
       _handleStreamError(error, stackTrace);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      showAppSnackBar(context, error.message);
     }
   }
 
@@ -1030,122 +1049,5 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen> {
         _manualOrder = newOrder;
       });
     }
-  }
-
-  /// Add a song to a band.
-  Future<void> _addToBand(Song song, String bandId) async {
-    final userAsync = ref.read(currentUserProvider);
-    final user = userAsync.value;
-    if (user == null) return;
-
-    try {
-      await ref
-          .read(songRepositoryProvider)
-          .addSongToBand(
-            song: song,
-            bandId: bandId,
-            contributorId: user.uid,
-            contributorName: user.displayName ?? user.email ?? 'Unknown',
-          );
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Added "${song.title}" to band'),
-          backgroundColor: MonoPulseColors.success,
-        ),
-      );
-    } on ApiError catch (e) {
-      _handleStreamError(e, StackTrace.current);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message)));
-    } catch (e, stackTrace) {
-      final error = ApiError.fromException(e, stackTrace: stackTrace);
-      _handleStreamError(error, stackTrace);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
-    }
-  }
-}
-
-class _OpenInMetronomeAction implements UnifiedItemAction {
-  const _OpenInMetronomeAction({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      key: const ValueKey('open-in-metronome-action'),
-      icon: const Icon(Icons.speed, size: 20),
-      color: MonoPulseColors.accentOrange,
-      tooltip: 'Open in Metronome',
-      onPressed: onPressed,
-    );
-  }
-}
-
-class _OpenInTunerAction implements UnifiedItemAction {
-  const _OpenInTunerAction({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      key: const ValueKey('open-in-tuner-action'),
-      icon: const Icon(Icons.tune, size: 20),
-      color: MonoPulseColors.accentOrange,
-      tooltip: 'Open in Tuner',
-      onPressed: onPressed,
-    );
-  }
-}
-
-/// Custom action for "Add to Band" functionality.
-class _AddToBandAction implements UnifiedItemAction {
-
-  _AddToBandAction({
-    required this.adapter,
-    required this.bands,
-    required this.context,
-    required this.ref,
-    required this.onAddToBand,
-  });
-  final SongItemAdapter adapter;
-  final List<Band> bands;
-  final BuildContext context;
-  final WidgetRef ref;
-  final Future<void> Function(Song, String) onAddToBand;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.add_to_queue, size: 20),
-      tooltip: 'Add to Band',
-      onSelected: (bandId) async {
-        await onAddToBand(adapter.song, bandId);
-      },
-      itemBuilder: (context) => [
-        ...bands.map(
-          (band) => PopupMenuItem<String>(
-            value: band.id,
-            child: Row(
-              children: [
-                const Icon(Icons.groups, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(band.name, overflow: TextOverflow.ellipsis),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }

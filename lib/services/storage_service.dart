@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,11 +10,27 @@ import '../models/api_error.dart';
 /// Service for handling Firebase Storage operations.
 ///
 /// Provides methods for uploading, downloading, and deleting files
-/// in Firebase Storage, with a focus on profile pictures.
+/// in Firebase Storage (profile pictures, band avatars, and custom paths).
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  StorageService({
+    FirebaseStorage? storage,
+    FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+  })  : _injectedStorage = storage,
+        _injectedAuth = auth,
+        _injectedFirestore = firestore;
+
+  // Resolved on first use, not in the constructor: `.instance` throws unless
+  // Firebase is initialised, and merely constructing this service (or a
+  // provider that holds one) must not require that.
+  final FirebaseStorage? _injectedStorage;
+  final FirebaseAuth? _injectedAuth;
+  final FirebaseFirestore? _injectedFirestore;
+
+  FirebaseStorage get _storage => _injectedStorage ?? FirebaseStorage.instance;
+  FirebaseAuth get _auth => _injectedAuth ?? FirebaseAuth.instance;
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? FirebaseFirestore.instance;
 
   /// Helper method to check if user is authenticated.
   void _requireAuth() {
@@ -37,12 +54,40 @@ class StorageService {
 
   /// Upload a profile picture to Firebase Storage.
   ///
-  /// The file is stored at: profile_pictures/{uid}.jpg
+  /// The image is stored at: profile_pictures/{uid}.jpg
+  ///
+  /// Takes raw [bytes] (not a File) and uploads via `putData`, because
+  /// `putFile` is not implemented on web. Callers read bytes cross-platform
+  /// via `XFile.readAsBytes()` / `File.readAsBytes()`.
   ///
   /// Returns the download URL of the uploaded file.
   ///
   /// Throws [ApiError] if upload fails or user is not authenticated.
-  Future<String> uploadProfilePicture(File file) async {
+  /// Uploads a Song Lab audio idea (#69) and returns its download URL.
+  /// Path: lab_audio/{user|band}/{ownerId}/{songId}/{entryId}.{ext} — matches
+  /// storage.rules. 25MB is enforced client-side AND in the rules.
+  Future<String> uploadLabAudio(
+    Uint8List bytes, {
+    required String? bandId,
+    required String songId,
+    required String entryId,
+    String ext = 'm4a',
+    String contentType = 'audio/mp4',
+  }) async {
+    _requireAuth();
+    if (bytes.length >= 25 * 1024 * 1024) {
+      throw Exception('Recording is larger than 25MB');
+    }
+    final owner = bandId == null ? 'user/$_currentUserId' : 'band/$bandId';
+    final ref = _storage.ref().child('lab_audio/$owner/$songId/$entryId.$ext');
+    final snapshot = await ref.putData(
+      bytes,
+      SettableMetadata(contentType: contentType),
+    );
+    return snapshot.ref.getDownloadURL();
+  }
+
+  Future<String> uploadProfilePicture(Uint8List bytes) async {
     try {
       _requireAuth();
       final uid = _currentUserId;
@@ -50,11 +95,11 @@ class StorageService {
       // Create a reference to the file location
       final ref = _storage.ref().child('profile_pictures').child('$uid.jpg');
 
-      // Upload the file
-      final uploadTask = ref.putFile(file);
-
-      // Wait for upload to complete
-      final snapshot = await uploadTask;
+      // putData works on web and mobile; putFile is web-unimplemented.
+      final snapshot = await ref.putData(
+        bytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
 
       // Get the download URL
       final downloadUrl = await snapshot.ref.getDownloadURL();
@@ -62,7 +107,7 @@ class StorageService {
       // Update Firestore user document with the new photo URL
       await _firestore.collection('users').doc(uid).set({
         'photoURL': downloadUrl,
-        'photoSource': 'firebase',
+        'photoSource': 'upload',
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
@@ -71,7 +116,7 @@ class StorageService {
 
       return downloadUrl;
     } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message: 'You do not have permission to upload a profile picture.',
           exception: e,
@@ -116,7 +161,7 @@ class StorageService {
       // Update Firebase Auth profile
       await _auth.currentUser!.updatePhotoURL(null);
     } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message:
               'You do not have permission to delete the profile picture.',
@@ -160,6 +205,71 @@ class StorageService {
     }
   }
 
+  /// Upload a band avatar to `band_avatars/{bandId}` (extension-less, so the
+  /// Storage rule's {bandId} wildcard binds to the real band document id) and
+  /// store the download URL on the band document. Caller must be a band admin
+  /// (enforced by Storage + Firestore rules).
+  Future<String> uploadBandAvatar(File file, String bandId) async {
+    try {
+      _requireAuth();
+      // Stored without a file extension so the Storage rule's {bandId}
+      // wildcard binds to the real band document id for the admin lookup.
+      final ref = _storage.ref().child('band_avatars').child(bandId);
+      final snapshot = await ref.putFile(
+        file,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      await _firestore.collection('bands').doc(bandId).set({
+        'photoURL': downloadUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return downloadUrl;
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
+        throw ApiError.permission(
+          message: 'Only band admins can change the band avatar.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Delete a band avatar from Storage and clear `photoURL` on the band document.
+  ///
+  /// If the file does not exist in Storage the deletion is skipped silently.
+  /// Throws [ApiError] if the caller lacks permission or another error occurs.
+  Future<void> deleteBandAvatar(String bandId) async {
+    try {
+      _requireAuth();
+      final ref = _storage.ref().child('band_avatars').child(bandId);
+      try {
+        await ref.delete();
+      } on FirebaseException catch (e) {
+        if (e.code != 'not-found') rethrow;
+      }
+      await _firestore.collection('bands').doc(bandId).set({
+        'photoURL': null,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
+        throw ApiError.permission(
+          message: 'Only band admins can change the band avatar.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
   /// Upload a file to a custom path in Firebase Storage.
   ///
   /// Use this for other file types beyond profile pictures.
@@ -183,7 +293,7 @@ class StorageService {
       // Get the download URL
       return await snapshot.ref.getDownloadURL();
     } on FirebaseException catch (e, stackTrace) {
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message: 'You do not have permission to upload this file.',
           exception: e,
@@ -193,6 +303,27 @@ class StorageService {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Deletes the object behind a download [url].
+  ///
+  /// `refFromURL` parses the object path back out of the URL, so callers don't
+  /// have to store or re-derive it — which matters because a linked idea's
+  /// object stays under `_inbox/` while its document moves to the song, so the
+  /// path can't be reconstructed from the entry.
+  ///
+  /// Returns true when the object is gone (including when it never existed);
+  /// false when it couldn't be removed, so a caller can retry later.
+  Future<bool> deleteByUrl(String url) async {
+    try {
+      await _storage.refFromURL(url).delete();
+      return true;
+    } on FirebaseException catch (e) {
+      return e.code == 'object-not-found' || e.code == 'not-found';
+    } catch (_) {
+      // Malformed URL, offline, anything else: leave it queued.
+      return false;
     }
   }
 
@@ -213,7 +344,7 @@ class StorageService {
         // File doesn't exist, nothing to do
         return;
       }
-      if (e.code == 'permission-denied') {
+      if (e.code == 'permission-denied' || e.code == 'unauthorized') {
         throw ApiError.permission(
           message: 'You do not have permission to delete this file.',
           exception: e,

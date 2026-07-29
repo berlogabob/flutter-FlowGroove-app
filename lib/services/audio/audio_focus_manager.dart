@@ -20,9 +20,9 @@ class AudioFocusManager {
 
   bool _hasFocus = false;
   bool _isPaused = false;
-  Function(bool hasFocus)? onFocusChanged;
-  Function()? onShouldPause;
-  Function()? onShouldResume;
+  void Function(bool hasFocus)? onFocusChanged;
+  void Function()? onShouldPause;
+  void Function()? onShouldResume;
 
   /// Check if audio focus is currently held
   bool get hasFocus => _hasFocus;

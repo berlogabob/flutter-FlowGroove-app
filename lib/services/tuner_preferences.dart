@@ -9,6 +9,7 @@ class TunerPreferences {
   static const _presetKey = 'tuner.last_preset_id';
   static const _recentPresetKey = 'tuner.recent_preset_ids';
   static const _droneKey = 'tuner.drone_enabled';
+  static const _transpositionKey = 'tuner.transposition';
 
   Future<SharedPreferences> get _preferences => SharedPreferences.getInstance();
 
@@ -23,6 +24,7 @@ class TunerPreferences {
       'presetId': preferences.getString(_presetKey),
       'recentPresetIds': preferences.getStringList(_recentPresetKey),
       'droneEnabled': preferences.getBool(_droneKey),
+      'transposition': preferences.getInt(_transpositionKey),
     };
   }
 
@@ -53,6 +55,12 @@ class TunerPreferences {
   Future<void> saveSensitivity(double value) async {
     await _ignoreUnavailable(() async {
       await (await _preferences).setDouble(_sensitivityKey, value);
+    });
+  }
+
+  Future<void> saveTransposition(int value) async {
+    await _ignoreUnavailable(() async {
+      await (await _preferences).setInt(_transpositionKey, value);
     });
   }
 

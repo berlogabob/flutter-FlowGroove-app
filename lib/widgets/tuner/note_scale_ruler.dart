@@ -15,6 +15,10 @@ class NoteScaleRuler extends ConsumerWidget {
 
   final double dialSize;
 
+  static const List<String> _noteNames = [
+    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(tunerProvider);
@@ -35,6 +39,7 @@ class NoteScaleRuler extends ConsumerWidget {
               currentNoteIndex: currentNoteIndex,
               scaleIntervals: currentMode.intervals,
               dialSize: dialSize,
+              textTertiary: context.mp.textTertiary,
             ),
           ),
           // Tappable areas - positioned over each note
@@ -47,18 +52,24 @@ class NoteScaleRuler extends ConsumerWidget {
             final y = radius + noteRadius * math.sin(angleRad);
 
             return Positioned(
-              left: x - 20,
-              top: y - 20,
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  notifier.setTargetNoteByIndex(index);
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  color: Colors.transparent,
+              left: x - 22,
+              top: y - 22,
+              // Label the tap target so screen readers can announce it (UX audit
+              // F-014: these note-select areas were unlabeled clickable nodes).
+              child: Semantics(
+                button: true,
+                label: 'Select note ${_noteNames[index]}',
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    notifier.setTargetNoteByIndex(index);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    color: Colors.transparent,
+                  ),
                 ),
               ),
             );
@@ -69,25 +80,50 @@ class NoteScaleRuler extends ConsumerWidget {
   }
 
   int _noteNameToIndex(String note) {
-    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const notes = [
+      'C',
+      'C#',
+      'D',
+      'D#',
+      'E',
+      'F',
+      'F#',
+      'G',
+      'G#',
+      'A',
+      'A#',
+      'B',
+    ];
     final idx = notes.indexOf(note);
     return idx >= 0 ? idx : 0;
   }
 }
 
 class _NoteScaleRulerPainter extends CustomPainter {
-
   _NoteScaleRulerPainter({
     required this.currentNoteIndex,
     required this.scaleIntervals,
     required this.dialSize,
+    required this.textTertiary,
   });
   final int currentNoteIndex;
   final List<int> scaleIntervals;
   final double dialSize;
+  final Color textTertiary;
 
   static const List<String> _notes = [
-    'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
+    'C',
+    'C#',
+    'D',
+    'D#',
+    'E',
+    'F',
+    'F#',
+    'G',
+    'G#',
+    'A',
+    'A#',
+    'B',
   ];
 
   @override
@@ -112,7 +148,7 @@ class _NoteScaleRulerPainter extends CustomPainter {
       // 1. Orange - Current detected note (where dot is)
       // 2. White - Notes in scale (available but not current)
       // 3. Grey - Notes NOT in scale (unavailable)
-      
+
       Color color;
       double fontSize;
       FontWeight fontWeight;
@@ -137,13 +173,14 @@ class _NoteScaleRulerPainter extends CustomPainter {
         tickWidth = 2.0;
         opacity = 0.5;
       } else {
-        // Not in scale: GREY (unavailable)
-        color = MonoPulseColors.textTertiary;
+        // Not in scale: GREY (unavailable). Opacity lifted from 0.3 so the note
+        // letters (which carry real meaning) clear the legibility floor. F-016.
+        color = textTertiary;
         fontSize = 11.0;
         fontWeight = MonoPulseTypography.regular;
         tickLength = 6.0;
         tickWidth = 1.0;
-        opacity = 0.3;
+        opacity = 0.5;
       }
 
       final noteRadius = radius * 1.08;
@@ -189,6 +226,7 @@ class _NoteScaleRulerPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _NoteScaleRulerPainter oldDelegate) {
     return oldDelegate.currentNoteIndex != currentNoteIndex ||
-        oldDelegate.scaleIntervals != scaleIntervals;
+        oldDelegate.scaleIntervals != scaleIntervals ||
+        oldDelegate.textTertiary != textTertiary;
   }
 }

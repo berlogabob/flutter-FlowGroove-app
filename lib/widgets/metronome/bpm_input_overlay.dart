@@ -15,7 +15,7 @@ Future<void> showTempoInputSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: MonoPulseColors.blackSurface,
+    backgroundColor: context.mp.blackSurface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
         top: Radius.circular(MonoPulseRadius.xlarge),
@@ -51,7 +51,7 @@ class _TempoInputSheetState extends ConsumerState<_TempoInputSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: MonoPulseColors.borderDefault,
+              color: context.mp.borderDefault,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -77,21 +77,27 @@ class _ModeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
       ),
       child: Row(
         children: [
-          _segment(label: 'Enter BPM', icon: Icons.keyboard, value: 0),
-          _segment(label: 'Tap Tempo', icon: Icons.touch_app, value: 1),
+          _segment(context, label: 'Enter BPM', icon: Icons.keyboard, value: 0),
+          _segment(
+            context,
+            label: 'Tap Tempo',
+            icon: Icons.touch_app,
+            value: 1,
+          ),
         ],
       ),
     );
   }
 
-  Widget _segment({
+  Widget _segment(
+    BuildContext context, {
     required String label,
     required IconData icon,
     required int value,
@@ -106,9 +112,7 @@ class _ModeToggle extends StatelessWidget {
           curve: MonoPulseAnimation.curveCustom,
           padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.md),
           decoration: BoxDecoration(
-            color: selected
-                ? MonoPulseColors.accentOrange
-                : Colors.transparent,
+            color: selected ? MonoPulseColors.accentOrange : Colors.transparent,
             borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
           ),
           child: Row(
@@ -117,17 +121,13 @@ class _ModeToggle extends StatelessWidget {
               Icon(
                 icon,
                 size: 18,
-                color: selected
-                    ? MonoPulseColors.black
-                    : MonoPulseColors.textSecondary,
+                color: selected ? context.mp.black : context.mp.textSecondary,
               ),
               const SizedBox(width: MonoPulseSpacing.sm),
               Text(
                 label,
                 style: MonoPulseTypography.labelMedium.copyWith(
-                  color: selected
-                      ? MonoPulseColors.black
-                      : MonoPulseColors.textSecondary,
+                  color: selected ? context.mp.black : context.mp.textSecondary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -166,9 +166,9 @@ class _EnterBpmPanelState extends ConsumerState<_EnterBpmPanel> {
   void _submit() {
     final value = int.tryParse(_controller.text);
     if (value != null) {
-      ref.read(metronomeProvider.notifier).setBpm(
-            MetronomeTempoRange.clamp(value),
-          );
+      ref
+          .read(metronomeProvider.notifier)
+          .setBpm(MetronomeTempoRange.clamp(value));
     }
     Navigator.of(context).maybePop();
   }
@@ -185,12 +185,12 @@ class _EnterBpmPanelState extends ConsumerState<_EnterBpmPanel> {
           textAlign: TextAlign.center,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           style: MonoPulseTypography.displayLarge.copyWith(
-            color: MonoPulseColors.textPrimary,
+            color: context.mp.textPrimary,
             fontWeight: FontWeight.w700,
           ),
           decoration: InputDecoration(
             filled: true,
-            fillColor: MonoPulseColors.surfaceRaised,
+            fillColor: context.mp.surfaceRaised,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(MonoPulseRadius.large),
               borderSide: BorderSide.none,
@@ -198,7 +198,7 @@ class _EnterBpmPanelState extends ConsumerState<_EnterBpmPanel> {
             helperText:
                 '${MetronomeTempoRange.minimum}-${MetronomeTempoRange.maximum} BPM',
             helperStyle: MonoPulseTypography.bodySmall.copyWith(
-              color: MonoPulseColors.textTertiary,
+              color: context.mp.textTertiary,
             ),
           ),
           onSubmitted: (_) => _submit(),
@@ -209,7 +209,7 @@ class _EnterBpmPanelState extends ConsumerState<_EnterBpmPanel> {
           child: FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: MonoPulseColors.accentOrange,
-              foregroundColor: MonoPulseColors.black,
+              foregroundColor: context.mp.black,
               padding: const EdgeInsets.symmetric(
                 vertical: MonoPulseSpacing.md,
               ),
@@ -271,11 +271,11 @@ class _TapTempoPanelState extends ConsumerState<_TapTempoPanel> {
             height: 150,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: MonoPulseColors.blackElevated,
+              color: context.mp.blackElevated,
               border: Border.all(
                 color: hasBpm
                     ? MonoPulseColors.accentOrange
-                    : MonoPulseColors.borderDefault,
+                    : context.mp.borderDefault,
                 width: 2,
               ),
             ),
@@ -287,14 +287,14 @@ class _TapTempoPanelState extends ConsumerState<_TapTempoPanel> {
                   style: MonoPulseTypography.displayMedium.copyWith(
                     color: hasBpm
                         ? MonoPulseColors.accentOrange
-                        : MonoPulseColors.textSecondary,
+                        : context.mp.textSecondary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
                   hasBpm ? 'BPM · $_tapCount taps' : 'tap the beat',
                   style: MonoPulseTypography.bodySmall.copyWith(
-                    color: MonoPulseColors.textTertiary,
+                    color: context.mp.textTertiary,
                   ),
                 ),
               ],
@@ -315,7 +315,7 @@ class _TapTempoPanelState extends ConsumerState<_TapTempoPanel> {
               child: FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: MonoPulseColors.accentOrange,
-                  foregroundColor: MonoPulseColors.black,
+                  foregroundColor: context.mp.black,
                 ),
                 onPressed: hasBpm
                     ? () => Navigator.of(context).maybePop()

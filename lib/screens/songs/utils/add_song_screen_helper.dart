@@ -3,20 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../models/api_error.dart';
-import '../../../models/song_suggestion.dart';
 import '../../../providers/auth/error_provider.dart';
-import '../../../services/api/spotify_proxy_service.dart';
-import '../../../services/api/track_analysis_service.dart';
-import '../components/musicbrainz_search_section.dart';
-import '../components/spotify_search_section.dart';
 import '../models/song_form_data.dart';
 
 /// Mixin providing helper methods for the AddSongScreen.
 ///
 /// This mixin contains all the business logic methods for:
 /// - Error handling
-/// - Track analysis fetching
-/// - Search dialogs (Spotify, MusicBrainz, Web)
+/// - Web search shortcut
 /// - UI helpers (messages, dialogs)
 mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
   /// The song form data.
@@ -37,9 +31,6 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
   /// Reference to WidgetRef for provider access.
   WidgetRef get ref;
 
-  /// Apply a MusicBrainz recording through the canonical suggestion flow.
-  void applyMusicBrainzSuggestion(SongSuggestion suggestion, {int? bpm});
-
   /// BuildContext for the state.
   BuildContext get stateContext => context;
 
@@ -54,189 +45,6 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
     ref.read(errorStateProvider.notifier).handleError(error);
   }
 
-  /// Fetch track analysis from external API.
-  Future<void> fetchTrackAnalysis() async {
-    if (formData.title.trim().isEmpty) {
-      showMessage('Enter a song title');
-      return;
-    }
-
-    if (!TrackAnalysisService.isConfigured) {
-      showMessage(
-        'Direct track analysis is disabled. Use Spotify search or backend analysis instead.',
-        duration: const Duration(seconds: 4),
-      );
-      return;
-    }
-
-    showMessage('Fetching BPM and key...');
-
-    try {
-      final result = await TrackAnalysisService.analyzeTrack(
-        formData.title.trim(),
-        formData.artist.trim(),
-      );
-
-      if (result != null && mounted) {
-        setState(() {
-          if (result.bpm != null && result.bpm! > 0) {
-            formData.updateOriginalBpm(result.bpm.toString());
-          }
-          if (result.key != null) {
-            final key = result.key!;
-            formData.originalKeyBase = key
-                .replaceAll(RegExp('[#bm]'), '')
-                .substring(0, 1);
-            formData.originalKeyModifier = key.contains('#')
-                ? '#'
-                : (key.contains('b') ? 'b' : '') +
-                      (result.mode == 'minor' ? 'm' : '');
-          }
-        });
-        showMessage(
-          result.bpm != null
-              ? 'Found: ${result.bpm} BPM, ${result.musicalKey}'
-              : 'Could not find track',
-        );
-      } else if (mounted) {
-        showMessage('Track not found. Try a different search.');
-      }
-    } on ApiError catch (e) {
-      handleError(e);
-      showMessage(e.message);
-    } catch (e, stackTrace) {
-      final error = ApiError.fromException(e, stackTrace: stackTrace);
-      handleError(error);
-      showMessage(error.message);
-    }
-  }
-
-  /// Show MusicBrainz search bottom sheet.
-  void showMusicBrainzSearch() {
-    final query = '${formData.title.trim()} ${formData.artist.trim()}'.trim();
-
-    if (query.isEmpty) {
-      showMessage('Enter a song title or artist to search');
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => MusicBrainzSearchSection(
-          query: query,
-          scrollController: scrollController,
-          onSelect: (recording) {
-            final title = (recording.title?.trim().isNotEmpty ?? false)
-                ? recording.title!.trim()
-                : formData.title.trim();
-            final artist = (recording.artist?.trim().isNotEmpty ?? false)
-                ? recording.artist!.trim()
-                : formData.artist.trim();
-
-            if (title.isEmpty || artist.isEmpty) {
-              showMessage('MusicBrainz result is missing title or artist');
-              return;
-            }
-
-            final fallbackId = '${title.toLowerCase()}-${artist.toLowerCase()}'
-                .replaceAll(RegExp('[^a-z0-9]+'), '-')
-                .replaceAll(RegExp(r'^-+|-+$'), '');
-            final suggestion = SongSuggestion.fromMusicBrainz(
-              id: recording.id ?? fallbackId,
-              title: title,
-              artist: artist,
-              musicBrainzId: recording.id,
-              durationMs: recording.durationMs,
-              album: recording.release,
-            );
-
-            applyMusicBrainzSuggestion(suggestion, bpm: recording.bpm);
-            Navigator.pop(context);
-            showMessage('Added: $title - $artist');
-          },
-        ),
-      ),
-    );
-  }
-
-  /// Show Spotify search bottom sheet.
-  void showSpotifySearch() {
-    if (!SpotifyProxyService.isConfigured) {
-      showMessage(
-        'Spotify search is not configured. '
-        'Use SPOTIFY_PROXY_URL for web or direct credentials for non-web dev builds.',
-        duration: const Duration(seconds: 4),
-      );
-      return;
-    }
-
-    final query = '${formData.title.trim()} ${formData.artist.trim()}'.trim();
-
-    if (query.isEmpty) {
-      showMessage('Enter a song title or artist to search');
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => SpotifySearchSection(
-          query: query,
-          scrollController: scrollController,
-          onSelect: (track, features) {
-            setState(() {
-              if (track.name.isNotEmpty && formData.title.isEmpty) {
-                formData.updateTitle(track.name);
-              }
-              if (track.artist.isNotEmpty && formData.artist.isEmpty) {
-                formData.updateArtist(track.artist);
-              }
-              if (track.spotifyUrl != null && formData.spotifyUrl == null) {
-                formData.updateSpotifyUrl(track.spotifyUrl);
-              }
-              if (features != null &&
-                  features.bpm > 0 &&
-                  formData.originalBpm.isEmpty) {
-                formData.updateOriginalBpm(features.bpm.toString());
-                parseKeyFromSpotify(features.musicalKey);
-              }
-            });
-            Navigator.pop(context);
-            showMessage('Added: ${track.name} - ${track.artist}');
-          },
-        ),
-      ),
-    );
-  }
-
-  /// Parse key string from Spotify audio features.
-  void parseKeyFromSpotify(String keyString) {
-    final keyParts = keyString.split(' ');
-    if (keyParts.isNotEmpty) {
-      final key = keyParts[0];
-      formData.originalKeyBase = key
-          .replaceAll(RegExp('[#b]'), '')
-          .substring(0, 1);
-      formData.originalKeyModifier = key.contains('#')
-          ? '#'
-          : (key.contains('b') ? 'b' : '');
-      if (keyParts.length > 1 && keyParts[1] == 'minor') {
-        formData.originalKeyModifier = 'm';
-      }
-    }
-  }
-
   /// Open Spotify search in browser.
   void searchOnWeb() {
     final query = '${formData.title.trim()} ${formData.artist.trim()}'.trim();
@@ -249,7 +57,7 @@ mixin AddSongScreenHelper<T extends StatefulWidget> on State<T> {
     final encodedQuery = Uri.encodeComponent(query);
     final spotifyUrl = 'https://open.spotify.com/search/$encodedQuery';
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Search on Web'),

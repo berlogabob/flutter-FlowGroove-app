@@ -16,9 +16,9 @@ class TunerSettingsSheet extends ConsumerWidget {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.82,
       ),
-      decoration: const BoxDecoration(
-        color: MonoPulseColors.surface,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: context.mp.surface,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(MonoPulseRadius.large),
         ),
       ),
@@ -38,13 +38,13 @@ class TunerSettingsSheet extends ConsumerWidget {
                   child: Text(
                     'Tuner Settings',
                     style: MonoPulseTypography.titleMedium.copyWith(
-                      color: MonoPulseColors.textHighEmphasis,
+                      color: context.mp.textHighEmphasis,
                     ),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
-                  color: MonoPulseColors.textSecondary,
+                  color: context.mp.textSecondary,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -97,6 +97,20 @@ class TunerSettingsSheet extends ConsumerWidget {
                     divisions: 20,
                     onChanged: notifier.setSensitivity,
                   ),
+                  const _SectionLabel('Transposition'),
+                  const SizedBox(height: MonoPulseSpacing.sm),
+                  _TranspositionSelector(
+                    value: state.transpositionSemitones,
+                    onChanged: notifier.setTransposition,
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.xs),
+                  Text(
+                    'Show detected notes as written pitch for transposing instruments.',
+                    style: MonoPulseTypography.bodySmall.copyWith(
+                      color: context.mp.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(height: MonoPulseSpacing.lg),
                   _SettingSwitch(
                     title: 'Haptic Feedback',
                     subtitle:
@@ -111,19 +125,19 @@ class TunerSettingsSheet extends ConsumerWidget {
                     onChanged: (_) => notifier.toggleStageModeEnabled(),
                   ),
                   const SizedBox(height: MonoPulseSpacing.lg),
-                  const Divider(color: MonoPulseColors.borderSubtle),
+                  Divider(color: context.mp.borderSubtle),
                   const SizedBox(height: MonoPulseSpacing.md),
                   Text(
                     'Microphone privacy',
                     style: MonoPulseTypography.labelMedium.copyWith(
-                      color: MonoPulseColors.textSecondary,
+                      color: context.mp.textSecondary,
                     ),
                   ),
                   const SizedBox(height: MonoPulseSpacing.sm),
                   Text(
                     'Pitch detection runs locally. Raw microphone audio is never stored or sent to FlowGroove servers.',
                     style: MonoPulseTypography.bodySmall.copyWith(
-                      color: MonoPulseColors.textTertiary,
+                      color: context.mp.textTertiary,
                     ),
                   ),
                 ],
@@ -137,7 +151,6 @@ class TunerSettingsSheet extends ConsumerWidget {
 }
 
 class _SectionLabel extends StatelessWidget {
-
   const _SectionLabel(this.text);
   final String text;
 
@@ -146,7 +159,7 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: MonoPulseTypography.labelMedium.copyWith(
-        color: MonoPulseColors.textSecondary,
+        color: context.mp.textSecondary,
       ),
     );
   }
@@ -164,14 +177,93 @@ class _PresetSummary extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(MonoPulseSpacing.md),
       decoration: BoxDecoration(
-        color: MonoPulseColors.surfaceRaised,
+        color: context.mp.surfaceRaised,
         borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-        border: Border.all(color: MonoPulseColors.borderSubtle),
+        border: Border.all(color: context.mp.borderSubtle),
       ),
       child: Text(
         '$instrument · $tuning',
         style: MonoPulseTypography.bodyMedium.copyWith(
-          color: MonoPulseColors.textHighEmphasis,
+          color: context.mp.textHighEmphasis,
+        ),
+      ),
+    );
+  }
+}
+
+class _TranspositionSelector extends StatelessWidget {
+  const _TranspositionSelector({required this.value, required this.onChanged});
+
+  final int value;
+  final ValueChanged<int> onChanged;
+
+  // Standard transposing instruments: written C sounds a concert pitch this
+  // many semitones LOWER, so displayed names shift UP by the same amount.
+  static const _options = <(String, int)>[
+    ('C', 0), // concert pitch
+    ('Bb', 2), // trumpet, clarinet, tenor/soprano sax
+    ('F', 7), // french horn, english horn
+    ('Eb', 9), // alto/baritone sax
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (final (label, semitones) in _options) ...[
+          Expanded(
+            child: _TranspositionChip(
+              label: label,
+              selected: value == semitones,
+              onTap: () => onChanged(semitones),
+            ),
+          ),
+          if (semitones != _options.last.$2)
+            const SizedBox(width: MonoPulseSpacing.sm),
+        ],
+      ],
+    );
+  }
+}
+
+class _TranspositionChip extends StatelessWidget {
+  const _TranspositionChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.sm),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? MonoPulseColors.accentOrange.withValues(alpha: 0.15)
+              : context.mp.surfaceRaised,
+          borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
+          border: Border.all(
+            color: selected
+                ? MonoPulseColors.accentOrange
+                : context.mp.borderSubtle,
+          ),
+        ),
+        child: Text(
+          label,
+          style: MonoPulseTypography.bodyMedium.copyWith(
+            color: selected
+                ? MonoPulseColors.accentOrange
+                : context.mp.textSecondary,
+            fontWeight: MonoPulseTypography.medium,
+          ),
         ),
       ),
     );
@@ -209,7 +301,7 @@ class _SettingSlider extends StatelessWidget {
               Text(
                 valueLabel,
                 style: MonoPulseTypography.bodyMedium.copyWith(
-                  color: MonoPulseColors.textHighEmphasis,
+                  color: context.mp.textHighEmphasis,
                 ),
               ),
             ],
@@ -220,7 +312,7 @@ class _SettingSlider extends StatelessWidget {
             max: max,
             divisions: divisions,
             activeColor: MonoPulseColors.accentOrange,
-            inactiveColor: MonoPulseColors.borderSubtle,
+            inactiveColor: context.mp.borderSubtle,
             onChanged: onChanged,
           ),
         ],
@@ -249,13 +341,13 @@ class _SettingSwitch extends StatelessWidget {
       title: Text(
         title,
         style: MonoPulseTypography.labelMedium.copyWith(
-          color: MonoPulseColors.textSecondary,
+          color: context.mp.textSecondary,
         ),
       ),
       subtitle: Text(
         subtitle,
         style: MonoPulseTypography.bodySmall.copyWith(
-          color: MonoPulseColors.textTertiary,
+          color: context.mp.textTertiary,
         ),
       ),
       value: value,

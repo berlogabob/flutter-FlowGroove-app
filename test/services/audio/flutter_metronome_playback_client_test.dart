@@ -73,6 +73,7 @@ void main() {
         accentEnabled: true,
         accentFrequency: 1600,
         beatFrequency: 800,
+        accentBeatFrequency: 2000,
         hapticsEnabled: false,
       );
     }

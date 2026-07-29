@@ -2,6 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // MCP API keys are server-only: minted, read, and revoked exclusively via
+    // Cloud Functions (Admin SDK). Never readable/writable from the client.
+    match /apiKeys/{tokenHash} {
+      allow read, write: if false;
+    }
+
     // Helper function to check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
@@ -12,9 +18,17 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // Helper function to get user doc and check access role
+    // Helper function to get user doc and check access role.
+    // Guarded against a missing user document or absent accessRole field:
+    // an unguarded get().data on a non-existent doc errors and DENIES the rule,
+    // which was blocking band create/join (and all writes) for users whose
+    // users/{uid} doc was never created (e.g. email/password sign-ups). A
+    // legitimate authenticated user with no doc is treated as 'member'; only an
+    // explicit 'demo' accessRole is restricted.
     function getUserRole(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.accessRole;
+      return exists(/databases/$(database)/documents/users/$(userId))
+        ? get(/databases/$(database)/documents/users/$(userId)).data.get('accessRole', 'member')
+        : 'member';
     }
 
     // Helper function to check if user is NOT a demo account
@@ -201,6 +215,23 @@ service cloud.firestore {
           isValidLinkedSongCommit(request.auth.uid);
         allow update, delete: if false;
       }
+
+      // Song Lab (#66): journal entries, member tasks, version snapshots.
+      // Read = band member; write = non-demo editor/admin; delete also allowed
+      // to the entry author (fix your own note without admin rights).
+      match /{labCollection}/{labDocId} {
+        allow read: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+          isAuthenticated() && isGlobalBandMember(bandId);
+        allow create, update: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+          isAuthenticated() &&
+          isNotDemo(request.auth.uid) &&
+          isGlobalBandEditorOrAdmin(bandId);
+        allow delete: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+          isAuthenticated() &&
+          isNotDemo(request.auth.uid) &&
+          (isGlobalBandEditorOrAdmin(bandId) ||
+            resource.data.authorId == request.auth.uid);
+      }
     }
 
     // ============================================================
@@ -223,6 +254,32 @@ service cloud.firestore {
         isGlobalBandAdmin(bandId);
     }
 
+    // Rehearsal proposals/events — one merged lifecycle per band.
+    match /bands/{bandId}/rehearsals/{rehearsalId} {
+      // Band members can read
+      allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+
+      // Band editors/admins can create and update (non-demo only)
+      allow create, update: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandEditorOrAdmin(bandId);
+
+      // Band admins can delete (non-demo only)
+      allow delete: if isAuthenticated() &&
+        isNotDemo(request.auth.uid) &&
+        isGlobalBandAdmin(bandId);
+
+      // Votes — each member owns exactly their own vote doc (docId == uid).
+      match /votes/{uid} {
+        allow read: if isAuthenticated() && isGlobalBandMember(bandId);
+        allow create, update: if isAuthenticated() &&
+          isNotDemo(request.auth.uid) &&
+          isGlobalBandMember(bandId) &&
+          request.auth.uid == uid;
+        allow delete: if isAuthenticated() && request.auth.uid == uid;
+      }
+    }
+
     // ============================================================
     // Users Collection - each user has their own subcollections
     // ============================================================
@@ -235,8 +292,11 @@ service cloud.firestore {
         isOwner(userId) &&
         isValidUserProfileCreate(userId);
 
-      // Users can update their own document (name, photo, musicRoles), but NOT accessRole
+      // Users can update their own document (name, photo, musicRoles), but NOT accessRole.
+      // Demo is a shared public account: block all profile self-edits (this was the hole
+      // that let the demo profile be renamed — every other users/* write already checks it).
       allow update: if isAuthenticated() && isOwner(userId) &&
+        isNotDemo(userId) &&
         // Prevent users from escalating their own accessRole
         (request.resource.data.accessRole == resource.data.accessRole ||
          request.resource.data.accessRole == 'member');
@@ -258,6 +318,14 @@ service cloud.firestore {
             isNotDemo(userId) &&
             isValidLinkedSongCommit(userId);
           allow update, delete: if false;
+        }
+
+        // Song Lab (#66) on personal songs: owner-only.
+        match /{labCollection}/{labDocId} {
+          allow read: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+            isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));
+          allow create, update, delete: if labCollection in ['labEntries', 'tasks', 'versions'] &&
+            isAuthenticated() && isOwner(userId) && isNotDemo(userId);
         }
       }
 

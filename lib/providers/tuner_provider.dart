@@ -69,6 +69,7 @@ class TunerState {
     this.stageModeActive = false,
     this.stageModeEnabled = false,
     this.musicModeIndex = 0,
+    this.transpositionSemitones = 0,
   });
   final TunerMode mode;
   final double frequency;
@@ -99,6 +100,12 @@ class TunerState {
   final bool stageModeActive;
   final bool stageModeEnabled;
   final int musicModeIndex;
+
+  /// Semitones added to the detected concert pitch when displaying the note
+  /// name, so transposing-instrument players (Bb/Eb/F) read written pitch.
+  /// ponytail: applies to auto-detect display only; manual targets and tone
+  /// generation stay in concert pitch — extend if horn players ask.
+  final int transpositionSemitones;
 
   bool get hasValidPitch =>
       signalState == TunerSignalState.detected ||
@@ -135,6 +142,7 @@ class TunerState {
     bool? stageModeActive,
     bool? stageModeEnabled,
     int? musicModeIndex,
+    int? transpositionSemitones,
   }) {
     return TunerState(
       mode: mode ?? this.mode,
@@ -174,6 +182,8 @@ class TunerState {
       stageModeActive: stageModeActive ?? this.stageModeActive,
       stageModeEnabled: stageModeEnabled ?? this.stageModeEnabled,
       musicModeIndex: musicModeIndex ?? this.musicModeIndex,
+      transpositionSemitones:
+          transpositionSemitones ?? this.transpositionSemitones,
     );
   }
 
@@ -281,6 +291,9 @@ class TunerNotifier extends Notifier<TunerState> {
         droneEnabled: values['droneEnabled'] as bool? ?? false,
         recentPresetIds:
             (values['recentPresetIds'] as List<String>?) ?? const [],
+        transpositionSemitones: ((values['transposition'] as num?)?.toInt() ??
+                0)
+            .clamp(0, 11),
       );
     } catch (error) {
       debugPrint('Unable to restore tuner preferences: $error');
@@ -397,9 +410,17 @@ class TunerNotifier extends Notifier<TunerState> {
       return;
     }
     _toneTimer?.cancel();
+    // Explicit Play while muted: a silent tone is indistinguishable from
+    // "tone gen broken" (persisted mute caused exactly that user report).
+    if (state.volume <= 0) setVolume(0.5);
     state = state.copyWith(isStarting: true, errorMessage: null);
     try {
       await _toneGenerator.startTone(state.frequency, state.volume);
+      if (!_toneGenerator.isPlaying) {
+        // A stop landed while the start was awaiting — stay stopped.
+        state = state.copyWith(isPlaying: false, isStarting: false);
+        return;
+      }
       state = state.copyWith(isPlaying: true, isStarting: false);
       unawaited(
         AnalyticsService.logTunerEvent('tuner_tone_started', {
@@ -420,7 +441,12 @@ class TunerNotifier extends Notifier<TunerState> {
   Future<void> stopPlaying() async {
     _toneTimer?.cancel();
     _toneTimer = null;
-    if (!state.isPlaying && !_toneGenerator.isPlaying) return;
+    // isStarting: a Stop tapped while startTone is still awaiting (context
+    // resume on web, engine init on native) must cancel the pending start —
+    // the generators' operation guards make this stopTone call do that.
+    if (!state.isPlaying && !state.isStarting && !_toneGenerator.isPlaying) {
+      return;
+    }
     await _toneGenerator.stopTone();
     state = state.copyWith(isPlaying: false, isStarting: false);
     unawaited(AnalyticsService.logTunerEvent('tuner_tone_stopped'));
@@ -463,6 +489,7 @@ class TunerNotifier extends Notifier<TunerState> {
     }
     try {
       _resetStability();
+      _applyDetectionRange();
       await _pitchDetector.startListening();
       state = state.copyWith(
         isListening: true,
@@ -506,9 +533,16 @@ class TunerNotifier extends Notifier<TunerState> {
     }
 
     final manualTarget = state.manualTargetNote;
-    final detectedNote = frequencyToNote(frequency);
-    final displayNote =
-        manualTarget ?? _stableDetectedNote(detectedNote.displayName);
+    // Auto display reads written pitch for transposing instruments: shift the
+    // note NAME only; frequency/cents math stays in concert pitch.
+    final detectedMidi = TunerNoteMath.midiForFrequency(
+      frequency,
+      state.referenceA4,
+    );
+    final detectedName = TunerNoteMath.noteNameForMidi(
+      detectedMidi + state.transpositionSemitones,
+    );
+    final displayNote = manualTarget ?? _stableDetectedNote(detectedName);
     final rawCents = manualTarget == null
         ? TunerNoteMath.centsFromNearestNote(frequency, state.referenceA4)
         : 1200 *
@@ -643,6 +677,12 @@ class TunerNotifier extends Notifier<TunerState> {
     unawaited(_preferences.saveTolerance(tolerance));
   }
 
+  void setTransposition(int semitones) {
+    final value = semitones.clamp(0, 11);
+    state = state.copyWith(transpositionSemitones: value);
+    unawaited(_preferences.saveTransposition(value));
+  }
+
   void setSensitivity(double value) {
     final sensitivity = value.clamp(0.0, 100.0);
     state = state.copyWith(sensitivity: sensitivity);
@@ -703,7 +743,36 @@ class TunerNotifier extends Notifier<TunerState> {
       selectedTuning: tuning,
       manualTargetStringIndex: null,
     );
+    _applyDetectionRange();
     _rememberPreset(instrument, tuning);
+  }
+
+  /// Narrow pitch detection to the selected tuning's note span (with margins)
+  /// so bass octaves and high-string overtones don't pull the estimate. Tunings
+  /// with fewer than two notes (chromatic/voice) keep the full default window.
+  void _applyDetectionRange() {
+    final notes = state.selectedTuning?.notes ?? const <String>[];
+    if (notes.length < 2) {
+      _pitchDetector.setFrequencyRange(35, 2100);
+      return;
+    }
+    try {
+      var lowest = double.infinity;
+      var highest = 0.0;
+      for (final note in notes) {
+        final freq = TunerNoteMath.frequencyForNote(note, state.referenceA4);
+        if (freq < lowest) lowest = freq;
+        if (freq > highest) highest = freq;
+      }
+      // ponytail: −3 / +12 semitone margins are a comfort knob; widen if real
+      // instruments clip at the edges.
+      _pitchDetector.setFrequencyRange(
+        lowest * math.pow(2, -3 / 12),
+        highest * 2,
+      );
+    } catch (_) {
+      _pitchDetector.setFrequencyRange(35, 2100);
+    }
   }
 
   void selectTuning(Tuning tuning) {
@@ -718,6 +787,7 @@ class TunerNotifier extends Notifier<TunerState> {
       unawaited(_preferences.saveReferenceHz(preset.referenceHz));
       unawaited(_preferences.saveTolerance(preset.centsTolerance));
     }
+    _applyDetectionRange();
     final instrument = state.selectedInstrument;
     if (instrument != null) _rememberPreset(instrument, tuning);
   }

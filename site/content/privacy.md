@@ -10,7 +10,7 @@ summary: "FlowGroove privacy policy — how we collect, use, and protect your da
 
 # Privacy Policy
 
-**Last Updated:** April 8, 2026
+**Last Updated:** June 30, 2026
 
 ## Who We Are
 
@@ -19,8 +19,8 @@ FlowGroove is owned and operated by **Sounding Doubts - Unipessoal Lda**.
 - **Company:** Sounding Doubts - Unipessoal Lda
 - **Address:** Amadora, Portugal
 - **NIF:** 518200736
-- **Website:** https://flowgroove.app
-- **Contact:** privacy@flowgroove.app
+- **Website:** [flowgroove.app](https://flowgroove.app)
+- **Contact:** [privacy@flowgroove.app](mailto:privacy@flowgroove.app)
 
 This privacy policy explains how we collect, use, store, and protect your personal data when you use FlowGroove.
 
@@ -38,7 +38,13 @@ This privacy policy explains how we collect, use, store, and protect your person
 - **Device data:** Device type, browser type, operating system
 - **Log data:** IP address, access times, pages viewed
 
+### Microphone & Audio
+- The **tuner** uses your device microphone **only** to detect pitch, on your device, in real time.
+- Audio is processed locally and is **never recorded, stored, or transmitted** to us or anyone else.
+- The microphone is used only while the tuner is open, and only after you grant permission.
+
 ### Information We Don't Collect
+- We **don't** record or upload audio (the microphone is used live, on-device, for the tuner only)
 - We **don't** collect precise location data
 - We **don't** collect biometric data
 - We **don't** collect financial information (no payment processing on our side)

@@ -1,0 +1,11 @@
+appId: com.flowgroove.app
+name: Login via demo account
+---
+- launchApp:
+    stopApp: true
+- assertVisible: "FlowGroove"
+- tapOn: "(?s).*Try Demo Account.*"
+- extendedWaitUntil:
+    visible: "(?s).*(Home|Songs|Setlists|Bands).*"
+    timeout: 20000
+- takeScreenshot: audit/2026-07-18-1753/screens/android/home

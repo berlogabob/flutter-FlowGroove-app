@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../models/band.dart';
 import '../../../models/song.dart';
 import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../widgets/app_menu_sheet.dart';
 import '../../../widgets/confirmation_dialog.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/empty_state.dart';
-import '../../../widgets/song_attribution_badge.dart';
+import '../../../widgets/menu_items_scope.dart';
+import '../../../widgets/unified_item/adapters/song_item_adapter.dart';
+import '../../../widgets/unified_item/song_card_actions.dart';
+import '../../../widgets/unified_item/unified_item_list.dart';
 
 /// Screen for displaying a band's shared songs.
 ///
 /// This screen shows all songs that have been shared to the band's
 /// song bank, with filtering by contributor and attribution badges.
 class BandSongsScreen extends ConsumerStatefulWidget {
-
   const BandSongsScreen({required this.band, super.key});
+
   /// The band whose songs to display.
   final Band band;
 
@@ -25,9 +30,13 @@ class BandSongsScreen extends ConsumerStatefulWidget {
   ConsumerState<BandSongsScreen> createState() => _BandSongsScreenState();
 }
 
-class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
+class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
+    with SongCardActions {
   String _searchQuery = '';
   String? _filterContributor;
+
+  @override
+  String get songActionsBandId => widget.band.id;
 
   /// Get the current user's role in the band.
   String? get _userRole {
@@ -88,34 +97,43 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
   Widget build(BuildContext context) {
     final songsAsync = ref.watch(bandSongsProvider(widget.band.id));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('${widget.band.name} Songs'),
-        actions: [
+    // Pushed branch child: title + actions are published for the shell's
+    // bottom bar ([← Back] [title] [⋮ Menu]); there is no top app bar. The
+    // "clear filter" action (previously an AppBar icon) moved into the Menu
+    // sheet.
+    return MenuScopePublisher(
+      data: MenuScopeData(
+        title: '${widget.band.name} Songs',
+        items: [
           if (_filterContributor != null)
-            IconButton(
-              icon: const Icon(Icons.filter_alt_off),
-              onPressed: () {
+            AppMenuItem(
+              icon: Icons.filter_alt_off,
+              label: 'Clear filter',
+              onTap: () {
                 setState(() {
                   _filterContributor = null;
                 });
               },
-              tooltip: 'Clear filter',
             ),
         ],
       ),
-      body: songsAsync.when(
-        data: (songs) => _buildContent(context, ref, songs),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: songsAsync.when(
+            data: (songs) => _buildContent(context, ref, songs),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Error: $e')),
+          ),
+        ),
+        floatingActionButton: _canEdit
+            ? FloatingActionButton(
+                heroTag: 'band_songs_fab',
+                onPressed: () => _addSongToBand(context, ref),
+                child: const Icon(Icons.add),
+              )
+            : null,
       ),
-      floatingActionButton: _canEdit
-          ? FloatingActionButton(
-              heroTag: 'band_songs_fab',
-              onPressed: () => _addSongToBand(context, ref),
-              child: const Icon(Icons.add),
-            )
-          : null,
     );
   }
 
@@ -131,12 +149,18 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
         Expanded(
           child: filteredSongs.isEmpty
               ? _buildEmptyState(songs.isEmpty)
-              : ListView.builder(
-                  itemCount: filteredSongs.length,
-                  itemBuilder: (context, index) {
-                    final song = filteredSongs[index];
-                    return _buildSongCard(context, ref, song);
-                  },
+              : UnifiedItemList<SongItemAdapter>(
+                  items: [
+                    for (final song in filteredSongs) SongItemAdapter(song),
+                  ],
+                  onEdit: _canEdit
+                      ? (index) => _editSong(context, ref, filteredSongs[index])
+                      : null,
+                  onDelete: _canEdit
+                      ? (index) => _removeFromBand(filteredSongs[index])
+                      : null,
+                  additionalActionsBuilder: (index) =>
+                      buildSongActions(filteredSongs[index], bands: const []),
                 ),
         ),
       ],
@@ -151,7 +175,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
       children: [
         // Search field
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           child: CustomTextField(
             hint: 'Search songs...',
             prefixIcon: Icons.search,
@@ -164,7 +188,9 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
+              ),
               children: [
                 FilterChip(
                   label: const Text('All'),
@@ -178,7 +204,7 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
                 const SizedBox(width: 8),
                 ...contributors.map(
                   (contributor) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: MonoPulseSpacing.sm),
                     child: FilterChip(
                       label: Text(contributor),
                       selected: _filterContributor == contributor,
@@ -213,128 +239,37 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen> {
     return EmptyState.search(query: _searchQuery);
   }
 
-  Widget _buildSongCard(BuildContext context, WidgetRef ref, Song song) {
-    return Dismissible(
-      key: Key(song.id),
-      direction: _canEdit ? DismissDirection.endToStart : DismissDirection.none,
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      confirmDismiss: (direction) async {
-        if (!_canEdit) return false;
-        return ConfirmationDialog.showDeleteDialog(
-          context,
-          title: 'Remove from Band',
-          message: 'Are you sure you want to remove this song from the band?',
-          confirmLabel: 'Remove',
-        );
-      },
-      onDismissed: (direction) async {
-        if (!_canEdit) return;
-        await ref
-            .read(firestoreProvider)
-            .deleteBandSong(widget.band.id, song.id);
-      },
-      child: _buildSongTile(context, ref, song),
+  Future<void> _removeFromBand(Song song) async {
+    final confirmed = await ConfirmationDialog.showDeleteDialog(
+      context,
+      title: 'Remove from Band',
+      message: 'Are you sure you want to remove this song from the band?',
+      confirmLabel: 'Remove',
     );
-  }
-
-  Widget _buildSongTile(BuildContext context, WidgetRef ref, Song song) {
-    final isCopy = song.isCopy;
-    final contributorName = song.contributedBy;
-
-    return Card(
-      margin: const EdgeInsets.symmetric(
-        horizontal: MonoPulseSpacing.lg,
-        vertical: MonoPulseSpacing.sm,
-      ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isCopy
-              ? MonoPulseColors.accentOrangeSubtle
-              : MonoPulseColors.accentOrangeSubtle,
-          child: Icon(
-            isCopy ? Icons.content_copy : Icons.music_note,
-            color: isCopy
-                ? MonoPulseColors.accentOrange
-                : MonoPulseColors.accentOrange,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          song.title,
-          style: const TextStyle(color: MonoPulseColors.textPrimary),
-        ),
-        subtitle: AttributionSubtitle(
-          subtitle: song.artist,
-          contributorName: contributorName,
-          isCopy: isCopy,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (song.ourKey != null)
-              Text(
-                song.ourKey!,
-                style: const TextStyle(
-                  color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            if (song.ourBPM != null) ...[
-              const SizedBox(width: MonoPulseSpacing.sm),
-              Text(
-                '${song.ourBPM}',
-                style: const TextStyle(
-                  color: MonoPulseColors.accentOrange,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-            if (_canEdit)
-              IconButton(
-                icon: const Icon(
-                  Icons.edit,
-                  size: 20,
-                  color: MonoPulseColors.textSecondary,
-                ),
-                onPressed: () => _editSong(context, ref, song),
-                tooltip: 'Edit',
-              ),
-          ],
-        ),
-        onTap: () => _editSong(context, ref, song),
-      ),
-    );
+    if (!confirmed) return;
+    await ref.read(firestoreProvider).deleteBandSong(widget.band.id, song.id);
   }
 
   void _addSongToBand(BuildContext context, WidgetRef ref) {
-    // Navigate to song picker or add new song
-    // For now, we'll just show a snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Song picker coming soon'),
-        action: SnackBarAction(label: 'OK', onPressed: () {}),
-      ),
+    // Open the song form scoped to this band: the bandId makes the save target
+    // saveBandSong instead of the user's personal library. Pushed, not go'd, so
+    // saving pops back here instead of stranding the user in the Songs tab.
+    context.pushNamed(
+      'add-song',
+      queryParameters: {'bandId': widget.band.id},
     );
   }
 
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
     if (!_canEdit) return;
 
-    Navigator.pushNamed(context, '/songs/${song.id}/edit', arguments: song);
+    // Edit the band's copy: pass bandId so the save targets the band song
+    // (updateBandSong) instead of the user's personal library. Uses the
+    // go_router named route — the app is driven by go_router, not Navigator.
+    context.pushNamed(
+      'edit-song',
+      pathParameters: {'id': song.id},
+      extra: {'song': song, 'bandId': widget.band.id},
+    );
   }
 }
-
-/// Provider for watching a band's songs.
-final bandSongsProvider = StreamProvider.family<List<Song>, String>((
-  ref,
-  bandId,
-) {
-  return ref.watch(firestoreProvider).watchBandSongs(bandId);
-});

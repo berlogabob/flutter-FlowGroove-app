@@ -65,6 +65,34 @@ void main() {
       });
     });
 
+    group('Mute trap', () {
+      test('startPlaying restores audible volume when muted', () async {
+        final notifier = container.read(tunerProvider.notifier);
+        await notifier.setMode(TunerMode.generate);
+        notifier.setVolume(0);
+        expect(container.read(tunerProvider).volume, 0);
+
+        await notifier.startPlaying();
+        expect(container.read(tunerProvider).volume, 0.5);
+      });
+    });
+
+    group('Transposition', () {
+      test('defaults to concert pitch (0 semitones)', () {
+        expect(container.read(tunerProvider).transpositionSemitones, 0);
+      });
+
+      test('setTransposition updates state and clamps to 0-11', () {
+        final notifier = container.read(tunerProvider.notifier);
+        notifier.setTransposition(9);
+        expect(container.read(tunerProvider).transpositionSemitones, 9);
+        notifier.setTransposition(-3);
+        expect(container.read(tunerProvider).transpositionSemitones, 0);
+        notifier.setTransposition(15);
+        expect(container.read(tunerProvider).transpositionSemitones, 11);
+      });
+    });
+
     group('Tuner Notifier Methods', () {
       test('notifier is accessible', () {
         final notifier = container.read(tunerProvider.notifier);

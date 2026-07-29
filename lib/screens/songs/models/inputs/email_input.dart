@@ -1,57 +1,30 @@
-import 'package:formz/formz.dart';
-
-/// Validation errors for email input.
-enum EmailValidationError {
-  /// Email is empty.
-  empty,
-
-  /// Email format is invalid.
-  invalid,
-}
-
 /// Form input for email validation.
 ///
-/// Extends [FormzInput] to provide standardized validation.
-///
-/// Usage:
-/// ```dart
-/// final email = Email.dirty('user@example.com');
-/// if (email.valid) {
-///   // Email is valid
-/// }
-/// ```
-class Email extends FormzInput<String, EmailValidationError> {
-
+/// Plain value object: `pure` means the user hasn't interacted yet, so the
+/// UI suppresses the error message.
+class Email {
   /// Pure email input (no user interaction yet).
-  const Email.pure() : super.pure('');
+  const Email.pure() : this._('', true);
 
   /// Dirty email input (user has interacted).
-  const Email.dirty([super.value = '']) : super.dirty();
+  const Email.dirty([String value = '']) : this._(value, false);
+
+  const Email._(this.value, this.isPure);
+
+  final String value;
+  final bool isPure;
+
   /// Regular expression for email validation.
   static final _emailRegex = RegExp(
     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
   );
 
-  @override
-  EmailValidationError? validator(String value) {
-    if (value.isEmpty) {
-      return EmailValidationError.empty;
-    }
-    if (!_emailRegex.hasMatch(value)) {
-      return EmailValidationError.invalid;
-    }
+  /// User-friendly validation error, or null when valid.
+  String? get errorMessage {
+    if (value.isEmpty) return 'Email is required';
+    if (!_emailRegex.hasMatch(value)) return 'Please enter a valid email';
     return null;
   }
 
-  /// Get a user-friendly error message.
-  String? get errorMessage {
-    switch (error) {
-      case EmailValidationError.empty:
-        return 'Email is required';
-      case EmailValidationError.invalid:
-        return 'Please enter a valid email';
-      case null:
-        return null;
-    }
-  }
+  bool get isValid => errorMessage == null;
 }

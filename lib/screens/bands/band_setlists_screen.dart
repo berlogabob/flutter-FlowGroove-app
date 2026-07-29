@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,19 +7,25 @@ import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
+import '../../services/export/setlist_export_sheet.dart';
+import '../../services/export/setlist_share.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/snackbar.dart';
+import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/error_banner.dart' show ErrorBanner, ErrorBannerStyle;
 import '../../widgets/fab_variants.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import '../../widgets/unified_item/adapters/setlist_item_adapter.dart';
+import '../../widgets/unified_item/setlist_card_actions.dart';
 import '../../widgets/unified_item/unified_filter_sort_widget.dart';
 import '../../widgets/unified_item/unified_item_list.dart';
-import '../../widgets/unified_item/unified_item_model.dart';
 import '../setlists/create_setlist_screen.dart';
+import '../setlists/event_kit_editor_screen.dart';
 
 class BandSetlistsScreen extends ConsumerStatefulWidget {
   const BandSetlistsScreen({required this.band, super.key});
@@ -65,9 +70,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
       setlistsToUse = _manualOrder!;
     }
 
-    var adapters = setlistsToUse
-        .map(SetlistItemAdapter.new)
-        .toList();
+    var adapters = setlistsToUse.map(SetlistItemAdapter.new).toList();
 
     if (_searchQuery.trim().isNotEmpty) {
       final query = _searchQuery.toLowerCase().trim();
@@ -100,7 +103,9 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   void _handleCreate() {
-    context.goNamed(
+    // Pushed, not go'd: saving pops back to this band's setlists instead of
+    // dropping the user on the personal Setlists tab.
+    context.pushNamed(
       'create-setlist',
       queryParameters: {
         'bandId': widget.band.id,
@@ -143,6 +148,41 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     await ref
         .read(firestoreProvider)
         .deleteBandSetlist(widget.band.id, setlist.id);
+    // Undo parity with the personal list (#128).
+    if (mounted) {
+      showAppSnackBar(
+        context,
+        'Setlist "${setlist.name}" deleted',
+        actionLabel: 'Undo',
+        analyticsAction: 'setlist_delete',
+        onAction: () async {
+          await ref
+              .read(firestoreProvider)
+              .saveBandSetlist(setlist, widget.band.id);
+        },
+      );
+    }
+  }
+
+  void _viewSetlist(Setlist setlist) {
+    // Read-only view on tap (P1-7). Use the band-scoped detail route so bandId
+    // comes from the path (songs resolve against the BAND library) AND the
+    // shell's pushed-bar title shows the setlist name, not the list title.
+    context.pushNamed(
+      'band-setlist-view',
+      pathParameters: {'id': widget.band.id, 'setlistId': setlist.id},
+      extra: setlist,
+    );
+  }
+
+  void _openEventKit(Setlist setlist) {
+    // rootNavigator so the editor's bar doesn't stack under the shell bar.
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            EventKitEditorScreen(setlist: setlist, bandId: widget.band.id),
+      ),
+    );
   }
 
   void _editSetlist(Setlist setlist) {
@@ -161,16 +201,32 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   @override
   Widget build(BuildContext context) {
     final setlistsAsync = ref.watch(bandSetlistsProvider(widget.band.id));
+    // Keep the autoDispose band-songs provider alive for this screen:
+    // _songsForSetlist awaits its .future, and without an active listener
+    // Riverpod disposes it mid-load ("disposed during loading state", #80).
+    ref.watch(bandSongsProvider(widget.band.id));
     final canEdit = _canEdit;
+    // When the band has exactly one setlist, offer to edit it straight from the
+    // screen menu (with several, per-setlist edit lives on the cards).
+    final onlySetlist = setlistsAsync.value?.length == 1
+        ? setlistsAsync.value!.first
+        : null;
 
     return StandardScreenScaffold(
       title: '${widget.band.name} Setlists',
       menuItems: canEdit
           ? [
-              PopupMenuItem<void>(
+              AppMenuItem(
+                icon: Icons.playlist_add,
+                label: 'Create Band Setlist',
                 onTap: _handleCreate,
-                child: const Text('Create Band Setlist'),
               ),
+              if (onlySetlist != null)
+                AppMenuItem(
+                  icon: Icons.edit_outlined,
+                  label: 'Edit setlist',
+                  onTap: () => _editSetlist(onlySetlist),
+                ),
             ]
           : null,
       floatingActionButton: canEdit
@@ -243,6 +299,7 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   }
 
   Widget _buildSetlistList(List<SetlistItemAdapter> adapters) {
+    final quick = ref.watch(setlistQuickActionProvider);
     return UnifiedItemList<SetlistItemAdapter>(
       items: adapters,
       enableReorder: _canEdit && _sortOption == SortOption.manual,
@@ -252,38 +309,31 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
       onDelete: _canDelete
           ? (index) => _deleteSetlist(adapters[index].setlist)
           : null,
+      onTap: (index) => _viewSetlist(adapters[index].setlist),
       onEdit: _canEdit
           ? (index) => _editSetlist(adapters[index].setlist)
           : null,
       additionalActionsBuilder: (index) {
         final setlist = adapters[index].setlist;
-        return [
-          if (_canEdit)
-            _SetlistIconAction(
-              icon: Icons.edit,
-              tooltip: 'Edit setlist',
-              color: MonoPulseColors.textSecondary,
-              onPressed: () => _editSetlist(setlist),
-            ),
-          _SetlistIconAction(
-            icon: Icons.link,
-            tooltip: 'Copy links',
-            color: MonoPulseColors.textSecondary,
-            onPressed: () => _shareAsLinks(setlist),
-          ),
-          _SetlistIconAction(
-            icon: Icons.picture_as_pdf,
-            tooltip: 'Export PDF',
-            color: MonoPulseColors.error,
-            onPressed: () => _exportPdf(setlist),
-          ),
-        ];
+        return buildSetlistActions(
+          quick: quick,
+          canEdit: _canEdit,
+          onMetronome: () => _openInMetronome(setlist),
+          onEdit: () => _editSetlist(setlist),
+          onEventKit: () => _openEventKit(setlist),
+          onShare: () => _shareSetlist(setlist),
+          onCopyLinks: () => _shareAsLinks(setlist),
+          onExportPdf: () => _exportPdf(setlist),
+          onPickQuickAction: () => showSetlistQuickActionPicker(context, ref),
+        );
       },
     );
   }
 
-  List<Song> _songsForSetlist(Setlist setlist) {
-    final allSongs = ref.read(bandSongsProvider(widget.band.id)).value ?? [];
+  /// Awaits the first emission: bandSongsProvider is autoDispose, so a cold
+  /// `.value` read here was always `loading` → 0 songs → blank exports (#80).
+  Future<List<Song>> _songsForSetlist(Setlist setlist) async {
+    final allSongs = await ref.read(bandSongsProvider(widget.band.id).future);
     final songsById = {for (final song in allSongs) song.id: song};
     return setlist.songIds
         .map((songId) => songsById[songId])
@@ -291,63 +341,51 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
         .toList();
   }
 
+  Future<void> _openInMetronome(Setlist setlist) async {
+    final songs = await _songsForSetlist(setlist);
+    if (!mounted) return;
+    final loaded = ref
+        .read(metronomeProvider.notifier)
+        .loadSetlistQueue(
+          setlist,
+          availableSongs: songs,
+          sourceBandId: widget.band.id,
+        );
+    if (!loaded) {
+      showAppSnackBar(
+        context,
+        'This setlist is empty or has unavailable songs.',
+      );
+      return;
+    }
+    await context.pushNamed('metronome');
+  }
+
   Future<void> _exportPdf(Setlist setlist) async {
+    final choice = await pickSetlistPdfExport(context, setlist);
+    if (choice == null) return;
     try {
-      await PdfService.exportSetlist(setlist, _songsForSetlist(setlist));
+      await PdfService.exportSetlist(
+        setlist,
+        await _songsForSetlist(setlist),
+        layout: choice.layout,
+        performerId: choice.performerId,
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      showAppSnackBar(context, 'Error: $e');
     }
   }
 
-  void _shareAsLinks(Setlist setlist) {
-    final songs = _songsForSetlist(setlist);
-    final buffer = StringBuffer();
-    buffer.writeln(setlist.name);
-    if (setlist.description != null) buffer.writeln(setlist.description);
-    buffer.writeln();
-    buffer.writeln('Songs:');
-    for (int i = 0; i < songs.length; i++) {
-      final song = songs[i];
-      buffer.writeln('${i + 1}. ${song.title} - ${song.artist}');
-      if (song.spotifyUrl != null) {
-        buffer.writeln('   ${song.spotifyUrl}');
-      } else {
-        final searchUrl = Uri.encodeComponent('${song.title} ${song.artist}');
-        buffer.writeln('   https://open.spotify.com/search/$searchUrl');
-      }
-    }
-    buffer.writeln();
-    buffer.writeln('Created with FlowGroove');
-
-    Clipboard.setData(ClipboardData(text: buffer.toString()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Setlist links copied to clipboard!')),
-    );
+  Future<void> _shareSetlist(Setlist setlist) async {
+    final songs = await _songsForSetlist(setlist);
+    if (!mounted) return;
+    shareSetlistLinks(context, setlist, songs);
   }
-}
 
-class _SetlistIconAction implements UnifiedItemAction {
-  _SetlistIconAction({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-    this.color,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(icon, size: 20, color: color),
-      onPressed: onPressed,
-      tooltip: tooltip,
-    );
+  Future<void> _shareAsLinks(Setlist setlist) async {
+    final songs = await _songsForSetlist(setlist);
+    if (!mounted) return;
+    await copySetlistLinks(context, setlist, songs);
   }
 }

@@ -30,7 +30,7 @@ class DemoModeBanner extends ConsumerWidget {
         // Demo mode banner
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.md, vertical: MonoPulseSpacing.sm),
           color: MonoPulseColors.accentOrange.withValues(alpha: 0.15),
           child: SafeArea(
             bottom: false,
@@ -60,18 +60,17 @@ class DemoModeBanner extends ConsumerWidget {
                   },
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                      horizontal: MonoPulseSpacing.sm,
+                      vertical: MonoPulseSpacing.xs,
                     ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: const Text(
+                  child: Text(
                     'Sign Up',
-                    style: TextStyle(
+                    style: MonoPulseTypography.labelMedium.copyWith(
                       color: MonoPulseColors.accentOrange,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
+                      fontWeight: MonoPulseTypography.bold,
                     ),
                   ),
                 ),

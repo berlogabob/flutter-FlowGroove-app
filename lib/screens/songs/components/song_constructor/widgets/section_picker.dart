@@ -11,7 +11,7 @@ import 'color_picker_dialog.dart';
 class SectionPicker extends StatefulWidget {
 
   const SectionPicker({required this.onSectionSelected, super.key});
-  final Function(String) onSectionSelected;
+  final void Function(String) onSectionSelected;
 
   @override
   State<SectionPicker> createState() => _SectionPickerState();
@@ -101,7 +101,11 @@ class _SectionPickerState extends State<SectionPicker>
         labelColor: Theme.of(context).colorScheme.onSurface,
         unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
         indicator: BoxDecoration(
-          color: Colors.grey[300],
+          // Same selected-pill treatment as role_picker_widget.dart: a low-alpha
+          // orange tint keeps contrast with onSurface label text in both themes.
+          // The previous Colors.grey[300] was near-invisible against the
+          // near-white label color in the app's default dark theme.
+          color: MonoPulseColors.accentOrange10,
           borderRadius: BorderRadius.circular(MonoPulseRadius.large),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
@@ -125,7 +129,7 @@ class _SectionPickerState extends State<SectionPicker>
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: MonoPulseSpacing.lg,
-                vertical: 12,
+                vertical: MonoPulseSpacing.md,
               ),
             ),
             onSubmitted: (value) {
@@ -145,7 +149,7 @@ class _SectionPickerState extends State<SectionPicker>
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(
               horizontal: MonoPulseSpacing.xxl,
-              vertical: 16,
+              vertical: MonoPulseSpacing.lg,
             ),
           ),
           child: const Text('Add', style: TextStyle(fontSize: 15)),
@@ -156,7 +160,7 @@ class _SectionPickerState extends State<SectionPicker>
 
   Widget _buildPartsTab(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: AppDimensions.gridSpacing,
@@ -172,7 +176,7 @@ class _SectionPickerState extends State<SectionPicker>
 
   Widget _buildColorsTab(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xs),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: AppDimensions.gridSpacing,
@@ -214,7 +218,7 @@ class _SectionPickerState extends State<SectionPicker>
           borderRadius: BorderRadius.circular(AppDimensions.cardBorderRadius),
           border: Border.all(
             color: color != null
-                ? Colors.white.withValues(alpha: 0.5)
+                ? MonoPulseColors.white.withValues(alpha: 0.5)
                 : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
             width: 1.5,
           ),
@@ -223,7 +227,7 @@ class _SectionPickerState extends State<SectionPicker>
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: MonoPulseSpacing.sm,
-              vertical: 12,
+              vertical: MonoPulseSpacing.md,
             ),
             child: Text(
               template,

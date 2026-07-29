@@ -15,7 +15,7 @@
 
 SHELL := /bin/bash
 
-.PHONY: help test-fast test-firebase-emulator deploy-stable deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
+.PHONY: help test-fast test-firebase-emulator deploy-rules deploy-stable deploy-hugo deploy-app-hosting ftp-upload-hugo ftp-upload-app-redirect backup-production-hugo deploy-test release release-all build-all bump-version build-appbundle build-release-artifacts build-github-pages build-web build-web-prod build-web-github package-github-pages build-android hugo-build-prod check-env check-env-test check-env-prod preflight-prod help-env clean-exports
 
 DEPLOY_TIMESTAMP := $(shell date +%Y%m%d-%H%M%S)
 BACKUP_DIR := backup/production-$(DEPLOY_TIMESTAMP)
@@ -56,6 +56,7 @@ help:
 	@echo ""
 	@echo "  make deploy-test     - Deploy Flutter-only build to GitHub Pages"
 	@echo "  make deploy-stable   - Deploy Hugo + Flutter to FTP (flowgroove.app)"
+	@echo "  make deploy-hugo     - Deploy ONLY Hugo site/blog/wiki to FTP (no app rebuild)"
 	@echo "  make release         - Build Android APK + AAB + GitHub Release"
 	@echo "  make build-release-artifacts - Build GitHub Pages web + Android APK"
 	@echo "  make build-github-pages - Build GitHub Pages web artifact only"
@@ -104,7 +105,7 @@ check-env-prod: preflight-prod
 # TEST DEPLOYMENT - GitHub Pages (second01 branch)
 # =============================================================================
 
-deploy-test: check-env-test build-web-github
+deploy-test: check-env-test
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║  ⚠️  WARNING: This destroys the Hugo landing page!        ║"
@@ -114,6 +115,13 @@ deploy-test: check-env-test build-web-github
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
 	@read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ] || (echo "Aborted."; exit 1)
+	@$(MAKE) deploy-pages
+
+# Non-interactive Pages deploy (#149): Flutter app at docs/ root — the layout
+# github.io actually serves (Pages source = second01/docs). release-all uses
+# THIS, not Makefile.hugo deploy-all, whose docs/app/ output is gitignored
+# and silently committed nothing.
+deploy-pages: check-env-test build-web-github
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║      Deploying to GitHub Pages (second01 branch)          ║"
@@ -147,6 +155,7 @@ hugo-build-prod:
 	@echo "║         Building Hugo (Production / flowgroove.app)       ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
+	@./scripts/fetch-roadmap.sh || echo "⚠️  roadmap refresh skipped"
 	@cd site && hugo --minify --baseURL "https://flowgroove.app/"
 	@echo "✅ Hugo production build complete"
 	@echo ""
@@ -155,14 +164,25 @@ hugo-build-prod:
 # STABLE DEPLOYMENT - FTP (flowgroove.app)
 # =============================================================================
 
-deploy-stable: check-env-prod hugo-build-prod build-web-prod backup-production ftp-upload health-check-prod
+deploy-hugo: preflight-prod hugo-build-prod backup-production-hugo ftp-upload-hugo health-check-prod
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
-	@echo "║         ✅ FTP Deployment Complete!                       ║"
+	@echo "║         ✅ Hugo-only FTP Deployment Complete!             ║"
 	@echo "╚═══════════════════════════════════════════════════════════╝"
 	@echo ""
-	@echo "🌐 Live URL: https://flowgroove.app/"
-	@echo "🌐 App URL:  https://flowgroove.app/app/"
+	@echo "🌐 Live URL: https://flowgroove.app/  (Flutter /app/ left untouched)"
+	@echo "💾 Backup saved to: $(BACKUP_DIR)/"
+	@echo "📝 To rollback: make rollback-production"
+	@echo ""
+
+deploy-stable: check-env-prod hugo-build-prod backup-production-hugo ftp-upload-hugo deploy-app-hosting health-check-prod
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         ✅ Production Deployment Complete!                ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "🌐 Hugo (FTP):            https://flowgroove.app/"
+	@echo "🌐 App (Firebase Hosting): https://app.flowgroove.app/"
 	@echo "⏱️  SSL/CDN propagation: 1-5 minutes"
 	@echo ""
 	@echo "💾 Backup saved to: $(BACKUP_DIR)/"
@@ -172,6 +192,23 @@ deploy-stable: check-env-prod hugo-build-prod build-web-prod backup-production f
 	@echo ""
 
 # Backup current production before deploying
+backup-production-hugo:
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Creating Production Backup (Hugo only, no /app/)  ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@mkdir -p $(BACKUP_DIR)
+	@echo "📦 Downloading current production files (excluding app/**)..."
+	@source ./scripts/load-deploy-env.sh && \
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; lcd $(BACKUP_DIR); mirror --exclude-glob app/** . .; bye"
+	@echo "✅ Backup created at $(BACKUP_DIR)/ (app/ not included — Hugo deploy never touches it)"
+	@echo ""
+	@# Save latest backup path for auto-rollback
+	@echo "$(BACKUP_DIR)" > $(BACKUP_INFO_FILE)
+	@echo "💾 Latest backup: $(BACKUP_DIR)/"
+	@echo ""
+
 backup-production:
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
@@ -190,6 +227,30 @@ backup-production:
 	@echo ""
 
 # Upload to FTP with SSL support
+ftp-upload-hugo:
+	@echo ""
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Uploading Hugo only → FTP (flowgroove.app)        ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📤 Uploading Hugo (site/public/) → / (root)... (app/** preserved)"
+	@source ./scripts/load-deploy-env.sh && \
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse --delete --exclude-glob .well-known/** --exclude-glob app/** site/public/ .; bye"
+	@echo "📤 Uploading .well-known/ (Android App Links assetlinks.json) → /.well-known/ (merge, no delete)..."
+	@source ./scripts/load-deploy-env.sh && \
+		if [ -d site/public/.well-known ]; then \
+			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p .well-known; mirror --reverse site/public/.well-known/ .well-known/; bye"; \
+		fi
+	@echo "✅ Hugo upload complete (Flutter /app/ left as-is)"
+	@echo ""
+
+ftp-upload-app-redirect:
+	@echo "📤 Uploading app redirect (deploy/app-redirect/) → FTP /app/ (merge, no delete)..."
+	@source ./scripts/load-deploy-env.sh && \
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p app; mirror --reverse deploy/app-redirect/ app/; bye"
+	@echo "✅ App redirect upload complete"
+	@echo ""
+
 ftp-upload:
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
@@ -199,9 +260,21 @@ ftp-upload:
 	@echo "📤 Uploading Hugo (site/public/) → / (root)..."
 	@source ./scripts/load-deploy-env.sh && \
 		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mirror --reverse --delete --exclude-glob .well-known/** --exclude-glob app/** site/public/ .; bye"
-	@echo "📤 Uploading Flutter (build/web/) → /app/..."
+	@echo "📤 Uploading .well-known/ (Android App Links assetlinks.json) → /.well-known/ (merge, no delete)..."
 	@source ./scripts/load-deploy-env.sh && \
-		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p app; cd app; mirror --reverse --delete build/web/ .; bye"
+		if [ -d site/public/.well-known ]; then \
+			lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p .well-known; mirror --reverse site/public/.well-known/ .well-known/; bye"; \
+		fi
+	@echo "📤 Uploading Flutter (build/web/) → /app/... (atomic: entrypoints last)"
+	@# Two passes so clients/service-worker never fetch a mismatched shell:
+	@#  1. everything EXCEPT the two activation files (uploads big main.dart.js +
+	@#     canvaskit while the OLD, coherent index.html/SW keep serving the old app);
+	@#  2. flutter_service_worker.js (its manifest now references files already present),
+	@#     then index.html last (flips the page to the new build). Window shrinks from the
+	@#     whole build to two small text files. No --delete: an old cached client may still
+	@#     need an old asset; stale hashed files are harmless cruft.
+	@source ./scripts/load-deploy-env.sh && \
+		lftp -c "set ssl:verify-certificate $${FTP_SSL_VERIFY:-yes}; set ftp:ssl-allow yes; set ftp:ssl-protect-data yes; set ftp:ssl-protect-list yes; open -u '$$FTP_USER','$$FTP_PASS' $$FTP_HOST; cd $${FTP_DIR:-$(FTP_DIR_DEFAULT)}; mkdir -p app; cd app; mirror --reverse --exclude-glob flutter_service_worker.js --exclude-glob index.html build/web/ .; put build/web/flutter_service_worker.js; put build/web/index.html; bye"
 	@echo "✅ Upload complete"
 	@echo ""
 
@@ -282,6 +355,33 @@ build-web-prod:
 	@echo ""
 	@cp web/config.js build/web/config.js
 	@echo "✅ Build complete!"
+	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
+	@echo ""
+
+deploy-app-hosting: check-env-prod
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║     Building Web (Firebase Hosting / app.flowgroove.app)  ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "📝 Updating version.json..."
+	@./scripts/update-version-json.sh
+	@echo ""
+	@if [ ! -f web/config.js ]; then \
+		echo "❌ ERROR: web/config.js is missing. Run make check-env-prod first."; \
+		exit 1; \
+	fi
+	@if ! grep -q "Generated at build time" web/config.js; then \
+		echo "❌ ERROR: web/config.js must be generated by scripts/generate-web-config.sh for production builds."; \
+		exit 1; \
+	fi
+	@echo "🔨 Building web app..."
+	@echo "   Base href: / (Firebase Hosting - app.flowgroove.app)"
+	@flutter build web --release --base-href "/"
+	@echo ""
+	@cp web/config.js build/web/config.js
+	@echo "🚀 Deploying to Firebase Hosting..."
+	@firebase deploy --only hosting
+	@echo "✅ Firebase Hosting deployment complete!"
 	@echo "📊 Build size: $$(du -sh build/web | cut -f1)"
 	@echo ""
 
@@ -386,13 +486,47 @@ build-all: check-env-prod build-web-prod
 	@echo "ℹ️  Nothing was deployed. To publish all three, run: make release-all"
 	@echo ""
 
+# Deploy Firestore + Storage security rules to Firebase.
+# These are committed by the release flow but NOT auto-deployed, so production
+# rules can drift behind the code. Deploy them here so a release never ships an
+# app build whose required rules aren't live yet. Hard-fails if the firebase CLI
+# is missing so a release can't silently skip rules. Uses the .firebaserc default
+# project (repsync-app-8685c).
+deploy-rules:
+	@echo "╔═══════════════════════════════════════════════════════════╗"
+	@echo "║         Deploying Firestore + Storage Rule                ║"
+	@echo "╚═══════════════════════════════════════════════════════════╝"
+	@command -v firebase >/dev/null 2>&1 || { \
+		echo "❌ firebase CLI not installed — cannot deploy rules. Aborting release."; \
+		exit 1; \
+	}
+	firebase deploy --only firestore:rules,storage
+	@echo "✅ Firestore + Storage rules deployed"
+
 # Deploy all three release channels — OUTWARD-FACING and largely irreversible.
+#   0. Rules   → Firestore + Storage security rules (deployed FIRST)
 #   1. FTP     → flowgroove.app (Hugo root + Flutter /app/, with backup + health check)
 #   2. Pages   → GitHub Pages (Hugo + Flutter), git commit + push
 #   3. Android → version bump + git tag + push + GitHub Release (APK + AAB)
-release-all: deploy-stable
-	@$(MAKE) -f Makefile.hugo deploy-all
-	@$(MAKE) release
+# Bump ONCE up front so every channel (FTP web, GitHub Pages, Android) ships the
+# SAME build number. The bump must run before deploy-stable builds the web app,
+# so deploy-rules/deploy-stable are invoked in the recipe (not as prerequisites,
+# which Make would run before the bump). release is told to skip its own bump.
+# ponytail: no cross-channel rollback. If a later channel fails after the FTP push,
+# prod is live at the new version with no matching tag/release. Recover with
+# `make rollback-production`. Add a real orchestrator only if this bites repeatedly.
+RELEASE_BRANCH ?= second01
+release-all:
+	@if [ "$(CURRENT_BRANCH)" != "$(RELEASE_BRANCH)" ] && [ -z "$(ALLOW_BRANCH)" ]; then \
+		echo "❌ release-all on '$(CURRENT_BRANCH)'; expected '$(RELEASE_BRANCH)'."; \
+		echo "   Switch to $(RELEASE_BRANCH) first, or override: make release-all ALLOW_BRANCH=1"; \
+		exit 1; \
+	fi
+	@$(MAKE) test-fast
+	@./scripts/bump-build-number.sh $(LEVEL)
+	@$(MAKE) deploy-rules deploy-stable
+	@$(MAKE) deploy-pages
+	@$(MAKE) release SKIP_BUMP=1
 	@echo ""
 	@echo "╔═══════════════════════════════════════════════════════════╗"
 	@echo "║         🎉 All Release Channels Deployed                  ║"
@@ -421,8 +555,12 @@ bump-version:
 # then build APK + AAB, tag, push, and create the GitHub Release.
 # Override the bump with: make release LEVEL=patch|minor|major
 release:
-	@echo "🔢 Bumping version before build..."
-	@./scripts/bump-build-number.sh $(LEVEL)
+	@if [ -z "$(SKIP_BUMP)" ]; then \
+		echo "🔢 Bumping version before build..."; \
+		./scripts/bump-build-number.sh $(LEVEL); \
+	else \
+		echo "🔢 Skipping bump (already bumped by release-all)."; \
+	fi
 	@$(MAKE) build-android
 	@$(MAKE) build-appbundle
 	@echo ""
@@ -463,7 +601,7 @@ release:
 					--title "Release $$NEW_VERSION" \
 					--notes "Release $$NEW_VERSION - $$(date +%Y-%m-%d)" \
 					--target "$$(git rev-parse --abbrev-ref HEAD)" \
-					build/app/outputs/flutter-apk/app-release.apk#android-apk \
+					build/app/outputs/flutter-apk/app-release.apk#flowgroove-android.apk \
 					build/app/outputs/bundle/release/app-release.aab#aab && \
 				echo "✅ GitHub Release created!"; \
 			fi; \

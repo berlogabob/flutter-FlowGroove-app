@@ -44,9 +44,6 @@ MusicBrainzRelease _$MusicBrainzReleaseFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String,
       date: json['date'] as String?,
       country: json['country'] as String?,
-      media: (json['media'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
     );
 
 Map<String, dynamic> _$MusicBrainzReleaseToJson(MusicBrainzRelease instance) =>
@@ -55,7 +52,6 @@ Map<String, dynamic> _$MusicBrainzReleaseToJson(MusicBrainzRelease instance) =>
       'title': instance.title,
       'date': instance.date,
       'country': instance.country,
-      'media': instance.media,
     };
 
 MusicBrainzRecording _$MusicBrainzRecordingFromJson(

@@ -3,7 +3,7 @@ import '../../theme/mono_pulse_theme.dart';
 
 /// Sort options for unified lists
 enum SortOption {
-  manual('Manual'),
+  manual('Manual order'),
   alphabetical('Alphabetical'),
   dateAdded('Date Added'),
   dateModified('Date Modified');
@@ -69,8 +69,8 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
                 hintText: widget.hintText,
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+                  horizontal: MonoPulseSpacing.lg,
+                  vertical: MonoPulseSpacing.sm,
                 ),
               ),
               controller: _controller,
@@ -81,7 +81,7 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
 
           // Sort dropdown
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
             child: DropdownButton<SortOption>(
               value: widget.currentSort,
               onChanged: widget.onSortChanged,
@@ -92,7 +92,7 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
                 );
               }).toList(),
               underline: Container(),
-              icon: const Icon(Icons.sort, size: 20, color: Colors.grey),
+              icon: Icon(Icons.sort, size: 20, color: context.mp.textSecondary),
             ),
           ),
         ],

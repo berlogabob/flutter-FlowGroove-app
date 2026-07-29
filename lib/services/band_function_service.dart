@@ -1,5 +1,7 @@
 import 'package:cloud_functions/cloud_functions.dart';
 
+import '../models/api_error.dart';
+
 /// Result of a [BandFunctionService.joinBand] call.
 class JoinBandResult {
   const JoinBandResult({
@@ -15,6 +17,25 @@ class JoinBandResult {
   final bool alreadyMember;
 }
 
+/// Public preview of a band for an invite link, returned by
+/// [BandFunctionService.getBandInviteInfo]. Populated by an unauthenticated
+/// callable so a not-yet-signed-in visitor can see what they've been invited to.
+class BandInviteInfo {
+  const BandInviteInfo({
+    required this.bandId,
+    required this.name,
+    required this.memberCount,
+    this.adminName,
+  });
+
+  final String bandId;
+  final String name;
+  final int memberCount;
+
+  /// Display name of an admin, when the server could resolve one.
+  final String? adminName;
+}
+
 /// Callable Cloud Function wrapper for band membership operations.
 ///
 /// Joining is performed server-side (admin SDK) so membership writes are
@@ -26,16 +47,39 @@ class BandFunctionService {
 
   final FirebaseFunctions _functions;
 
+  /// Client-side ceiling for callable invocations. The default is 70s, long
+  /// enough to look like a frozen UI; 30s comfortably covers a cold start while
+  /// surfacing a real failure quickly. On expiry the SDK throws a
+  /// `FirebaseFunctionsException` with code `deadline-exceeded`.
+  static final _callableOptions = HttpsCallableOptions(
+    timeout: const Duration(seconds: 30),
+  );
+
   /// Joins the band identified by [code] (invite code) or [bandId].
   ///
   /// Idempotent: if the caller is already a member, returns a result with
   /// [JoinBandResult.alreadyMember] set to true instead of throwing.
   Future<JoinBandResult> joinBand({String? code, String? bandId}) async {
-    final callable = _functions.httpsCallable('joinBand');
+    final callable = _functions.httpsCallable('joinBand', options: _callableOptions);
     final result = await callable.call<Map<String, dynamic>>(
       _withoutNullValues({'code': code, 'bandId': bandId}),
     );
     return _parseResult(result.data);
+  }
+
+  /// Fetches a public preview (name, member count, an admin name) for the band
+  /// behind an invite [code]. Requires no auth so a signed-out visitor opening
+  /// a shared join link can see what they've been invited to before logging in.
+  ///
+  /// Throws a `FirebaseFunctionsException` with code `not-found` when the code
+  /// doesn't resolve to a band (invalid/expired).
+  Future<BandInviteInfo> getBandInviteInfo(String code) async {
+    final callable = _functions.httpsCallable(
+      'getBandInviteInfo',
+      options: _callableOptions,
+    );
+    final result = await callable.call<Map<String, dynamic>>({'code': code});
+    return _parseInviteInfo(result.data);
   }
 
   /// Sets [targetUid]'s permission role (admin/editor/viewer) in [bandId].
@@ -77,15 +121,66 @@ class BandFunctionService {
     String? role,
     List<String>? musicRoles,
   }) async {
-    final callable = _functions.httpsCallable('updateBandMember');
-    await callable.call<Map<String, dynamic>>(
-      _withoutNullValues({
-        'action': action,
-        'bandId': bandId,
-        'targetUid': targetUid,
-        'role': role,
-        'musicRoles': musicRoles,
-      }),
+    final callable = _functions.httpsCallable('updateBandMember', options: _callableOptions);
+    try {
+      await callable.call<Map<String, dynamic>>(
+        _withoutNullValues({
+          'action': action,
+          'bandId': bandId,
+          'targetUid': targetUid,
+          'role': role,
+          'musicRoles': musicRoles,
+        }),
+      );
+    } on FirebaseFunctionsException catch (e, st) {
+      // Surface the function's own message (e.g. "Cannot remove the last
+      // admin") instead of letting a raw exception fall through to the generic
+      // "Network error" classification in ApiError.fromException.
+      throw _toApiError(e, st);
+    }
+  }
+
+  ApiError _toApiError(FirebaseFunctionsException e, StackTrace st) {
+    final msg = e.message?.isNotEmpty == true ? e.message! : null;
+    switch (e.code) {
+      case 'deadline-exceeded':
+      case 'unavailable':
+        return ApiError.network(
+          message: 'Request timed out. Please check your connection and try again.',
+          exception: e,
+          stackTrace: st,
+        );
+      case 'unauthenticated':
+        return ApiError.auth(
+          message: 'Your session expired. Please sign in again.',
+          exception: e,
+          stackTrace: st,
+        );
+      case 'permission-denied':
+        return ApiError.permission(
+          message: msg ?? 'You do not have permission to do that.',
+          exception: e,
+          stackTrace: st,
+        );
+      default:
+        return ApiError.unknown(
+          message: msg ?? 'Could not complete the request. Please try again.',
+          exception: e,
+          stackTrace: st,
+        );
+    }
+  }
+
+  BandInviteInfo _parseInviteInfo(Map<String, dynamic> data) {
+    final bandId = data['bandId'] as String?;
+    if (bandId == null || bandId.isEmpty) {
+      throw const FormatException('Invalid getBandInviteInfo response.');
+    }
+    return BandInviteInfo(
+      bandId: bandId,
+      name: (data['name'] as String?) ?? '',
+      memberCount: (data['memberCount'] as num?)?.toInt() ?? 0,
+      adminName: data['adminName'] as String?,
     );
   }
 

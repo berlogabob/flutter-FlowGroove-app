@@ -7,7 +7,6 @@ import '../theme/mono_pulse_theme.dart';
 /// This widget provides a reusable text input field with support for
 /// various input types, validation, and optional prefix/suffix icons.
 class CustomTextField extends StatelessWidget {
-
   const CustomTextField({
     super.key,
     this.label,
@@ -27,6 +26,7 @@ class CustomTextField extends StatelessWidget {
     this.onFocus,
     this.onBlur,
   });
+
   /// The label displayed above the field.
   final String? label;
 
@@ -85,7 +85,7 @@ class CustomTextField extends StatelessWidget {
             text: TextSpan(
               text: label,
               style: MonoPulseTypography.bodyMedium.copyWith(
-                color: MonoPulseColors.textPrimary,
+                color: context.mp.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
               children: required

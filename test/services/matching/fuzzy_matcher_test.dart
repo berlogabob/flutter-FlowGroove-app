@@ -150,4 +150,57 @@ void main() {
       expect(Soundex.isSimilar('', 'hello'), isFalse);
     });
   });
+
+  group('FuzzyMatcher.calculateMatchScore (issue #78)', () {
+    test('unrelated Cyrillic song scores below threshold for latin query', () {
+      final result = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'hit the li',
+        inputArtist: '',
+        targetTitle: 'Надежда на',
+        targetArtist: 'Полина',
+      );
+      expect(result.overall, lessThan(0.6));
+    });
+
+    test('title prefix passes threshold when artist is not typed yet', () {
+      final result = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'hit the li',
+        inputArtist: '',
+        targetTitle: 'Hit the Lights',
+        targetArtist: 'Metallica',
+      );
+      expect(result.overall, greaterThanOrEqualTo(0.6));
+    });
+
+    test('Cyrillic query still matches Cyrillic title', () {
+      final result = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'Надежда',
+        inputArtist: '',
+        targetTitle: 'Надежда',
+        targetArtist: 'Анна Герман',
+      );
+      expect(result.overall, greaterThanOrEqualTo(0.9));
+    });
+
+    test('artist typed inline ranks the right artist above same-title covers', () {
+      // "light my fire the doors" — the artist is typed inline (no separator),
+      // so the whole string is scored as title. The real Doors recording must
+      // outrank an obscure same-title cover instead of tying on title alone.
+      final doors = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'light my fire the doors',
+        inputArtist: '',
+        targetTitle: 'Light My Fire',
+        targetArtist: 'The Doors',
+      );
+      final cover = FuzzyMatcher.calculateMatchScore(
+        inputTitle: 'light my fire the doors',
+        inputArtist: '',
+        targetTitle: 'Light My Fire',
+        targetArtist: '3 Balls of Fire',
+      );
+      expect(doors.overall, greaterThan(cover.overall));
+      // Exact "title artist" is a strong match.
+      expect(doors.overall, greaterThanOrEqualTo(0.95));
+    });
+  });
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -8,7 +10,6 @@ import '../../models/api_error.dart';
 import '../../models/user.dart';
 import '../../services/analytics_service.dart';
 import '../../services/cache_service.dart';
-import '../../services/firestore_service.dart';
 import '../../services/secure_storage_service.dart';
 import '../../utils/music_role_icon.dart';
 
@@ -57,6 +58,13 @@ final analyticsClientProvider = Provider<AnalyticsClient>((ref) {
 
 /// Storage boundary for pending invite codes captured before auth.
 class PendingJoinCodeStore {
+  /// Persists an invite code captured before the user authenticated (e.g. from
+  /// a shared join link opened while logged out), so the login flow can resume
+  /// the join afterwards.
+  Future<void> setPendingJoinCode(String code) async {
+    await secureStorage.write(key: 'pending_join_code', value: code);
+  }
+
   Future<String?> getAndClearPendingJoinCode() async {
     final code = await secureStorage.read(key: 'pending_join_code');
     if (code != null) {
@@ -101,6 +109,26 @@ final currentUserProvider = Provider<AsyncValue<User?>>((ref) {
   return ref.watch(authStateProvider);
 });
 
+/// Live users/{uid} document for the signed-in user.
+///
+/// A snapshot stream (not a one-shot get) so avatar/role changes — including
+/// server-side ones like Telegram/Google avatar imports — propagate to every
+/// screen without an app restart (#91).
+final userDocProvider = StreamProvider<Map<String, dynamic>?>((ref) {
+  final user = ref.watch(authStateProvider).asData?.value;
+  if (user == null) return Stream.value(null);
+  try {
+    return ref
+        .watch(firebaseFirestoreProvider)
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .map((doc) => doc.exists ? doc.data() : null);
+  } catch (_) {
+    return Stream.value(null);
+  }
+});
+
 /// Provider for the AppUser state with error handling.
 ///
 /// This provider watches the auth state and converts Firebase User
@@ -115,66 +143,73 @@ final appUserProvider = NotifierProvider<AppUserNotifier, AsyncValue<AppUser?>>(
 ///
 /// IMPORTANT: Properly disposes resources to prevent memory leaks.
 class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
+  /// Tracks which uid analytics user-properties were synced for, so the sync
+  /// runs once per sign-in instead of on every users/{uid} emission.
+  String? _analyticsSyncedUid;
+
   @override
   AsyncValue<AppUser?> build() {
     final authState = ref.watch(authStateProvider);
 
-    authState.whenOrNull(
-      data: (user) {
-        if (user != null) {
-          _syncAnalyticsIfPossible(user);
-        }
-      },
-    );
-
     return authState.when(
       data: (user) {
-        if (user != null) {
-          String displayName = user.displayName ?? '';
-          String? photoURL = user.photoURL;
+        if (user == null) return const AsyncValue.data(null);
 
-          if (displayName.isEmpty) {
-            // Use email or fallback to 'User'
-            final emailPrefix = user.email?.split('@').first ?? 'User';
-            displayName = emailPrefix.isNotEmpty ? emailPrefix : 'User';
-          }
+        String displayName = user.displayName ?? '';
+        if (displayName.isEmpty) {
+          // Use email or fallback to 'User'
+          final emailPrefix = user.email?.split('@').first ?? 'User';
+          displayName = emailPrefix.isNotEmpty ? emailPrefix : 'User';
+        }
 
-          if (_canAccessFirestore()) {
-            // Load Telegram photo if consent given.
-            _loadTelegramProfile(user.uid).then((
-              telegramData,
-            ) {
-              if (telegramData != null) {
-                if (displayName == 'User' &&
-                    telegramData['telegramUsername'] != null) {
-                  displayName = telegramData['telegramUsername'] as String;
-                }
-                photoURL = telegramData['telegramPhotoURL'] as String?;
+        // Compose from the LIVE users/{uid} doc: every doc change rebuilds
+        // the AppUser, so avatar/role updates reach all screens without an
+        // app restart (#91). While the doc is still loading (or missing),
+        // fall back to auth-only data.
+        final data = ref.watch(userDocProvider).asData?.value;
+        _syncAnalytics(user, data);
 
-                state = AsyncValue.data(
-                  AppUser(
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: displayName,
-                    photoURL: photoURL,
-                    createdAt: DateTime.now(),
-                  ),
-                );
-              }
-            });
-          }
-
+        if (data == null) {
           return AsyncValue.data(
             AppUser(
               uid: user.uid,
               email: user.email,
               displayName: displayName,
-              photoURL: photoURL,
+              photoURL: user.photoURL,
               createdAt: DateTime.now(),
             ),
           );
         }
-        return const AsyncValue.data(null);
+
+        final telegramConsent = data['telegramConsent'] == true;
+        final telegramUsername =
+            telegramConsent ? data['telegramUsername'] as String? : null;
+        final telegramPhotoURL =
+            telegramConsent ? data['telegramPhotoURL'] as String? : null;
+
+        if (displayName == 'User' && telegramUsername != null) {
+          displayName = telegramUsername;
+        }
+        // Avatar precedence: the doc's photoURL is the user's chosen avatar
+        // and is authoritative; fall back to Telegram, then auth photo.
+        final photoURL = (data['photoURL'] as String?) ??
+            telegramPhotoURL ??
+            user.photoURL;
+
+        return AsyncValue.data(
+          AppUser(
+            uid: user.uid,
+            email: user.email,
+            displayName: displayName,
+            photoURL: photoURL,
+            accessRole: (data['accessRole'] as String?) ?? 'member',
+            musicRoles:
+                List<String>.from((data['musicRoles'] as List?) ?? const []),
+            systemTags:
+                List<String>.from((data['systemTags'] as List?) ?? const []),
+            createdAt: DateTime.now(),
+          ),
+        );
       },
       loading: () => const AsyncValue.loading(),
       error: (error, stack) {
@@ -185,83 +220,36 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     );
   }
 
-  Future<void> _syncAnalyticsIfPossible(User user) async {
-    final firestore = _readFirestoreIfAvailable();
-    if (firestore == null) {
-      return;
-    }
+  /// Syncs analytics user-properties once per signed-in uid.
+  void _syncAnalytics(User user, Map<String, dynamic>? data) {
+    if (data == null || _analyticsSyncedUid == user.uid) return;
+    _analyticsSyncedUid = user.uid;
 
-    try {
-      final userDoc = await firestore.collection('users').doc(user.uid).get();
-
-      int bandCount = 0;
-      const int songCount = 0;
-      const int setlistCount = 0;
-
-      if (userDoc.exists) {
-        final data = userDoc.data();
-        if (data != null) {
-          bandCount = (data['bandIds'] as List?)?.length ?? 0;
-        }
+    final bandCount = (data['bandIds'] as List?)?.length ?? 0;
+    final analytics = ref.read(analyticsClientProvider);
+    final snapshot = AppUser(
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+      accessRole: (data['accessRole'] as String?) ?? 'member',
+      musicRoles: List<String>.from((data['musicRoles'] as List?) ?? const []),
+      systemTags: List<String>.from((data['systemTags'] as List?) ?? const []),
+      bandIds: List.generate(bandCount, (i) => 'band_$i'),
+      createdAt: DateTime.now(),
+    );
+    Future(() async {
+      try {
+        await analytics.setUserProperties(
+          user: snapshot,
+          bandCount: bandCount,
+          songCount: 0,
+          setlistCount: 0,
+        );
+      } catch (e) {
+        debugPrint('Error setting user properties: $e');
       }
-
-      final appUser = AppUser(
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        accessRole: (userDoc.data()?['accessRole'] as String?) ?? 'member',
-        musicRoles: List<String>.from(
-          (userDoc.data()?['musicRoles'] as List?) ?? [],
-        ),
-        systemTags: List<String>.from(
-          (userDoc.data()?['systemTags'] as List?) ?? [],
-        ),
-        bandIds: List.generate(bandCount, (i) => 'band_$i'),
-        createdAt: DateTime.now(),
-      );
-
-      await ref
-          .read(analyticsClientProvider)
-          .setUserProperties(
-            user: appUser,
-            bandCount: bandCount,
-            songCount: songCount,
-            setlistCount: setlistCount,
-          );
-    } catch (e) {
-      debugPrint('Error setting user properties: $e');
-    }
-  }
-
-  bool _canAccessFirestore() {
-    return _readFirestoreIfAvailable() != null;
-  }
-
-  /// Load Telegram profile data if user gave consent
-  Future<Map<String, dynamic>?> _loadTelegramProfile(String uid) async {
-    final firestore = _readFirestoreIfAvailable();
-    if (firestore == null) {
-      return null;
-    }
-
-    try {
-      final userDoc = await firestore.collection('users').doc(uid).get();
-
-      if (userDoc.exists) {
-        final data = userDoc.data();
-        if (data != null && data['telegramConsent'] == true) {
-          return {
-            'telegramUsername': data['telegramUsername'],
-            'telegramPhotoURL': data['telegramPhotoURL'],
-          };
-        }
-      }
-      return null;
-    } catch (e) {
-      debugPrint('Error loading Telegram profile: $e');
-      return null;
-    }
+    });
   }
 
   FirebaseFirestore? _readFirestoreIfAvailable() {
@@ -329,6 +317,10 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     try {
       final credential = await _readFirebaseAuthOrThrow()
           .signInWithEmailAndPassword(email: email, password: password);
+      // Security rules read users/{uid}.accessRole; a missing doc blocks band
+      // create/join and other writes. Backfill it for accounts created before
+      // this was ensured.
+      await _ensureUserDocument(credential.user);
       return credential;
     } on FirebaseAuthException catch (e, stackTrace) {
       final apiError = _mapFirebaseAuthException(e);
@@ -341,37 +333,110 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
-  /// Signs in with Google.
+  /// OAuth **Web** client ID used as the `serverClientId` for google_sign_in v7.
   ///
-  /// On web this uses Firebase's popup flow; on mobile it uses the
-  /// `google_sign_in` plugin to obtain an OAuth credential. After sign-in it
+  /// Unlike v6, the v7 Android plugin does NOT auto-read the
+  /// google-services-generated `default_web_client_id`, so without this the
+  /// returned account has a null ID token and Firebase sign-in silently fails
+  /// (account picker shows, then bounces back to the login screen). This is the
+  /// public Web client from `google-services.json` (`client_type: 3`); override
+  /// per environment with `--dart-define=GOOGLE_WEB_CLIENT_ID=...`.
+  static const String _googleServerClientId = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+    defaultValue:
+        '703941154390-kq214etvh0r0ka6ahs01gbi5hhd5ii66.apps.googleusercontent.com',
+  );
+
+  /// google_sign_in v7 requires a one-time [GoogleSignIn.initialize] before
+  /// any authentication call. We pass [serverClientId] so the returned account
+  /// carries an ID token whose audience Firebase accepts.
+  static bool _googleSignInInitialized = false;
+
+  Future<void> _ensureGoogleSignInInitialized(GoogleSignIn googleSignIn) async {
+    if (_googleSignInInitialized) return;
+    final clientId = _googleServerClientId.isEmpty
+        ? null
+        : _googleServerClientId;
+    await googleSignIn.initialize(
+      // The web plugin asserts serverClientId == null and wants clientId
+      // instead; it's the same public web client either way.
+      clientId: kIsWeb ? clientId : null,
+      serverClientId: kIsWeb ? null : clientId,
+    );
+    _googleSignInInitialized = true;
+  }
+
+  /// Public wrapper so the web login screen can initialize GIS before
+  /// rendering the Google button.
+  Future<void> ensureGoogleSignInInitialized() =>
+      _ensureGoogleSignInInitialized(GoogleSignIn.instance);
+
+  /// Signs in with Google on **mobile** via the `google_sign_in` plugin, then
   /// ensures a Firestore user document exists (security rules read
   /// `users/{uid}.accessRole`, so a missing doc would block all writes).
   ///
+  /// Not for web: there GIS only issues tokens through its own rendered button
+  /// (Firebase's popup/redirect flows are broken by Safari popup-blocking /
+  /// ITP), so the login screen renders `web_only.renderButton()` and calls
+  /// [completeWebGoogleSignIn] with the resulting ID token.
+  ///
   /// Throws [ApiError] if sign in fails or is cancelled.
   Future<UserCredential> signInWithGoogle() async {
-    try {
+    if (kIsWeb) {
+      throw UnsupportedError(
+        'On web, Google sign-in is driven by the GIS button; '
+        'use completeWebGoogleSignIn.',
+      );
+    }
+    return _guardAuthErrors(() async {
       final auth = _readFirebaseAuthOrThrow();
-      late final UserCredential credential;
+      // google_sign_in v7: singleton + initialize() + authenticate().
+      final googleSignIn = GoogleSignIn.instance;
+      await _ensureGoogleSignInInitialized(googleSignIn);
 
-      if (kIsWeb) {
-        credential = await auth.signInWithPopup(GoogleAuthProvider());
-      } else {
-        final googleUser = await GoogleSignIn().signIn();
-        if (googleUser == null) {
+      final GoogleSignInAccount googleUser;
+      try {
+        googleUser = await googleSignIn.authenticate();
+      } on GoogleSignInException catch (e) {
+        if (e.code == GoogleSignInExceptionCode.canceled) {
           // User aborted the Google sign-in sheet.
           throw ApiError.auth(message: 'Google sign-in was cancelled.');
         }
-        final googleAuth = await googleUser.authentication;
-        final oauthCredential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        credential = await auth.signInWithCredential(oauthCredential);
+        rethrow;
       }
 
-      await _ensureUserDocument(credential.user);
-      return credential;
+      // v7 only exposes an ID token here; that is sufficient for Firebase.
+      final idToken = googleUser.authentication.idToken;
+      if (idToken == null) {
+        throw ApiError.auth(message: 'Google sign-in failed: missing ID token.');
+      }
+      return _signInWithGoogleIdToken(auth, idToken);
+    });
+  }
+
+  /// Completes a **web** Google sign-in started by the GIS rendered button:
+  /// exchanges the GIS [idToken] for a Firebase session and ensures the
+  /// Firestore user doc exists. Throws [ApiError] on failure.
+  Future<UserCredential> completeWebGoogleSignIn(String idToken) =>
+      _guardAuthErrors(
+        () => _signInWithGoogleIdToken(_readFirebaseAuthOrThrow(), idToken),
+      );
+
+  Future<UserCredential> _signInWithGoogleIdToken(
+    FirebaseAuth auth,
+    String idToken,
+  ) async {
+    final credential = await auth.signInWithCredential(
+      GoogleAuthProvider.credential(idToken: idToken),
+    );
+    await _ensureUserDocument(credential.user);
+    return credential;
+  }
+
+  /// Maps auth failures in [body] to [ApiError] and records them in [state].
+  Future<T> _guardAuthErrors<T>(Future<T> Function() body) async {
+    try {
+      return await body();
     } on FirebaseAuthException catch (e, stackTrace) {
       final apiError = _mapFirebaseAuthException(e);
       state = AsyncValue.error(apiError, stackTrace);
@@ -436,6 +501,9 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     try {
       final credential = await _readFirebaseAuthOrThrow()
           .createUserWithEmailAndPassword(email: email, password: password);
+      // Create the users/{uid} doc up front so security rules (which read
+      // accessRole) allow band create/join and other writes.
+      await _ensureUserDocument(credential.user);
       return credential;
     } on FirebaseAuthException catch (e, stackTrace) {
       final apiError = _mapFirebaseAuthException(e);
@@ -466,107 +534,77 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     }
   }
 
+  /// Applies a targeted merge write to users/{uid}.
+  ///
+  /// The live [userDocProvider] snapshot then rebuilds AppUser on every
+  /// screen (with Firestore latency compensation the UI updates immediately).
+  /// Merge writes replace the old full-doc `saveUser` set(), which clobbered
+  /// doc fields not present on a possibly-stale in-memory AppUser (#91).
+  Future<void> _updateUserDoc(Map<String, Object?> fields) async {
+    if (state.value == null) {
+      throw ApiError.auth(message: 'No user logged in');
+    }
+    final user = _readFirebaseAuthOrThrow().currentUser;
+    final firestore = _readFirestoreIfAvailable();
+    if (user == null || firestore == null) {
+      throw ApiError.auth(message: 'No user logged in');
+    }
+
+    try {
+      await firestore
+          .collection('users')
+          .doc(user.uid)
+          .set(fields, SetOptions(merge: true));
+    } catch (e, stackTrace) {
+      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
+      state = AsyncValue.error(apiError, stackTrace);
+      throw apiError;
+    }
+  }
+
   /// Updates the user's music roles.
   ///
   /// Throws [ApiError] if update fails.
   Future<void> updateMusicRoles(List<String> roles) async {
-    final currentUser = state.value;
-    if (currentUser == null) {
-      throw ApiError.auth(message: 'No user logged in');
-    }
-
-    try {
-      final updatedUser = currentUser.copyWith(
-        musicRoles: MusicRoleIcon.normalizeKeys(roles),
-      );
-      final firestore = FirestoreService();
-      await firestore.saveUser(updatedUser);
-      state = AsyncValue.data(updatedUser);
-    } catch (e, stackTrace) {
-      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
-      state = AsyncValue.error(apiError, stackTrace);
-      throw apiError;
-    }
+    await _updateUserDoc({'musicRoles': MusicRoleIcon.normalizeKeys(roles)});
   }
 
   /// Updates the user's profile photo URL.
   ///
-  /// This method uploads the photo to Firebase Storage and updates
-  /// both Firestore and Firebase Auth with the new photo URL.
-  ///
   /// Throws [ApiError] if update fails.
   Future<void> updateProfilePhoto(String photoUrl) async {
-    final currentUser = state.value;
-    if (currentUser == null) {
-      throw ApiError.auth(message: 'No user logged in');
-    }
-
-    try {
-      final updatedUser = currentUser.copyWith(photoURL: photoUrl);
-      final firestore = FirestoreService();
-      await firestore.saveUser(updatedUser);
-      state = AsyncValue.data(updatedUser);
-    } catch (e, stackTrace) {
-      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
-      state = AsyncValue.error(apiError, stackTrace);
-      throw apiError;
-    }
+    await _updateUserDoc({'photoURL': photoUrl});
   }
 
   /// Removes the user's profile photo.
   ///
-  /// Clears the photo URL from both Firestore and Firebase Auth.
-  ///
   /// Throws [ApiError] if update fails.
   Future<void> removeProfilePhoto() async {
-    final currentUser = state.value;
-    if (currentUser == null) {
-      throw ApiError.auth(message: 'No user logged in');
-    }
-
-    try {
-      final updatedUser = currentUser.copyWith(photoURL: null);
-      final firestore = FirestoreService();
-      await firestore.saveUser(updatedUser);
-      state = AsyncValue.data(updatedUser);
-    } catch (e, stackTrace) {
-      final apiError = ApiError.fromException(e, stackTrace: stackTrace);
-      state = AsyncValue.error(apiError, stackTrace);
-      throw apiError;
-    }
+    await _updateUserDoc({'photoURL': null});
   }
 
   /// Updates the user's display name.
   ///
-  /// This method updates both Firebase Auth and Firestore,
-  /// then refreshes the local state to reflect the change immediately.
+  /// Updates both Firebase Auth and Firestore.
   ///
   /// Throws [ApiError] if update fails.
   Future<void> updateDisplayName(String newName) async {
-    final currentUser = state.value;
-    if (currentUser == null) {
+    if (state.value == null) {
       throw ApiError.auth(message: 'No user logged in');
     }
 
     try {
-      // Update Firebase Auth
       final firebaseUser = _readFirebaseAuthOrThrow().currentUser;
       if (firebaseUser != null) {
         await firebaseUser.updateDisplayName(newName);
       }
-
-      // Update Firestore and local state
-      final updatedUser = currentUser.copyWith(displayName: newName);
-      final firestore = FirestoreService();
-      await firestore.saveUser(updatedUser);
-
-      // Update local state to trigger UI refresh
-      state = AsyncValue.data(updatedUser);
     } catch (e, stackTrace) {
       final apiError = ApiError.fromException(e, stackTrace: stackTrace);
       state = AsyncValue.error(apiError, stackTrace);
       throw apiError;
     }
+
+    await _updateUserDoc({'displayName': newName});
   }
 
   /// Maps Firebase Auth exceptions to ApiError with user-friendly messages.

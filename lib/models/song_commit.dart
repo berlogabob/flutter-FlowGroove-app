@@ -60,7 +60,7 @@ class SongCommit {
   }
 }
 
-DateTime _parseDateTime(value) {
+DateTime _parseDateTime(dynamic value) {
   if (value is DateTime) return value;
   try {
     if (value.runtimeType.toString() == 'Timestamp') {

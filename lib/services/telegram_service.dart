@@ -24,6 +24,18 @@ class TelegramUser {
 class TelegramService {
   static const String botUsername = 'flowgroovebot';
 
+  /// t.me is DNS-blocked on some networks; telegram.me serves the same pages.
+  static const String webDomain = 'telegram.me';
+
+  /// Web link to the bot chat, optionally with a /start payload.
+  static String botLink([String? startParam]) =>
+      'https://$webDomain/$botUsername'
+      '${startParam != null ? '?start=$startParam' : ''}';
+
+  /// Web link for Telegram's share dialog.
+  static String shareLink(String message) =>
+      'https://$webDomain/share/url?url=${Uri.encodeComponent(message)}';
+
   /// Opens Telegram chat with the bot and sends /link command
   Future<bool> openBotChat(String? userId) async {
     try {
@@ -39,7 +51,7 @@ class TelegramService {
       }
 
       // Fallback to web/Telegram TV
-      final webUrl = Uri.parse('https://t.me/$botUsername?start=$startParam');
+      final webUrl = Uri.parse(botLink(startParam));
       if (await canLaunchUrl(webUrl)) {
         return await launchUrl(webUrl, mode: LaunchMode.externalApplication);
       }

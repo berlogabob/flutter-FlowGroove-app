@@ -12,7 +12,6 @@
 library;
 
 import 'package:flowgroove/models/band.dart';
-import 'package:flowgroove/widgets/band_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
@@ -610,102 +609,6 @@ void main() {
         expect(band.inviteCode, equals('XYZ789'));
         expect(band.members.length, equals(1));
         expect(band.adminUids.length, equals(1));
-      });
-    });
-
-    // =========================================================================
-    // BAND CARD WIDGET TESTS
-    // =========================================================================
-    group('Band Card Widget Tests', () {
-      testWidgets('INT-BAND-01.27: Band card displays band name', (
-        tester,
-      ) async {
-        // Arrange & Act
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: BandCard(id: 'test-id', name: 'Test Band', memberCount: 3),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Assert
-        expect(find.text('Test Band'), findsOneWidget);
-      });
-
-      testWidgets('INT-BAND-01.28: Band card displays member count', (
-        tester,
-      ) async {
-        // Arrange & Act
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: BandCard(
-                id: 'test-id',
-                name: 'Test Band',
-                memberCount: 5,
-                description: 'A great band',
-              ),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Assert: Member count shown
-        expect(find.text('Test Band'), findsOneWidget);
-        expect(find.textContaining('5'), findsOneWidget);
-      });
-
-      testWidgets('INT-BAND-01.29: Band card is tappable', (
-        tester,
-      ) async {
-        // Arrange
-        bool wasTapped = false;
-
-        // Act
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: BandCard(
-                id: 'test-id',
-                name: 'Test Band',
-                memberCount: 3,
-                onTap: () => wasTapped = true,
-              ),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.text('Test Band'));
-        await tester.pump();
-
-        // Assert
-        expect(wasTapped, isTrue);
-      });
-
-      testWidgets('INT-BAND-01.30: Band card with description', (
-        tester,
-      ) async {
-        // Arrange & Act
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: BandCard(
-                id: 'test-id',
-                name: 'Test Band',
-                memberCount: 3,
-                description: 'This is a test band description',
-              ),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        // Assert
-        expect(find.text('Test Band'), findsOneWidget);
-        expect(find.textContaining('description'), findsOneWidget);
       });
     });
   });

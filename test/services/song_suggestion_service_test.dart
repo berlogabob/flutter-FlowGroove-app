@@ -1,15 +1,29 @@
+import 'dart:convert';
+
 import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/models/musicbrainz_recording.dart';
-import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/models/song_suggestion.dart';
 import 'package:flowgroove/repositories/canonical_song_repository.dart';
-import 'package:flowgroove/repositories/song_repository.dart';
+import 'package:flowgroove/services/api/deezer_service.dart';
 import 'package:flowgroove/services/musicbrainz_service.dart';
 import 'package:flowgroove/services/song_suggestion_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 void main() {
   group('SongSuggestionService', () {
+    // Deezer is a real-network source; stub it empty by default so these tests
+    // exercise only the canonical/MusicBrainz paths. Individual tests override.
+    setUp(() {
+      DeezerService.client = MockClient(
+        (_) async => http.Response(json.encode({'data': []}), 200),
+      );
+    });
+    tearDown(() {
+      DeezerService.client = http.Client();
+    });
+
     test('includes canonical catalog suggestions', () async {
       final canonicalRepo = _FakeCanonicalSongRepository([
         CanonicalSong(
@@ -25,10 +39,8 @@ void main() {
         ),
       ]);
       final service = SongSuggestionService(
-        songRepo: _FakeSongRepository(),
         canonicalRepo: canonicalRepo,
         musicBrainz: _FakeMusicBrainzService(),
-        userId: 'user-1',
       );
 
       final suggestions = await service.getSuggestions(
@@ -47,7 +59,6 @@ void main() {
 
     test('deduplicates canonical and MusicBrainz by external id', () async {
       final service = SongSuggestionService(
-        songRepo: _FakeSongRepository(),
         canonicalRepo: _FakeCanonicalSongRepository([
           CanonicalSong(
             id: 'canonical-1',
@@ -69,7 +80,6 @@ void main() {
             ],
           ),
         ]),
-        userId: 'user-1',
       );
 
       final suggestions = await service.getSuggestions(
@@ -83,56 +93,77 @@ void main() {
       expect(suggestions.single.musicBrainzId, 'mb-1');
       expect(suggestions.single.source, SuggestionSource.canonical);
     });
+    test('ranks original above covers when artist is typed in query', () async {
+      // Bare query, no " - " separator: "ride the lightning metallica".
+      // MusicBrainz returns covers first; the original must outrank them (#87).
+      final service = SongSuggestionService(
+        musicBrainz: _FakeMusicBrainzService([
+          const MusicBrainzRecording(
+            id: 'mb-cover',
+            title: 'Ride the Lightning',
+            artistCredit: [
+              MusicBrainzArtistCredit(
+                artist: MusicBrainzArtist(id: 'a-cover', name: 'New Eden'),
+              ),
+            ],
+          ),
+          const MusicBrainzRecording(
+            id: 'mb-original',
+            title: 'Ride the Lightning',
+            artistCredit: [
+              MusicBrainzArtistCredit(
+                artist: MusicBrainzArtist(id: 'a-metallica', name: 'Metallica'),
+              ),
+            ],
+          ),
+        ]),
+      );
+
+      final suggestions = await service.getSuggestions(
+        query: 'ride the lightning metallica',
+      );
+
+      expect(suggestions, isNotEmpty);
+      expect(suggestions.first.artist, 'Metallica');
+    });
+
+    test('includes Deezer suggestions for a matching track', () async {
+      DeezerService.client = MockClient((request) async {
+        if (request.url.path == '/search') {
+          return http.Response(
+            json.encode({
+              'data': [
+                {
+                  'id': 42,
+                  'title': 'La Vie en Rose',
+                  'artist': {'name': 'Flor Damico'},
+                  'album': {'title': 'Endorsements'},
+                  'duration': 200,
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response('not found', 404);
+      });
+
+      final service = SongSuggestionService(
+        musicBrainz: _FakeMusicBrainzService(),
+      );
+
+      final suggestions = await service.getSuggestions(
+        query: 'La Vie en Rose - Flor Damico',
+      );
+
+      final deezer = suggestions.singleWhere(
+        (s) => s.source == SuggestionSource.deezer,
+      );
+      expect(deezer.title, 'La Vie en Rose');
+      expect(deezer.artist, 'Flor Damico');
+      expect(deezer.durationMs, 200 * 1000);
+    });
   });
-}
-
-class _FakeSongRepository implements SongRepository {
-  @override
-  Future<void> addSongToBand({
-    required Song song,
-    required String bandId,
-    String? contributorId,
-    String? contributorName,
-  }) async {}
-
-  @override
-  Future<void> addSongToBandById(String songId, String bandId) async {}
-
-  @override
-  Future<void> deleteBandSong(String bandId, String songId) async {}
-
-  @override
-  Future<void> deleteSong(String songId, {String? uid}) async {}
-
-  @override
-  Future<List<Song>> getBandSongs(String bandId) async => [];
-
-  @override
-  Future<List<Song>> getSongs(String uid) async => [];
-
-  @override
-  Future<void> saveBandSong(Song song, String bandId) async {}
-
-  @override
-  Future<void> saveSong(Song song, {String? uid}) async {}
-
-  @override
-  Future<void> updateBandSong(Song song, String bandId) async {}
-
-  @override
-  Future<void> updateSong(Song song, {String? uid}) async {}
-
-  @override
-  Future<void> revertBandSongToCanonical(Song song, String bandId) async {}
-
-  @override
-  Future<void> revertSongToCanonical(Song song, {String? uid}) async {}
-
-  @override
-  Stream<List<Song>> watchBandSongs(String bandId) => const Stream.empty();
-
-  @override
-  Stream<List<Song>> watchSongs(String uid) => const Stream.empty();
 }
 
 class _FakeCanonicalSongRepository implements CanonicalSongRepository {

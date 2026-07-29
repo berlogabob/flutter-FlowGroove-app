@@ -22,7 +22,7 @@ import 'tool_button.dart';
 /// Usage:
 /// ```dart
 /// DashboardGrid(
-///   greetingCard: GreetingCard(userName: 'John'),
+///   greetingCard: BandHeader(...), // optional header slot
 ///   statistics: [
 ///     StatCard(icon: Icons.music_note, label: 'Songs', value: '42', ...),
 ///     StatCard(icon: Icons.groups, label: 'Bands', value: '3', ...),
@@ -42,10 +42,17 @@ class DashboardGrid extends StatelessWidget {
     required this.tools,
     super.key,
     this.greetingCard,
+    this.statisticsTitle = 'My Library',
+    this.fullWidthTool,
   });
 
   /// Greeting card widget (optional).
   final Widget? greetingCard;
+
+  /// Heading shown above the statistics grid. Defaults to the personal
+  /// Home wording; screens for other data owners (e.g. a band) pass their
+  /// own label so the section reads correctly for whoever's data it is.
+  final String statisticsTitle;
 
   /// List of statistics cards.
   final List<StatCard> statistics;
@@ -56,6 +63,10 @@ class DashboardGrid extends StatelessWidget {
   /// List of tool buttons.
   final List<ToolButton> tools;
 
+  /// Optional tool rendered as a full-width row under the tools grid
+  /// (Home's Practice entry, #145 feedback).
+  final ToolButton? fullWidthTool;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -63,6 +74,49 @@ class DashboardGrid extends StatelessWidget {
         final breakpoint = getBreakpoint(constraints.maxWidth);
         final padding = _getPaddingForBreakpoint(breakpoint);
         final sectionSpacing = _getSectionSpacing(breakpoint);
+        final isLandscape =
+            MediaQuery.of(context).orientation == Orientation.landscape;
+
+        if (isLandscape) {
+          // Two-pane split: greeting + library + tools on the left, quick
+          // actions on the right, so everything fits one screen.
+          return SingleChildScrollView(
+            padding: padding,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (greetingCard != null) ...[
+                        greetingCard!,
+                        const SizedBox(height: MonoPulseSpacing.xl),
+                      ],
+                      ..._statisticsSection(context, breakpoint),
+                      if (statistics.isNotEmpty && tools.isNotEmpty)
+                        const SizedBox(height: MonoPulseSpacing.xl),
+                      ..._toolsSection(
+                        context,
+                        breakpoint,
+                        constraints.maxWidth,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: sectionSpacing),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: _quickActionsSection(context, breakpoint),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
 
         return SingleChildScrollView(
           padding: padding,
@@ -70,35 +124,15 @@ class DashboardGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Greeting card
               if (greetingCard != null) ...[
                 greetingCard!,
                 SizedBox(height: sectionSpacing),
               ],
-
-              // Statistics section
-              if (statistics.isNotEmpty) ...[
-                _buildSectionTitle(context, 'My Library', breakpoint),
-                const SizedBox(height: MonoPulseSpacing.md),
-                _buildResponsiveStatisticsGrid(breakpoint),
-                SizedBox(height: sectionSpacing),
-              ],
-
-              // Quick actions section
-              if (quickActions.isNotEmpty) ...[
-                _buildSectionTitle(context, 'Quick Actions', breakpoint),
-                const SizedBox(height: MonoPulseSpacing.md),
-                _buildResponsiveQuickActionsGrid(breakpoint),
-                SizedBox(height: sectionSpacing),
-              ],
-
-              // Tools section
-              if (tools.isNotEmpty) ...[
-                _buildSectionTitle(context, 'Tools', breakpoint),
-                const SizedBox(height: MonoPulseSpacing.md),
-                _buildResponsiveToolsGrid(breakpoint, constraints.maxWidth),
-              ],
-
+              ..._statisticsSection(context, breakpoint),
+              if (statistics.isNotEmpty) SizedBox(height: sectionSpacing),
+              ..._quickActionsSection(context, breakpoint),
+              if (quickActions.isNotEmpty) SizedBox(height: sectionSpacing),
+              ..._toolsSection(context, breakpoint, constraints.maxWidth),
               // Bottom spacing to prevent top-weighted layout on tall screens
               SizedBox(height: sectionSpacing),
             ],
@@ -106,6 +140,47 @@ class DashboardGrid extends StatelessWidget {
         );
       },
     );
+  }
+
+  List<Widget> _statisticsSection(
+    BuildContext context,
+    ScreenBreakpoint breakpoint,
+  ) {
+    if (statistics.isEmpty) return const [];
+    return [
+      _buildSectionTitle(context, statisticsTitle, breakpoint),
+      const SizedBox(height: MonoPulseSpacing.md),
+      _buildResponsiveStatisticsGrid(breakpoint),
+    ];
+  }
+
+  List<Widget> _quickActionsSection(
+    BuildContext context,
+    ScreenBreakpoint breakpoint,
+  ) {
+    if (quickActions.isEmpty) return const [];
+    return [
+      _buildSectionTitle(context, 'Quick Actions', breakpoint),
+      const SizedBox(height: MonoPulseSpacing.md),
+      _buildResponsiveQuickActionsGrid(breakpoint),
+    ];
+  }
+
+  List<Widget> _toolsSection(
+    BuildContext context,
+    ScreenBreakpoint breakpoint,
+    double maxWidth,
+  ) {
+    if (tools.isEmpty && fullWidthTool == null) return const [];
+    return [
+      _buildSectionTitle(context, 'Tools', breakpoint),
+      const SizedBox(height: MonoPulseSpacing.md),
+      _buildResponsiveToolsGrid(breakpoint, maxWidth),
+      if (fullWidthTool != null) ...[
+        const SizedBox(height: MonoPulseSpacing.md),
+        SizedBox(height: _tileHeight(breakpoint), child: fullWidthTool),
+      ],
+    ];
   }
 
   /// Get padding based on breakpoint.
@@ -141,18 +216,33 @@ class DashboardGrid extends StatelessWidget {
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.w700,
-        color: MonoPulseColors.textPrimary,
+        color: context.mp.textPrimary,
         fontSize: breakpoint == ScreenBreakpoint.desktop ? 18 : 16,
       ),
     );
   }
+
+  // Fixed cell heights (Mono Pulse A9): tiles fill their cell width and share a
+  // constant height per section, so the grid is uniform and aligned and never
+  // overflows when a column gets narrow (e.g. the landscape two-pane split).
+  double _statCardHeight(ScreenBreakpoint breakpoint) => switch (breakpoint) {
+    ScreenBreakpoint.mobile => 92,
+    ScreenBreakpoint.tablet => 100,
+    ScreenBreakpoint.desktop => 108,
+  };
+
+  double _tileHeight(ScreenBreakpoint breakpoint) => switch (breakpoint) {
+    ScreenBreakpoint.mobile => 56,
+    ScreenBreakpoint.tablet => 60,
+    ScreenBreakpoint.desktop => 64,
+  };
 
   Widget _buildResponsiveStatisticsGrid(ScreenBreakpoint breakpoint) {
     // Always 3 columns for statistics (Songs, Bands, Setlists in 1 row)
     return _buildFixedGrid(
       children: statistics,
       crossAxisCount: 3,
-      aspectRatio: ResponsiveSizes.statCardAspectRatio(breakpoint),
+      cellHeight: _statCardHeight(breakpoint),
     );
   }
 
@@ -162,6 +252,7 @@ class DashboardGrid extends StatelessWidget {
     return _buildFixedGrid(
       children: quickActions,
       crossAxisCount: crossAxisCount,
+      cellHeight: _tileHeight(breakpoint),
     );
   }
 
@@ -176,39 +267,33 @@ class DashboardGrid extends StatelessWidget {
     return _buildFixedGrid(
       children: tools,
       crossAxisCount: crossAxisCount,
+      cellHeight: _tileHeight(breakpoint),
     );
   }
 
-  /// Builds a responsive grid with specified number of columns using GridView.
+  /// Builds a uniform grid: [crossAxisCount] columns, each cell a fixed
+  /// [cellHeight] tall and filling its width. Tiles are placed directly (no
+  /// FittedBox shrink-wrap) so the grid reads as an aligned set (audit A9).
   Widget _buildFixedGrid({
     required List<Widget> children,
     required int crossAxisCount,
-    double? aspectRatio,
+    required double cellHeight,
   }) {
     if (children.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final breakpoint = getBreakpoint(constraints.maxWidth);
-        final gridAspectRatio = aspectRatio ?? ResponsiveSizes.cardAspectRatio(breakpoint);
-
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: MonoPulseSpacing.md,
-            mainAxisSpacing: MonoPulseSpacing.md,
-            childAspectRatio: gridAspectRatio,
-          ),
-          itemCount: children.length,
-          itemBuilder: (context, index) => FittedBox(
-            child: children[index],
-          ),
-        );
-      },
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: MonoPulseSpacing.md,
+        mainAxisSpacing: MonoPulseSpacing.md,
+        mainAxisExtent: cellHeight,
+      ),
+      itemCount: children.length,
+      itemBuilder: (context, index) => children[index],
     );
   }
 }

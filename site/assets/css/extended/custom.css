@@ -290,6 +290,34 @@ body {
   color: #A0A0A5 !important;
 }
 
+/* ── Screenshot Cards ── */
+.screenshot-card {
+  background: #121212 !important;
+  border: 1px solid #222222 !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  text-align: center !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.screenshot-card:hover {
+  border-color: #333333 !important;
+  box-shadow: 0 0 0 1px rgba(255, 94, 0, 0.1);
+  transform: translateY(-2px) !important;
+}
+.screenshot-img {
+  width: 100% !important;
+  max-width: 280px !important;
+  border-radius: 8px !important;
+  border: 1px solid #222222 !important;
+  margin: 0 auto 12px !important;
+  display: block !important;
+}
+.screenshot-caption {
+  color: #A0A0A5 !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+}
+
 /* ── Video Placeholder ── */
 .video-placeholder {
   background: #121212 !important;
@@ -398,6 +426,9 @@ code {
   }
   .feature-card {
     padding: 16px !important;
+  }
+  .screenshot-card {
+    padding: 12px !important;
   }
   .story-section {
     padding: 24px !important;

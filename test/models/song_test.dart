@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flowgroove/models/link.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -193,6 +194,22 @@ void main() {
 
         expect(song.links, isEmpty);
         expect(song.tags, isEmpty);
+      });
+
+      test('parses Firestore Timestamp dates without throwing', () {
+        final json = {
+          'id': 'test-id-ts',
+          'title': 'Timestamp Song',
+          'artist': 'Timestamp Artist',
+          'createdAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
+          'updatedAt': Timestamp.fromDate(DateTime(2026, 1, 1)),
+        };
+
+        expect(() => Song.fromJson(json), returnsNormally);
+
+        final song = Song.fromJson(json);
+        expect(song.createdAt.year, 2026);
+        expect(song.updatedAt.year, 2026);
       });
 
       test('parses links correctly', () {

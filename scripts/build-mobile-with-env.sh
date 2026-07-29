@@ -67,6 +67,14 @@ fi
 echo "📄 Building mobile target using compile-time defines from:"
 echo "   $SOURCE_LABEL"
 
+# ponytail: drop the gitignored generated registrant so the release build
+# rewrites it in release mode. A stale copy left by a debug/`flutter test` run
+# lists integration_test (a dev_dependency) whose Android classes aren't on the
+# release classpath -> compileReleaseJavaWithJavac fails. Flutter filters
+# dev-deps in release (flutter_plugins.dart injectPlugins releaseMode), but only
+# when it actually regenerates; deleting forces that.
+rm -f android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+
 build_cmd=(flutter build "$TARGET" --release)
 
 add_define() {
@@ -90,3 +98,32 @@ do
 done
 
 "${build_cmd[@]}"
+
+# Guard: a release APK that escapes to GitHub/Obtainium MUST be signed with the
+# stable upload key. A missing (gitignored) android/key.properties silently
+# falls back to an ephemeral debug key — different signature every build, which
+# breaks app updates (INSTALL_FAILED_UPDATE_INCOMPATIBLE) and Google Sign-In
+# (unregistered SHA). Verify the real output cert, not just that key.properties
+# exists. Override the expected digest on a key rotation (also re-register SHAs).
+# ponytail: APK only; AAB is re-signed by Play so its local signature is moot.
+if [ "$TARGET" = "apk" ]; then
+    EXPECTED_APK_CERT_SHA256="${EXPECTED_APK_CERT_SHA256:-4ef0bb90641050755a0659a6a70f819e2787549ff6746c7703c6ae92ed0785de}"
+    APK_PATH="$PROJECT_ROOT/build/app/outputs/flutter-apk/app-release.apk"
+    # `|| true`: find returns non-zero on any missing search dir, which under
+    # `set -euo pipefail` would abort the script before we check anything.
+    APKSIGNER="$(find "${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}}" "$HOME/Android/Sdk" -name apksigner 2>/dev/null | sort | tail -1 || true)"
+    if [ -z "$APKSIGNER" ]; then
+        echo "❌ ERROR: apksigner not found — cannot verify release signing." >&2
+        exit 1
+    fi
+    GOT="$("$APKSIGNER" verify --print-certs "$APK_PATH" 2>/dev/null \
+        | sed -n 's/.*certificate SHA-256 digest: //p' | head -1 || true)"
+    if [ "$GOT" != "$EXPECTED_APK_CERT_SHA256" ]; then
+        echo "❌ ERROR: release APK signed with '$GOT', expected stable upload key" >&2
+        echo "   '$EXPECTED_APK_CERT_SHA256'. Likely android/key.properties is missing" >&2
+        echo "   in this environment (it is gitignored). Refusing to publish a" >&2
+        echo "   debug-signed APK that would break updates and Google Sign-In." >&2
+        exit 1
+    fi
+    echo "🔏 Release APK signature verified against stable upload key."
+fi

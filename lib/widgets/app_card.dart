@@ -13,7 +13,7 @@ import '../theme/mono_pulse_theme.dart';
 /// AppCard(
 ///   variant: AppCardVariant.surface,
 ///   child: Padding(
-///     padding: const EdgeInsets.all(16),
+///     padding: const EdgeInsets.all(MonoPulseSpacing.lg),
 ///     child: Text('Content'),
 ///   ),
 /// )
@@ -22,7 +22,7 @@ import '../theme/mono_pulse_theme.dart';
 /// AppCard(
 ///   variant: AppCardVariant.raised,
 ///   child: Padding(
-///     padding: const EdgeInsets.all(16),
+///     padding: const EdgeInsets.all(MonoPulseSpacing.lg),
 ///     child: Text('Important Content'),
 ///   ),
 /// )
@@ -38,7 +38,6 @@ enum AppCardVariant {
 }
 
 class AppCard extends StatelessWidget {
-
   const AppCard({
     required this.child,
     super.key,
@@ -48,6 +47,7 @@ class AppCard extends StatelessWidget {
     this.padding,
     this.border,
   });
+
   /// The visual variant of the card
   final AppCardVariant variant;
 
@@ -68,14 +68,18 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = padding != null ? Padding(padding: padding!, child: child) : child;
+    final content = padding != null
+        ? Padding(padding: padding!, child: child)
+        : child;
 
     final card = DecoratedBox(
       decoration: BoxDecoration(
-        color: backgroundColor ?? _getBackgroundColor(),
+        color: backgroundColor ?? _getBackgroundColor(context),
         borderRadius: BorderRadius.circular(MonoPulseRadius.xlarge),
-        border: border ?? _getDefaultBorder(),
-        boxShadow: variant == AppCardVariant.raised ? [MonoPulseElevation.shadowLow] : null,
+        border: border ?? _getDefaultBorder(context),
+        boxShadow: variant == AppCardVariant.raised
+            ? [MonoPulseElevation.shadowLow]
+            : null,
       ),
       child: content,
     );
@@ -94,15 +98,15 @@ class AppCard extends StatelessWidget {
     return card;
   }
 
-  Color _getBackgroundColor() {
+  Color _getBackgroundColor(BuildContext context) {
     return variant == AppCardVariant.surface
-        ? MonoPulseColors.surface
-        : MonoPulseColors.surfaceRaised;
+        ? context.mp.surface
+        : context.mp.surfaceRaised;
   }
 
-  Border? _getDefaultBorder() {
+  Border? _getDefaultBorder(BuildContext context) {
     return variant == AppCardVariant.surface
-        ? Border.all(color: MonoPulseColors.borderSubtle)
-        : Border.all(color: MonoPulseColors.borderDefault);
+        ? Border.all(color: context.mp.borderSubtle)
+        : Border.all(color: context.mp.borderDefault);
   }
 }

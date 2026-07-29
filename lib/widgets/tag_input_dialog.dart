@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 class TagInputDialog extends StatefulWidget {
-
   const TagInputDialog({
     super.key,
     this.initialTags = const [],
@@ -25,7 +24,7 @@ class TagInputDialog extends StatefulWidget {
     return showModalBottomSheet<List<String>>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: MonoPulseColors.surface,
+      backgroundColor: context.mp.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -84,7 +83,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(MonoPulseSpacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,10 +91,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                widget.title,
-                style: MonoPulseTypography.titleMedium,
-              ),
+              Text(widget.title, style: MonoPulseTypography.titleMedium),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.pop(context),
@@ -113,8 +109,8 @@ class _TagInputDialogState extends State<TagInputDialog> {
                     hintText: widget.hintText,
                     border: const OutlineInputBorder(),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: MonoPulseSpacing.md,
+                      vertical: MonoPulseSpacing.sm,
                     ),
                   ),
                   textInputAction: TextInputAction.done,
@@ -130,10 +126,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
           ),
           if (widget.suggestions != null && widget.suggestions!.isNotEmpty) ...[
             const SizedBox(height: 12),
-            const Text(
-              'Suggestions:',
-              style: MonoPulseTypography.labelSmall,
-            ),
+            const Text('Suggestions:', style: MonoPulseTypography.labelSmall),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -154,10 +147,7 @@ class _TagInputDialogState extends State<TagInputDialog> {
           ],
           const SizedBox(height: 16),
           if (_tags.isNotEmpty) ...[
-            const Text(
-              'Your tags:',
-              style: MonoPulseTypography.labelSmall,
-            ),
+            const Text('Your tags:', style: MonoPulseTypography.labelSmall),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,

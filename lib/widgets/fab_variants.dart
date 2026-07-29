@@ -44,7 +44,8 @@ class SingleFab extends StatelessWidget {
       onPressed: onPressed,
       tooltip: tooltip,
       backgroundColor: MonoPulseColors.accentOrange,
-      foregroundColor: MonoPulseColors.white,
+      // Black-on-orange per the MonoPulse FAB token (~6.5:1 vs ~3:1 for white). F-007.
+      foregroundColor: MonoPulseColors.black,
       child: Icon(icon),
     );
   }
@@ -89,6 +90,7 @@ class DualFab extends StatelessWidget {
       children: [
         // Secondary action (smaller, top)
         _buildSmallFab(
+          context,
           icon: secondary.icon,
           label: secondary.label,
           onPressed: secondary.onPressed,
@@ -104,7 +106,8 @@ class DualFab extends StatelessWidget {
     );
   }
 
-  Widget _buildSmallFab({
+  Widget _buildSmallFab(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required VoidCallback onPressed,
@@ -113,7 +116,7 @@ class DualFab extends StatelessWidget {
       heroTag: '${label}_small_fab',
       onPressed: onPressed,
       tooltip: label,
-      backgroundColor: MonoPulseColors.surfaceRaised,
+      backgroundColor: context.mp.surfaceRaised,
       foregroundColor: MonoPulseColors.accentOrange,
       child: Icon(icon),
     );
@@ -129,7 +132,8 @@ class DualFab extends StatelessWidget {
       onPressed: onPressed,
       tooltip: label,
       backgroundColor: MonoPulseColors.accentOrange,
-      foregroundColor: MonoPulseColors.white,
+      // Black-on-orange per the MonoPulse FAB token (~6.5:1 vs ~3:1 for white). F-007.
+      foregroundColor: MonoPulseColors.black,
       child: Icon(icon),
     );
   }

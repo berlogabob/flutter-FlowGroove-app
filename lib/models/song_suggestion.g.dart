@@ -25,6 +25,7 @@ SongSuggestion _$SongSuggestionFromJson(Map<String, dynamic> json) =>
       releaseYear: (json['releaseYear'] as num?)?.toInt(),
       durationMs: (json['durationMs'] as num?)?.toInt(),
       musicBrainzId: json['musicBrainzId'] as String?,
+      spotifyId: json['spotifyId'] as String?,
       matchReasons:
           (json['matchReasons'] as List<dynamic>?)
               ?.map((e) => e as String)
@@ -51,6 +52,7 @@ Map<String, dynamic> _$SongSuggestionToJson(SongSuggestion instance) =>
       'releaseYear': instance.releaseYear,
       'durationMs': instance.durationMs,
       'musicBrainzId': instance.musicBrainzId,
+      'spotifyId': instance.spotifyId,
       'matchReasons': instance.matchReasons,
     };
 
@@ -58,6 +60,8 @@ const _$SuggestionSourceEnumMap = {
   SuggestionSource.personal: 'personal',
   SuggestionSource.group: 'group',
   SuggestionSource.musicbrainz: 'musicbrainz',
+  SuggestionSource.spotify: 'spotify',
+  SuggestionSource.deezer: 'deezer',
   SuggestionSource.canonical: 'canonical',
 };
 

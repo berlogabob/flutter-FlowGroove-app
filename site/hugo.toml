@@ -1,4 +1,4 @@
-baseURL = "https://berlogabob.github.io/flutter-FlowGroove-app/"
+baseURL = "https://flowgroove.app/"
 title = "FlowGroove"
 theme = "PaperMod"
 languageCode = "en-us"
@@ -36,20 +36,22 @@ timeout = 30000
 Paper setlists. Lost BPM notes. Messenger chaos. I've been there for 10 years in cover bands.
 
 So I built FlowGroove — a simple, real-time sync tool for your whole band's setlists.
-Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie musicians.**"""
+Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie musicians.**
+
+🛠️ Open-source · Built with Flutter · By a solo dev — [view the code](https://github.com/berlogabob/flutter-FlowGroove-app)"""
 
   # Profile mode for homepage (makes it look like a landing, not a blog)
   [params.profileMode]
     enabled = true
     title = "FlowGroove"
-    subtitle = "Real-time setlist sync for cover bands. Built by a musician, for musicians."
+    subtitle = "Real-time setlist sync for cover bands. Runs free in your browser — no install, no app store. Built by a musician, for musicians."
     imageUrl = "images/logo_clean.png"
     imageWidth = 120
     imageHeight = 120
 
     [[params.profileMode.buttons]]
       name = "Open App"
-      url = "app/"
+      url = "https://app.flowgroove.app/"
 
     [[params.profileMode.buttons]]
       name = "Support the Dev ☕"
@@ -65,8 +67,12 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
     url = "https://ko-fi.com/flowgroove"
 
   [[params.socialIcons]]
-    name = "x"
-    url = "https://x.com/berlogabob"
+    name = "telegram"
+    url = "https://t.me/flowgrooveapp"
+
+  [[params.socialIcons]]
+    name = "reddit"
+    url = "https://www.reddit.com/r/flowgroove/"
 
   # Analytics
   [params.analytics]
@@ -75,9 +81,7 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
 
   # Footer
   [params.footer]
-    hideCredits = true
-    hideThemeCopyright = true
-    customText = "© 2026 Sounding Doubts — Unipessoal Lda · Amadora, Portugal · NIF: 518200736"
+    text = "[Privacy](/privacy/) · [Terms](/terms/) · © 2026 Sounding Doubts — Unipessoal Lda · Amadora, Portugal · NIF: 518200736"
 
   # Label (top bar)
   [params.label]
@@ -101,10 +105,17 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
 
 [outputs]
   home = ["HTML", "RSS"]
-  page = ["HTML"]
+  page = ["HTML", "embed"]
   section = ["HTML"]
   taxonomy = ["HTML"]
   term = ["HTML"]
+
+# Stripped in-app embed: every page also renders <page>/embed.html (no nav/header).
+[outputFormats.embed]
+  mediaType = "text/html"
+  isHTML = true
+  baseName = "embed"
+  notAlternative = true
 
 # Menu
 [[menu.main]]
@@ -132,10 +143,16 @@ Auto BPM & key detection. Works offline. Stage-ready dark mode. **Free for indie
   weight = 4
 
 [[menu.main]]
+  identifier = "wiki"
+  name = "Wiki"
+  url = "/wiki/"
+  weight = 5
+
+[[menu.main]]
   identifier = "app"
   name = "Open App"
-  url = "app/"
-  weight = 5
+  url = "https://app.flowgroove.app/"
+  weight = 6
 
 # Markdown renderer
 [markup]

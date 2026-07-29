@@ -607,4 +607,30 @@ void main() {
       });
     });
   });
+
+  group('Band.photoURL', () {
+    test('round-trips through JSON', () {
+      final band = Band(
+        id: 'b1',
+        name: 'The Band',
+        createdBy: 'u1',
+        createdAt: DateTime.utc(2026, 1, 1),
+        photoURL: 'https://example.com/b1.jpg',
+      );
+      final json = band.toJson();
+      expect(json['photoURL'], 'https://example.com/b1.jpg');
+      expect(Band.fromJson(json).photoURL, 'https://example.com/b1.jpg');
+    });
+
+    test('copyWith can set and clear photoURL', () {
+      final band = Band(
+        id: 'b1', name: 'X', createdBy: 'u1', createdAt: DateTime.utc(2026),
+        photoURL: 'https://example.com/a.jpg',
+      );
+      expect(band.copyWith(photoURL: 'https://example.com/b.jpg').photoURL,
+          'https://example.com/b.jpg');
+      expect(band.copyWith(photoURL: null).photoURL, isNull);
+      expect(band.copyWith(name: 'Y').photoURL, 'https://example.com/a.jpg');
+    });
+  });
 }

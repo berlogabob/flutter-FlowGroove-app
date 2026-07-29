@@ -1,0 +1,38 @@
+canonical_url: https://flowgroove.app/blog/day-zero-it-was-called-repsync/
+telegram:
+  text: "\U0001F195 Day 0: it was called repsync\n\nOn 2026-02-03 the whole thing\
+    \ was one commit: \"Initial commit.\" A blank Flutter project, a README, and a\
+    \ working name \u2014 repsync, as in \"rehearsal sync.\"\n\nA few weeks in, the\
+    \ rename landed and repsync became FlowGroove. Nothing about day 0 was impressive\
+    \ \u2014 it was a scaffold and an intention. That's what day 0 always is.\n\n\
+    If you're staring at your own blank `flutter create`, that's not behind. That's\
+    \ exactly where this started too \u2192 https://flowgroove.app/blog/day-zero-it-was-called-repsync/"
+  message_id: 19
+reddit:
+  subreddit: FlowGroove
+  title: ''
+  body: ''
+  submission_id: null
+  permalink: null
+x:
+  text: "Day 0 of FlowGroove \U0001F195\n\nOne commit: \"Initial commit.\" A blank\
+    \ Flutter project, a README, and a placeholder name \u2014 repsync.\n\nEvery feature\
+    \ since is a commit on top of that first one. Staring at your own blank `flutter\
+    \ create`? That's not behind, that's the start.\n\nhttps://flowgroove.app/blog/day-zero-it-was-called-repsync/\n\
+    \n#buildinpublic #indiedev #flutter"
+  posted_url: null
+instagram:
+  image: static/images/og-cover.png
+  caption: "Day 0: it was called repsync \U0001F195\n\nOn 2026-02-03 the whole thing\
+    \ was one commit: \"Initial commit.\" A blank Flutter project, a README, and a\
+    \ working name \u2014 repsync, as in \"rehearsal sync.\" The name was a placeholder\
+    \ that almost stuck, the way placeholders do.\n\nA few weeks in, the rename landed\
+    \ and repsync became FlowGroove. Nothing about day 0 was impressive. It was a\
+    \ scaffold and an intention \u2014 that's what day 0 always is.\n\nIt's easy to\
+    \ look at an app with sync, a metronome, autocomplete, and bands and assume it\
+    \ arrived fully formed. It didn't. If you're staring at your own blank `flutter\
+    \ create`, that's not behind. That's exactly where this started too. Link in bio\
+    \ \U0001F3B8\n.\n.\n#coverband #bandlife #musicianlife #gigginglife #setlist #metronome\
+    \ #rehearsal #livemusic #musictech #indiedev #buildinpublic #flutter #opensource\
+    \ #musicians"
+  posted_url: null

@@ -25,6 +25,8 @@ class MetronomeState {
     required this.accentFrequency,
     required this.beatFrequency,
     required this.accentPattern,
+    this.accentBeatFrequency = 2000,
+    this.subdivisionGain = 1.4,
     this.hapticsEnabled = true,
     this.accentBeats = 4,
     this.regularBeats = 1,
@@ -75,10 +77,28 @@ class MetronomeState {
   final double volume;
   @JsonKey(defaultValue: true)
   final bool accentEnabled;
+
+  /// Pitch of the main beat (first subdivision of each beat / "downbeat").
+  /// Surfaced in the UI as the "Primary pitch" control.
   @JsonKey(defaultValue: 1600)
   final double accentFrequency;
+
+  /// Pitch of every non-main subdivision. Surfaced as the "Subdivision pitch"
+  /// control.
   @JsonKey(defaultValue: 800)
   final double beatFrequency;
+
+  /// Pitch of cells explicitly marked [BeatMode.accent] in the beat map
+  /// (rendered cyan). Surfaced as the "Accent pitch" control.
+  @JsonKey(defaultValue: 2000)
+  final double accentBeatFrequency;
+
+  /// Relative loudness of subdivision clicks (0.5–2.0). Subdivisions default
+  /// an octave below the main beat and read far quieter on small speakers.
+  // ponytail: 1.4 default is an equal-loudness heuristic for 800 Hz clicks on
+  // phone/laptop speakers; revisit if the default pitches change.
+  @JsonKey(defaultValue: 1.4)
+  final double subdivisionGain;
   @JsonKey(defaultValue: true)
   final bool hapticsEnabled;
   @JsonKey(defaultValue: [])
@@ -124,6 +144,8 @@ class MetronomeState {
     bool? accentEnabled,
     double? accentFrequency,
     double? beatFrequency,
+    double? accentBeatFrequency,
+    double? subdivisionGain,
     bool? hapticsEnabled,
     List<bool>? accentPattern,
     int? accentBeats,
@@ -153,6 +175,8 @@ class MetronomeState {
       accentEnabled: accentEnabled ?? this.accentEnabled,
       accentFrequency: accentFrequency ?? this.accentFrequency,
       beatFrequency: beatFrequency ?? this.beatFrequency,
+      accentBeatFrequency: accentBeatFrequency ?? this.accentBeatFrequency,
+      subdivisionGain: subdivisionGain ?? this.subdivisionGain,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       accentPattern: accentPattern ?? this.accentPattern,
       accentBeats: accentBeats ?? this.accentBeats,

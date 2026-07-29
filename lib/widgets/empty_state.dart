@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import '../theme/mono_pulse_theme.dart';
 
 /// A widget for displaying an empty state message.
 ///
 /// This widget provides a consistent empty state layout for when there
 /// is no data to display, with an optional call-to-action button.
 class EmptyState extends StatelessWidget {
-
   const EmptyState({
     required this.icon,
     required this.message,
     this.hint,
     this.actionLabel,
     this.onAction,
+    this.secondaryActionLabel,
+    this.onSecondaryAction,
     this.iconColor,
     this.iconSize = 80,
     super.key,
@@ -29,13 +31,15 @@ class EmptyState extends StatelessWidget {
   }
 
   /// Create an empty state for bands.
-  factory EmptyState.bands({VoidCallback? onCreate}) {
+  factory EmptyState.bands({VoidCallback? onCreate, VoidCallback? onJoin}) {
     return EmptyState(
       icon: Icons.groups,
       message: 'No bands yet',
       hint: 'Create a band to get started',
       actionLabel: 'Create Band',
       onAction: onCreate,
+      secondaryActionLabel: 'Join band',
+      onSecondaryAction: onJoin,
     );
   }
 
@@ -60,6 +64,7 @@ class EmptyState extends StatelessWidget {
           : 'Try different keywords',
     );
   }
+
   /// The icon to display.
   final IconData icon;
 
@@ -75,6 +80,10 @@ class EmptyState extends StatelessWidget {
   /// Callback when the action button is pressed.
   final VoidCallback? onAction;
 
+  final String? secondaryActionLabel;
+
+  final VoidCallback? onSecondaryAction;
+
   /// The color of the icon.
   final Color? iconColor;
 
@@ -87,18 +96,24 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: iconSize, color: iconColor ?? Colors.grey),
+          Icon(
+            icon,
+            size: iconSize,
+            color: iconColor ?? context.mp.textTertiary,
+          ),
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            style: MonoPulseTypography.headlineSmall,
             textAlign: TextAlign.center,
           ),
           if (hint != null) ...[
             const SizedBox(height: 8),
             Text(
               hint!,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: MonoPulseTypography.bodyMedium.copyWith(
+                color: context.mp.textTertiary,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -108,6 +123,14 @@ class EmptyState extends StatelessWidget {
               onPressed: onAction,
               icon: const Icon(Icons.add),
               label: Text(actionLabel!),
+            ),
+          ],
+          if (secondaryActionLabel != null && onSecondaryAction != null) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: onSecondaryAction,
+              icon: const Icon(Icons.group_add),
+              label: Text(secondaryActionLabel!),
             ),
           ],
         ],

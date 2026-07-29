@@ -57,7 +57,6 @@ enum MatchGrade {
 
 /// Represents a match score between input and existing song.
 class MatchScore {
-
   const MatchScore({
     required this.total,
     required this.titleSimilarity,
@@ -66,6 +65,7 @@ class MatchScore {
     required this.albumSimilarity,
     required this.matchedSong,
   });
+
   /// Total match score (0-100).
   final double total;
 

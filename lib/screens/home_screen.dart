@@ -4,36 +4,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../models/user.dart';
-import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../utils/analytics_debug.dart';
-import '../utils/responsive_breakpoints.dart';
 import '../widgets/dashboard_grid.dart';
-import '../widgets/greeting_card.dart';
+import '../widgets/practice_dashboard_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/standard_screen_scaffold.dart';
-import '../widgets/stat_card.dart';
 import '../widgets/tool_button.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Log screen view for analytics (safe for tests)
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Log screen view once per navigation, not on every rebuild.
     try {
       AnalyticsDebug.logScreenView(
         screenName: 'HomeScreen',
         screenClass: 'HomeScreen',
       );
     } catch (_) {}
-
-    // Also log with Firebase Analytics directly (safe for tests)
     try {
-      final apps = Firebase.apps;
-      if (apps.isNotEmpty) {
+      if (Firebase.apps.isNotEmpty) {
         FirebaseAnalytics.instance.logScreenView(
           screenName: 'HomeScreen',
           screenClass: 'HomeScreen',
@@ -42,7 +41,10 @@ class HomeScreen extends ConsumerWidget {
     } catch (_) {
       // Ignore in test environment when Firebase is not initialized
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return StandardScreenScaffold(
       title: 'Home',
       showBackButton: false, // Hide back button for main tabs
@@ -51,103 +53,154 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _HomeDashboard(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(appUserProvider);
-    final songCount = ref.watch(songCountProvider);
-    final bandCount = ref.watch(bandCountProvider);
-    final setlistCount = ref.watch(setlistCountProvider);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final breakpoint = getBreakpoint(constraints.maxWidth);
-        final userName = userAsync.value?.displayName ?? 'User';
-
-        return DashboardGrid(
-          greetingCard: _buildGreetingCard(ref, userAsync, breakpoint),
-          statistics: [
-            StatCard(
-              icon: Icons.music_note,
-              label: 'Songs',
-              value: songCount.toString(),
-              color: MonoPulseColors.textSecondary,
-              onTap: () => context.goNamed('songs'),
-            ),
-            StatCard(
-              icon: Icons.groups,
-              label: 'Bands',
-              value: bandCount.toString(),
-              color: MonoPulseColors.textSecondary,
-              onTap: () => context.goNamed('bands'),
-            ),
-            StatCard(
-              icon: Icons.queue_music,
-              label: 'Setlists',
-              value: setlistCount.toString(),
-              color: MonoPulseColors.textSecondary,
-              onTap: () => context.goNamed('setlists'),
-            ),
-          ],
-          quickActions: [
-            QuickActionButton(
-              icon: Icons.add,
-              label: 'Song',
-              onTap: () => context.goNamed('add-song'),
-            ),
-            QuickActionButton(
-              icon: Icons.group_add,
-              label: 'Band',
-              onTap: () => context.goNamed('create-band'),
-            ),
-            QuickActionButton(
-              icon: Icons.playlist_add,
-              label: 'Setlist',
-              onTap: () => context.goNamed('create-setlist'),
-            ),
-            QuickActionButton(
-              icon: Icons.library_music,
-              label: 'Song Bank',
-              onTap: () => context.goNamed('songs'),
-            ),
-          ],
-          tools: [
-            ToolButton(
-              icon: Icons.tune,
-              label: 'Tuner',
-              onTap: () => context.goNamed('tuner'),
-            ),
-            ToolButton(
-              icon: Icons.speed,
-              label: 'Metronome',
-              onTap: () => context.goNamed('metronome'),
-            ),
-          ],
-        );
-      },
+    // Home leads with actions (#97): no greeting card, no stat counters —
+    // the top slot carries the practice dashboard instead (#133).
+    return DashboardGrid(
+      greetingCard: const PracticeDashboardCard(),
+      statistics: const [],
+      quickActions: [
+        QuickActionButton(
+          icon: Icons.add,
+          label: 'Song',
+          onTap: () => context.goNamed('add-song'),
+        ),
+        QuickActionButton(
+          icon: Icons.group_add,
+          label: 'Band',
+          onTap: () => context.goNamed('create-band'),
+        ),
+        QuickActionButton(
+          icon: Icons.playlist_add,
+          label: 'Setlist',
+          onTap: () => context.goNamed('create-setlist'),
+        ),
+        // One tap, recording already running (#145 feedback).
+        QuickActionButton(
+          icon: Icons.mic,
+          label: 'Audio note',
+          onTap: () => context.pushNamed(
+            'recorder',
+            queryParameters: {'autostart': '1'},
+          ),
+        ),
+      ],
+      tools: [
+        ToolButton(
+          icon: Icons.tune,
+          label: 'Tuner',
+          onTap: () => context.pushNamed('tuner'),
+        ),
+        ToolButton(
+          icon: Icons.speed,
+          label: 'Metronome',
+          onTap: () => context.pushNamed('metronome'),
+        ),
+        ToolButton(
+          icon: Icons.event,
+          label: 'Rehearsals',
+          onTap: () => _openRehearsals(context, ref),
+        ),
+        ToolButton(
+          icon: Icons.graphic_eq,
+          label: 'Recorder',
+          onTap: () => context.pushNamed('recorder'),
+        ),
+      ],
+      fullWidthTool: ToolButton(
+        icon: Icons.menu_book,
+        label: 'Practice',
+        onTap: () => context.pushNamed('practice'),
+      ),
     );
   }
 
-  Widget _buildGreetingCard(
-    WidgetRef ref,
-    AsyncValue<AppUser?> userAsync,
-    ScreenBreakpoint breakpoint,
-  ) {
-    final isCompact = breakpoint != ScreenBreakpoint.mobile;
+  /// Tools entry point for rehearsal schedules: one band goes straight to its
+  /// schedule, several bands show a titled picker. Rehearsals are band-scoped,
+  /// so the destination always identifies itself as "Rehearsals" rather than
+  /// silently landing on the plain Bands list (UX audit F-001).
+  void _openRehearsals(BuildContext context, WidgetRef ref) {
+    final bands = ref.read(bandsProvider).value ?? [];
+    if (bands.isEmpty) {
+      _showRehearsalsEmptyState(context);
+      return;
+    }
+    if (bands.length == 1) {
+      context.goNamed(
+        'band-rehearsals',
+        pathParameters: {'id': bands.first.id},
+        extra: bands.first,
+      );
+      return;
+    }
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            _rehearsalsSheetHeader(
+              sheetContext,
+              subtitle: 'Rehearsals are per band — choose one to see its schedule.',
+            ),
+            for (final band in bands)
+              ListTile(
+                leading: const Icon(Icons.event),
+                title: Text(band.name),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  context.goNamed(
+                    'band-rehearsals',
+                    pathParameters: {'id': band.id},
+                    extra: band,
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
-    return userAsync.when(
-      data: (user) => GreetingCard(
-        userName: user?.displayName ?? 'User',
-        avatarPath: user?.photoURL, // Use photo URL (Telegram or Firebase)
-        subtitle: 'Ready to rock?',
-        isCompact: isCompact,
-      ),
-      loading: () => GreetingCard(
-        userName: 'Loading...',
-        subtitle: '',
-        isCompact: isCompact,
-      ),
-      error: (_, _) => GreetingCard(
-        userName: 'User',
-        subtitle: 'Ready to rock?',
-        isCompact: isCompact,
+  Widget _rehearsalsSheetHeader(BuildContext context, {required String subtitle}) {
+    return ListTile(
+      title: const Text('Rehearsals — choose a band',
+          style: MonoPulseTypography.titleMedium),
+      subtitle: Text(subtitle,
+          style: MonoPulseTypography.bodySmall
+              .copyWith(color: context.mp.textSecondary)),
+    );
+  }
+
+  void _showRehearsalsEmptyState(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Rehearsals', style: MonoPulseTypography.titleMedium),
+              const SizedBox(height: MonoPulseSpacing.sm),
+              Text(
+                'Rehearsals are scheduled per band. Join or create a band first, '
+                'then its rehearsal schedule shows up here.',
+                style: MonoPulseTypography.bodySmall
+                    .copyWith(color: context.mp.textSecondary),
+              ),
+              const SizedBox(height: MonoPulseSpacing.lg),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.pop(sheetContext);
+                  context.goNamed('create-band');
+                },
+                icon: const Icon(Icons.group_add),
+                label: const Text('Create a band'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

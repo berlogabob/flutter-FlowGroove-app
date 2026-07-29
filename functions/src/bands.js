@@ -33,6 +33,49 @@ function deriveUidArrays(members) {
 }
 
 /**
+ * Public invite lookup for the join Welcome screen. Callable WITHOUT auth so a
+ * brand-new (logged-out) recipient can see which band they were invited to
+ * before signing in. Returns only a public-safe subset — never members, songs,
+ * or emails. The invite code is already the shared secret.
+ */
+// Pure handler (injectable db) so it can be unit-tested without the emulator.
+async function bandInviteInfo(database, rawCode) {
+  const code = cleanString(rawCode).toUpperCase();
+  if (!code) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "An invite code is required.",
+    );
+  }
+  const snapshot = await database
+    .collection("bands")
+    .where("inviteCode", "==", code)
+    .limit(1)
+    .get();
+  if (snapshot.empty) {
+    throw new functions.https.HttpsError("not-found", "Invalid invite code.");
+  }
+  const doc = snapshot.docs[0];
+  const band = doc.data() || {};
+  const members = Array.isArray(band.members) ? band.members : [];
+  // Best-effort "invited by": the code is band-wide, so we can't know the actual
+  // sharer — surface the admin's DISPLAY NAME only (never email) as a soft hint.
+  const adminMember = members.find((m) => m && m.role === "admin");
+  const adminName = cleanString(adminMember && adminMember.displayName) || null;
+  return {
+    bandId: doc.id,
+    name: band.name || "",
+    memberCount: members.length,
+    adminName,
+  };
+}
+
+exports.bandInviteInfo = bandInviteInfo;
+exports.getBandInviteInfo = functions.https.onCall((request) =>
+  bandInviteInfo(db, (request.data || {}).code),
+);
+
+/**
  * Idempotent, server-authoritative band join.
  *
  * Input: { code } (invite code) or { bandId }.
@@ -43,7 +86,9 @@ function deriveUidArrays(members) {
  *   under users/{uid}/bands/{bandId}.
  * - Demo users are rejected.
  */
-exports.joinBand = functions.https.onCall(async (data, context) => {
+exports.joinBand = functions.https.onCall(async (request) => {
+  const data = request.data || {};
+  const context = { auth: request.auth };
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -155,7 +200,9 @@ const VALID_ROLES = ["admin", "editor", "viewer"];
  * memberUids/adminUids/editorUids arrays are rewritten atomically; removing a
  * member also deletes their users/{uid}/bands/{bandId} reference.
  */
-exports.updateBandMember = functions.https.onCall(async (data, context) => {
+exports.updateBandMember = functions.https.onCall(async (request) => {
+  const data = request.data || {};
+  const context = { auth: request.auth };
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -216,11 +263,13 @@ exports.updateBandMember = functions.https.onCall(async (data, context) => {
     const band = bandDoc.data() || {};
     const members = Array.isArray(band.members) ? [...band.members] : [];
 
-    // Authorize: caller must be an admin of this band.
+    // Authorize: admins can manage any member. A non-admin member may still
+    // remove *themselves* (leave the band) — the only self-service action.
     const callerIsAdmin = members.some(
       (m) => m && m.uid === callerUid && m.role === "admin",
     );
-    if (!callerIsAdmin) {
+    const isSelfRemoval = action === "remove" && targetUid === callerUid;
+    if (!callerIsAdmin && !isSelfRemoval) {
       throw new functions.https.HttpsError(
         "permission-denied",
         "Only band admins can manage members.",
@@ -239,10 +288,21 @@ exports.updateBandMember = functions.https.onCall(async (data, context) => {
     const target = { ...members[targetIndex] };
 
     if (action === "remove") {
+      // Last member leaving dissolves the band: delete the band document and
+      // the leaver's personal ref atomically. Without this a sole admin could
+      // never get rid of their band — removeMember would hit the "last admin"
+      // guard below forever, surfacing as an error on every leave attempt.
+      // ponytail: band subcollections (songs/setlists/commits) are not cascaded
+      // here; add a recursiveDelete if orphaned empty-band data shows up.
+      if (members.length === 1 && targetUid === callerUid) {
+        transaction.delete(bandRef);
+        transaction.delete(targetPersonalRef);
+        return;
+      }
       if (target.role === "admin" && adminCount <= 1) {
         throw new functions.https.HttpsError(
           "failed-precondition",
-          "Cannot remove the last admin.",
+          "Cannot remove the last admin. Assign another admin first.",
         );
       }
       members.splice(targetIndex, 1);

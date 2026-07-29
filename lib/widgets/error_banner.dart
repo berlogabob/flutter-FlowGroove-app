@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../theme/mono_pulse_theme.dart';
+
 /// A widget for displaying error messages to the user.
 ///
 /// This widget provides a consistent error banner that can be used
 /// throughout the app to display error messages with an optional retry action.
+/// Styled with MonoPulse tokens so it reads correctly on the dark-only theme.
 class ErrorBanner extends StatelessWidget {
-
   const ErrorBanner({
     required this.message,
     this.title,
@@ -14,6 +16,7 @@ class ErrorBanner extends StatelessWidget {
     this.style = ErrorBannerStyle.banner,
     super.key,
   });
+
   /// The error message to display.
   final String message;
 
@@ -33,92 +36,104 @@ class ErrorBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (style) {
       case ErrorBannerStyle.banner:
-        return _buildBanner();
+        return _buildBanner(context);
       case ErrorBannerStyle.card:
-        return _buildCard();
+        return _buildCard(context);
       case ErrorBannerStyle.inline:
         return _buildInline();
     }
   }
 
-  Widget _buildBanner() {
+  Widget _retryButton() {
+    return ElevatedButton.icon(
+      onPressed: onRetry,
+      icon: const Icon(Icons.refresh, size: 16),
+      label: const Text('Retry'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: MonoPulseColors.error,
+        foregroundColor: MonoPulseColors.white,
+      ),
+    );
+  }
+
+  Widget _buildBanner(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(MonoPulseSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.shade200),
+        color: MonoPulseColors.error10,
+        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+        border: Border.all(color: MonoPulseColors.error30),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.error_outline, color: Colors.red.shade700, size: 24),
-              const SizedBox(width: 12),
+              const Icon(
+                Icons.error_outline,
+                color: MonoPulseColors.error,
+                size: 24,
+              ),
+              const SizedBox(width: MonoPulseSpacing.md),
               if (title != null) ...[
                 Text(
                   title!,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red.shade700,
+                  style: MonoPulseTypography.titleMedium.copyWith(
+                    color: MonoPulseColors.error,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: MonoPulseSpacing.sm),
               ],
             ],
           ),
-          const SizedBox(height: 8),
-          Text(message, style: TextStyle(color: Colors.red.shade900)),
-          if (showRetry && onRetry != null) ...[
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh, size: 16),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
-                foregroundColor: Colors.white,
-              ),
+          const SizedBox(height: MonoPulseSpacing.sm),
+          Text(
+            message,
+            style: MonoPulseTypography.bodyMedium.copyWith(
+              color: context.mp.textPrimary,
             ),
+          ),
+          if (showRetry && onRetry != null) ...[
+            const SizedBox(height: MonoPulseSpacing.md),
+            _retryButton(),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildCard() {
+  Widget _buildCard(BuildContext context) {
     return Card(
-      color: Colors.red.shade50,
+      color: MonoPulseColors.error10,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
         child: Column(
           children: [
-            Icon(Icons.error_outline, color: Colors.red.shade700, size: 48),
-            const SizedBox(height: 16),
+            const Icon(
+              Icons.error_outline,
+              color: MonoPulseColors.error,
+              size: 48,
+            ),
+            const SizedBox(height: MonoPulseSpacing.lg),
             if (title != null)
               Text(
                 title!,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade700,
-                  fontSize: 16,
+                style: MonoPulseTypography.headlineSmall.copyWith(
+                  color: MonoPulseColors.error,
                 ),
               ),
-            const SizedBox(height: 8),
+            const SizedBox(height: MonoPulseSpacing.sm),
             Text(
               message,
-              style: TextStyle(color: Colors.red.shade900),
+              style: MonoPulseTypography.bodyMedium.copyWith(
+                color: context.mp.textPrimary,
+              ),
               textAlign: TextAlign.center,
             ),
             if (showRetry && onRetry != null) ...[
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
-              ),
+              const SizedBox(height: MonoPulseSpacing.lg),
+              _retryButton(),
             ],
           ],
         ),
@@ -129,12 +144,14 @@ class ErrorBanner extends StatelessWidget {
   Widget _buildInline() {
     return Row(
       children: [
-        Icon(Icons.error, color: Colors.red.shade700, size: 20),
-        const SizedBox(width: 8),
+        const Icon(Icons.error, color: MonoPulseColors.error, size: 20),
+        const SizedBox(width: MonoPulseSpacing.sm),
         Expanded(
           child: Text(
             message,
-            style: TextStyle(color: Colors.red.shade700, fontSize: 13),
+            style: MonoPulseTypography.bodySmall.copyWith(
+              color: MonoPulseColors.error,
+            ),
           ),
         ),
         if (showRetry && onRetry != null)

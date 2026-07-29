@@ -11,7 +11,6 @@ import '../../../theme/mono_pulse_theme.dart';
 
 /// A collapsible section widget.
 class CollapsibleSection extends StatefulWidget {
-
   const CollapsibleSection({
     required this.title,
     required this.child,
@@ -19,8 +18,11 @@ class CollapsibleSection extends StatefulWidget {
     this.initiallyExpanded = true,
     this.action,
     this.icon,
+    this.preview,
+    this.inlinePreview = true,
     this.onExpandedChanged,
   });
+
   /// Section title.
   final String title;
 
@@ -36,8 +38,18 @@ class CollapsibleSection extends StatefulWidget {
   /// Optional icon for the header.
   final IconData? icon;
 
+  /// Optional compact preview shown while collapsed — e.g. a song-map graph,
+  /// a notes snippet, or the selected tags — so a collapsed section still
+  /// communicates its content at a glance.
+  final Widget? preview;
+
+  /// Whether the collapsed [preview] sits inline at the right of the header
+  /// row (single line, keeps the bubble one row tall). Set false for wide
+  /// previews like the song map, which render under the header instead.
+  final bool inlinePreview;
+
   /// Callback when expansion state changes.
-  final Function(bool expanded)? onExpandedChanged;
+  final void Function(bool expanded)? onExpandedChanged;
 
   @override
   State<CollapsibleSection> createState() => _CollapsibleSectionState();
@@ -56,9 +68,9 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: MonoPulseColors.surface,
+        color: context.mp.surface,
         borderRadius: BorderRadius.circular(MonoPulseRadius.large),
-        border: Border.all(color: MonoPulseColors.borderDefault),
+        border: Border.all(color: context.mp.borderDefault),
       ),
       child: Column(
         children: [
@@ -67,7 +79,10 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
             onTap: _toggleExpanded,
             borderRadius: BorderRadius.circular(MonoPulseRadius.large),
             child: Container(
-              padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MonoPulseSpacing.lg,
+                vertical: MonoPulseSpacing.md,
+              ),
               child: Row(
                 children: [
                   // Expand/collapse icon
@@ -76,29 +91,60 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
                     duration: const Duration(milliseconds: 200),
                     child: Icon(
                       widget.icon ?? Icons.keyboard_arrow_down,
-                      color: MonoPulseColors.textSecondary,
-                      size: 24,
+                      color: context.mp.textSecondary,
+                      size: 20,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Title
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: MonoPulseTypography.titleLarge.copyWith(
-                        color: MonoPulseColors.textPrimary,
-                      ),
+                  // Title (compact — leaves room for the collapsed preview).
+                  Text(
+                    widget.title,
+                    style: MonoPulseTypography.titleMedium.copyWith(
+                      color: context.mp.textPrimary,
                     ),
+                  ),
+                  // Inline collapsed preview, right-aligned on the SAME line
+                  // as the title so the collapsed bubble stays one row tall.
+                  Expanded(
+                    child:
+                        !_isExpanded &&
+                            widget.preview != null &&
+                            widget.inlinePreview
+                        ? Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: widget.preview,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                   // Action button
                   if (widget.action != null) ...[
-                    widget.action!,
                     const SizedBox(width: 8),
+                    widget.action!,
                   ],
                 ],
               ),
             ),
           ),
+          // Wide preview under the header while collapsed.
+          if (widget.preview != null && !widget.inlinePreview)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              child: _isExpanded
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        MonoPulseSpacing.lg,
+                        0,
+                        MonoPulseSpacing.lg,
+                        MonoPulseSpacing.lg,
+                      ),
+                      child: widget.preview,
+                    ),
+            ),
           // Content
           AnimatedSize(
             duration: const Duration(milliseconds: 200),
@@ -109,7 +155,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: MonoPulseSpacing.lg,
-                  vertical: 8,
+                  vertical: MonoPulseSpacing.sm,
                 ),
                 child: widget.child,
               ),

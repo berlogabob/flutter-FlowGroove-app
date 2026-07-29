@@ -10,98 +10,72 @@ featuredImage: "images/blog-001-cover.svg"
 
 # Why I Built FlowGroove Between Rehearsals
 
-Hi, I'm a solo developer who's played in cover bands for 10 years.
+I've played in cover bands for about ten years, and I write software for a living. For the longest time those two lives never touched — until one of them got annoying enough to fix with the other.
 
-And every single rehearsal was the same chaotic mess.
-
-## The Problem That Wouldn't Go Away
+## The problem that wouldn't go away
 
 You know the drill:
 
 - Paper setlists that got coffee-stained or lost
-- Someone forgetting to write down the BPM for "Wonderwall"
-- Arguing over key changes ("Was it F#m or Gm?")
-- Switching songs taking 5 minutes while the band stood around
-- No sync between my phone, the guitarist's tablet, and the drummer's laptop
+- Nobody remembering the BPM for "Wonderwall"
+- The eternal "was it F#m or Gm?" debate
+- Five minutes lost between songs while we found the right version
+- My phone, the guitarist's tablet, and the drummer's laptop all showing something different
 
-The chaos was killing our vibe. We spent more time organizing than playing music.
+We spent more time organizing than playing. And the tools that were supposed to help? Either too complicated to set up, too expensive for a hobby, or buggy enough to crash mid-rehearsal. Cool.
 
-I tried existing solutions. They were either:
-- Too complex (needed a degree to set up)
-- Too expensive (monthly subscriptions for a hobby?)
-- Too buggy (crashed mid-rehearsal, great)
+## The breaking point
 
-## The Breaking Point
+One Tuesday night, our third rehearsal in a row got derailed because someone lost the setlist. Again. And it hit me: I do this for a living. I build things. Why was I putting up with this?
 
-One Tuesday night, after our third rehearsal in a row was derailed by someone losing the setlist, I had enough.
+So I stopped putting up with it.
 
-I'm a developer. I build things for a living. Why couldn't I build something for my band?
+## Building it
 
-So I did.
+FlowGroove got built the way side projects always do — late nights, weekends, and a lot of coffee. My rules for it were simple:
 
-## Building FlowGroove
+- **A song should take seconds to add.** Slower than that and the band won't bother.
+- **BPM and key should fill themselves in.** Manual entry is where good intentions go to die.
+- **It has to sync in real time.** I change it, everyone sees it.
+- **It has to work offline.** Rehearsal rooms eat WiFi for breakfast.
+- **Dark mode.** Nobody wants a flashlight on stage.
+- **Free for indie musicians.** Because we are not a wealthy people.
 
-I built FlowGroove between rehearsals and my day job. Late nights. Weekends. Lots of coffee.
+## The tech, briefly
 
-My requirements were simple:
+I went with **Flutter** — one codebase for web, iOS, and Android, fast to iterate on, and decent-looking without much fighting. **Firebase Firestore** does the heavy lifting on sync: change something and it shows up on everyone else's screen almost immediately, even on a wobbly venue connection.
 
-✅ **3 seconds to add a song** — If it takes longer, it's too slow  
-✅ **Auto-detect BPM & key** — No more manual entry  
-✅ **Real-time sync** — Change on my phone, update on everyone's devices  
-✅ **Works offline** — Basement rehearsals have no WiFi  
-✅ **Dark mode** — Don't blind the band during gigs  
-✅ **Free for indie musicians** — Because we're all broke  
+## What I learned
 
-## The Tech Stack
+Building a product alone is hard, and also kind of great.
 
-I chose **Flutter** because:
-- One codebase for web, iOS, and Android
-- Fast development cycle
-- Beautiful UI out of the box
-- Firebase integration for real-time sync
+On the technical side: real-time sync is sneakier than it looks, offline-first isn't optional for musicians, and "dark mode" is really about contrast, not just a black background.
 
-**Firebase Firestore** handles the sync. Changes propagate in <500ms. Tested on 3G, WiFi, and everything in between.
+On the not-technical side: "free" doesn't mean "worthless," it means the value shows up somewhere else. And people will support an honest solo project on Ko-fi if you're actually honest with them.
 
-## What I Learned
+## Where it's at now
 
-Building a product solo is hard. But it's also rewarding.
+FlowGroove is live, it's free, and it does the job:
 
-**Technical lessons:**
-- Real-time sync is trickier than it sounds
-- Offline-first architecture is a must for musicians
-- Dark mode isn't just black background — it's contrast
+- Real-time sync across devices, fast enough to feel instant
+- Auto BPM and key — type the song, get the data
+- Full offline mode
+- A dark theme built for dim venues
 
-**Business lessons:**
-- "Free" doesn't mean "no value" — it means "different value"
-- Musicians will donate on Ko-fi if you're authentic
-- Launch on platforms like TinyLaunch matters for indie makers
+## What's next
 
-## Where We Are Now
+No dates, just the list: an iOS build, more metadata sources (Spotify, YouTube), transposition and capo helpers, and proper band collaboration with shared libraries and comments.
 
-FlowGroove is live. It's free. And it works.
+## Support the journey
 
-- **Real-time sync:** <500ms delay across devices
-- **Auto BPM detection:** Type the song, get the data
-- **Offline mode:** Full functionality without internet
-- **Stage-ready dark mode:** High-contrast for dim venues
+If any of this rings true, or if FlowGroove ends up saving your band a few headaches, you can support it on Ko-fi.
 
-## What's Next
+[**Support the dev on Ko-fi**](https://ko-fi.com/flowgroove)
 
-- iOS app (working on the Apple Developer License)
-- More integrations (Spotify, YouTube for auto-metadata)
-- Advanced setlist features (transposition, capo support)
-- Band collaboration tools (shared libraries, comments)
-
-## Support the Journey
-
-If this story resonates with you, or if FlowGroove helps your band, consider supporting development on Ko-fi.
-
-[**Support the Dev on Ko-fi**](https://ko-fi.com/flowgroove)
-
-Every donation keeps the servers running and the coffee flowing.
+Every bit keeps the servers running and the coffee flowing.
 
 ---
 
 **Thanks for reading. Now go make some music.** 🎸
 
-*Have questions? [Email me](mailto:hello@flowgroove.app) or [report issues on GitHub](https://github.com/berloga/flutter_repsync_app/issues).*
+*Questions? [Email me](mailto:hello@flowgroove.app) or [open an issue on GitHub](https://github.com/berlogabob/flutter-FlowGroove-app/issues).*
