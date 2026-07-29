@@ -99,6 +99,18 @@ server.tool(
   ({ bandId }) => call("list_band_songs", { bandId }),
 );
 server.tool(
+  "get_band_song",
+  "Get ONE band song as FlowGroove Song JSON, including its sections/chord charts. Read this before update_band_song.",
+  { bandId, id: z.string() },
+  ({ bandId, id }) => call("get_band_song", { bandId, id }),
+);
+server.tool(
+  "update_band_song",
+  'Fill in / update an EXISTING band song (admin/editor only). `id` comes from list_band_songs. `song` is a PARTIAL FlowGroove Song JSON — send only what changes: ourKey (e.g. "Em"), ourBPM, notes, tags, links, and sections[] where each part is { name, chordChart } with lyrics+chords in ChordPro ("[Am]lyric [F]line"). title/artist/album are owned by the shared canonical song and are ignored here.',
+  { bandId, id: z.string(), song },
+  ({ bandId, id, song }) => call("update_band_song", { bandId, id, song }),
+);
+server.tool(
   "create_band_song",
   'Add ONE song to a band from FlowGroove Song JSON (admin/editor only). Map ALL available data, not just title/artist: key -> originalKey/ourKey (e.g. "Em"); a chord progression -> sections[] where each labeled part becomes { name, chordChart }; comments/arrangement/bass notes -> notes. Returns the new band song id.',
   { bandId, song },

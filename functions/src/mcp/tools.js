@@ -10,7 +10,8 @@ const admin = require("firebase-admin");
 const { validateSong, SCHEMA_VERSION } = require("./song_schema");
 
 const WRITE_TOOLS = new Set([
-  "create_song", "update_song", "create_band_song", "create_setlist",
+  "create_song", "update_song", "create_band_song", "update_band_song",
+  "create_setlist",
   "create_setlist_with_songs", "add_songs_to_setlist", "delete_setlist",
   "create_personal_setlist", "add_personal_song_to_setlist",
   "delete_personal_setlist",
@@ -54,9 +55,24 @@ function normalizeBandId(bandId) {
   return PERSONAL_ALIASES.has(trimmed.toLowerCase()) ? undefined : trimmed;
 }
 
+// Songs come in two shapes: legacy flat docs, and schemaVersion 2 "linked" docs
+// that keep the readable song under `materialized` (canonical + delta is the
+// source of truth for the app). Read through this everywhere or v2 songs look
+// blank — see lib/models/library_song.dart.
+const LINKED_SCHEMA_VERSION = 2;
+
+function isLinked(data) {
+  return data.schemaVersion === LINKED_SCHEMA_VERSION &&
+    typeof data.canonicalSongId === "string" && data.canonicalSongId !== "";
+}
+
+function songFields(data) {
+  return isLinked(data) ? (data.materialized || {}) : data;
+}
+
 // Compact list item shared by list_songs / list_band_songs.
 function songListItem(d) {
-  const x = d.data();
+  const x = songFields(d.data());
   return {
     id: d.id,
     title: x.title || "",
@@ -161,6 +177,95 @@ async function createBandSong(db, uid, bandId, song) {
   return { id, warnings };
 }
 
+async function getBandSong(db, uid, bandId, id) {
+  const role = await getBandRole(db, uid, bandId);
+  if (!role) return { error: "not a member of this band", status: 403 };
+  if (!id) return { error: "id is required" };
+  const doc = await bandSongsCol(db, bandId).doc(id).get();
+  if (!doc.exists) return { error: "not_found" };
+  return { schemaVersion: SCHEMA_VERSION, song: exportShape(doc.id, songFields(doc.data())) };
+}
+
+// Fields a linked song may override on top of its canonical, per
+// SongDeltaField.allowed in lib/models/song_delta.dart. Anything else
+// (title/artist/album/duration) belongs to the canonical song and cannot be
+// changed from here.
+const DELTA_FIELDS = ["ourKey", "ourBPM", "notes", "tags", "links", "sections"];
+
+/**
+ * Update an EXISTING band song (admin/editor). Two storage shapes:
+ * schemaVersion 2 "linked" docs get their `delta` + `materialized` merged and a
+ * new commit appended (mirrors _updateLinkedSong in
+ * lib/repositories/firestore_song_repository.dart) — writing flat fields onto
+ * one of those would be invisible in the app. Legacy flat docs are merged
+ * directly.
+ */
+async function updateBandSong(db, uid, bandId, args) {
+  const role = await getBandRole(db, uid, bandId);
+  if (!role) return { error: "not a member of this band", status: 403 };
+  if (!canWriteBand(role)) {
+    return { error: "need admin or editor role to edit songs", status: 403 };
+  }
+  const id = args.id || args.songId;
+  if (!id) return { error: "id is required (the band song id)" };
+  const ref = bandSongsCol(db, bandId).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return { error: "not_found" };
+
+  const data = doc.data();
+  const current = songFields(data);
+  const patch = args.song || {};
+  // A partial patch is the normal case; title only has to survive validation.
+  const { valid, errors, warnings, song } = validateSong({
+    ...patch,
+    title: patch.title || current.title || "",
+  });
+  if (!valid) return { error: "invalid", errors };
+  // A patch must not blank out fields it never mentioned — validateSong always
+  // returns a full song shape, so keep only what the caller actually sent.
+  const validated = withSectionIds(song);
+  const sent = (f) => patch[f] !== undefined ||
+    (f === "links" && patch.youtubeUrl !== undefined);
+  const clean = Object.fromEntries(
+    Object.entries(validated).filter(([f]) => sent(f)),
+  );
+  const now = admin.firestore.FieldValue.serverTimestamp();
+
+  if (!isLinked(data)) {
+    await ref.set({ ...clean, id, updatedAt: now }, { merge: true });
+    return { id, warnings };
+  }
+
+  const notes = [...warnings];
+  for (const f of ["title", "artist", "album", "durationMs"]) {
+    if (patch[f] != null && patch[f] !== current[f]) {
+      notes.push(`${f} is owned by the canonical song and was not changed`);
+    }
+  }
+  const delta = { ...(data.delta || {}) };
+  for (const f of DELTA_FIELDS) {
+    if (clean[f] !== undefined) delta[f] = clean[f];
+  }
+  const materialized = { ...current, ...clean, id, bandId, updatedAt: now };
+  const commitId = ref.collection("commits").doc().id;
+  const batch = db.batch();
+  batch.set(ref, { delta, materialized, latestCommitId: commitId, updatedAt: now }, { merge: true });
+  batch.set(ref.collection("commits").doc(commitId), {
+    id: commitId,
+    parentCommitId: data.latestCommitId || null,
+    canonicalSongId: data.canonicalSongId,
+    baseRevision: data.baseRevision || 1,
+    delta,
+    operation: "update",
+    authorId: uid,
+    message: "Update linked song (MCP)",
+    createdAt: now,
+    clientMutationId: crypto.randomUUID(),
+  });
+  await batch.commit();
+  return { id, commitId, warnings: notes };
+}
+
 async function listSetlists(db, uid, bandId) {
   if (bandId) {
     const role = await getBandRole(db, uid, bandId);
@@ -254,7 +359,7 @@ async function createSetlistWithSongs(db, uid, bandId, args) {
   const existingSnap = await targetSongs.get();
   const byKey = new Map();
   for (const d of existingSnap.docs) {
-    const x = d.data();
+    const x = songFields(d.data());
     byKey.set(`${(x.title || "").toLowerCase()}|${(x.artist || "").toLowerCase()}`, d.id);
   }
 
@@ -404,13 +509,13 @@ async function getSong(db, uid, id) {
   if (!id) return { error: "id is required" };
   const doc = await songsCol(db, uid).doc(id).get();
   if (!doc.exists) return { error: "not_found" };
-  return { schemaVersion: SCHEMA_VERSION, song: exportShape(doc.id, doc.data()) };
+  return { schemaVersion: SCHEMA_VERSION, song: exportShape(doc.id, songFields(doc.data())) };
 }
 
 async function exportSong(db, uid, id) {
   const doc = await songsCol(db, uid).doc(id).get();
   if (!doc.exists) return { error: "not_found" };
-  return { schemaVersion: SCHEMA_VERSION, songs: [exportShape(doc.id, doc.data())] };
+  return { schemaVersion: SCHEMA_VERSION, songs: [exportShape(doc.id, songFields(doc.data()))] };
 }
 
 async function createSong(db, uid, args) {
@@ -464,8 +569,12 @@ async function runTool(db, uid, scope, tool, args) {
       return { result: await listBands(db, uid) };
     case "list_band_songs":
       return wrap(await listBandSongs(db, uid, args.bandId));
+    case "get_band_song":
+      return wrap(await getBandSong(db, uid, args.bandId, args.id));
     case "create_band_song":
       return wrap(await createBandSong(db, uid, args.bandId, args.song || {}));
+    case "update_band_song":
+      return wrap(await updateBandSong(db, uid, args.bandId, args));
     // Setlist tools: bandId is optional AND placeholder-tolerant (see
     // normalizeBandId) — no bandId means the user's personal library.
     case "list_setlists":
@@ -508,7 +617,8 @@ function wrap(out) {
 
 module.exports = {
   listSongs, getSong, exportSong, createSong, updateSong,
-  listBands, listBandSongs, createBandSong, listSetlists, createSetlist,
+  listBands, listBandSongs, getBandSong, createBandSong, updateBandSong,
+  listSetlists, createSetlist,
   createSetlistWithSongs, addSongsToSetlist, deleteSetlist, normalizeBandId,
   getBandRole, runTool, validateSong, WRITE_TOOLS, SCHEMA_VERSION,
 };

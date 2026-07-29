@@ -19,13 +19,17 @@ function fakeDb(bandDoc, songs = [], setlists = []) {
   const setlistDocs = new Map(
     setlists.map((s) => (typeof s === "string" ? [s, { id: s }] : [s.id, s])),
   );
+  const songById = new Map(songs.map((s) => [s.id, s]));
   const docRef = (sub, sid) => ({
+    id: sid,
     set: async (v) => { writes.push({ sub, sid, v }); },
     get: async () => ({
-      exists: sub === "setlists" && setlistDocs.has(sid),
-      data: () => setlistDocs.get(sid),
+      exists: sub === "setlists" ? setlistDocs.has(sid) : songById.has(sid),
+      data: () => (sub === "setlists" ? setlistDocs.get(sid) : songById.get(sid)),
     }),
     delete: async () => { deletes.push({ sub, sid }); },
+    // Linked songs append a commit under songs/{id}/commits.
+    collection: (name) => ({ doc: (cid) => docRef(`${sub}/${name}`, cid || "commit1") }),
   });
   const docsFor = (sub) => {
     if (sub === "songs") return songDocs;
@@ -111,6 +115,102 @@ describe("band write permission gate", () => {
     });
     assert.equal(out.status, 403);
     assert.equal(writes.length, 0);
+  });
+});
+
+// schemaVersion 2 ("linked") songs keep the readable song under `materialized`
+// and the app renders canonical + delta. Reading top-level fields showed them as
+// blank rows; writing top-level fields would be invisible in the app.
+const LINKED_SONG = {
+  id: "linked1",
+  schemaVersion: 2,
+  canonicalSongId: "normalized_abc",
+  ownerType: "band",
+  baseRevision: 1,
+  latestCommitId: "c0",
+  delta: { beatModes: { "0-0": "accent" } },
+  materialized: { id: "linked1", title: "День рождения", artist: "Ленинград" },
+};
+
+describe("linked (schemaVersion 2) songs", () => {
+  it("list_band_songs reads through materialized instead of returning blanks", async () => {
+    const { db } = fakeDb(BAND, [LINKED_SONG]);
+    const out = await runTool(db, "viewer1", "read", "list_band_songs", { bandId: "b" });
+    assert.deepEqual(out.result.songs, [
+      { id: "linked1", title: "День рождения", artist: "Ленинград", ourKey: null, ourBPM: null },
+    ]);
+  });
+
+  it("update_band_song merges the delta, keeps existing delta fields, and commits", async () => {
+    const { db, writes } = fakeDb(BAND, [LINKED_SONG]);
+    const out = await runTool(db, "admin1", "write", "update_band_song", {
+      bandId: "b",
+      id: "linked1",
+      song: { ourKey: "Am", ourBPM: 76, sections: [{ name: "Куплет", chordChart: "[Am]Все эти" }] },
+    });
+    assert.equal(out.error, undefined);
+
+    const songWrite = writes.find((w) => w.sub === "songs");
+    assert.equal(songWrite.sid, "linked1");
+    assert.equal(songWrite.v.delta.ourKey, "Am");
+    assert.equal(songWrite.v.delta.ourBPM, 76);
+    assert.equal(songWrite.v.delta.sections.length, 1);
+    // pre-existing delta field survives
+    assert.deepEqual(songWrite.v.delta.beatModes, { "0-0": "accent" });
+    // canonical-owned fields stay in materialized, untouched
+    assert.equal(songWrite.v.materialized.artist, "Ленинград");
+    assert.ok(songWrite.v.materialized.sections[0].id, "sections need ids");
+
+    const commit = writes.find((w) => w.sub === "songs/commits");
+    assert.equal(commit.v.parentCommitId, "c0");
+    assert.equal(commit.v.authorId, "admin1");
+    assert.equal(songWrite.v.latestCommitId, commit.v.id);
+  });
+
+  it("update_band_song reports that title/artist belong to the canonical song", async () => {
+    const { db } = fakeDb(BAND, [LINKED_SONG]);
+    const out = await runTool(db, "admin1", "write", "update_band_song", {
+      bandId: "b",
+      id: "linked1",
+      song: { title: "Другое название", ourKey: "Am" },
+    });
+    assert.ok(out.result.warnings.some((w) => w.includes("canonical")));
+  });
+
+  it("update_band_song refuses viewers and unknown ids", async () => {
+    const { db, writes } = fakeDb(BAND, [LINKED_SONG]);
+    const denied = await runTool(db, "viewer1", "write", "update_band_song", {
+      bandId: "b", id: "linked1", song: { ourKey: "Am" },
+    });
+    assert.equal(denied.status, 403);
+    const missing = await runTool(db, "admin1", "write", "update_band_song", {
+      bandId: "b", id: "ghost", song: { ourKey: "Am" },
+    });
+    assert.equal(missing.error, "not_found");
+    assert.equal(writes.length, 0);
+  });
+
+  it("update_band_song writes flat fields on a legacy (non-linked) song", async () => {
+    const { db, writes } = fakeDb(BAND, [{ id: "old1", title: "Venus", artist: "Shocking Blue" }]);
+    const out = await runTool(db, "editor1", "write", "update_band_song", {
+      bandId: "b", id: "old1", song: { ourKey: "Em" },
+    });
+    assert.equal(out.error, undefined);
+    const w = writes.find((x) => x.sub === "songs");
+    assert.equal(w.v.ourKey, "Em");
+    assert.equal(w.v.materialized, undefined);
+  });
+
+  it("create_setlist_with_songs dedups against linked songs instead of duplicating", async () => {
+    const { db, writes } = fakeDb(BAND, [LINKED_SONG]);
+    const out = await runTool(db, "admin1", "write", "create_setlist_with_songs", {
+      bandId: "b",
+      name: "ДР",
+      entries: [{ type: "song", title: "День рождения", artist: "Ленинград", ourKey: "Am" }],
+    });
+    assert.equal(out.result.songsCreated, 0);
+    assert.equal(out.result.songsUpdated, 1);
+    assert.deepEqual(writes.find((w) => w.sub === "setlists").v.songIds, ["linked1"]);
   });
 });
 
