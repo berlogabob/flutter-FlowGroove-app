@@ -157,10 +157,19 @@ class SongFormData {
     );
   }
 
-  /// Parse a key string into base and modifier components.
-  void _parseKey(String? key, {required bool isOriginal}) {
-    if (key == null || key.isEmpty) return;
+  /// Root letter, optional accidental, optional minor marker.
+  static final _keyPattern = RegExp(r'^([A-G])([#b]?)(m?)$', caseSensitive: false);
 
+  /// Parse a key string into base and modifier components.
+  ///
+  /// The old implementation split blindly on `key[0]` + `key.substring(1)`, so
+  /// "Abm" became base "A" + modifier "bm" — a value absent from the picker's
+  /// item list, which made DropdownButton assert and crashed the edit form for
+  /// any song with an accidental-and-minor key (Abm, Bbm, C#m all appear in real
+  /// libraries via ChordPro/AI import, which the picker itself cannot produce).
+  /// Anything unparseable now clears the field instead of feeding the dropdown a
+  /// value it has no item for.
+  void _parseKey(String? key, {required bool isOriginal}) {
     final setKey = isOriginal
         ? (String base, String modifier) {
             originalKeyBase = base;
@@ -171,20 +180,34 @@ class SongFormData {
             ourKeyModifier = modifier;
           };
 
-    if (key.length > 1 && key.endsWith('m')) {
-      setKey(key[0].toUpperCase(), key.substring(1));
-    } else if (key.length > 1) {
-      setKey(key[0].toUpperCase(), key.substring(1));
-    } else {
-      setKey(key.toUpperCase(), '');
+    final trimmed = (key ?? '').trim();
+    if (trimmed.isEmpty) {
+      setKey('', '');
+      return;
     }
+
+    final match = _keyPattern.firstMatch(trimmed);
+    if (match == null) {
+      // Double accidentals, "Cmaj7", or junk from an unvalidated import.
+      setKey('', '');
+      return;
+    }
+
+    final root = match.group(1)!.toUpperCase();
+    final accidental = match.group(2)!.isEmpty
+        ? ''
+        : (match.group(2)! == '#' ? '#' : 'b');
+    final minor = match.group(3)!.isEmpty ? '' : 'm';
+    setKey(root, '$accidental$minor');
   }
 
   /// Build a key string from base and modifier.
-  String _buildKey(String base, String modifier) {
-    if (modifier == 'm') return '${base.toLowerCase()}m';
-    return '$base$modifier';
-  }
+  ///
+  /// Emits the uppercase-root convention ("Dm", not "dm"). The previous
+  /// lowercasing made the form the only writer of lowercase minors, which
+  /// functions/src/mcp/song_schema.js then rejected as invalid — the app's own
+  /// output failing its own server-side validator.
+  String _buildKey(String base, String modifier) => '$base$modifier';
 
   /// Get the original key as a complete string.
   String get originalKey => _buildKey(originalKeyBase, originalKeyModifier);

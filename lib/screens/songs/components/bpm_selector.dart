@@ -66,7 +66,10 @@ class KeyBpmGrid extends StatelessWidget {
     required this.onOurKeyChanged,
     super.key,
     this.keyBases = const ['', 'C', 'D', 'E', 'F', 'G', 'A', 'B'],
-    this.keyModifiers = const ['', '#', 'b', 'm'],
+    // '#m' and 'bm' are required, not decorative: a single mutually-exclusive
+    // modifier slot cannot express Abm / Bbm / C#m, so those keys either crashed
+    // the dropdown or lost their accidental on round trip.
+    this.keyModifiers = const ['', '#', 'b', 'm', '#m', 'bm'],
   });
 
   final String originalBase;
@@ -176,7 +179,11 @@ Widget _keyMiniDropdown(
       border: Border.all(color: context.mp.borderDefault),
     ),
     child: DropdownButton<String>(
-      value: value,
+      // DropdownButton asserts that `value` matches exactly one item, so an
+      // unexpected value is a crash, not a cosmetic glitch. Imports can deliver
+      // anything, so fall back to unset rather than take the app down. null is
+      // used rather than '' because a caller may pass an item list without it.
+      value: items.contains(value) ? value : null,
       isDense: true,
       underline: const SizedBox(),
       dropdownColor: context.mp.surfaceOverlay,
