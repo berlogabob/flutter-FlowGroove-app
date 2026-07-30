@@ -11,6 +11,11 @@
 # Environment variables (contains secrets)
 .env
 .env.*
+# ...but example templates hold no secrets and must be tracked. Without these
+# negations `.env.*` silently swallows any NEW template (the root ones only
+# survive because they predate the rule, and git ignores untracked files only).
+!.env.example
+!.env.*.example
 .ftp-env
 assets/env.json
 assets/env.json.local

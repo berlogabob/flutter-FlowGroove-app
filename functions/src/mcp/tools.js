@@ -192,37 +192,35 @@ async function getBandSong(db, uid, bandId, id) {
 // changed from here.
 const DELTA_FIELDS = ["ourKey", "ourBPM", "notes", "tags", "links", "sections"];
 
-/**
- * Update an EXISTING band song (admin/editor). Two storage shapes:
- * schemaVersion 2 "linked" docs get their `delta` + `materialized` merged and a
- * new commit appended (mirrors _updateLinkedSong in
- * lib/repositories/firestore_song_repository.dart) — writing flat fields onto
- * one of those would be invisible in the app. Legacy flat docs are merged
- * directly.
- */
-async function updateBandSong(db, uid, bandId, args) {
-  const role = await getBandRole(db, uid, bandId);
-  if (!role) return { error: "not a member of this band", status: 403 };
-  if (!canWriteBand(role)) {
-    return { error: "need admin or editor role to edit songs", status: 403 };
-  }
-  const id = args.id || args.songId;
-  if (!id) return { error: "id is required (the band song id)" };
-  const ref = bandSongsCol(db, bandId).doc(id);
-  const doc = await ref.get();
-  if (!doc.exists) return { error: "not_found" };
+// Owned by the canonical song. On a linked doc these are dropped from the write
+// entirely, not merely warned about — an earlier version warned and then merged
+// them into `materialized` anyway, which made the warning untrue.
+const CANONICAL_OWNED_FIELDS = ["title", "artist", "album", "durationMs"];
 
-  const data = doc.data();
+/**
+ * Apply a partial patch to an existing song doc, personal or band.
+ *
+ * Shared by update_song and update_band_song so the two can't drift: they did,
+ * and the personal one was missing the linked-doc branch entirely, which made
+ * every write to a schemaVersion-2 personal song invisible in the app.
+ *
+ * Two storage shapes. schemaVersion 2 "linked" docs get `delta` + `materialized`
+ * merged and a commit appended (mirrors _updateLinkedSong in
+ * lib/repositories/firestore_song_repository.dart). Legacy flat docs merge
+ * directly. Either way only fields the caller actually sent are written, because
+ * validateSong returns a full song shape and merging that would blank anything
+ * the patch omitted — notably `artist`, which it defaults to "".
+ */
+async function applySongUpdate(db, { ref, data, patch, uid, bandId }) {
+  const id = ref.id;
   const current = songFields(data);
-  const patch = args.song || {};
   // A partial patch is the normal case; title only has to survive validation.
   const { valid, errors, warnings, song } = validateSong({
     ...patch,
     title: patch.title || current.title || "",
   });
   if (!valid) return { error: "invalid", errors };
-  // A patch must not blank out fields it never mentioned — validateSong always
-  // returns a full song shape, so keep only what the caller actually sent.
+
   const validated = withSectionIds(song);
   const sent = (f) => patch[f] !== undefined ||
     (f === "links" && patch.youtubeUrl !== undefined);
@@ -237,16 +235,23 @@ async function updateBandSong(db, uid, bandId, args) {
   }
 
   const notes = [...warnings];
-  for (const f of ["title", "artist", "album", "durationMs"]) {
-    if (patch[f] != null && patch[f] !== current[f]) {
+  for (const f of CANONICAL_OWNED_FIELDS) {
+    if (clean[f] === undefined) continue;
+    if (clean[f] !== current[f]) {
       notes.push(`${f} is owned by the canonical song and was not changed`);
     }
+    delete clean[f];
   }
+
   const delta = { ...(data.delta || {}) };
   for (const f of DELTA_FIELDS) {
     if (clean[f] !== undefined) delta[f] = clean[f];
   }
-  const materialized = { ...current, ...clean, id, bandId, updatedAt: now };
+  const materialized = { ...current, ...clean, id, updatedAt: now };
+  // Only band songs carry a bandId; setting one on a personal song would make it
+  // invisible in both lists (the personal query filters bandId != "").
+  if (bandId) materialized.bandId = bandId;
+
   const commitId = ref.collection("commits").doc().id;
   const batch = db.batch();
   batch.set(ref, { delta, materialized, latestCommitId: commitId, updatedAt: now }, { merge: true });
@@ -258,12 +263,30 @@ async function updateBandSong(db, uid, bandId, args) {
     delta,
     operation: "update",
     authorId: uid,
-    message: "Update linked song (MCP)",
+    message: bandId ? "Update linked song (MCP)" : "Update linked personal song (MCP)",
     createdAt: now,
     clientMutationId: crypto.randomUUID(),
   });
   await batch.commit();
   return { id, commitId, warnings: notes };
+}
+
+/** Update an EXISTING band song (admin/editor). */
+async function updateBandSong(db, uid, bandId, args) {
+  const role = await getBandRole(db, uid, bandId);
+  if (!role) return { error: "not a member of this band", status: 403 };
+  if (!canWriteBand(role)) {
+    return { error: "need admin or editor role to edit songs", status: 403 };
+  }
+  const id = args.id || args.songId;
+  if (!id) return { error: "id is required (the band song id)" };
+  const ref = bandSongsCol(db, bandId).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return { error: "not_found" };
+
+  return applySongUpdate(db, {
+    ref, data: doc.data(), patch: args.song || {}, uid, bandId,
+  });
 }
 
 async function listSetlists(db, uid, bandId) {
@@ -532,19 +555,21 @@ async function createSong(db, uid, args) {
   return { id, warnings };
 }
 
+/** Update an EXISTING personal song. */
 async function updateSong(db, uid, args) {
   const id = args.id;
   if (!id) return { error: "id is required" };
   const ref = songsCol(db, uid).doc(id);
   const doc = await ref.get();
   if (!doc.exists) return { error: "not_found" };
-  const { valid, errors, warnings, song } = validateSong(args.song || args);
-  if (!valid) return { error: "invalid", errors };
-  await ref.set(
-    { ...withSectionIds(song), id, updatedAt: admin.firestore.FieldValue.serverTimestamp() },
-    { merge: true },
-  );
-  return { id, warnings };
+
+  // Accept either { id, song: {...} } or a flat { id, title, ourKey, ... } —
+  // several AI clients send the flat form. `id` and `song` are envelope keys, not
+  // song fields, so they must not become part of the patch.
+  const { id: _envelopeId, song: nested, ...flat } = args;
+  const patch = nested || flat;
+
+  return applySongUpdate(db, { ref, data: doc.data(), patch, uid });
 }
 
 /** Dispatch a tool by name for a resolved uid. Returns { result } or { error, status }. */

@@ -16,6 +16,7 @@ exports.telegramWebhook = telegram.telegramWebhook;
 // Canonical song
 const canonical = require("./src/canonical");
 exports.ensureCanonicalSong = canonical.ensureCanonicalSong;
+exports.updateCanonicalSong = canonical.updateCanonicalSong;
 
 // Band membership
 const bands = require("./src/bands");
