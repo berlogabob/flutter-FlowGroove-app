@@ -19,6 +19,7 @@ const admin = require("firebase-admin");
 const express = require("express");
 const { createRemoteJWKSet, jwtVerify } = require("jose");
 const { z } = require("zod");
+const { spotifySecrets } = require("../metadata/credentials");
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const {
   StreamableHTTPServerTransport,
@@ -238,4 +239,8 @@ app.get("/mcp", (req, res) =>
 );
 
 exports.app = app;
-exports.mcpRemote = functions.https.onRequest(app);
+// The lookup_metadata and enrich_song tools reach Spotify through the shared
+// resolver, so this function must mount the Spotify secrets. Without them the
+// resolver silently skips Spotify and those tools return no album, release year
+// or ISRC — a quiet degradation rather than an error.
+exports.mcpRemote = functions.https.onRequest({ secrets: spotifySecrets }, app);

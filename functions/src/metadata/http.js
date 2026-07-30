@@ -100,7 +100,15 @@ async function fetchJson(url, options = {}) {
       return await res.json();
     } catch (err) {
       if (attempt === attempts) {
-        console.warn(`[metadata] ${label || host} failed: ${err.message}`);
+        // Node's fetch throws a bare "fetch failed" and hides the real reason in
+        // `cause`. Without it a DNS failure, a TLS problem and a connection reset
+        // are indistinguishable in the logs — which cost a debugging round trip
+        // when MusicBrainz turned out to be unreachable from Cloud Functions.
+        const cause = err && err.cause;
+        const detail = cause
+          ? ` (cause: ${cause.code || cause.errno || ""} ${cause.message || cause})`
+          : "";
+        console.warn(`[metadata] ${label || host} failed: ${err.message}${detail}`);
         return null;
       }
       await doSleep(retryDelayMs(null, attempt));
