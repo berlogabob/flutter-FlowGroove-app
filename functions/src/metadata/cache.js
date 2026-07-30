@@ -14,9 +14,13 @@
  * Keyed by request URL, so it is provider-agnostic and needs no knowledge of
  * query shapes. Only GETs are cached — never the Spotify token POST.
  *
- * ponytail: expired entries are ignored on read but not deleted. Enable a
- * Firestore TTL policy on `expiresAt` in the console to reclaim them; until then
- * they are a few KB each and harmless. No sweeper cron for that.
+ * ponytail: nothing here deletes expired entries — a Firestore TTL policy on
+ * `expiresAt` does it, enabled 2026-07-30 and ACTIVE:
+ *
+ *   gcloud firestore fields ttls list --collection-group=metadata_cache
+ *
+ * The read path below already treats an expired entry as absent, so the policy
+ * only reclaims storage and can never change a lookup's result. No sweeper cron.
  */
 
 const crypto = require("node:crypto");
