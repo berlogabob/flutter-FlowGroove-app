@@ -8,6 +8,10 @@
 .buildlog/
 .history
 
+# Firestore data dumps from scripts/library_backup.js — real user library
+# content (songs, notes, lyrics). Never commit these.
+backups/
+
 # Environment variables (contains secrets)
 .env
 .env.*
