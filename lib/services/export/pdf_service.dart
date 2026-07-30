@@ -28,9 +28,30 @@ class PdfService {
       ? Printing.sharePdf(bytes: bytes, filename: name)
       : Printing.layoutPdf(onLayout: (_) async => bytes, name: name);
 
+  /// Accented Latin letters -> ASCII, so a name survives filename sanitising.
+  ///
+  /// `[^\w\s-]` treats é as punctuation and deletes it outright, which turned
+  /// "Roumé" into "Roum" and "André" into "Andr" in exported filenames. Dart has
+  /// no Unicode normalisation in core, so map the Latin-1 range explicitly.
+  static const _deaccent = {
+    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a',
+    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
+    'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
+    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+    'ç': 'c', 'ñ': 'n', 'ý': 'y', 'ÿ': 'y', 'ß': 'ss', 'æ': 'ae', 'ø': 'o',
+  };
+
   /// Filename-safe title: drops anything a `download` attribute would choke on.
   static String _fileStem(String title) {
-    final cleaned = title
+    final folded = title.split('').map((ch) {
+      final lower = ch.toLowerCase();
+      final mapped = _deaccent[lower];
+      if (mapped == null) return ch;
+      // Preserve the original case of the letter we replaced.
+      return ch == lower ? mapped : mapped.toUpperCase();
+    }).join();
+    final cleaned = folded
         .trim()
         .replaceAll(RegExp(r'[^\w\s-]'), '')
         .trim()
@@ -108,7 +129,50 @@ class PdfService {
   /// [performerId] is required by [SetlistPdfLayout.performer] and ignored by
   /// every other layout: it prints one musician's copy — the whole running
   /// order, with the songs they play highlighted.
+  /// Builds the setlist PDF and hands it to the platform.
+  ///
+  /// A thin wrapper over [buildSetlistBytes] — the document build and the
+  /// platform hand-off are separate so the layout can be produced (and tested,
+  /// and written to a file) without a running app. `Printing.layoutPdf` /
+  /// `sharePdf` need platform channels, which is why everything used to be
+  /// unreachable from a test.
   static Future<void> exportSetlist(
+    Setlist setlist,
+    List<Song> songs, {
+    SetlistPdfLayout layout = SetlistPdfLayout.detailed,
+    String? performerId,
+  }) async {
+    final bytes = await buildSetlistBytes(
+      setlist,
+      songs,
+      layout: layout,
+      performerId: performerId,
+    );
+    await _output(bytes, setlistFileName(setlist, layout, performerId, songs));
+  }
+
+  /// Filename the export would use, exposed so callers and tests agree on it.
+  static String setlistFileName(
+    Setlist setlist,
+    SetlistPdfLayout layout,
+    String? performerId,
+    List<Song> songs,
+  ) {
+    final lineup = peopleById(setlist.eventKit?.people ?? const []);
+    final performer = performerId == null ? null : lineup[performerId];
+    final suffix = switch (layout) {
+      SetlistPdfLayout.detailed => '',
+      SetlistPdfLayout.compact => '_compact',
+      SetlistPdfLayout.pack => '_pack',
+      SetlistPdfLayout.eventGuide => '_event_guide',
+      SetlistPdfLayout.performer => '_${_fileStem(performer?.name ?? 'part')}',
+    };
+    return '${_fileStem(setlist.name)}_setlist$suffix.pdf';
+  }
+
+  /// The setlist PDF as bytes. No platform channels, so this is usable from a
+  /// test or a CLI harness.
+  static Future<Uint8List> buildSetlistBytes(
     Setlist setlist,
     List<Song> songs, {
     SetlistPdfLayout layout = SetlistPdfLayout.detailed,
@@ -252,17 +316,7 @@ class PdfService {
       pdf.addPage(_eventGuidePage(setlist, kit, font, fontBold));
     }
 
-    final suffix = switch (layout) {
-      SetlistPdfLayout.detailed => '',
-      SetlistPdfLayout.compact => '_compact',
-      SetlistPdfLayout.pack => '_pack',
-      SetlistPdfLayout.eventGuide => '_event_guide',
-      SetlistPdfLayout.performer => '_${_fileStem(performer?.name ?? 'part')}',
-    };
-    await _output(
-      await pdf.save(),
-      '${_fileStem(setlist.name)}_setlist$suffix.pdf',
-    );
+    return pdf.save();
   }
 
   /// One-page A4 sheet: header + section blocks scaled to fit (#79 layout).
