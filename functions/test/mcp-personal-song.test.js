@@ -230,3 +230,41 @@ describe("update_song scope gate", () => {
     assert.equal(writes.length, 0);
   });
 });
+
+describe("get_song / export_song round trip", () => {
+  // links are accepted by validateSong and written by enrich_song, but were
+  // missing from exportShape's field list — so a song could store four
+  // provenance links and get_song would return none of them.
+  const LINKS = [
+    { type: "other", title: "MusicBrainz", url: "https://musicbrainz.org/recording/mb-1" },
+    { type: "chords", title: "Chords", url: "https://www.ultimate-guitar.com/search.php?x=1" },
+  ];
+
+  it("returns links for a flat song", async () => {
+    const { db } = fakeUserDb([{ ...FLAT_SONG, links: LINKS }]);
+    const out = await runTool(db, UID, "read", "get_song", { id: "flat1" });
+    assert.deepEqual(out.result.song.links, LINKS);
+  });
+
+  it("returns links for a linked song, read through materialized", async () => {
+    const linked = {
+      ...LINKED_SONG,
+      materialized: { ...LINKED_SONG.materialized, links: LINKS },
+    };
+    const { db } = fakeUserDb([linked]);
+    const out = await runTool(db, UID, "read", "get_song", { id: "linked1" });
+    assert.deepEqual(out.result.song.links, LINKS);
+  });
+
+  it("omits links entirely when the song has none", async () => {
+    const { db } = fakeUserDb([FLAT_SONG]);
+    const out = await runTool(db, UID, "read", "get_song", { id: "flat1" });
+    assert.equal("links" in out.result.song, false);
+  });
+
+  it("export_song also carries links", async () => {
+    const { db } = fakeUserDb([{ ...FLAT_SONG, links: LINKS }]);
+    const out = await runTool(db, UID, "read", "export_song", { id: "flat1" });
+    assert.deepEqual(out.result.songs[0].links, LINKS);
+  });
+});

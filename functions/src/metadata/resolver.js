@@ -150,6 +150,30 @@ async function fromSpotify(title, artist, creds, opts) {
 
 // ------------------------------------------------------------ MusicBrainz
 
+/**
+ * Choose one recording, deterministically.
+ *
+ * MusicBrainz holds many recordings of the same song and returns equally-scored
+ * hits in arbitrary order, so taking the first match makes the resolver
+ * non-deterministic. That bit for real: two passes over "Jumping Jack Flash"
+ * picked 9b35aaa2 and 8b66dd5a, leaving a song whose MBID matched no canonical
+ * and therefore could not be linked. Tie-break on the id so repeated runs agree.
+ */
+function pickMusicBrainzRecording(recordings, artist) {
+  const matching = (recordings || []).filter((r) => {
+    if (!r || !r.id) return false;
+    const credited = (r["artist-credit"] || [])
+      .map((c) => (c.artist && c.artist.name) || "").join(" ");
+    return artistMatches(artist, credited);
+  });
+  if (matching.length === 0) return null;
+  return matching.sort((a, b) => {
+    const scoreDiff = (Number(b.score) || 0) - (Number(a.score) || 0);
+    if (scoreDiff !== 0) return scoreDiff;
+    return String(a.id).localeCompare(String(b.id));
+  })[0];
+}
+
 async function fromMusicBrainz(title, artist, opts) {
   const headers = { "User-Agent": USER_AGENT, Accept: "application/json" };
   const query = encodeURIComponent(`recording:"${title}" AND artist:"${artist}"`);
@@ -158,11 +182,7 @@ async function fromMusicBrainz(title, artist, opts) {
     { ...opts, headers, label: "musicbrainz/search" },
   );
   const recordings = (search && search.recordings) || [];
-  const hit = recordings.find((r) => {
-    const credited = (r["artist-credit"] || [])
-      .map((c) => (c.artist && c.artist.name) || "").join(" ");
-    return artistMatches(artist, credited);
-  });
+  const hit = pickMusicBrainzRecording(recordings, artist);
   if (!hit) return null;
 
   // The work relation carries composition identity (work MBID + ISWC), which is
@@ -364,6 +384,7 @@ module.exports = {
   pickSpotifyTrack,
   lyricsToSections,
   artistMatches,
+  pickMusicBrainzRecording,
   norm,
   resetTokenCache() {
     tokenCache = { value: "", expiresAt: 0 };

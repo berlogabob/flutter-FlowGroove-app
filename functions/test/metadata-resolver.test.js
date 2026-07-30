@@ -13,6 +13,7 @@ const {
   pickSpotifyTrack,
   lyricsToSections,
   artistMatches,
+  pickMusicBrainzRecording,
   resetTokenCache,
 } = require("../src/metadata/resolver");
 const { fetchJson, resetGate } = require("../src/metadata/http");
@@ -176,6 +177,61 @@ describe("pickSpotifyTrack", () => {
     assert.equal(pickSpotifyTrack([], "X"), null);
     assert.equal(pickSpotifyTrack(undefined, "X"), null);
   });
+
+  // Ranking by album_type BEFORE date is a deliberate, measured choice. The
+  // obvious-looking alternative — earliest release wins — was compared against
+  // all 34 real library lookups: the two rules disagreed 6 times and date-first
+  // was right only once (Status Quo, where Spotify mislabels the 1979 original as
+  // a compilation and the 2003 re-recordings as an album). The five it got wrong
+  // are pinned below. Do not switch to date-first to fix Status Quo.
+  describe("album_type outranks release date (measured, do not invert)", () => {
+    const pick = (items) => pickSpotifyTrack(items, "A");
+    const track = (name, type, date) => ({
+      id: name, artists: [{ name: "A" }],
+      album: { name, album_type: type, release_date: date },
+    });
+
+    it("prefers the studio album over an earlier single", () => {
+      // Light My Fire: the 1967 single predates the 1967-01-04 album.
+      assert.equal(pick([
+        track("Light My Fire / Crystal Ship", "single", "1967"),
+        track("The Doors", "album", "1967-01-04"),
+      ]).album.name, "The Doors");
+    });
+
+    it("prefers the album over an acoustic single of the same song", () => {
+      // Shape of You: date-first picks the acoustic re-cut. Wrong recording.
+      assert.equal(pick([
+        track("Shape of You (Acoustic)", "single", "2017-02-10"),
+        track("÷", "album", "2017-03-03"),
+      ]).album.name, "÷");
+    });
+
+    it("does not put a song on an earlier compilation it is not from", () => {
+      // Ride the Lightning: date-first lands it on Kill 'Em All (1983).
+      assert.equal(pick([
+        track("Kill 'Em All", "compilation", "1983-07-24"),
+        track("Ride The Lightning", "album", "1984-07-27"),
+      ]).album.name, "Ride The Lightning");
+    });
+
+    it("prefers the album over a same-year compilation", () => {
+      assert.equal(pick([
+        track("Back To Black", "compilation", "2006"),
+        track("Back To Black", "album", "2006-10-27"),
+      ]).album.album_type, "album");
+    });
+
+    it("accepts the known cost: a mislabelled original loses to a later album", () => {
+      // Status Quo. Spotify types the 1979 original as a compilation and the 2003
+      // re-recordings album as an album, so this one resolves imperfectly. Kept
+      // deliberately — inverting the rule breaks the four cases above.
+      assert.equal(pick([
+        track("Whatever You Want", "compilation", "1979"),
+        track("Riffs", "album", "2003"),
+      ]).album.name, "Riffs");
+    });
+  });
 });
 
 describe("artistMatches", () => {
@@ -188,6 +244,44 @@ describe("artistMatches", () => {
   it("rejects unrelated artists and blanks", () => {
     assert.equal(artistMatches("Metallica", "Miley Cyrus"), false);
     assert.equal(artistMatches("", "Metallica"), false);
+  });
+});
+
+describe("pickMusicBrainzRecording", () => {
+  const rec = (id, score, name = "The Rolling Stones") => ({
+    id, score, "artist-credit": [{ artist: { name } }],
+  });
+
+  it("prefers the higher score", () => {
+    assert.equal(
+      pickMusicBrainzRecording([rec("bbb", 80), rec("aaa", 100)], "The Rolling Stones").id,
+      "aaa",
+    );
+  });
+
+  // Equally-scored hits come back in arbitrary order. Two passes over "Jumping
+  // Jack Flash" picked different recordings, leaving a song whose MBID matched no
+  // canonical and could not be linked. The id tie-break makes runs agree.
+  it("is deterministic for equal scores regardless of input order", () => {
+    const a = rec("9b35aaa2-6c3b-479c-8be2-c9ec41a04026", 100);
+    const b = rec("8b66dd5a-8a6d-422b-8bc4-789d9886fb63", 100);
+    const first = pickMusicBrainzRecording([a, b], "The Rolling Stones").id;
+    const second = pickMusicBrainzRecording([b, a], "The Rolling Stones").id;
+    assert.equal(first, second);
+    assert.equal(first, "8b66dd5a-8a6d-422b-8bc4-789d9886fb63");
+  });
+
+  it("skips recordings credited to a different artist", () => {
+    assert.equal(
+      pickMusicBrainzRecording([rec("x", 100, "Cavern Sounds Orchestra")], "The Rolling Stones"),
+      null,
+    );
+  });
+
+  it("ignores entries with no id and handles empty input", () => {
+    assert.equal(pickMusicBrainzRecording([{ score: 100 }], "A"), null);
+    assert.equal(pickMusicBrainzRecording([], "A"), null);
+    assert.equal(pickMusicBrainzRecording(undefined, "A"), null);
   });
 });
 

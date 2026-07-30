@@ -111,8 +111,14 @@ const canWriteBand = (role) => role === "admin" || role === "editor";
 // Clean export subset (FlowGroove Song JSON) from a stored doc.
 function exportShape(id, data) {
   const out = { id, title: data.title || "", artist: data.artist || "" };
+  // `links` belongs here: validateSong accepts and preserves it (see
+  // mcp-song-schema.test.js), and enrich_song writes a provenance block of
+  // MusicBrainz / Spotify / YouTube / chord-search urls. Omitting it from the
+  // export made get_song and export_song silently drop links that were stored
+  // on the doc — a one-way round trip.
   for (const f of ["originalKey", "ourKey", "originalBPM", "ourBPM", "notes",
-    "tags", "spotifyUrl", "album", "spotifyId", "musicbrainzId", "isrc", "durationMs"]) {
+    "tags", "spotifyUrl", "links", "album", "spotifyId", "musicbrainzId", "isrc",
+    "durationMs"]) {
     if (data[f] != null) out[f] = data[f];
   }
   if (Array.isArray(data.sections)) {
