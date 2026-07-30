@@ -198,48 +198,57 @@ class PdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(40),
-        header: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text(
-              setlist.name,
-              style: pw.TextStyle(font: fontBold, fontSize: 24),
-            ),
-            if (performer != null)
+        // The header runs on EVERY page, so only the title belongs here. The
+        // description and venue are shown once, on page 1: a long description
+        // (a whole running order pasted in, say) otherwise repeats on every
+        // page and can crowd the songs down to a handful per sheet — which is
+        // exactly what a real 18-song setlist did, turning a one-page export
+        // into three.
+        header: (context) {
+          final firstPage = context.pageNumber == 1;
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
               pw.Text(
-                performer.role.isEmpty
-                    ? performer.name
-                    : '${performer.name} — ${performer.role}',
-                style: pw.TextStyle(font: fontBold, fontSize: 13),
+                setlist.name,
+                style: pw.TextStyle(font: fontBold, fontSize: firstPage ? 24 : 14),
               ),
-            if (setlist.description != null) ...[
-              pw.SizedBox(height: 4),
-              pw.Text(
-                setlist.description!,
-                style: pw.TextStyle(
-                  font: font,
-                  fontSize: 12,
-                  color: PdfColor.fromHex('757575'),
+              if (performer != null)
+                pw.Text(
+                  performer.role.isEmpty
+                      ? performer.name
+                      : '${performer.name} — ${performer.role}',
+                  style: pw.TextStyle(font: fontBold, fontSize: firstPage ? 13 : 11),
                 ),
-              ),
-            ],
-            if (setlist.eventLocation != null) ...[
-              pw.SizedBox(height: 8),
-              pw.Row(
-                children: [
-                  pw.Text(
-                    // No emoji — the embedded font has no emoji glyphs.
-                    'Venue: ${setlist.eventLocation}',
-                    style: pw.TextStyle(font: font, fontSize: 10),
+              if (firstPage && setlist.description != null) ...[
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  setlist.description!,
+                  style: pw.TextStyle(
+                    font: font,
+                    fontSize: 12,
+                    color: PdfColor.fromHex('757575'),
                   ),
-                ],
-              ),
+                ),
+              ],
+              if (firstPage && setlist.eventLocation != null) ...[
+                pw.SizedBox(height: 8),
+                pw.Row(
+                  children: [
+                    pw.Text(
+                      // No emoji — the embedded font has no emoji glyphs.
+                      'Venue: ${setlist.eventLocation}',
+                      style: pw.TextStyle(font: font, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ],
+              pw.SizedBox(height: firstPage ? 20 : 8),
+              pw.Divider(color: PdfColor.fromHex('E0E0E0')),
+              pw.SizedBox(height: firstPage ? 20 : 8),
             ],
-            pw.SizedBox(height: 20),
-            pw.Divider(color: PdfColor.fromHex('E0E0E0')),
-            pw.SizedBox(height: 20),
-          ],
-        ),
+          );
+        },
         footer: (context) => pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
