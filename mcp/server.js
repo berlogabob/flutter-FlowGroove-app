@@ -78,6 +78,24 @@ server.tool(
   { id: z.string(), song },
   ({ id, song }) => call("update_song", { id, song }),
 );
+server.tool(
+  "lookup_metadata",
+  "Look up everything findable about a track — MusicBrainz recording + work ids and ISWC, Spotify album / release year / ISRC / duration, Deezer BPM, and lyrics split into sections. Writes NOTHING. Returns a per-field `sources` map so you can tell sourced data from a guess. Note: no source provides musical KEY or CHORDS.",
+  { title: z.string(), artist: z.string().optional() },
+  ({ title, artist }) => call("lookup_metadata", { title, artist }),
+);
+server.tool(
+  "enrich_song",
+  "Look up a song's metadata and write what belongs on the song (needs a write-scope key). Fill-only by default: values already set are LEFT ALONE unless overwrite:true (Deezer reports double-time BPM for some tracks, so clobbering a hand-set BPM corrupts data). Omit bandId for a personal song. Returns `applied`, `skipped` with reasons, `sources`, and `canonicalFields` — album/releaseYear/ISRC/ISWC for a canonical-linked song, which you apply separately via the updateCanonicalSong callable. Existing sections that already contain chord charts are never touched.",
+  {
+    id: z.string(),
+    bandId: z.string().optional(),
+    overwrite: z.boolean().optional(),
+    includeLyrics: z.boolean().optional(),
+    includeLinks: z.boolean().optional(),
+  },
+  (args) => call("enrich_song", args),
+);
 
 // Band + setlist tools. Same names/shapes as the remote OAuth server
 // (functions/src/mcp/remote.js) — both dispatch through the shared runTool.

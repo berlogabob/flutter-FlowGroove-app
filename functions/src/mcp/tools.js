@@ -14,8 +14,16 @@ const WRITE_TOOLS = new Set([
   "create_setlist",
   "create_setlist_with_songs", "add_songs_to_setlist", "delete_setlist",
   "create_personal_setlist", "add_personal_song_to_setlist",
-  "delete_personal_setlist",
+  "delete_personal_setlist", "enrich_song",
 ]);
+
+// Lazily required so the fake-db unit tests never load the resolver (which pulls
+// in firebase-functions/params via credentials.js) and never touch the network.
+function defaultResolver() {
+  const { resolveTrack } = require("../metadata/resolver");
+  const { spotifyCredentials } = require("../metadata/credentials");
+  return (query) => resolveTrack(query, { spotifyCredentials: spotifyCredentials() });
+}
 
 function songsCol(db, uid) {
   return db.collection("users").doc(uid).collection("songs");
@@ -572,8 +580,224 @@ async function updateSong(db, uid, args) {
   return applySongUpdate(db, { ref, data: doc.data(), patch, uid });
 }
 
+// Resolver field -> song field. Only these are writable on a SONG; releaseYear,
+// musicBrainzWorkId, iswc and genres belong to the canonical song and are
+// returned to the caller under `canonicalFields` instead.
+const SONG_FIELD_FROM_RESOLVER = {
+  musicbrainzId: "musicBrainzId",
+  isrc: "isrc",
+  album: "album",
+  durationMs: "durationMs",
+  spotifyId: "spotifyId",
+  originalBPM: "bpm",
+};
+const CANONICAL_ONLY_RESOLVER_FIELDS = [
+  "releaseYear", "musicBrainzWorkId", "iswc", "genres",
+];
+
+// Sections whose name looks like lyrics already. Mirrors the append-guard in
+// scripts/append_canonical_lyrics.js.
+const LYRIC_SECTION_LABEL = /^(verse|chorus|bridge|lyrics)\b/i;
+
+function isBlank(value) {
+  if (value === null || value === undefined) return true;
+  if (typeof value === "string") return value.trim().length === 0;
+  if (Array.isArray(value)) return value.length === 0;
+  return false;
+}
+
+/** Provenance links, mirroring lib/utils/suggestion_links.dart. */
+function provenanceLinks(resolved) {
+  const q = encodeURIComponent(`${resolved.artist} ${resolved.title}`);
+  const links = [];
+  if (resolved.musicBrainzId) {
+    links.push({
+      type: "other",
+      title: "MusicBrainz",
+      url: `https://musicbrainz.org/recording/${resolved.musicBrainzId}`,
+    });
+  }
+  if (resolved.spotifyId) {
+    links.push({
+      type: "other",
+      title: "Spotify",
+      url: `https://open.spotify.com/track/${resolved.spotifyId}`,
+    });
+  }
+  links.push({
+    type: "youtube_original",
+    title: "YouTube",
+    url: `https://www.youtube.com/results?search_query=${q}`,
+  });
+  links.push({
+    type: "chords",
+    title: "Chords",
+    url: `https://www.ultimate-guitar.com/search.php?search_type=title&value=${q}`,
+  });
+  return links;
+}
+
+/**
+ * Look up everything findable about a track, without writing anything.
+ *
+ * Exists so an agent stops reimplementing MusicBrainz/Spotify/Deezer/lyrics
+ * fetching in throwaway scripts — the album heuristic, rate limits and
+ * provenance then live in exactly one place for both app and agent.
+ */
+async function lookupMetadata(args, deps) {
+  const title = typeof args.title === "string" ? args.title.trim() : "";
+  const artist = typeof args.artist === "string" ? args.artist.trim() : "";
+  if (!title) return { error: "title is required" };
+  const resolve = deps.resolveTrack || defaultResolver();
+  const resolved = await resolve({ title, artist });
+  return { schemaVersion: SCHEMA_VERSION, metadata: resolved };
+}
+
+/**
+ * Resolve a song's metadata and write what belongs on the song.
+ *
+ * Fill-only by default: a value already present is left alone unless
+ * `overwrite` is set. That is not politeness — Deezer reports double-time BPM
+ * for some tracks (196 against a true ~98), so clobbering a BPM a musician set
+ * by hand would actively corrupt the library.
+ *
+ * Linked (schemaVersion 2) songs can only carry the delta fields, so album /
+ * duration / ISRC / MBID for those are reported under `canonicalFields` for the
+ * caller to apply via updateCanonicalSong rather than written here. MCP still
+ * performs no canonical writes.
+ */
+async function enrichSong(db, uid, args, deps) {
+  const bandId = normalizeBandId(args.bandId);
+  const id = args.id || args.songId;
+  if (!id) return { error: "id is required" };
+
+  if (bandId) {
+    const role = await getBandRole(db, uid, bandId);
+    if (!role) return { error: "not a member of this band", status: 403 };
+    if (!canWriteBand(role)) {
+      return { error: "need admin or editor role to edit songs", status: 403 };
+    }
+  }
+
+  const ref = songsColFor(db, uid, bandId).doc(id);
+  const doc = await ref.get();
+  if (!doc.exists) return { error: "not_found" };
+
+  const data = doc.data();
+  const current = songFields(data);
+  const title = current.title || "";
+  const artist = current.artist || "";
+  if (!title) return { error: "song has no title to look up" };
+
+  const resolve = deps.resolveTrack || defaultResolver();
+  const resolved = await resolve({ title, artist });
+  if (!resolved || !resolved.found) {
+    return {
+      id,
+      found: false,
+      applied: [],
+      skipped: {},
+      canonicalFields: {},
+      sources: {},
+      warnings: [`no metadata match for "${title}" by "${artist}"`],
+    };
+  }
+
+  const overwrite = args.overwrite === true;
+  const linked = isLinked(data);
+  const patch = {};
+  const applied = [];
+  const skipped = {};
+  const warnings = [];
+
+  for (const [songField, resolverField] of Object.entries(SONG_FIELD_FROM_RESOLVER)) {
+    const value = resolved[resolverField];
+    if (isBlank(value)) continue;
+    if (linked && !DELTA_FIELDS.includes(songField)) {
+      skipped[songField] = "owned by the canonical song";
+      continue;
+    }
+    if (!isBlank(current[songField]) && !overwrite) {
+      skipped[songField] = "already set";
+      continue;
+    }
+    patch[songField] = value;
+    applied.push(songField);
+  }
+
+  // Links are additive and deduped by url, so re-running never piles them up.
+  if (args.includeLinks !== false) {
+    const existing = Array.isArray(current.links) ? current.links : [];
+    const seen = new Set(existing.map((l) => l && l.url).filter(Boolean));
+    const added = provenanceLinks(resolved).filter((l) => !seen.has(l.url));
+    if (added.length > 0) {
+      patch.links = [...existing, ...added];
+      applied.push("links");
+    }
+  }
+
+  // Append-guard: never touch sections once any of them carries real content.
+  // This is what stops a second "Wrecking Ball", where a previous run appended
+  // ten placeholder sections after ten real chord charts.
+  if (args.includeLyrics !== false && Array.isArray(resolved.sections) &&
+      resolved.sections.length > 0) {
+    const existing = Array.isArray(current.sections) ? current.sections : [];
+    const hasContent = existing.some((s) => s && !isBlank(s.chordChart));
+    const hasLyricLabels = existing.some((s) =>
+      s && typeof s.name === "string" && LYRIC_SECTION_LABEL.test(s.name));
+    if (hasContent) {
+      skipped.sections = "existing sections already have chord charts";
+    } else if (hasLyricLabels) {
+      skipped.sections = "existing sections are already labelled as lyrics";
+    } else {
+      patch.sections = [
+        ...existing,
+        ...resolved.sections.map((s) => ({ name: s.name, chordChart: s.chart })),
+      ];
+      applied.push("sections");
+    }
+  }
+
+  const canonicalFields = {};
+  for (const field of CANONICAL_ONLY_RESOLVER_FIELDS) {
+    if (!isBlank(resolved[field])) canonicalFields[field] = resolved[field];
+  }
+  // On a linked song these were skipped above, so surface them too — the caller
+  // needs the whole set to repair the canonical in one updateCanonicalSong call.
+  if (linked) {
+    for (const [songField, resolverField] of Object.entries(SONG_FIELD_FROM_RESOLVER)) {
+      if (skipped[songField] !== "owned by the canonical song") continue;
+      const canonicalName = songField === "musicbrainzId"
+        ? "musicBrainzId"
+        : (songField === "originalBPM" ? "baseBpm" : songField);
+      canonicalFields[canonicalName] = resolved[resolverField];
+    }
+  }
+
+  if (applied.length === 0) {
+    return {
+      id, found: true, applied: [], skipped, canonicalFields,
+      sources: resolved.sources || {}, warnings,
+    };
+  }
+
+  const out = await applySongUpdate(db, { ref, data, patch, uid, bandId });
+  if (out.error) return out;
+
+  return {
+    id,
+    found: true,
+    applied,
+    skipped,
+    canonicalFields,
+    sources: resolved.sources || {},
+    commitId: out.commitId,
+    warnings: [...warnings, ...(out.warnings || [])],
+  };
+}
+
 /** Dispatch a tool by name for a resolved uid. Returns { result } or { error, status }. */
-async function runTool(db, uid, scope, tool, args) {
+async function runTool(db, uid, scope, tool, args, deps = {}) {
   if (WRITE_TOOLS.has(tool) && scope !== "write") {
     return { error: "this key is read-only", status: 403 };
   }
@@ -590,6 +814,10 @@ async function runTool(db, uid, scope, tool, args) {
       return { result: await createSong(db, uid, args) };
     case "update_song":
       return { result: await updateSong(db, uid, args) };
+    case "lookup_metadata":
+      return wrap(await lookupMetadata(args, deps));
+    case "enrich_song":
+      return wrap(await enrichSong(db, uid, args, deps));
     case "list_bands":
       return { result: await listBands(db, uid) };
     case "list_band_songs":
@@ -646,4 +874,5 @@ module.exports = {
   listSetlists, createSetlist,
   createSetlistWithSongs, addSongsToSetlist, deleteSetlist, normalizeBandId,
   getBandRole, runTool, validateSong, WRITE_TOOLS, SCHEMA_VERSION,
+  lookupMetadata, enrichSong, provenanceLinks,
 };
