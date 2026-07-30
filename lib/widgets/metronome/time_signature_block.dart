@@ -53,6 +53,9 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
           // Top row - Beats
           _BeatsRow(
             count: beats,
+            // Both strips tile on ONE grid sized by the larger row, so beat i
+            // and subdivision i share a column. See [_StripMetrics]. F-019.
+            gridCount: math.max(beats, subdivisions),
             currentBeat: isPlaying ? currentBeat : -1,
             subdivisions: subdivisions,
             beatModes: beatModes,
@@ -83,6 +86,7 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
           // Bottom row - Subdivisions
           _SubdivisionsRow(
             count: subdivisions,
+            gridCount: math.max(beats, subdivisions),
             isPlaying: isPlaying,
             currentBeat: isPlaying ? currentBeat : -1,
             beats: beats,
@@ -160,6 +164,18 @@ const double _kCircleGap = MonoPulseSpacing.sm;
 /// `needsScroll` is true only when even the floor cell size cannot fit every
 /// circle (legacy ultra-narrow screens), in which case the strip degrades to a
 /// horizontal scroll view instead of clipping.
+///
+/// `count` is the SHARED grid count — max(beats, subdivisions) — not the number
+/// of dots in the row being laid out. Both rows must compute from the same
+/// number or their cells are different widths and nothing lines up vertically
+/// (UX audit F-019 measured the resulting 3-4px near-misses).
+///
+/// ponytail: the cost of one grid is that cell width tracks the LARGER row, so
+/// with 12 beats a lone subdivision dot renders as small as the beat dots
+/// instead of filling the strip. That is the consistent behaviour, and the
+/// >=48dp tap-target height (F-006) is unaffected. If a big lone subdivision
+/// dot is ever wanted back, that is a deliberate break from the shared grid —
+/// not a bug to quietly "fix".
 class _StripMetrics {
   const _StripMetrics({required this.containerSize, required this.needsScroll});
 
@@ -195,10 +211,11 @@ Widget _buildCircleStrip({
   required Key scrollKey,
 }) {
   if (!metrics.needsScroll) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: children,
-    );
+    // MainAxisAlignment.start, not spaceEvenly: spaceEvenly divides the leftover
+    // width by (children + 1), so a 4-dot row and a 1-dot row get different
+    // offsets and land 3-4px apart. With a shared cell width, start-alignment
+    // puts cell i at the same x in both rows. F-019.
+    return Row(children: children);
   }
 
   final spaced = <Widget>[];
@@ -233,6 +250,7 @@ Widget _buildCircleStrip({
 class _BeatsRow extends StatelessWidget {
   const _BeatsRow({
     required this.count,
+    required this.gridCount,
     required this.subdivisions,
     required this.beatModes,
     required this.onToggleMode,
@@ -242,6 +260,10 @@ class _BeatsRow extends StatelessWidget {
     this.isSmallScreen = false,
   });
   final int count;
+
+  /// Cell count driving the shared column grid — max(beats, subdivisions), not
+  /// this row's own [count]. See the note on [_StripMetrics].
+  final int gridCount;
   final int currentBeat;
   final int subdivisions;
   final List<List<BeatMode>> beatModes;
@@ -287,7 +309,7 @@ class _BeatsRow extends StatelessWidget {
             builder: (context, constraints) {
               final metrics = _StripMetrics.compute(
                 availableWidth: constraints.maxWidth,
-                count: count,
+                count: gridCount,
                 isSmallScreen: isSmallScreen,
               );
               return _buildCircleStrip(
@@ -341,6 +363,7 @@ class _BeatsRow extends StatelessWidget {
 class _SubdivisionsRow extends StatelessWidget {
   const _SubdivisionsRow({
     required this.count,
+    required this.gridCount,
     required this.isPlaying,
     required this.currentBeat,
     required this.beats,
@@ -351,6 +374,9 @@ class _SubdivisionsRow extends StatelessWidget {
     this.isSmallScreen = false,
   });
   final int count;
+
+  /// See [_BeatsRow.gridCount] — both rows must be passed the same value.
+  final int gridCount;
   final bool isPlaying;
   final int currentBeat;
   final int beats;
@@ -397,7 +423,7 @@ class _SubdivisionsRow extends StatelessWidget {
             builder: (context, constraints) {
               final metrics = _StripMetrics.compute(
                 availableWidth: constraints.maxWidth,
-                count: count,
+                count: gridCount,
                 isSmallScreen: isSmallScreen,
               );
               final currentBeatIndex = isPlaying && count > 0

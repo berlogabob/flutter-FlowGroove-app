@@ -563,6 +563,13 @@ class MonoPulseTheme {
         : const ColorScheme.light();
     return baseScheme.copyWith(
       primary: MonoPulseColors.accentOrange,
+      // Pin onPrimary for the same reason as the *Container slots below:
+      // `primary` is overridden to orange but the base scheme's onPrimary rides
+      // along — black in ColorScheme.dark(), WHITE in ColorScheme.light(). The
+      // light theme therefore resolved white-on-orange (~3:1), the very
+      // violation UX audit F-007 raised, for anything reading onPrimary. Not
+      // reachable today only because themeMode is pinned to dark in main.dart.
+      onPrimary: MonoPulseColors.black,
       primaryContainer: MonoPulseColors.accentOrangeDark,
       onPrimaryContainer: p.textPrimary,
       secondary: p.textSecondary,
@@ -635,6 +642,28 @@ class MonoPulseTheme {
           ),
           textStyle: MonoPulseTypography.labelLarge,
         ).copyWith(overlayColor: _stateOverlay(hover)),
+      ),
+
+      // Buttons - Filled. FilledButton had NO theme entry, so all ~34 usages
+      // fell back to Material's default StadiumBorder — that is why the
+      // Recorder's 'Record' was a pill while every other orange CTA was a
+      // rounded square (UX audit F-018).
+      //
+      // SHAPE LANGUAGE, which F-018 asked to have written down:
+      //   radius large (12)  — buttons that sit in a layout
+      //   radius xlarge (16) — floating / transport controls (FAB)
+      //   stadium            — nowhere
+      //
+      // Shape only, deliberately. background/foreground already resolve
+      // on-token through colorScheme.primary (accentOrange) / onPrimary
+      // (black); pinning colours here would repaint all 34 call sites orange,
+      // including the ones that are not primary CTAs.
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(MonoPulseRadius.large),
+          ),
+        ),
       ),
 
       // Buttons - Outlined (Secondary)
