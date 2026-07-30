@@ -50,11 +50,11 @@ class EnvConfig {
   /// Get Firebase API Key
   String get firebaseApiKey => get('FIREBASE_API_KEY');
 
-  /// Get Spotify Client ID for direct non-web calls only.
-  String get spotifyClientId => _getClientSecret('SPOTIFY_CLIENT_ID');
-
-  /// Get Spotify Client Secret for direct non-web calls only.
-  String get spotifyClientSecret => _getClientSecret('SPOTIFY_CLIENT_SECRET');
+  // SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET / SPOTIFY_PROXY_URL / API_PROXY_URL
+  // are deliberately absent. Spotify, Deezer and lyrics.ovh are reached only
+  // through the lookupTrackMetadata callable now, so the client holds no
+  // third-party credential and needs no CORS shim. Do not re-add them: a client
+  // secret in the bundle is a published secret.
 
   /// Get Twitter API Key for non-web use only.
   String get twitterApiKey => _getClientSecret('TWITTER_API_KEY');
@@ -67,30 +67,6 @@ class EnvConfig {
 
   /// Get Telegram Bot Token for non-web/backend migration only.
   String get telegramBotToken => _getClientSecret('TELEGRAM_BOT_TOKEN');
-
-  /// Get Spotify Proxy URL
-  String get spotifyProxyUrlConfig => get('SPOTIFY_PROXY_URL');
-
-  /// CORS-shim proxy fronting public no-auth APIs (Deezer, lyrics.ovh) so web
-  /// can reach them. Null on mobile (direct calls work there).
-  String? get apiProxyUrl {
-    final url = get('API_PROXY_URL');
-    if (url.isNotEmpty && !_isPlaceholder(url)) {
-      return url;
-    }
-    return null;
-  }
-
-  /// Check if Spotify credentials are configured
-  bool get isSpotifyConfigured {
-    if (kIsWeb) {
-      return useSpotifyProxy;
-    }
-    return spotifyClientId.isNotEmpty &&
-           spotifyClientSecret.isNotEmpty &&
-           !_isPlaceholder(spotifyClientId) &&
-           !_isPlaceholder(spotifyClientSecret);
-  }
 
   /// Check if Twitter credentials are configured
   bool get isTwitterConfigured {
@@ -108,18 +84,6 @@ class EnvConfig {
     return firebaseApiKey.isNotEmpty && !_isPlaceholder(firebaseApiKey);
   }
 
-  /// Get Spotify Proxy URL if configured
-  String? get spotifyProxyUrl {
-    final url = spotifyProxyUrlConfig;
-    if (url.isNotEmpty && !_isPlaceholder(url)) {
-      return url;
-    }
-    return null;
-  }
-
-  /// Check if should use proxy for Spotify API
-  bool get useSpotifyProxy => spotifyProxyUrl != null;
-
   // Helper: Get value from window.env (web only)
   String _getFromWebConfig(String key) {
     if (kIsWeb) {
@@ -134,20 +98,12 @@ class EnvConfig {
     switch (key) {
       case 'FIREBASE_API_KEY':
         return const String.fromEnvironment('FIREBASE_API_KEY');
-      case 'SPOTIFY_CLIENT_ID':
-        return const String.fromEnvironment('SPOTIFY_CLIENT_ID');
-      case 'SPOTIFY_CLIENT_SECRET':
-        return const String.fromEnvironment('SPOTIFY_CLIENT_SECRET');
       case 'TWITTER_API_KEY':
         return const String.fromEnvironment('TWITTER_API_KEY');
       case 'TWITTER_API_SECRET':
         return const String.fromEnvironment('TWITTER_API_SECRET');
       case 'TELEGRAM_BOT_TOKEN':
         return const String.fromEnvironment('TELEGRAM_BOT_TOKEN');
-      case 'SPOTIFY_PROXY_URL':
-        return const String.fromEnvironment('SPOTIFY_PROXY_URL');
-      case 'API_PROXY_URL':
-        return const String.fromEnvironment('API_PROXY_URL');
       default:
         return '';
     }

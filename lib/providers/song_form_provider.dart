@@ -432,6 +432,39 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     state = state.copyWith(isUsingSuggestion: false);
   }
 
+  /// Replace the selected suggestion's external metadata with better values,
+  /// leaving title/artist and every form field untouched.
+  ///
+  /// saveSong reads `album`/`durationMs`/`musicBrainzId` straight off the
+  /// selected suggestion. For a MusicBrainz suggestion those come from
+  /// `releases.first`, which MusicBrainz returns in arbitrary order — that is how
+  /// "Apocalypse Now" ended up stored as the album for Light My Fire. The
+  /// server-side resolver picks the release properly (measured: correct on 6/6 of
+  /// a hard sample where MusicBrainz was wrong), so once it answers, its values
+  /// replace the suggestion's.
+  ///
+  /// Deliberately not selectSuggestion(): that also rewrites title and artist,
+  /// which the user may have edited since choosing the match.
+  void refineSuggestionMetadata({
+    String? album,
+    int? releaseYear,
+    int? durationMs,
+    String? musicBrainzId,
+    String? spotifyId,
+  }) {
+    final current = state.selectedSuggestion;
+    if (current == null) return;
+    state = state.copyWith(
+      selectedSuggestion: current.copyWith(
+        album: album ?? current.album,
+        releaseYear: releaseYear ?? current.releaseYear,
+        durationMs: durationMs ?? current.durationMs,
+        musicBrainzId: musicBrainzId ?? current.musicBrainzId,
+        spotifyId: spotifyId ?? current.spotifyId,
+      ),
+    );
+  }
+
   /// Apply suggestion data to form fields.
   void applySuggestionToForm(SongSuggestion suggestion) {
     state = state.copyWith(

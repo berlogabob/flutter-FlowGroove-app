@@ -1,16 +1,19 @@
 import '../models/song_suggestion.dart';
 import '../repositories/canonical_song_repository.dart';
-import 'api/deezer_service.dart';
-import 'api/spotify_proxy_service.dart';
 import 'matching/fuzzy_matcher.dart';
 import 'musicbrainz_service.dart';
 
 /// Song Suggestion Service
 ///
 /// Orchestrates song autofill suggestions from EXTERNAL sources only:
-/// 1. Canonical song catalog
-/// 2. Spotify
-/// 3. MusicBrainz API
+/// 1. Canonical song catalog (Firestore)
+/// 2. MusicBrainz API
+///
+/// Spotify and Deezer used to be searched here too. Spotify needs a client
+/// secret (which must never ship in the app bundle) and Deezer needs a CORS
+/// proxy for web, so both moved into the server-side resolver
+/// (functions/src/metadata/resolver.js), reached via the lookupTrackMetadata
+/// callable once the user picks a match.
 ///
 /// The user's own/band library is deliberately NOT searched here — autofill
 /// is for pulling in new song metadata, and library hits crowded out the web
@@ -57,11 +60,15 @@ class SongSuggestionService {
     final title = parts.title;
     final artist = parts.artist;
 
-    // Search all sources in parallel
+    // Search in parallel. Only keyless, browser-reachable sources run here:
+    // the canonical catalog (Firestore) and MusicBrainz. Spotify needs a client
+    // secret and Deezer needs a CORS proxy, so both moved server-side into
+    // functions/src/metadata/resolver.js — reached through the
+    // lookupTrackMetadata callable once a match is chosen. This also matches how
+    // the feature is documented: matches come from MusicBrainz, tempo from
+    // Deezer at enrichment time.
     final results = await Future.wait([
       if (_canonicalRepo != null) _searchCanonical(title, artist),
-      _searchSpotify(title, artist),
-      _searchDeezer(title, artist),
       _searchMusicBrainz(title, artist),
     ]);
 
@@ -142,84 +149,9 @@ class SongSuggestionService {
     }
   }
 
-  /// Search Spotify (primary external source — gives popularity ranking now and
-  /// BPM/key on selection). Skipped when Spotify isn't configured. Results are
-  /// fuzzy-scored + filtered against the query, like every other source.
-  Future<List<SongSuggestion>> _searchSpotify(
-    String title,
-    String artist,
-  ) async {
-    if (!SpotifyProxyService.isConfigured) return [];
-    try {
-      final query = [title, artist].where((s) => s.isNotEmpty).join(' ').trim();
-      if (query.isEmpty) return [];
-
-      final tracks = await SpotifyProxyService.search(query);
-      final suggestions = <SongSuggestion>[];
-      for (final track in tracks) {
-        final match = FuzzyMatcher.calculateMatchScore(
-          inputTitle: title,
-          inputArtist: artist,
-          targetTitle: track.name,
-          targetArtist: track.artist,
-          targetAlbum: track.album,
-        );
-        if (match.overall < 0.6) continue;
-        suggestions.add(
-          SongSuggestion.fromSpotify(
-            id: track.id,
-            title: track.name,
-            artist: track.artist,
-            spotifyId: track.id,
-            album: track.album,
-            durationMs: track.durationMs,
-          ).copyWith(matchScore: match.overall),
-        );
-      }
-      return suggestions;
-    } catch (e) {
-      // Non-fatal — Spotify is optional discovery.
-      return [];
-    }
-  }
-
-  /// Search Deezer (public, no-auth external source — indexes indie/francophone
-  /// artists MusicBrainz misses; BPM/lyrics fill on selection). Fuzzy-scored +
-  /// filtered like every other source. Off on web when no proxy is configured.
-  Future<List<SongSuggestion>> _searchDeezer(
-    String title,
-    String artist,
-  ) async {
-    try {
-      final tracks = await DeezerService.search(title: title, artist: artist);
-      final suggestions = <SongSuggestion>[];
-      for (final track in tracks) {
-        final match = FuzzyMatcher.calculateMatchScore(
-          inputTitle: title,
-          inputArtist: artist,
-          targetTitle: track.title,
-          targetArtist: track.artist,
-          targetAlbum: track.album,
-        );
-        if (match.overall < 0.6) continue;
-        suggestions.add(
-          SongSuggestion.fromDeezer(
-            id: track.id,
-            title: track.title,
-            artist: track.artist,
-            album: track.album,
-            durationMs: track.durationMs,
-          ).copyWith(matchScore: match.overall),
-        );
-      }
-      return suggestions;
-    } catch (e) {
-      // Non-fatal — Deezer is optional discovery.
-      return [];
-    }
-  }
-
-  /// Search MusicBrainz API
+  /// Search MusicBrainz — the primary external source for matches. Keyless and
+  /// CORS-reachable, so it runs client-side on every platform including web.
+  /// Results are fuzzy-scored + filtered against the query.
   Future<List<SongSuggestion>> _searchMusicBrainz(
     String title,
     String artist,
@@ -312,7 +244,7 @@ class SongSuggestionService {
       return 'spotify:$spotifyId';
     }
 
-    // Deezer suggestions have no cross-source id, so key on title|artist below.
+    // Some sources carry no cross-source id, so key on title|artist below.
 
     return '${suggestion.title.toLowerCase().trim()}|'
         '${suggestion.artist.toLowerCase().trim()}';

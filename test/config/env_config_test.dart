@@ -122,35 +122,26 @@ void main() {
       });
     });
 
-    group('Spotify Configuration', () {
-      test('should return spotifyClientId from getter', () {
+    // The Spotify getters were removed in Stage 6: the client holds no Spotify
+    // credential at all, and no CORS shim, because Spotify/Deezer/lyrics.ovh are
+    // reached only through the lookupTrackMetadata callable. A client secret in
+    // the bundle is a published secret, so this asserts they stay gone rather
+    // than asserting they work.
+    group('Spotify configuration is absent by design', () {
+      test('no Spotify or proxy keys resolve through dart-define', () {
         final config = EnvConfig();
-        expect(() => config.spotifyClientId, returnsNormally);
-      });
-
-      test('should return spotifyClientSecret from getter', () {
-        final config = EnvConfig();
-        expect(() => config.spotifyClientSecret, returnsNormally);
-      });
-
-      test('isSpotifyConfigured returns false when credentials missing', () {
-        final config = EnvConfig();
-        expect(config.isSpotifyConfigured, isFalse);
-      });
-
-      test('should return spotifyProxyUrlConfig from getter', () {
-        final config = EnvConfig();
-        expect(() => config.spotifyProxyUrlConfig, returnsNormally);
-      });
-
-      test('should return null for spotifyProxyUrl when not configured', () {
-        final config = EnvConfig();
-        expect(config.spotifyProxyUrl, isNull);
-      });
-
-      test('useSpotifyProxy returns false when proxy not configured', () {
-        final config = EnvConfig();
-        expect(config.useSpotifyProxy, isFalse);
+        for (final key in const [
+          'SPOTIFY_CLIENT_ID',
+          'SPOTIFY_CLIENT_SECRET',
+          'SPOTIFY_PROXY_URL',
+          'API_PROXY_URL',
+        ]) {
+          expect(
+            config.get(key),
+            isEmpty,
+            reason: '$key must not be readable by the client',
+          );
+        }
       });
     });
 

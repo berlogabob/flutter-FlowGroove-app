@@ -18,6 +18,9 @@ const canonical = require("./src/canonical");
 exports.ensureCanonicalSong = canonical.ensureCanonicalSong;
 exports.updateCanonicalSong = canonical.updateCanonicalSong;
 
+const metadataCallable = require("./src/metadata/callable");
+exports.lookupTrackMetadata = metadataCallable.lookupTrackMetadata;
+
 // Band membership
 const bands = require("./src/bands");
 exports.joinBand = bands.joinBand;

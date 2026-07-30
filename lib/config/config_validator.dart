@@ -57,23 +57,10 @@ class ConfigValidator {
       errors.add('Firebase App ID format is invalid');
     }
 
-    // Check Spotify configuration (optional, but warn if missing on non-web)
-    if (!kIsWeb && !env.isSpotifyConfigured) {
-      if (env.spotifyClientId.isEmpty || _isPlaceholder(env.spotifyClientId)) {
-        warnings.add('Spotify Client ID is not configured - Spotify features will be disabled');
-      }
-      if (env.spotifyClientSecret.isEmpty || _isPlaceholder(env.spotifyClientSecret)) {
-        warnings.add('Spotify Client Secret is not configured - Spotify features will be disabled');
-      }
-    }
-
-    // Check if proxy is configured (recommended for production)
-    if (!env.useSpotifyProxy && kIsWeb && !kDebugMode) {
-      warnings.add(
-        'Spotify Proxy URL is not configured. '
-        'For production, consider using a backend proxy for Spotify API calls.',
-      );
-    }
+    // No Spotify checks: the client holds no Spotify credential at all. The
+    // secret lives in Secret Manager and is only ever read by the
+    // lookupTrackMetadata Cloud Function, so there is nothing here to validate
+    // and nothing for a misconfigured client to disable.
 
     // Check Twitter configuration (optional)
     if (!kIsWeb && !env.isTwitterConfigured) {

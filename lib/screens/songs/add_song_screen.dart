@@ -10,12 +10,9 @@ import '../../models/song_suggestion.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/song_form_provider.dart';
-import '../../services/api/deezer_service.dart';
-import '../../services/api/lyrics_service.dart';
-import '../../services/api/spotify_proxy_service.dart';
+import '../../services/metadata_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
-import '../../utils/lyrics_sections.dart';
 import '../../utils/song_tags.dart';
 import '../../utils/suggestion_links.dart';
 import '../../widgets/app_menu_sheet.dart';
@@ -54,6 +51,13 @@ class AddSongScreen extends ConsumerStatefulWidget {
 class _AddSongScreenState extends ConsumerState<AddSongScreen>
     with AddSongScreenHelper, WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
+
+  // `late` matters: the constructor resolves FirebaseFunctions.instance, which
+  // throws without an initialised Firebase app. Building this eagerly as a field
+  // broke every widget test that merely pumps this screen. Deferring to first
+  // use means only a test that actually triggers autofill needs Firebase.
+  late final MetadataFunctionService _metadataService =
+      MetadataFunctionService();
   late TextEditingController _titleController;
   late TextEditingController _artistController;
   late TextEditingController _originalBpmController;
@@ -257,106 +261,89 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
         .read(songFormStateProvider.notifier)
         .addLinks(linksForSuggestion(suggestion));
 
-    // Suggestions carry no BPM at search time — fetch it now (one lazy call)
-    // and fill what the user hasn't set.
-    final spotifyId = suggestion.spotifyId;
-    if (spotifyId != null && spotifyId.isNotEmpty) {
-      await _autofillFromSpotify(spotifyId);
-    } else {
-      await _autofillBpm(suggestion);
-    }
-
-    await _autofillLyrics(suggestion);
+    // Suggestions carry no BPM or lyrics at search time. One server call now
+    // fills both, plus the release metadata.
+    await _autofillFromResolver(suggestion);
   }
 
-  /// Fetches plain lyric text (lyrics.ovh) and appends it to the song as
-  /// Verse/Chorus sections, so it shows in the song editor + performance sheet
-  /// (which render Section.chordChart, not notes). Best-effort — no chords.
-  Future<void> _autofillLyrics(SongSuggestion suggestion) async {
-    // Skip if the song already has lyric content, so re-selecting a suggestion
-    // never clobbers the user's sections or duplicates the lyrics.
-    final existing = ref.read(songFormStateProvider).formData.sections;
-    if (existing.any((s) => (s.chordChart ?? '').trim().isNotEmpty)) return;
-    final lyrics = await LyricsService.getLyrics(
+  /// Fills BPM and lyric sections from the server-side resolver.
+  ///
+  /// Replaces three separate client-side fetches (Spotify audio-features, Deezer
+  /// BPM, lyrics.ovh) with one callable. Those providers now live in
+  /// functions/src/metadata/resolver.js, so the Spotify client secret never
+  /// reaches the app bundle and the album heuristic exists in exactly one place.
+  ///
+  /// Fill-only: anything the user already typed is left alone.
+  ///
+  /// Deliberately fills no KEY. The old Spotify path defaulted a missing
+  /// pitch-class to 0 -> "C", silently reporting "C major from Spotify", which is
+  /// a large part of how this library accumulated phantom C values. No provider
+  /// exposes musical key, so the field stays empty and honest.
+  Future<void> _autofillFromResolver(SongSuggestion suggestion) async {
+    final metadata = await _metadataService.lookup(
       title: suggestion.title,
       artist: suggestion.artist,
     );
-    if (lyrics == null || !mounted) return;
-    final parts = lyricsToSections(lyrics);
-    if (parts.isEmpty) return;
-    final sections = [
-      for (final p in parts)
-        Section(id: const Uuid().v4(), name: p.name, chordChart: p.chart),
-    ];
-    final current = ref.read(songFormStateProvider).formData.sections;
-    ref.read(songFormStateProvider.notifier).setSections([
-      ...current,
-      ...sections,
-    ]);
-    showAppSnackBar(
-      context,
-      'Added lyrics (${sections.length} parts) from lyrics.ovh',
-    );
-  }
+    if (metadata == null || !mounted) return;
 
-  /// Fills BPM for a non-Spotify suggestion: from the suggestion itself when
-  /// it has one (canonical), otherwise from Deezer (#76 — Spotify
-  /// audio-features is closed to new apps, Deezer needs no auth).
-  Future<void> _autofillBpm(SongSuggestion suggestion) async {
-    if (_originalBpmController.text.trim().isNotEmpty) return;
-    final bpm =
-        suggestion.bpm ??
-        await DeezerService.getBpm(
-          title: suggestion.title,
-          artist: suggestion.artist,
-        );
-    if (bpm == null || bpm <= 0 || !mounted) return;
-    if (_originalBpmController.text.trim().isNotEmpty) return;
-    // The controller's listener syncs this into the form provider.
-    _originalBpmController.text = bpm.toString();
-    showAppSnackBar(context, 'Filled $bpm BPM from Deezer');
-  }
+    final filled = <String>[];
 
-  /// Fills BPM and key from Spotify audio-features for [spotifyId], without
-  /// overwriting a BPM the user already typed.
-  Future<void> _autofillFromSpotify(String spotifyId) async {
-    if (_originalBpmController.text.trim().isNotEmpty) return;
-    try {
-      final features = await SpotifyProxyService.getAudioFeatures(spotifyId);
-      if (features == null || !mounted) return;
-      if (features.bpm > 0) {
-        // The controller's listener syncs this into the form provider.
-        _originalBpmController.text = features.bpm.toString();
+    // The album is the whole reason this stage exists. saveSong reads it off the
+    // selected suggestion, and a MusicBrainz suggestion's album is
+    // `releases.first.title` — arbitrary order, which is how bootlegs like
+    // "Apocalypse Now" got stored as real albums. Overwrite with the resolver's
+    // properly-picked release before the save can see it.
+    if (metadata.found) {
+      ref.read(songFormStateProvider.notifier).refineSuggestionMetadata(
+            album: metadata.album,
+            releaseYear: metadata.releaseYear,
+            durationMs: metadata.durationMs,
+            musicBrainzId: metadata.musicBrainzId,
+            spotifyId: metadata.spotifyId,
+          );
+      final album = metadata.album;
+      if (album != null && album != suggestion.album) {
+        final year = metadata.releaseYear;
+        filled.add(year == null ? 'album $album' : 'album $album ($year)');
       }
-      _applySpotifyKey(features.musicalKey);
-      if (mounted) {
-        showAppSnackBar(
-          context,
-          'Filled ${features.bpm} BPM · ${features.musicalKey} from Spotify',
-        );
-      }
-    } catch (_) {
-      // Non-fatal — autofill is best-effort (e.g. audio-features unavailable).
     }
-  }
 
-  /// Parses a Spotify key string like "C# minor" into the form's base+modifier.
-  void _applySpotifyKey(String musicalKey) {
-    final parts = musicalKey.trim().split(' ');
-    if (parts.isEmpty || parts.first.isEmpty) return;
-    final token = parts.first; // e.g. "C#"
-    final base = token.replaceAll(RegExp('[#bm]'), '');
-    if (base.isEmpty) return;
-    var modifier = '';
-    if (token.contains('#')) {
-      modifier = '#';
-    } else if (token.contains('b')) {
-      modifier = 'b';
+    // The canonical catalog's own BPM wins; otherwise the resolver's (Deezer).
+    final bpm = suggestion.bpm ?? metadata.bpm;
+    if (bpm != null && bpm > 0 && _originalBpmController.text.trim().isEmpty) {
+      // The controller's listener syncs this into the form provider.
+      _originalBpmController.text = bpm.toString();
+      final source = metadata.sourceOf('bpm');
+      filled.add(source == null ? '$bpm BPM' : '$bpm BPM from $source');
     }
-    if (parts.length > 1 && parts[1].toLowerCase() == 'minor') modifier = 'm';
-    ref
-        .read(songFormStateProvider.notifier)
-        .updateOriginalKey(base.substring(0, 1).toUpperCase(), modifier);
+
+    // Lyrics as sections, so they render in the song editor and performance
+    // sheet (both read Section.chordChart). Guarded: skip entirely if any
+    // section already carries content, so re-selecting never clobbers the
+    // user's work or appends a duplicate set.
+    final existing = ref.read(songFormStateProvider).formData.sections;
+    final hasContent =
+        existing.any((s) => (s.chordChart ?? '').trim().isNotEmpty);
+    if (metadata.sections.isNotEmpty && !hasContent) {
+      final sections = [
+        for (final part in metadata.sections)
+          Section(
+            id: const Uuid().v4(),
+            name: part.name,
+            chordChart: part.chart,
+          ),
+      ];
+      ref.read(songFormStateProvider.notifier).setSections([
+        ...existing,
+        ...sections,
+      ]);
+      final source = metadata.sourceOf('sections') ?? 'lyrics.ovh';
+      filled.add('lyrics (${sections.length} parts) from $source');
+    }
+
+    if (filled.isNotEmpty && mounted) {
+      showAppSnackBar(context, 'Filled ${filled.join(' · ')}');
+    }
   }
 
   @override
