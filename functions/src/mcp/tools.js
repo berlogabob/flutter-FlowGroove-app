@@ -19,10 +19,15 @@ const WRITE_TOOLS = new Set([
 
 // Lazily required so the fake-db unit tests never load the resolver (which pulls
 // in firebase-functions/params via credentials.js) and never touch the network.
-function defaultResolver() {
+function defaultResolver(db) {
   const { resolveTrack } = require("../metadata/resolver");
   const { spotifyCredentials } = require("../metadata/credentials");
-  return (query) => resolveTrack(query, { spotifyCredentials: spotifyCredentials() });
+  const { firestoreCache } = require("../metadata/cache");
+  const cache = db ? firestoreCache(db) : undefined;
+  return (query) => resolveTrack(query, {
+    spotifyCredentials: spotifyCredentials(),
+    cache,
+  });
 }
 
 function songsCol(db, uid) {
@@ -650,11 +655,11 @@ function provenanceLinks(resolved) {
  * fetching in throwaway scripts — the album heuristic, rate limits and
  * provenance then live in exactly one place for both app and agent.
  */
-async function lookupMetadata(args, deps) {
+async function lookupMetadata(args, deps, db) {
   const title = typeof args.title === "string" ? args.title.trim() : "";
   const artist = typeof args.artist === "string" ? args.artist.trim() : "";
   if (!title) return { error: "title is required" };
-  const resolve = deps.resolveTrack || defaultResolver();
+  const resolve = deps.resolveTrack || defaultResolver(db);
   const resolved = await resolve({ title, artist });
   return { schemaVersion: SCHEMA_VERSION, metadata: resolved };
 }
@@ -695,7 +700,7 @@ async function enrichSong(db, uid, args, deps) {
   const artist = current.artist || "";
   if (!title) return { error: "song has no title to look up" };
 
-  const resolve = deps.resolveTrack || defaultResolver();
+  const resolve = deps.resolveTrack || defaultResolver(db);
   const resolved = await resolve({ title, artist });
   if (!resolved || !resolved.found) {
     return {
@@ -821,7 +826,7 @@ async function runTool(db, uid, scope, tool, args, deps = {}) {
     case "update_song":
       return { result: await updateSong(db, uid, args) };
     case "lookup_metadata":
-      return wrap(await lookupMetadata(args, deps));
+      return wrap(await lookupMetadata(args, deps, db));
     case "enrich_song":
       return wrap(await enrichSong(db, uid, args, deps));
     case "list_bands":

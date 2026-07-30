@@ -18,9 +18,15 @@
  */
 
 const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 
 const { resolveTrack } = require("./resolver");
 const { spotifyCredentials, spotifySecrets } = require("./credentials");
+const { firestoreCache } = require("./cache");
+
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 /**
  * The handler, separated from the onCall wrapper so the auth and shape logic is
@@ -51,6 +57,9 @@ async function handleLookup(request, deps = {}) {
     spotifyCredentials: deps.spotifyCredentials
       ? deps.spotifyCredentials()
       : spotifyCredentials(),
+    // Cached responses make a MusicBrainz outage invisible on the second call
+    // and keep concurrent users inside its 1 req/sec limit.
+    cache: deps.cache !== undefined ? deps.cache : firestoreCache(admin.firestore()),
     // The caller may not want the slowest source. lyrics.ovh gets a 20s
     // timeout and is useless for instrumentals.
     skip: Array.isArray(data.skip)

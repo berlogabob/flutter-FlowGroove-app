@@ -1,10 +1,10 @@
-// Secret access for the metadata resolver.
+// Secret access for functions that need a third-party credential.
 //
-// This is the first use of Secret Manager in this codebase. Everything else
-// reads plain `functions/.env` (see telegram/config.js for the defineString
-// pattern, and mcp/remote.js which reads process.env directly) — which means
-// WORKOS_API_KEY is currently a live secret sitting in a dotfile that is baked
-// into the deployed function's environment. Spotify does not repeat that.
+// This introduced Secret Manager to this codebase; everything else still reads
+// plain `functions/.env` via defineString (see telegram/config.js), which is fine
+// for non-secret config. Real secrets live here: SPOTIFY_CLIENT_ID/SECRET and
+// WORKOS_API_KEY, the last of which used to sit in that dotfile and get baked
+// into the deployed function's environment.
 //
 // Why a helper rather than calling .value() inline: the resolver has three
 // callers with three different runtimes — the lookupTrackMetadata callable, the
@@ -16,8 +16,10 @@
 // Operational setup, once per project:
 //   firebase functions:secrets:set SPOTIFY_CLIENT_ID
 //   firebase functions:secrets:set SPOTIFY_CLIENT_SECRET
-// Then remove both from functions/.env — a bound secret is exposed to the
-// function as process.env at runtime, so nothing else has to change.
+//   firebase functions:secrets:set WORKOS_API_KEY
+// Then remove them from functions/.env — a bound secret is exposed to the
+// function as process.env at runtime, so nothing else has to change. Set the
+// secret BEFORE deploying a function that declares it, or the deploy fails.
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -25,6 +27,10 @@ const { defineSecret } = require("firebase-functions/params");
 
 const SPOTIFY_CLIENT_ID = defineSecret("SPOTIFY_CLIENT_ID");
 const SPOTIFY_CLIENT_SECRET = defineSecret("SPOTIFY_CLIENT_SECRET");
+// The remote MCP connector's WorkOS Management API key. It lived in plain
+// functions/.env, which meant a real secret baked into the deployed function's
+// environment and sitting in a dotfile on every dev machine.
+const WORKOS_API_KEY = defineSecret("WORKOS_API_KEY");
 
 // ponytail: 6-line KEY=VALUE reader instead of a dotenv dependency. The repo
 // root .env already holds SPOTIFY_* (the Flutter build reads them from there via
@@ -51,6 +57,13 @@ function rootEnv() {
 // Pass to a v2 function's options so the runtime mounts these:
 //   onCall({ secrets: spotifySecrets }, handler)
 const spotifySecrets = [SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET];
+// mcpRemote needs the Spotify pair (for lookup_metadata / enrich_song) plus its
+// own WorkOS key.
+const mcpRemoteSecrets = [SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, WORKOS_API_KEY];
+
+function workosApiKey() {
+  return read(WORKOS_API_KEY, "WORKOS_API_KEY");
+}
 
 // Cloud Functions / Cloud Run set these. Used to avoid calling .value() outside
 // a function runtime, where it logs a WARNING for every access instead of
@@ -108,7 +121,10 @@ function isSpotifyConfigured() {
 module.exports = {
   SPOTIFY_CLIENT_ID,
   SPOTIFY_CLIENT_SECRET,
+  WORKOS_API_KEY,
   spotifySecrets,
+  mcpRemoteSecrets,
+  workosApiKey,
   spotifyCredentials,
   isSpotifyConfigured,
   isPlaceholder,

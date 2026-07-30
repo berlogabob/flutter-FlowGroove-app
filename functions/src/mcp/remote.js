@@ -19,7 +19,7 @@ const admin = require("firebase-admin");
 const express = require("express");
 const { createRemoteJWKSet, jwtVerify } = require("jose");
 const { z } = require("zod");
-const { spotifySecrets } = require("../metadata/credentials");
+const { mcpRemoteSecrets, workosApiKey } = require("../metadata/credentials");
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const {
   StreamableHTTPServerTransport,
@@ -42,7 +42,9 @@ const JWKS = ISSUER
 // AuthKit access tokens carry no email claim (only sub), and the resource-scoped
 // token isn't valid at the OIDC userinfo endpoint (401) — resolve the email
 // server-side via the WorkOS Management API, keyed by the token's `sub`.
-const WORKOS_API_KEY = process.env.WORKOS_API_KEY || "";
+// Read lazily, not at module load: a Secret Manager value is only mounted into
+// the process environment once the function instance starts, and a module-load
+// read would capture "" on some cold-start paths.
 
 const PRM_PATH = "/.well-known/oauth-protected-resource";
 // PRM is served at the origin root, not under RESOURCE_URL's own path (e.g. "/mcp"),
@@ -68,7 +70,8 @@ function prmDoc() {
 
 /** Look up the user's email via the WorkOS Management API by their WorkOS user id (token `sub`). */
 async function workosEmail(sub) {
-  if (!WORKOS_API_KEY) {
+  const apiKey = workosApiKey();
+  if (!apiKey) {
     console.warn("[mcp] WORKOS_API_KEY unset");
     return null;
   }
@@ -76,7 +79,7 @@ async function workosEmail(sub) {
   try {
     const r = await fetch(
       `https://api.workos.com/user_management/users/${encodeURIComponent(sub)}`,
-      { headers: { authorization: `Bearer ${WORKOS_API_KEY}` } },
+      { headers: { authorization: `Bearer ${apiKey}` } },
     );
     if (!r.ok) {
       console.warn("[mcp] workos user lookup HTTP", r.status);
@@ -243,4 +246,4 @@ exports.app = app;
 // resolver, so this function must mount the Spotify secrets. Without them the
 // resolver silently skips Spotify and those tools return no album, release year
 // or ISRC — a quiet degradation rather than an error.
-exports.mcpRemote = functions.https.onRequest({ secrets: spotifySecrets }, app);
+exports.mcpRemote = functions.https.onRequest({ secrets: mcpRemoteSecrets }, app);

@@ -376,5 +376,14 @@ service cloud.firestore {
       // Use Cloud Functions with validation for imports/updates
       allow create, update, delete: if false;
     }
+
+    // Cached third-party responses (MusicBrainz / Spotify / Deezer / lyrics.ovh)
+    // for the metadata resolver. Written only by Cloud Functions via the admin
+    // SDK, which bypasses these rules — so nothing here needs client access, and
+    // giving it any would leak provider payloads and let a client poison the
+    // cache. Fully closed on purpose.
+    match /metadata_cache/{entryId} {
+      allow read, write: if false;
+    }
   }
 }

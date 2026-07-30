@@ -318,8 +318,10 @@ async function resolveTrack({ title, artist }, options = {}) {
     return { found: false, error: "title is required", sources: {}, missing: [] };
   }
 
-  const { spotifyCredentials, fetchImpl, sleepImpl, skip = [] } = options;
-  const opts = { fetchImpl, sleepImpl };
+  const { spotifyCredentials, fetchImpl, sleepImpl, cache, skip = [] } = options;
+  // `cache` is threaded into every provider call. http.js only consults it for
+  // GETs, so the Spotify token POST is never cached.
+  const opts = { fetchImpl, sleepImpl, cache };
   const want = (name) => !skip.includes(name);
 
   // Independent upstreams, so fan out. The per-host gate in http.js keeps each

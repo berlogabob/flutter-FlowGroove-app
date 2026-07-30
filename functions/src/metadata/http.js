@@ -74,6 +74,14 @@ async function fetchJson(url, options = {}) {
     return null;
   }
 
+  // GET only. The Spotify token exchange is a POST carrying credentials and must
+  // never be cached.
+  const cache = options.cache && method === "GET" ? options.cache : null;
+  if (cache) {
+    const hit = await cache.get(url);
+    if (hit !== undefined) return hit;
+  }
+
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     await gate(host, sleepImpl);
     try {
@@ -97,7 +105,18 @@ async function fetchJson(url, options = {}) {
         console.warn(`[metadata] ${label || host} HTTP ${res.status}`);
         return null;
       }
-      return await res.json();
+      // NOT named `body`: that is the request body destructured from options and
+      // referenced by the fetch call above, so a same-block `const body` puts it
+      // in a temporal dead zone. The resulting ReferenceError was caught by the
+      // retry handler below and turned into a silent null — every lookup would
+      // have returned nothing.
+      const payload = await res.json();
+      // Only successes are cached. Caching a null would pin a transient outage
+      // in place for the whole TTL, which is worse than retrying next time.
+      if (cache && payload !== null && payload !== undefined) {
+        await cache.set(url, payload);
+      }
+      return payload;
     } catch (err) {
       if (attempt === attempts) {
         // Node's fetch throws a bare "fetch failed" and hides the real reason in

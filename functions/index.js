@@ -7,6 +7,12 @@
  *   - src/bands      — band membership
  *   - src/avatars    — avatar import callable
  *   - src/rehearsals — rehearsal plan notifications + actions
+ *   - src/metadata   — shared third-party metadata resolver (app + agents)
+ *
+ * apiProxy is gone: it was an unauthenticated CORS shim
+ * (Access-Control-Allow-Origin: *) fronting Deezer and lyrics.ovh for the web
+ * build. Both now run server-side inside src/metadata/resolver.js, so it had no
+ * consumers and only offered an open relay.
  */
 
 // Telegram bot webhook
@@ -50,10 +56,6 @@ exports.removeBandAvatar = bandAvatar.removeBandAvatar;
 const avatars = require("./src/avatars");
 exports.importTelegramAvatar = avatars.importTelegramAvatar;
 exports.importGoogleAvatar = avatars.importGoogleAvatar;
-
-// CORS shim for public no-auth APIs (Deezer, lyrics.ovh) — web autofill only
-const apiProxy = require("./src/api_proxy");
-exports.apiProxy = apiProxy.apiProxy;
 
 // Telegram sharing + notifications
 const telegramShare = require("./src/telegram/share");
