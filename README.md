@@ -80,6 +80,7 @@ Deploy target:
 ### Core App
 
 - Shared song library with metadata, links, unique IDs, and structure editing
+- Song Page: tapping a song opens one home with Sheet (perform), Edit (details + structure) and Lab (journal) tabs; song-wide tools and exports in its menu
 - Tagging, filter/sort, and duplicate detection with field-by-field cluster merge
 - Song Lab: per-song journal (notes/decisions/experiments/problems), tasks that surface as Practice homework, version snapshots, audio recordings with live waveform, Markdown history export
 - Recorder: one-tap Audio note capture on Home (recording auto-starts), unlinked-takes inbox, link any take into a song's Lab later

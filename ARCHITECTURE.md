@@ -438,15 +438,21 @@ Primary service areas:
 
 - `Section.chordChart` holds ChordPro source (`[Am]Twinkle [F]star`); a song's
   sections form the sheet
-- `screens/performance_sheet_screen.dart` — full-screen, keep-awake (reuses
-  `wakelockProvider`), live ± semitone transpose, chords rendered over lyrics,
-  plus hands-free **auto-scroll** (a `Ticker` nudges the `ScrollController`;
-  play/pause, ± speed, and a Manual ⇄ BPM toggle that seeds speed from the
-  passed tempo — a feel heuristic, no per-line bar timing)
-- reachable directly from a saved song: a **Performance sheet** quick-action on
-  each song row (`songs_list_screen.dart`, gated on `Song.hasSheetContent`) and
-  a lyrics button in **concert mode** (`concert_mode_screen.dart`, opens the
-  loaded `activeSong` seeded with the live metronome BPM)
+- **Song Page** (`screens/songs/song_page_screen.dart`, route `song` =
+  `/main/songs/:id?tab=sheet|edit|lab`) is the song's home: tapping a song
+  anywhere lands on its **Sheet** tab; **Edit** embeds `AddSongScreen`
+  (`embedded: true`); **Lab** embeds `SongLabScreen`. The page's shell ⋮ menu
+  carries the song-wide tools (Metronome, Tuner, Spotify, Add to band,
+  exports). Legacy routes `edit-song` / `song-lab` funnel into the matching
+  tab.
+- the sheet body lives in `widgets/performance_sheet_view.dart` (shared by the
+  Sheet tab and `screens/performance_sheet_screen.dart`, which remains as a
+  thin full-screen wrapper for unsaved-draft previews and **concert mode**'s
+  lyrics button) — keep-awake (reuses `wakelockProvider`), live ± semitone
+  transpose, chords rendered over lyrics, plus hands-free **auto-scroll** (a
+  `Ticker` nudges the `ScrollController`; play/pause, ± speed, and a Manual ⇄
+  BPM toggle that seeds speed from the passed tempo — a feel heuristic, no
+  per-line bar timing)
 - per-song PDF export at the current transpose (`services/export/pdf_service.dart`),
   with a header line for key + derived scale, tempo, time signature and song map
 - per-song **ChordPro `.cho` export** (`services/export/chordpro_export.dart`:
@@ -460,15 +466,14 @@ Primary service areas:
   + labelled section blocks); `chordProToSong` reads it back onto a `Song`,
   preserving unrecognized directives. `keyToScale` derives the scale from the key
   string (no model field); `songMapSummary` collapses the section run for cards/PDF
-- **Song editor** (`screens/songs/song_editor_screen.dart` +
-  `chordpro_sync_controller.dart`): full-screen, live two-way sync between the
-  visual song map and a ChordPro text area over one `sections` store. Map edits
-  regenerate text instantly; text edits debounce then `reconcileSections` merges
-  back (matched by order+name), preserving section id/bars/colour. Section extras
-  ride in `{x_flowgroove_section: bars=N; color=RRGGBB}`. Opened from the
-  Add/Edit-Song overflow menu.
-- `widgets/song_card.dart` surfaces key + derived scale + section count (full map
-  lives in the editor)
+- `screens/songs/chordpro_sync_controller.dart` keeps the live two-way
+  song-map ⇄ ChordPro sync machinery (`ChordProSyncMeta`, `reconcileSections`
+  matched by order+name preserving section id/bars/colour; extras ride in
+  `{x_flowgroove_section: bars=N; color=RRGGBB}`). Its former host, the
+  standalone Song editor screen, was folded into the Song Page rethink and
+  deleted; the controller backs the sheet screen today and the planned
+  "Edit as text" toggle next.
+- `widgets/song_card.dart` surfaces key + derived scale + section count
 - directive conventions: `docs/CHORDPRO.md`
 
 #### Rehearsal Planner (bands)
