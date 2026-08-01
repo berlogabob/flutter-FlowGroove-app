@@ -163,6 +163,12 @@ GoRouter createRoutedTestRouter({
                         builder: (context, state) =>
                             const TestRouteMarker('edit-song'),
                       ),
+                      GoRoute(
+                        path: ':id',
+                        name: 'song',
+                        builder: (context, state) =>
+                            const TestRouteMarker('song'),
+                      ),
                     ],
                   ),
                 ],

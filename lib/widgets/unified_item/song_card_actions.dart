@@ -13,7 +13,6 @@ import '../../models/tuner_launch_context.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
-import '../../screens/performance_sheet_screen.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import 'unified_item_model.dart';
@@ -101,30 +100,31 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   String? get songActionsBandId => null;
 
   /// Pinned-quick-action catalog: key → (label, icon).
+  /// 'sheet' was removed when tapping the card started opening the Song Page
+  /// (its Sheet tab IS the performance sheet) — a saved 'sheet' pref falls
+  /// back to 'practice' via the availability check below.
   static const quickActions = <String, (String, IconData)>{
     // av_timer (matches Setlists' metronome action) — not Icons.speed, which is
     // the BPM badge on the same card and read as a duplicate icon. F-010.
     'practice': ('Metronome', Icons.av_timer),
     'tuner': ('Open in Tuner', Icons.tune),
-    'sheet': ('Performance sheet', Icons.queue_music),
     'spotify': ('Play on Spotify', Icons.play_circle_fill),
     'band': ('Add to band…', Icons.add_to_queue),
   };
 
   bool _quickActionAvailable(String key, Song song, List<Band> bands) =>
       switch (key) {
-        'sheet' => song.hasSheetContent,
         'spotify' => song.spotifyUrl != null,
         'band' => bands.isNotEmpty,
-        _ => true,
+        'practice' || 'tuner' => true,
+        // Unknown/retired keys (e.g. a persisted 'sheet') → fall back.
+        _ => false,
       };
 
   void _runQuickAction(String key, Song song, List<Band> bands) {
     switch (key) {
       case 'tuner':
         openInTuner(song);
-      case 'sheet':
-        openPerformanceSheet(song);
       case 'spotify':
         unawaited(openSpotify(song));
       case 'band':
@@ -150,27 +150,14 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         color: MonoPulseColors.accentOrange,
         onPressed: () => _runQuickAction(quick, song, bands),
       ),
+      // Tools only: content views (performance sheet, Lab) are tabs on the
+      // Song Page the card tap opens, so they no longer live in this menu.
       OverflowMenuAction(
         entries: [
           ('Metronome', Icons.av_timer, () => openInMetronome(song)),
           if (song.spotifyUrl != null)
             ('Play on Spotify', Icons.play_circle_fill, () => openSpotify(song)),
-          if (song.hasSheetContent)
-            (
-              'Performance sheet',
-              Icons.queue_music,
-              () => openPerformanceSheet(song),
-            ),
           ('Open in Tuner', Icons.tune, () => openInTuner(song)),
-          (
-            'Song Lab',
-            Icons.science_outlined,
-            () => context.pushNamed(
-              'song-lab',
-              pathParameters: {'id': song.id},
-              extra: {'song': song, 'bandId': songActionsBandId},
-            ),
-          ),
           if (bands.isNotEmpty)
             (
               'Add to band…',
@@ -245,23 +232,6 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
-  }
-
-  void openPerformanceSheet(Song song) {
-    // rootNavigator: full-screen over the shell so its bottom bar doesn't stack
-    // under the performance sheet's own bar (the double-bar bug).
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PerformanceSheetScreen(
-          title: song.title.trim().isEmpty ? 'Song' : song.title.trim(),
-          sections: song.sections,
-          song: song,
-          songKey: song.ourKey,
-          bpm: song.ourBPM,
-          timeTop: song.accentBeats,
-        ),
-      ),
-    );
   }
 
   void openInMetronome(Song song) {

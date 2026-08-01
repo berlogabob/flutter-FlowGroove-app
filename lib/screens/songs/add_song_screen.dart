@@ -24,7 +24,6 @@ import '../performance_sheet_screen.dart';
 import 'components/import_lyrics_dialog.dart';
 import 'components/song_form.dart';
 import 'models/song_form_data.dart';
-import 'song_editor_screen.dart';
 import 'utils/add_song_screen_helper.dart';
 
 /// Screen for adding or editing a song with comprehensive error handling.
@@ -34,6 +33,7 @@ class AddSongScreen extends ConsumerStatefulWidget {
     this.song,
     this.bandId,
     this.initialFormData,
+    this.embedded = false,
   });
 
   /// The song to edit. If null, a new song will be created.
@@ -43,6 +43,11 @@ class AddSongScreen extends ConsumerStatefulWidget {
   final String? bandId;
 
   final SongFormData? initialFormData;
+
+  /// True when hosted inside the Song Page's Edit tab: the page owns the
+  /// shell menu (so nothing is published here) and stays open after a save
+  /// (no pop).
+  final bool embedded;
 
   @override
   ConsumerState<AddSongScreen> createState() => _AddSongScreenState();
@@ -397,7 +402,7 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
 
     if (success && mounted) {
       final formData = ref.read(songFormStateProvider).formData;
-      Navigator.pop(context);
+      if (!widget.embedded) Navigator.pop(context);
       showMessage('${formData.title} ${_isEditing ? 'updated' : 'added'}');
     }
   }
@@ -416,31 +421,6 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     );
     if (imported == null || !mounted) return;
     _applyImported(imported);
-  }
-
-  /// Opens the full-screen Song editor (live map ⇄ ChordPro sync) seeded from
-  /// the form, then replaces the form's sections with the edited map.
-  Future<void> _openSongEditor() async {
-    final formData = ref.read(songFormStateProvider).formData;
-    // rootNavigator: full-screen over the shell so its "Edit Song" bar doesn't
-    // stack under the editor's own song-name bar (the double-bar bug).
-    final result = await Navigator.of(
-      context,
-      rootNavigator: true,
-    ).push<ImportedSong>(
-      MaterialPageRoute<ImportedSong>(
-        builder: (_) => SongEditorScreen(
-          title: formData.title.trim().isEmpty ? 'Song' : formData.title.trim(),
-          sections: formData.sections,
-          artist: formData.artist,
-          songKey: formData.ourKey,
-          bpm: int.tryParse(formData.ourBpm),
-          timeTop: formData.accentBeats,
-        ),
-      ),
-    );
-    if (result == null || !mounted) return;
-    _applyImported(result, replaceSections: true);
   }
 
   /// Applies parsed song metadata + sections to the form. Controllers drive
@@ -477,6 +457,54 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     notifier.markAsChanged();
   }
 
+  /// Standalone: publish title + menu (draft sheet preview, import) for the
+  /// shell bar. Embedded in the Song Page: pass the child through untouched —
+  /// publishing here would overwrite the page's menu (same route location).
+  Widget _wrapWithMenu({
+    required SongFormData formData,
+    required Widget child,
+  }) {
+    if (widget.embedded) return child;
+    return MenuScopePublisher(
+      data: MenuScopeData(
+        // Show the song being edited rather than a generic "Edit Song".
+        title: _isEditing
+            ? (widget.song!.title.trim().isEmpty
+                  ? 'Edit Song'
+                  : widget.song!.title.trim())
+            : 'Add Song',
+        items: [
+          AppMenuItem(
+            icon: Icons.queue_music,
+            label: 'Performance sheet',
+            // rootNavigator: cover the whole shell so its persistent bottom
+            // bar ("Edit Song") doesn't stack under this screen's own
+            // song-name bar (the double-bar bug).
+            onTap: () => Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute<void>(
+                builder: (_) => PerformanceSheetScreen(
+                  title: formData.title.trim().isEmpty
+                      ? 'Song'
+                      : formData.title.trim(),
+                  sections: formData.sections,
+                  songKey: formData.ourKey,
+                  bpm: int.tryParse(formData.ourBpm),
+                  timeTop: formData.accentBeats,
+                ),
+              ),
+            ),
+          ),
+          AppMenuItem(
+            icon: Icons.content_paste,
+            label: 'Import lyrics & chords',
+            onTap: _importLyrics,
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch form state for reactive updates
@@ -495,59 +523,10 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
       },
       // Pushed branch child: title + actions are published for the shell's
       // bottom bar ([← Back] [title] [⋮ Menu]); there is no top app bar.
-      child: MenuScopePublisher(
-        data: MenuScopeData(
-          // Show the song being edited rather than a generic "Edit Song".
-          title: _isEditing
-              ? (widget.song!.title.trim().isEmpty
-                    ? 'Edit Song'
-                    : widget.song!.title.trim())
-              : 'Add Song',
-          items: [
-            AppMenuItem(
-              icon: Icons.queue_music,
-              label: 'Performance sheet',
-              // rootNavigator: cover the whole shell so its persistent bottom
-              // bar ("Edit Song") doesn't stack under this screen's own
-              // song-name bar (the double-bar bug).
-              onTap: () => Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => PerformanceSheetScreen(
-                    title: formData.title.trim().isEmpty
-                        ? 'Song'
-                        : formData.title.trim(),
-                    sections: formData.sections,
-                    songKey: formData.ourKey,
-                    bpm: int.tryParse(formData.ourBpm),
-                    timeTop: formData.accentBeats,
-                  ),
-                ),
-              ),
-            ),
-            AppMenuItem(
-              icon: Icons.edit_note,
-              label: 'Song editor (map + ChordPro)',
-              onTap: _openSongEditor,
-            ),
-            AppMenuItem(
-              icon: Icons.content_paste,
-              label: 'Import lyrics & chords',
-              onTap: _importLyrics,
-            ),
-            // Lab needs a persisted song (edit mode) — discoverability fix:
-            // the card-overflow entry alone was too hidden (beta feedback).
-            if (widget.song != null)
-              AppMenuItem(
-                icon: Icons.science_outlined,
-                label: 'Song Lab',
-                onTap: () => context.pushNamed(
-                  'song-lab',
-                  pathParameters: {'id': widget.song!.id},
-                  extra: {'song': widget.song, 'bandId': widget.bandId},
-                ),
-              ),
-          ],
-        ),
+      // Embedded (Song Page Edit tab): the page owns the shell menu, so this
+      // screen publishes nothing and renders bare.
+      child: _wrapWithMenu(
+        formData: formData,
         child: Scaffold(
           body: SafeArea(
             bottom: false,

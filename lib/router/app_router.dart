@@ -43,12 +43,35 @@ import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/songs/add_song_screen.dart';
 import '../screens/settings/app_settings_screen.dart';
 import '../screens/songs/canonical_browse_screen.dart';
-import '../screens/songs/song_lab_screen.dart';
 import '../screens/songs/models/song_form_data.dart';
+import '../screens/songs/song_page_screen.dart';
 import '../screens/songs/song_duplicates_screen.dart';
 import '../screens/songs/songs_list_screen.dart';
 import '../screens/tuner_screen.dart';
 import 'branch_stack_observer.dart';
+
+/// Builds the Song Page from a songs-branch route state. `extra` may be a
+/// bare [Song], a `{song, bandId}` map, or null (deep link / web refresh —
+/// the page then resolves the song by id from the live stream). The band
+/// scope survives refresh via the `bandId` query parameter.
+SongPageScreen _songPageFromState(GoRouterState state, {String? tab}) {
+  final extra = state.extra;
+  Song? song;
+  String? bandId;
+  if (extra is Song) {
+    song = extra;
+  } else if (extra is Map) {
+    song = extra['song'] as Song?;
+    bandId = extra['bandId'] as String?;
+  }
+  bandId ??= state.uri.queryParameters['bandId'];
+  return SongPageScreen(
+    songId: state.pathParameters['id']!,
+    initialSong: song,
+    bandId: bandId,
+    initialTab: tab ?? state.uri.queryParameters['tab'],
+  );
+}
 
 /// Minimal auth surface needed by the app router.
 abstract class AuthRouterClient {
@@ -291,32 +314,26 @@ List<RouteBase> _buildAppRoutes() {
                     );
                   },
                 ),
+                // Legacy deep-link routes: both funnel into the Song Page on
+                // the matching tab, so old links and call sites keep working.
                 GoRoute(
                   path: ':id/lab',
                   name: 'song-lab',
-                  builder: (context, state) {
-                    final extra = state.extra! as Map;
-                    return SongLabScreen(
-                      song: extra['song'] as Song,
-                      bandId: extra['bandId'] as String?,
-                    );
-                  },
+                  builder: (context, state) =>
+                      _songPageFromState(state, tab: 'lab'),
                 ),
                 GoRoute(
                   path: ':id/edit',
                   name: 'edit-song',
-                  builder: (context, state) {
-                    final extra = state.extra;
-                    Song? song;
-                    String? bandId;
-                    if (extra is Song) {
-                      song = extra;
-                    } else if (extra is Map) {
-                      song = extra['song'] as Song?;
-                      bandId = extra['bandId'] as String?;
-                    }
-                    return AddSongScreen(song: song, bandId: bandId);
-                  },
+                  builder: (context, state) =>
+                      _songPageFromState(state, tab: 'edit'),
+                ),
+                // The Song Page (Sheet · Edit · Lab). Declared last: ':id'
+                // would otherwise greedily match the literal children above.
+                GoRoute(
+                  path: ':id',
+                  name: 'song',
+                  builder: (context, state) => _songPageFromState(state),
                 ),
               ],
             ),

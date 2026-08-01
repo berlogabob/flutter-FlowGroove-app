@@ -28,10 +28,20 @@ import 'components/lab_recording_sheet.dart';
 /// for one song — the history of "our version" (notes, decisions,
 /// experiments, problems). Quick-add covers 4 types; the model carries more.
 class SongLabScreen extends ConsumerStatefulWidget {
-  const SongLabScreen({required this.song, this.bandId, super.key});
+  const SongLabScreen({
+    required this.song,
+    this.bandId,
+    this.embedded = false,
+    super.key,
+  });
 
   final Song song;
   final String? bandId;
+
+  /// True when hosted inside the Song Page's Lab tab: no own scaffold or
+  /// shell-menu publication (the page owns those); Save version / Export
+  /// surface as inline icons next to the Entries/Tasks toggle instead.
+  final bool embedded;
 
   @override
   ConsumerState<SongLabScreen> createState() => _SongLabScreenState();
@@ -246,6 +256,51 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final body = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            MonoPulseSpacing.lg,
+            MonoPulseSpacing.md,
+            MonoPulseSpacing.lg,
+            0,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(value: false, label: Text('Entries')),
+                    ButtonSegment(value: true, label: Text('Tasks')),
+                  ],
+                  selected: {_showTasks},
+                  onSelectionChanged: (s) =>
+                      setState(() => _showTasks = s.first),
+                ),
+              ),
+              // Embedded: the page's ⋮ is for song-wide tools, so the Lab's
+              // own two actions live here instead of a menu sheet.
+              if (widget.embedded) ...[
+                IconButton(
+                  onPressed: _saveVersion,
+                  icon: const Icon(Icons.bookmark_add_outlined),
+                  tooltip: 'Save version',
+                ),
+                IconButton(
+                  onPressed: _exportMarkdown,
+                  icon: const Icon(Icons.description_outlined),
+                  tooltip: 'Export history (Markdown)',
+                ),
+              ],
+            ],
+          ),
+        ),
+        Expanded(child: _showTasks ? _tasksTab() : _entriesTab()),
+      ],
+    );
+
+    if (widget.embedded) return body;
     return StandardScreenScaffold(
       title: 'Lab — ${widget.song.title}',
       menuItems: [
@@ -260,28 +315,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
           onTap: _exportMarkdown,
         ),
       ],
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              MonoPulseSpacing.lg,
-              MonoPulseSpacing.md,
-              MonoPulseSpacing.lg,
-              0,
-            ),
-            child: SegmentedButton<bool>(
-              segments: const [
-                ButtonSegment(value: false, label: Text('Entries')),
-                ButtonSegment(value: true, label: Text('Tasks')),
-              ],
-              selected: {_showTasks},
-              onSelectionChanged: (s) => setState(() => _showTasks = s.first),
-            ),
-          ),
-          Expanded(child: _showTasks ? _tasksTab() : _entriesTab()),
-        ],
-      ),
+      body: body,
     );
   }
 

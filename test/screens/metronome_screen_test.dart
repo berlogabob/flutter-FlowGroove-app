@@ -420,11 +420,12 @@ void main() {
             builder: (context, state) => const MetronomeScreen(),
           ),
           GoRoute(
-            path: '/songs/:id/edit',
-            name: 'edit-song',
+            path: '/songs/:id',
+            name: 'song',
             builder: (context, state) {
               final editedSong = state.extra! as Song;
-              return Scaffold(body: Text('Editing ${editedSong.title}'));
+              final tab = state.uri.queryParameters['tab'];
+              return Scaffold(body: Text('Editing ${editedSong.title} ($tab)'));
             },
           ),
         ],
@@ -446,7 +447,7 @@ void main() {
       await tester.tap(find.text('Edit Song'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Editing Loaded Song'), findsOneWidget);
+      expect(find.text('Editing Loaded Song (edit)'), findsOneWidget);
     });
 
     testWidgets('play preserves three visible main beats', (tester) async {

@@ -965,13 +965,13 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
     AnalyticsService.logFilterZeroResults(filterType: filterType, value: value);
   }
 
-  /// Navigate to edit song screen.
+  /// Open the Song Page (Sheet · Edit · Lab).
   void _navigateToEdit(Song song) {
     if (ref.read(songsFilterSortProvider).filterText.trim().isNotEmpty) {
       AnalyticsService.logSearchSongOpen();
     }
     context.pushNamed(
-      'edit-song',
+      'song',
       pathParameters: {'id': song.id},
       extra: song,
     );

@@ -233,12 +233,14 @@ class SetlistViewScreen extends ConsumerWidget {
     );
   }
 
-  /// Opens the tapped song's editor, band-scoped when this is a band setlist
-  /// (bandId makes the save target the band's copy — see BandSongsScreen).
+  /// Opens the tapped song's Song Page (Sheet first — on a setlist you
+  /// usually want to play it), band-scoped when this is a band setlist
+  /// (bandId targets the band's copy — see BandSongsScreen).
   void _openSong(BuildContext context, Song song) {
     context.pushNamed(
-      'edit-song',
+      'song',
       pathParameters: {'id': song.id},
+      queryParameters: {if (bandId case final b?) 'bandId': b},
       extra: bandId == null ? song : {'song': song, 'bandId': bandId},
     );
   }

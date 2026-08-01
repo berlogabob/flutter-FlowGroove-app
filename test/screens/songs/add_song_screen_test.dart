@@ -73,26 +73,12 @@ void main() {
       final scope = tester.widget<MenuItemsScope>(find.byType(MenuItemsScope));
       // Editing shows the song's own name (not a generic 'Edit Song').
       expect(scope.title, 'Test Song');
-      // Song Lab is reachable from the edit menu (discoverability fix) —
-      // only in edit mode, where a persisted song exists.
-      expect(scope.items.map((i) => i.label), contains('Song Lab'));
-    });
-
-    testWidgets('add mode publishes no Song Lab entry', (tester) async {
-      final mockUser = MockDataHelper.createMockAppUser();
-
-      await pumpAppWidget(
-        tester,
-        const AddSongScreen(),
-        overrides: [
-          firebaseAuthProvider.overrideWith((ref) => mockAuth),
-          appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
-          autocompleteSearchProvider.overrideWith(TestAutocompleteNotifier.new),
-        ],
+      // Song Lab and Performance sheet are Song Page tabs now; the form's
+      // menu carries only the sheet preview + import shortcuts.
+      expect(
+        scope.items.map((i) => i.label),
+        ['Performance sheet', 'Import lyrics & chords'],
       );
-
-      final scope = tester.widget<MenuItemsScope>(find.byType(MenuItemsScope));
-      expect(scope.items.map((i) => i.label), isNot(contains('Song Lab')));
     });
 
     testWidgets('displays all form fields with an unset key preview', (

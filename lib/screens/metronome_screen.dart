@@ -290,8 +290,12 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     if (song == null) return;
 
     context.pushNamed(
-      'edit-song',
+      'song',
       pathParameters: {'id': song.id},
+      queryParameters: {
+        'tab': 'edit',
+        if (state.sourceBandId case final b?) 'bandId': b,
+      },
       extra: state.sourceBandId == null
           ? song
           : {'song': song, 'bandId': state.sourceBandId},

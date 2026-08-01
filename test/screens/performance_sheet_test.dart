@@ -1,7 +1,5 @@
 import 'package:flowgroove/models/section.dart';
-import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/screens/performance_sheet_screen.dart';
-import 'package:flowgroove/screens/songs/song_editor_screen.dart';
 import 'package:flowgroove/screens/songs/components/import_lyrics_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -70,46 +68,11 @@ void main() {
       findsOneWidget,
     );
 
-    // Verify buttons are present
-    expect(find.text('Open song editor'), findsOneWidget);
+    // Editing moved to the Song Page's Edit tab; the sheet's empty state
+    // offers only the import shortcut.
     expect(find.text('Import lyrics & chords'), findsOneWidget);
-
-    // Verify buttons are of correct types
-    expect(find.byType(ElevatedButton), findsOneWidget);
+    expect(find.byType(ElevatedButton), findsNothing);
     expect(find.byType(OutlinedButton), findsOneWidget);
-  });
-
-  testWidgets('open song editor button navigates to song editor', (tester) async {
-    final testSong = Song(
-      id: 'test-song-id',
-      title: 'Test Song',
-      artist: 'Test Artist',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          home: MediaQuery(
-            data: const MediaQueryData(size: Size(400, 800)),
-            child: PerformanceSheetScreen(
-              title: 'Empty Song',
-              sections: [],
-              song: testSong,
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    // Tap the open song editor button
-    await tester.tap(find.text('Open song editor'));
-    await tester.pumpAndSettle();
-
-    // Verify navigation to SongEditorScreen
-    expect(find.byType(SongEditorScreen), findsOneWidget);
   });
 
   testWidgets('import lyrics button opens import dialog', (tester) async {

@@ -261,14 +261,14 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
   }
 
   void _editSong(BuildContext context, WidgetRef ref, Song song) {
-    if (!_canEdit) return;
-
-    // Edit the band's copy: pass bandId so the save targets the band song
-    // (updateBandSong) instead of the user's personal library. Uses the
-    // go_router named route — the app is driven by go_router, not Navigator.
+    // Open the band copy's Song Page. bandId scopes the live stream and the
+    // Edit tab's save target (updateBandSong, not the personal library); the
+    // query parameter keeps that scope across a web refresh. Pushed, not
+    // go'd, so Back returns here (band sub-routes are flat siblings).
     context.pushNamed(
-      'edit-song',
+      'song',
       pathParameters: {'id': song.id},
+      queryParameters: {'bandId': widget.band.id},
       extra: {'song': song, 'bandId': widget.band.id},
     );
   }
