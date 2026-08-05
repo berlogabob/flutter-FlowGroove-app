@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/song.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/song_form_provider.dart';
 import '../../services/export/chordpro_export.dart';
 import '../../services/export/pdf_service.dart';
 import '../../services/export/setlist_export_sheet.dart';
@@ -14,12 +16,18 @@ import '../../widgets/performance_sheet_view.dart';
 import '../../widgets/unified_item/song_card_actions.dart';
 import '../performance_sheet_screen.dart';
 import 'add_song_screen.dart';
+import 'components/import_lyrics_dialog.dart';
+import 'song_editor_screen.dart';
 import 'song_lab_screen.dart';
 
-/// The song's home: one screen with three modes — Sheet (perform/read),
-/// Edit (details + structure), Lab (the song's working journal). Tapping a
+/// Song Page tab order — enum declaration order drives both the segment row
+/// and the IndexedStack, so they can't drift apart.
+enum _SongTab { edit, sheet, lab }
+
+/// The song's home: one screen with three modes — Edit (details + structure),
+/// Sheet (perform/read), Lab (the song's working journal). Tapping a
 /// song anywhere lands here; the shell bar's ⋮ carries the song-wide tools
-/// (Metronome, Tuner, Spotify, Add to band, exports).
+/// (Metronome, Tuner, Spotify, Add to band, exports, song editor).
 class SongPageScreen extends ConsumerStatefulWidget {
   const SongPageScreen({
     required this.songId,
@@ -38,7 +46,7 @@ class SongPageScreen extends ConsumerStatefulWidget {
 
   final String? bandId;
 
-  /// 'sheet' (default) | 'edit' | 'lab'.
+  /// 'edit' (default) | 'sheet' | 'lab'.
   final String? initialTab;
 
   @override
@@ -47,19 +55,22 @@ class SongPageScreen extends ConsumerStatefulWidget {
 
 class _SongPageScreenState extends ConsumerState<SongPageScreen>
     with SongCardActions<SongPageScreen> {
-  late int _tab = switch (widget.initialTab) {
-    'edit' => 1,
-    'lab' => 2,
-    _ => 0,
+  late _SongTab _tab = switch (widget.initialTab) {
+    'sheet' => _SongTab.sheet,
+    'lab' => _SongTab.lab,
+    _ => _SongTab.edit,
   };
 
   /// Tabs are built lazily on first visit and kept alive after (IndexedStack),
-  /// so the Edit tab's global form provider isn't touched until the user
-  /// actually edits.
-  late final Set<int> _visited = {_tab};
+  /// so unvisited tabs (e.g. the Lab) cost nothing until opened.
+  late final Set<_SongTab> _visited = {_tab};
 
   /// Sheet-tab transpose, forwarded to PDF export and Stage mode.
   int _transpose = 0;
+
+  /// Bumped after the full-screen song editor saves, so an already-built
+  /// Edit tab re-keys and re-inits its form from the saved song.
+  int _editEpoch = 0;
 
   @override
   String? get songActionsBandId => widget.bandId;
@@ -77,10 +88,10 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
     return widget.initialSong;
   }
 
-  void _selectTab(int i) {
+  void _selectTab(_SongTab t) {
     setState(() {
-      _tab = i;
-      _visited.add(i);
+      _tab = t;
+      _visited.add(t);
     });
   }
 
@@ -100,6 +111,59 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
         ),
       ),
     );
+  }
+
+  /// Full-screen map + ChordPro editor for the whole song; saves directly
+  /// to the library on close (user decision — no staging through the form).
+  Future<void> _openSongEditor(Song song) async {
+    // The editor writes straight to the song, so refuse while the Edit tab
+    // holds unsaved form changes — merging the two silently would lose one.
+    if (_visited.contains(_SongTab.edit) &&
+        ref.read(songFormStateProvider).hasUnsavedChanges) {
+      showAppSnackBar(context, 'Save or discard your Edit changes first');
+      return;
+    }
+    // rootNavigator: full-screen editor with its own bottom bar over the
+    // shell (the double-bar bug).
+    final result = await Navigator.of(context, rootNavigator: true)
+        .push<ImportedSong>(
+          MaterialPageRoute(
+            builder: (_) => SongEditorScreen(
+              title: song.title,
+              sections: song.sections,
+              artist: song.artist,
+              songKey: song.ourKey,
+              bpm: song.ourBPM ?? song.originalBPM,
+              timeTop: song.accentBeats,
+            ),
+          ),
+        );
+    if (result == null || !mounted) return;
+    final trimmedTitle = result.title?.trim();
+    final trimmedArtist = result.artist?.trim();
+    final updated = song.copyWith(
+      sections: result.sections,
+      title: (trimmedTitle?.isNotEmpty ?? false) ? trimmedTitle : null,
+      artist: (trimmedArtist?.isNotEmpty ?? false) ? trimmedArtist : null,
+      ourKey: result.ourKey ?? song.ourKey,
+      ourBPM: result.ourBpm ?? song.ourBPM,
+      accentBeats: result.timeTop,
+    );
+    try {
+      final repo = ref.read(songRepositoryProvider);
+      if (widget.bandId case final b?) {
+        await repo.updateBandSong(updated, b);
+      } else {
+        await repo.updateSong(
+          updated,
+          uid: ref.read(currentUserProvider).value?.uid,
+        );
+      }
+      if (mounted) setState(() => _editEpoch++);
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, 'Save failed: $e');
+    }
   }
 
   Future<void> _exportPdf(Song song) async {
@@ -156,6 +220,11 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
           onTap: () => pickBandAndAdd(song, bands),
         ),
       AppMenuItem(
+        icon: Icons.edit_note,
+        label: 'Song editor',
+        onTap: () => _openSongEditor(song),
+      ),
+      AppMenuItem(
         icon: Icons.picture_as_pdf_outlined,
         label: 'Export PDF',
         onTap: () => _exportPdf(song),
@@ -208,7 +277,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
               ],
             ),
           ),
-          if (_tab == 0 && song.hasSheetContent)
+          if (_tab == _SongTab.sheet && song.hasSheetContent)
             IconButton.filledTonal(
               onPressed: () => _openStage(song),
               icon: const Icon(Icons.fullscreen),
@@ -240,7 +309,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
               ),
               const SizedBox(height: MonoPulseSpacing.xl),
               FilledButton.icon(
-                onPressed: () => _selectTab(1),
+                onPressed: () => _selectTab(_SongTab.edit),
                 icon: const Icon(Icons.edit_note),
                 label: const Text('Add lyrics & chords'),
               ),
@@ -278,21 +347,21 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
                   MonoPulseSpacing.lg,
                   MonoPulseSpacing.sm,
                 ),
-                child: SegmentedButton<int>(
+                child: SegmentedButton<_SongTab>(
                   showSelectedIcon: false,
                   segments: const [
                     ButtonSegment(
-                      value: 0,
-                      label: Text('Sheet'),
-                      icon: Icon(Icons.queue_music),
-                    ),
-                    ButtonSegment(
-                      value: 1,
+                      value: _SongTab.edit,
                       label: Text('Edit'),
                       icon: Icon(Icons.edit_outlined),
                     ),
                     ButtonSegment(
-                      value: 2,
+                      value: _SongTab.sheet,
+                      label: Text('Sheet'),
+                      icon: Icon(Icons.queue_music),
+                    ),
+                    ButtonSegment(
+                      value: _SongTab.lab,
                       label: Text('Lab'),
                       icon: Icon(Icons.science_outlined),
                     ),
@@ -303,22 +372,22 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
               ),
               Expanded(
                 child: IndexedStack(
-                  index: _tab,
+                  index: _tab.index,
                   children: [
-                    if (_visited.contains(0))
-                      _sheetTab(song)
-                    else
-                      const SizedBox.shrink(),
-                    if (_visited.contains(1))
+                    if (_visited.contains(_SongTab.edit))
                       AddSongScreen(
-                        key: ValueKey('edit-${widget.songId}'),
+                        key: ValueKey('edit-${widget.songId}-$_editEpoch'),
                         song: song,
                         bandId: widget.bandId,
                         embedded: true,
                       )
                     else
                       const SizedBox.shrink(),
-                    if (_visited.contains(2))
+                    if (_visited.contains(_SongTab.sheet))
+                      _sheetTab(song)
+                    else
+                      const SizedBox.shrink(),
+                    if (_visited.contains(_SongTab.lab))
                       SongLabScreen(
                         key: ValueKey('lab-${widget.songId}'),
                         song: song,
