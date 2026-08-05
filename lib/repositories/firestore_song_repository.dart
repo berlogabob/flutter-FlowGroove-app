@@ -362,12 +362,14 @@ class FirestoreSongRepository implements SongRepository {
         return;
       }
 
+      // Canonicalize the payload's bandId to the collection it lands in —
+      // legacy Song objects can carry a null/stale bandId in toJson().
       await _firestore
           .collection('bands')
           .doc(bandId)
           .collection('songs')
           .doc(song.id)
-          .set(song.toJson())
+          .set(song.copyWith(bandId: bandId).toJson())
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
@@ -458,12 +460,13 @@ class FirestoreSongRepository implements SongRepository {
         return;
       }
 
+      // Canonicalize the payload's bandId to the collection it lands in.
       await _firestore
           .collection('bands')
           .doc(bandId)
           .collection('songs')
           .doc(song.id)
-          .update(song.toJson())
+          .update(song.copyWith(bandId: bandId).toJson())
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(

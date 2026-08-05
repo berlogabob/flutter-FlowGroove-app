@@ -49,31 +49,29 @@ service cloud.firestore {
 
     // Helper function to check if user is a member of a global band
     // Uses memberUids array for efficient lookup (no map/filter available in rules)
+    // band.get(field, []) — NOT `!= null`: reading an absent key raises an
+    // evaluation error (= denies everything on that band), it does not
+    // return null. get() with a default is the only safe missing-field read.
     function isGlobalBandMember(bandId) {
       let band = getGlobalBand(bandId);
       return band != null &&
-        band.memberUids.hasAny([request.auth.uid]);
+        band.get('memberUids', []).hasAny([request.auth.uid]);
     }
 
     // Helper function to check if user is an admin of a global band
-    // Uses memberUids and adminUids arrays for efficient lookup
-    // NOTE: Handles missing fields by checking if field exists
     function isGlobalBandAdmin(bandId) {
       let band = getGlobalBand(bandId);
       return band != null &&
-        band.adminUids != null &&
-        band.adminUids.hasAny([request.auth.uid]);
+        band.get('adminUids', []).hasAny([request.auth.uid]);
     }
 
     // Helper function to check if user is an editor or admin of a global band
-    // Uses editorUids and adminUids arrays for efficient lookup
-    // NOTE: Handles missing/null fields by checking existence first
     function isGlobalBandEditorOrAdmin(bandId) {
       let band = getGlobalBand(bandId);
-      let isAdmin = band != null && band.adminUids != null &&
-                    band.adminUids.hasAny([request.auth.uid]);
-      let isEditor = band != null && band.editorUids != null &&
-                     band.editorUids.hasAny([request.auth.uid]);
+      let isAdmin = band != null &&
+                    band.get('adminUids', []).hasAny([request.auth.uid]);
+      let isEditor = band != null &&
+                     band.get('editorUids', []).hasAny([request.auth.uid]);
       return isAdmin || isEditor;
     }
 

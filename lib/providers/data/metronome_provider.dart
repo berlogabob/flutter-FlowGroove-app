@@ -890,7 +890,12 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   void _persistManualSettings() {
-    if (state.bpmSource != BpmSource.manual) return;
+    // Tap tempo is as deliberate as typing a number — persist it too. Only
+    // transient sources (song load, setlist, tempo ramp) skip the prefs.
+    if (state.bpmSource != BpmSource.manual &&
+        state.bpmSource != BpmSource.tapTempo) {
+      return;
+    }
     unawaited(
       _saveManualSettingsSafely(<String, dynamic>{
         'bpm': state.bpm,

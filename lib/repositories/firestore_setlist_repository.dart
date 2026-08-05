@@ -27,6 +27,13 @@ class FirestoreSetlistRepository implements SetlistRepository {
 
   @override
   Future<void> saveSetlist(Setlist setlist, {String? uid}) async {
+    // Scope is derived from the data, never trusted from the caller: a
+    // setlist carrying a bandId saved personally is invisible in BOTH lists
+    // (the personal list filters bandId != ''). Route it to the band
+    // collection instead of writing a stray.
+    if (setlist.bandId.isNotEmpty) {
+      return saveBandSetlist(setlist, setlist.bandId);
+    }
     try {
       final userId = uid ?? _currentUserId;
       _requireAuth();

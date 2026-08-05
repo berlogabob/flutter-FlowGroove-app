@@ -13,6 +13,7 @@ import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
+import '../../utils/confirmed_write.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/primary_action_bar.dart';
@@ -463,11 +464,14 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
 
     setState(() => _isSaving = true);
     try {
-      if (_isBandScope) {
-        await ref.read(firestoreProvider).saveBandSetlist(setlist, bandId!);
-      } else {
-        await ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid);
-      }
+      // Await the backend ack with a deadline: on a flaky network the write
+      // future can hang while the write sits in the local queue — say
+      // "queued", never a false "saved".
+      final ack = await awaitServerAck(
+        _isBandScope
+            ? ref.read(firestoreProvider).saveBandSetlist(setlist, bandId!)
+            : ref.read(firestoreProvider).saveSetlist(setlist, uid: user.uid),
+      );
 
       await AnalyticsService.logSetlistCreatedFromSetlist(setlist);
       await AnalyticsService.logSetlistSaved(isBand: _isBandScope);
@@ -483,7 +487,11 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
       // Show snackbar
       showAppSnackBar(
         context,
-        '${_isBandScope ? 'Band setlist' : 'Setlist'} "${setlist.name}" ${_isEditing ? 'updated' : 'created'}',
+        ack == WriteAck.queued
+            ? 'No connection — "${setlist.name}" is queued and will sync '
+                  "when you're back online"
+            : '${_isBandScope ? 'Band setlist' : 'Setlist'} '
+                  '"${setlist.name}" ${_isEditing ? 'updated' : 'created'}',
       );
 
       // Clear unsaved changes flag after successful save

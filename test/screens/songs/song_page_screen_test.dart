@@ -1,7 +1,12 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/section.dart';
 import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/permissions_provider.dart';
 import 'package:flowgroove/providers/song_autocomplete_provider.dart';
 import 'package:flowgroove/screens/songs/add_song_screen.dart';
 import 'package:flowgroove/screens/songs/song_page_screen.dart';
@@ -11,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
 
 import '../../helpers/mocks.dart';
 import '../../helpers/mocks.mocks.dart';
@@ -34,6 +40,19 @@ class _TestAppUserNotifier extends AppUserNotifier {
   AsyncValue<AppUser?> build() => AsyncValue.data(mockUser);
 }
 
+class _SignedInUserNotifier extends AppUserNotifier {
+  @override
+  AsyncValue<AppUser?> build() =>
+      AsyncValue.data(MockDataHelper.createMockAppUser());
+}
+
+class _DemoUserNotifier extends AppUserNotifier {
+  @override
+  AsyncValue<AppUser?> build() => AsyncValue.data(
+    MockDataHelper.createMockAppUser().copyWith(accessRole: 'demo'),
+  );
+}
+
 void main() {
   group('SongPageScreen', () {
     late MockFirebaseAuth mockAuth;
@@ -43,17 +62,25 @@ void main() {
       await initializeFirebaseForTests();
     });
 
-    List<Override> overrides({List<Section> sections = const []}) {
+    List<Override> overrides({
+      List<Section> sections = const [],
+      AppUserNotifier? appUserNotifier,
+    }) {
       final song = MockDataHelper.createMockSong(
         id: 's1',
       ).copyWith(sections: sections);
       return [
         firebaseAuthProvider.overrideWith((ref) => mockAuth),
         appUserProvider.overrideWith(
-          () => _TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+          () => appUserNotifier ??
+              _TestAppUserNotifier(MockDataHelper.createMockAppUser()),
         ),
         autocompleteSearchProvider.overrideWith(_TestAutocompleteNotifier.new),
         songsProvider.overrideWith((ref) => Stream.value([song])),
+        // Without this, a signed-in uid makes bandsProvider hit the real
+        // repository, error, and arm Riverpod retry timers that trip the
+        // pending-timer invariant at test end.
+        bandsProvider.overrideWith((ref) => Stream.value(const <Band>[])),
       ];
     }
 
@@ -121,7 +148,55 @@ void main() {
     });
 
     testWidgets('page menu carries the Song editor entry', (tester) async {
-      await pumpAppWidget(tester, page(), overrides: overrides());
+      final user = MockUser();
+      when(user.uid).thenReturn('test-user-id');
+
+      final overridesList = [
+        ...overrides(appUserNotifier: _SignedInUserNotifier()),
+        currentUserProvider.overrideWithValue(AsyncValue<User?>.data(user)),
+      ];
+      await pumpAppWidget(tester, page(), overrides: overridesList);
+      await tester.pumpAndSettle();
+
+      final scope = tester.widget<MenuItemsScope>(
+        find.byType(MenuItemsScope).first,
+      );
+      final labels = scope.items.map((i) => i.label).toList();
+      expect(labels, contains('Song editor'));
+      expect(labels, contains('Export PDF'));
+      expect(labels, contains('Export ChordPro'));
+    });
+
+    testWidgets('menu hides Song editor for demo users', (tester) async {
+      final user = MockUser();
+      when(user.uid).thenReturn('test-user-id');
+
+      final overridesList = [
+        ...overrides(appUserNotifier: _DemoUserNotifier()),
+        currentUserProvider.overrideWithValue(AsyncValue<User?>.data(user)),
+      ];
+      await pumpAppWidget(tester, page(), overrides: overridesList);
+      await tester.pumpAndSettle();
+
+      final scope = tester.widget<MenuItemsScope>(
+        find.byType(MenuItemsScope).first,
+      );
+      final labels = scope.items.map((i) => i.label).toList();
+      expect(labels, isNot(contains('Song editor')));
+      expect(labels, contains('Export PDF'));
+      expect(labels, contains('Export ChordPro'));
+    });
+
+    testWidgets('menu shows Song editor for signed-in non-demo user',
+        (tester) async {
+      final user = MockUser();
+      when(user.uid).thenReturn('test-user-id');
+
+      final overridesList = [
+        ...overrides(appUserNotifier: _SignedInUserNotifier()),
+        currentUserProvider.overrideWithValue(AsyncValue<User?>.data(user)),
+      ];
+      await pumpAppWidget(tester, page(), overrides: overridesList);
       await tester.pumpAndSettle();
 
       final scope = tester.widget<MenuItemsScope>(

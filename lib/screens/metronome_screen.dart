@@ -1,13 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../models/band.dart';
 import '../../models/metronome_state.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
+import '../../providers/permissions_provider.dart';
 import '../../router/app_router.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/app_menu_sheet.dart';
@@ -46,6 +48,7 @@ class MetronomeScreen extends ConsumerStatefulWidget {
 class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     with WidgetsBindingObserver {
   late final MetronomeNotifier _metronome;
+  Timer? _tempoSaveDebounce;
 
   @override
   void initState() {
@@ -56,8 +59,25 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
 
   @override
   void dispose() {
+    _tempoSaveDebounce?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  /// Debounced: writes the current BPM back to the loaded song once the user
+  /// settles on a tempo (tap, dial, or typed). Silent on success; the
+  /// explicit ⋮ "Save to …" item remains for everything else.
+  void _scheduleTempoAutoSave(bool canEditSource) {
+    _tempoSaveDebounce?.cancel();
+    if (!canEditSource) return;
+    _tempoSaveDebounce = Timer(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      final state = ref.read(metronomeProvider);
+      final song = state.activeSong;
+      if (song == null) return;
+      if (state.bpm == (song.ourBPM ?? song.originalBPM)) return;
+      _saveMetronomeToSong(context, _metronome, state, silent: true);
+    });
   }
 
   @override
@@ -94,18 +114,19 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       if (state.sourceBandId == null) {
         canEditSource = userId != null;
       } else {
-        final bands = ref.watch(bandsProvider).value ?? const <Band>[];
-        final sourceBand = bands
-            .where((band) => band.id == state.sourceBandId)
-            .firstOrNull;
-        final sourceMember = sourceBand?.members
-            .where((member) => member.uid == userId)
-            .firstOrNull;
-        canEditSource =
-            sourceMember?.role == BandMember.roleAdmin ||
-            sourceMember?.role == BandMember.roleEditor;
+        // Canonical band permission (adminUids/editorUids — the same arrays
+        // the Firestore rules read), not the ad-hoc members[].role parse
+        // that silently defaulted to 'viewer' on docs without roles.
+        canEditSource = ref.watch(canEditBandProvider(state.sourceBandId!));
       }
     }
+
+    // Auto-persist a changed tempo to the loaded song (band-aware, debounced)
+    // — a tapped or typed tempo used to evaporate unless the user found the
+    // ⋮ "Save to …" item.
+    ref.listen(metronomeProvider.select((s) => s.bpm), (prev, next) {
+      _scheduleTempoAutoSave(canEditSource);
+    });
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -182,21 +203,28 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
           },
         ),
       ),
-      // Save to Song (only shown when song is loaded)
+      // Save to Song (only shown when song is loaded). When the user lacks
+      // the band role, tapping explains why instead of a silent grey row.
       if (state.activeSong != null) ...[
         AppMenuItem(
           icon: Icons.edit_outlined,
           label: 'Edit Song',
           onTap: canEditSource
               ? () => _navigateToEditSong(context, state)
-              : null,
+              : () => _showErrorSnackBar(
+                  context,
+                  'Only band editors can change this song',
+                ),
         ),
         AppMenuItem(
           icon: Icons.save_outlined,
           label: "Save to '${state.activeSong!.title}'",
           onTap: canEditSource
               ? () => _saveMetronomeToSong(context, metronome, state)
-              : null,
+              : () => _showErrorSnackBar(
+                  context,
+                  'Only band editors can save to this song',
+                ),
         ),
       ],
       AppMenuItem(
@@ -207,15 +235,17 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
     ];
   }
 
-  /// Save current metronome settings to the loaded song
+  /// Save current metronome settings to the loaded song. [silent] is the
+  /// debounced auto-save path: no success toast, errors still surface.
   Future<void> _saveMetronomeToSong(
     BuildContext context,
     MetronomeNotifier metronome,
-    MetronomeState state,
-  ) async {
+    MetronomeState state, {
+    bool silent = false,
+  }) async {
     final updatedSong = metronome.saveMetronomeToSong();
     if (updatedSong == null) {
-      _showErrorSnackBar(context, 'No song loaded');
+      if (!silent) _showErrorSnackBar(context, 'No song loaded');
       return;
     }
 
@@ -223,7 +253,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       // Get current user
       final user = ref.read(firebaseAuthProvider).currentUser;
       if (user == null) {
-        _showErrorSnackBar(context, 'Not signed in');
+        if (!silent) _showErrorSnackBar(context, 'Not signed in');
         return;
       }
 
@@ -234,7 +264,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
         await repository.updateSong(updatedSong, uid: user.uid);
       }
 
-      if (!context.mounted) return;
+      if (!context.mounted || silent) return;
       _showSuccessSnackBar(
         context,
         "Saved metronome settings to '${updatedSong.title}'",

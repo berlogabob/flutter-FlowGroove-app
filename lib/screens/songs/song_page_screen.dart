@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/song.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../providers/song_form_provider.dart';
 import '../../services/export/chordpro_export.dart';
 import '../../services/export/pdf_service.dart';
@@ -116,6 +117,10 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
   /// Full-screen map + ChordPro editor for the whole song; saves directly
   /// to the library on close (user decision — no staging through the form).
   Future<void> _openSongEditor(Song song) async {
+    if (!_canEditSong()) {
+      showAppSnackBar(context, 'Only band editors can change this song');
+      return;
+    }
     // The editor writes straight to the song, so refuse while the Edit tab
     // holds unsaved form changes — merging the two silently would lose one.
     if (_visited.contains(_SongTab.edit) &&
@@ -194,6 +199,18 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
     }
   }
 
+  /// Can this user modify the song? Band copies need the editor/admin role
+  /// (same arrays the Firestore rules read); personal songs need a signed-in
+  /// non-demo user. The old band songs screen gated on this — the unified
+  /// page must too, or viewers get an editor that fails only at save time.
+  bool _canEditSong() {
+    if (widget.bandId case final b?) {
+      return ref.watch(canEditBandProvider(b));
+    }
+    return ref.watch(currentUserProvider).value != null &&
+        !ref.watch(isDemoUserProvider);
+  }
+
   List<AppMenuItem> _menuItems(Song song) {
     final bands = ref.watch(bandsProvider).value ?? const [];
     return [
@@ -219,11 +236,12 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
           label: 'Add to band…',
           onTap: () => pickBandAndAdd(song, bands),
         ),
-      AppMenuItem(
-        icon: Icons.edit_note,
-        label: 'Song editor',
-        onTap: () => _openSongEditor(song),
-      ),
+      if (_canEditSong())
+        AppMenuItem(
+          icon: Icons.edit_note,
+          label: 'Song editor',
+          onTap: () => _openSongEditor(song),
+        ),
       AppMenuItem(
         icon: Icons.picture_as_pdf_outlined,
         label: 'Export PDF',
