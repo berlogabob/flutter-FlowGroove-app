@@ -216,6 +216,14 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
       if (config != null) {
         _scheduler.update(_renderConfig(config));
       }
+    }, onError: (Object error) {
+      // The route EventChannel is registered in Android's MainActivity only;
+      // on iOS/macOS the platform side is missing, so this stream errors
+      // (MissingPluginException). Without onError that escapes to the zone as
+      // an unhandled async error. Playback is unaffected — it just means the
+      // route stays at its default and route-change recovery never fires
+      // there. Registering the channel in AppDelegate.swift is the real fix.
+      debugPrint('[UnifiedEngine] route monitor unavailable: $error');
     });
   }
 
@@ -234,13 +242,19 @@ class UnifiedEnginePlaybackClient implements MetronomePlaybackClient {
 
       final total = config.totalTicks;
       if (total <= 0) return;
-      _tickIndex = (_tickIndex + 1) % total;
+      // The scheduler jumps past targets missed during a stall rather than
+      // replaying them; advance the beat index by the same amount or the
+      // animation falls permanently behind the (sample-accurate) audio.
+      final skipped = _uiScheduler.lastSkippedTicks;
+      _tickIndex = (_tickIndex + 1 + skipped) % total;
       final base = config.tickForIndex(_tickIndex);
 
       final countInTotalTicks = config.countInBars * total;
       final isCountIn = _countInTicks < countInTotalTicks;
       if (isCountIn) {
-        _countInTicks++;
+        // Count skipped ticks too, else a stall stretches the count-in past
+        // its bar.
+        _countInTicks += 1 + skipped;
       }
       _fireHaptics(config, base);
       onTick(base);

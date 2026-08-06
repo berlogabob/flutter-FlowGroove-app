@@ -28,6 +28,7 @@ class NativeSoLoudSink implements AudioSink {
   SoundHandle? _handle;
   int _sampleRate = 48000;
   int _channels = 1;
+  int _pushedFrames = 0;
   bool _open = false;
 
   @override
@@ -48,6 +49,8 @@ class NativeSoLoudSink implements AudioSink {
   Future<void> open({required int sampleRate, required int channels}) async {
     _sampleRate = sampleRate;
     _channels = channels;
+    // A new stream restarts SoLoud's consumed-time counter at 0.
+    _pushedFrames = 0;
     try {
       if (!SoLoud.instance.isInitialized) {
         await SoLoud.instance.init(
@@ -85,13 +88,27 @@ class NativeSoLoudSink implements AudioSink {
     }
     try {
       SoLoud.instance.addAudioDataStream(_stream!, pcm16.buffer.asUint8List());
+      _pushedFrames += pcm.length ~/ _channels;
     } catch (e) {
       _events.add(SinkEvent(SinkEventType.error, e));
     }
   }
 
   @override
-  int get framesQueued => 0; // SoLoud manages its own buffer internally.
+  int get framesQueued {
+    if (!_open || _stream == null) return 0;
+    try {
+      // RELEASED-buffer-only API — this sink always uses BufferingType.released
+      // (see open()). It throws if that ever changes, or if SoLoud is torn
+      // down mid-call, so swallow: 0 means "unknown" and nothing gates on it.
+      final consumed = SoLoud.instance.getStreamTimeConsumed(_stream!);
+      final consumedFrames = consumed.inMicroseconds * _sampleRate ~/ 1000000;
+      final queued = _pushedFrames - consumedFrames;
+      return queued > 0 ? queued : 0;
+    } on Object {
+      return 0;
+    }
+  }
 
   @override
   Future<void> recover({required int atFrame}) async {
@@ -123,7 +140,11 @@ class NativeSoLoudSink implements AudioSink {
       // reopen actually left the sink usable; otherwise the `error` event
       // already emitted by `open()` is the right (and only) signal.
       if (_open) {
-        _events.add(const SinkEvent(SinkEventType.deviceChanged));
+        // `recovered`, NOT `deviceChanged`: the scheduler answers
+        // `deviceChanged` by recovering, so emitting it on success made
+        // recovery re-enter itself forever — each cycle a process-wide
+        // deinit()+init() with the feeder disabled throughout (#151).
+        _events.add(const SinkEvent(SinkEventType.recovered));
       }
     } catch (e) {
       _events.add(SinkEvent(SinkEventType.error, e));

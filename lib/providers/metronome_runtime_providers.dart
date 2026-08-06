@@ -422,10 +422,16 @@ class PcmTimelineMetronomePlaybackClient implements MetronomePlaybackClient {
     final config = _config;
     final onTick = _onTick;
     if (!_running || config == null || onTick == null) return;
-    _uiTick = (_uiTick + 1) % config.totalTicks;
+    // Stall-skipped ticks are not replayed by the scheduler; advance by them
+    // so the beat index stays true to the audio (see the Flutter client).
+    final skipped = _uiScheduler.lastSkippedTicks;
+    _uiTick = (_uiTick + 1 + skipped) % config.totalTicks;
     final base = config.tickForIndex(_uiTick);
     final isCountIn = _uiCountInTicksRemaining > 0;
-    if (isCountIn) _uiCountInTicksRemaining--;
+    if (isCountIn) {
+      _uiCountInTicksRemaining =
+          (_uiCountInTicksRemaining - (1 + skipped)).clamp(0, 1 << 30);
+    }
     onTick(
       MetronomePlaybackTick(
         index: base.index,

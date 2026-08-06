@@ -4,11 +4,20 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
 import '../../../services/audio/audio_note_edit.dart';
 import '../../../services/audio/audio_note_recorder.dart';
 import '../../../theme/mono_pulse_theme.dart';
+import '../../../utils/snackbar.dart';
+
+enum _RecordingPermissionState {
+  granted,
+  denied,
+  permanentlyDenied,
+  unavailable,
+}
 
 /// Result of the recording sheet (#69): audio bytes + metadata for upload.
 class LabRecordingResult {
@@ -37,8 +46,7 @@ class LabRecordingResult {
 class LabRecordingSheet extends StatefulWidget {
   const LabRecordingSheet({this.autoStart = false, super.key});
 
-  /// Start recording as soon as the sheet opens (Home "Audio note", #145) —
-  /// silently ignored when the mic permission is denied or unavailable.
+  /// Start recording as soon as the sheet opens (Home "Audio note", #145).
   final bool autoStart;
 
   @override
@@ -63,6 +71,118 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   /// Stop before the 25MB Storage cap. Native records AAC (~16kB/s, so ~26 min
   /// fits); web is stuck with uncompressed WAV at ~88kB/s, hence the gulf.
   static const int _maxSeconds = kIsWeb ? 240 : 1500;
+
+  bool get _isSecureWebContext {
+    if (!kIsWeb) return true;
+    final uri = Uri.base;
+    return uri.scheme == 'https' ||
+        uri.host == 'localhost' ||
+        uri.host == '127.0.0.1' ||
+        uri.host == '::1';
+  }
+
+  bool get _canOpenPermissionSettings =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
+  Future<_RecordingPermissionState> _permissionStatus() async {
+    if (!_isSecureWebContext) return _RecordingPermissionState.unavailable;
+    try {
+      final status = await Permission.microphone.status;
+      if (status.isGranted || status.isLimited) {
+        return _RecordingPermissionState.granted;
+      }
+      if (status.isPermanentlyDenied || status.isRestricted) {
+        return _RecordingPermissionState.permanentlyDenied;
+      }
+      return _RecordingPermissionState.denied;
+    } catch (_) {
+      try {
+        final granted = await _recorder.hasPermission(request: false);
+        return granted
+            ? _RecordingPermissionState.granted
+            : _RecordingPermissionState.denied;
+      } catch (_) {
+        return _RecordingPermissionState.unavailable;
+      }
+    }
+  }
+
+  Future<_RecordingPermissionState> _requestPermission() async {
+    if (!_isSecureWebContext) return _RecordingPermissionState.unavailable;
+    try {
+      final status = await Permission.microphone.request();
+      if (status.isGranted || status.isLimited) {
+        return _RecordingPermissionState.granted;
+      }
+      if (status.isPermanentlyDenied || status.isRestricted) {
+        return _RecordingPermissionState.permanentlyDenied;
+      }
+      return _RecordingPermissionState.denied;
+    } catch (_) {
+      try {
+        final granted = await _recorder.hasPermission();
+        return granted
+            ? _RecordingPermissionState.granted
+            : _RecordingPermissionState.denied;
+      } catch (_) {
+        return _RecordingPermissionState.unavailable;
+      }
+    }
+  }
+
+  Future<void> _openPermissionSettings() => openAppSettings();
+
+  Future<bool> _ensureMicrophonePermission() async {
+    if (!_isSecureWebContext) {
+      if (mounted) {
+        showAppSnackBar(
+          context,
+          'Recording needs a secure (https) connection.',
+          error: true,
+        );
+      }
+      return false;
+    }
+
+    var permission = await _permissionStatus();
+    if (permission != _RecordingPermissionState.granted &&
+        permission != _RecordingPermissionState.permanentlyDenied &&
+        permission != _RecordingPermissionState.unavailable) {
+      permission = await _requestPermission();
+    }
+    if (permission == _RecordingPermissionState.granted) return true;
+    if (!mounted) return false;
+
+    switch (permission) {
+      case _RecordingPermissionState.permanentlyDenied:
+        showAppSnackBar(
+          context,
+          'Microphone access is blocked. Allow it in device settings to record.',
+          error: true,
+          actionLabel: _canOpenPermissionSettings ? 'Open settings' : null,
+          onAction: _canOpenPermissionSettings
+              ? () => unawaited(_openPermissionSettings())
+              : null,
+        );
+      case _RecordingPermissionState.denied:
+        showAppSnackBar(
+          context,
+          'Allow microphone access to record an audio idea.',
+          error: true,
+        );
+      case _RecordingPermissionState.unavailable:
+        showAppSnackBar(
+          context,
+          'Microphone recording is unavailable on this device.',
+          error: true,
+        );
+      case _RecordingPermissionState.granted:
+        break;
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -121,7 +241,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
       _stopInFlight = false;
       return;
     }
-    if (!await _recorder.hasPermission()) return;
+    if (!await _ensureMicrophonePermission()) return;
     // Streamed capture in a sliceable format (AAC on native, WAV on web), so
     // the editor can trim a take without an ffmpeg-sized dependency (#150).
     final recorder = _noteRecorder ??= AudioNoteRecorder(_recorder);
