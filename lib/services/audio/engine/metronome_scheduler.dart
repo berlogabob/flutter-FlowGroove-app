@@ -58,6 +58,9 @@ class MetronomeScheduler {
   static const int _maxRecoverAttempts = 3;
   static const Duration _recoverBackoffBase = Duration(milliseconds: 250);
 
+  /// Cap on resync log lines per session (counters keep counting past it).
+  static const int _maxStarvationLogs = 20;
+
   int _recoverAttempts = 0;
 
   // Diagnostics (see debugStats). Never gate rendering on these.
@@ -158,9 +161,14 @@ class MetronomeScheduler {
     if (_frame < elapsedFrames) {
       _droppedFrames += elapsedFrames - _frame;
       _starvationEvents++;
-      if (kDebugMode) {
+      // Logged in release too: #151 was only measurable on a release build,
+      // and post-fix a resync means the app was starved past the whole
+      // lookahead — rare enough not to be chatty. Capped so a pathological
+      // device can't fill the log (the counter keeps counting either way).
+      if (_starvationEvents <= _maxStarvationLogs) {
         final ms = (elapsedFrames - _frame) * 1000 ~/ _sampleRate;
-        debugPrint('[MetronomeScheduler] resync: dropped ${ms}ms of audio');
+        debugPrint('[MetronomeScheduler] resync: dropped ${ms}ms of audio '
+            '(event $_starvationEvents)');
       }
       _frame = elapsedFrames;
     }
@@ -231,6 +239,11 @@ class MetronomeScheduler {
   }
 
   Future<void> stop() async {
+    // Session summary, release included — the numbers behind #151 without
+    // needing any debug UI (read with `flutter logs -d <device>`).
+    if (_pumpCount > 0) {
+      debugPrint('[MetronomeScheduler] session ${debugStats()}');
+    }
     _running = false;
     _stopwatch.stop();
     _pump?.cancel();
