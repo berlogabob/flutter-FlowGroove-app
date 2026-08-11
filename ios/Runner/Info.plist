@@ -32,7 +32,7 @@
 				<!-- Google Sign-In redirect. Must equal REVERSED_CLIENT_ID in
 				     ios/Runner/GoogleService-Info.plist. Update both together
 				     when you download the real config from Firebase Console. -->
-				<string>com.googleusercontent.apps.703941154390-abcdefghijklmnopqrstuvwxyz</string>
+				<string>com.googleusercontent.apps.703941154390-gicsrphh18ssncq4sn23lmlci4rhiome</string>
 			</array>
 		</dict>
 	</array>

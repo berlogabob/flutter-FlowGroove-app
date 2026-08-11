@@ -74,10 +74,19 @@ class DefaultFirebaseOptions {
     );
   }
 
+  /// Fallback only. `ios/Runner/GoogleService-Info.plist` is now bundled into
+  /// the Runner target, so the native SDK auto-initializes `[DEFAULT]` before
+  /// Dart runs and `main.dart` skips `initializeApp(options:)` entirely. These
+  /// values are kept in sync anyway so the fallback path can't register a
+  /// different app than the plist does.
+  ///
+  /// The previous `appId` here was the *web* id with `web:` swapped to `ios:` —
+  /// no such app existed in the project, which is why iOS reported zero
+  /// analytics while Auth/Firestore (keyed off projectId + apiKey) kept working.
   static FirebaseOptions get ios {
     return FirebaseOptions(
       apiKey: _mobileApiKey,
-      appId: '1:703941154390:ios:43dfeaf2f6a0495e004df7',
+      appId: '1:703941154390:ios:5e9f3dc52e43d491004df7',
       messagingSenderId: '703941154390',
       projectId: 'repsync-app-8685c',
       authDomain: 'repsync-app-8685c.firebaseapp.com',
