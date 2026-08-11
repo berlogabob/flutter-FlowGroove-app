@@ -145,6 +145,26 @@ if (!kIsWeb) {
 }
 ```
 
+### ⚠️ Superseded 2026-08-11
+
+The `!kIsWeb` skip was **removed** — it meant the entire web/PWA build was
+untracked (no `app_open`, no screen views, and the `G-DQC026CRM8` measurement
+stream received nothing). `firebase_analytics` is now `^12.1.3`, many majors past
+the version that threw the pigeon channel error above.
+
+The original crash cannot white-screen the app again: every call site is inside a
+`try`/`catch` — `AnalyticsService.initialize()` and
+`setAnalyticsCollectionEnabled()` each swallow and log, and `main.dart` wraps the
+deferred init block as well. If the platform channel is still missing on web the
+failure mode is now "analytics silently does nothing on web", i.e. the old
+behaviour, not a crash.
+
+**Still worth watching:** confirm on the deployed web build that
+`google-analytics.com/g/collect` requests carry `tid=G-DQC026CRM8`, and that the
+browser console shows no `channel-error` from
+`setAnalyticsCollectionEnabled`. If it does reappear, guard only that one call
+with `kIsWeb` rather than skipping analytics initialisation wholesale.
+
 ---
 
 ## 3. Web Config Not Loading (dart:js Interop Issue)

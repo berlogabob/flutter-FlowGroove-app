@@ -361,12 +361,27 @@ editor silently deleted orphans on save.
 `lib/services/analytics_service.dart`: new events flow through a single
 consent-guarded `_log` choke point (`AnalyticsService.enabled`, driven by
 `analyticsConsentProvider` — "Share usage analytics" switch in
-Profile ▸ Account, default on). Event set per the audit's HEART section:
+Settings ▸ Privacy, default on). Event set per the audit's HEART section:
 `back_used{ui|system}`, `menu_opened`, `undo_shown/undo_used`,
 `filter_zero_results`, `search_song_open`, invite funnel
 (`invite_generated`→`invite_link_opened`→`join_completed`→`band_opened`),
 `tool_opened`, `practice_session`, `rehearsal_created`, `setlist_edited`.
-Legacy static methods predate the choke point and are not consent-gated.
+
+Consent is enforced **twice**: `_log` checks the Dart-side flag, and the consent
+provider also calls `AnalyticsService.setAnalyticsCollectionEnabled(value)`. The
+SDK-level switch is the one that matters — it is the only thing that stops the
+legacy static methods (which predate `_log` and do not check the flag) and
+Firebase's automatic events (`session_start`, `user_engagement`), which no
+Dart-side guard can reach. `initialize()` therefore honours the stored value
+instead of hard-enabling collection.
+
+`screen_view` is **not** logged by this file. A `FirebaseAnalyticsObserver` is
+registered on the root `GoRouter` (`_analyticsObservers()` in
+`lib/router/app_router.dart`), so every named route reports automatically; it
+returns an empty observer list when Firebase is absent so unit tests can still
+build the router. Analytics initialises on **all** platforms including web
+(the plugin reports to the `measurementId` in `firebase_options.dart`); the
+marketing site is a separate GA4 stream wired in `site/layouts/partials/analytics.html`.
 
 ### State Management
 

@@ -4,6 +4,43 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## Unreleased — analytics instrumentation repair + cloud practice history (2026-08-11)
+
+### Analytics — most of it was never being recorded
+- **Screen tracking existed nowhere.** The root `GoRouter` had no navigator
+  observer, so `screen_view` fired on exactly two hand-instrumented screens out of
+  ~40 (and fired *twice* on each). A `FirebaseAnalyticsObserver` is now registered
+  in `createAppRouter`, so every named route reports automatically.
+- **Sessions were 30 seconds long.** `AnalyticsService.initialize()` set a 30-minute
+  timeout and the debug helper immediately overwrote it with 30 *seconds*. Every
+  session-count and engagement-duration figure recorded before this release is
+  unreliable. Deleted `lib/utils/analytics_debug.dart`, which also removed a fake
+  `analytics_test` event that fired on every release launch.
+- **Web was untracked entirely** — analytics initialisation was skipped on web, so
+  the `G-DQC026CRM8` stream received nothing. Now initialises on all platforms.
+- **The consent switch didn't actually stop anything.** It only gated ~15 of ~55
+  events; logins, all tuner events, song/band/setlist events, user properties and
+  every Firebase automatic event were transmitted regardless. Consent is now
+  enforced at the SDK level via `setAnalyticsCollectionEnabled`, which is the only
+  thing that can stop the legacy call sites and the automatic events.
+- Wired the events that map to real funnel steps but had never been called —
+  signup, logout, song/setlist delete, PDF/CSV export, ChordPro share, member
+  removed — at service and repository choke points rather than per screen.
+- Removed 24 event methods that had no call sites, and the always-zero
+  `song_count` / `setlist_count` user properties.
+
+### Practice history now syncs
+- Practice sessions moved from a device-local Hive box to
+  `users/{uid}/practiceSessions` in Firestore. Your streak, weekly minutes and
+  session logbook now survive a reinstall and appear on a second device; before
+  this they were lost with the app. Existing local history is migrated once on
+  first launch. The data is private to the account — bandmates never see it.
+- Privacy policy, FAQ, Play Data Safety sheet and the delete-account page updated
+  to disclose practice data and the correct analytics default (on, opt-out in
+  Settings ▸ Privacy).
+- Practice and Settings wiki pages can now open in the in-app wiki panel (they
+  were missing from the allowlist, so their links escaped to a browser tab).
+
 ## Unreleased — UX audit remediation + setlist/navigation fixes (2026-07-19)
 
 Branch `fix/ux-audit-2026-07` (PR #174 → `second01`). On-device verified on a real
