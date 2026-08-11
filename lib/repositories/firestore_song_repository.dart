@@ -11,6 +11,7 @@ import '../models/library_song.dart';
 import '../models/song.dart';
 import '../models/song_commit.dart';
 import '../models/song_delta.dart';
+import '../services/analytics_service.dart';
 import 'song_repository.dart';
 
 /// Timeout duration for Firestore operations (10 seconds).
@@ -110,6 +111,7 @@ class FirestoreSongRepository implements SongRepository {
         docRef: _userSongDoc(userId, songId),
         authorId: userId,
       );
+      unawaited(AnalyticsService.logSongDeleted(songId: songId));
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
         '⏱️ TIMEOUT: deleteSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId',
@@ -420,6 +422,7 @@ class FirestoreSongRepository implements SongRepository {
         docRef: _bandSongDoc(bandId, songId),
         authorId: _currentUserId,
       );
+      unawaited(AnalyticsService.logSongDeleted(songId: songId));
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
         '⏱️ TIMEOUT: deleteBandSong timed out after ${_firestoreTimeout.inSeconds}s for song $songId in band $bandId',

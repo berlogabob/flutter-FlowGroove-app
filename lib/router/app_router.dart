@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -126,6 +128,19 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 /// Production GoRouter configuration for FlowGroove.
 final GoRouter appRouter = createAppRouter();
 
+/// The root observer that gives every named route a `screen_view` event.
+/// Without this, only hand-instrumented screens were ever tracked. Returns
+/// empty when Firebase isn't up (unit tests, config failure) so the router
+/// still builds.
+List<NavigatorObserver> _analyticsObservers() {
+  try {
+    if (Firebase.apps.isEmpty) return const [];
+    return [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)];
+  } catch (_) {
+    return const [];
+  }
+}
+
 /// Creates a GoRouter with injectable auth and route configuration.
 GoRouter createAppRouter({
   AuthRouterClient? authClient,
@@ -133,6 +148,7 @@ GoRouter createAppRouter({
   GlobalKey<NavigatorState>? navigatorKey,
   List<RouteBase>? routes,
   bool enableAuthRedirect = true,
+  List<NavigatorObserver>? observers,
 }) {
   final resolvedAuthClient = authClient ?? FirebaseAuthRouterClient();
   final authRefresh = enableAuthRedirect
@@ -142,6 +158,7 @@ GoRouter createAppRouter({
   return GoRouter(
     navigatorKey: navigatorKey ?? _rootNavigatorKey,
     initialLocation: initialLocation,
+    observers: observers ?? _analyticsObservers(),
     refreshListenable: authRefresh,
     redirect: enableAuthRedirect
         ? (context, state) {

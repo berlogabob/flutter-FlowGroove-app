@@ -881,7 +881,8 @@ class MetronomeNotifier extends Notifier<MetronomeState> {
   }
 
   Future<void> _saveSessionSafely(MetronomeSession session) async {
-    if (!MetronomeSessionRepository.storageReady) return;
+    // Signed-out and the read-only demo account both fail the write; swallow
+    // it rather than surfacing an error over a finished practice session.
     try {
       await _sessionRepository.save(session);
     } catch (error) {

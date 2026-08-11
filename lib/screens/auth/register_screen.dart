@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth/auth_provider.dart';
+import '../../services/analytics_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -43,6 +46,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
+      unawaited(AnalyticsService.logSignup(signupMethod: 'email'));
       if (mounted) {
         context.go('/main/home');
       }

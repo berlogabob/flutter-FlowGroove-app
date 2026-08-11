@@ -37,17 +37,17 @@ class AnalyticsClient {
     return AnalyticsService.logDemoLogin();
   }
 
+  Future<void> logLogout() {
+    return AnalyticsService.logLogout();
+  }
+
   Future<void> setUserProperties({
     required AppUser user,
     required int bandCount,
-    required int songCount,
-    required int setlistCount,
   }) {
     return AnalyticsService.setUserProperties(
       user: user,
       bandCount: bandCount,
-      songCount: songCount,
-      setlistCount: setlistCount,
     );
   }
 }
@@ -243,8 +243,6 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         await analytics.setUserProperties(
           user: snapshot,
           bandCount: bandCount,
-          songCount: 0,
-          setlistCount: 0,
         );
       } catch (e) {
         debugPrint('Error setting user properties: $e');
@@ -295,6 +293,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       }
 
       await auth.signOut();
+      unawaited(ref.read(analyticsClientProvider).logLogout());
       state = const AsyncValue.data(null);
     } on FirebaseAuthException catch (e, stackTrace) {
       final apiError = _mapFirebaseAuthException(e);

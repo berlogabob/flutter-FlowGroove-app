@@ -299,6 +299,16 @@ service cloud.firestore {
         (request.resource.data.accessRole == resource.data.accessRole ||
          request.resource.data.accessRole == 'member');
 
+      // Practice sessions (metronome logbook, #133) — strictly private to the
+      // owner; nobody else reads them, not even a band admin. Demo is the
+      // shared read-only account, so it never writes.
+      match /practiceSessions/{sessionId} {
+        allow read: if isAuthenticated() && isOwner(userId);
+        allow create, update, delete: if isAuthenticated() &&
+          isOwner(userId) &&
+          isNotDemo(userId);
+      }
+
       // Songs subcollection — owner can manage; demo users read-only
       match /songs/{songId} {
         allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrOwner(userId));

@@ -26,13 +26,13 @@ import 'providers/auth/auth_provider.dart';
 import 'providers/data/data_providers.dart';
 import 'providers/keep_screen_on_provider.dart';
 import 'providers/metronome_runtime_providers.dart';
+import 'providers/practice_stats_provider.dart';
 import 'providers/theme_mode_provider.dart';
 import 'repositories/metronome_session_repository.dart';
 import 'router/app_router.dart';
 import 'services/analytics_service.dart';
 import 'services/metronome_preferences.dart';
 import 'theme/mono_pulse_theme.dart';
-import 'utils/analytics_debug.dart';
 import 'utils/responsive_breakpoints.dart';
 import 'widgets/config_error_widget.dart';
 import 'widgets/loading_indicator.dart';
@@ -170,28 +170,20 @@ Licensed under the LGPL. lamejs is loaded as a separate, unmodified script
     return;
   }
 
-  // Firebase Analytics (mobile only). Grab the singleton now (cheap) but defer
-  // the awaited init/collection/connection/app-open work to after the first
-  // frame so it never blocks startup. Events logged before the deferred enable
-  // are buffered by Firebase Analytics.
-  FirebaseAnalytics? analytics;
-  if (!kIsWeb) {
-    analytics = FirebaseAnalytics.instance;
-    AnalyticsDebug.enableDebugMode();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      try {
-        await AnalyticsService.initialize();
-        await analytics!.setAnalyticsCollectionEnabled(true);
-        await AnalyticsDebug.testConnection();
-        await AnalyticsDebug.logAppOpen();
-        debugPrint('📊 Analytics initialized (deferred, off critical path)');
-      } catch (e) {
-        debugPrint('⚠️ Deferred analytics init failed: $e');
-      }
-    });
-  } else {
-    debugPrint('ℹ️  Web platform - skipping Analytics initialization');
-  }
+  // Firebase Analytics (all platforms — web included; the plugin reports to
+  // the measurementId in firebase_options.dart). Grab the singleton now (cheap)
+  // but defer the awaited init work to after the first frame so it never blocks
+  // startup. Events logged before the deferred enable are buffered.
+  // `app_open` is auto-collected — do not log it by hand.
+  final analytics = FirebaseAnalytics.instance;
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    try {
+      await AnalyticsService.initialize();
+      debugPrint('📊 Analytics initialized (deferred, off critical path)');
+    } catch (e) {
+      debugPrint('⚠️ Deferred analytics init failed: $e');
+    }
+  });
 
   // Enable Firestore offline persistence on every platform (mobile has it on
   // by default, web does not). This replaces the removed Hive data cache:
@@ -274,10 +266,19 @@ Licensed under the LGPL. lamejs is loaded as a separate, unmodified script
 
     // Log login event for existing user (off the startup critical path)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      analytics?.logLogin(loginMethod: 'auto');
+      analytics.logLogin(loginMethod: 'auto');
       // Audio objects whose undo window closed while the app was gone. Failures
       // stay queued, so this is safe to fire and forget.
       unawaited(rootContainer.read(pendingStorageDeletesProvider).sweep());
+      // One-shot lift of pre-Firestore practice sessions out of the Hive box.
+      // Only cold start with a restored session: anyone who still has local
+      // history is by definition an existing signed-in user, and the flag
+      // stays unset until it succeeds, so a later launch retries.
+      unawaited(
+        rootContainer
+            .read(metronomeSessionRepositoryProvider)
+            .migrateLocalSessions(),
+      );
     });
   } else {
     debugPrint('🔑 NO USER: No user found from previous session');
@@ -286,15 +287,13 @@ Licensed under the LGPL. lamejs is loaded as a separate, unmodified script
   runApp(
     UncontrolledProviderScope(
       container: rootContainer,
-      child: FlowGrooveApp(analytics: analytics),
+      child: const FlowGrooveApp(),
     ),
   );
 }
 
 class FlowGrooveApp extends ConsumerWidget {
-  const FlowGrooveApp({super.key, this.analytics});
-
-  final FirebaseAnalytics? analytics;
+  const FlowGrooveApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -1,6 +1,5 @@
-/// Practice statistics (#133) computed from the metronome's session log —
-/// the Hive box the metronome has been writing since sessions shipped
-/// (`metronome_sessions_v1`), read here for the first time.
+/// Practice statistics (#133) computed from the metronome's session log,
+/// now stored per user in Firestore so streaks survive a reinstall.
 library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +14,6 @@ class PracticeStats {
     required this.streakDays,
     required this.dailySeconds,
     required this.perSongSeconds,
-    this.lastSession,
   });
 
   static const empty = PracticeStats(
@@ -37,7 +35,6 @@ class PracticeStats {
 
   /// This week's seconds per songId ('' key = freestyle, no song loaded).
   final Map<String, int> perSongSeconds;
-  final MetronomeSession? lastSession;
 
   bool get isEmptyWeek => totalSecondsThisWeek == 0;
 }
@@ -93,7 +90,6 @@ PracticeStats computePracticeStats(
     streakDays: streak,
     dailySeconds: daily,
     perSongSeconds: perSong,
-    lastSession: real.isEmpty ? null : real.first,
   );
 }
 
@@ -103,7 +99,6 @@ final metronomeSessionRepositoryProvider =
 final practiceStatsProvider = FutureProvider.autoDispose<PracticeStats>((
   ref,
 ) async {
-  if (!MetronomeSessionRepository.storageReady) return PracticeStats.empty;
   final sessions = await ref
       .watch(metronomeSessionRepositoryProvider)
       .listAll();
@@ -114,7 +109,6 @@ final practiceStatsProvider = FutureProvider.autoDispose<PracticeStats>((
 final practiceSessionsProvider = FutureProvider.autoDispose<
   List<MetronomeSession>
 >((ref) async {
-  if (!MetronomeSessionRepository.storageReady) return const [];
   final sessions = await ref
       .watch(metronomeSessionRepositoryProvider)
       .listAll();

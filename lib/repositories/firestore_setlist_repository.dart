@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../models/api_error.dart';
 import '../models/setlist.dart';
+import '../services/analytics_service.dart';
 import 'setlist_repository.dart';
 
 class FirestoreSetlistRepository implements SetlistRepository {
@@ -61,6 +62,7 @@ class FirestoreSetlistRepository implements SetlistRepository {
           .collection('setlists')
           .doc(setlistId)
           .delete();
+      unawaited(AnalyticsService.logSetlistDeleted(setlistId: setlistId));
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -139,6 +141,7 @@ class FirestoreSetlistRepository implements SetlistRepository {
           .collection('setlists')
           .doc(setlistId)
           .delete();
+      unawaited(AnalyticsService.logSetlistDeleted(setlistId: setlistId));
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }

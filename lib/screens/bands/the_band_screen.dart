@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,7 +13,6 @@ import '../../providers/permissions_provider.dart';
 import '../../services/analytics_service.dart';
 import '../../services/avatar_function_service.dart';
 import '../../theme/mono_pulse_theme.dart';
-import '../../utils/analytics_debug.dart';
 import '../../utils/responsive_breakpoints.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
@@ -58,24 +55,10 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
     _descriptionController = TextEditingController(
       text: widget.band.description ?? '',
     );
-    // Log screen view once per navigation, not on every rebuild.
-    try {
-      AnalyticsDebug.logScreenView(
-        screenName: 'TheBandScreen',
-        screenClass: 'TheBandScreen',
-      );
-    } catch (_) {}
+    // screen_view comes from the router's FirebaseAnalyticsObserver (main.dart).
     // HEART "adoption" fallback: cheaply detecting "first open after join"
     // isn't available here, so this fires on every open — see report.
     AnalyticsService.logBandOpened(bandId: widget.band.id);
-    try {
-      if (Firebase.apps.isNotEmpty) {
-        FirebaseAnalytics.instance.logScreenView(
-          screenName: 'TheBandScreen',
-          screenClass: 'TheBandScreen',
-        );
-      }
-    } catch (_) {}
   }
 
   @override

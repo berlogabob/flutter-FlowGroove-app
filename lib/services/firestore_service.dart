@@ -11,6 +11,7 @@ import '../models/song.dart';
 import '../models/user.dart';
 import '../repositories/firestore_song_repository.dart';
 import '../repositories/song_repository.dart';
+import 'analytics_service.dart';
 
 /// Timeout duration for Firestore operations (10 seconds).
 const _firestoreTimeout = Duration(seconds: 10);
@@ -209,6 +210,7 @@ class FirestoreService {
           .doc(setlistId)
           .delete()
           .timeout(_firestoreTimeout);
+      unawaited(AnalyticsService.logSetlistDeleted(setlistId: setlistId));
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
         '⏱️ TIMEOUT: deleteSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist $setlistId',
@@ -279,6 +281,7 @@ class FirestoreService {
           .doc(setlistId)
           .delete()
           .timeout(_firestoreTimeout);
+      unawaited(AnalyticsService.logSetlistDeleted(setlistId: setlistId));
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
         '⏱️ TIMEOUT: deleteBandSetlist timed out after ${_firestoreTimeout.inSeconds}s for setlist $setlistId in band $bandId',

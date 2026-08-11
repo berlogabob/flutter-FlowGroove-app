@@ -75,17 +75,3 @@ class MetronomeSession {
     if (completion != null) 'completion': completion!.name,
   };
 }
-
-class MetronomeSessionSummary {
-  const MetronomeSessionSummary({
-    required this.sessionCount,
-    required this.totalSeconds,
-    this.lastPracticedAt,
-    this.latestBpm,
-  });
-
-  final int sessionCount;
-  final int totalSeconds;
-  final DateTime? lastPracticedAt;
-  final int? latestBpm;
-}

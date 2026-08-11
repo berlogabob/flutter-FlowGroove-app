@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:cloud_functions/cloud_functions.dart';
 
 import '../models/api_error.dart';
+import 'analytics_service.dart';
 
 /// Result of a [BandFunctionService.joinBand] call.
 class JoinBandResult {
@@ -110,8 +113,13 @@ class BandFunctionService {
   Future<void> removeMember({
     required String bandId,
     required String targetUid,
-  }) {
-    return _call('remove', bandId: bandId, targetUid: targetUid);
+  }) async {
+    await _call('remove', bandId: bandId, targetUid: targetUid);
+    // Role isn't known here (the callable owns membership); 'unknown' keeps
+    // the param present rather than plumbing it down from two call sites.
+    unawaited(
+      AnalyticsService.logMemberRemoved(bandId: bandId, memberRole: 'unknown'),
+    );
   }
 
   Future<void> _call(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -10,6 +12,7 @@ import '../../models/setlist.dart';
 import '../../models/setlist_break_type.dart';
 import '../../models/song.dart';
 import '../../utils/chordpro.dart';
+import '../analytics_service.dart';
 
 /// PDF layout for a setlist export.
 /// [pack] = compact setlist page + every song as a one-page compact sheet
@@ -73,6 +76,9 @@ class PdfService {
     int? timeTop,
     bool fitOnePage = false,
   }) async {
+    unawaited(
+      AnalyticsService.logPdfExported(itemType: 'song', itemCount: 1),
+    );
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.robotoRegular();
     final fontBold = await PdfGoogleFonts.robotoBold();
@@ -142,6 +148,13 @@ class PdfService {
     SetlistPdfLayout layout = SetlistPdfLayout.detailed,
     String? performerId,
   }) async {
+    unawaited(
+      AnalyticsService.logSetlistExported(
+        setlistId: setlist.id,
+        format: layout.name,
+        songCount: songs.length,
+      ),
+    );
     final bytes = await buildSetlistBytes(
       setlist,
       songs,

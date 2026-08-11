@@ -14,7 +14,34 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       container = ProviderContainer();
       addTearDown(container.dispose);
+      AnalyticsService.debugCollectionEnabled = null;
       addTearDown(() => AnalyticsService.enabled = true);
+    });
+
+    // The Dart-side `enabled` flag only gates the ~15 `_log` events; the ~40
+    // legacy methods and Firebase's automatic events are only stopped by the
+    // SDK-level collection switch. Consent is a lie without this call.
+    test('toggle-off disables SDK collection, not just the Dart flag', () async {
+      await Future<void>.delayed(Duration.zero);
+
+      await container.read(analyticsConsentProvider.notifier).toggle();
+      expect(AnalyticsService.debugCollectionEnabled, isFalse);
+
+      await container.read(analyticsConsentProvider.notifier).toggle();
+      expect(AnalyticsService.debugCollectionEnabled, isTrue);
+    });
+
+    test('a stored false disables SDK collection on load', () async {
+      SharedPreferences.setMockInitialValues({
+        'app.analytics_consent': false,
+      });
+      container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(analyticsConsentProvider);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(AnalyticsService.debugCollectionEnabled, isFalse);
     });
 
     test('defaults to true (on) before the async load resolves', () {

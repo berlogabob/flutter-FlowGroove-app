@@ -1,50 +1,22 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/data/data_providers.dart';
 import '../theme/mono_pulse_theme.dart';
-import '../utils/analytics_debug.dart';
 import '../widgets/dashboard_grid.dart';
 import '../widgets/practice_dashboard_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/standard_screen_scaffold.dart';
 import '../widgets/tool_button.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+/// screen_view comes from the router's FirebaseAnalyticsObserver (see
+/// createAppRouter) — this screen holds no state of its own.
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Log screen view once per navigation, not on every rebuild.
-    try {
-      AnalyticsDebug.logScreenView(
-        screenName: 'HomeScreen',
-        screenClass: 'HomeScreen',
-      );
-    } catch (_) {}
-    try {
-      if (Firebase.apps.isNotEmpty) {
-        FirebaseAnalytics.instance.logScreenView(
-          screenName: 'HomeScreen',
-          screenClass: 'HomeScreen',
-        );
-      }
-    } catch (_) {
-      // Ignore in test environment when Firebase is not initialized
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return StandardScreenScaffold(
       title: 'Home',
       showBackButton: false, // Hide back button for main tabs
