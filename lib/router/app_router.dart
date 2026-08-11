@@ -290,7 +290,7 @@ List<RouteBase> _buildAppRoutes() {
       branches: [
         // Home branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(0)],
+          observers: [BranchStackObserver(0), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/home',
@@ -301,7 +301,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Songs branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(1)],
+          observers: [BranchStackObserver(1), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/songs',
@@ -358,7 +358,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Bands branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(2)],
+          observers: [BranchStackObserver(2), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/bands',
@@ -506,7 +506,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Setlists branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(3)],
+          observers: [BranchStackObserver(3), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/setlists',
@@ -586,7 +586,7 @@ List<RouteBase> _buildAppRoutes() {
         ),
         // Profile branch
         StatefulShellBranch(
-          observers: [BranchStackObserver(4)],
+          observers: [BranchStackObserver(4), ..._analyticsObservers()],
           routes: [
             GoRoute(
               path: '/main/profile',
