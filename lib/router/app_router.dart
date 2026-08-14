@@ -63,8 +63,10 @@ SongPageScreen _songPageFromState(GoRouterState state, {String? tab}) {
   if (extra is Song) {
     song = extra;
   } else if (extra is Map) {
-    song = extra['song'] as Song?;
-    bandId = extra['bandId'] as String?;
+    final rawSong = extra['song'];
+    final rawBandId = extra['bandId'];
+    song = rawSong is Song ? rawSong : null;
+    bandId = rawBandId is String ? rawBandId : null;
   }
   bandId ??= state.uri.queryParameters['bandId'];
   return SongPageScreen(
@@ -73,6 +75,15 @@ SongPageScreen _songPageFromState(GoRouterState state, {String? tab}) {
     bandId: bandId,
     initialTab: tab ?? state.uri.queryParameters['tab'],
   );
+}
+
+/// On web, go_router JSON-encodes `extra` into browser `history.state`; when
+/// the browser back/forward button restores an entry, `extra` comes back as a
+/// decoded Map, not the original object. Treat any wrong type as absent so
+/// resolvers reload by id instead of crashing on a cast.
+T? _extraAs<T>(GoRouterState state) {
+  final extra = state.extra;
+  return extra is T ? extra : null;
 }
 
 /// Minimal auth surface needed by the app router.
@@ -380,7 +391,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'the-band',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => TheBandScreen(band: band),
                   ),
                 ),
@@ -389,7 +400,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'edit-band',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => CreateBandScreen(band: band),
                   ),
                 ),
@@ -398,7 +409,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-songs',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandSongsScreen(band: band),
                   ),
                 ),
@@ -407,7 +418,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-setlists',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandSetlistsScreen(band: band),
                   ),
                 ),
@@ -423,7 +434,7 @@ List<RouteBase> _buildAppRoutes() {
                     return SetlistRouteResolver(
                       setlistId: state.pathParameters['setlistId'],
                       bandId: bandId,
-                      extra: state.extra as Setlist?,
+                      extra: _extraAs<Setlist>(state),
                       builder: (live) => SetlistViewScreen(
                         setlist: live,
                         bandId: bandId,
@@ -437,7 +448,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-about',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandAboutScreen(band: band),
                   ),
                 ),
@@ -446,7 +457,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-invite',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandInviteScreen(band: band),
                   ),
                 ),
@@ -455,7 +466,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-members',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => BandMembersScreen(band: band),
                   ),
                 ),
@@ -464,7 +475,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'band-rehearsals',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => RehearsalsListScreen(band: band),
                   ),
                 ),
@@ -474,7 +485,7 @@ List<RouteBase> _buildAppRoutes() {
                   name: 'create-rehearsal',
                   builder: (context, state) => BandRouteResolver(
                     bandId: state.pathParameters['id'],
-                    extra: state.extra as Band?,
+                    extra: _extraAs<Band>(state),
                     builder: (band) => RehearsalEditScreen(band: band),
                   ),
                 ),
@@ -485,7 +496,7 @@ List<RouteBase> _buildAppRoutes() {
                     bandId: state.pathParameters['id'],
                     builder: (band) => RehearsalEditScreen(
                       band: band,
-                      rehearsal: state.extra as Rehearsal?,
+                      rehearsal: _extraAs<Rehearsal>(state),
                     ),
                   ),
                 ),
@@ -538,7 +549,7 @@ List<RouteBase> _buildAppRoutes() {
                   path: ':id',
                   name: 'setlist-view',
                   builder: (context, state) {
-                    final setlist = state.extra as Setlist?;
+                    final setlist = _extraAs<Setlist>(state);
                     final scope =
                         state.uri.queryParameters['scope'] ==
                             SetlistStorageScope.band.name
@@ -561,7 +572,7 @@ List<RouteBase> _buildAppRoutes() {
                   path: ':id/edit',
                   name: 'edit-setlist',
                   builder: (context, state) {
-                    final setlist = state.extra as Setlist?;
+                    final setlist = _extraAs<Setlist>(state);
                     final scope =
                         state.uri.queryParameters['scope'] ==
                             SetlistStorageScope.band.name
@@ -640,14 +651,16 @@ List<RouteBase> _buildAppRoutes() {
       name: 'audio-note',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>?;
-        final entry = extra?['entry'] as SongLabEntry?;
-        // extra doesn't survive a refresh or a deep link; there's no id-only
+        final extra = _extraAs<Map<Object?, Object?>>(state);
+        final rawEntry = extra?['entry'];
+        final rawBandId = extra?['bandId'];
+        // extra doesn't survive a refresh, a deep link, or browser history
+        // restoration (which hands back decoded JSON); there's no id-only
         // lookup for a lab entry, so send them back to the list.
-        if (entry == null) return const RecorderScreen();
+        if (rawEntry is! SongLabEntry) return const RecorderScreen();
         return AudioNoteScreen(
-          entry: entry,
-          bandId: extra?['bandId'] as String?,
+          entry: rawEntry,
+          bandId: rawBandId is String ? rawBandId : null,
         );
       },
     ),
@@ -842,7 +855,10 @@ class BandRouteResolver extends ConsumerWidget {
             const Text('Failed to load band data'),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => context.pop(),
+              // This screen can be the first history entry (direct URL /
+              // browser-restored), where pop() would throw.
+              onPressed: () =>
+                  context.canPop() ? context.pop() : context.go('/main/home'),
               child: const Text('Go Back'),
             ),
           ],
