@@ -163,6 +163,9 @@ void main() {
             (ref) => Stream<List<Setlist>>.value([setlist]),
           ),
           canEditProvider.overrideWithValue(canEdit),
+          // Band setlists gate on the band editor role, not the app-wide flag.
+          if (bandId != null)
+            canEditBandProvider(bandId).overrideWithValue(canEdit),
           ...buildMetronomeTestOverrides(overrideMetronomeProvider: true),
         ],
       );

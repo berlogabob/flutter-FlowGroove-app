@@ -78,5 +78,145 @@ void main() {
       expect(find.text('No songs yet'), findsOneWidget);
       expect(find.textContaining('route:add-song'), findsNothing);
     });
+
+    // Shared scaffolding for the permission-matrix tests below.
+    Future<GoRouter> pumpWithBand(
+      WidgetTester tester,
+      Band band, {
+      List<Song>? songs,
+      Object? firestore,
+    }) async {
+      tester.view.physicalSize = const Size(1000, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final firebaseUser = MockUser();
+      when(firebaseUser.uid).thenReturn('test-user-id');
+
+      return pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/bands/band-123/songs',
+        routes: [
+          GoRoute(
+            path: '/main/bands/:id/songs',
+            name: 'band-songs',
+            builder: (context, state) => BandSongsScreen(band: band),
+          ),
+          GoRoute(
+            path: '/main/songs/add',
+            name: 'add-song',
+            builder: (context, state) => const TestRouteMarker('add-song'),
+          ),
+          GoRoute(
+            path: '/main/songs/:id',
+            name: 'song',
+            builder: (context, state) => TestRouteMarker(
+              'song:${state.uri.queryParameters['bandId']}',
+            ),
+          ),
+        ],
+        overrides: [
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([band])),
+          currentUserProvider.overrideWithValue(
+            AsyncValue<User?>.data(firebaseUser),
+          ),
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
+          ),
+          if (firestore != null)
+            firestoreProvider.overrideWithValue(firestore as dynamic),
+          bandSongsProvider.overrideWith(
+            (ref, bandId) => Stream<List<Song>>.value(
+              songs ??
+                  [
+                    MockDataHelper.createMockSong(
+                      id: 'song-1',
+                      title: 'Band Song',
+                      bandId: 'band-123',
+                    ),
+                  ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    testWidgets(
+      'editor via arrays edits even when members[].role is stale (regression)',
+      (tester) async {
+        // The reported bug: uid in editorUids (what rules read) but the
+        // members[] entry says viewer — the old members[].role gate hid every
+        // edit affordance from a legitimate editor.
+        final band = Band(
+          id: 'band-123',
+          name: 'Band 123',
+          createdBy: 'owner',
+          createdAt: DateTime(2024),
+          members: [
+            BandMember(uid: 'test-user-id', role: BandMember.roleViewer),
+          ],
+          memberUids: const ['test-user-id'],
+          adminUids: const [],
+          editorUids: const ['test-user-id'],
+        );
+
+        await pumpWithBand(tester, band);
+        await tester.pumpAndSettle();
+
+        // Editor affordances present…
+        expect(find.byType(FloatingActionButton), findsOneWidget);
+
+        // …and the card tap opens the Song Page carrying ?bandId=.
+        await tester.tap(find.text('Band Song'));
+        await tester.pumpAndSettle();
+        expect(find.text('route:song:band-123'), findsOneWidget);
+      },
+    );
+
+    testWidgets('viewer card tap still opens the Song Page (no dead card)', (
+      tester,
+    ) async {
+      final band = MockDataHelper.createMockBand(
+        id: 'band-123',
+        name: 'Band 123',
+        members: [
+          BandMember(uid: 'test-user-id', role: BandMember.roleViewer),
+        ],
+      );
+
+      await pumpWithBand(tester, band);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(FloatingActionButton), findsNothing);
+
+      await tester.tap(find.text('Band Song'));
+      await tester.pumpAndSettle();
+      expect(find.text('route:song:band-123'), findsOneWidget);
+    });
+
+    testWidgets('delete is admin-only: editor swipe does not delete', (
+      tester,
+    ) async {
+      final firestore = MockFirestoreService();
+      when(firestore.deleteBandSong(any, any)).thenAnswer((_) async {});
+
+      final band = MockDataHelper.createMockBand(
+        id: 'band-123',
+        name: 'Band 123',
+        members: [
+          BandMember(uid: 'test-user-id', role: BandMember.roleEditor),
+        ],
+      );
+
+      await pumpWithBand(tester, band, firestore: firestore);
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.text('Band Song'), const Offset(-500, 0));
+      await tester.pumpAndSettle();
+
+      verifyNever(firestore.deleteBandSong(any, any));
+      expect(find.text('Band Song'), findsOneWidget);
+    });
   });
 }

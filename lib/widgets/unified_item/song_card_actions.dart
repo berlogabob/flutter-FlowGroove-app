@@ -112,6 +112,20 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     'band': ('Add to band…', Icons.add_to_queue),
   };
 
+  /// Bands the current user may add songs to: band-song create requires the
+  /// editor/admin role per Firestore rules, so viewers' bands are excluded
+  /// from every "Add to band…" surface instead of failing at save time.
+  List<Band> editableBands(List<Band> bands) {
+    // appUser (not the raw Firebase user): same uid, and reading it here —
+    // including from lazily-built list items — never boots a Firebase stream.
+    final uid = ref.read(appUserProvider).value?.uid;
+    if (uid == null) return const [];
+    return [
+      for (final band in bands)
+        if (band.adminUids.contains(uid) || band.editorUids.contains(uid)) band,
+    ];
+  }
+
   bool _quickActionAvailable(String key, Song song, List<Band> bands) =>
       switch (key) {
         'spotify' => song.spotifyUrl != null,
@@ -140,15 +154,16 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) {
     // ponytail: chosen action missing on this song (no sheet/Spotify/bands)
     // falls back to Practice rather than an empty slot.
+    final targetBands = editableBands(bands);
     var quick = ref.watch(songQuickActionProvider);
-    if (!_quickActionAvailable(quick, song, bands)) quick = 'practice';
+    if (!_quickActionAvailable(quick, song, targetBands)) quick = 'practice';
     final (quickLabel, quickIcon) = quickActions[quick]!;
     return [
       IconAction(
         icon: quickIcon,
         tooltip: quickLabel,
         color: MonoPulseColors.accentOrange,
-        onPressed: () => _runQuickAction(quick, song, bands),
+        onPressed: () => _runQuickAction(quick, song, targetBands),
       ),
       // Tools only: content views (performance sheet, Lab) are tabs on the
       // Song Page the card tap opens, so they no longer live in this menu.
@@ -158,11 +173,11 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           if (song.spotifyUrl != null)
             ('Play on Spotify', Icons.play_circle_fill, () => openSpotify(song)),
           ('Open in Tuner', Icons.tune, () => openInTuner(song)),
-          if (bands.isNotEmpty)
+          if (targetBands.isNotEmpty)
             (
               'Add to band…',
               Icons.add_to_queue,
-              () => unawaited(pickBandAndAdd(song, bands)),
+              () => unawaited(pickBandAndAdd(song, targetBands)),
             ),
           ('Quick action…', Icons.push_pin_outlined, () {
             unawaited(pickQuickAction());
@@ -176,14 +191,17 @@ mixin SongCardActions<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> pickQuickAction() => showQuickActionPicker(context, ref);
 
   /// One "Add to band…" entry instead of one per band — opens a picker.
+  /// Only bands the user can actually write to are offered.
   Future<void> pickBandAndAdd(Song song, List<Band> bands) async {
+    final targetBands = editableBands(bands);
+    if (targetBands.isEmpty) return;
     final bandId = await showModalBottomSheet<String>(
       context: context,
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
           children: [
-            for (final band in bands)
+            for (final band in targetBands)
               ListTile(
                 leading: const Icon(Icons.groups),
                 title: Text(band.name),

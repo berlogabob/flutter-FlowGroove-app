@@ -28,17 +28,9 @@ class RehearsalDetailScreen extends ConsumerWidget {
   final Band band;
   final String rehearsalId;
 
-  bool _canEdit(WidgetRef ref) {
-    if (ref.read(isDemoUserProvider)) return false;
-    final user = ref.read(currentUserProvider).value;
-    if (user == null) return false;
-    final member = band.members.firstWhere(
-      (m) => m.uid == user.uid,
-      orElse: () => BandMember(uid: '', role: ''),
-    );
-    return member.role == BandMember.roleAdmin ||
-        member.role == BandMember.roleEditor;
-  }
+  // Gate on the live adminUids/editorUids arrays (what rules read), not the
+  // navigation-snapshot band.members.
+  bool _canEdit(WidgetRef ref) => ref.watch(canEditBandProvider(band.id));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

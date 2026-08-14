@@ -3,6 +3,26 @@ import 'package:flutter/material.dart';
 import '../services/analytics_service.dart';
 import '../theme/mono_pulse_theme.dart';
 
+/// Root messenger, registered on the MaterialApp in main.dart. Lets code that
+/// runs after its screen was popped/disposed (auto-saves, fire-and-forget
+/// writes) still surface a failure to the user.
+final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+/// Shows a snackbar on the root messenger — safe to call without a
+/// BuildContext and after the originating screen is gone. No-ops when no
+/// MaterialApp carries [rootScaffoldMessengerKey] (bare-widget tests).
+void showGlobalSnackBar(String message, {bool error = false}) {
+  rootScaffoldMessengerKey.currentState
+    ?..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: error ? MonoPulseColors.error : null,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+}
+
 /// Shows a MonoPulse-styled snackbar with [message].
 ///
 /// Pass [error]: true for error styling. Pass [actionLabel] and [onAction] to

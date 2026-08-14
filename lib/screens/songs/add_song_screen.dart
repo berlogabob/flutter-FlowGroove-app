@@ -128,32 +128,38 @@ class _AddSongScreenState extends ConsumerState<AddSongScreen>
     if (formState.isAutoSaving || !formState.hasUnsavedChanges) return;
     if (_titleController.text.trim().isEmpty) return;
 
-    ref.read(songFormStateProvider.notifier).setAutoSaving(true);
+    final notifier = ref.read(songFormStateProvider.notifier);
+    final title = formState.formData.title;
 
     try {
-      final userAsync = ref.read(currentUserProvider);
-      final user = userAsync.value;
+      final user = ref.read(currentUserProvider).value;
       if (user == null) return;
 
       final songRepo = ref.read(songRepositoryProvider);
-      final success = await ref
-          .read(songFormStateProvider.notifier)
-          .autoSave(
-            songRepo: songRepo,
-            uid: user.uid,
-            bandId: widget.bandId,
-            isEditing: _isEditing,
-            existingSong: widget.song,
-          );
+      final outcome = await notifier.autoSave(
+        songRepo: songRepo,
+        uid: user.uid,
+        bandId: widget.bandId,
+        isEditing: _isEditing,
+        existingSong: widget.song,
+      );
 
-      if (success && mounted) {
-        debugPrint('✅ Auto-saved song: ${formState.formData.title}');
+      // Deliberately NOT gated on `mounted`: this often runs while the screen
+      // is popping, and a silently dropped save was the old bug. The root
+      // messenger outlives the screen. `queued` (offline) is not an error —
+      // the write is in Firestore's persistent queue and will sync.
+      if (outcome == AutoSaveOutcome.failed) {
+        showGlobalSnackBar(
+          'Couldn\'t save "$title" — your changes were not saved',
+          error: true,
+        );
       }
     } catch (e) {
-      if (mounted) {
-        ref.read(songFormStateProvider.notifier).setAutoSaving(false);
-        debugPrint('❌ Auto-save failed: $e');
-      }
+      notifier.setAutoSaving(false);
+      showGlobalSnackBar(
+        'Couldn\'t save "$title" — your changes were not saved',
+        error: true,
+      );
     }
   }
 

@@ -52,7 +52,12 @@ class SetlistViewScreen extends ConsumerWidget {
       return const Scaffold(body: Center(child: LoadingIndicator()));
     }
 
-    final canEdit = ref.watch(canEditProvider);
+    // Band setlists need the band editor/admin role (rules enforce the
+    // adminUids/editorUids arrays); the app-wide gate only filters demo users
+    // and would show Edit/Event-kit to plain band viewers.
+    final canEdit = bandId == null
+        ? ref.watch(canEditProvider)
+        : ref.watch(canEditBandProvider(bandId!));
     final songsAsync = bandId == null
         ? ref.watch(songsProvider)
         : ref.watch(bandSongsProvider(bandId!));

@@ -11,6 +11,7 @@ import '../../models/band.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/auth/error_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/permissions_provider.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
@@ -196,7 +197,9 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     return confirmed;
   }
 
-  /// Handle band edit - navigate to edit screen.
+  /// Handle band edit - navigate to edit screen. Saving the band doc is
+  /// admin-only per Firestore rules, so non-admins are stopped here instead
+  /// of at a failing save.
   void _handleEdit(int index) {
     final bands = ref.read(bandsProvider).value;
     if (bands == null) return;
@@ -204,6 +207,10 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
     if (index >= adapters.length) return;
 
     final band = adapters[index].band;
+    if (!ref.read(isBandAdminProvider(band.id))) {
+      showAppSnackBar(context, 'Only band admins can edit the band');
+      return;
+    }
     context.pushNamed(
       'edit-band',
       pathParameters: {'id': band.id},
@@ -362,6 +369,14 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
   }
 
   Widget _buildBandList(List<BandItemAdapter> adapters) {
+    // Computed here, not inside additionalActionsBuilder: that builder runs
+    // lazily during list layout, outside this widget's build, where ref.watch
+    // is invalid. The adapters come from the live bandsProvider stream, so
+    // checking their adminUids matches isBandAdminProvider.
+    final appUser = ref.read(appUserProvider).value;
+    final isDemo = appUser?.accessRole == AccessLevel.demo;
+    bool isAdminOf(Band band) =>
+        !isDemo && appUser != null && band.adminUids.contains(appUser.uid);
     return UnifiedItemList<BandItemAdapter>(
       items: adapters,
       padding: const EdgeInsets.only(bottom: 120), // clear the FAB (F-004)
@@ -380,7 +395,11 @@ class _MyBandsScreenState extends ConsumerState<MyBandsScreen> {
           // makes Edit/Delete discoverable, not just tap/swipe.
           OverflowMenuAction(
             entries: [
-              ('Edit band', Icons.edit, () => _handleEdit(index)),
+              // Band-doc edits are admin-only per rules; hide the entry for
+              // everyone else. "Delete" = leave band and is open to any
+              // member (server-authoritative removeMember).
+              if (isAdminOf(adapter.band))
+                ('Edit band', Icons.edit, () => _handleEdit(index)),
               ('Delete', Icons.delete, () => unawaited(_handleDelete(index))),
             ],
           ),

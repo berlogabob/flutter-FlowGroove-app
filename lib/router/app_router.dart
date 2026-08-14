@@ -358,6 +358,9 @@ List<RouteBase> _buildAppRoutes() {
                 ),
                 // The Song Page (Sheet · Edit · Lab). Declared last: ':id'
                 // would otherwise greedily match the literal children above.
+                // Band copies MUST be opened with ?bandId= (query param, so it
+                // survives refresh/history) — without it the page treats the
+                // song as personal and saves to the wrong copy.
                 GoRoute(
                   path: ':id',
                   name: 'song',
@@ -714,9 +717,16 @@ extension GoRouterExtension on BuildContext {
     goNamed('add-song', queryParameters: params, extra: initialFormData);
   }
 
-  /// Navigate to edit song screen.
-  void goEditSong(Song song) =>
-      goNamed('edit-song', pathParameters: {'id': song.id}, extra: song);
+  /// Navigate to edit song screen. Band copies MUST pass [bandId] — it scopes
+  /// the save to the band's song (updateBandSong) and, as a query parameter,
+  /// survives web refresh/history where `extra` does not. Without it the page
+  /// silently edits the PERSONAL copy.
+  void goEditSong(Song song, {String? bandId}) => goNamed(
+    'edit-song',
+    pathParameters: {'id': song.id},
+    queryParameters: {'bandId': ?bandId},
+    extra: {'song': song, 'bandId': ?bandId},
+  );
 
   /// Navigate to bands list.
   void goBands() => goNamed('bands');
@@ -837,7 +847,9 @@ class BandRouteResolver extends ConsumerWidget {
       for (final candidate in bands) {
         if (candidate.id == bandId) return builder(candidate);
       }
-      if (extra != null) return builder(extra!);
+      // The stream has data and this band is NOT in it — the user left or was
+      // removed. Do not fall back to the stale `extra` snapshot: it would
+      // render band metadata with permission gates that can never succeed.
       return _bandLoadError(context);
     }
 

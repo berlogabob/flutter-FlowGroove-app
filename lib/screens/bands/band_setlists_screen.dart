@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../models/band.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
-import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
@@ -41,28 +40,12 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
   SortOption _sortOption = SortOption.manual;
   List<Setlist>? _manualOrder;
 
-  bool get _canEdit {
-    if (ref.read(isDemoUserProvider)) return false;
-    final user = ref.read(currentUserProvider).value;
-    if (user == null) return false;
-    final member = widget.band.members.firstWhere(
-      (m) => m.uid == user.uid,
-      orElse: () => BandMember(uid: '', role: ''),
-    );
-    return member.role == BandMember.roleAdmin ||
-        member.role == BandMember.roleEditor;
-  }
+  // Live-array gates (what Firestore rules read), not the widget.band.members
+  // snapshot. Getters use ref.read so event handlers may call them; build
+  // watches the providers directly for reactivity.
+  bool get _canEdit => ref.read(canEditBandProvider(widget.band.id));
 
-  bool get _canDelete {
-    if (ref.read(isDemoUserProvider)) return false;
-    final user = ref.read(currentUserProvider).value;
-    if (user == null) return false;
-    final member = widget.band.members.firstWhere(
-      (m) => m.uid == user.uid,
-      orElse: () => BandMember(uid: '', role: ''),
-    );
-    return member.role == BandMember.roleAdmin;
-  }
+  bool get _canDelete => ref.read(isBandAdminProvider(widget.band.id));
 
   List<SetlistItemAdapter> _filterAndSortSetlists(List<Setlist> setlists) {
     List<Setlist> setlistsToUse = setlists;
@@ -205,7 +188,9 @@ class _BandSetlistsScreenState extends ConsumerState<BandSetlistsScreen> {
     // _songsForSetlist awaits its .future, and without an active listener
     // Riverpod disposes it mid-load ("disposed during loading state", #80).
     ref.watch(bandSongsProvider(widget.band.id));
-    final canEdit = _canEdit;
+    final canEdit = ref.watch(canEditBandProvider(widget.band.id));
+    // Watched (not just read) so delete affordances react to role changes.
+    ref.watch(isBandAdminProvider(widget.band.id));
     // When the band has exactly one setlist, offer to edit it straight from the
     // screen menu (with several, per-setlist edit lives on the cards).
     final onlySetlist = setlistsAsync.value?.length == 1

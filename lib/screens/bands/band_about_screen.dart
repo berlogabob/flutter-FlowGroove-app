@@ -80,33 +80,20 @@ class _BandAboutScreenState extends ConsumerState<BandAboutScreen> {
     super.dispose();
   }
 
-  String? get _userRole {
-    final userAsync = ref.read(currentUserProvider);
-    final user = userAsync.value;
-    if (user == null) return null;
-
-    final member = _band.members.firstWhere(
-      (m) => m.uid == user.uid,
-      orElse: () => BandMember(uid: '', role: ''),
-    );
-    return member.role.isNotEmpty ? member.role : null;
-  }
-
-  bool get _canEdit {
-    final role = _userRole;
-    return role == BandMember.roleAdmin || role == BandMember.roleEditor;
-  }
-
   @override
   Widget build(BuildContext context) {
     final canManageMembers = ref.watch(canManageBandMembersProvider(_band.id));
+    // Edit/Save write the band doc (name/description/tags), which Firestore
+    // rules reserve for band ADMINS — gate on the admin arrays, not the
+    // members[].role snapshot (drift-prone) and not the editor role.
+    final isAdmin = ref.watch(isBandAdminProvider(_band.id));
     // Pushed branch child: title + actions are published for the shell's
     // bottom bar ([← Back] [title] [⋮ Menu]); the top bar is title-only.
     return MenuScopePublisher(
       data: MenuScopeData(
         title: 'About ${_band.name}',
         items: [
-          if (_canEdit) ...[
+          if (isAdmin) ...[
             AppMenuItem(
               icon: _isEditing ? Icons.close : Icons.edit_outlined,
               label: _isEditing ? 'Cancel' : 'Edit',

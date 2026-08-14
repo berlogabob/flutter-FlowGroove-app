@@ -16,6 +16,7 @@ import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
 import '../widgets/metronome/metronome_sheets.dart';
+import '../utils/snackbar.dart' show showGlobalSnackBar;
 import '../widgets/metronome/song_library_block.dart';
 import '../widgets/metronome/tempo_control_cluster.dart';
 import '../widgets/metronome/time_signature_block.dart';
@@ -270,7 +271,13 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
         "Saved metronome settings to '${updatedSong.title}'",
       );
     } catch (e) {
-      if (!context.mounted) return;
+      if (!context.mounted) {
+        // The debounced auto-save regularly fires after navigating away —
+        // the root messenger keeps the failure visible instead of dropping it.
+        showGlobalSnackBar('Failed to save metronome settings: $e',
+            error: true);
+        return;
+      }
       _showErrorSnackBar(context, 'Failed to save: $e');
     }
   }

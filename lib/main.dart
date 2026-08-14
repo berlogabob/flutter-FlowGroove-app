@@ -34,6 +34,7 @@ import 'services/analytics_service.dart';
 import 'services/metronome_preferences.dart';
 import 'theme/mono_pulse_theme.dart';
 import 'utils/responsive_breakpoints.dart';
+import 'utils/snackbar.dart';
 import 'widgets/config_error_widget.dart';
 import 'widgets/loading_indicator.dart';
 import 'widgets/wiki_panel.dart';
@@ -323,6 +324,7 @@ class FlowGrooveApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'FlowGroove',
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: MonoPulseTheme.lightTheme,
       darkTheme: MonoPulseTheme.theme,

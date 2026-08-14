@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../models/band.dart';
 import '../../../models/song.dart';
-import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
+import '../../../providers/permissions_provider.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../widgets/app_menu_sheet.dart';
 import '../../../widgets/confirmation_dialog.dart';
@@ -38,22 +38,9 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
   @override
   String get songActionsBandId => widget.band.id;
 
-  /// Get the current user's role in the band.
-  String? get _userRole {
-    final user = ref.read(currentUserProvider).value;
-
-    final member = widget.band.members.firstWhere(
-      (m) => m.uid == user?.uid,
-      orElse: () => BandMember(uid: '', role: ''),
-    );
-    return member.role;
-  }
-
-  /// Check if the current user can edit band songs.
-  bool get _canEdit {
-    final role = _userRole;
-    return role == BandMember.roleAdmin || role == BandMember.roleEditor;
-  }
+  // Permissions come from canEditBandProvider/isBandAdminProvider (the
+  // adminUids/editorUids arrays Firestore rules read) — never from the
+  // widget.band.members snapshot, which can be stale or role-drifted.
 
   /// Filter songs based on search query and contributor filter.
   List<Song> _filterSongs(List<Song> songs) {
@@ -96,6 +83,8 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
   @override
   Widget build(BuildContext context) {
     final songsAsync = ref.watch(bandSongsProvider(widget.band.id));
+    final canEdit = ref.watch(canEditBandProvider(widget.band.id));
+    final isAdmin = ref.watch(isBandAdminProvider(widget.band.id));
 
     // Pushed branch child: title + actions are published for the shell's
     // bottom bar ([← Back] [title] [⋮ Menu]); there is no top app bar. The
@@ -121,12 +110,13 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
         body: SafeArea(
           bottom: false,
           child: songsAsync.when(
-            data: (songs) => _buildContent(context, ref, songs),
+            data: (songs) =>
+                _buildContent(context, ref, songs, canEdit, isAdmin),
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('Error: $e')),
           ),
         ),
-        floatingActionButton: _canEdit
+        floatingActionButton: canEdit
             ? FloatingActionButton(
                 heroTag: 'band_songs_fab',
                 onPressed: () => _addSongToBand(context, ref),
@@ -137,7 +127,13 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, List<Song> songs) {
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    List<Song> songs,
+    bool canEdit,
+    bool isAdmin,
+  ) {
     final filteredSongs = _filterSongs(songs);
     final contributors = _getContributors(songs);
 
@@ -148,15 +144,21 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
         // Songs list
         Expanded(
           child: filteredSongs.isEmpty
-              ? _buildEmptyState(songs.isEmpty)
+              ? _buildEmptyState(songs.isEmpty, canEdit)
               : UnifiedItemList<SongItemAdapter>(
                   items: [
                     for (final song in filteredSongs) SongItemAdapter(song),
                   ],
-                  onEdit: _canEdit
-                      ? (index) => _editSong(context, ref, filteredSongs[index])
+                  // Non-editors still get a working card: tap opens the Song
+                  // Page read view instead of falling through to a null
+                  // onEdit (the "tap does nothing" bug).
+                  onTap: (index) => _openSong(context, filteredSongs[index]),
+                  onEdit: canEdit
+                      ? (index) => _openSong(context, filteredSongs[index])
                       : null,
-                  onDelete: _canEdit
+                  // Rules allow band-song delete for admins only — offering
+                  // it to editors just produces permission-denied.
+                  onDelete: isAdmin
                       ? (index) => _removeFromBand(filteredSongs[index])
                       : null,
                   additionalActionsBuilder: (index) =>
@@ -224,16 +226,16 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
     );
   }
 
-  Widget _buildEmptyState(bool isEmpty) {
+  Widget _buildEmptyState(bool isEmpty, bool canEdit) {
     if (isEmpty) {
       return EmptyState(
         icon: Icons.music_note,
         message: 'No songs yet',
-        hint: _canEdit
+        hint: canEdit
             ? "Add songs to your band's collection"
             : 'No songs have been shared to this band yet',
-        actionLabel: _canEdit ? 'Add Song' : null,
-        onAction: _canEdit ? () => _addSongToBand(context, ref) : null,
+        actionLabel: canEdit ? 'Add Song' : null,
+        onAction: canEdit ? () => _addSongToBand(context, ref) : null,
       );
     }
     return EmptyState.search(query: _searchQuery);
@@ -260,11 +262,12 @@ class _BandSongsScreenState extends ConsumerState<BandSongsScreen>
     );
   }
 
-  void _editSong(BuildContext context, WidgetRef ref, Song song) {
+  void _openSong(BuildContext context, Song song) {
     // Open the band copy's Song Page. bandId scopes the live stream and the
     // Edit tab's save target (updateBandSong, not the personal library); the
     // query parameter keeps that scope across a web refresh. Pushed, not
-    // go'd, so Back returns here (band sub-routes are flat siblings).
+    // go'd, so Back returns here (band sub-routes are flat siblings). The
+    // page itself hides the Edit tab for non-editors.
     context.pushNamed(
       'song',
       pathParameters: {'id': song.id},

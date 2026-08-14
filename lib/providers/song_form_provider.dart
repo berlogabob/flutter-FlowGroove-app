@@ -16,6 +16,11 @@ import '../theme/mono_pulse_theme.dart';
 import '../utils/song_tags.dart';
 import 'data/data_providers.dart';
 
+/// What an auto-save attempt actually did. `queued` = the write is in
+/// Firestore's persistent offline queue (network timeout) and will sync;
+/// only `failed` means the user's changes were rejected.
+enum AutoSaveOutcome { saved, queued, noOp, failed }
+
 /// Provider for managing song form state.
 ///
 /// This provider encapsulates all form state and operations
@@ -114,19 +119,25 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
   }
 
   /// Update form field: title.
+  // The text setters no-op on an identical value: app-resume re-syncs every
+  // controller through them, and unconditional marking made every resume look
+  // dirty — which retried failed auto-saves (and their alerts) forever.
   void updateTitle(String value) {
+    if (state.formData.title == value) return;
     state = state.copyWith(formData: state.formData.copyWith(title: value));
     markAsChanged();
   }
 
   /// Update form field: artist.
   void updateArtist(String value) {
+    if (state.formData.artist == value) return;
     state = state.copyWith(formData: state.formData.copyWith(artist: value));
     markAsChanged();
   }
 
   /// Update form field: original BPM.
   void updateOriginalBpm(String value) {
+    if (state.formData.originalBpm == value) return;
     state = state.copyWith(
       formData: state.formData.copyWith(originalBpm: value),
     );
@@ -135,12 +146,14 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
   /// Update form field: our BPM.
   void updateOurBpm(String value) {
+    if (state.formData.ourBpm == value) return;
     state = state.copyWith(formData: state.formData.copyWith(ourBpm: value));
     markAsChanged();
   }
 
   /// Update form field: notes.
   void updateNotes(String value) {
+    if (state.formData.notes == value) return;
     state = state.copyWith(formData: state.formData.copyWith(notes: value));
     markAsChanged();
   }
@@ -351,8 +364,11 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     }
   }
 
-  /// Auto-save song (silent save without error display).
-  Future<bool> autoSave({
+  /// Auto-save song. Returns what actually happened so the screen can be
+  /// honest: only [AutoSaveOutcome.failed] deserves an error to the user —
+  /// a network timeout on a plain Firestore write means the write is QUEUED
+  /// locally (persistence is on) and will sync, not that it was lost.
+  Future<AutoSaveOutcome> autoSave({
     required SongRepository songRepo,
     required String uid,
     String? bandId,
@@ -360,7 +376,7 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     Song? existingSong,
   }) async {
     if (!state.hasUnsavedChanges || state.formData.title.trim().isEmpty) {
-      return false;
+      return AutoSaveOutcome.noOp;
     }
 
     setAutoSaving(true);
@@ -391,10 +407,23 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
 
       clearUnsavedChanges();
       setAutoSaving(false);
-      return true;
-    } catch (e) {
-      setAutoSaving(false);
-      return false;
+      return AutoSaveOutcome.saved;
+    } catch (e, stackTrace) {
+      final error = e is ApiError
+          ? e
+          : ApiError.fromException(e, stackTrace: stackTrace);
+      if (error.isNetwork) {
+        // Offline / no server ack: the write sits in Firestore's persistent
+        // local queue and syncs later. The form data is safe — don't keep it
+        // "dirty" (that would retry + re-alert on every resume).
+        clearUnsavedChanges();
+        setAutoSaving(false);
+        return AutoSaveOutcome.queued;
+      }
+      // Real failure (permission, validation, conversion): surface it on the
+      // still-mounted form too.
+      state = state.copyWith(error: error, isAutoSaving: false);
+      return AutoSaveOutcome.failed;
     }
   }
 

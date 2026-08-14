@@ -118,10 +118,16 @@ final isAdminUserProvider = Provider<bool>((ref) {
 // BAND-LEVEL PERMISSION HELPERS
 // ============================================================
 
-/// Can the current user edit this band?
+/// Can the current user edit this band's content (songs, setlists, ...)?
 ///
-/// Checks both app-level access AND band-level role.
-Provider<bool> canEditBandProvider(String bandId) => Provider<bool>((ref) {
+/// Checks both app-level access (non-demo) AND band-level role via the
+/// derived `adminUids`/`editorUids` arrays — the same fields Firestore
+/// rules enforce. Never gate on `members[].role` in screens: legacy docs
+/// can drift, and the arrays are the server truth.
+final canEditBandProvider = Provider.autoDispose.family<bool, String>((
+  ref,
+  bandId,
+) {
   final userAsync = ref.watch(appUserProvider);
   final bandAsync = ref.watch(bandsProvider);
 
@@ -139,29 +145,39 @@ Provider<bool> canEditBandProvider(String bandId) => Provider<bool>((ref) {
   );
 });
 
+/// Is the current user an admin of this band?
+///
+/// Rules reserve band-doc updates, band-song deletes and avatar changes for
+/// admins — gate those affordances here, not on [canEditBandProvider].
+final isBandAdminProvider = Provider.autoDispose.family<bool, String>((
+  ref,
+  bandId,
+) {
+  final userAsync = ref.watch(appUserProvider);
+  final bandAsync = ref.watch(bandsProvider);
+
+  return userAsync.when(
+    data: (user) {
+      if (user == null || !_canEdit(user)) return false;
+      return bandAsync.when(
+        data: (bands) => _canManageBandMembersIn(user.uid, bandId, bands),
+        loading: () => false,
+        error: (_, _) => false,
+      );
+    },
+    loading: () => false,
+    error: (_, _) => false,
+  );
+});
+
 /// Can the current user manage members in this band?
 ///
 /// Governed by the **band-level** admin role: any non-demo user who is an
 /// admin of this band can manage its members, regardless of their app-level
 /// access role. (App-level admin/owner is no longer required here.)
-Provider<bool> canManageBandMembersProvider(String bandId) =>
-    Provider<bool>((ref) {
-      final userAsync = ref.watch(appUserProvider);
-      final bandAsync = ref.watch(bandsProvider);
-
-      return userAsync.when(
-        data: (user) {
-          if (user == null || !_canEdit(user)) return false;
-          return bandAsync.when(
-            data: (bands) => _canManageBandMembersIn(user.uid, bandId, bands),
-            loading: () => false,
-            error: (_, _) => false,
-          );
-        },
-        loading: () => false,
-        error: (_, _) => false,
-      );
-    });
+final canManageBandMembersProvider = Provider.autoDispose.family<bool, String>(
+  (ref, bandId) => ref.watch(isBandAdminProvider(bandId)),
+);
 
 // ============================================================
 // INTERNAL HELPERS

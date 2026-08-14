@@ -207,5 +207,55 @@ void main() {
       expect(labels, contains('Export PDF'));
       expect(labels, contains('Export ChordPro'));
     });
+
+    // Band copies hide the Edit tab from non-editors: the save could only be
+    // rules-denied, and the old always-visible editor let viewers type a
+    // whole song and lose it.
+    Widget bandPage({String? initialTab}) => SongPageScreen(
+      songId: 's1',
+      initialSong: MockDataHelper.createMockSong(id: 's1', bandId: 'b1'),
+      bandId: 'b1',
+      initialTab: initialTab,
+    );
+
+    List<Override> bandOverrides({required bool canEdit}) => [
+      ...overrides(appUserNotifier: _SignedInUserNotifier()),
+      canEditBandProvider('b1').overrideWithValue(canEdit),
+      bandSongsProvider.overrideWith(
+        (ref, id) =>
+            Stream.value([MockDataHelper.createMockSong(id: 's1', bandId: 'b1')]),
+      ),
+    ];
+
+    testWidgets(
+      'band non-editor: Edit segment hidden and tab=edit lands on Sheet',
+      (tester) async {
+        await pumpAppWidget(
+          tester,
+          bandPage(initialTab: 'edit'),
+          overrides: bandOverrides(canEdit: false),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Edit'), findsNothing);
+        expect(find.byType(AddSongScreen), findsNothing);
+        // Coerced onto the Sheet tab (empty song → its empty state), with the
+        // "Add lyrics & chords" door into Edit hidden too.
+        expect(find.byType(PerformanceSheetView), findsOneWidget);
+        expect(find.text('Add lyrics & chords'), findsNothing);
+      },
+    );
+
+    testWidgets('band editor keeps the Edit tab', (tester) async {
+      await pumpAppWidget(
+        tester,
+        bandPage(),
+        overrides: bandOverrides(canEdit: true),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit'), findsOneWidget);
+      expect(find.byType(AddSongScreen), findsOneWidget);
+    });
   });
 }

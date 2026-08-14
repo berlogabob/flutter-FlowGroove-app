@@ -117,7 +117,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
   /// Full-screen map + ChordPro editor for the whole song; saves directly
   /// to the library on close (user decision — no staging through the form).
   Future<void> _openSongEditor(Song song) async {
-    if (!_canEditSong()) {
+    if (!_canEditSongNow()) {
       showAppSnackBar(context, 'Only band editors can change this song');
       return;
     }
@@ -211,8 +211,19 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
         !ref.watch(isDemoUserProvider);
   }
 
+  /// Event-handler variant of [_canEditSong] — `ref.watch` outside build is
+  /// invalid, so handlers re-check with `ref.read`.
+  bool _canEditSongNow() {
+    if (widget.bandId case final b?) {
+      return ref.read(canEditBandProvider(b));
+    }
+    return ref.read(currentUserProvider).value != null &&
+        !ref.read(isDemoUserProvider);
+  }
+
   List<AppMenuItem> _menuItems(Song song) {
-    final bands = ref.watch(bandsProvider).value ?? const [];
+    // Only bands the user can write to — viewers' bands would fail at save.
+    final bands = editableBands(ref.watch(bandsProvider).value ?? const []);
     return [
       AppMenuItem(
         icon: Icons.av_timer,
@@ -255,7 +266,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
     ];
   }
 
-  Widget _header(Song song) {
+  Widget _header(Song song, _SongTab activeTab) {
     final meta = [
       if (song.artist.trim().isNotEmpty) song.artist.trim(),
       if ((song.ourKey ?? song.originalKey) case final k? when k.isNotEmpty) k,
@@ -295,7 +306,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
               ],
             ),
           ),
-          if (_tab == _SongTab.sheet && song.hasSheetContent)
+          if (activeTab == _SongTab.sheet && song.hasSheetContent)
             IconButton.filledTonal(
               onPressed: () => _openStage(song),
               icon: const Icon(Icons.fullscreen),
@@ -306,7 +317,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
     );
   }
 
-  Widget _sheetTab(Song song) {
+  Widget _sheetTab(Song song, {required bool canEdit}) {
     return PerformanceSheetView(
       sections: song.sections,
       bpm: song.ourBPM ?? song.originalBPM,
@@ -326,11 +337,13 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
                 ),
               ),
               const SizedBox(height: MonoPulseSpacing.xl),
-              FilledButton.icon(
-                onPressed: () => _selectTab(_SongTab.edit),
-                icon: const Icon(Icons.edit_note),
-                label: const Text('Add lyrics & chords'),
-              ),
+              // Second door into the Edit tab — hidden with it for viewers.
+              if (canEdit)
+                FilledButton.icon(
+                  onPressed: () => _selectTab(_SongTab.edit),
+                  icon: const Icon(Icons.edit_note),
+                  label: const Text('Add lyrics & chords'),
+                ),
             ],
           ),
         ),
@@ -346,6 +359,18 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // Band copies hide the Edit tab from non-editors (the save would only be
+    // rules-denied); personal songs keep the default Edit-first behavior.
+    // Derived per build — NOT written back to _tab — so an editor whose
+    // permissions are still loading (gate temporarily false) lands on Edit
+    // once the bands stream emits.
+    final editVisible = widget.bandId == null || _canEditSong();
+    final activeTab = !editVisible && _tab == _SongTab.edit
+        ? _SongTab.sheet
+        : _tab;
+    // The coerced Sheet must render even if only Edit was "visited".
+    final built = {..._visited, activeTab};
+
     return MenuScopePublisher(
       data: MenuScopeData(
         title: song.title.trim().isEmpty ? 'Song' : song.title.trim(),
@@ -357,7 +382,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _header(song),
+              _header(song, activeTab),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   MonoPulseSpacing.lg,
@@ -367,32 +392,37 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
                 ),
                 child: SegmentedButton<_SongTab>(
                   showSelectedIcon: false,
-                  segments: const [
-                    ButtonSegment(
-                      value: _SongTab.edit,
-                      label: Text('Edit'),
-                      icon: Icon(Icons.edit_outlined),
-                    ),
-                    ButtonSegment(
+                  segments: [
+                    if (editVisible)
+                      const ButtonSegment(
+                        value: _SongTab.edit,
+                        label: Text('Edit'),
+                        icon: Icon(Icons.edit_outlined),
+                      ),
+                    const ButtonSegment(
                       value: _SongTab.sheet,
                       label: Text('Sheet'),
                       icon: Icon(Icons.queue_music),
                     ),
-                    ButtonSegment(
+                    const ButtonSegment(
                       value: _SongTab.lab,
                       label: Text('Lab'),
                       icon: Icon(Icons.science_outlined),
                     ),
                   ],
-                  selected: {_tab},
+                  selected: {activeTab},
                   onSelectionChanged: (s) => _selectTab(s.first),
                 ),
               ),
               Expanded(
+                // Fixed 3-slot stack: slots never shift when the Edit segment
+                // is hidden, so Sheet/Lab keep their state and index.
                 child: IndexedStack(
-                  index: _tab.index,
+                  index: activeTab.index,
                   children: [
-                    if (_visited.contains(_SongTab.edit))
+                    // Not just hidden: an embedded AddSongScreen stays a live
+                    // lifecycle observer that would keep attempting saves.
+                    if (editVisible && built.contains(_SongTab.edit))
                       AddSongScreen(
                         key: ValueKey('edit-${widget.songId}-$_editEpoch'),
                         song: song,
@@ -401,11 +431,11 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
                       )
                     else
                       const SizedBox.shrink(),
-                    if (_visited.contains(_SongTab.sheet))
-                      _sheetTab(song)
+                    if (built.contains(_SongTab.sheet))
+                      _sheetTab(song, canEdit: editVisible)
                     else
                       const SizedBox.shrink(),
-                    if (_visited.contains(_SongTab.lab))
+                    if (built.contains(_SongTab.lab))
                       SongLabScreen(
                         key: ValueKey('lab-${widget.songId}'),
                         song: song,

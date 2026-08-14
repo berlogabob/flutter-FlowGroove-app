@@ -37,6 +37,9 @@ void main() {
             appUserProvider.overrideWith(
               () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
             ),
+            bandsProvider.overrideWith(
+              (ref) => Stream<List<Band>>.value([band]),
+            ),
             bandSetlistsProvider.overrideWith(
               (ref, bandId) => Stream<List<Setlist>>.value([
                 MockDataHelper.createMockSetlist(
@@ -96,6 +99,7 @@ void main() {
           appUserProvider.overrideWith(
             () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
           ),
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([band])),
           bandSetlistsProvider.overrideWith(
             (ref, bandId) => Stream<List<Setlist>>.value([
               MockDataHelper.createMockSetlist(
@@ -148,6 +152,7 @@ void main() {
           appUserProvider.overrideWith(
             () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
           ),
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([band])),
           firestoreProvider.overrideWithValue(firestore),
           bandSetlistsProvider.overrideWith(
             (ref, bandId) => Stream<List<Setlist>>.value([
@@ -189,6 +194,7 @@ void main() {
           appUserProvider.overrideWith(
             () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
           ),
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([band])),
           bandSetlistsProvider.overrideWith(
             (ref, bandId) => Stream<List<Setlist>>.value([
               MockDataHelper.createMockSetlist(
@@ -243,6 +249,7 @@ void main() {
               ),
             ),
           ),
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([band])),
           bandSetlistsProvider.overrideWith(
             (ref, bandId) => Stream<List<Setlist>>.value([
               MockDataHelper.createMockSetlist(
@@ -282,6 +289,7 @@ void main() {
           appUserProvider.overrideWith(
             () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
           ),
+          bandsProvider.overrideWith((ref) => Stream<List<Band>>.value([band])),
           bandSetlistsProvider.overrideWith(
             (ref, bandId) => Stream<List<Setlist>>.error('permission-denied'),
           ),

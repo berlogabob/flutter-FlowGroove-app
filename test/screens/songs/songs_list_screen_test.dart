@@ -301,18 +301,26 @@ void main() {
     testWidgets('"Add to band…" opens a picker listing all bands', (
       tester,
     ) async {
+      // "Add to band…" only offers bands the user can write to (editor/admin
+      // in the derived uid arrays), so the fixtures need a membership.
       final bands = [
         Band(
           id: 'band-1',
           name: 'First Band',
           createdBy: 'test-user-id',
           createdAt: DateTime(2024),
+          members: [
+            BandMember(uid: mockUser.uid, role: BandMember.roleEditor),
+          ],
         ),
         Band(
           id: 'band-2',
           name: 'Second Band',
           createdBy: 'test-user-id',
           createdAt: DateTime(2024),
+          members: [
+            BandMember(uid: mockUser.uid, role: BandMember.roleAdmin),
+          ],
         ),
       ];
 

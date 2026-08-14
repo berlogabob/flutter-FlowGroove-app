@@ -36,7 +36,8 @@ void main() {
       tester,
       RehearsalsListScreen(band: band),
       overrides: [
-        isDemoUserProvider.overrideWithValue(true),
+        // Read-only viewer: the gate is now the canEditBandProvider family.
+        canEditBandProvider(band.id).overrideWithValue(false),
         offlineProvider.overrideWithValue(false),
         bandRehearsalsProvider(band.id).overrideWith(
           (ref) => Stream.value([

@@ -59,7 +59,13 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
         await firestore.saveSetlist(updated, uid: uid);
       }
     } catch (e) {
-      if (mounted) showAppSnackBar(context, 'Save failed: $e');
+      // Root messenger: this autosave often completes after the editor was
+      // closed, where a context-bound snackbar would silently drop the error.
+      if (mounted) {
+        showAppSnackBar(context, 'Save failed: $e');
+      } else {
+        showGlobalSnackBar('Event kit save failed: $e', error: true);
+      }
     }
   }
 
