@@ -17,6 +17,7 @@ Future<SetlistPdfLayout?> pickSetlistPdfLayout(
   compactIcon: Icons.format_list_bulleted,
   compactSubtitle: 'One line per song, fits on one list',
   withPack: true,
+  withCheatSheet: true,
   withEventGuide: withEventGuide,
   withPerformer: withPerformer,
 );
@@ -85,14 +86,16 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
   required IconData compactIcon,
   required String compactSubtitle,
   bool withPack = false,
+  bool withCheatSheet = false,
   bool withEventGuide = false,
   bool withPerformer = false,
 }) {
   return showModalBottomSheet<SetlistPdfLayout>(
     context: context,
     builder: (context) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      // Scrolls: with every option enabled the list outgrows small screens.
+      child: ListView(
+        shrinkWrap: true,
         children: [
           ListTile(
             leading: const Icon(Icons.picture_as_pdf),
@@ -114,6 +117,15 @@ Future<SetlistPdfLayout?> _pickPdfLayout(
                 'Compact setlist + one-page sheet per song',
               ),
               onTap: () => Navigator.pop(context, SetlistPdfLayout.pack),
+            ),
+          if (withCheatSheet)
+            ListTile(
+              leading: const Icon(Icons.grid_on),
+              title: const Text('Cheat sheet'),
+              subtitle: const Text(
+                'All songs on one page: key, BPM, chord progressions',
+              ),
+              onTap: () => Navigator.pop(context, SetlistPdfLayout.cheatSheet),
             ),
           if (withEventGuide)
             ListTile(

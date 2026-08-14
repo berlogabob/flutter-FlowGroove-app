@@ -105,6 +105,7 @@ void main() {
         SetlistPdfLayout.detailed,
         SetlistPdfLayout.compact,
         SetlistPdfLayout.eventGuide,
+        SetlistPdfLayout.cheatSheet,
       ]) {
         final bytes = await PdfService.buildSetlistBytes(setlist, songs, layout: layout);
         final name = PdfService.setlistFileName(setlist, layout, null, songs);

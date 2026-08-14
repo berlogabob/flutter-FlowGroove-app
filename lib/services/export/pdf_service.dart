@@ -19,7 +19,9 @@ import '../analytics_service.dart';
 /// (#84; roster/stage map/schedule pages come later).
 /// [performer] = one musician's copy: the full running order with only their
 /// songs highlighted (needs `performerId`).
-enum SetlistPdfLayout { detailed, compact, pack, eventGuide, performer }
+/// [cheatSheet] = ALL songs on one A4 page, two columns: key/scale, BPM,
+/// time signature and the chord progression per section — the stage crib.
+enum SetlistPdfLayout { detailed, compact, pack, eventGuide, performer, cheatSheet }
 
 class PdfService {
   /// Hands the finished PDF to the platform.
@@ -179,6 +181,7 @@ class PdfService {
       SetlistPdfLayout.pack => '_pack',
       SetlistPdfLayout.eventGuide => '_event_guide',
       SetlistPdfLayout.performer => '_${_fileStem(performer?.name ?? 'part')}',
+      SetlistPdfLayout.cheatSheet => '_cheatsheet',
     };
     return '${_fileStem(setlist.name)}_setlist$suffix.pdf';
   }
@@ -201,6 +204,13 @@ class PdfService {
     final items = setlist.effectiveItems;
     final lineup = peopleById(setlist.eventKit?.people ?? const []);
     final performer = performerId == null ? null : lineup[performerId];
+
+    // Cheat sheet is its own single-page document — no MultiPage flow.
+    if (layout == SetlistPdfLayout.cheatSheet) {
+      pdf.addPage(_cheatSheetPage(setlist, items, songById, font, fontBold));
+      return pdf.save();
+    }
+
     final songWidgets =
         layout == SetlistPdfLayout.detailed ||
             layout == SetlistPdfLayout.eventGuide
@@ -758,6 +768,184 @@ class PdfService {
       );
     }
     return widgets;
+  }
+
+  /// The whole setlist on ONE A4 page, two columns, shrink-to-fit: per song
+  /// its number, title/artist, key · scale · BPM · time signature, and the
+  /// chord progression per section. Harmony comes from [Section.chordChart]
+  /// (chord tokens only, consecutive repeats collapsed); a section without
+  /// bracketed chords falls back to its free-text notes ("chord progressions"
+  /// per the model docs). Key/BPM use the our→original fallback like the rest
+  /// of the app — the other layouts print blanks without it.
+  static pw.Page _cheatSheetPage(
+    Setlist setlist,
+    List<SetlistItem> items,
+    Map<String, Song> songById,
+    pw.Font font,
+    pw.Font fontBold,
+  ) {
+    final blocks = _cheatSheetBlocks(items, songById, font, fontBold);
+    // Two fixed-width columns; FittedBox scales the pair onto the page.
+    final half = (blocks.length + 1) ~/ 2;
+    pw.Widget column(List<pw.Widget> children) => pw.SizedBox(
+      width: 300,
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisSize: pw.MainAxisSize.min,
+        children: children,
+      ),
+    );
+
+    return pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      build: (context) => pw.FittedBox(
+        alignment: pw.Alignment.topLeft,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisSize: pw.MainAxisSize.min,
+          children: [
+            pw.Text(
+              setlist.name,
+              style: pw.TextStyle(font: fontBold, fontSize: 18),
+            ),
+            pw.SizedBox(height: 10),
+            if (blocks.isEmpty)
+              pw.Text('No songs yet.', style: pw.TextStyle(font: font))
+            else
+              pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  column(blocks.sublist(0, half)),
+                  pw.SizedBox(width: 20),
+                  column(blocks.sublist(half)),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// One compact block per song (plus break markers), in setlist order.
+  static List<pw.Widget> _cheatSheetBlocks(
+    List<SetlistItem> items,
+    Map<String, Song> songById,
+    pw.Font font,
+    pw.Font fontBold,
+  ) {
+    final blocks = <pw.Widget>[];
+    var n = 0; // per-section song number, reset by each break (as compact does)
+    for (final item in items) {
+      if (item.isBreak) {
+        n = 0;
+        blocks.add(
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 6, bottom: 4),
+            child: pw.Text(
+              SetlistBreakType.labelFor(
+                item.breakType,
+                item.breakLabel,
+              ).toUpperCase(),
+              style: pw.TextStyle(
+                font: fontBold,
+                fontSize: 9,
+                color: PdfColor.fromHex('616161'),
+              ),
+            ),
+          ),
+        );
+        continue;
+      }
+      final song = songById[item.songId];
+      if (song == null) continue;
+      n++;
+
+      final key = (song.ourKey ?? song.originalKey)?.trim();
+      final bpm = song.ourBPM ?? song.originalBPM;
+      final meta = <String>[
+        if (key != null && key.isNotEmpty) '$key · ${keyToScale(key).quality}',
+        if (bpm != null) '$bpm BPM',
+        '${song.accentBeats}/4',
+      ].join('   ·   ');
+
+      final progressionLines = <pw.Widget>[];
+      for (final section in song.sections) {
+        final chart = section.chordChart;
+        var line = chart == null ? '' : chordProgression(chart).join(' | ');
+        if (line.isEmpty) line = section.notes.trim();
+        if (line.isEmpty) continue;
+        progressionLines.add(
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(left: 14, top: 1),
+            child: pw.RichText(
+              text: pw.TextSpan(
+                children: [
+                  if (section.name.trim().isNotEmpty)
+                    pw.TextSpan(
+                      text: '${section.name.trim()}:  ',
+                      style: pw.TextStyle(
+                        font: font,
+                        fontSize: 8,
+                        color: PdfColor.fromHex('757575'),
+                      ),
+                    ),
+                  pw.TextSpan(
+                    text: line,
+                    style: pw.TextStyle(font: fontBold, fontSize: 8),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
+      blocks.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 6),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: [
+              pw.RichText(
+                text: pw.TextSpan(
+                  children: [
+                    pw.TextSpan(
+                      text: '$n. ${song.title}',
+                      style: pw.TextStyle(font: fontBold, fontSize: 10),
+                    ),
+                    if (song.artist.trim().isNotEmpty)
+                      pw.TextSpan(
+                        text: ' — ${song.artist.trim()}',
+                        style: pw.TextStyle(
+                          font: font,
+                          fontSize: 10,
+                          color: PdfColor.fromHex('757575'),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(left: 14),
+                child: pw.Text(
+                  meta,
+                  style: pw.TextStyle(
+                    font: fontBold,
+                    fontSize: 8,
+                    color: PdfColor.fromHex('E65100'),
+                  ),
+                ),
+              ),
+              ...progressionLines,
+            ],
+          ),
+        ),
+      );
+    }
+    return blocks;
   }
 
   /// Event-guide page (#55): stage plot (3×3 zone table), role cards and the

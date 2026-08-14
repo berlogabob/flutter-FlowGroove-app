@@ -569,3 +569,29 @@ List<Section> reconcileSections(
   }
   return out;
 }
+
+/// Loose chord shape: root, optional quality/extensions, optional slash bass.
+/// Used to keep bracketed section labels (`[Verse]`, `[Bridge]`) out of an
+/// extracted progression — parseChordProLine accepts ANY `[...]` token.
+final _chordLike = RegExp(
+  r'^[A-G][#b]?(?:maj|min|dim|aug|sus|add|m|M|no|[0-9()#b+°ø\-])*'
+  r'(?:/[A-G][#b]?)?$',
+);
+
+/// The ordered chord progression of a ChordPro [chart]: chord tokens only
+/// (lyrics dropped, non-chord bracket tokens skipped), consecutive duplicates
+/// collapsed (`[C]la [C]la [G]la` → `C G`). Order and later repeats are kept —
+/// a progression is not a chord *set*.
+List<String> chordProgression(String chart) {
+  final out = <String>[];
+  for (final line in chart.split('\n')) {
+    for (final seg in parseChordProLine(line)) {
+      final chord = seg.chord?.trim();
+      if (chord == null || chord.isEmpty) continue;
+      if (!_chordLike.hasMatch(chord)) continue;
+      if (out.isNotEmpty && out.last == chord) continue;
+      out.add(chord);
+    }
+  }
+  return out;
+}
