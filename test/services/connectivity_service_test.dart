@@ -59,10 +59,18 @@ void primeConnectivityProvider(ProviderContainer container) {
 
 void main() {
   group('ConnectivityService', () {
-    ProviderContainer createContainer(FakeConnectivityClient client) {
+    ProviderContainer createContainer(
+      FakeConnectivityClient client, {
+      Future<bool> Function()? probe,
+    }) {
       final container = ProviderContainer(
         overrides: [
           connectivityClientProvider.overrideWithValue(client),
+          // Unreachable by default so "none => offline" tests keep their
+          // pre-probe semantics.
+          reachabilityProbeProvider.overrideWithValue(
+            probe ?? () async => false,
+          ),
         ],
       );
       addTearDown(() async {
@@ -329,6 +337,60 @@ void main() {
 
         expect(onlineResults, isNotEmpty);
         expect(onlineResults, isNot(contains(ConnectivityResult.none)));
+      });
+    });
+
+    group('Reachability probe', () {
+      test('none result stays online when probe reaches the network', () async {
+        final client = FakeConnectivityClient(
+          checkConnectivity: () async =>
+              <ConnectivityResult>[ConnectivityResult.none],
+        );
+        final container = createContainer(client, probe: () async => true);
+
+        primeConnectivityProvider(container);
+        await flushAsyncWork();
+
+        expect(container.read(connectivityProvider), isTrue);
+      });
+
+      test('offline stream event stays online when probe succeeds', () async {
+        final client = FakeConnectivityClient(
+          checkConnectivity: () async =>
+              <ConnectivityResult>[ConnectivityResult.wifi],
+        );
+        final container = createContainer(client, probe: () async => true);
+
+        primeConnectivityProvider(container);
+        await flushAsyncWork();
+        expect(container.read(connectivityProvider), isTrue);
+
+        client.emit(<ConnectivityResult>[ConnectivityResult.none]);
+        await flushAsyncWork();
+
+        expect(container.read(connectivityProvider), isTrue);
+      });
+
+      test('recovers to online when probe starts succeeding', () async {
+        var reachable = false;
+        final client = FakeConnectivityClient(
+          checkConnectivity: () async =>
+              <ConnectivityResult>[ConnectivityResult.none],
+        );
+        final container = createContainer(
+          client,
+          probe: () async => reachable,
+        );
+
+        primeConnectivityProvider(container);
+        await flushAsyncWork();
+        expect(container.read(connectivityProvider), isFalse);
+
+        reachable = true;
+        client.emit(<ConnectivityResult>[ConnectivityResult.none]);
+        await flushAsyncWork();
+
+        expect(container.read(connectivityProvider), isTrue);
       });
     });
 
