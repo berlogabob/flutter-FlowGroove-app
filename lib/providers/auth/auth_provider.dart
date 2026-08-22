@@ -78,6 +78,31 @@ final pendingJoinCodeStoreProvider = Provider<PendingJoinCodeStore>((ref) {
   return PendingJoinCodeStore();
 });
 
+/// Storage boundary for a share token captured before auth.
+///
+/// Same shape as [PendingJoinCodeStore], for the same reason: someone opens a
+/// shared event link, discovers they were given something to EDIT, and has to
+/// sign in first. Editing requires an account (so every change carries an
+/// author); reading and suggesting never do. Without this the token is lost at
+/// the login screen and the grant can never be claimed.
+class PendingEventTokenStore {
+  Future<void> setPendingEventToken(String token) async {
+    await secureStorage.write(key: 'pending_event_token', value: token);
+  }
+
+  Future<String?> getAndClearPendingEventToken() async {
+    final token = await secureStorage.read(key: 'pending_event_token');
+    if (token != null) {
+      await secureStorage.delete(key: 'pending_event_token');
+    }
+    return token;
+  }
+}
+
+final pendingEventTokenStoreProvider = Provider<PendingEventTokenStore>((ref) {
+  return PendingEventTokenStore();
+});
+
 /// Provider for the CacheService.
 /// Exported from data_providers but also available here for auth operations.
 final cacheServiceProvider = Provider<CacheService>((ref) {

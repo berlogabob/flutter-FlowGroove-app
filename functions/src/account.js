@@ -16,6 +16,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+const { purgeUserGrants } = require("./events");
 
 // Duplicated from src/bands.js — a 4-line helper not worth a shared module.
 function deriveUidArrays(members) {
@@ -94,6 +95,13 @@ function makeDeleteAccount({ getAuth, getBucket } = {}) {
 
     // 1. Detach from shared band data first.
     await removeFromAllBands(uid);
+
+    // 1b. Release any event grants they hold in OTHER people's bands. These
+    // live at bands/{b}/setlists/{s}/grants/{uid}, outside this user's tree, so
+    // the recursive delete below never reaches them. It is driven from the
+    // user's own eventInvites index, which is why it must run BEFORE that tree
+    // is deleted.
+    await purgeUserGrants(uid);
 
     // 2. Delete all personal data (user doc + songs/setlists/bands subcollections).
     await db.recursiveDelete(db.collection("users").doc(uid));

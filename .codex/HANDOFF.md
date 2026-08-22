@@ -1,58 +1,117 @@
 # HANDOFF
 
-**Last Updated:** 2026-06-05
+**Last Updated:** 2026-08-22
+**Branch:** `second01` (the working branch — releases only from here)
 
 ## Current Checkpoint
 
-The canonical library migration write-run tooling is implemented for exact external-ID candidates only. Production writes remain deferred; validate with Java 21+, require a fresh untruncated exact-candidate dry-run report, and review a no-write preview before any small explicit-project `--execute` batch.
+Event sharing — letting a non-member work one event — is **built, deployed and live**.
+A 14-item security/robustness audit of it is **8 closed**, the rest tracked in
+**[`EVENT_SHARING_BACKLOG.md`](../EVENT_SHARING_BACKLOG.md)** at the repo root, which is
+written for a cold session: ten `E`-items with runnable metrics, the invariants that must
+not regress, and the traps for running and deploying.
+
+**Read that file first if you are continuing this work.** Start with **E1**.
+
+Suites at close: **2237 Flutter · 57 rules · 98 callable**, all green.
 
 ## Must Read First
 
-1. `.codex/AGENTS.md`
-2. `.codex/MEMORY.md`
-3. `.codex/PLANS.md`
+1. `EVENT_SHARING_BACKLOG.md` ← the live work queue
+2. `.codex/AGENTS.md`
+3. `.codex/MEMORY.md`
 4. `.codex/STATUS.md`
 5. `.codex/DECISIONS.md`
 
-## Current Situation
+---
 
-- `.codex/` is the active internal control plane
-- `memory/` remains the protected root memory bank
-- Legacy context now lives under `oldarchive/`
-- Historical session context remains under `.codex/sessions/`
-- Detailed remediation roadmap: `docs/project-remediation-plan-2026-04-24.md`
-- Implemented code changes:
-  - public-only web runtime config
-  - Spotify web proxy-only path
-  - client Telegram Bot API disabled
-  - client RapidAPI track analysis removed
-  - non-web compile-time define path replaces bundled env assets
-  - `Makefile` FTP path corrections
-  - auth/provider testability improvements
-  - metronome audio/haptics/wakelock provider boundaries
-  - canonical metronome BPM normalization to `10-260`
-  - routed widget-test harness for login/register/bands/songs/setlists screen tests
-  - `functions/` dependency hardening with safe overrides
-  - full `flutter test` GitHub Actions gate
-  - active `test/build/android_config_isolation_test.dart` coverage
-  - reusable Firebase emulator harness for Flutter auth/setlist acceptance
-  - Firebase auth/setlist acceptance moved to `integration_test/**`
-  - dedicated Android emulator-backed `firebase-emulator-checks` CI job
-  - debug-only Android cleartext allowance for local Firebase emulator host mapping
-  - owner-only initial Firestore profile creation and safer canonical-song rule detection
-  - normalized Firebase Auth invalid-login messaging
-  - `song_quick_action` reclassified into screen-layer coverage
-  - canonical library migration write-run tooling with validation preview, untruncated exact-candidate report enforcement, explicit-project guarded `--execute`, deterministic initial commits, and `docs/canonical-library-migration-runbook.md`
+## What this session did
 
-## Next Agent Instructions
+### Shipped: event sharing for non-members
 
-- Pick one bounded milestone only
-- Define validation before editing
-- Update `MEMORY.md`, `STATUS.md`, and this file before stopping
-- Local Java is currently 17 in this workspace; Firebase emulator migration tests require Java 21+
+A person can be attached to **one event** without joining the band — a guest musician, a
+sound engineer, a videographer, a venue's art director, a wedding couple. Five areas
+(`eventInfo`, `runningOrder`, `songDetail`, `stage`, `rider`) × hidden/view/edit, defaulted
+by role preset. Anonymous capability link can *suggest*; anyone who *edits* signs in first
+so every write carries an author.
 
-## Suggested Next Tasks
+Server: `functions/src/events.js` — 6 callables + 2 Firestore triggers, all deployed.
+Client: `/event` route, share links with a "they will see…" preview, guest discovery,
+per-area gating of the Event Kit editor.
 
-- run `npm --prefix functions test` under Java 21+
-- generate and review a fresh untruncated exact-candidate dry-run report before any production migration batch
-- continue lint-noise reduction in edited subsystems
+### Fixed — security, all deployed and verified against production
+
+| | What | How bad |
+|---|---|---|
+| **Band document was world-readable** | `allow read: if isAuthenticated()` — and `read` covers `list`, so **any signed-in account could list every band in the project** and read its member emails and its `inviteCode`, the join secret | Critical, pre-existing |
+| **Guest could read the whole setlist doc** | Firestore reads whole documents; `getEventView`'s scoping was walked straight past | Critical |
+| **Grants lived on a client-written doc** | An app build predating the fields wiped every grant on 2026-08-21, **six minutes before a gig**. Both builds were `0.23.0+361` | Critical |
+| Band-delete and account-delete cascades | Firestore cascades nothing; orphaned grants and phantom invites | High |
+| Demo account could claim a share | no demo guard in the callables | High |
+| Suggestions rule open to any signed-in user | author check proves who you are, never that you were invited | Blocker |
+
+### Fixed — reachability
+
+The feature was correct on the server and unusable in the app: area editors had no door,
+there was no link → sign in → edit path (`claimEventShare` wasn't even in the deployed
+bundle — Dart tree-shook it because nothing called it), and a guest's view died on refresh.
+
+### Also, unrelated to the feature
+
+Tonight-of-the-gig data work on the **Flor+** band: 5 songs added, lyrics scraped for 9,
+key/BPM derived where possible, artist unified to "Flor Damico", setlist built and
+reordered for the Sputnik Bar gig.
+
+---
+
+## Needs checking / fixing
+
+**Nothing here is a known-broken state — these are unverified claims and open risks.**
+
+1. **The `/event` page has never rendered in a browser.** Widget tests cover it; nobody has
+   loaded it. Needs a human or `claude-in-chrome`. → E10
+2. **Installed native apps cannot join a band by invite code until they update.** Closing
+   the band-document leak means the old build's preview query is now denied. Web is fine —
+   the join screen was rewired to the `getBandInviteInfo` callable and deployed first.
+3. **Guest event views are snapshots, not live.** Deliberate: reorder a set mid-gig and a
+   guest must refresh. If live guest updates are ever wanted, that is when splitting
+   `eventKit` into per-area documents earns its cost.
+4. **`isDemoUserProvider` is permissive while loading** — gates 8 places including the join
+   button. Server callables are the real boundary, so it produces wrong doors, not a leak.
+   Decision not yet recorded. → E9
+5. **`createShare` / `claimShare` / `revokeShare` have no tests.** → E6
+6. **Suggestions currently land where nobody looks** — guests can submit, no band-side UI
+   renders them. → E7
+7. **Two `flutter analyze` errors are pre-existing** in `test/helpers/routed_test_harness.dart`
+   and `test/screens/bands/band_songs_screen_test.dart`. Confirmed clean against HEAD;
+   not from this session.
+
+---
+
+## Traps that cost time this session
+
+- **Rules/callable tests need JDK 21+.** Default `java` is 17 and firebase-tools rejects it:
+  `export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home; export PATH="$JAVA_HOME/bin:$PATH"`
+- **`flutter test | tail` reports success on failure** — always `set -o pipefail`.
+- **`firebase deploy` reports success while an index is still BUILDING.** Poll with a real
+  query; the collection-group index took ~3 minutes after "Deploy complete".
+- **Verify a rules deploy by fetching the live ruleset and diffing it** against the repo,
+  not by trusting the deploy message.
+- **Deploy the app before the rules** whenever a rules change removes a permission the live
+  build still uses.
+- **Setlists have TWO save paths** — `services/firestore_service.dart` and
+  `repositories/firestore_setlist_repository.dart`. A guard added to one misses the other.
+  That is exactly how the grant wipe shipped. → E1 consolidates them.
+
+---
+
+## Repo hygiene noted, not actioned
+
+Several stray files predate this session and were **not** committed — they look like
+accidental dumps rather than work:
+
+- `functions/2026-06-24-*.txt`, `site/2026-06-29-*.txt`, `site/2026-06-30-*.txt`
+  (local-command transcripts)
+- `.opencode/`, `audit_reports/`
+
+They are probably `.gitignore` candidates. Left untouched so the decision is the owner's.

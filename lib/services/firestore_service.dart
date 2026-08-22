@@ -173,7 +173,9 @@ class FirestoreService {
           .doc(userId)
           .collection('setlists')
           .doc(setlist.id)
-          .set(setlist.toJson())
+          // merge: toJsonForSave() omits eventKit and the server-owned grant
+          // arrays; a replacing set() would DELETE them.
+          .set(setlist.toJsonForSave(), SetOptions(merge: true))
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
@@ -244,7 +246,12 @@ class FirestoreService {
           .doc(bandId)
           .collection('setlists')
           .doc(setlist.id)
-          .set(setlist.copyWith(bandId: bandId).toJson())
+          // merge: see saveSetlist — eventKit and the grant arrays are written
+          // by their own narrow paths and must survive a running-order save.
+          .set(
+            setlist.copyWith(bandId: bandId).toJsonForSave(),
+            SetOptions(merge: true),
+          )
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
@@ -260,6 +267,66 @@ class FirestoreService {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
           message: 'You do not have permission to save this band setlist.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  /// Writes ONE area of the event kit (`stage` / `rider` / `people`) using a
+  /// dotted field path, leaving every other field of the setlist untouched.
+  ///
+  /// This is the only supported way to save event-kit changes. The areas have
+  /// separate editors and separate permissions — a sound engineer may be moving
+  /// speakers around while the band reorders the set — so a whole-document
+  /// write would silently destroy whichever change landed first. The security
+  /// rules rely on this too: a guest's write is only allowed if it touches
+  /// nothing but their own area.
+  Future<void> updateEventKitArea({
+    required String setlistId,
+    required String area,
+    required Object? value,
+    String? bandId,
+    String? uid,
+  }) async {
+    assert(
+      area == 'stage' || area == 'rider' || area == 'people',
+      'unknown event kit area "$area"',
+    );
+    try {
+      _requireAuth();
+      final doc = bandId != null
+          ? _firestore
+                .collection('bands')
+                .doc(bandId)
+                .collection('setlists')
+                .doc(setlistId)
+          : _firestore
+                .collection('users')
+                .doc(uid ?? _currentUserId)
+                .collection('setlists')
+                .doc(setlistId);
+      await doc
+          .update({
+            'eventKit.$area': value,
+            'updatedAt': DateTime.now().toIso8601String(),
+          })
+          .timeout(_firestoreTimeout);
+    } on TimeoutException catch (e, stackTrace) {
+      throw ApiError.network(
+        message:
+            'Request timed out. Please check your connection and try again.',
+        exception: e,
+        stackTrace: stackTrace,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to change the $area.',
           exception: e,
           stackTrace: stackTrace,
         );
@@ -424,7 +491,10 @@ class FirestoreService {
     }
   }
 
-  /// Gets a band by invite code from global collection.
+  /// DO NOT USE from the client: band documents are members-only, so this
+  /// query is denied for exactly the case it exists for — a band you are not
+  /// in yet. Use `BandFunctionService.getBandInviteInfo`, which returns a
+  /// deliberately public subset from a callable.
   Future<Band?> getBandByInviteCode(String code) async {
     try {
       _requireAuth();
@@ -460,7 +530,9 @@ class FirestoreService {
     }
   }
 
-  /// Checks if invite code is already taken.
+  /// DO NOT USE from the client: band documents are members-only, so this
+  /// query is denied. Invite-code uniqueness is the server's job (joinBand /
+  /// getBandInviteInfo use the admin SDK).
   Future<bool> isInviteCodeTaken(String code) async {
     try {
       _requireAuth();

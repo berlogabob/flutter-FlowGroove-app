@@ -16,6 +16,7 @@ import '../models/tuner_launch_context.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
 import '../services/analytics_service.dart';
+import '../services/event_share_service.dart';
 import '../screens/audio_note_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -40,6 +41,7 @@ import '../screens/practice_screen.dart';
 import '../screens/recorder_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/setlists/create_setlist_screen.dart';
+import '../screens/setlists/event_share_screen.dart';
 import '../screens/setlists/setlist_view_screen.dart';
 import '../screens/setlists/setlists_list_screen.dart';
 import '../screens/songs/add_song_screen.dart';
@@ -185,6 +187,16 @@ GoRouter createAppRouter({
             final isOnMain = state.matchedLocation.startsWith('/main');
             final joinCode = state.uri.queryParameters['code'];
 
+            // Shared event link. Deliberately reachable SIGNED OUT: a venue's
+            // art director or a wedding couple gets a read-only view and can
+            // suggest changes without ever creating an account. The token
+            // itself is the grant, and the server scopes the payload to it, so
+            // there is nothing here for the auth redirect to protect.
+            if (state.matchedLocation == '/event' ||
+                state.matchedLocation == '/event/') {
+              return null;
+            }
+
             // External join App Link / web deep link (/join or /join/) — map it
             // to the in-app join flow. When logged out, stash the code so login
             // can resume the join.
@@ -291,6 +303,15 @@ List<RouteBase> _buildAppRoutes() {
       builder: (context, state) => JoinWelcomeScreen(
         code: state.uri.queryParameters['code'] ?? '',
       ),
+    ),
+
+    // Shared event link (`https://app.flowgroove.app/#/event?t=<id>.<secret>`).
+    // No auth: the token is the grant. See the redirect above.
+    GoRoute(
+      path: '/event',
+      name: 'event-share',
+      builder: (context, state) =>
+          EventShareScreen(token: state.uri.queryParameters['t'] ?? ''),
     ),
 
     // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav
@@ -902,6 +923,26 @@ class SetlistRouteResolver extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A guest cannot run the band-setlists LIST query, so for them this used to
+    // fall through to `extra` — the navigation-time snapshot. Tapping in from
+    // "Guest appearances" worked; a refresh or a cold link had no `extra` and
+    // sat on a spinner for ever. They resolve from the scoped event payload
+    // instead, which needs nothing but the two route ids.
+    //
+    // Hydration lives HERE and not in the screen so there is one owner: the
+    // resolver decides which Setlist, the screen decides which songs.
+    // `== true` on purpose: null means the band list has not loaded, and a
+    // guest guessed as a member here would fall through to the band-setlists
+    // query the rules deny them. Unknown falls to `extra`/spinner and resolves
+    // a beat later.
+    if (bandId != null &&
+        setlistId != null &&
+        isEventGuestOf(ref.watch(bandsProvider).value, bandId!) == true) {
+      final view = ref.watch(eventViewProvider((bandId!, setlistId!))).value;
+      if (view != null) return builder(setlistFromEventView(view, bandId!));
+      return builder(extra);
+    }
+
     final setlists = bandId != null
         ? ref.watch(bandSetlistsProvider(bandId!)).asData?.value
         : ref.watch(setlistsProvider).asData?.value;

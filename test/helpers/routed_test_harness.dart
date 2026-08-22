@@ -71,6 +71,28 @@ class FakePendingJoinCodeStore extends PendingJoinCodeStore {
   }
 }
 
+/// Mirrors [FakePendingJoinCodeStore] for the event share token. Without an
+/// override the login flow reaches real secure storage and hangs the test.
+class FakePendingEventTokenStore extends PendingEventTokenStore {
+  FakePendingEventTokenStore([this.pendingToken]);
+
+  String? pendingToken;
+  int readCount = 0;
+
+  @override
+  Future<String?> getAndClearPendingEventToken() async {
+    readCount += 1;
+    final token = pendingToken;
+    pendingToken = null;
+    return token;
+  }
+
+  @override
+  Future<void> setPendingEventToken(String token) async {
+    pendingToken = token;
+  }
+}
+
 class TestAppUserNotifier extends AppUserNotifier {
   TestAppUserNotifier(this.mockUser);
 

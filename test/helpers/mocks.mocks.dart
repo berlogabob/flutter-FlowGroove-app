@@ -2468,6 +2468,27 @@ class MockFirestoreService extends _i1.Mock implements _i16.FirestoreService {
           as _i7.Future<void>);
 
   @override
+  _i7.Future<void> updateEventKitArea({
+    required String? setlistId,
+    required String? area,
+    required Object? value,
+    String? bandId,
+    String? uid,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateEventKitArea, [], {
+              #setlistId: setlistId,
+              #area: area,
+              #value: value,
+              #bandId: bandId,
+              #uid: uid,
+            }),
+            returnValue: _i7.Future<void>.value(),
+            returnValueForMissingStub: _i7.Future<void>.value(),
+          )
+          as _i7.Future<void>);
+
+  @override
   _i7.Future<void> deleteBandSetlist(String? bandId, String? setlistId) =>
       (super.noSuchMethod(
             Invocation.method(#deleteBandSetlist, [bandId, setlistId]),

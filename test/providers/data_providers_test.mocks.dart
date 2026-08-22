@@ -342,6 +342,14 @@ class MockSetlistRepository extends _i1.Mock implements _i9.SetlistRepository {
             returnValue: _i5.Stream<List<_i10.Setlist>>.empty(),
           )
           as _i5.Stream<List<_i10.Setlist>>);
+
+  @override
+  _i5.Stream<List<_i10.Setlist>> watchGuestEvents(String? uid) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchGuestEvents, [uid]),
+            returnValue: _i5.Stream<List<_i10.Setlist>>.empty(),
+          )
+          as _i5.Stream<List<_i10.Setlist>>);
 }
 
 /// A class which mocks [User].

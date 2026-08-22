@@ -1,3 +1,4 @@
+import 'package:flowgroove/models/band.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
@@ -166,6 +167,22 @@ void main() {
           // Band setlists gate on the band editor role, not the app-wide flag.
           if (bandId != null)
             canEditBandProvider(bandId).overrideWithValue(canEdit),
+          // Event-kit access is decided from the band list directly, not via
+          // canEditBandProvider, because a guest holds a grant without any band
+          // membership. Unoverridden it reaches the real repository and its
+          // timeout timer trips the pending-timer check.
+          bandsProvider.overrideWith(
+            (ref) => Stream<List<Band>>.value([
+              if (bandId != null)
+                Band(
+                  id: bandId,
+                  name: 'Band',
+                  createdBy: 'u1',
+                  createdAt: DateTime(2026),
+                  memberUids: const ['u1'],
+                ),
+            ]),
+          ),
           ...buildMetronomeTestOverrides(overrideMetronomeProvider: true),
         ],
       );

@@ -95,6 +95,9 @@ class _FakeSetlistRepository implements SetlistRepository {
   @override
   Stream<List<Setlist>> watchBandSetlists(String bandId) =>
       const Stream.empty();
+
+  @override
+  Stream<List<Setlist>> watchGuestEvents(String uid) => const Stream.empty();
 }
 
 void main() {

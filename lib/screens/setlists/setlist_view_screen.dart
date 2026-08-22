@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../models/event_access.dart';
 import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
@@ -58,13 +59,32 @@ class SetlistViewScreen extends ConsumerWidget {
     final canEdit = bandId == null
         ? ref.watch(canEditProvider)
         : ref.watch(canEditBandProvider(bandId!));
+
+    // Event-kit access is NOT band membership. A claimed sound engineer has
+    // rules permission to write the stage plot while being no kind of band
+    // editor, so gating the entry on canEdit hid the door the rules already
+    // opened. Members keep every area, exactly as before.
+    final eventPerms = bandId == null
+        ? null
+        : ref.watch(eventPermissionsProvider((bandId!, setlist.id)));
+    final canOpenEventKit = bandId == null
+        ? canEdit
+        : (eventPerms?.isMember ?? false) ||
+              canViewArea(eventPerms?.access ?? const {}, EventArea.stage) ||
+              canViewArea(eventPerms?.access ?? const {}, EventArea.rider);
+    // A guest's copy is already hydrated from the scoped event payload by
+    // SetlistRouteResolver — one owner for "which Setlist". This screen only
+    // decides which songs, and setlistSongsProvider routes a guest to the same
+    // payload rather than to the band's song collection.
     final songsAsync = bandId == null
         ? ref.watch(songsProvider)
-        : ref.watch(bandSongsProvider(bandId!));
+        : ref.watch(setlistSongsProvider((bandId!, setlist.id)));
 
     // Event Kit reads the LIVE setlist (the constructor arg is a
     // navigation-time snapshot; the editor autosaves, and this keeps the
-    // summary current after popping back).
+    // summary current after popping back). A guest has no live stream — their
+    // copy is a snapshot by design — and the streams below simply yield
+    // nothing for them, so the passed-in setlist stands.
     final liveSetlist =
         (bandId == null
                 ? ref.watch(setlistsProvider).value
@@ -115,11 +135,17 @@ class SetlistViewScreen extends ConsumerWidget {
                 extra: setlist,
               ),
             ),
-          if (canEdit)
+          if (canOpenEventKit)
             AppMenuItem(
               icon: Icons.theater_comedy_outlined,
               label: 'Event kit',
-              onTap: () => _openEventKit(context, liveSetlist),
+              onTap: () => _openEventKit(
+                context,
+                liveSetlist,
+                eventPerms?.access ??
+                    {for (final a in EventArea.all) a: EventAccessLevel.edit},
+                isMember: eventPerms?.isMember ?? true,
+              ),
             ),
         ],
       ),
@@ -140,12 +166,22 @@ class SetlistViewScreen extends ConsumerWidget {
     );
   }
 
-  void _openEventKit(BuildContext context, Setlist live) {
+  void _openEventKit(
+    BuildContext context,
+    Setlist live,
+    Map<String, String> access, {
+    required bool isMember,
+  }) {
     // rootNavigator: cover the shell so its bottom bar doesn't stack under the
     // editor's own bar (the double-bar bug).
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
-        builder: (_) => EventKitEditorScreen(setlist: live, bandId: bandId),
+        builder: (_) => EventKitEditorScreen(
+          setlist: live,
+          bandId: bandId,
+          access: access,
+          isMember: isMember,
+        ),
       ),
     );
   }
@@ -258,9 +294,18 @@ class SetlistViewScreen extends ConsumerWidget {
   /// autoDispose, so awaiting `.future` (rather than a cold `.value` read)
   /// avoids the "disposed during loading" empty result (#80).
   Future<List<Song>> _resolveSongs(WidgetRef ref, Setlist setlist) async {
-    final allSongs = await ref.read(
-      bandId == null ? songsProvider.future : bandSongsProvider(bandId!).future,
-    );
+    // Same split as the build method: a guest has no access to the band's song
+    // collection, so their copies come from the scoped event payload.
+    final List<Song> allSongs;
+    if (bandId == null) {
+      allSongs = await ref.read(songsProvider.future);
+    } else if (isEventGuestOf(ref.read(bandsProvider).value, bandId!) == true) {
+      allSongs = await ref.read(
+        eventGuestSongsProvider((bandId!, setlist.id)).future,
+      );
+    } else {
+      allSongs = await ref.read(bandSongsProvider(bandId!).future);
+    }
     final songsById = {for (final song in allSongs) song.id: song};
     return setlist.songIds
         .map((id) => songsById[id])

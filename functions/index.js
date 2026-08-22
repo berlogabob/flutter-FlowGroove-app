@@ -33,6 +33,21 @@ exports.joinBand = bands.joinBand;
 exports.updateBandMember = bands.updateBandMember;
 exports.getBandInviteInfo = bands.getBandInviteInfo;
 
+// Event participants: scoped access to ONE event for people who are not in the
+// band (guest musicians, sound engineers, a venue, a client).
+const events = require("./src/events");
+exports.createEventShare = events.createEventShare;
+exports.revokeEventShare = events.revokeEventShare;
+exports.getEventView = events.getEventView;
+exports.claimEventShare = events.claimEventShare;
+exports.submitSuggestion = events.submitSuggestion;
+exports.resolveSuggestion = events.resolveSuggestion;
+// Firestore does not cascade: without this trigger a deleted setlist leaves
+// orphaned grants and phantom invites, and a moved gig leaves guests reading
+// yesterday's call time.
+exports.onBandSetlistWritten = events.onBandSetlistWritten;
+exports.onBandDeleted = events.onBandDeleted;
+
 // Account deletion (server-authoritative; Google Play data-deletion requirement)
 const account = require("./src/account");
 exports.deleteAccount = account.deleteAccount;

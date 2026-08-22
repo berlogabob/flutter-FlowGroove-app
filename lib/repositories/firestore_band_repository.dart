@@ -135,6 +135,10 @@ class FirestoreBandRepository implements BandRepository {
   }
 
   @override
+  /// DO NOT USE from the client: band documents are members-only, so this
+  /// query is denied for exactly the case it exists for — a band you are not
+  /// in yet. Use `BandFunctionService.getBandInviteInfo`, which returns a
+  /// deliberately public subset from a callable.
   Future<Band?> getBandByInviteCode(String code) async {
     try {
       _requireAuth();
@@ -160,6 +164,9 @@ class FirestoreBandRepository implements BandRepository {
   }
 
   @override
+  /// DO NOT USE from the client: band documents are members-only, so this
+  /// query is denied. Invite-code uniqueness is the server's job (joinBand /
+  /// getBandInviteInfo use the admin SDK).
   Future<bool> isInviteCodeTaken(String code) async {
     try {
       _requireAuth();

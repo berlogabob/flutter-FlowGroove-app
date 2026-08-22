@@ -16,11 +16,17 @@ void main() {
     List<dynamic> overridesFor({
       required Stream<List<Setlist>> setlists,
       Stream<List<Song>>? songs,
+      Stream<List<Setlist>>? guestEvents,
     }) => [
       appUserProvider.overrideWith(() => TestAppUserNotifier(mockUser)),
       setlistsProvider.overrideWith((ref) => setlists),
       songsProvider.overrideWith(
         (ref) => songs ?? Stream<List<Song>>.value([]),
+      ),
+      // The screen also shows events this user is a guest on. Left unstubbed it
+      // reaches the real collection-group query (and leaves a pending timer).
+      guestEventsProvider.overrideWith(
+        (ref) => guestEvents ?? Stream<List<Setlist>>.value([]),
       ),
     ];
 

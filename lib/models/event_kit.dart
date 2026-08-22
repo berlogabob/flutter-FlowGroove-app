@@ -1,7 +1,14 @@
 /// Event Kit (#52): stage plot, crew/guests and rider attached to a setlist —
-/// stored as one inline map on the Setlist doc (no rules changes needed).
+/// stored as one inline map on the Setlist doc.
 /// Stage is a fixed 3×3 zone grid (v1 — free-drag if beta asks).
+///
+/// NOTE: `stage` and `rider` are now independently editable by non-members
+/// (a sound engineer, a videographer), so this map must only ever be written
+/// through dotted field paths — see `FirestoreService.updateEventKitArea`.
+/// A whole-document write here silently clobbers whoever else is editing.
 library;
+
+import 'event_access.dart';
 
 /// Fixed zone ids, back row (upstage) → front row (audience).
 const stageZoneIds = [
@@ -64,6 +71,8 @@ class EventPerson {
     required this.role,
     this.notes,
     this.uid,
+    this.access = const {},
+    this.canSuggest = false,
   });
 
   factory EventPerson.fromJson(Map<String, dynamic> json) {
@@ -75,6 +84,31 @@ class EventPerson {
       role: json['role'] as String? ?? '',
       notes: json['notes'] as String?,
       uid: json['uid'] as String?,
+      access: sanitizeAccess({
+        for (final e in (json['access'] as Map<String, dynamic>? ?? {}).entries)
+          if (e.value is String) e.key: e.value as String,
+      }),
+      canSuggest: json['canSuggest'] as bool? ?? false,
+    );
+  }
+
+  /// A roster entry with [role]'s default grant already applied.
+  factory EventPerson.withRolePreset({
+    required String id,
+    required String name,
+    required String role,
+    String? notes,
+    String? uid,
+  }) {
+    final preset = presetForRole(role);
+    return EventPerson(
+      id: id,
+      name: name,
+      role: role,
+      notes: notes,
+      uid: uid,
+      access: preset.access,
+      canSuggest: preset.canSuggest,
     );
   }
 
@@ -86,14 +120,33 @@ class EventPerson {
   /// Set once this person is a real app user (band member uid).
   final String? uid;
 
-  EventPerson copyWith({String? name, String? role, String? notes, String? uid}) =>
-      EventPerson(
-        id: id,
-        name: name ?? this.name,
-        role: role ?? this.role,
-        notes: notes ?? this.notes,
-        uid: uid ?? this.uid,
-      );
+  /// `area -> level` per [EventArea]/[EventAccessLevel]. An absent area is
+  /// HIDDEN, so an empty map shows this person nothing.
+  final Map<String, String> access;
+
+  /// May propose running-order changes (reorder / add / drop / note) without
+  /// being able to make them. Suggesting needs no account; editing does.
+  final bool canSuggest;
+
+  bool canView(String area) => canViewArea(access, area);
+  bool canEdit(String area) => canEditArea(access, area);
+
+  EventPerson copyWith({
+    String? name,
+    String? role,
+    String? notes,
+    String? uid,
+    Map<String, String>? access,
+    bool? canSuggest,
+  }) => EventPerson(
+    id: id,
+    name: name ?? this.name,
+    role: role ?? this.role,
+    notes: notes ?? this.notes,
+    uid: uid ?? this.uid,
+    access: access ?? this.access,
+    canSuggest: canSuggest ?? this.canSuggest,
+  );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -101,6 +154,8 @@ class EventPerson {
     'role': role,
     if (notes != null) 'notes': notes,
     if (uid != null) 'uid': uid,
+    if (access.isNotEmpty) 'access': access,
+    if (canSuggest) 'canSuggest': canSuggest,
   };
 }
 

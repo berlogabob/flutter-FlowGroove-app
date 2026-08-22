@@ -4,81 +4,144 @@
       "collectionGroup": "labEntries",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "songs",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "normalizedTitle", "order": "ASCENDING" },
-        { "fieldPath": "normalizedArtist", "order": "ASCENDING" }
+        {
+          "fieldPath": "normalizedTitle",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "normalizedArtist",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "songs",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "titleSoundex", "order": "ASCENDING" },
-        { "fieldPath": "artistSoundex", "order": "ASCENDING" }
+        {
+          "fieldPath": "titleSoundex",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "artistSoundex",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "songs",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "bandId", "order": "ASCENDING" },
-        { "fieldPath": "normalizedTitle", "order": "ASCENDING" }
+        {
+          "fieldPath": "bandId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "normalizedTitle",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "songs",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "bandId", "order": "ASCENDING" },
-        { "fieldPath": "normalizedArtist", "order": "ASCENDING" }
+        {
+          "fieldPath": "bandId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "normalizedArtist",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "songs",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "schemaVersion", "order": "ASCENDING" },
-        { "fieldPath": "canonicalSongId", "order": "ASCENDING" },
-        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+        {
+          "fieldPath": "schemaVersion",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "canonicalSongId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "updatedAt",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "canonical_songs",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "normalizedTitle", "order": "ASCENDING" },
-        { "fieldPath": "normalizedArtist", "order": "ASCENDING" }
+        {
+          "fieldPath": "normalizedTitle",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "normalizedArtist",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "tunerPresets",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "ownerId", "order": "ASCENDING" },
-        { "fieldPath": "scope", "order": "ASCENDING" }
+        {
+          "fieldPath": "ownerId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "scope",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "tunerPresets",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "bandId", "order": "ASCENDING" },
-        { "fieldPath": "scope", "order": "ASCENDING" }
+        {
+          "fieldPath": "bandId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "scope",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "tunerPresets",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "songId", "order": "ASCENDING" },
-        { "fieldPath": "scope", "order": "ASCENDING" }
+        {
+          "fieldPath": "songId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "scope",
+          "order": "ASCENDING"
+        }
       ]
     }
   ],
@@ -87,7 +150,10 @@
       "collectionGroup": "setlists",
       "fieldPath": "eventDateTime",
       "indexes": [
-        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
       ]
     }
   ]

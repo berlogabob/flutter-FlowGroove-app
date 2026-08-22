@@ -239,12 +239,61 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
                 setState(() => _searchQuery = value ?? ''),
           ),
         ),
+        _guestEvents(),
         Expanded(
           child: filteredSetlists.isEmpty
               ? _buildEmptyState(setlists.isEmpty)
               : _buildSetlistList(filteredSetlists),
         ),
       ],
+    );
+  }
+
+  /// Events this user was invited to as a guest — not theirs, not their band's.
+  ///
+  /// Without this the invitation is invisible: a guest cannot list a band's
+  /// setlists and has no way to know which band the event even belongs to.
+  /// Renders nothing at all when there are none, so it costs regular users no
+  /// screen space.
+  Widget _guestEvents() {
+    final events = ref.watch(guestEventsProvider).value ?? const <Setlist>[];
+    if (events.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        MonoPulseSpacing.lg,
+        0,
+        MonoPulseSpacing.lg,
+        MonoPulseSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'GUEST APPEARANCES',
+            style: MonoPulseTypography.labelSmall.copyWith(
+              color: MonoPulseColors.accentOrange,
+            ),
+          ),
+          for (final event in events)
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.event_available_outlined),
+              title: Text(event.name),
+              subtitle: Text(
+                [
+                  if (event.eventDateTime != null) event.formattedEventDate,
+                  if (event.eventLocation != null) event.eventLocation!,
+                ].join(' · '),
+              ),
+              onTap: () => context.pushNamed(
+                'band-setlist-view',
+                pathParameters: {'id': event.bandId, 'setlistId': event.id},
+                extra: event,
+              ),
+            ),
+        ],
+      ),
     );
   }
 

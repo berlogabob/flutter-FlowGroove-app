@@ -27,4 +27,8 @@ abstract class SetlistRepository {
 
   /// Watches setlists for a band in real-time.
   Stream<List<Setlist>> watchBandSetlists(String bandId);
+
+  /// Watches events [uid] is a guest on, across every band, without being a
+  /// member of any of them.
+  Stream<List<Setlist>> watchGuestEvents(String uid);
 }

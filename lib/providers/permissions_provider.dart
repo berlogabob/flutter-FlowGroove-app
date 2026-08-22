@@ -14,6 +14,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/band.dart';
+import '../models/event_access.dart';
 import '../models/user.dart';
 import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
@@ -144,6 +145,53 @@ final canEditBandProvider = Provider.autoDispose.family<bool, String>((
     error: (_, _) => false,
   );
 });
+
+/// What the current user may see and change on ONE event.
+///
+/// The single source of event permissions for the UI, for members and guests
+/// alike. A member gets every area at `edit`, which is what they had before a
+/// guest could exist. Anyone else gets the `viewer.access` map that
+/// `getEventView` already returns — so this costs no extra Firestore read, and
+/// it works identically for an anonymous share-link holder, who has no uid for
+/// a security rule to match on in the first place.
+///
+/// Deliberately NOT read from `grants/{uid}` even though the rules permit it:
+/// one source, and that one covers the tokened case too.
+typedef EventPermissions = ({
+  bool isMember,
+  Map<String, String> access,
+  bool canSuggest,
+});
+
+const EventPermissions _noEventAccess = (
+  isMember: false,
+  access: <String, String>{},
+  canSuggest: false,
+);
+
+final eventPermissionsProvider = Provider.autoDispose
+    .family<EventPermissions, (String, String)>((ref, key) {
+      final bandId = key.$1;
+      final isGuest = isEventGuestOf(ref.watch(bandsProvider).value, bandId);
+      // Still loading: offer NOTHING. Defaulting to member here handed a guest
+      // every area at `edit` for that window — an Event kit door onto controls
+      // the rules then refused. A member sees the entry a beat later instead.
+      if (isGuest == null) return _noEventAccess;
+      if (!isGuest) {
+        return (
+          isMember: true,
+          access: {for (final area in EventArea.all) area: EventAccessLevel.edit},
+          canSuggest: false,
+        );
+      }
+      final view = ref.watch(eventViewProvider(key)).value;
+      if (view == null) return _noEventAccess;
+      return (
+        isMember: false,
+        access: view.access,
+        canSuggest: view.canSuggest,
+      );
+    });
 
 /// Is the current user an admin of this band?
 ///

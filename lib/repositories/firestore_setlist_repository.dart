@@ -44,7 +44,12 @@ class FirestoreSetlistRepository implements SetlistRepository {
           .doc(userId)
           .collection('setlists')
           .doc(setlist.id)
-          .set(setlist.toJson());
+          // merge + toJsonForSave: this is the twin of
+          // FirestoreService.saveSetlist and MUST stay in step with it. A
+          // replacing set() here deletes any field this build does not know
+          // about — which is exactly how a setlist's event grants were wiped on
+          // 2026-08-21 by an older client saving normally.
+          .set(setlist.toJsonForSave(), SetOptions(merge: true));
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -124,7 +129,11 @@ class FirestoreSetlistRepository implements SetlistRepository {
           .doc(bandId)
           .collection('setlists')
           .doc(setlist.id)
-          .set(setlist.copyWith(bandId: bandId).toJson());
+          // merge: see saveSetlist above. Never a replacing set().
+          .set(
+            setlist.copyWith(bandId: bandId).toJsonForSave(),
+            SetOptions(merge: true),
+          );
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -190,6 +199,60 @@ class FirestoreSetlistRepository implements SetlistRepository {
     }
   }
 
+  /// Events [uid] is a guest on, across every band — without being a member of
+  /// any of them.
+  ///
+  /// Reads the user's OWN `eventInvites` index rather than querying setlists.
+  /// A guest cannot list a band's setlists and nothing in a setlist tells them
+  /// which band it belongs to, so this used to be a collection-group query on a
+  /// `guestUids` field. That required a `match /{path=**}/setlists/…` rule which
+  /// also matched every user's personal setlists — and it put the grant on a
+  /// document clients rewrite, which is how a real setlist lost its grants on
+  /// 2026-08-21. The index is written by the events callables and is scoped to
+  /// its owner by construction: no shared index, no collection-group rule.
+  ///
+  /// The returned Setlists are LIST-CARD shaped (name, date, location). Opening
+  /// one reads the real setlist document, which the grant permits.
+  Stream<List<Setlist>> watchGuestEvents(String uid) {
+    try {
+      final stream = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('eventInvites')
+          .snapshots()
+          .map((snapshot) {
+            final out = <Setlist>[];
+            for (final doc in snapshot.docs) {
+              try {
+                final data = doc.data();
+                out.add(
+                  Setlist(
+                    id: data['setlistId'] as String? ?? doc.id,
+                    bandId: data['bandId'] as String? ?? '',
+                    name: data['name'] as String? ?? 'Event',
+                    eventDateTime: _parseInviteDate(data['eventDateTime']),
+                    eventLocation: data['eventLocation'] as String?,
+                    createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+                    updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+                  ),
+                );
+              } catch (e) {
+                debugPrint('❌ Failed to parse event invite ${doc.id}: $e');
+              }
+            }
+            return out;
+          })
+          .handleError((Object error, StackTrace stackTrace) {
+            debugPrint('❌ Guest events stream error: $error');
+            throw ApiError.fromException(error, stackTrace: stackTrace);
+          });
+      return _withInitialTimeout(stream);
+    } catch (e, stackTrace) {
+      debugPrint('❌ watchGuestEvents exception: $e');
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
   Stream<List<Setlist>> _withInitialTimeout(Stream<List<Setlist>> source) {
     late StreamController<List<Setlist>> controller;
     StreamSubscription<List<Setlist>>? subscription;
@@ -233,4 +296,13 @@ class FirestoreSetlistRepository implements SetlistRepository {
 
     return controller.stream;
   }
+}
+
+/// `eventInvites` stores the event date the way the app writes it on the
+/// setlist — an ISO-8601 string — but tolerate a Timestamp in case a server
+/// path ever writes one. Returning null just means the card shows no date.
+DateTime? _parseInviteDate(Object? value) {
+  if (value is Timestamp) return value.toDate();
+  if (value is String) return DateTime.tryParse(value);
+  return null;
 }

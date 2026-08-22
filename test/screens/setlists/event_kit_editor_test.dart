@@ -23,10 +23,19 @@ void main() {
   Future<MockFirestoreService> pump(
     WidgetTester tester, {
     Setlist? withSetlist,
+    Map<String, String>? access,
+    bool isMember = true,
   }) async {
     final firestore = MockFirestoreService();
-    when(firestore.saveSetlist(any, uid: anyNamed('uid')))
-        .thenAnswer((_) async {});
+    when(
+      firestore.updateEventKitArea(
+        setlistId: anyNamed('setlistId'),
+        area: anyNamed('area'),
+        value: anyNamed('value'),
+        bandId: anyNamed('bandId'),
+        uid: anyNamed('uid'),
+      ),
+    ).thenAnswer((_) async {});
     final user = MockUser();
     when(user.uid).thenReturn('u1');
 
@@ -37,13 +46,35 @@ void main() {
           currentUserProvider.overrideWithValue(AsyncValue<User?>.data(user)),
         ],
         child: MaterialApp(
-          home: EventKitEditorScreen(setlist: withSetlist ?? setlist),
+          home: EventKitEditorScreen(
+            setlist: withSetlist ?? setlist,
+            // A band id makes this a shared event, which is what makes the
+            // access map meaningful — a personal setlist has no grants.
+            bandId: access == null ? null : 'band-1',
+            access: access ?? const {},
+            isMember: isMember,
+          ),
         ),
       ),
     );
     await tester.pumpAndSettle();
     return firestore;
   }
+
+  /// The last value written to [area] through the dotted-field-path writer.
+  ///
+  /// Asserting per-area (rather than on a whole-setlist save) is the point:
+  /// stage and rider have separate editors and separate permissions, so a
+  /// full-document write would clobber whoever saved first.
+  List<Object?> writesTo(MockFirestoreService firestore, String area) => verify(
+    firestore.updateEventKitArea(
+      setlistId: anyNamed('setlistId'),
+      area: area,
+      value: captureAnyNamed('value'),
+      bandId: anyNamed('bandId'),
+      uid: anyNamed('uid'),
+    ),
+  ).captured;
 
   group('EventKitEditorScreen (#53)', () {
     testWidgets('renders the 9-zone grid and sections', (tester) async {
@@ -74,15 +105,25 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.widgetWithText(Chip, 'Drum kit'), findsOneWidget);
-      final saved = verify(
-        firestore.saveSetlist(captureAny, uid: anyNamed('uid')),
-      ).captured.single as Setlist;
-      final placed = saved.eventKit!.stage['back-left']!.single;
-      expect(placed.label, 'Drum kit');
-      expect(placed.kind, 'equipment');
+      final stage =
+          writesTo(firestore, 'stage').single! as Map<String, dynamic>;
+      final placed =
+          (stage['back-left']! as List).single as Map<String, dynamic>;
+      expect(placed['label'], 'Drum kit');
+      expect(placed['kind'], 'equipment');
       // The catalog icon is baked in at add time — this is the fix for every
       // placement rendering the same speaker glyph.
-      expect(placed.icon, '🥁');
+      expect(placed['icon'], '🥁');
+      // Nothing but the stage was touched.
+      verifyNever(
+        firestore.updateEventKitArea(
+          setlistId: anyNamed('setlistId'),
+          area: 'rider',
+          value: anyNamed('value'),
+          bandId: anyNamed('bandId'),
+          uid: anyNamed('uid'),
+        ),
+      );
     });
 
     testWidgets('free-typed gear is still accepted', (tester) async {
@@ -97,10 +138,12 @@ void main() {
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
 
-      final saved = verify(
-        firestore.saveSetlist(captureAny, uid: anyNamed('uid')),
-      ).captured.single as Setlist;
-      expect(saved.eventKit!.stage['back-left']!.single.label, 'Fog juice');
+      final stage =
+          writesTo(firestore, 'stage').single! as Map<String, dynamic>;
+      expect(
+        ((stage['back-left']! as List).single as Map<String, dynamic>)['label'],
+        'Fog juice',
+      );
     });
 
     testWidgets('legacy placements without an icon resolve one by label', (
@@ -154,6 +197,61 @@ void main() {
       expect(find.text('Photographer'), findsWidgets);
     });
 
+    testWidgets('a stage editor gets the stage plot and NOT the roster', (
+      tester,
+    ) async {
+      // The door #184 opened. A claimed sound engineer edits the stage plot,
+      // may read the rider, and must never be offered the roster: the grants
+      // are derived from it and the rules refuse their write to it.
+      await pump(
+        tester,
+        access: const {'stage': 'edit', 'rider': 'view'},
+        isMember: false,
+      );
+
+      expect(find.text('Stage plot'), findsOneWidget);
+      expect(find.text('Rider / equipment'), findsOneWidget);
+      expect(find.text('Crew & guests'), findsNothing);
+      expect(find.text('Role cards'), findsNothing);
+      // Rider is read-only: no way to add to it.
+      expect(find.text('Add rider item'), findsNothing);
+      // …and no way to add a person, because that section is not there at all.
+      expect(find.text('Add person'), findsNothing);
+    });
+
+    testWidgets('a rider editor gets no stage plot at all', (tester) async {
+      await pump(
+        tester,
+        access: const {'rider': 'edit'},
+        isMember: false,
+      );
+      expect(find.text('Rider / equipment'), findsOneWidget);
+      expect(find.text('Add rider item'), findsOneWidget);
+      expect(find.text('Stage plot'), findsNothing);
+      expect(find.text('Crew & guests'), findsNothing);
+    });
+
+    testWidgets('a view-only guest can open nothing', (tester) async {
+      await pump(
+        tester,
+        access: const {'eventInfo': 'view', 'runningOrder': 'view'},
+        isMember: false,
+      );
+      expect(find.text('Stage plot'), findsNothing);
+      expect(find.text('Rider / equipment'), findsNothing);
+      expect(find.text('Crew & guests'), findsNothing);
+      expect(find.text('Role cards'), findsNothing);
+    });
+
+    testWidgets('a member still sees every section', (tester) async {
+      await pump(tester);
+      expect(find.text('Stage plot'), findsOneWidget);
+      expect(find.text('Crew & guests'), findsOneWidget);
+      expect(find.text('Rider / equipment'), findsOneWidget);
+      expect(find.text('Add rider item'), findsOneWidget);
+      expect(find.text('Add person'), findsOneWidget);
+    });
+
     testWidgets('rider item toggles done and persists', (tester) async {
       final firestore = await pump(tester);
 
@@ -172,10 +270,8 @@ void main() {
       await tester.tap(find.byType(Checkbox).first);
       await tester.pumpAndSettle();
 
-      final saved = verify(
-        firestore.saveSetlist(captureAny, uid: anyNamed('uid')),
-      ).captured.last as Setlist;
-      expect(saved.eventKit!.rider.single.done, isTrue);
+      final rider = writesTo(firestore, 'rider').last! as List;
+      expect((rider.single as Map<String, dynamic>)['done'], isTrue);
     });
   });
 }

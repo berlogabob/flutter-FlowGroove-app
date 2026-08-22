@@ -163,6 +163,7 @@ class Setlist {
   /// for every pre-existing doc.
   @JsonKey(fromJson: _eventKitFromJson, toJson: _eventKitToJson)
   final EventKit? eventKit;
+
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
   final DateTime createdAt;
   @JsonKey(fromJson: _parseDateTime, toJson: _dateTimeToJson)
@@ -219,6 +220,19 @@ class Setlist {
         .toList();
     return json;
   }
+
+  /// The document body for a normal setlist save.
+  ///
+  /// Deliberately DROPS `eventKit`. The band saves the whole setlist from the
+  /// setlist form while a sound engineer may be dragging amps around the stage
+  /// plot; a full-document write would erase their work (and theirs would erase
+  /// the running order). `eventKit` is written only through dotted field paths
+  /// from its own editor — see `FirestoreService.updateEventKitArea`.
+  ///
+  /// Grants are not here at all: they live in
+  /// `bands/{b}/setlists/{s}/grants/{uid}`, out of every client's reach,
+  /// precisely so that no save from any app build can destroy them.
+  Map<String, dynamic> toJsonForSave() => toJson()..remove('eventKit');
 
   List<SetlistItem> get effectiveItems {
     if (items.isNotEmpty) return items;

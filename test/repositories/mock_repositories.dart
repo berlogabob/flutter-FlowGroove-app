@@ -221,6 +221,16 @@ class MockSetlistRepository implements SetlistRepository {
     return Stream.value(_bandSetlists[bandId]?.values.toList() ?? []);
   }
 
+  /// uid -> the events they were invited to as a guest, mirroring
+  /// `users/{uid}/eventInvites`. Server-written in production, so tests seed it
+  /// directly rather than deriving it from a setlist field — there is no longer
+  /// any grant on the setlist document to derive from.
+  final Map<String, List<Setlist>> eventInvites = {};
+
+  @override
+  Stream<List<Setlist>> watchGuestEvents(String uid) =>
+      Stream.value(eventInvites[uid] ?? const []);
+
   /// Helper method to get setlists for testing.
   List<Setlist> get setlists => _setlists.values.toList();
 
