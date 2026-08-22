@@ -1,0 +1,20 @@
+canonical_url: https://flowgroove.app/blog/one-codebase-three-screens/
+telegram:
+  text: "\U0001F6E0 New devlog: one codebase, three screens\n\nA solo dev can't keep\
+    \ three native apps alive. Betting FlowGroove on Flutter was less about love and\
+    \ more about math \u2014 one Dart codebase on web, Android and iOS, with Firebase\
+    \ handling the sync.\n\nRead it \u2192 https://flowgroove.app/blog/one-codebase-three-screens/"
+  message_id: 17
+reddit:
+  subreddit: FlowGroove
+  title: ''
+  body: ''
+  submission_id: null
+  permalink: null
+x:
+  text: "The first real decision in FlowGroove wasn't a feature — it was betting one codebase could run web, Android and iOS.\n\nA solo dev maintaining three native apps ships nothing. Flutter + Firebase was the math that made it possible.\n\nhttps://flowgroove.app/blog/one-codebase-three-screens/\n\n#buildinpublic #flutter #indiedev"
+  posted_url: null
+instagram:
+  image: static/images/og-cover.png
+  caption: "One codebase, three screens \U0001F6E0\n\nThe first real decision in FlowGroove wasn't a feature — it was betting that one codebase could run on web, Android and iOS at once.\n\nThe band's gear is mixed: my phone, the guitarist's tablet, the drummer's laptop. It all had to look the same. And a solo dev maintaining three separate native apps is a solo dev who ships nothing.\n\nSo: one Dart codebase with Flutter, Firebase handling the sync. Every feature since is downstream of that one math problem.\n\nFull devlog — link in bio \U0001F3B8\n.\n.\n#coverband #bandlife #musicianlife #setlist #livemusic #musictech #indiedev #buildinpublic #flutter #opensource #musicians"
+  posted_url: null

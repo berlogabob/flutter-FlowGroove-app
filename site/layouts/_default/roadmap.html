@@ -1,0 +1,45 @@
+{{- define "main" }}
+{{- $rm := .Site.Data.roadmap }}
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">{{ .Title }}</h1>
+  </header>
+  {{- with .Content }}<div class="post-content">{{ . }}</div>{{- end }}
+
+  {{- if $rm }}
+  <style>
+    /* Full-bleed: break out of the theme's centered article column */
+    .roadmap-board{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;align-items:start;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding:0 2rem 1rem}
+    .roadmap-col{background:var(--entry);border-radius:8px;padding:.75rem}
+    .roadmap-col h3{margin:.25rem 0 .75rem;font-size:1rem;display:flex;justify-content:space-between}
+    .roadmap-col h3 .cnt{opacity:.5;font-weight:400}
+    .roadmap-card{display:block;background:var(--code-bg);border-radius:6px;padding:.6rem .7rem;margin-bottom:.6rem;font-size:.9rem;line-height:1.35;color:var(--content)}
+    a.roadmap-card:hover{outline:1px solid var(--primary)}
+    .roadmap-meta{display:block;margin-top:.35rem;font-size:.72rem;opacity:.55}
+    .roadmap-snapshot{font-size:.78rem;opacity:.55;margin:.5rem 0 1rem}
+  </style>
+  <p class="roadmap-snapshot">Snapshot of our <a href="https://github.com/users/berlogabob/projects/8" target="_blank" rel="noopener">GitHub project board</a> — updates on each site deploy.</p>
+  <div class="roadmap-board">
+    {{- range $col := $rm.order }}
+    {{- $items := where $rm.items "status" $col }}
+    {{- if $items }}
+    <div class="roadmap-col">
+      <h3>{{ $col }} <span class="cnt">{{ len $items }}</span></h3>
+      {{- range $items }}
+      {{- if .url }}
+      <a class="roadmap-card" href="{{ .url }}" target="_blank" rel="noopener">{{ .title }}
+        <span class="roadmap-meta">#{{ .number }} · {{ .type }}{{ with .state }} · {{ . }}{{ end }}</span>
+      </a>
+      {{- else }}
+      <div class="roadmap-card">{{ .title }}<span class="roadmap-meta">idea</span></div>
+      {{- end }}
+      {{- end }}
+    </div>
+    {{- end }}
+    {{- end }}
+  </div>
+  {{- else }}
+  <p>Roadmap snapshot not available yet.</p>
+  {{- end }}
+</article>
+{{- end }}
