@@ -88,7 +88,7 @@ dependencies:
   web: ^1.1.1
 
   path_provider: any
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.4
 
   # QR codes for band invite sharing
   qr_flutter: ^4.1.0
