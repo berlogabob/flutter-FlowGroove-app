@@ -61,7 +61,7 @@ dependencies:
   printing: ^5.14.2
 
   # Utilities
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   http: ^1.4.0
   intl: ^0.20.2
   json_annotation: ^4.11.0
