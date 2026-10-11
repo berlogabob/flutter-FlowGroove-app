@@ -69,7 +69,7 @@ dependencies:
   url_launcher: ^6.3.2
   flutter_markdown_plus: ^1.0.0
   uuid: ^4.5.3
-  equatable: ^2.0.7
+  equatable: ^3.0.0
 
   # CSV processing
   csv: ^8.0.0
