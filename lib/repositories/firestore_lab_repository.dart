@@ -47,7 +47,7 @@ class FirestoreLabRepository {
       _songDoc(entry.songId, bandId: bandId)
           .collection('labEntries')
           .doc(entry.id)
-          .set(entry.toJson());
+          .set(entry.toJson(), SetOptions(merge: true));
 
   Future<void> deleteEntry(
     String songId,
@@ -71,7 +71,7 @@ class FirestoreLabRepository {
       _songDoc(task.songId, bandId: bandId)
           .collection('tasks')
           .doc(task.id)
-          .set(task.toJson());
+          .set(task.toJson(), SetOptions(merge: true));
 
   Future<void> deleteTask(String songId, String taskId, {String? bandId}) =>
       _songDoc(songId, bandId: bandId).collection('tasks').doc(taskId).delete();
@@ -111,7 +111,7 @@ class FirestoreLabRepository {
       _songDoc(version.songId, bandId: bandId)
           .collection('versions')
           .doc(version.id)
-          .set(version.toJson());
+          .set(version.toJson(), SetOptions(merge: true));
 
   /// Marks [versionId] current and archives every other version in one batch.
   Future<void> setCurrentVersion(

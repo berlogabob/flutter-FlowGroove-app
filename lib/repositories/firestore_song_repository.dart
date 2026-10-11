@@ -77,7 +77,7 @@ class FirestoreSongRepository implements SongRepository {
           .doc(userId)
           .collection('songs')
           .doc(song.id)
-          .set(song.toJson())
+          .set(song.toJson(), SetOptions(merge: true))
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(
@@ -371,7 +371,7 @@ class FirestoreSongRepository implements SongRepository {
           .doc(bandId)
           .collection('songs')
           .doc(song.id)
-          .set(song.copyWith(bandId: bandId).toJson())
+          .set(song.copyWith(bandId: bandId).toJson(), SetOptions(merge: true))
           .timeout(_firestoreTimeout);
     } on TimeoutException catch (e, stackTrace) {
       debugPrint(

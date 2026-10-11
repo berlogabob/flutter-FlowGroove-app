@@ -263,7 +263,9 @@ service cloud.firestore {
       // Joining a band is handled server-side by the `joinBand` Cloud Function
       // (admin SDK), so direct client self-join writes are no longer trusted.
       allow update: if isAuthenticated() && isNotDemo(request.auth.uid) &&
-        isGlobalBandAdmin(bandId);
+        isGlobalBandAdmin(bandId) &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['members', 'memberUids', 'adminUids', 'editorUids']);
 
       // Delete: Only band admins can delete a band (non-demo)
       allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);
@@ -463,7 +465,8 @@ service cloud.firestore {
           isNotDemo(request.auth.uid) &&
           isGlobalBandMember(bandId) &&
           request.auth.uid == uid;
-        allow delete: if isAuthenticated() && request.auth.uid == uid;
+        allow delete: if isAuthenticated() &&
+          isNotDemo(request.auth.uid) && request.auth.uid == uid;
       }
     }
 

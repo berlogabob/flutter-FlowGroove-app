@@ -86,7 +86,7 @@ class FirestoreRehearsalRepository implements RehearsalRepository {
       _requireAuth();
       await _col(rehearsal.bandId)
           .doc(rehearsal.id)
-          .set(rehearsal.toJson());
+          .set(rehearsal.toJson(), SetOptions(merge: true));
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -110,7 +110,7 @@ class FirestoreRehearsalRepository implements RehearsalRepository {
           .doc(rehearsalId)
           .collection('votes')
           .doc(vote.uid)
-          .set(vote.toJson());
+          .set(vote.toJson(), SetOptions(merge: true));
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }

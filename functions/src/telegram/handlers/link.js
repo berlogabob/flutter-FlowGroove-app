@@ -4,9 +4,13 @@
  */
 const { db, admin, cleanUserId } = require("../config");
 const { t, pickLang } = require("../i18n");
+const { consumeTelegramLinkToken } = require("../linkToken");
 
-/** Links the caller's Telegram account to a FlowGroove user document. */
-async function handleLink(ctx, userId) {
+/**
+ * Links the caller's Telegram account to the FlowGroove user that minted
+ * [token] (createTelegramLinkToken). A bare uid is NOT accepted.
+ */
+async function handleLink(ctx, token) {
   const lang = pickLang(ctx);
   const telegramId = ctx.from.id.toString();
   const telegramUsername = ctx.from.username;
@@ -25,6 +29,11 @@ async function handleLink(ctx, userId) {
       return;
     }
 
+    const userId = await consumeTelegramLinkToken(token);
+    if (!userId) {
+      await ctx.reply(t(lang, "link_error"), { parse_mode: "Markdown" });
+      return;
+    }
     const userDoc = await db.collection("users").doc(userId).get();
 
     if (!userDoc.exists) {

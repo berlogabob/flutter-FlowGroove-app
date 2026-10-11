@@ -108,30 +108,33 @@ exports.joinBand = functions.https.onCall(async (request) => {
   const code = cleanString(payload.code).toUpperCase();
   const bandId = cleanString(payload.bandId);
 
-  if (!code && !bandId) {
+  // A valid invite code is mandatory: a bare band id (a UUID that leaks via
+  // shared links) must never be enough to become a member. bandId, when sent,
+  // only has to agree with the code.
+  if (!code) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "An invite code or band id is required.",
+      "An invite code is required.",
     );
   }
 
-  // Resolve the band reference, by id if provided, otherwise by invite code.
-  let bandRef;
-  if (bandId) {
-    bandRef = db.collection("bands").doc(bandId);
-  } else {
-    const snapshot = await db
-      .collection("bands")
-      .where("inviteCode", "==", code)
-      .limit(1)
-      .get();
-    if (snapshot.empty) {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "Invalid invite code.",
-      );
-    }
-    bandRef = snapshot.docs[0].ref;
+  const snapshot = await db
+    .collection("bands")
+    .where("inviteCode", "==", code)
+    .limit(1)
+    .get();
+  if (snapshot.empty) {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "Invalid invite code.",
+    );
+  }
+  const bandRef = snapshot.docs[0].ref;
+  if (bandId && bandId !== bandRef.id) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invite code does not match this band.",
+    );
   }
 
   const token = context.auth.token || {};

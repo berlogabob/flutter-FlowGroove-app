@@ -812,6 +812,13 @@ async function runTool(db, uid, scope, tool, args, deps = {}) {
   if (WRITE_TOOLS.has(tool) && scope !== "write") {
     return { error: "this key is read-only", status: 403 };
   }
+  // Demo accounts are read-only everywhere; keys/OAuth must not bypass that.
+  if (WRITE_TOOLS.has(tool)) {
+    const u = await db.collection("users").doc(uid).get();
+    if (u.exists && u.data().accessRole === "demo") {
+      return { error: "demo accounts are read-only", status: 403 };
+    }
+  }
   switch (tool) {
     case "list_songs":
       return { result: await listSongs(db, uid) };

@@ -18,6 +18,8 @@
 // Telegram bot webhook
 const telegram = require("./src/telegram/webhook");
 exports.telegramWebhook = telegram.telegramWebhook;
+exports.createTelegramLinkToken =
+  require("./src/telegram/linkToken").createTelegramLinkToken;
 
 // Canonical song
 const canonical = require("./src/canonical");

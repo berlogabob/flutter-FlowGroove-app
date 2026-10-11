@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -36,10 +37,18 @@ class TelegramService {
   static String shareLink(String message) =>
       'https://$webDomain/share/url?url=${Uri.encodeComponent(message)}';
 
-  /// Opens Telegram chat with the bot and sends /link command
-  Future<bool> openBotChat(String? userId) async {
+  /// Mints a short-lived single-use link token (proof of account ownership).
+  static Future<String> createLinkToken() async {
+    final result = await FirebaseFunctions.instance
+        .httpsCallable('createTelegramLinkToken')
+        .call<Map<String, dynamic>>();
+    return result.data['token'] as String;
+  }
+
+  /// Opens Telegram chat with the bot; [linkToken] comes from [createLinkToken].
+  Future<bool> openBotChat(String? linkToken) async {
     try {
-      final startParam = userId != null ? 'link_$userId' : 'link';
+      final startParam = linkToken != null ? 'link_$linkToken' : 'link';
 
       // Try native Telegram app first with tg:// scheme
       final nativeUrl = Uri.parse(
