@@ -4,6 +4,7 @@ import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/screens/bands/band_songs_screen.dart';
+import 'package:flowgroove/services/firestore_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -84,7 +85,7 @@ void main() {
       WidgetTester tester,
       Band band, {
       List<Song>? songs,
-      Object? firestore,
+      FirestoreService? firestore,
     }) async {
       tester.view.physicalSize = const Size(1000, 1200);
       tester.view.devicePixelRatio = 1;
@@ -125,7 +126,7 @@ void main() {
             () => TestAppUserNotifier(MockDataHelper.createMockAppUser()),
           ),
           if (firestore != null)
-            firestoreProvider.overrideWithValue(firestore as dynamic),
+            firestoreProvider.overrideWithValue(firestore),
           bandSongsProvider.overrideWith(
             (ref, bandId) => Stream<List<Song>>.value(
               songs ??

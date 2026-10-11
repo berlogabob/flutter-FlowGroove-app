@@ -51,8 +51,6 @@ class FakeAnalyticsClient extends AnalyticsClient {
   Future<void> setUserProperties({
     required AppUser user,
     required int bandCount,
-    required int songCount,
-    required int setlistCount,
   }) async {}
 }
 
