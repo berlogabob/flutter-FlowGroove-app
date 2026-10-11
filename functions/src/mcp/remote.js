@@ -98,11 +98,12 @@ async function workosEmail(sub) {
 async function resolveUid(req) {
   const header = req.get("authorization") || "";
   const m = /^Bearer\s+(.+)$/.exec(header.trim());
-  if (!m || !JWKS) return null;
+  // Fail closed: without issuer+audience any JWKS-signed token would pass.
+  if (!m || !JWKS || !ISSUER || !AUDIENCE) return null;
   try {
     const { payload } = await jwtVerify(m[1], JWKS, {
-      issuer: ISSUER || undefined,
-      audience: AUDIENCE || undefined,
+      issuer: ISSUER,
+      audience: AUDIENCE,
     });
     // AuthKit access tokens have no email claim; resolve it via WorkOS Management API.
     const email = payload.email || (await workosEmail(payload.sub));

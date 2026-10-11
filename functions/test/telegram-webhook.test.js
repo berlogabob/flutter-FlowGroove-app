@@ -57,11 +57,13 @@ describe("telegramWebhook secret verification", function () {
     assert.match(res.payload, /FlowGroove Bot/);
   });
 
-  it("passes a POST through when no secret is configured (no-op)", async () => {
+  it("rejects a POST (401) when no secret is configured (fail closed)", async () => {
     const bot = fakeBot();
     const fn = makeTelegramWebhook({ getSecret: () => null, getBot: () => bot });
-    await fn(buildReq({}), buildRes());
-    assert.equal(bot.handled, true);
+    const res = buildRes();
+    await fn(buildReq({}), res);
+    assert.equal(res.statusCode, 401);
+    assert.equal(bot.handled, false);
   });
 
   it("handles a POST when the secret matches the header", async () => {

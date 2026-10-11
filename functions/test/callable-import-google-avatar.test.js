@@ -23,7 +23,7 @@ function buildSubject(overrides = {}) {
     getUser: overrides.getUser ||
       (async () => ({
         providerData: [
-          { providerId: "google.com", photoURL: "https://google/photo.jpg" },
+          { providerId: "google.com", photoURL: "https://lh3.googleusercontent.com/photo.jpg" },
         ],
       })),
   };

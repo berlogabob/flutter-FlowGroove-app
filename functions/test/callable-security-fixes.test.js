@@ -72,3 +72,31 @@ describe("audit security fixes", function () {
     assert.equal(out.status, 403);
   });
 });
+
+describe("audit fixes round 2", function () {
+  this.timeout(20000);
+  const { makeImportGoogleAvatar } = require("../src/avatars");
+  it("google avatar import refuses non-Google hosts (SSRF)", async () => {
+    const fn = functionsTest.wrap(makeImportGoogleAvatar({
+      getAuth: () => ({ getUser: async () => ({ providerData: [], photoURL: "http://127.0.0.1:8080/x" }) }),
+      fetchImpl: async () => { throw new Error("must not fetch"); },
+      getBucket: () => ({}),
+    }));
+    await assert.rejects(call(fn, "u1", {}), /not allowed/);
+  });
+});
+
+describe("api key lifecycle", function () {
+  this.timeout(20000);
+  it("deleteAccount revokes the user's API keys", async () => {
+    const { makeDeleteAccount } = require("../src/account");
+    await db.collection("users").doc("kuser").set({ accessRole: "member" });
+    await db.collection("apiKeys").doc("h1").set({ uid: "kuser", scope: "read" });
+    const fn = functionsTest.wrap(makeDeleteAccount({
+      getAuth: () => ({ deleteUser: async () => {} }),
+      getBucket: () => ({ name: "b", file: () => ({ delete: async () => {} }), deleteFiles: async () => {} }),
+    }));
+    await call(fn, "kuser", {});
+    assert.equal((await db.collection("apiKeys").doc("h1").get()).exists, false);
+  });
+});

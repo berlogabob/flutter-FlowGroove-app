@@ -23,6 +23,7 @@
     "test:migration:write-run": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:migration:write-run:run\"",
     "test:migration:write-run:run": "mocha \"test/migration-write-run.test.js\"",
     "test:rules": "cd .. && firebase emulators:exec --only firestore \"npm --prefix functions run test:rules:run\"",
+    "test:storage-rules": "cd .. && firebase emulators:exec --project repsync-app-storage-test --only firestore,storage \"GCLOUD_PROJECT=repsync-app-storage-test npx --prefix functions mocha functions/test/storage-rules-band-audio.test.js\"",
     "test:rules:run": "mocha \"test/firestore-rules-*.test.js\"",
     "deploy:no-verify": "firebase deploy --only functions"
   },

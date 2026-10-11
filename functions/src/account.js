@@ -106,6 +106,13 @@ function makeDeleteAccount({ getAuth, getBucket } = {}) {
     // 2. Delete all personal data (user doc + songs/setlists/bands subcollections).
     await db.recursiveDelete(db.collection("users").doc(uid));
 
+    // 2b. Revoke MCP API keys and pending Telegram link tokens (top-level
+    // collections, so the recursive delete above never reaches them).
+    for (const col of ["apiKeys", "telegramLinkTokens"]) {
+      const snap = await db.collection(col).where("uid", "==", uid).get();
+      await Promise.all(snap.docs.map((d) => d.ref.delete()));
+    }
+
     // 3. Best-effort delete the profile picture.
     const bucket = (getBucket || (() => admin.storage().bucket()))();
     try {

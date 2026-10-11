@@ -27,7 +27,7 @@ function buildSubject(overrides = {}) {
     }),
     getFileLink: async (fileId) => {
       requestedFileIds.push(fileId);
-      return "https://telegram/file.jpg";
+      return "https://api.telegram.org/file/photo.jpg";
     },
   };
   const fn = makeImportTelegramAvatar({

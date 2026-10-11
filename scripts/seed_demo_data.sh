@@ -14,7 +14,7 @@
 #
 # Account 1: Admin (content editing)
 #   Email: admin@flowgroove.app
-#   Password: admin1234
+#   Password: (set at seed time; not tracked)
 #   After creation, copy the UID → ADMIN_UID
 #
 # Account 2: Demo (read-only)
@@ -398,6 +398,6 @@ echo "   - Orange banner: 'Demo mode — changes are not saved'"
 echo "   - Try to edit — changes should be blocked"
 echo ""
 echo "🔧 Test admin:"
-echo "   - Login with: admin@flowgroove.app / admin1234"
+echo "   - Login with: admin@flowgroove.app"
 echo "   - Full access: create/edit/delete songs, bands, setlists"
 echo ""

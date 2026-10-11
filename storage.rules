@@ -10,6 +10,14 @@ service firebase.storage {
     // Personal avatars live at profile_pictures/{uid}.jpg (flat, single
     // segment). Match the filename and compare it to the owner's uid so the
     // flat .jpg object is authorized correctly.
+    // Cross-service lookup: needs the Storage rules service agent to read
+    // Firestore (granted automatically when rules are deployed via the CLI).
+    function isBandMember(bandId) {
+      let path = /databases/(default)/documents/bands/$(bandId);
+      return firestore.exists(path) &&
+        request.auth.uid in firestore.get(path).data.get('memberUids', []);
+    }
+
     match /profile_pictures/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && isNotDemo() &&
@@ -43,8 +51,10 @@ service firebase.storage {
     match /lab_audio/band/{bandId}/{songId}/{fileName} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && isNotDemo() &&
+        isBandMember(bandId) &&
         request.resource.size < 25 * 1024 * 1024;
-      allow delete: if request.auth != null && isNotDemo();
+      allow delete: if request.auth != null && isNotDemo() &&
+        isBandMember(bandId);
     }
 
     match /{allPaths=**} {

@@ -75,9 +75,14 @@ service cloud.firestore {
       return isAdmin || isEditor;
     }
 
-    // Helper function to check if creating user is in members list
-    function isCreatorInMembers(memberUids) {
-      return memberUids.hasAny([request.auth.uid]);
+    // A client-created band starts with exactly its creator as admin; every
+    // later membership change goes through the callables (Admin SDK).
+    function isValidBandCreate() {
+      let band = request.resource.data;
+      return band.createdBy == request.auth.uid &&
+        band.memberUids == [request.auth.uid] &&
+        band.adminUids == [request.auth.uid] &&
+        band.get('editorUids', []) == [];
     }
 
     function hasCanonicalLink() {
@@ -257,7 +262,7 @@ service cloud.firestore {
       // Create: Only non-demo authenticated users can create a band
       allow create: if isAuthenticated() &&
         isNotDemo(request.auth.uid) &&
-        isCreatorInMembers(request.resource.data.memberUids);
+        isValidBandCreate();
 
       // Update: Only band admins can update band details (non-demo).
       // Joining a band is handled server-side by the `joinBand` Cloud Function
@@ -265,7 +270,7 @@ service cloud.firestore {
       allow update: if isAuthenticated() && isNotDemo(request.auth.uid) &&
         isGlobalBandAdmin(bandId) &&
         !request.resource.data.diff(resource.data).affectedKeys()
-          .hasAny(['members', 'memberUids', 'adminUids', 'editorUids']);
+          .hasAny(['memberUids', 'adminUids', 'editorUids']);
 
       // Delete: Only band admins can delete a band (non-demo)
       allow delete: if isAuthenticated() && isNotDemo(request.auth.uid) && isGlobalBandAdmin(bandId);
