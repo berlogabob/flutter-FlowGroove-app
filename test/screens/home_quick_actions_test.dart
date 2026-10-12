@@ -148,7 +148,7 @@ void main() {
         displayName: 'TestUser',
       );
 
-      final router = await pumpRoutedTestApp(
+      await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/home',
         routes: buildRoutes(),

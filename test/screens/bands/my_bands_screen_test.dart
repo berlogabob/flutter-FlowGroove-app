@@ -151,7 +151,7 @@ void main() {
     });
 
     testWidgets('navigates to join band from empty state CTA', (tester) async {
-      final router = await pumpRoutedTestApp(
+      await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/bands',
         overrides: overridesFor(Stream<List<Band>>.value([])),
@@ -166,7 +166,7 @@ void main() {
     });
 
     testWidgets('navigates to join band from the screen menu', (tester) async {
-      final router = await pumpRoutedTestApp(
+      await pumpRoutedTestApp(
         tester,
         initialLocation: '/main/bands',
         overrides: overridesFor(

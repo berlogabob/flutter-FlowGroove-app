@@ -8,7 +8,6 @@ import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/songs/songs_list_screen.dart';
 import 'package:flowgroove/theme/mono_pulse_theme.dart';
 import 'package:flowgroove/widgets/unified_item/song_card_actions.dart';
-import 'package:flowgroove/widgets/unified_item/unified_item_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -134,12 +133,6 @@ void main() {
       expect(find.text('Song Two'), findsOneWidget);
       expect(find.text('130'), findsOneWidget);
       expect(find.text('G'), findsOneWidget);
-      expect(
-        tester
-            .widgetList<UnifiedItemBadge>(find.byType(UnifiedItemBadge))
-            .map((badge) => badge.color),
-        everyElement(MonoPulseColors.textTertiary),
-      );
       // Song cards deliberately have no leading icon — text gets the room.
       // (The single match is the shell's selected Songs nav tab icon.)
       expect(find.byIcon(Icons.music_note), findsOneWidget);

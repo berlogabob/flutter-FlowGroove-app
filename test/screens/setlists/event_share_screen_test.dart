@@ -8,7 +8,6 @@
 
 import 'package:flowgroove/models/event_access.dart';
 import 'package:flowgroove/services/event_share_service.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 EventView _view({

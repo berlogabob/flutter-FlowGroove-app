@@ -201,8 +201,7 @@ class _LoadedSongCard extends ConsumerWidget {
                         loadedSetlistSongs: setlist != null
                             ? ref.read(metronomeProvider).loadedSetlistSongs
                             : <Song>[],
-                      )
-                      as _LoadedSongState;
+                      );
 
               // Clear the loaded content
               onClear();

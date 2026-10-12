@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:flowgroove/models/canonical_song.dart';
 import 'package:flowgroove/models/musicbrainz_recording.dart';
@@ -7,8 +6,6 @@ import 'package:flowgroove/repositories/canonical_song_repository.dart';
 import 'package:flowgroove/services/musicbrainz_service.dart';
 import 'package:flowgroove/services/song_suggestion_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 
 void main() {
   group('SongSuggestionService', () {

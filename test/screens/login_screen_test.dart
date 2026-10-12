@@ -202,7 +202,7 @@ void main() {
           ),
         ).thenAnswer((_) async => createMockUserCredential());
 
-        final router = await pumpRoutedTestApp(
+        await pumpRoutedTestApp(
           tester,
           initialLocation: '/login',
           overrides: overrides(),

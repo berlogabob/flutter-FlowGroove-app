@@ -17,14 +17,13 @@ void main() {
       });
 
       final metronome = container.read(metronomeProvider.notifier);
-      final tickTimes = <DateTime>[];
 
       // Override the playback client to capture tick times
       metronome.start();
 
       // Collect tick times for ~10 seconds
       final completer = Completer<void>();
-      final subscription = Stream.periodic(const Duration(milliseconds: 10))
+      Stream.periodic(const Duration(milliseconds: 10))
           .listen((_) {
             if (DateTime.now().difference(DateTime.now()).inSeconds >= 10) {
               completer.complete();

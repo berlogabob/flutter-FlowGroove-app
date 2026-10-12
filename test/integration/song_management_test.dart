@@ -52,7 +52,6 @@ void main() {
     late MockFirebaseFirestore mockFirestore;
     late MockCollectionReference<Map<String, dynamic>> mockCollection;
     late MockDocumentReference<Map<String, dynamic>> mockDocument;
-    late MockQuerySnapshot<Map<String, dynamic>> mockQuerySnapshot;
 
     setUp(() async {
       // Create fresh mocks for each test
@@ -61,7 +60,6 @@ void main() {
       mockFirestore = MockFirebaseFirestore();
       mockCollection = MockCollectionReference<Map<String, dynamic>>();
       mockDocument = MockDocumentReference<Map<String, dynamic>>();
-      mockQuerySnapshot = MockQuerySnapshot<Map<String, dynamic>>();
 
       // Setup default auth mock
       when(mockUser.uid).thenReturn('test-user-id');

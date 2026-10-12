@@ -545,7 +545,7 @@ class FirestoreSongRepository implements SongRepository {
           .get()
           .timeout(_firestoreTimeout);
 
-      return _songsFromSnapshot(snapshot);
+      return await _songsFromSnapshot(snapshot);
     } on TimeoutException {
       throw ApiError.network(message: 'Request timed out. Please try again.');
     } catch (e, stackTrace) {
@@ -563,7 +563,7 @@ class FirestoreSongRepository implements SongRepository {
           .get()
           .timeout(_firestoreTimeout);
 
-      return _songsFromSnapshot(snapshot, bandId: bandId);
+      return await _songsFromSnapshot(snapshot, bandId: bandId);
     } on TimeoutException {
       throw ApiError.network(message: 'Request timed out. Please try again.');
     } catch (e, stackTrace) {

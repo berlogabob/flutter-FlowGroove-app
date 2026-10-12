@@ -9,6 +9,9 @@ const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { validateSong, SCHEMA_VERSION } = require("./song_schema");
 
+// Upper bound for whole-library scans (dedupe/enrich lookups) so one call cannot read unbounded data.
+const MAX_LIBRARY_SCAN = 5000;
+
 const WRITE_TOOLS = new Set([
   "create_song", "update_song", "create_band_song", "update_band_song",
   "create_setlist",
@@ -345,7 +348,7 @@ async function createSetlist(db, uid, bandId, args) {
   const requested = Array.isArray(args.songIds) ? args.songIds.filter(Boolean) : [];
   // Only reference songs that actually exist in the target library — never create
   // a setlist full of dangling "Unavailable" rows. Unknown ids are reported back.
-  const snap = await songsColFor(db, uid, bandId).get();
+  const snap = await songsColFor(db, uid, bandId).limit(MAX_LIBRARY_SCAN).get();
   const known = new Set(snap.docs.map((d) => d.id));
   const songIds = requested.filter((s) => known.has(s));
   const unknown = requested.filter((s) => !known.has(s));
@@ -398,7 +401,7 @@ async function createSetlistWithSongs(db, uid, bandId, args) {
 
   // Existing songs in the target library → dedup key (title|artist, lowercased) → id.
   const targetSongs = songsColFor(db, uid, bandId);
-  const existingSnap = await targetSongs.get();
+  const existingSnap = await targetSongs.limit(MAX_LIBRARY_SCAN).get();
   const byKey = new Map();
   for (const d of existingSnap.docs) {
     const x = songFields(d.data());
@@ -499,7 +502,7 @@ async function addSongsToSetlist(db, uid, bandId, args) {
   const doc = await ref.get();
   if (!doc.exists) return { error: "not_found" };
 
-  const snap = await songsColFor(db, uid, bandId).get();
+  const snap = await songsColFor(db, uid, bandId).limit(MAX_LIBRARY_SCAN).get();
   const known = new Set(snap.docs.map((d) => d.id));
   const toAdd = requested.filter((s) => known.has(s));
   const unknown = requested.filter((s) => !known.has(s));
