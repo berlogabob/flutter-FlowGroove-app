@@ -95,7 +95,16 @@ class _JoinBandScreenState extends ConsumerState<JoinBandScreen> {
     // The demo account is shared and read-only; it must never become a member
     // of a real band. Server-side join rules are the real boundary, but block
     // it here too so the demo UI can't even attempt it.
-    if (ref.read(isDemoUserProvider)) {
+    //
+    // `isDemoUserProvider` answers false while the user document is still
+    // loading. For a *restriction* that default permits, which is the wrong
+    // way round for an action: a wrong "no" costs a retry a second later, a
+    // wrong "yes" is the shared account joining someone's real band. Treat
+    // unknown as demo HERE only — the banner keeps the other default, because
+    // flipping it globally flashes "demo mode" at every real user on every
+    // cold start.
+    final userStillLoading = ref.read(appUserProvider).isLoading;
+    if (userStillLoading || ref.read(isDemoUserProvider)) {
       showAppSnackBar(
         context,
         'Demo accounts cannot join bands. Sign up to join.',

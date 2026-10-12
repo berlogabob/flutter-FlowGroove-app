@@ -2430,15 +2430,6 @@ class MockFirestoreService extends _i1.Mock implements _i14.FirestoreService {
           as _i5.Future<void>);
 
   @override
-  _i5.Future<void> deleteBand(String? bandId, {String? uid}) =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteBand, [bandId], {#uid: uid}),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
-          )
-          as _i5.Future<void>);
-
-  @override
   _i5.Future<void> saveSetlist(_i17.Setlist? setlist, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#saveSetlist, [setlist], {#uid: uid}),
@@ -2496,14 +2487,6 @@ class MockFirestoreService extends _i1.Mock implements _i14.FirestoreService {
           as _i5.Future<void>);
 
   @override
-  _i5.Stream<List<_i17.Setlist>> watchBandSetlists(String? bandId) =>
-      (super.noSuchMethod(
-            Invocation.method(#watchBandSetlists, [bandId]),
-            returnValue: _i5.Stream<List<_i17.Setlist>>.empty(),
-          )
-          as _i5.Stream<List<_i17.Setlist>>);
-
-  @override
   _i5.Future<void> saveBandToGlobal(_i16.Band? band) =>
       (super.noSuchMethod(
             Invocation.method(#saveBandToGlobal, [band]),
@@ -2516,40 +2499,6 @@ class MockFirestoreService extends _i1.Mock implements _i14.FirestoreService {
   _i5.Future<void> saveBandBatch(_i16.Band? band, {String? uid}) =>
       (super.noSuchMethod(
             Invocation.method(#saveBandBatch, [band], {#uid: uid}),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
-          )
-          as _i5.Future<void>);
-
-  @override
-  _i5.Future<_i16.Band?> getBandByInviteCode(String? code) =>
-      (super.noSuchMethod(
-            Invocation.method(#getBandByInviteCode, [code]),
-            returnValue: _i5.Future<_i16.Band?>.value(),
-          )
-          as _i5.Future<_i16.Band?>);
-
-  @override
-  _i5.Future<bool> isInviteCodeTaken(String? code) =>
-      (super.noSuchMethod(
-            Invocation.method(#isInviteCodeTaken, [code]),
-            returnValue: _i5.Future<bool>.value(false),
-          )
-          as _i5.Future<bool>);
-
-  @override
-  _i5.Future<void> addUserToBand(String? bandId, {String? userId}) =>
-      (super.noSuchMethod(
-            Invocation.method(#addUserToBand, [bandId], {#userId: userId}),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
-          )
-          as _i5.Future<void>);
-
-  @override
-  _i5.Future<void> removeUserFromBand(String? bandId, {String? userId}) =>
-      (super.noSuchMethod(
-            Invocation.method(#removeUserFromBand, [bandId], {#userId: userId}),
             returnValue: _i5.Future<void>.value(),
             returnValueForMissingStub: _i5.Future<void>.value(),
           )

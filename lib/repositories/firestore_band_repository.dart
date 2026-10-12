@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/api_error.dart';
 import '../models/band.dart';
 import 'band_repository.dart';
+import 'firestore_timeout.dart';
 
 /// Firestore implementation of [BandRepository].
 ///
@@ -40,12 +41,15 @@ class FirestoreBandRepository implements BandRepository {
   Future<void> saveBand(Band band, {String? uid}) async {
     try {
       final userId = uid ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('bands')
-          .doc(band.id)
-          .set(band.toJson());
+      await withFirestoreTimeout(
+        'saveBand ${band.id}',
+        () => _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('bands')
+            .doc(band.id)
+            .set(band.toJson(), SetOptions(merge: true)),
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -64,12 +68,15 @@ class FirestoreBandRepository implements BandRepository {
   Future<void> deleteBand(String bandId, {String? uid}) async {
     try {
       final userId = uid ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('bands')
-          .doc(bandId)
-          .delete();
+      await withFirestoreTimeout(
+        'deleteBand $bandId',
+        () => _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('bands')
+            .doc(bandId)
+            .delete(),
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -119,7 +126,10 @@ class FirestoreBandRepository implements BandRepository {
   Future<void> saveBandToGlobal(Band band) async {
     try {
       _requireAuth();
-      await _firestore.collection('bands').doc(band.id).set(band.toJson());
+      await withFirestoreTimeout(
+        'saveBandToGlobal ${band.id}',
+        () => _firestore.collection('bands').doc(band.id).set(band.toJson(), SetOptions(merge: true)),
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -142,11 +152,14 @@ class FirestoreBandRepository implements BandRepository {
   Future<Band?> getBandByInviteCode(String code) async {
     try {
       _requireAuth();
-      final snapshot = await _firestore
-          .collection('bands')
-          .where('inviteCode', isEqualTo: code)
-          .limit(1)
-          .get();
+      final snapshot = await withFirestoreTimeout(
+        'getBandByInviteCode',
+        () => _firestore
+            .collection('bands')
+            .where('inviteCode', isEqualTo: code)
+            .limit(1)
+            .get(),
+      );
 
       if (snapshot.docs.isEmpty) return null;
       final doc = snapshot.docs.first;
@@ -170,11 +183,14 @@ class FirestoreBandRepository implements BandRepository {
   Future<bool> isInviteCodeTaken(String code) async {
     try {
       _requireAuth();
-      final snapshot = await _firestore
-          .collection('bands')
-          .where('inviteCode', isEqualTo: code)
-          .limit(1)
-          .get();
+      final snapshot = await withFirestoreTimeout(
+        'isInviteCodeTaken',
+        () => _firestore
+            .collection('bands')
+            .where('inviteCode', isEqualTo: code)
+            .limit(1)
+            .get(),
+      );
       return snapshot.docs.isNotEmpty;
     } on FirebaseException catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
@@ -187,12 +203,15 @@ class FirestoreBandRepository implements BandRepository {
   Future<void> addUserToBand(String bandId, {String? userId}) async {
     try {
       final uid = userId ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('bands')
-          .doc(bandId)
-          .set({'bandId': bandId, 'joinedAt': FieldValue.serverTimestamp()});
+      await withFirestoreTimeout(
+        'addUserToBand $bandId',
+        () => _firestore
+            .collection('users')
+            .doc(uid)
+            .collection('bands')
+            .doc(bandId)
+            .set({'bandId': bandId, 'joinedAt': FieldValue.serverTimestamp()}),
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
@@ -211,16 +230,57 @@ class FirestoreBandRepository implements BandRepository {
   Future<void> removeUserFromBand(String bandId, {String? userId}) async {
     try {
       final uid = userId ?? _currentUserId;
-      await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('bands')
-          .doc(bandId)
-          .delete();
+      await withFirestoreTimeout(
+        'removeUserFromBand $bandId',
+        () => _firestore
+            .collection('users')
+            .doc(uid)
+            .collection('bands')
+            .doc(bandId)
+            .delete(),
+      );
     } on FirebaseException catch (e, stackTrace) {
       if (e.code == 'permission-denied') {
         throw ApiError.permission(
           message: 'You do not have permission to leave this band.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  @override
+  Future<void> saveBandBatch(Band band, {String? uid}) async {
+    try {
+      final userId = uid ?? _currentUserId;
+      final data = band.toJson();
+      final batch = _firestore.batch()
+        ..set(
+          _firestore.collection('bands').doc(band.id),
+          data,
+          SetOptions(merge: true),
+        )
+        ..set(
+          _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('bands')
+              .doc(band.id),
+          data,
+          SetOptions(merge: true),
+        );
+      await withFirestoreTimeout(
+        'saveBandBatch ${band.id}',
+        batch.commit,
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to save this band.',
           exception: e,
           stackTrace: stackTrace,
         );

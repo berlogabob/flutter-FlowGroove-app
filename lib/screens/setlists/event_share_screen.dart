@@ -160,11 +160,65 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
             if (view.canSee(EventArea.runningOrder)) ..._runningOrder(view),
             if (view.stage != null) ..._stage(view),
             if (view.rider != null) ..._rider(view),
+            ..._myRequests(view),
             const SizedBox(height: 80),
           ],
         ),
       ),
     );
+  }
+
+  /// What this person asked for, and what the band decided.
+  ///
+  /// Submitting used to be a one-way door: the suggestions subcollection is
+  /// members-only, so the person who asked never learned the answer. These come
+  /// back on the scoped payload, which works for an anonymous link holder too.
+  List<Widget> _myRequests(EventView view) {
+    if (view.mySuggestions.isEmpty) return const [];
+    return [
+      const SizedBox(height: MonoPulseSpacing.lg),
+      _title('Your requests'),
+      for (final s in view.mySuggestions)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: MonoPulseSpacing.xs),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                switch (s.status) {
+                  'accepted' => Icons.check_circle_outline,
+                  'declined' => Icons.cancel_outlined,
+                  _ => Icons.schedule,
+                },
+                size: 18,
+                color: context.mp.textSecondary,
+              ),
+              const SizedBox(width: MonoPulseSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.text.isEmpty ? s.action : s.text,
+                      style: MonoPulseTypography.bodyMedium,
+                    ),
+                    Text(
+                      switch (s.status) {
+                        'accepted' => 'Accepted by the band',
+                        'declined' => 'Declined',
+                        _ => 'Waiting for the band',
+                      },
+                      style: MonoPulseTypography.bodySmall.copyWith(
+                        color: context.mp.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+    ];
   }
 
   List<Widget> _eventInfo(EventView view) => [

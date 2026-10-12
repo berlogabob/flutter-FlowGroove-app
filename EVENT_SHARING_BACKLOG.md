@@ -2,6 +2,13 @@
 
 **Epic:** #180 · **Board:** Project #8 · **Last verified:** 2026-08-22
 **Baselines when written:** 2237 Flutter · 57 rules · 98 callable — all green.
+**After the 2026-08-22 pass:** 2257 Flutter · 57 rules · 115 callable — all green.
+**Status: 10 of 10 closed** (E10 browser render done 2026-10-12, see caveats there).
+Check status with `bash scripts/check_event_backlog.sh` rather than trusting this header.
+
+> **Not deployed.** The functions changes below (E2–E5) are local. The live `/event` still
+> serves the old payload until `firebase deploy --only functions` runs; deploying the app is
+> separate again (`make deploy-app-hosting`).
 
 Written so a session with **no prior context** can pick this up and act. Findings come
 from a 14-item security/robustness audit of event sharing: 8 closed and deployed, the
@@ -57,63 +64,82 @@ Each is a scar from a real incident and each has a test that fails loudly.
 
 ## 3. Open backlog
 
-- [ ] **E1 — Duplicate write layer** *(structural; do first)*
-  `FirestoreService` and the repositories implement ~14 of the same operations, split by
-  *operation* rather than deprecated, so both are load-bearing: reads stream through the
-  repositories, writes go through the service — **except** `song_library_merge_service.dart`,
-  which writes via `setlistRepository.saveSetlist` and routes to `saveBandSetlist` when a
-  bandId is present. That split is the root cause that let the grant wipe happen.
-  Fix: repositories become the only Firestore touchers; `FirestoreService` methods reduce
-  to delegations (it already fronts songs via `SongRepository` — copy that pattern).
-  **Metric:** `grep -c "collection('setlists')\|collection('bands')" lib/services/firestore_service.dart` → **0** (baseline **20**); all suites unchanged.
+- [x] **E1 — Duplicate write layer** *(done 2026-08-22)*
+  `FirestoreService` no longer touches Firestore for setlists or bands: the eight
+  live methods delegate to `FirestoreSetlistRepository` / `FirestoreBandRepository`
+  and six with no callers at all (`deleteBand`, `watchBandSetlists`,
+  `getBandByInviteCode`, `isInviteCodeTaken`, `addUserToBand`, `removeUserFromBand`)
+  were deleted rather than delegated.
+  The two implementations were **not** equivalent — the service had write timeouts
+  and typed permission messages the repositories lacked — so the timeout layer moved
+  into `lib/repositories/firestore_timeout.dart` (`withFirestoreTimeout`) and both
+  repositories now use it. `updateEventKitArea` and `saveBandBatch` moved onto the
+  repository interfaces.
+  **Metric:** `grep -c "collection('setlists')\|collection('bands')" lib/services/firestore_service.dart` → **0** (was 20). ✅
 
-- [ ] **E2 — Share tokens never expire**
-  W3C capability-URL guidance says they should. Add `expiresAt`, honoured in
-  `resolveToken` beside `revoked`.
-  **Metric:** an expired token and a garbage token return **byte-identical** errors, so
-  the endpoint stays a non-oracle.
+- [x] **E2 — Share tokens never expire** *(done 2026-08-22)*
+  `SHARE_TTL_DAYS = 90`, stamped on create and honoured in `resolveToken` beside
+  `revoked`. A share document with **no** `expiresAt` still works — links minted
+  before expiry existed must not die on deploy day.
+  **Metric:** an expired token and a garbage token return byte-identical errors
+  (`fails an expired link and a garbage link identically`). ✅
 
-- [ ] **E3 — Suggestion flooding**
-  No per-token cap exists (`grep -c suggestionCount functions/src/events.js` → 0). An
-  anonymous link holder can fill a band's subcollection. Counter on the share document.
-  **Metric:** the N+1th suggestion from one token is rejected; the Nth still succeeds.
+- [x] **E3 — Suggestion flooding** *(done 2026-08-22)*
+  `MAX_SUGGESTIONS_PER_TOKEN = 25`, counted on the share document and checked **inside
+  a transaction** so two concurrent submissions cannot both slip past. Members are not
+  counted — they write the setlist directly, so a limit on them would be theatre.
+  **Metric:** the 26th from one token is rejected and not written; the 25th succeeds. ✅
 
-- [ ] **E4 — A guest cannot see their own suggestion's status**
-  `suggestions` is readable only by band members, so "the band decides" is invisible to
-  the person who asked. Return the caller's own suggestions from `getEventView` rather
-  than opening the subcollection — that also works for anonymous holders, who have no uid
-  for a rule to match.
-  **Metric:** an anonymous token holder's `getEventView` contains their suggestion and its
-  status; another token's suggestions are absent.
+- [x] **E4 — A guest cannot see their own suggestion's status** *(done 2026-08-22)*
+  `getEventView` returns `mySuggestions` — matched on share token **and** uid, so a person
+  keeps sight of what they asked for either side of signing in. Never echoes the token
+  back. Rendered as "Your requests" on the guest page.
+  **Metric:** an anonymous holder sees their own suggestion and its status; another
+  token's are absent from the payload. ✅
 
-- [ ] **E5 — `getEventView` song fan-out is unbounded**
-  *(Correcting an earlier note in the issue history: it is already `Promise.all`, i.e.
-  parallel, not sequential. The defect is that it is uncapped.)* Use `db.getAll(...)`.
-  **Metric:** a 10-song event resolves in **≤2** Firestore round trips; a setlist above the
-  cap is truncated **and says so** in the payload.
+- [x] **E5 — `getEventView` song fan-out is unbounded** *(done 2026-08-22)*
+  `db.getAll(...)`, capped at `MAX_EVENT_SONGS = 100`, with `songsTruncated` on the payload.
+  *(Instrumenting this: the SDK routes every `DocumentReference.get()` through `db.getAll`,
+  so counting `getAll` calls also counts the setlist and band reads. The test counts only
+  calls carrying song refs, and asserts one batch of ten.)*
+  **Metric:** a 10-song event is **one** fan-out call of 10 refs; over the cap the payload
+  says `songsTruncated: true` and the running order stays complete. ✅
 
-- [ ] **E6 — Client write wrappers untested**
-  `createShare`, `claimShare`, `revokeShare` have **0** test references — the only grep
-  hit is a comment saying so. The read path is covered; the write wrappers are not.
-  **Metric:** each has ≥1 test through `eventShareServiceProvider`.
+- [x] **E6 — Client write wrappers untested** *(done 2026-08-22)*
+  There was no seam: the constructor took a `FirebaseFunctions` but resolved
+  `FirebaseFunctions.instance` eagerly, so building one in a unit test needed a real
+  Firebase app. Added a `CallableInvoker` typedef and made the instance lazy.
+  **Metric:** `createShare`, `revokeShare`, `claimShare`, `resolveSuggestion` and
+  `submitSuggestion` each have tests through `eventShareServiceProvider` asserting the
+  callable name and exact arguments. ✅
 
-- [ ] **E7 — Suggestions land where nobody looks** *(issue #187)*
+- [x] **E7 — Suggestions land where nobody looks** *(issue #187, done 2026-08-22)*
   Guests can submit today — live, deployed and tested — and **no band-side UI renders
   them**. `resolveSuggestion` exists in `lib/services/event_share_service.dart` and no
   screen calls it. Arguably a bug rather than deferred work.
   *(Do not grep for `suggestions` — 35 unrelated hits from song autocomplete, tags and
   stage gear. Grep for `resolveSuggestion` instead.)*
-  **Metric:** `grep -rn "resolveSuggestion" lib --include='*.dart' | grep -v event_share_service | wc -l`
-  → **≥1** (baseline **0**); and a suggestion submitted from a share link appears in the
-  band's setlist UI and can be accepted or declined.
+  Shipped: `lib/widgets/event_suggestions_inbox.dart`, fed by `setlistSuggestionsProvider`,
+  rendered above the running order on a band setlist. Renders **nothing** when the inbox is
+  empty. Accept/Decline are gated on band editor/admin — the callable refuses anyone else,
+  so a plain member sees the request read-only instead of a button that fails.
+  **Metric:** `resolveSuggestion` outside the service → **1** (was 0); widget tests cover
+  accept, decline, the already-answered state and the read-only member. ✅
 
-- [ ] **E8 — Stale `guestUids` index still live**
-  Superseded by the `eventInvites` design. Removal needs `firebase deploy --force`, which
-  also deletes anything else absent from the file.
-  **Metric:** `gcloud firestore indexes fields list` shows no `guestUids` override — and the
-  force-delete set was diffed **before** running it.
+- [x] **E8 — Stale `guestUids` index still live** *(done 2026-08-22)*
+  Diffed first, as required: live composite indexes matched the repo file **exactly**
+  (10 vs 10, zero drift), so the only thing a `--force` deploy would have removed was this
+  one override. Given that, `--force` was unnecessary — `gcloud firestore indexes fields
+  update guestUids --collection-group=setlists --clear-exemption` removes just this field's
+  exemption and cannot catch anything else in its blast radius. (The flag is
+  `--clear-exemption`, not the `--clear-array-config`/`--clear-order` the docs suggest.)
+  The command's long-running operation outlives a 2-minute client timeout; poll
+  `gcloud firestore operations list` rather than trusting the CLI to return.
+  **Metric:** the `COLLECTION_GROUP CONTAINS` index on `setlists.guestUids` is gone. The
+  field now inherits default single-field indexing from `__default__/fields/*` like any
+  unexempted field — and no document carries `guestUids` any more, so those stay empty. ✅
 
-- [ ] **E9 — `isDemoUserProvider` is permissive while loading**
+- [x] **E9 — `isDemoUserProvider` is permissive while loading** *(decided 2026-08-22)*
   Same class as the tri-state bug, inverted: for a *capability* provider `false` on loading
   denies (safe); for this *restriction* provider `false` permits. Gates 8 places including
   the join button. Pre-existing; the server callables are the real boundary, so it produces
@@ -122,10 +148,36 @@ Each is a scar from a real incident and each has a test that fails loudly.
   **Metric:** a recorded decision (fix or accept, with reasoning) — and if fixed, a test that
   loading does not read as "not demo".
 
-- [ ] **E10 — The `/event` page has never rendered in a browser**
-  Widget tests now cover it; nobody has loaded it. Needs a human or `claude-in-chrome`.
-  **Metric:** a screenshot of the live page plus a clean console, for one venue-scoped link
-  and one edit link.
+- [x] **E10 — The `/event` page has never rendered in a browser** *(done 2026-10-12, with caveats below)*
+  Everything automatable was done on 2026-08-22; the render itself still needs a human,
+  because `claude-in-chrome` is not connected in this environment and headless Chrome
+  renders this app blank (CanvasKit).
+
+  Verified without a browser:
+  - the shell and its assets serve — `/` 200, `main.dart.js` 200 (6.2 MB),
+    `flutter_bootstrap.js` 200, `manifest.json` 200
+  - the **deployed** `getEventView` scopes both link kinds correctly against a throwaway
+    event: the venue link returns titles with **no** `ourKey`/`ourBPM`/`sections`, no
+    `stage`, no `rider`; the engineer link returns `stage` and `rider` and **still** no
+    chart data
+
+  **Done 2026-10-12** against the live app (still the old build; event functions and web
+  build not yet deployed): both links paint. Venue link shows event, line-up, running order
+  and "Suggest a change", with no stage/equipment/chart. Engineer link adds Stage plot and
+  Equipment, still no chart. Scratch fixture torn down, scripts deleted.
+  **Not checked:** the browser console, and claim-and-edit (the engineer page showed no edit
+  controls on the live build). Re-test claim/edit after the next web deploy. Side note: the
+  desktop layout shows the internal FlowGroove Wiki panel next to a guest's event page.
+
+  ```bash
+  cd functions
+  node e10_scratch_event.js     # prints VENUE_LINK= and EDIT_LINK=
+  # open https://app.flowgroove.app/#/event?t=<link> for each
+  node e10_scratch_teardown.js  # deletes e10-scratch-band and its share tokens
+  ```
+
+  The fixture is a throwaway band with no members — it never touches a real setlist. Run
+  the teardown when done; the scratch band is not one of yours and should not linger.
 
 **Separate backlog:** #179 — pre-existing UI-vs-rules parity gaps (Song Lab ungated, tuner
 presets, `storage.rules` letting any authenticated user write band audio).

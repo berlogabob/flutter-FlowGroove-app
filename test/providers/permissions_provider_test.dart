@@ -107,4 +107,69 @@ void main() {
     await settle(c);
     expect(c.read(canEditBandProvider('nope')), isFalse);
   });
+
+  // E9. `isDemoUserProvider` answers false while the user document loads.
+  // That default is right for the six display gates (flipping it flashes
+  // "demo mode" at every real user on every cold start) and wrong for an
+  // action, so the join gate compensates locally instead.
+  group('isDemoUserProvider while the user document is loading', () {
+    ProviderContainer loading() {
+      final c = ProviderContainer(
+        overrides: [
+          appUserProvider.overrideWith(_LoadingAppUserNotifier.new),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('is permissive — the accepted, documented behaviour', () {
+      // Asserted rather than assumed: if this ever flips, the join gate below
+      // becomes redundant and the banner starts flashing, and both should be
+      // reconsidered together.
+      expect(loading().read(isDemoUserProvider), isFalse);
+      expect(loading().read(appUserProvider).isLoading, isTrue);
+    });
+
+    test('the join gate treats "still loading" as demo', () {
+      // The condition `join_band_screen.dart` uses. A wrong "no" costs a retry
+      // a second later; a wrong "yes" is the shared demo account joining
+      // someone's real band.
+      final c = loading();
+      final blocked =
+          c.read(appUserProvider).isLoading || c.read(isDemoUserProvider);
+      expect(blocked, isTrue);
+    });
+
+    test('a loaded real user is not blocked by that gate', () {
+      final c = ProviderContainer(
+        overrides: [
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(user()),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      final blocked =
+          c.read(appUserProvider).isLoading || c.read(isDemoUserProvider);
+      expect(blocked, isFalse);
+    });
+
+    test('a loaded demo user is blocked', () {
+      final c = ProviderContainer(
+        overrides: [
+          appUserProvider.overrideWith(
+            () => TestAppUserNotifier(user(role: 'demo')),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      expect(c.read(isDemoUserProvider), isTrue);
+    });
+  });
+}
+
+class _LoadingAppUserNotifier extends AppUserNotifier {
+  @override
+  AsyncValue<AppUser?> build() => const AsyncValue<AppUser?>.loading();
 }

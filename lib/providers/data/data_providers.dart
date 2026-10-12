@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../../models/band.dart';
 import '../../models/canonical_song.dart';
+import '../../models/event_suggestion.dart';
 import '../../models/rehearsal.dart';
 import '../../models/setlist.dart';
 import '../../services/event_share_service.dart';
@@ -286,6 +287,18 @@ bool? isEventGuestOf(List<Band>? bands, String bandId) {
   if (bands == null) return null;
   return !bands.any((b) => b.id == bandId);
 }
+
+/// Suggestions people made about ONE event, newest first.
+///
+/// Band-side only: the security rules make this subcollection readable by band
+/// members alone. A guest sees their own through `getEventView.mySuggestions`,
+/// because an anonymous link holder has no uid for a rule to match on.
+final setlistSuggestionsProvider = StreamProvider.autoDispose
+    .family<List<EventSuggestion>, (String, String)>((ref, key) {
+      return ref
+          .watch(setlistRepositoryProvider)
+          .watchSetlistSuggestions(key.$1, key.$2);
+    });
 
 /// Callable wrapper for event sharing.
 ///

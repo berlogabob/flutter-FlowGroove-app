@@ -39,6 +39,20 @@ const db = admin.firestore();
 const AREAS = ["eventInfo", "runningOrder", "songDetail", "stage", "rider"];
 const SUGGESTION_TYPES = ["reorder", "add", "remove", "note"];
 
+// A capability URL should not be valid forever — anyone who ever saw the link
+// keeps the access it carries, and links leak through screenshots, chat logs
+// and browser history. W3C "Good Practices for Capability URLs" §2.4.
+const SHARE_TTL_DAYS = 90;
+
+// One anonymous link holder can otherwise fill a band's suggestions
+// subcollection. Per token, not per band: revoking the noisy link is then the
+// whole remedy and nobody else is affected.
+const MAX_SUGGESTIONS_PER_TOKEN = 25;
+
+// getEventView fans out over the event's songs. Firestore's getAll takes them
+// in one round trip, but an unbounded list is still an unbounded response.
+const MAX_EVENT_SONGS = 100;
+
 function cleanString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -264,14 +278,19 @@ async function resolveToken(token) {
   const share = doc.exists ? doc.data() : null;
   const expected = share && share.secretHash ? share.secretHash : "";
   const actual = hash(secret);
+  // Absent expiresAt means a link minted before expiry existed: those keep
+  // working rather than dying silently on deploy day. New ones always carry it.
+  const expired =
+    !!share && !!share.expiresAt && Date.parse(share.expiresAt) <= Date.now();
   const ok =
     share &&
     !share.revoked &&
+    !expired &&
     expected.length === actual.length &&
     crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(actual));
   if (!ok) {
-    // One message for missing, revoked and wrong-secret alike: a link that
-    // distinguishes them is an oracle for guessing valid tokenIds.
+    // One message for missing, revoked, expired and wrong-secret alike: a
+    // link that distinguishes them is an oracle for guessing valid tokenIds.
     throw new functions.https.HttpsError(
       "permission-denied",
       "This link is no longer valid.",
@@ -309,6 +328,10 @@ exports.createEventShare = functions.https.onCall(async (request) => {
 
   const tokenId = crypto.randomUUID();
   const secret = crypto.randomBytes(24).toString("base64url");
+  const now = Date.now();
+  const expiresAt = new Date(
+    now + SHARE_TTL_DAYS * 24 * 60 * 60 * 1000,
+  ).toISOString();
   await db.collection("eventShares").doc(tokenId).set({
     tokenId,
     bandId,
@@ -316,11 +339,15 @@ exports.createEventShare = functions.https.onCall(async (request) => {
     participantId,
     secretHash: hash(secret),
     revoked: false,
+    expiresAt,
+    suggestionCount: 0,
     createdBy: uid,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(now).toISOString(),
   });
 
-  return { tokenId, token: `${tokenId}.${secret}` };
+  // expiresAt is returned so the band can be told when the link dies. The
+  // secret is not stored and is never returned again.
+  return { tokenId, token: `${tokenId}.${secret}`, expiresAt };
 });
 
 /** Revoke one person's link without touching anyone else's. */
@@ -333,6 +360,7 @@ exports.revokeEventShare = functions.https.onCall(async (request) => {
       "tokenId is required.",
     );
   }
+  await refuseDemo(request, "revoke event links");
   const doc = await db.collection("eventShares").doc(tokenId).get();
   if (!doc.exists) return { revoked: true };
   requireBandWriter(await loadBand(doc.data().bandId), uid);
@@ -365,6 +393,9 @@ async function resolveViewer({ token, bandId, setlistId, uid }) {
       canSuggest: person.canSuggest === true,
       name: person.name || "",
       tokenId: share.tokenId,
+      // May be set: a signed-in person can open a link. Both identities are
+      // then used to find the suggestions they made either side of signing in.
+      uid: uid || null,
     };
   }
 
@@ -392,6 +423,7 @@ async function resolveViewer({ token, bandId, setlistId, uid }) {
       access: Object.fromEntries(AREAS.map((a) => [a, "edit"])),
       canSuggest: false,
       isMember: true,
+      uid,
     };
   }
 
@@ -413,6 +445,7 @@ async function resolveViewer({ token, bandId, setlistId, uid }) {
     access: grant.access,
     canSuggest: grant.canSuggest === true,
     name: (person && person.name) || "",
+    uid,
   };
 }
 
@@ -431,6 +464,50 @@ const canView = (access, area) =>
  * rules can get() a known path but cannot scan a collection. Granting a guest
  * the band's songs collection would hand them the entire pool.
  */
+/**
+ * The suggestions this viewer themselves submitted, newest first.
+ *
+ * Identity is the share token for an anonymous holder and the uid for someone
+ * signed in — a claimed link produces both, so a person keeps sight of what
+ * they asked for before signing in. A band member sees the whole inbox through
+ * the subcollection and gets nothing extra here.
+ */
+async function ownSuggestions(viewer) {
+  if (viewer.isMember) return [];
+  const col = setlistRef(viewer.bandId, viewer.setlistId).collection(
+    "suggestions",
+  );
+  const queries = [];
+  if (viewer.tokenId) {
+    queries.push(col.where("shareTokenId", "==", viewer.tokenId).get());
+  }
+  if (viewer.uid) {
+    queries.push(col.where("authorUid", "==", viewer.uid).get());
+  }
+  if (!queries.length) return [];
+  const snaps = await Promise.all(queries);
+  const byId = new Map();
+  for (const snap of snaps) {
+    for (const doc of snap.docs) {
+      const d = doc.data();
+      // Deliberately no authorUid and no shareTokenId: the caller already knows
+      // who they are, and echoing a token back widens where it can leak.
+      byId.set(doc.id, {
+        id: doc.id,
+        type: d.type || "note",
+        songId: d.songId || null,
+        text: d.text || "",
+        status: d.status || "open",
+        createdAt: d.createdAt || null,
+        resolvedAt: d.resolvedAt || null,
+      });
+    }
+  }
+  return [...byId.values()].sort((a, b) =>
+    String(b.createdAt).localeCompare(String(a.createdAt)),
+  );
+}
+
 exports.getEventView = functions.https.onCall(async (request) => {
   const { token, bandId, setlistId } = request.data || {};
   const viewer = await resolveViewer({
@@ -462,17 +539,22 @@ exports.getEventView = functions.https.onCall(async (request) => {
   const items = (setlist.items || []).filter(Boolean);
   let songs = [];
   if (canView(access, "runningOrder")) {
-    const wanted = items.filter((i) => i.type !== "break").map((i) => i.songId);
-    const docs = await Promise.all(
-      wanted.map((id) =>
-        db
-          .collection("bands")
-          .doc(viewer.bandId)
-          .collection("songs")
-          .doc(id)
-          .get(),
-      ),
-    );
+    const all = items
+      .filter((i) => i.type !== "break" && i.songId)
+      .map((i) => i.songId);
+    // Capped and SAID so: a silently short list reads as "the band only has
+    // nine songs" to whoever is holding the running order at the venue.
+    const wanted = all.slice(0, MAX_EVENT_SONGS);
+    view.songsTruncated = all.length > wanted.length;
+    // One round trip for the whole event instead of one per song. getAll
+    // rejects an empty argument list, so guard it.
+    const songsCollection = db
+      .collection("bands")
+      .doc(viewer.bandId)
+      .collection("songs");
+    const docs = wanted.length
+      ? await db.getAll(...wanted.map((id) => songsCollection.doc(id)))
+      : [];
     const full = canView(access, "songDetail");
     songs = docs
       .filter((d) => d.exists)
@@ -505,6 +587,14 @@ exports.getEventView = functions.https.onCall(async (request) => {
     view.songs = songs;
   }
 
+  // The person's OWN suggestions and what the band decided about them.
+  //
+  // The suggestions subcollection is readable only by band members, so without
+  // this "the band decides" is invisible to the person who asked — and an
+  // anonymous link holder has no uid for a security rule to match on at all.
+  // Returning them here is the only path that works for both.
+  view.mySuggestions = await ownSuggestions(viewer);
+
   if (canView(access, "stage")) view.stage = kit.stage || {};
   if (canView(access, "rider")) view.rider = kit.rider || [];
   // The roster is part of event info: who else is on the gig, names and roles
@@ -535,27 +625,41 @@ exports.claimEventShare = functions.https.onCall(async (request) => {
   const uid = requireAuth(request);
   await refuseDemo(request, "join an event");
   const share = await resolveToken(cleanString((request.data || {}).token));
-  const setlist = await loadSetlist(share.bandId, share.setlistId);
-  const people = (setlist.eventKit && setlist.eventKit.people) || [];
-  const index = people.findIndex((p) => p && p.id === share.participantId);
-  if (index < 0) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "This link is no longer valid.",
-    );
-  }
+  const ref = setlistRef(share.bandId, share.setlistId);
 
-  const claimedBy = cleanString(people[index].uid);
-  if (claimedBy && claimedBy !== uid) {
-    throw new functions.https.HttpsError(
-      "permission-denied",
-      "This link has already been claimed by someone else.",
-    );
-  }
-
-  const next = people.slice();
-  next[index] = { ...people[index], uid };
-  await writeRoster(share.bandId, share.setlistId, next);
+  // Read-check-write in one transaction so two people opening the same link
+  // cannot both pass the "unclaimed" check (last write used to win).
+  const { next, index, setlist } = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) {
+      throw new functions.https.HttpsError("not-found", "Event not found.");
+    }
+    const data = snap.data();
+    const people = (data.eventKit && data.eventKit.people) || [];
+    const i = people.findIndex((p) => p && p.id === share.participantId);
+    if (i < 0) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "This link is no longer valid.",
+      );
+    }
+    const claimedBy = cleanString(people[i].uid);
+    if (claimedBy && claimedBy !== uid) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "This link has already been claimed by someone else.",
+      );
+    }
+    const n = people.slice();
+    n[i] = { ...people[i], uid };
+    const clean = n.map((p) => ({ ...p, access: sanitizeAccess(p.access) }));
+    tx.update(ref, {
+      "eventKit.people": clean,
+      updatedAt: new Date().toISOString(),
+    });
+    return { next: clean, index: i, setlist: data };
+  });
+  await writeGrants(share.bandId, share.setlistId, next, setlist);
 
   return {
     bandId: share.bandId,
@@ -605,6 +709,25 @@ exports.submitSuggestion = functions.https.onCall(async (request) => {
       "invalid-argument",
       "A note needs some text.",
     );
+  }
+
+  // Per-token cap. Members are not counted: they are already trusted to write
+  // the setlist directly, so a limit on them would only be theatre. The counter
+  // lives on the share document and is bumped in the same transaction that
+  // checks it, so two concurrent submissions cannot both slip past the cap.
+  if (viewer.tokenId) {
+    const shareRef = db.collection("eventShares").doc(viewer.tokenId);
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(shareRef);
+      const used = (snap.exists && snap.data().suggestionCount) || 0;
+      if (used >= MAX_SUGGESTIONS_PER_TOKEN) {
+        throw new functions.https.HttpsError(
+          "resource-exhausted",
+          "This link has reached its suggestion limit.",
+        );
+      }
+      tx.update(shareRef, { suggestionCount: used + 1 });
+    });
   }
 
   const id = crypto.randomUUID();
@@ -798,3 +921,6 @@ exports.loadGrant = loadGrant;
 exports.syncEventGrants = syncEventGrants;
 exports.sanitizeAccess = sanitizeAccess;
 exports.AREAS = AREAS;
+exports.MAX_EVENT_SONGS = MAX_EVENT_SONGS;
+exports.MAX_SUGGESTIONS_PER_TOKEN = MAX_SUGGESTIONS_PER_TOKEN;
+exports.SHARE_TTL_DAYS = SHARE_TTL_DAYS;

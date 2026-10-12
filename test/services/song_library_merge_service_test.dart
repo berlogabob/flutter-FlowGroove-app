@@ -4,6 +4,7 @@
 // songIds is a no-op for a setlist that already has items, because
 // Setlist.toJson()/effectiveItems prefer items over songIds.
 
+import 'package:flowgroove/models/event_suggestion.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/repositories/setlist_repository.dart';
@@ -98,6 +99,21 @@ class _FakeSetlistRepository implements SetlistRepository {
 
   @override
   Stream<List<Setlist>> watchGuestEvents(String uid) => const Stream.empty();
+
+  @override
+  Stream<List<EventSuggestion>> watchSetlistSuggestions(
+    String bandId,
+    String setlistId,
+  ) => const Stream.empty();
+
+  @override
+  Future<void> updateEventKitArea({
+    required String setlistId,
+    required String area,
+    required Object? value,
+    String? bandId,
+    String? uid,
+  }) async {}
 }
 
 void main() {

@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../models/api_error.dart';
+import '../models/event_suggestion.dart';
+import 'firestore_timeout.dart';
 import '../models/setlist.dart';
 import '../services/analytics_service.dart';
 import 'setlist_repository.dart';
@@ -39,17 +41,28 @@ class FirestoreSetlistRepository implements SetlistRepository {
       final userId = uid ?? _currentUserId;
       _requireAuth();
 
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('setlists')
-          .doc(setlist.id)
-          // merge + toJsonForSave: this is the twin of
-          // FirestoreService.saveSetlist and MUST stay in step with it. A
-          // replacing set() here deletes any field this build does not know
-          // about — which is exactly how a setlist's event grants were wiped on
-          // 2026-08-21 by an older client saving normally.
-          .set(setlist.toJsonForSave(), SetOptions(merge: true));
+      await withFirestoreTimeout(
+        'saveSetlist ${setlist.id}',
+        () => _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('setlists')
+            .doc(setlist.id)
+            // merge + toJsonForSave: a replacing set() here deletes any field
+            // this build does not know about — which is exactly how a
+            // setlist's event grants were wiped on 2026-08-21 by an older
+            // client saving normally.
+            .set(setlist.toJsonForSave(), SetOptions(merge: true)),
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to save this setlist.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -61,13 +74,25 @@ class FirestoreSetlistRepository implements SetlistRepository {
       final userId = uid ?? _currentUserId;
       _requireAuth();
 
-      await _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('setlists')
-          .doc(setlistId)
-          .delete();
+      await withFirestoreTimeout(
+        'deleteSetlist $setlistId',
+        () => _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('setlists')
+            .doc(setlistId)
+            .delete(),
+      );
       unawaited(AnalyticsService.logSetlistDeleted(setlistId: setlistId));
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to delete this setlist.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -83,22 +108,16 @@ class FirestoreSetlistRepository implements SetlistRepository {
           .snapshots()
           .map((snapshot) {
             try {
-              return snapshot.docs.map((doc) {
+              return snapshot.docs.map<Setlist?>((doc) {
                 try {
                   return Setlist.fromJson(doc.data());
                 } catch (e) {
+                  // Skip it rather than fabricate an empty, editable setlist:
+                  // saving that placeholder would overwrite the real data.
                   debugPrint('❌ Failed to parse setlist ${doc.id}: $e');
-                  final data = doc.data();
-                  return Setlist(
-                    id: doc.id,
-                    bandId: '',
-                    name: (data['name'] as String?) ?? 'Unknown',
-                    description: 'Parse error: $e',
-                    createdAt: DateTime.now(),
-                    updatedAt: DateTime.now(),
-                  );
+                  return null;
                 }
-              })
+              }).whereType<Setlist>()
                   // Personal list only: hide band setlists that were
                   // mis-saved into this collection (they carry a bandId and
                   // their band-copy song ids read as all-"Unavailable" here).
@@ -124,16 +143,28 @@ class FirestoreSetlistRepository implements SetlistRepository {
     try {
       _requireAuth();
 
-      await _firestore
-          .collection('bands')
-          .doc(bandId)
-          .collection('setlists')
-          .doc(setlist.id)
-          // merge: see saveSetlist above. Never a replacing set().
-          .set(
-            setlist.copyWith(bandId: bandId).toJsonForSave(),
-            SetOptions(merge: true),
-          );
+      await withFirestoreTimeout(
+        'saveBandSetlist ${setlist.id} in band $bandId',
+        () => _firestore
+            .collection('bands')
+            .doc(bandId)
+            .collection('setlists')
+            .doc(setlist.id)
+            // merge: see saveSetlist above. Never a replacing set().
+            .set(
+              setlist.copyWith(bandId: bandId).toJsonForSave(),
+              SetOptions(merge: true),
+            ),
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to save this band setlist.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -144,13 +175,71 @@ class FirestoreSetlistRepository implements SetlistRepository {
     try {
       _requireAuth();
 
-      await _firestore
-          .collection('bands')
-          .doc(bandId)
-          .collection('setlists')
-          .doc(setlistId)
-          .delete();
+      await withFirestoreTimeout(
+        'deleteBandSetlist $setlistId in band $bandId',
+        () => _firestore
+            .collection('bands')
+            .doc(bandId)
+            .collection('setlists')
+            .doc(setlistId)
+            .delete(),
+      );
       unawaited(AnalyticsService.logSetlistDeleted(setlistId: setlistId));
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to delete this band setlist.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    } catch (e, stackTrace) {
+      throw ApiError.fromException(e, stackTrace: stackTrace);
+    }
+  }
+
+  @override
+  Future<void> updateEventKitArea({
+    required String setlistId,
+    required String area,
+    required Object? value,
+    String? bandId,
+    String? uid,
+  }) async {
+    assert(
+      area == 'stage' || area == 'rider' || area == 'people',
+      'unknown event kit area "$area"',
+    );
+    try {
+      _requireAuth();
+      final doc = bandId != null
+          ? _firestore
+                .collection('bands')
+                .doc(bandId)
+                .collection('setlists')
+                .doc(setlistId)
+          : _firestore
+                .collection('users')
+                .doc(uid ?? _currentUserId)
+                .collection('setlists')
+                .doc(setlistId);
+      await withFirestoreTimeout(
+        'updateEventKitArea $area on $setlistId',
+        () => doc.update({
+          'eventKit.$area': value,
+          'updatedAt': DateTime.now().toIso8601String(),
+        }),
+      );
+    } on FirebaseException catch (e, stackTrace) {
+      if (e.code == 'permission-denied') {
+        throw ApiError.permission(
+          message: 'You do not have permission to change the $area.',
+          exception: e,
+          stackTrace: stackTrace,
+        );
+      }
+      throw ApiError.fromException(e, stackTrace: stackTrace);
     } catch (e, stackTrace) {
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
@@ -166,23 +255,16 @@ class FirestoreSetlistRepository implements SetlistRepository {
           .snapshots()
           .map((snapshot) {
             try {
-              return snapshot.docs.map((doc) {
+              return snapshot.docs.map<Setlist?>((doc) {
                 try {
                   final data = doc.data();
                   return Setlist.fromJson({...data, 'id': doc.id});
                 } catch (e) {
+                  // Skip, don't fabricate an editable placeholder (see above).
                   debugPrint('❌ Failed to parse band setlist ${doc.id}: $e');
-                  final data = doc.data();
-                  return Setlist(
-                    id: doc.id,
-                    bandId: bandId,
-                    name: (data['name'] as String?) ?? 'Unknown',
-                    description: 'Parse error: $e',
-                    createdAt: DateTime.now(),
-                    updatedAt: DateTime.now(),
-                  );
+                  return null;
                 }
-              }).toList();
+              }).whereType<Setlist>().toList();
             } catch (e) {
               debugPrint('❌ Failed to map band setlists snapshot: $e');
               return <Setlist>[];
@@ -251,6 +333,40 @@ class FirestoreSetlistRepository implements SetlistRepository {
       debugPrint('❌ watchGuestEvents exception: $e');
       throw ApiError.fromException(e, stackTrace: stackTrace);
     }
+  }
+
+  @override
+  Stream<List<EventSuggestion>> watchSetlistSuggestions(
+    String bandId,
+    String setlistId,
+  ) {
+    return _firestore
+        .collection('bands')
+        .doc(bandId)
+        .collection('setlists')
+        .doc(setlistId)
+        .collection('suggestions')
+        .snapshots()
+        .map((snap) {
+          final all = [
+            for (final doc in snap.docs)
+              EventSuggestion.fromJson(doc.data(), id: doc.id),
+          ];
+          all.sort((a, b) {
+            // Open first — the inbox exists to be emptied — then newest.
+            if (a.isOpen != b.isOpen) return a.isOpen ? -1 : 1;
+            final at = a.createdAt, bt = b.createdAt;
+            if (at == null || bt == null) return 0;
+            return bt.compareTo(at);
+          });
+          return all;
+        })
+        // A non-member reaching this gets permission-denied. An empty inbox is
+        // the honest answer rather than an error banner over a screen whose
+        // real content loaded fine.
+        .handleError((Object error, StackTrace stackTrace) {
+          debugPrint('❌ suggestions stream error: $error');
+        });
   }
 
   Stream<List<Setlist>> _withInitialTimeout(Stream<List<Setlist>> source) {

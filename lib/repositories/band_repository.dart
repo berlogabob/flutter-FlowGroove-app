@@ -22,6 +22,12 @@ abstract class BandRepository {
   /// Saves a band to the global 'bands' collection.
   Future<void> saveBandToGlobal(Band band);
 
+  /// Writes a band to BOTH the global `bands/{id}` collection and the user's
+  /// `users/{uid}/bands/{id}` reference in a single atomic batch (one round
+  /// trip) instead of two sequential `set` calls — used on band create/edit.
+  Future<void> saveBandBatch(Band band, {String? uid});
+
+
   /// Gets a band by invite code from global collection.
   Future<Band?> getBandByInviteCode(String code);
 

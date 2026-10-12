@@ -10,13 +10,14 @@ import 'package:firebase_auth/firebase_auth.dart' as _i3;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart'
     as _i2;
 import 'package:flowgroove/models/band.dart' as _i8;
+import 'package:flowgroove/models/event_suggestion.dart' as _i11;
 import 'package:flowgroove/models/setlist.dart' as _i10;
 import 'package:flowgroove/models/song.dart' as _i6;
 import 'package:flowgroove/repositories/band_repository.dart' as _i7;
 import 'package:flowgroove/repositories/setlist_repository.dart' as _i9;
 import 'package:flowgroove/repositories/song_repository.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i11;
+import 'package:mockito/src/dummies.dart' as _i12;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -251,6 +252,15 @@ class MockBandRepository extends _i1.Mock implements _i7.BandRepository {
           as _i5.Future<void>);
 
   @override
+  _i5.Future<void> saveBandBatch(_i8.Band? band, {String? uid}) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveBandBatch, [band], {#uid: uid}),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   _i5.Future<_i8.Band?> getBandByInviteCode(String? code) =>
       (super.noSuchMethod(
             Invocation.method(#getBandByInviteCode, [code]),
@@ -338,6 +348,27 @@ class MockSetlistRepository extends _i1.Mock implements _i9.SetlistRepository {
           as _i5.Future<void>);
 
   @override
+  _i5.Future<void> updateEventKitArea({
+    required String? setlistId,
+    required String? area,
+    required Object? value,
+    String? bandId,
+    String? uid,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateEventKitArea, [], {
+              #setlistId: setlistId,
+              #area: area,
+              #value: value,
+              #bandId: bandId,
+              #uid: uid,
+            }),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   _i5.Stream<List<_i10.Setlist>> watchBandSetlists(String? bandId) =>
       (super.noSuchMethod(
             Invocation.method(#watchBandSetlists, [bandId]),
@@ -352,6 +383,17 @@ class MockSetlistRepository extends _i1.Mock implements _i9.SetlistRepository {
             returnValue: _i5.Stream<List<_i10.Setlist>>.empty(),
           )
           as _i5.Stream<List<_i10.Setlist>>);
+
+  @override
+  _i5.Stream<List<_i11.EventSuggestion>> watchSetlistSuggestions(
+    String? bandId,
+    String? setlistId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#watchSetlistSuggestions, [bandId, setlistId]),
+            returnValue: _i5.Stream<List<_i11.EventSuggestion>>.empty(),
+          )
+          as _i5.Stream<List<_i11.EventSuggestion>>);
 }
 
 /// A class which mocks [User].
@@ -395,7 +437,7 @@ class MockUser extends _i1.Mock implements _i3.User {
   String get uid =>
       (super.noSuchMethod(
             Invocation.getter(#uid),
-            returnValue: _i11.dummyValue<String>(this, Invocation.getter(#uid)),
+            returnValue: _i12.dummyValue<String>(this, Invocation.getter(#uid)),
           )
           as String);
 

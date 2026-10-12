@@ -16,6 +16,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../utils/snackbar.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/event_suggestions_inbox.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/setlist_break_row.dart';
@@ -67,6 +68,9 @@ class SetlistViewScreen extends ConsumerWidget {
     final eventPerms = bandId == null
         ? null
         : ref.watch(eventPermissionsProvider((bandId!, setlist.id)));
+    // Loading is the third answer: treat unknown as "not a member" so the
+    // inbox does not flash a members-only query for a guest on every open.
+    final isMember = bandId == null || (eventPerms?.isMember ?? false);
     final canOpenEventKit = bandId == null
         ? canEdit
         : (eventPerms?.isMember ?? false) ||
@@ -153,13 +157,23 @@ class SetlistViewScreen extends ConsumerWidget {
         body: SafeArea(
           bottom: false,
           child: songsAsync.when(
-            data: (songs) =>
-                _buildBody(context, liveSetlist, songs, canEdit: canEdit),
+            data: (songs) => _buildBody(
+              context,
+              liveSetlist,
+              songs,
+              canEdit: canEdit,
+              isMember: isMember,
+            ),
             loading: () => const LoadingIndicator(),
             // A failed songs load shouldn't block the setlist details from
             // showing; song rows just fall back to "unavailable".
-            error: (_, _) =>
-                _buildBody(context, liveSetlist, const [], canEdit: canEdit),
+            error: (_, _) => _buildBody(
+              context,
+              liveSetlist,
+              const [],
+              canEdit: canEdit,
+              isMember: isMember,
+            ),
           ),
         ),
       ),
@@ -191,15 +205,32 @@ class SetlistViewScreen extends ConsumerWidget {
     Setlist setlist,
     List<Song> allSongs, {
     required bool canEdit,
+    required bool isMember,
   }) {
     final songsById = {for (final song in allSongs) song.id: song};
     final items = setlist.effectiveItems;
     final lineup = peopleById(setlist.eventKit?.people ?? const []);
 
+    // What guests asked for. Band-side only — the rules make the subcollection
+    // members-only, and a guest sees their own through the event payload. It
+    // renders nothing when there is nothing to answer.
+    final inbox = bandId != null && isMember
+        ? EventSuggestionsInbox(
+            bandId: bandId!,
+            setlistId: setlist.id,
+            canResolve: canEdit,
+          )
+        : const SizedBox.shrink();
+
     if (items.isEmpty && (setlist.eventKit?.isEmpty ?? true)) {
-      return const EmptyState(
-        icon: Icons.music_note,
-        message: 'No songs in this setlist',
+      return ListView(
+        padding: const EdgeInsets.all(MonoPulseSpacing.lg),
+        children: const [
+          EmptyState(
+            icon: Icons.music_note,
+            message: 'No songs in this setlist',
+          ),
+        ],
       );
     }
 
@@ -218,9 +249,11 @@ class SetlistViewScreen extends ConsumerWidget {
 
     return ListView.builder(
       padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-      itemCount: items.length,
+      // One extra leading row for the requests inbox.
+      itemCount: items.length + 1,
       itemBuilder: (context, index) {
-        final item = items[index];
+        if (index == 0) return inbox;
+        final item = items[index - 1];
         if (item.isBreak) {
           return SetlistBreakRow(
             breakType: item.breakType,
@@ -229,7 +262,7 @@ class SetlistViewScreen extends ConsumerWidget {
         }
         final song = songsById[item.songId];
         return SetlistSongRow(
-          index: numbers[index],
+          index: numbers[index - 1],
           song: song,
           performers: performerLabel(item.performerIds, lineup),
           trailing: song == null ? null : _badgesFor(song),

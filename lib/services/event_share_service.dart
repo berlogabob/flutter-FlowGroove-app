@@ -4,6 +4,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 import '../models/event_access.dart';
 import '../models/event_kit.dart';
+import '../models/event_suggestion.dart';
 import '../models/section.dart';
 import '../models/setlist.dart';
 import '../models/song.dart';
@@ -98,6 +99,7 @@ class EventView {
     this.people = const [],
     this.stage,
     this.rider,
+    this.mySuggestions = const [],
   });
 
   factory EventView.fromMap(Map<String, dynamic> map) {
@@ -119,6 +121,10 @@ class EventView {
       people: _list(map['people']),
       stage: map.containsKey('stage') ? _map(map['stage']) : null,
       rider: map.containsKey('rider') ? _list(map['rider']) : null,
+      mySuggestions: [
+        for (final raw in _list(map['mySuggestions']))
+          EventSuggestion.fromJson(raw),
+      ],
     );
   }
 
@@ -148,6 +154,14 @@ class EventView {
   final Map<String, dynamic>? stage;
   final List<Map<String, dynamic>>? rider;
 
+  /// What THIS viewer asked for, and what the band decided.
+  ///
+  /// Comes back on the payload rather than from the suggestions subcollection:
+  /// that collection is members-only, and an anonymous link holder has no uid
+  /// for a security rule to match on. Without it "the band decides" is
+  /// invisible to the person who asked.
+  final List<EventSuggestion> mySuggestions;
+
   bool canSee(String area) => canViewArea(access, area);
   bool canChange(String area) => canEditArea(access, area);
 
@@ -168,11 +182,22 @@ class EventView {
 /// cannot express "only the songs in this setlist" — rules can get() a known
 /// path but cannot scan a collection, so granting a guest the band's songs
 /// collection would hand them the whole pool.
-class EventShareService {
-  EventShareService({FirebaseFunctions? functions})
-    : _functions = functions ?? FirebaseFunctions.instance;
+/// How a callable actually gets invoked. The one seam between these wrappers
+/// and Firebase, so a test can assert the name and the arguments a wrapper
+/// sends without standing up a mock of the whole Functions SDK.
+typedef CallableInvoker =
+    Future<Map<String, dynamic>> Function(String name, Map<String, dynamic> args);
 
-  final FirebaseFunctions _functions;
+class EventShareService {
+  EventShareService({FirebaseFunctions? functions, CallableInvoker? invoker})
+    : _functions = functions,
+      _invoker = invoker;
+
+  // Resolved on first use, not in the initializer: touching
+  // FirebaseFunctions.instance needs an initialized Firebase app, which a unit
+  // test supplying its own invoker has no reason to stand up.
+  final FirebaseFunctions? _functions;
+  final CallableInvoker? _invoker;
 
   static final _options = HttpsCallableOptions(
     timeout: const Duration(seconds: 30),
@@ -182,12 +207,19 @@ class EventShareService {
     String name,
     Map<String, dynamic> args,
   ) async {
-    final result = await _functions
+    // Nulls are stripped rather than sent: the callables treat a missing key
+    // and an explicit null differently (token vs bandId/setlistId identify the
+    // caller), so sending `token: null` alongside a bandId is not the same
+    // request as sending no token at all.
+    final payload = {
+      for (final e in args.entries)
+        if (e.value != null) e.key: e.value,
+    };
+    final invoker = _invoker;
+    if (invoker != null) return invoker(name, payload);
+    final result = await (_functions ?? FirebaseFunctions.instance)
         .httpsCallable(name, options: _options)
-        .call<Map<String, dynamic>>({
-          for (final e in args.entries)
-            if (e.value != null) e.key: e.value,
-        });
+        .call<Map<String, dynamic>>(payload);
     return Map<String, dynamic>.from(result.data);
   }
 

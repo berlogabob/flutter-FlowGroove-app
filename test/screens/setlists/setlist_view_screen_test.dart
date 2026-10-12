@@ -1,4 +1,5 @@
 import 'package:flowgroove/models/band.dart';
+import 'package:flowgroove/models/event_suggestion.dart';
 import 'package:flowgroove/models/setlist.dart';
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
@@ -159,6 +160,11 @@ void main() {
           ),
           bandSetlistsProvider.overrideWith(
             (ref, id) => Stream<List<Setlist>>.value([setlist]),
+          ),
+          // Same reason: the band-side requests inbox reads the setlist's
+          // suggestions subcollection through the repository.
+          setlistSuggestionsProvider.overrideWith(
+            (ref, key) => Stream<List<EventSuggestion>>.value(const []),
           ),
           setlistsProvider.overrideWith(
             (ref) => Stream<List<Setlist>>.value([setlist]),
