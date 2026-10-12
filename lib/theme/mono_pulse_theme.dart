@@ -601,6 +601,18 @@ class MonoPulseTheme {
   }
 
   static ThemeData _build(MonoPulsePalette p, Brightness brightness) {
+    // google_fonts 9 builds on material_ui's TextTheme, which is a different
+    // type from this SDK's, so interTextTheme() no longer type-checks. Kick off
+    // the same per-weight Inter loads directly instead; every slot below is
+    // overridden with a MonoPulse style anyway.
+    for (final w in const [
+      FontWeight.w400,
+      FontWeight.w500,
+      FontWeight.w600,
+      FontWeight.w700,
+    ]) {
+      GoogleFonts.inter(fontWeight: w);
+    }
     final dark = brightness == Brightness.dark;
     // White-based hover reads on dark; flip to black-based on light.
     final hover = dark ? MonoPulseColors.stateHover : const Color(0x0A000000);
@@ -817,7 +829,13 @@ class MonoPulseTheme {
       // Base text theme loads/registers the Inter family at runtime
       // (google_fonts), then we override slots with our const MonoPulse
       // styles (fontFamily: 'Inter').
-      textTheme: GoogleFonts.interTextTheme(const TextTheme()).copyWith(
+      textTheme: TextTheme(
+        // Slots the MonoPulse set does not define: Inter regular, exactly what
+        // GoogleFonts.interTextTheme() used to fill in (v8).
+        displaySmall: GoogleFonts.inter(),
+        titleLarge: GoogleFonts.inter(),
+        titleMedium: GoogleFonts.inter(),
+        titleSmall: GoogleFonts.inter(),
         displayLarge: MonoPulseTypography.displayLarge,
         displayMedium: MonoPulseTypography.displayMedium,
         headlineLarge: MonoPulseTypography.headlineLarge,
