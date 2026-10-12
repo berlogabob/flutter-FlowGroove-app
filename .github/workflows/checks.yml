@@ -63,6 +63,7 @@ jobs:
 
   firebase-emulator-checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
 
     steps:
       - name: Checkout
