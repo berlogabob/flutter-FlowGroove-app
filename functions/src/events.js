@@ -113,7 +113,7 @@ function sanitizeAccess(access) {
 function grantedParticipants(people) {
   return (people || [])
     .filter((p) => p && cleanString(p.uid))
-    .map((p) => ({ ...p, access: sanitizeAccess(p.access) }))
+    .map((p) => ({ ...p, uid: cleanString(p.uid), access: sanitizeAccess(p.access) }))
     .filter((p) => Object.keys(p.access).length > 0);
 }
 
@@ -549,6 +549,7 @@ exports.getEventView = functions.https.onCall(async (request) => {
   const { setlist, access } = viewer;
   const kit = setlist.eventKit || {};
   const view = {
+    ...viewer.scope,
     setlistId: viewer.setlistId,
     name: setlist.name || "",
     viewer: {
@@ -810,12 +811,15 @@ exports.resolveSuggestion = functions.https.onCall(async (request) => {
 /**
  * Core of the setlist trigger, injectable for tests.
  *
- * Two jobs, both invisible until they bite:
+ * Keep roster access, invite details and deletion in sync:
  *
  *  DELETE — Firestore does not cascade. Deleting a setlist leaves its `grants`
  *  subcollection and every `users/{uid}/eventInvites/{setlistId}` behind. The
  *  guest keeps seeing a phantom event, and an orphaned grant would silently
  *  authorise anyone if that setlist id were ever reused.
+ *
+ *  ROSTER — explicit uid/access changes rewrite grants and remove revoked
+ *  guests from the invite index. Derived writes never touch the setlist.
  *
  *  UPDATE — the invite index carries a snapshot of the event's name, date and
  *  venue so a guest's list needs no access to the band's collection. Written
@@ -823,6 +827,29 @@ exports.resolveSuggestion = functions.https.onCall(async (request) => {
  *  gig — and a guest reading yesterday's call time is the worst kind of stale.
  */
 async function syncEventGrants(scope, setlistId, { before, after }) {
+  // Missing people is an old-app payload, not an explicit roster removal.
+  const roster = (people) => JSON.stringify(
+    grantedParticipants(people)
+      .map((p) => ({
+        uid: p.uid,
+        access: Object.fromEntries(
+          Object.entries(p.access).sort(([a], [b]) => a.localeCompare(b)),
+        ),
+      }))
+      .sort((a, b) => a.uid.localeCompare(b.uid)),
+  );
+  const people = after && after.eventKit && after.eventKit.people;
+  if (Array.isArray(people) &&
+      roster(people) !== roster(before && before.eventKit && before.eventKit.people)) {
+    const existing = await setlistRef(scope, setlistId).collection("grants").get();
+    const granted = await writeGrants(scope, setlistId, people, after);
+    const wanted = new Set(granted.map((p) => p.uid));
+    return {
+      deleted: existing.docs.filter((doc) => !wanted.has(doc.id)).length,
+      refreshed: granted.length,
+    };
+  }
+
   const grantsCol = setlistRef(scope, setlistId).collection("grants");
   const grants = await grantsCol.get();
   if (grants.empty) return { deleted: 0, refreshed: 0 };

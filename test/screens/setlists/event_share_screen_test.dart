@@ -6,16 +6,20 @@
 // venue gets titles and no chart data. Asserting only that a performer CAN see
 // chords would pass just as well with the scoping removed entirely.
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flowgroove/models/event_access.dart';
 import 'package:flowgroove/models/setlist.dart';
-import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/screens/setlists/event_kit_editor_screen.dart';
 import 'package:flowgroove/screens/setlists/event_share_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+
+import '../../helpers/mocks.mocks.dart';
 
 EventView _view({
   required Map<String, String> access,
@@ -99,6 +103,56 @@ void main() {
       'text': 'Encore please',
     });
   });
+
+  testWidgets(
+    'signed-in token recipient claims and opens the personal event kit',
+    (tester) async {
+      final user = MockUser();
+      when(user.uid).thenReturn('guest');
+      final calls = <String>[];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            currentUserProvider.overrideWithValue(AsyncValue<User?>.data(user)),
+            eventShareServiceProvider.overrideWithValue(
+              EventShareService(
+                invoker: (name, args) async {
+                  calls.add(name);
+                  expect(args, {'token': 'personal-token'});
+                  return {
+                    'ownerUid': 'owner',
+                    'setlistId': 'sl1',
+                    'name': 'Personal gig',
+                    'viewer': {
+                      'access': {'stage': 'edit'},
+                    },
+                    'stage': <String, dynamic>{},
+                    'access': {'stage': 'edit'},
+                  };
+                },
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: EventShareScreen(token: 'personal-token'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Event kit'), findsOneWidget);
+      await tester.tap(find.byTooltip('Event kit'));
+      await tester.pumpAndSettle();
+      expect(calls, ['getEventView', 'claimEventShare']);
+      final editor = tester.widget<EventKitEditorScreen>(
+        find.byType(EventKitEditorScreen),
+      );
+      expect(editor.ownerUid, 'owner');
+      expect(editor.setlist.ownerUid, 'owner');
+      expect(editor.bandId, isNull);
+      expect(editor.access, {'stage': 'edit'});
+      expect(editor.isMember, isFalse);
+    },
+  );
 
   test(
     'personal scoped setlist preserves ownerUid through JSON and copyWith',

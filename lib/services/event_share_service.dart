@@ -95,6 +95,8 @@ class EventView {
     required this.name,
     required this.access,
     required this.canSuggest,
+    this.bandId,
+    this.ownerUid,
     this.viewerName = '',
     this.eventDateTime,
     this.eventLocation,
@@ -110,6 +112,8 @@ class EventView {
   factory EventView.fromMap(Map<String, dynamic> map) {
     final viewer = _map(map['viewer']);
     return EventView(
+      bandId: map['bandId'] as String?,
+      ownerUid: map['ownerUid'] as String?,
       setlistId: map['setlistId'] as String? ?? '',
       name: map['name'] as String? ?? '',
       access: sanitizeAccess({
@@ -133,6 +137,8 @@ class EventView {
     );
   }
 
+  final String? bandId;
+  final String? ownerUid;
   final String setlistId;
   final String name;
 

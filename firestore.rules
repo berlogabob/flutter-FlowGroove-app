@@ -151,9 +151,18 @@ service cloud.firestore {
 
     /// Granted `level` on `area` for this event, e.g. ('stage', 'edit').
     function hasEventArea(bandId, setlistId, area, level) {
-      return isAuthenticated() &&
-        exists(grantPath(bandId, setlistId)) &&
-        get(grantPath(bandId, setlistId)).data.get('access', {}).get(area, '') == level;
+      return hasGrantedArea(grantPath(bandId, setlistId), area, level);
+    }
+
+    function hasGrantedArea(path, area, level) {
+      return isAuthenticated() && exists(path) &&
+        get(path).data.get('access', {}).get(area, '') == level;
+    }
+
+    function hasPersonalEventArea(userId, setlistId, area, level) {
+      return hasGrantedArea(
+        /databases/$(database)/documents/users/$(userId)/setlists/$(setlistId)/grants/$(request.auth.uid),
+        area, level);
     }
 
     /// A member's write either leaves the event kit untouched, or changes it
@@ -553,6 +562,16 @@ service cloud.firestore {
       match /setlists/{setlistId} {
         allow read: if isAuthenticated() && isOwner(userId);
         allow write, delete: if isAuthenticated() && isOwner(userId) && isNotDemo(userId);
+
+        allow update: if isAuthenticated() && isNotDemo(request.auth.uid) &&
+          touchesOnlyEventKit() && (
+            (hasPersonalEventArea(userId, setlistId, 'stage', 'edit') && touchesOnlyArea('stage')) ||
+            (hasPersonalEventArea(userId, setlistId, 'rider', 'edit') && touchesOnlyArea('rider'))
+          );
+        allow update: if isAuthenticated() && isNotDemo(request.auth.uid) &&
+          (hasPersonalEventArea(userId, setlistId, 'runningOrder', 'edit') ||
+            hasPersonalEventArea(userId, setlistId, 'eventInfo', 'edit')) &&
+          touchesOnlyEventFields();
 
         match /grants/{grantUid} {
           allow read: if isAuthenticated() && request.auth.uid == grantUid;

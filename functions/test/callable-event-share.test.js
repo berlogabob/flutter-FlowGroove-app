@@ -161,6 +161,8 @@ describe("event sharing callables", function () {
       assert.equal(share.ownerUid, ownerUid);
       assert.equal(share.bandId, undefined);
       const anonymous = await call(events.getEventView)(req({ token, bandId: BAND }));
+      assert.equal(anonymous.ownerUid, ownerUid);
+      assert.equal(anonymous.bandId, undefined);
       assert.equal(anonymous.songs[0].title, "Personal song");
       assert.equal(anonymous.stage, undefined);
       assert.equal(anonymous.rider, undefined);
@@ -372,6 +374,75 @@ describe("event sharing callables", function () {
       assert.deepEqual(out, { deleted: 0, refreshed: 0 });
     });
   });
+
+  for (const scope of [{ bandId: BAND }, { ownerUid: "roster-owner" }]) {
+    describe(`roster reconciliation (${scope.bandId ? "band" : "personal"})`, () => {
+      const path = scope.bandId
+        ? `bands/${BAND}/setlists/${SETLIST}`
+        : `users/${scope.ownerUid}/setlists/${SETLIST}`;
+      const guest = { id: "p-eng", uid: "eng", access: { stage: "edit", rider: "view" } };
+      let before;
+      beforeEach(async () => {
+        await db.recursiveDelete(db.doc(path));
+        before = { name: "Gig", eventKit: { people: [guest], stage: {}, rider: [] } };
+        await db.doc(path).set(before);
+        await events.writeGrants(scope, SETLIST, [guest], before);
+      });
+      const trigger = async (after) => {
+        const old = await db.doc(path).get();
+        await db.doc(path).set(after);
+        const next = await db.doc(path).get();
+        await call(scope.bandId ? events.onBandSetlistWritten : events.onUserSetlistWritten)(
+          { before: old, after: next }, { params: { ...scope, setlistId: SETLIST } },
+        );
+      };
+
+      it("removes both grant and invite when the guest is removed", async () => {
+        await trigger({ ...before, eventKit: { ...before.eventKit, people: [] } });
+        assert.equal((await db.doc(`${path}/grants/eng`).get()).exists, false);
+        assert.equal((await db.doc(`users/eng/eventInvites/${SETLIST}`).get()).exists, false);
+      });
+
+      it("drops an area from getEventView when access is lowered, and is repeatable", async () => {
+        assert.ok((await call(events.getEventView)(req({ ...scope, setlistId: SETLIST }, "eng"))).rider);
+        const after = { ...before, eventKit: { ...before.eventKit,
+          people: [{ ...guest, access: { stage: "view" } }],
+        } };
+        await trigger(after);
+        // A claim writes grants before this same trigger runs: replay is safe.
+        await events.syncEventGrants(scope, SETLIST, { before, after });
+        const view = await call(events.getEventView)(req({ ...scope, setlistId: SETLIST }, "eng"));
+        assert.equal(view.rider, undefined);
+        assert.equal(view.viewer.access.stage, "view");
+        assert.deepEqual((await db.doc(path).get()).data(), after);
+      });
+
+      it("does not write when sanitized uid/access are unchanged", async () => {
+        const grant = await db.doc(`${path}/grants/eng`).get();
+        const invite = await db.doc(`users/eng/eventInvites/${SETLIST}`).get();
+        const after = { ...before, eventKit: { ...before.eventKit, people: [{
+          ...guest, name: "New display name", access: { rider: "view", stage: "edit", unknown: "edit" },
+        }] } };
+        await trigger(after);
+        assert.ok((await db.doc(`${path}/grants/eng`).get()).updateTime.isEqual(grant.updateTime));
+        assert.ok((await db.doc(`users/eng/eventInvites/${SETLIST}`).get()).updateTime.isEqual(invite.updateTime));
+      });
+
+      it("preserves grants when an old app omits the event kit", async () => {
+        await trigger({ name: "Gig", items: [] });
+        assert.equal((await db.doc(`${path}/grants/eng`).get()).exists, true);
+        assert.equal((await db.doc(`users/eng/eventInvites/${SETLIST}`).get()).exists, true);
+      });
+
+      it("creates a grant when the first guest is added", async () => {
+        await db.doc(`${path}/grants/eng`).delete();
+        await events.syncEventGrants(scope, SETLIST, {
+          before: { ...before, eventKit: { people: [] } }, after: before,
+        });
+        assert.equal((await db.doc(`${path}/grants/eng`).get()).exists, true);
+      });
+    });
+  }
 
   describe("lifecycle cleanup", () => {
     it("purges every grant in a band when the band is deleted", async () => {

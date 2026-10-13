@@ -148,26 +148,47 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
         !_signedIn &&
         EventArea.all.any((a) => canEditArea(view.access, a));
 
+    final ownerUid = view.ownerUid ?? widget.ownerUid;
+    final bandId = view.bandId ?? widget.bandId;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(view.name),
         actions: [
           if (_signedIn &&
-              widget.ownerUid != null &&
+              (ownerUid != null || bandId != null) &&
               (view.canSee(EventArea.stage) || view.canSee(EventArea.rider)))
             IconButton(
               tooltip: 'Event kit',
               icon: const Icon(Icons.theater_comedy_outlined),
               onPressed: () async {
+                var editorOwnerUid = ownerUid;
+                var editorBandId = bandId;
+                if (widget.token != null) {
+                  try {
+                    final claimed = await ref
+                        .read(eventShareServiceProvider)
+                        .claimShare(widget.token!);
+                    editorOwnerUid = claimed['ownerUid'] as String? ?? ownerUid;
+                    editorBandId = claimed['bandId'] as String? ?? bandId;
+                  } catch (e) {
+                    if (context.mounted) {
+                      showAppSnackBar(context, 'Could not open event kit: $e');
+                    }
+                    return;
+                  }
+                }
+                if (!context.mounted) return;
                 await Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => EventKitEditorScreen(
                       setlist: setlistFromEventView(
                         view,
-                        null,
-                        ownerUid: widget.ownerUid,
+                        editorBandId,
+                        ownerUid: editorOwnerUid,
                       ),
-                      ownerUid: widget.ownerUid,
+                      bandId: editorBandId,
+                      ownerUid: editorOwnerUid,
                       access: view.access,
                       isMember: false,
                     ),

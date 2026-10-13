@@ -392,15 +392,43 @@ describe("Event guest Firestore rules", function () {
         await db.collection("users").doc("demo").set({
           uid: "demo", accessRole: "demo",
         });
-        for (const uid of ["guest", "soundEng", "demo"]) {
+        await personalRef(db).set({ ...setlistDoc(), id: "private-1", bandId: "" });
+        for (const uid of ["guest", "soundEng", "demo", "manager", "video"]) {
           await grantRef(db, uid).set({
             uid, canSuggest: uid !== "soundEng",
+            access: uid === "manager" ? { runningOrder: "edit" }
+              : uid === "video" ? { rider: "edit" } : { stage: "edit" },
           });
         }
         await suggestionsRef(db).set(suggestion("guest"));
         await personalRef(db, "demo").set({ id: "private-1", name: "Demo" });
         await suggestionsRef(db, "demo").set(suggestion("demo"));
       });
+    });
+
+    it("lets a stage guest edit only stage, never rider, roster or event fields", async () => {
+      await assertSucceeds(personalRef(as("guest")).update({ "eventKit.stage": {} }));
+      for (const update of [
+        { "eventKit.rider": [] }, { "eventKit.people": [{ uid: "guest" }] },
+        { items: [] }, { name: "Hijacked" },
+        { "eventKit.stage": {}, "eventKit.people": [] , description: "smuggled" },
+      ]) {
+        await assertFails(personalRef(as("guest")).update(update));
+      }
+    });
+
+    it("allows rider and event managers in their granted areas", async () => {
+      await assertSucceeds(personalRef(as("video")).update({ "eventKit.rider": [] }));
+      await assertSucceeds(personalRef(as("manager")).update({ items: [], name: "Managed" }));
+      await assertFails(personalRef(as("manager")).update({ "eventKit.people": [{ uid: "manager" }] }));
+    });
+
+    it("denies strangers and demos area edits, while the owner can write", async () => {
+      for (const uid of ["stranger", "demo"]) {
+        await assertFails(personalRef(as(uid)).update({ "eventKit.stage": {} }));
+        await assertFails(personalRef(as(uid)).update({ items: [] }));
+      }
+      await assertSucceeds(personalRef(as("member")).update({ items: [], "eventKit.people": [] }));
     });
 
     it("lets only the grantee read their grant, including a demo grantee", async () => {
