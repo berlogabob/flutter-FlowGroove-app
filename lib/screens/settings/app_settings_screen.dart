@@ -114,6 +114,7 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                       ButtonSegment(value: ThemeMode.light, label: Text('Light')),
                     ],
                     selected: {themeMode},
+                    showSelectedIcon: false,
                     onSelectionChanged: (s) =>
                         ref.read(themeModeProvider.notifier).set(s.first),
                   ),
