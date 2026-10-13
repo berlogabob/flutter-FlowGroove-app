@@ -90,7 +90,9 @@ final labEntriesProvider = StreamProvider.autoDispose
 final labTasksProvider = StreamProvider.autoDispose
     .family<List<SongTask>, (String, String?)>((ref, key) {
       final (songId, bandId) = key;
-      return ref.watch(labRepositoryProvider).watchTasks(songId, bandId: bandId);
+      return ref
+          .watch(labRepositoryProvider)
+          .watchTasks(songId, bandId: bandId);
     });
 
 /// One-shot open-task count for a song — the rehearsal "what to prepare"
@@ -245,11 +247,11 @@ final setlistsProvider = StreamProvider<List<Setlist>>((ref) {
 // permanent snapshot listeners open for the whole session.
 
 /// Stream provider that watches shared setlists for a band.
-final bandSetlistsProvider =
-    StreamProvider.autoDispose.family<List<Setlist>, String>((ref, bandId) {
-  final setlistRepo = ref.watch(setlistRepositoryProvider);
-  return setlistRepo.watchBandSetlists(bandId);
-});
+final bandSetlistsProvider = StreamProvider.autoDispose
+    .family<List<Setlist>, String>((ref, bandId) {
+      final setlistRepo = ref.watch(setlistRepositoryProvider);
+      return setlistRepo.watchBandSetlists(bandId);
+    });
 
 /// Events the current user is a GUEST on — invited to one event without being
 /// in the band (a dep, a sound engineer, a venue contact).
@@ -300,6 +302,14 @@ final setlistSuggestionsProvider = StreamProvider.autoDispose
           .watchSetlistSuggestions(key.$1, key.$2);
     });
 
+/// Requests on a personal event, visible only to its owner.
+final personalSetlistSuggestionsProvider = StreamProvider.autoDispose
+    .family<List<EventSuggestion>, (String, String)>((ref, key) {
+      return ref
+          .watch(setlistRepositoryProvider)
+          .watchSetlistSuggestions(null, key.$2, ownerUid: key.$1);
+    });
+
 /// Callable wrapper for event sharing.
 ///
 /// A provider rather than a constructor call inside the screen: building it
@@ -317,10 +327,9 @@ final eventShareServiceProvider = Provider<EventShareService>((ref) {
 /// the band's songs. The server returns exactly their granted areas.
 final eventViewProvider = FutureProvider.autoDispose
     .family<EventView, (String, String)>((ref, key) async {
-      return ref.read(eventShareServiceProvider).getEventView(
-        bandId: key.$1,
-        setlistId: key.$2,
-      );
+      return ref
+          .read(eventShareServiceProvider)
+          .getEventView(bandId: key.$1, setlistId: key.$2);
     });
 
 /// The event's songs for a guest, derived from the same single read.
@@ -344,32 +353,33 @@ final setlistSongsProvider = Provider.autoDispose
     });
 
 /// Stream provider that watches rehearsals for a band.
-final bandRehearsalsProvider =
-    StreamProvider.autoDispose.family<List<Rehearsal>, String>((ref, bandId) {
-  final repo = ref.watch(rehearsalRepositoryProvider);
-  return repo.watchRehearsals(bandId);
-});
+final bandRehearsalsProvider = StreamProvider.autoDispose
+    .family<List<Rehearsal>, String>((ref, bandId) {
+      final repo = ref.watch(rehearsalRepositoryProvider);
+      return repo.watchRehearsals(bandId);
+    });
 
 /// Stream provider that watches a single rehearsal ((bandId, rehearsalId)).
-final rehearsalProvider =
-    StreamProvider.autoDispose.family<Rehearsal?, (String, String)>((ref, key) {
-  final repo = ref.watch(rehearsalRepositoryProvider);
-  return repo.watchRehearsal(key.$1, key.$2);
-});
+final rehearsalProvider = StreamProvider.autoDispose
+    .family<Rehearsal?, (String, String)>((ref, key) {
+      final repo = ref.watch(rehearsalRepositoryProvider);
+      return repo.watchRehearsal(key.$1, key.$2);
+    });
 
 /// Stream provider that watches votes for a rehearsal ((bandId, rehearsalId)).
 final rehearsalVotesProvider = StreamProvider.autoDispose
     .family<Map<String, RehearsalVote>, (String, String)>((ref, key) {
-  final repo = ref.watch(rehearsalRepositoryProvider);
-  return repo.watchVotes(key.$1, key.$2);
-});
+      final repo = ref.watch(rehearsalRepositoryProvider);
+      return repo.watchVotes(key.$1, key.$2);
+    });
 
 /// Stream provider that watches band songs.
-final bandSongsProvider =
-    StreamProvider.autoDispose.family<List<Song>, String>((ref, bandId) {
-  final songRepo = ref.watch(songRepositoryProvider);
-  return songRepo.watchBandSongs(bandId);
-});
+final bandSongsProvider = StreamProvider.autoDispose.family<List<Song>, String>(
+  (ref, bandId) {
+    final songRepo = ref.watch(songRepositoryProvider);
+    return songRepo.watchBandSongs(bandId);
+  },
+);
 
 /// Provider that returns the count of songs.
 final songCountProvider = Provider<int>((ref) {
@@ -395,8 +405,10 @@ final setlistCountProvider = Provider<int>((ref) {
 ///
 /// autoDispose so it does not pin the autoDispose [bandSetlistsProvider] stream
 /// alive after the band screen is gone.
-final bandSetlistCountProvider =
-    Provider.autoDispose.family<int, String>((ref, bandId) {
+final bandSetlistCountProvider = Provider.autoDispose.family<int, String>((
+  ref,
+  bandId,
+) {
   return ref
           .watch(bandSetlistsProvider(bandId))
           .whenOrNull(data: (setlists) => setlists.length) ??

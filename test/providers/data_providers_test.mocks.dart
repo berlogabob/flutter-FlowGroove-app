@@ -387,10 +387,15 @@ class MockSetlistRepository extends _i1.Mock implements _i9.SetlistRepository {
   @override
   _i5.Stream<List<_i11.EventSuggestion>> watchSetlistSuggestions(
     String? bandId,
-    String? setlistId,
-  ) =>
+    String? setlistId, {
+    String? ownerUid,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#watchSetlistSuggestions, [bandId, setlistId]),
+            Invocation.method(
+              #watchSetlistSuggestions,
+              [bandId, setlistId],
+              {#ownerUid: ownerUid},
+            ),
             returnValue: _i5.Stream<List<_i11.EventSuggestion>>.empty(),
           )
           as _i5.Stream<List<_i11.EventSuggestion>>);

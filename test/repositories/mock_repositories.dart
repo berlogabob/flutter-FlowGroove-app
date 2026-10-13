@@ -248,17 +248,14 @@ class MockSetlistRepository implements SetlistRepository {
 
   @override
   Stream<List<EventSuggestion>> watchSetlistSuggestions(
-    String bandId,
-    String setlistId,
-  ) => Stream.value(suggestions['$bandId/$setlistId'] ?? const []);
+    String? bandId,
+    String setlistId, {
+    String? ownerUid,
+  }) => Stream.value(suggestions['$bandId/$setlistId'] ?? const []);
 
   /// Event-kit area writes, in order: (setlistId, area, value, bandId).
-  final eventKitWrites = <({
-    String setlistId,
-    String area,
-    Object? value,
-    String? bandId,
-  })>[];
+  final eventKitWrites =
+      <({String setlistId, String area, Object? value, String? bandId})>[];
 
   @override
   Future<void> updateEventKitArea({

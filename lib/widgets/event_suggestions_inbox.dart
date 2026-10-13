@@ -17,13 +17,15 @@ import '../utils/snackbar.dart';
 /// commented on looks exactly as it did before.
 class EventSuggestionsInbox extends ConsumerStatefulWidget {
   const EventSuggestionsInbox({
-    required this.bandId,
+    this.bandId,
+    this.ownerUid,
     required this.setlistId,
     required this.canResolve,
     super.key,
   });
 
-  final String bandId;
+  final String? bandId;
+  final String? ownerUid;
   final String setlistId;
 
   /// Accepting or declining needs band editor/admin — the callable enforces it
@@ -48,6 +50,7 @@ class _EventSuggestionsInboxState extends ConsumerState<EventSuggestionsInbox> {
           .read(eventShareServiceProvider)
           .resolveSuggestion(
             bandId: widget.bandId,
+            ownerUid: widget.ownerUid,
             setlistId: widget.setlistId,
             suggestionId: s.id,
             accept: accept,
@@ -66,7 +69,17 @@ class _EventSuggestionsInboxState extends ConsumerState<EventSuggestionsInbox> {
   Widget build(BuildContext context) {
     final suggestions =
         ref
-            .watch(setlistSuggestionsProvider((widget.bandId, widget.setlistId)))
+            .watch(
+              widget.bandId != null
+                  ? setlistSuggestionsProvider((
+                      widget.bandId!,
+                      widget.setlistId,
+                    ))
+                  : personalSetlistSuggestionsProvider((
+                      widget.ownerUid!,
+                      widget.setlistId,
+                    )),
+            )
             .value ??
         const <EventSuggestion>[];
     if (suggestions.isEmpty) return const SizedBox.shrink();
@@ -132,9 +145,7 @@ class _SuggestionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: MonoPulseSpacing.sm),
       padding: const EdgeInsets.all(MonoPulseSpacing.md),
       decoration: BoxDecoration(
-        color: s.isOpen
-            ? MonoPulseColors.accentOrange10
-            : Colors.transparent,
+        color: s.isOpen ? MonoPulseColors.accentOrange10 : Colors.transparent,
         borderRadius: BorderRadius.circular(MonoPulseRadius.small),
         border: Border.all(
           color: MonoPulseColors.accentOrange.withValues(
@@ -176,10 +187,7 @@ class _SuggestionCard extends StatelessWidget {
               children: [
                 TextButton(onPressed: onDecline, child: const Text('Decline')),
                 const SizedBox(width: MonoPulseSpacing.sm),
-                FilledButton(
-                  onPressed: onAccept,
-                  child: const Text('Accept'),
-                ),
+                FilledButton(onPressed: onAccept, child: const Text('Accept')),
               ],
             ),
         ],

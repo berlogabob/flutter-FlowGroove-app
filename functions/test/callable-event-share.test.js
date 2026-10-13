@@ -91,7 +91,7 @@ async function seed(people = PEOPLE) {
     });
   // Grants live in their own documents; writeGrants is the only thing that
   // writes them, so seeding through it also exercises it.
-  await events.writeGrants(BAND, SETLIST, people, { name: "Sputnik Bar" });
+  await events.writeGrants({ bandId: BAND }, SETLIST, people, { name: "Sputnik Bar" });
 }
 
 async function shareFor(participantId) {
@@ -130,6 +130,126 @@ describe("event sharing callables", function () {
 
   after(() => functionsTest.cleanup());
 
+  describe("personal event sharing", () => {
+    const ownerUid = "personal-owner";
+    const setlistId = "personal-event";
+    const scope = { ownerUid };
+    const path = `users/${ownerUid}/setlists/${setlistId}`;
+    const data = { ...scope, setlistId };
+    const create = () => call(events.createEventShare)(
+      req({ ...data, participantId: "p-couple" }, ownerUid),
+    );
+    const denied = (promise, code) => assert.rejects(promise, (e) => e.code === code);
+
+    beforeEach(async () => {
+      await db.recursiveDelete(db.doc(`users/${ownerUid}`));
+      for (const uid of ["personal-guest", "roume"]) {
+        await db.doc(`users/${uid}/eventInvites/${setlistId}`).delete();
+      }
+      const bandSetlist = (await db.doc(`bands/${BAND}/setlists/${SETLIST}`).get()).data();
+      await db.doc(path).set({ ...bandSetlist, name: "Personal event" });
+      await db.doc(`users/${ownerUid}/songs/song-1`).set({
+        title: "Personal song", artist: "Owner", ourKey: "PRIVATE KEY",
+        ourBPM: 123, sections: [{ chordChart: "PRIVATE CHART" }],
+      });
+      await events.writeGrants(scope, setlistId, PEOPLE, { name: "Personal event" });
+    });
+
+    it("creates, claims, views and revokes a personal share with exclusive scope fields", async () => {
+      const { token, tokenId } = await create();
+      const share = (await db.doc(`eventShares/${tokenId}`).get()).data();
+      assert.equal(share.ownerUid, ownerUid);
+      assert.equal(share.bandId, undefined);
+      const anonymous = await call(events.getEventView)(req({ token, bandId: BAND }));
+      assert.equal(anonymous.songs[0].title, "Personal song");
+      assert.equal(anonymous.stage, undefined);
+      assert.equal(anonymous.rider, undefined);
+      assert.ok(!JSON.stringify(anonymous).includes("PRIVATE"));
+      const claimed = await call(events.claimEventShare)(req({ token }, "personal-guest"));
+      assert.deepEqual(claimed, { ...data, access: PEOPLE[0].access });
+      const grant = await db.doc(`${path}/grants/personal-guest`).get();
+      assert.equal(grant.exists, true);
+      const invite = (await db.doc(`users/personal-guest/eventInvites/${setlistId}`).get()).data();
+      assert.equal(invite.ownerUid, ownerUid);
+      assert.equal(invite.bandId, undefined);
+      assert.equal(invite.name, "Personal event");
+      const guest = await call(events.getEventView)(req(data, "personal-guest"));
+      assert.deepEqual(guest, anonymous);
+      const owner = await call(events.getEventView)(req(data, ownerUid));
+      assert.equal(owner.songs[0].ourKey, "PRIVATE KEY");
+      assert.ok(owner.stage);
+      await call(events.revokeEventShare)(req({ ...data, tokenId }, ownerUid));
+      await denied(call(events.getEventView)(req({ token })), "permission-denied");
+    });
+
+    it("uses personal suggestions for token and uid callers and resolves them as owner", async () => {
+      const { token } = await create();
+      await call(events.claimEventShare)(req({ token }, "personal-guest"));
+      const { id } = await call(events.submitSuggestion)(req({ token, text: "Anonymous request" }));
+      await call(events.submitSuggestion)(req({ ...data, text: "Signed in request" }, "personal-guest"));
+      await call(events.resolveSuggestion)(req({ ...data, suggestionId: id, accept: true }, ownerUid));
+      const view = await call(events.getEventView)(req({ token }, "personal-guest"));
+      assert.equal(view.mySuggestions.length, 2);
+      assert.equal(view.mySuggestions.find((s) => s.id === id).status, "accepted");
+      assert.equal((await db.collection(`${path}/suggestions`).get()).size, 2);
+      assert.equal((await db.collection(`bands/${BAND}/setlists/${SETLIST}/suggestions`).get()).size, 0);
+    });
+
+    it("denies non-owners management and strangers access", async () => {
+      const { tokenId } = await create();
+      await denied(call(events.createEventShare)(req({ ...data, participantId: "p-couple" }, "member")), "permission-denied");
+      await denied(call(events.revokeEventShare)(req({ tokenId }, "member")), "permission-denied");
+      await denied(call(events.resolveSuggestion)(req({ ...data, suggestionId: "x" }, "member")), "permission-denied");
+      await denied(call(events.getEventView)(req(data, "member")), "permission-denied");
+      await denied(call(events.submitSuggestion)(req({ ...data, text: "x" }, "member")), "permission-denied");
+    });
+
+    it("denies demo accounts on every personal write path", async () => {
+      const { token, tokenId } = await create();
+      const demo = (data, uid = ownerUid) => ({ data, auth: { uid, token: { demo: true } } });
+      for (const [fn, args] of [
+        [events.createEventShare, { ...data, participantId: "p-couple" }],
+        [events.revokeEventShare, { tokenId }],
+        [events.resolveSuggestion, { ...data, suggestionId: "x" }],
+        [events.submitSuggestion, { ...data, text: "x" }],
+        [events.claimEventShare, { token }],
+      ]) {
+        await denied(call(fn)(demo(args)), "failed-precondition");
+      }
+      await db.doc(`users/${ownerUid}`).set({ accessRole: "demo" });
+      await denied(create(), "failed-precondition");
+    });
+
+    it("rejects both and neither scopes, including blank and non-string ids", async () => {
+      for (const scope of [{ bandId: BAND, ownerUid }, {}, { bandId: " ", ownerUid: 12 }]) {
+        for (const fn of [events.createEventShare, events.resolveSuggestion, events.getEventView, events.submitSuggestion]) {
+          await denied(call(fn)(req({ ...scope, setlistId, participantId: "p-couple", suggestionId: "x", text: "x" }, ownerUid)), "invalid-argument");
+        }
+      }
+      const { token } = await call(events.createEventShare)(req({ ownerUid: ` ${ownerUid} `, setlistId, participantId: "p-couple" }, ownerUid));
+      assert.equal((await call(events.getEventView)(req({ token }))).name, "Personal event");
+    });
+
+    it("cascades grants and invites through the personal setlist delete trigger", async () => {
+      const before = await db.doc(path).get();
+      await db.doc(path).delete();
+      const after = await db.doc(path).get();
+      await call(events.onUserSetlistWritten)({ before, after }, { params: { ownerUid, setlistId } });
+      assert.equal((await db.collection(`${path}/grants`).get()).size, 0);
+      assert.equal((await db.doc(`users/roume/eventInvites/${setlistId}`).get()).exists, false);
+      assert.equal((await db.doc(`bands/${BAND}/setlists/${SETLIST}/grants/roume`).get()).exists, true);
+    });
+
+    it("refreshes personal invite snapshots and releases a guest's personal grant", async () => {
+      await events.syncEventGrants(scope, setlistId, { before: { name: "Old" }, after: { name: "Moved" } });
+      const invite = (await db.doc(`users/roume/eventInvites/${setlistId}`).get()).data();
+      assert.equal(invite.name, "Moved");
+      assert.equal(invite.ownerUid, ownerUid);
+      await events.purgeUserGrants("roume");
+      assert.equal((await db.doc(`${path}/grants/roume`).get()).exists, false);
+    });
+  });
+
   describe("writeGrants", () => {
     const grantIds = async () => {
       const snap = await db
@@ -153,7 +273,7 @@ describe("event sharing callables", function () {
 
     it("grants an edit area once a person is linked", async () => {
       await events.writeGrants(
-        BAND,
+        { bandId: BAND },
         SETLIST,
         [{ ...PEOPLE[1], uid: "eng" }, PEOPLE[2]],
         {},
@@ -167,7 +287,7 @@ describe("event sharing callables", function () {
     });
 
     it("revokes both records when someone leaves the roster", async () => {
-      await events.writeGrants(BAND, SETLIST, [PEOPLE[0], PEOPLE[1]], {});
+      await events.writeGrants({ bandId: BAND }, SETLIST, [PEOPLE[0], PEOPLE[1]], {});
       assert.deepEqual(await grantIds(), []);
       const invite = await db.doc(`users/roume/eventInvites/${SETLIST}`).get();
       assert.equal(invite.exists, false);
@@ -175,7 +295,7 @@ describe("event sharing callables", function () {
 
     it("ignores an invented area or level", async () => {
       await events.writeGrants(
-        BAND,
+        { bandId: BAND },
         SETLIST,
         [{ id: "x", uid: "sneaky", access: { wholeBand: "edit", stage: "owner" } }],
         {},
@@ -201,7 +321,7 @@ describe("event sharing callables", function () {
       const before = await db.doc(`bands/${BAND}/setlists/${SETLIST}`).get();
 
       await db.doc(`bands/${BAND}/setlists/${SETLIST}`).delete();
-      const out = await events.syncEventGrants(BAND, SETLIST, {
+      const out = await events.syncEventGrants({ bandId: BAND }, SETLIST, {
         before: before.data(),
         after: null,
       });
@@ -224,7 +344,7 @@ describe("event sharing callables", function () {
         eventDateTime: "2026-09-01T20:00:00.000Z",
         eventLocation: "Another venue",
       };
-      const out = await events.syncEventGrants(BAND, SETLIST, { before, after });
+      const out = await events.syncEventGrants({ bandId: BAND }, SETLIST, { before, after });
 
       assert.equal(out.refreshed, 1);
       const invite = await db.doc(`users/roume/eventInvites/${SETLIST}`).get();
@@ -237,7 +357,7 @@ describe("event sharing callables", function () {
 
     it("does nothing when the event details did not change", async () => {
       const before = (await db.doc(`bands/${BAND}/setlists/${SETLIST}`).get()).data();
-      const out = await events.syncEventGrants(BAND, SETLIST, {
+      const out = await events.syncEventGrants({ bandId: BAND }, SETLIST, {
         before,
         after: { ...before, items: [] },
       });
@@ -245,7 +365,7 @@ describe("event sharing callables", function () {
     });
 
     it("is a no-op for an event nobody is a guest on", async () => {
-      const out = await events.syncEventGrants(BAND, "no-such-setlist", {
+      const out = await events.syncEventGrants({ bandId: BAND }, "no-such-setlist", {
         before: null,
         after: null,
       });
@@ -821,7 +941,7 @@ describe("event sharing callables", function () {
       );
       // Roumé can suggest once given the flag; share separately.
       await events.writeGrants(
-        BAND,
+        { bandId: BAND },
         SETLIST,
         [PEOPLE[0], PEOPLE[1], { ...PEOPLE[2], canSuggest: true }],
         {},

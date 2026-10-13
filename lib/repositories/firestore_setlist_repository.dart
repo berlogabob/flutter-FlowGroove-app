@@ -108,16 +108,18 @@ class FirestoreSetlistRepository implements SetlistRepository {
           .snapshots()
           .map((snapshot) {
             try {
-              return snapshot.docs.map<Setlist?>((doc) {
-                try {
-                  return Setlist.fromJson(doc.data());
-                } catch (e) {
-                  // Skip it rather than fabricate an empty, editable setlist:
-                  // saving that placeholder would overwrite the real data.
-                  debugPrint('❌ Failed to parse setlist ${doc.id}: $e');
-                  return null;
-                }
-              }).whereType<Setlist>()
+              return snapshot.docs
+                  .map<Setlist?>((doc) {
+                    try {
+                      return Setlist.fromJson(doc.data());
+                    } catch (e) {
+                      // Skip it rather than fabricate an empty, editable setlist:
+                      // saving that placeholder would overwrite the real data.
+                      debugPrint('❌ Failed to parse setlist ${doc.id}: $e');
+                      return null;
+                    }
+                  })
+                  .whereType<Setlist>()
                   // Personal list only: hide band setlists that were
                   // mis-saved into this collection (they carry a bandId and
                   // their band-copy song ids read as all-"Unavailable" here).
@@ -255,16 +257,21 @@ class FirestoreSetlistRepository implements SetlistRepository {
           .snapshots()
           .map((snapshot) {
             try {
-              return snapshot.docs.map<Setlist?>((doc) {
-                try {
-                  final data = doc.data();
-                  return Setlist.fromJson({...data, 'id': doc.id});
-                } catch (e) {
-                  // Skip, don't fabricate an editable placeholder (see above).
-                  debugPrint('❌ Failed to parse band setlist ${doc.id}: $e');
-                  return null;
-                }
-              }).whereType<Setlist>().toList();
+              return snapshot.docs
+                  .map<Setlist?>((doc) {
+                    try {
+                      final data = doc.data();
+                      return Setlist.fromJson({...data, 'id': doc.id});
+                    } catch (e) {
+                      // Skip, don't fabricate an editable placeholder (see above).
+                      debugPrint(
+                        '❌ Failed to parse band setlist ${doc.id}: $e',
+                      );
+                      return null;
+                    }
+                  })
+                  .whereType<Setlist>()
+                  .toList();
             } catch (e) {
               debugPrint('❌ Failed to map band setlists snapshot: $e');
               return <Setlist>[];
@@ -294,7 +301,7 @@ class FirestoreSetlistRepository implements SetlistRepository {
   /// its owner by construction: no shared index, no collection-group rule.
   ///
   /// The returned Setlists are LIST-CARD shaped (name, date, location). Opening
-  /// one reads the real setlist document, which the grant permits.
+  /// one reads its scoped payload through `getEventView`.
   Stream<List<Setlist>> watchGuestEvents(String uid) {
     try {
       final stream = _firestore
@@ -311,6 +318,7 @@ class FirestoreSetlistRepository implements SetlistRepository {
                   Setlist(
                     id: data['setlistId'] as String? ?? doc.id,
                     bandId: data['bandId'] as String? ?? '',
+                    ownerUid: data['ownerUid'] as String?,
                     name: data['name'] as String? ?? 'Event',
                     eventDateTime: _parseInviteDate(data['eventDateTime']),
                     eventLocation: data['eventLocation'] as String?,
@@ -337,12 +345,14 @@ class FirestoreSetlistRepository implements SetlistRepository {
 
   @override
   Stream<List<EventSuggestion>> watchSetlistSuggestions(
-    String bandId,
-    String setlistId,
-  ) {
-    return _firestore
-        .collection('bands')
-        .doc(bandId)
+    String? bandId,
+    String setlistId, {
+    String? ownerUid,
+  }) {
+    final parent = bandId != null
+        ? _firestore.collection('bands').doc(bandId)
+        : _firestore.collection('users').doc(ownerUid ?? _currentUserId);
+    return parent
         .collection('setlists')
         .doc(setlistId)
         .collection('suggestions')

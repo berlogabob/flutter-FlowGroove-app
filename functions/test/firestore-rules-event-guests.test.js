@@ -370,6 +370,125 @@ describe("Event guest Firestore rules", function () {
     });
   });
 
+  describe("personal event grants and suggestions", () => {
+    const personalRef = (db, owner = "member", setlist = "private-1") =>
+      db.collection("users").doc(owner).collection("setlists").doc(setlist);
+    const grantRef = (db, uid = "guest") =>
+      personalRef(db).collection("grants").doc(uid);
+    const suggestionsRef = (db, owner = "member") =>
+      personalRef(db, owner).collection("suggestions").doc("sug-1");
+    const suggestion = (uid, extra = {}) => ({
+      id: "sug-1",
+      type: "note",
+      text: "Swap the last song",
+      status: "open",
+      authorUid: uid,
+      ...extra,
+    });
+
+    beforeEach(async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const db = context.firestore();
+        await db.collection("users").doc("demo").set({
+          uid: "demo", accessRole: "demo",
+        });
+        for (const uid of ["guest", "soundEng", "demo"]) {
+          await grantRef(db, uid).set({
+            uid, canSuggest: uid !== "soundEng",
+          });
+        }
+        await suggestionsRef(db).set(suggestion("guest"));
+        await personalRef(db, "demo").set({ id: "private-1", name: "Demo" });
+        await suggestionsRef(db, "demo").set(suggestion("demo"));
+      });
+    });
+
+    it("lets only the grantee read their grant, including a demo grantee", async () => {
+      await assertSucceeds(grantRef(as("guest")).get());
+      await assertSucceeds(grantRef(as("demo"), "demo").get());
+      for (const uid of ["member", "soundEng", "stranger", "demo"]) {
+        await assertFails(grantRef(as(uid)).get());
+        await assertFails(personalRef(as(uid)).collection("grants").get());
+      }
+      await assertFails(grantRef(testEnv.unauthenticatedContext().firestore()).get());
+    });
+
+    it("denies grant creation, updates and deletion by every client", async () => {
+      for (const uid of ["member", "guest", "stranger", "demo"]) {
+        await assertFails(grantRef(as(uid), "new-grantee").set({ uid: "new-grantee" }));
+        await assertFails(grantRef(as(uid)).update({ canSuggest: false }));
+        await assertFails(grantRef(as(uid)).delete());
+      }
+    });
+
+    it("keeps personal setlist documents private and other subcollections denied", async () => {
+      await assertSucceeds(personalRef(as("member")).get());
+      for (const uid of ["guest", "stranger", "demo"]) {
+        await assertFails(personalRef(as(uid)).get());
+        await assertFails(personalRef(as(uid)).update({ name: "Hijacked" }));
+      }
+      await assertFails(
+        personalRef(as("member")).collection("unknown").doc("x").set({}),
+      );
+    });
+
+    it("lets the owner read, resolve and delete suggestions", async () => {
+      await assertSucceeds(suggestionsRef(as("member")).get());
+      await assertSucceeds(personalRef(as("member")).collection("suggestions").get());
+      await assertSucceeds(suggestionsRef(as("member")).update({ status: "accepted" }));
+      await assertSucceeds(suggestionsRef(as("member")).delete());
+      await assertSucceeds(suggestionsRef(as("member")).set(suggestion("member")));
+    });
+
+    it("lets a guest with canSuggest create only an open suggestion as themselves", async () => {
+      await assertSucceeds(suggestionsRef(as("member")).delete());
+      await assertFails(suggestionsRef(as("guest")).set(suggestion("stranger")));
+      await assertFails(suggestionsRef(as("guest")).set(suggestion("guest", { status: "accepted" })));
+      await assertFails(suggestionsRef(as("member")).set(suggestion("guest")));
+      await assertFails(suggestionsRef(as("member")).set(suggestion("member", { status: "accepted" })));
+      await assertSucceeds(suggestionsRef(as("guest")).set(suggestion("guest")));
+    });
+
+    it("denies suggestion creation without permission or across personal events", async () => {
+      await assertSucceeds(suggestionsRef(as("member")).delete());
+      for (const uid of ["soundEng", "stranger", "demo"]) {
+        await assertFails(suggestionsRef(as(uid)).set(suggestion(uid)));
+      }
+      await assertFails(
+        suggestionsRef(testEnv.unauthenticatedContext().firestore()).set(suggestion("guest")),
+      );
+      await assertFails(
+        personalRef(as("guest"), "member", "other-event")
+          .collection("suggestions").doc("sug-1").set(suggestion("guest")),
+      );
+      await assertFails(
+        personalRef(as("guest"), "stranger")
+          .collection("suggestions").doc("sug-1").set(suggestion("guest")),
+      );
+    });
+
+    it("denies guests and strangers suggestion reads, updates and deletion", async () => {
+      for (const uid of ["guest", "stranger", "demo"]) {
+        await assertFails(suggestionsRef(as(uid)).get());
+        await assertFails(personalRef(as(uid)).collection("suggestions").get());
+        await assertFails(suggestionsRef(as(uid)).update({ status: "accepted" }));
+        await assertFails(suggestionsRef(as(uid)).update({ text: "Rewritten" }));
+        await assertFails(suggestionsRef(as(uid)).delete());
+      }
+      await assertFails(suggestionsRef(testEnv.unauthenticatedContext().firestore()).get());
+    });
+
+    it("lets a demo owner read suggestions but denies all writes", async () => {
+      await assertSucceeds(suggestionsRef(as("demo"), "demo").get());
+      await assertFails(suggestionsRef(as("demo"), "demo").update({ status: "accepted" }));
+      await assertFails(suggestionsRef(as("demo"), "demo").delete());
+      await assertFails(
+        personalRef(as("demo"), "demo").collection("suggestions").doc("new")
+          .set(suggestion("demo")),
+      );
+    });
+  });
+
   describe("an OLD app build cannot destroy a grant", () => {
     it("survives a full replacing set() that knows nothing about grants", async () => {
       // THE regression. On 2026-08-21 a build predating the grant fields saved a

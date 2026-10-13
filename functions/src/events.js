@@ -117,16 +117,41 @@ function grantedParticipants(people) {
     .filter((p) => Object.keys(p.access).length > 0);
 }
 
-function setlistRef(bandId, setlistId) {
-  return db
-    .collection("bands")
-    .doc(bandId)
-    .collection("setlists")
-    .doc(setlistId);
+function parseScope(data = {}) {
+  const bandId = cleanString((data || {}).bandId);
+  const ownerUid = cleanString((data || {}).ownerUid);
+  if (!!bandId === !!ownerUid) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Exactly one of bandId or ownerUid is required.",
+    );
+  }
+  return bandId ? { bandId } : { ownerUid };
 }
 
-function grantRef(bandId, setlistId, uid) {
-  return setlistRef(bandId, setlistId).collection("grants").doc(uid);
+function scopeRef(scope) {
+  return scope.bandId
+    ? db.collection("bands").doc(scope.bandId)
+    : db.collection("users").doc(scope.ownerUid);
+}
+
+function setlistRef(scope, setlistId) {
+  return scopeRef(scope).collection("setlists").doc(setlistId);
+}
+
+function grantRef(scope, setlistId, uid) {
+  return setlistRef(scope, setlistId).collection("grants").doc(uid);
+}
+
+async function requireScopeWriter(scope, uid) {
+  if (scope.bandId) {
+    requireBandWriter(await loadBand(scope.bandId), uid);
+  } else if (uid !== scope.ownerUid) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Only the owner can manage personal event sharing.",
+    );
+  }
 }
 
 function inviteRef(uid, setlistId) {
@@ -157,11 +182,11 @@ function inviteRef(uid, setlistId) {
  * the setlist document. It also lets the rules drop a collection-group rule over
  * `{path=**}/setlists`, which matched every user's personal setlists too.
  */
-async function writeGrants(bandId, setlistId, people, setlist = {}) {
+async function writeGrants(scope, setlistId, people, setlist = {}) {
   const granted = grantedParticipants(people);
   const wanted = new Map(granted.map((p) => [p.uid, p]));
 
-  const existing = await setlistRef(bandId, setlistId).collection("grants").get();
+  const existing = await setlistRef(scope, setlistId).collection("grants").get();
   const batch = db.batch();
   const now = new Date().toISOString();
 
@@ -174,7 +199,7 @@ async function writeGrants(bandId, setlistId, people, setlist = {}) {
   }
 
   for (const person of granted) {
-    batch.set(grantRef(bandId, setlistId, person.uid), {
+    batch.set(grantRef(scope, setlistId, person.uid), {
       uid: person.uid,
       participantId: person.id || "",
       access: person.access,
@@ -184,7 +209,7 @@ async function writeGrants(bandId, setlistId, people, setlist = {}) {
     // Enough for the guest's "Guest appearances" list without reading a band
     // collection they have no access to.
     batch.set(inviteRef(person.uid, setlistId), {
-      bandId,
+      ...scope,
       setlistId,
       name: setlist.name || "",
       eventDateTime: setlist.eventDateTime || null,
@@ -199,9 +224,9 @@ async function writeGrants(bandId, setlistId, people, setlist = {}) {
 }
 
 /** The caller's grant for this event, or null. */
-async function loadGrant(bandId, setlistId, uid) {
+async function loadGrant(scope, setlistId, uid) {
   if (!uid) return null;
-  const doc = await grantRef(bandId, setlistId, uid).get();
+  const doc = await grantRef(scope, setlistId, uid).get();
   if (!doc.exists) return null;
   const g = doc.data();
   return { ...g, access: sanitizeAccess(g.access) };
@@ -215,8 +240,8 @@ async function loadBand(bandId) {
   return doc.data();
 }
 
-async function loadSetlist(bandId, setlistId) {
-  const doc = await setlistRef(bandId, setlistId).get();
+async function loadSetlist(scope, setlistId) {
+  const doc = await setlistRef(scope, setlistId).get();
   if (!doc.exists) {
     throw new functions.https.HttpsError("not-found", "Event not found.");
   }
@@ -241,14 +266,14 @@ function requireBandWriter(band, uid) {
  * grants derived from it live in their own documents, out of every client's
  * reach. Keeping the two in one function is what stops them drifting.
  */
-async function writeRoster(bandId, setlistId, people) {
+async function writeRoster(scope, setlistId, people) {
   const clean = people.map((p) => ({ ...p, access: sanitizeAccess(p.access) }));
-  const setlist = await loadSetlist(bandId, setlistId);
-  await setlistRef(bandId, setlistId).update({
+  const setlist = await loadSetlist(scope, setlistId);
+  await setlistRef(scope, setlistId).update({
     "eventKit.people": clean,
     updatedAt: new Date().toISOString(),
   });
-  await writeGrants(bandId, setlistId, clean, setlist);
+  await writeGrants(scope, setlistId, clean, setlist);
   return clean;
 }
 
@@ -301,22 +326,23 @@ async function resolveToken(token) {
 
 /**
  * Create a share link for one person already on the event roster.
- * Input:  { bandId, setlistId, participantId }
+ * Input:  { bandId OR ownerUid, setlistId, participantId }
  * Output: { token, tokenId } — the raw token is returned ONCE and never stored.
  */
 exports.createEventShare = functions.https.onCall(async (request) => {
   const uid = requireAuth(request);
-  const { bandId, setlistId, participantId } = request.data || {};
-  if (!bandId || !setlistId || !participantId) {
+  const scope = parseScope(request.data);
+  const { setlistId, participantId } = request.data || {};
+  if (!setlistId || !participantId) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "bandId, setlistId and participantId are required.",
+      "setlistId and participantId are required.",
     );
   }
 
   await refuseDemo(request, "share events");
-  requireBandWriter(await loadBand(bandId), uid);
-  const setlist = await loadSetlist(bandId, setlistId);
+  await requireScopeWriter(scope, uid);
+  const setlist = await loadSetlist(scope, setlistId);
   const people = (setlist.eventKit && setlist.eventKit.people) || [];
   const person = people.find((p) => p && p.id === participantId);
   if (!person) {
@@ -334,7 +360,7 @@ exports.createEventShare = functions.https.onCall(async (request) => {
   ).toISOString();
   await db.collection("eventShares").doc(tokenId).set({
     tokenId,
-    bandId,
+    ...scope,
     setlistId,
     participantId,
     secretHash: hash(secret),
@@ -363,7 +389,7 @@ exports.revokeEventShare = functions.https.onCall(async (request) => {
   await refuseDemo(request, "revoke event links");
   const doc = await db.collection("eventShares").doc(tokenId).get();
   if (!doc.exists) return { revoked: true };
-  requireBandWriter(await loadBand(doc.data().bandId), uid);
+  await requireScopeWriter(parseScope(doc.data()), uid);
   await doc.ref.update({ revoked: true, revokedAt: new Date().toISOString() });
   return { revoked: true };
 });
@@ -373,10 +399,11 @@ exports.revokeEventShare = functions.https.onCall(async (request) => {
 // ---------------------------------------------------------------------------
 
 /** The grant for whoever is asking. Band members see everything. */
-async function resolveViewer({ token, bandId, setlistId, uid }) {
+async function resolveViewer({ token, bandId, ownerUid, setlistId, uid }) {
   if (token) {
     const share = await resolveToken(token);
-    const setlist = await loadSetlist(share.bandId, share.setlistId);
+    const scope = parseScope(share);
+    const setlist = await loadSetlist(scope, share.setlistId);
     const people = (setlist.eventKit && setlist.eventKit.people) || [];
     const person = people.find((p) => p && p.id === share.participantId);
     if (!person) {
@@ -386,7 +413,7 @@ async function resolveViewer({ token, bandId, setlistId, uid }) {
       );
     }
     return {
-      bandId: share.bandId,
+      scope,
       setlistId: share.setlistId,
       setlist,
       access: sanitizeAccess(person.access),
@@ -405,19 +432,20 @@ async function resolveViewer({ token, bandId, setlistId, uid }) {
       "Sign in or use a share link.",
     );
   }
-  if (!bandId || !setlistId) {
+  const scope = parseScope({ bandId, ownerUid });
+  if (!setlistId) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "bandId and setlistId are required.",
+      "setlistId is required.",
     );
   }
 
-  const band = await loadBand(bandId);
-  const setlist = await loadSetlist(bandId, setlistId);
+  const band = scope.bandId ? await loadBand(scope.bandId) : null;
+  const setlist = await loadSetlist(scope, setlistId);
 
-  if ((band.memberUids || []).includes(uid)) {
+  if (scope.ownerUid === uid || (band && (band.memberUids || []).includes(uid))) {
     return {
-      bandId,
+      scope,
       setlistId,
       setlist,
       access: Object.fromEntries(AREAS.map((a) => [a, "edit"])),
@@ -429,7 +457,7 @@ async function resolveViewer({ token, bandId, setlistId, uid }) {
 
   // The grant document, NOT the roster on the setlist. The roster is display
   // data on a document clients rewrite; the grant is the authority.
-  const grant = await loadGrant(bandId, setlistId, uid);
+  const grant = await loadGrant(scope, setlistId, uid);
   if (!grant || Object.keys(grant.access).length === 0) {
     throw new functions.https.HttpsError(
       "permission-denied",
@@ -439,7 +467,7 @@ async function resolveViewer({ token, bandId, setlistId, uid }) {
   const people = (setlist.eventKit && setlist.eventKit.people) || [];
   const person = people.find((p) => p && p.id === grant.participantId);
   return {
-    bandId,
+    scope,
     setlistId,
     setlist,
     access: grant.access,
@@ -474,7 +502,7 @@ const canView = (access, area) =>
  */
 async function ownSuggestions(viewer) {
   if (viewer.isMember) return [];
-  const col = setlistRef(viewer.bandId, viewer.setlistId).collection(
+  const col = setlistRef(viewer.scope, viewer.setlistId).collection(
     "suggestions",
   );
   const queries = [];
@@ -509,10 +537,11 @@ async function ownSuggestions(viewer) {
 }
 
 exports.getEventView = functions.https.onCall(async (request) => {
-  const { token, bandId, setlistId } = request.data || {};
+  const { token, bandId, ownerUid, setlistId } = request.data || {};
   const viewer = await resolveViewer({
     token: cleanString(token),
     bandId: cleanString(bandId),
+    ownerUid: cleanString(ownerUid),
     setlistId: cleanString(setlistId),
     uid: request.auth ? request.auth.uid : null,
   });
@@ -548,10 +577,7 @@ exports.getEventView = functions.https.onCall(async (request) => {
     view.songsTruncated = all.length > wanted.length;
     // One round trip for the whole event instead of one per song. getAll
     // rejects an empty argument list, so guard it.
-    const songsCollection = db
-      .collection("bands")
-      .doc(viewer.bandId)
-      .collection("songs");
+    const songsCollection = scopeRef(viewer.scope).collection("songs");
     const docs = wanted.length
       ? await db.getAll(...wanted.map((id) => songsCollection.doc(id)))
       : [];
@@ -625,7 +651,8 @@ exports.claimEventShare = functions.https.onCall(async (request) => {
   const uid = requireAuth(request);
   await refuseDemo(request, "join an event");
   const share = await resolveToken(cleanString((request.data || {}).token));
-  const ref = setlistRef(share.bandId, share.setlistId);
+  const scope = parseScope(share);
+  const ref = setlistRef(scope, share.setlistId);
 
   // Read-check-write in one transaction so two people opening the same link
   // cannot both pass the "unclaimed" check (last write used to win).
@@ -659,10 +686,10 @@ exports.claimEventShare = functions.https.onCall(async (request) => {
     });
     return { next: clean, index: i, setlist: data };
   });
-  await writeGrants(share.bandId, share.setlistId, next, setlist);
+  await writeGrants(scope, share.setlistId, next, setlist);
 
   return {
-    bandId: share.bandId,
+    ...scope,
     setlistId: share.setlistId,
     access: sanitizeAccess(next[index].access),
   };
@@ -682,10 +709,11 @@ exports.claimEventShare = functions.https.onCall(async (request) => {
  */
 exports.submitSuggestion = functions.https.onCall(async (request) => {
   await refuseDemo(request, "suggest changes");
-  const { token, bandId, setlistId, type, songId, text } = request.data || {};
+  const { token, bandId, ownerUid, setlistId, type, songId, text } = request.data || {};
   const viewer = await resolveViewer({
     token: cleanString(token),
     bandId: cleanString(bandId),
+    ownerUid: cleanString(ownerUid),
     setlistId: cleanString(setlistId),
     uid: request.auth ? request.auth.uid : null,
   });
@@ -731,7 +759,7 @@ exports.submitSuggestion = functions.https.onCall(async (request) => {
   }
 
   const id = crypto.randomUUID();
-  await setlistRef(viewer.bandId, viewer.setlistId)
+  await setlistRef(viewer.scope, viewer.setlistId)
     .collection("suggestions")
     .doc(id)
     .set({
@@ -754,15 +782,17 @@ exports.submitSuggestion = functions.https.onCall(async (request) => {
 /** Band-side accept/decline. Applying the change itself stays in the app. */
 exports.resolveSuggestion = functions.https.onCall(async (request) => {
   const uid = requireAuth(request);
-  const { bandId, setlistId, suggestionId, accept } = request.data || {};
-  if (!bandId || !setlistId || !suggestionId) {
+  const scope = parseScope(request.data);
+  const { setlistId, suggestionId, accept } = request.data || {};
+  if (!setlistId || !suggestionId) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "bandId, setlistId and suggestionId are required.",
+      "setlistId and suggestionId are required.",
     );
   }
-  requireBandWriter(await loadBand(cleanString(bandId)), uid);
-  await setlistRef(cleanString(bandId), cleanString(setlistId))
+  await refuseDemo(request, "resolve suggestions");
+  await requireScopeWriter(scope, uid);
+  await setlistRef(scope, cleanString(setlistId))
     .collection("suggestions")
     .doc(cleanString(suggestionId))
     .update({
@@ -792,8 +822,8 @@ exports.resolveSuggestion = functions.https.onCall(async (request) => {
  *  only when the roster changed, it goes stale the moment the band moves the
  *  gig — and a guest reading yesterday's call time is the worst kind of stale.
  */
-async function syncEventGrants(bandId, setlistId, { before, after }) {
-  const grantsCol = setlistRef(bandId, setlistId).collection("grants");
+async function syncEventGrants(scope, setlistId, { before, after }) {
+  const grantsCol = setlistRef(scope, setlistId).collection("grants");
   const grants = await grantsCol.get();
   if (grants.empty) return { deleted: 0, refreshed: 0 };
 
@@ -839,7 +869,7 @@ exports.onBandSetlistWritten = functionsV1.firestore
   .document("bands/{bandId}/setlists/{setlistId}")
   .onWrite(async (change, context) => {
     const { bandId, setlistId } = context.params;
-    const out = await syncEventGrants(bandId, setlistId, {
+    const out = await syncEventGrants({ bandId }, setlistId, {
       before: change.before.exists ? change.before.data() : null,
       after: change.after.exists ? change.after.data() : null,
     });
@@ -851,17 +881,28 @@ exports.onBandSetlistWritten = functionsV1.firestore
     }
   });
 
+exports.onUserSetlistWritten = functionsV1.firestore
+  .document("users/{ownerUid}/setlists/{setlistId}")
+  .onWrite(async (change, context) => {
+    const { ownerUid, setlistId } = context.params;
+    const out = await syncEventGrants({ ownerUid }, setlistId, {
+      before: change.before.exists ? change.before.data() : null,
+      after: change.after.exists ? change.after.data() : null,
+    });
+    if (out.deleted || out.refreshed) {
+      console.log(
+        `onUserSetlistWritten ${ownerUid}/${setlistId}: ` +
+          `deleted ${out.deleted}, refreshed ${out.refreshed}`,
+      );
+    }
+  });
+
 /**
- * Every grant in a band, cleared. Used when a band is deleted — Firestore does
- * not cascade at any level, so deleting a band leaves its setlists, and those
- * leave their grants and everyone's invites.
+ * Every grant in a scope, cleared before deleting its band or personal owner.
+ * Firestore does not cascade, so each guest's invite must be removed too.
  */
-async function purgeBandGrants(bandId) {
-  const setlists = await db
-    .collection("bands")
-    .doc(bandId)
-    .collection("setlists")
-    .get();
+async function purgeScopeGrants(scope) {
+  const setlists = await scopeRef(scope).collection("setlists").get();
   let removed = 0;
   for (const setlist of setlists.docs) {
     const grants = await setlist.ref.collection("grants").get();
@@ -875,6 +916,19 @@ async function purgeBandGrants(bandId) {
     await batch.commit();
   }
   return removed;
+}
+
+async function purgeBandGrants(bandId) {
+  return purgeScopeGrants({ bandId });
+}
+
+async function purgePersonalEventGrants(ownerUid) {
+  await purgeScopeGrants({ ownerUid });
+  const shares = await db
+    .collection("eventShares")
+    .where("ownerUid", "==", ownerUid)
+    .get();
+  await Promise.all(shares.docs.map((doc) => doc.ref.delete()));
 }
 
 /**
@@ -894,8 +948,10 @@ async function purgeUserGrants(uid) {
   if (invites.empty) return 0;
   const batch = db.batch();
   for (const invite of invites.docs) {
-    const { bandId, setlistId } = invite.data();
-    if (bandId && setlistId) batch.delete(grantRef(bandId, setlistId, uid));
+    const { bandId, ownerUid, setlistId } = invite.data();
+    if ((bandId || ownerUid) && setlistId) {
+      batch.delete(grantRef(parseScope({ bandId, ownerUid }), setlistId, uid));
+    }
     batch.delete(invite.ref);
   }
   await batch.commit();
@@ -915,6 +971,7 @@ exports.onBandDeleted = functionsV1.firestore
 // Exported for tests.
 exports.purgeBandGrants = purgeBandGrants;
 exports.purgeUserGrants = purgeUserGrants;
+exports.purgePersonalEventGrants = purgePersonalEventGrants;
 exports.grantedParticipants = grantedParticipants;
 exports.writeGrants = writeGrants;
 exports.loadGrant = loadGrant;

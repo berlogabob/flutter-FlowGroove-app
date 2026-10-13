@@ -12,7 +12,10 @@ class _RecordingInvoker {
   final calls = <({String name, Map<String, dynamic> args})>[];
   Object? throwThis;
 
-  Future<Map<String, dynamic>> call(String name, Map<String, dynamic> args) async {
+  Future<Map<String, dynamic>> call(
+    String name,
+    Map<String, dynamic> args,
+  ) async {
     calls.add((name: name, args: args));
     if (throwThis != null) throw throwThis!;
     return reply;
@@ -110,6 +113,44 @@ void main() {
   // saying so. They are thin, but "thin" is where a wrong callable name or a
   // dropped argument hides: the failure is a runtime not-found on a real
   // device, not a compile error.
+  test('personal event callables send ownerUid and omit bandId', () async {
+    final invoker = _RecordingInvoker({'token': 'personal.secret'});
+    final service = EventShareService(invoker: invoker.call);
+    expect(
+      await service.createShare(
+        ownerUid: 'owner',
+        setlistId: 's',
+        participantId: 'p',
+      ),
+      'personal.secret',
+    );
+    await service.getEventView(ownerUid: 'owner', setlistId: 's');
+    await service.submitSuggestion(
+      ownerUid: 'owner',
+      setlistId: 's',
+      type: 'note',
+      text: 'hi',
+    );
+    await service.resolveSuggestion(
+      ownerUid: 'owner',
+      setlistId: 's',
+      suggestionId: 'request',
+      accept: false,
+    );
+    expect(invoker.calls.map((c) => c.name), [
+      'createEventShare',
+      'getEventView',
+      'submitSuggestion',
+      'resolveSuggestion',
+    ]);
+    for (final call in invoker.calls) {
+      expect(call.args['ownerUid'], 'owner');
+      expect(call.args['setlistId'], 's');
+      expect(call.args.containsKey('bandId'), isFalse);
+      expect(call.args.containsKey('token'), isFalse);
+    }
+  });
+
   group('write wrappers', () {
     ProviderContainer containerWith(_RecordingInvoker invoker) {
       final container = ProviderContainer(
@@ -123,39 +164,48 @@ void main() {
       return container;
     }
 
-    test('createShare calls createEventShare and returns the raw token', () async {
-      final invoker = _RecordingInvoker({'token': 'tok-1.secret', 'tokenId': 'tok-1'});
-      final service = containerWith(invoker).read(eventShareServiceProvider);
+    test(
+      'createShare calls createEventShare and returns the raw token',
+      () async {
+        final invoker = _RecordingInvoker({
+          'token': 'tok-1.secret',
+          'tokenId': 'tok-1',
+        });
+        final service = containerWith(invoker).read(eventShareServiceProvider);
 
-      final token = await service.createShare(
-        bandId: 'band-1',
-        setlistId: 'sl-1',
-        participantId: 'p-eng',
-      );
+        final token = await service.createShare(
+          bandId: 'band-1',
+          setlistId: 'sl-1',
+          participantId: 'p-eng',
+        );
 
-      expect(token, 'tok-1.secret');
-      expect(invoker.calls.single.name, 'createEventShare');
-      expect(invoker.calls.single.args, {
-        'bandId': 'band-1',
-        'setlistId': 'sl-1',
-        'participantId': 'p-eng',
-      });
-    });
+        expect(token, 'tok-1.secret');
+        expect(invoker.calls.single.name, 'createEventShare');
+        expect(invoker.calls.single.args, {
+          'bandId': 'band-1',
+          'setlistId': 'sl-1',
+          'participantId': 'p-eng',
+        });
+      },
+    );
 
-    test('createShare returns empty rather than throwing on a token-less reply', () async {
-      // Defensive: a deploy skew where the callable stops returning `token`
-      // must not crash the share sheet with a null cast.
-      final invoker = _RecordingInvoker({'tokenId': 'tok-1'});
-      final service = containerWith(invoker).read(eventShareServiceProvider);
-      expect(
-        await service.createShare(
-          bandId: 'b',
-          setlistId: 's',
-          participantId: 'p',
-        ),
-        '',
-      );
-    });
+    test(
+      'createShare returns empty rather than throwing on a token-less reply',
+      () async {
+        // Defensive: a deploy skew where the callable stops returning `token`
+        // must not crash the share sheet with a null cast.
+        final invoker = _RecordingInvoker({'tokenId': 'tok-1'});
+        final service = containerWith(invoker).read(eventShareServiceProvider);
+        expect(
+          await service.createShare(
+            bandId: 'b',
+            setlistId: 's',
+            participantId: 'p',
+          ),
+          '',
+        );
+      },
+    );
 
     test('revokeShare calls revokeEventShare with the tokenId', () async {
       final invoker = _RecordingInvoker({'revoked': true});
@@ -204,7 +254,11 @@ void main() {
       final invoker = _RecordingInvoker();
       final service = containerWith(invoker).read(eventShareServiceProvider);
 
-      await service.submitSuggestion(token: 'tok-1.secret', type: 'note', text: 'hi');
+      await service.submitSuggestion(
+        token: 'tok-1.secret',
+        type: 'note',
+        text: 'hi',
+      );
 
       expect(invoker.calls.single.args.containsKey('bandId'), isFalse);
       expect(invoker.calls.single.args.containsKey('songId'), isFalse);

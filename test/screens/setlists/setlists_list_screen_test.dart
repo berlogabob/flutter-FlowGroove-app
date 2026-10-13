@@ -4,6 +4,8 @@ import 'package:flowgroove/models/user.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
 import 'package:flowgroove/providers/data/data_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flowgroove/screens/setlists/setlists_list_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/mocks.dart';
@@ -32,6 +34,44 @@ void main() {
 
     setUp(() {
       mockUser = MockDataHelper.createMockAppUser();
+    });
+
+    testWidgets('personal guest card opens an explicit owner-scoped route', (
+      tester,
+    ) async {
+      Map<String, String>? query;
+      final event = MockDataHelper.createMockSetlist(
+        id: 'personal-event',
+        name: 'Personal invitation',
+      ).copyWith(bandId: '', ownerUid: 'event-owner');
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/setlists',
+        overrides: overridesFor(
+          setlists: Stream.value([]),
+          guestEvents: Stream.value([event]),
+        ),
+        routes: [
+          GoRoute(
+            path: '/main/setlists',
+            name: 'setlists',
+            builder: (_, _) => const SetlistsListScreen(),
+          ),
+          GoRoute(
+            path: '/event',
+            name: 'event-share',
+            builder: (_, state) {
+              query = state.uri.queryParameters;
+              return const Scaffold(body: Text('Opened personal event'));
+            },
+          ),
+        ],
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Personal invitation'));
+      await tester.pumpAndSettle();
+      expect(find.text('Opened personal event'), findsOneWidget);
+      expect(query, {'ownerUid': 'event-owner', 'setlistId': 'personal-event'});
     });
 
     testWidgets('renders setlists screen with title and search', (

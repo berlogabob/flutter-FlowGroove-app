@@ -150,12 +150,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final result = await EventShareService().claimShare(token);
       if (!mounted) return;
       final bandId = result['bandId'] as String? ?? '';
+      final ownerUid = result['ownerUid'] as String?;
       final setlistId = result['setlistId'] as String? ?? '';
-      if (bandId.isEmpty || setlistId.isEmpty) {
+      if ((bandId.isEmpty && ownerUid == null) || setlistId.isEmpty) {
         context.go('/main/home');
         return;
       }
       context.go('/main/home');
+      if (bandId.isEmpty) {
+        await context.pushNamed(
+          'event-share',
+          queryParameters: {'ownerUid': ownerUid!, 'setlistId': setlistId},
+        );
+        return;
+      }
       await context.pushNamed(
         'band-setlist-view',
         pathParameters: {'id': bandId, 'setlistId': setlistId},

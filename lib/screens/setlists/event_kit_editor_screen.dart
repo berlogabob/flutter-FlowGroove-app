@@ -10,7 +10,6 @@ import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
-import '../../services/event_share_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/member_label.dart';
 import '../../utils/music_role_icon.dart';
@@ -26,6 +25,7 @@ class EventKitEditorScreen extends ConsumerStatefulWidget {
   const EventKitEditorScreen({
     required this.setlist,
     this.bandId,
+    this.ownerUid,
     this.access = const {},
     this.isMember = true,
     super.key,
@@ -33,17 +33,18 @@ class EventKitEditorScreen extends ConsumerStatefulWidget {
 
   final Setlist setlist;
   final String? bandId;
+  final String? ownerUid;
 
   /// Which areas this viewer may see and change (`area -> view|edit`).
   ///
   /// A band member arrives with every area at `edit`; a claimed sound engineer
-  /// with `stage: edit` and `rider: view`. Empty means a personal setlist,
-  /// where the owner has everything.
+  /// with `stage: edit` and `rider: view`. A personal owner has everything;
+  /// a personal guest keeps the access returned by the event callable.
   final Map<String, String> access;
 
   /// The roster is not an area — it is what the grants are DERIVED from, and
   /// the rules refuse an area editor's write to it. So crew management and the
-  /// share links belong to band members only, whatever areas someone holds.
+  /// share links belong to band members or the personal owner.
   final bool isMember;
 
   @override
@@ -61,8 +62,15 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
         const [];
   }
 
-  /// A personal setlist has no grants — its owner sees and edits everything.
-  Map<String, String> get _access => widget.bandId == null || widget.access.isEmpty
+  bool get _isOwner =>
+      widget.bandId == null &&
+      (widget.ownerUid == null ||
+          widget.ownerUid == ref.read(currentUserProvider).value?.uid);
+
+  bool get _isMember => widget.bandId == null ? _isOwner : widget.isMember;
+
+  Map<String, String> get _access =>
+      _isOwner || (widget.bandId != null && widget.access.isEmpty)
       ? {for (final a in EventArea.all) a: EventAccessLevel.edit}
       : widget.access;
 
@@ -88,7 +96,7 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
             // Reuse EventKit's own serializer rather than re-encoding here.
             value: _kit.toJson()[area],
             bandId: widget.bandId,
-            uid: ref.read(currentUserProvider).value?.uid,
+            uid: widget.ownerUid ?? ref.read(currentUserProvider).value?.uid,
           );
     } catch (e) {
       // Root messenger: this autosave often completes after the editor was
@@ -145,6 +153,21 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
     _mutate(_kit.copyWith(people: [..._kit.people, person]), 'people');
   }
 
+  Future<void> _editPerson(EventPerson person) async {
+    final edited = await showModalBottomSheet<EventPerson>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _AddPersonSheet(person: person),
+    );
+    if (edited == null) return;
+    _mutate(
+      _kit.copyWith(
+        people: [for (final p in _kit.people) p.id == person.id ? edited : p],
+      ),
+      'people',
+    );
+  }
+
   /// Mint a link for one person and copy it.
   ///
   /// The raw token comes back exactly once — only its hash is stored — so it is
@@ -152,10 +175,6 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
   /// lasts. Losing it just means minting another.
   Future<void> _share(EventPerson person) async {
     final bandId = widget.bandId;
-    if (bandId == null) {
-      showAppSnackBar(context, 'Only band events can be shared.');
-      return;
-    }
     if (person.access.isEmpty) {
       showAppSnackBar(
         context,
@@ -164,11 +183,16 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
       return;
     }
     try {
-      final token = await EventShareService().createShare(
-        bandId: bandId,
-        setlistId: widget.setlist.id,
-        participantId: person.id,
-      );
+      final token = await ref
+          .read(eventShareServiceProvider)
+          .createShare(
+            bandId: bandId,
+            ownerUid: bandId == null
+                ? ref.read(currentUserProvider).value?.uid
+                : null,
+            setlistId: widget.setlist.id,
+            participantId: person.id,
+          );
       final link = 'https://app.flowgroove.app/#/event?t=$token';
       await Clipboard.setData(ClipboardData(text: link));
       if (!mounted) return;
@@ -225,129 +249,132 @@ class _EventKitEditorScreenState extends ConsumerState<EventKitEditorScreen> {
           padding: const EdgeInsets.all(MonoPulseSpacing.lg),
           children: [
             if (_canView(EventArea.stage)) ...[
-            _sectionTitle('Stage plot'),
-            Text(
-              _canEdit(EventArea.stage)
-                  ? 'Tap a zone to place people and gear. Long-press a chip to '
-                        'remove it. Top row is the back of the stage.'
-                  : 'Shared with you to read. Top row is the back of the stage.',
-              style: MonoPulseTypography.bodySmall.copyWith(
-                color: context.mp.textSecondary,
-              ),
-            ),
-            const SizedBox(height: MonoPulseSpacing.md),
-            _stageGrid(),
-            const SizedBox(height: 4),
-            Center(
-              child: Text(
-                '▼ audience ▼',
+              _sectionTitle('Stage plot'),
+              Text(
+                _canEdit(EventArea.stage)
+                    ? 'Tap a zone to place people and gear. Long-press a chip to '
+                          'remove it. Top row is the back of the stage.'
+                    : 'Shared with you to read. Top row is the back of the stage.',
                 style: MonoPulseTypography.bodySmall.copyWith(
                   color: context.mp.textSecondary,
                 ),
               ),
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
+              const SizedBox(height: MonoPulseSpacing.md),
+              _stageGrid(),
+              const SizedBox(height: 4),
+              Center(
+                child: Text(
+                  '▼ audience ▼',
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: context.mp.textSecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: MonoPulseSpacing.lg),
             ],
             // The roster carries who else is on the gig and, for members, the
             // share links. An area editor has no business reshaping it — and
             // the rules refuse the write anyway, so never offer it.
-            if (widget.isMember) ...[
-            _sectionTitle('Crew & guests'),
-            for (final p in _kit.people)
-              ListTile(
-                dense: true,
-                leading: const Icon(Icons.badge_outlined),
-                title: Text(p.name),
-                subtitle: Text(
-                  [
-                    p.role,
-                    if (_songNumbers[p.id] case final songs?
-                        when songs.isNotEmpty)
-                      songs.map((n) => '#$n').join(', '),
-                    if (p.notes != null) p.notes!,
-                  ].join(' · '),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.link, size: 18),
-                      tooltip: 'Share this event with ${p.name}',
-                      onPressed: () => _share(p),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      onPressed: () => _mutate(
-                        _kit.copyWith(people: [..._kit.people]..remove(p)),
-                        'people',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ActionChip(
-              avatar: const Icon(Icons.person_add_alt, size: 18),
-              label: const Text('Add person'),
-              onPressed: _addPerson,
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
-            ],
-            if (_canView(EventArea.rider)) ...[
-            _sectionTitle('Rider / equipment'),
-            for (final r in _kit.rider)
-              CheckboxListTile(
-                dense: true,
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text(
-                  '${r.label}${r.qty != null ? ' ×${r.qty}' : ''}',
-                  style: r.done
-                      ? TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          color: context.mp.textSecondary,
-                        )
-                      : null,
-                ),
-                value: r.done,
-                onChanged: !_canEdit(EventArea.rider)
-                    ? null
-                    : (v) => _mutate(
-                  _kit.copyWith(
-                    rider: [
-                      for (final item in _kit.rider)
-                        item == r ? item.copyWith(done: v ?? false) : item,
-                    ],
+            if (_isMember) ...[
+              _sectionTitle('Crew & guests'),
+              for (final p in _kit.people)
+                ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.badge_outlined),
+                  title: Text(p.name),
+                  onTap: widget.bandId == null ? () => _editPerson(p) : null,
+                  subtitle: Text(
+                    [
+                      p.role,
+                      if (_songNumbers[p.id] case final songs?
+                          when songs.isNotEmpty)
+                        songs.map((n) => '#$n').join(', '),
+                      if (p.notes != null) p.notes!,
+                    ].join(' · '),
                   ),
-                  'rider',
-                ),
-                secondary: !_canEdit(EventArea.rider)
-                    ? null
-                    : IconButton(
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.link, size: 18),
+                        tooltip: 'Share this event with ${p.name}',
+                        onPressed: () => _share(p),
+                      ),
+                      IconButton(
                         icon: const Icon(Icons.close, size: 18),
                         onPressed: () => _mutate(
-                          _kit.copyWith(rider: [..._kit.rider]..remove(r)),
-                          'rider',
+                          _kit.copyWith(people: [..._kit.people]..remove(p)),
+                          'people',
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ActionChip(
+                avatar: const Icon(Icons.person_add_alt, size: 18),
+                label: const Text('Add person'),
+                onPressed: _addPerson,
               ),
-            if (_canEdit(EventArea.rider))
-            ActionChip(
-              avatar: const Icon(Icons.add, size: 18),
-              label: const Text('Add rider item'),
-              onPressed: _addRiderItem,
-            ),
-            const SizedBox(height: MonoPulseSpacing.lg),
+              const SizedBox(height: MonoPulseSpacing.lg),
             ],
-            if (widget.isMember) ...[
-            _sectionTitle('Role cards'),
-            Text(
-              'Everyone involved in this event — band, crew and guests. '
-              'These print in the event-guide PDF.',
-              style: MonoPulseTypography.bodySmall.copyWith(
-                color: context.mp.textSecondary,
+            if (_canView(EventArea.rider)) ...[
+              _sectionTitle('Rider / equipment'),
+              for (final r in _kit.rider)
+                CheckboxListTile(
+                  dense: true,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(
+                    '${r.label}${r.qty != null ? ' ×${r.qty}' : ''}',
+                    style: r.done
+                        ? TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: context.mp.textSecondary,
+                          )
+                        : null,
+                  ),
+                  value: r.done,
+                  onChanged: !_canEdit(EventArea.rider)
+                      ? null
+                      : (v) => _mutate(
+                          _kit.copyWith(
+                            rider: [
+                              for (final item in _kit.rider)
+                                item == r
+                                    ? item.copyWith(done: v ?? false)
+                                    : item,
+                            ],
+                          ),
+                          'rider',
+                        ),
+                  secondary: !_canEdit(EventArea.rider)
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.close, size: 18),
+                          onPressed: () => _mutate(
+                            _kit.copyWith(rider: [..._kit.rider]..remove(r)),
+                            'rider',
+                          ),
+                        ),
+                ),
+              if (_canEdit(EventArea.rider))
+                ActionChip(
+                  avatar: const Icon(Icons.add, size: 18),
+                  label: const Text('Add rider item'),
+                  onPressed: _addRiderItem,
+                ),
+              const SizedBox(height: MonoPulseSpacing.lg),
+            ],
+            if (_isMember) ...[
+              _sectionTitle('Role cards'),
+              Text(
+                'Everyone involved in this event — band, crew and guests. '
+                'These print in the event-guide PDF.',
+                style: MonoPulseTypography.bodySmall.copyWith(
+                  color: context.mp.textSecondary,
+                ),
               ),
-            ),
-            const SizedBox(height: MonoPulseSpacing.md),
-            _roleCards(),
+              const SizedBox(height: MonoPulseSpacing.md),
+              _roleCards(),
             ],
             const SizedBox(height: 96),
           ],
@@ -1053,16 +1080,18 @@ class _AccessPreview extends StatelessWidget {
 }
 
 class _AddPersonSheet extends StatefulWidget {
-  const _AddPersonSheet();
+  const _AddPersonSheet({this.person});
+
+  final EventPerson? person;
 
   @override
   State<_AddPersonSheet> createState() => _AddPersonSheetState();
 }
 
 class _AddPersonSheetState extends State<_AddPersonSheet> {
-  final _name = TextEditingController();
-  final _role = TextEditingController();
-  final _notes = TextEditingController();
+  late final _name = TextEditingController(text: widget.person?.name);
+  late final _role = TextEditingController(text: widget.person?.role);
+  late final _notes = TextEditingController(text: widget.person?.notes);
 
   @override
   void dispose() {
@@ -1085,7 +1114,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Add crew / guest',
+              widget.person == null ? 'Add crew / guest' : 'Edit crew / guest',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: MonoPulseSpacing.md),
@@ -1149,8 +1178,15 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
                       context,
                       // The role sets the default grant; it can be widened per
                       // person afterwards without redefining the role itself.
-                      EventPerson.withRolePreset(
-                        id: const Uuid().v4(),
+                      EventPerson(
+                        id: widget.person?.id ?? const Uuid().v4(),
+                        uid: widget.person?.uid,
+                        access: widget.person?.role == _role.text.trim()
+                            ? widget.person!.access
+                            : presetForRole(_role.text.trim()).access,
+                        canSuggest: widget.person?.role == _role.text.trim()
+                            ? widget.person!.canSuggest
+                            : presetForRole(_role.text.trim()).canSuggest,
                         name: name,
                         role: _role.text.trim(),
                         notes: _notes.text.trim().isEmpty
@@ -1159,7 +1195,7 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
                       ),
                     );
                   },
-                  child: const Text('Add'),
+                  child: Text(widget.person == null ? 'Add' : 'Save'),
                 ),
               ],
             ),

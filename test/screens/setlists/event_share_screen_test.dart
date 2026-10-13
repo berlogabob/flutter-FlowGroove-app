@@ -7,6 +7,13 @@
 // chords would pass just as well with the scoping removed entirely.
 
 import 'package:flowgroove/models/event_access.dart';
+import 'package:flowgroove/models/setlist.dart';
+import 'package:flowgroove/providers/data/data_providers.dart';
+import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/screens/setlists/event_share_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flowgroove/services/event_share_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -45,6 +52,71 @@ EventView _view({
 );
 
 void main() {
+  testWidgets('personal invite loads and suggests in the owner scope', (
+    tester,
+  ) async {
+    final calls = <({String name, Map<String, dynamic> args})>[];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentUserProvider.overrideWithValue(
+            const AsyncValue<User?>.data(null),
+          ),
+          eventShareServiceProvider.overrideWithValue(
+            EventShareService(
+              invoker: (name, args) async {
+                calls.add((name: name, args: args));
+                return {
+                  'setlistId': 'sl1',
+                  'name': 'Personal gig',
+                  'viewer': {
+                    'access': {'eventInfo': 'view'},
+                    'canSuggest': true,
+                  },
+                };
+              },
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          home: EventShareScreen(ownerUid: 'owner', setlistId: 'sl1'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Personal gig'), findsOneWidget);
+    expect(calls.single.args, {'ownerUid': 'owner', 'setlistId': 'sl1'});
+    await tester.tap(find.text('Suggest a change'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Encore please');
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+    expect(calls.last.name, 'submitSuggestion');
+    expect(calls.last.args, {
+      'ownerUid': 'owner',
+      'setlistId': 'sl1',
+      'type': 'note',
+      'text': 'Encore please',
+    });
+  });
+
+  test(
+    'personal scoped setlist preserves ownerUid through JSON and copyWith',
+    () {
+      final setlist = setlistFromEventView(
+        _view(access: {'eventInfo': 'view'}),
+        null,
+        ownerUid: 'owner',
+      );
+      expect(setlist.bandId, isEmpty);
+      expect(
+        Setlist.fromJson(setlist.toJson()).copyWith(name: 'Renamed').ownerUid,
+        'owner',
+      );
+      expect(setlist.copyWith(ownerUid: null).ownerUid, isNull);
+    },
+  );
+
   group('EventView scoping — what a viewer must NOT receive', () {
     test('a venue-scoped view carries no chart data at all', () {
       final view = _view(
@@ -68,7 +140,9 @@ void main() {
     });
 
     test('null stage means "not shared", which is not an empty stage', () {
-      final hidden = _view(access: {EventArea.eventInfo: EventAccessLevel.view});
+      final hidden = _view(
+        access: {EventArea.eventInfo: EventAccessLevel.view},
+      );
       expect(hidden.stage, isNull);
 
       final shared = EventView.fromMap({
@@ -167,8 +241,10 @@ void main() {
   group('who is offered what', () {
     // Mirrors the gating in EventShareScreen and the Event kit entry, so a
     // change to either has to change an assertion here too.
-    bool needsSignIn({required bool signedIn, required Map<String, String> a}) =>
-        !signedIn && EventArea.all.any((area) => canEditArea(a, area));
+    bool needsSignIn({
+      required bool signedIn,
+      required Map<String, String> a,
+    }) => !signedIn && EventArea.all.any((area) => canEditArea(a, area));
 
     test('an edit grant prompts sign-in; a view-only grant never does', () {
       expect(
@@ -198,21 +274,24 @@ void main() {
       );
     });
 
-    test('the Event kit door opens for stage or rider, not for a plain guest', () {
-      bool canOpen(Map<String, String> a) =>
-          canViewArea(a, EventArea.stage) || canViewArea(a, EventArea.rider);
+    test(
+      'the Event kit door opens for stage or rider, not for a plain guest',
+      () {
+        bool canOpen(Map<String, String> a) =>
+            canViewArea(a, EventArea.stage) || canViewArea(a, EventArea.rider);
 
-      expect(canOpen({EventArea.stage: EventAccessLevel.edit}), isTrue);
-      expect(canOpen({EventArea.rider: EventAccessLevel.view}), isTrue);
-      expect(
-        canOpen({
-          EventArea.eventInfo: EventAccessLevel.view,
-          EventArea.runningOrder: EventAccessLevel.view,
-          EventArea.songDetail: EventAccessLevel.view,
-        }),
-        isFalse,
-        reason: 'a performing guest has no business in the stage plot',
-      );
-    });
+        expect(canOpen({EventArea.stage: EventAccessLevel.edit}), isTrue);
+        expect(canOpen({EventArea.rider: EventAccessLevel.view}), isTrue);
+        expect(
+          canOpen({
+            EventArea.eventInfo: EventAccessLevel.view,
+            EventArea.runningOrder: EventAccessLevel.view,
+            EventArea.songDetail: EventAccessLevel.view,
+          }),
+          isFalse,
+          reason: 'a performing guest has no business in the stage plot',
+        );
+      },
+    );
   });
 }

@@ -7,6 +7,7 @@ import '../../models/lineup.dart';
 import '../../models/setlist.dart';
 import '../../models/song.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../services/export/pdf_service.dart';
@@ -163,6 +164,9 @@ class SetlistViewScreen extends ConsumerWidget {
               songs,
               canEdit: canEdit,
               isMember: isMember,
+              ownerUid: bandId == null
+                  ? ref.watch(currentUserProvider).value?.uid
+                  : null,
             ),
             loading: () => const LoadingIndicator(),
             // A failed songs load shouldn't block the setlist details from
@@ -173,6 +177,9 @@ class SetlistViewScreen extends ConsumerWidget {
               const [],
               canEdit: canEdit,
               isMember: isMember,
+              ownerUid: bandId == null
+                  ? ref.watch(currentUserProvider).value?.uid
+                  : null,
             ),
           ),
         ),
@@ -206,6 +213,7 @@ class SetlistViewScreen extends ConsumerWidget {
     List<Song> allSongs, {
     required bool canEdit,
     required bool isMember,
+    String? ownerUid,
   }) {
     final songsById = {for (final song in allSongs) song.id: song};
     final items = setlist.effectiveItems;
@@ -214,9 +222,10 @@ class SetlistViewScreen extends ConsumerWidget {
     // What guests asked for. Band-side only — the rules make the subcollection
     // members-only, and a guest sees their own through the event payload. It
     // renders nothing when there is nothing to answer.
-    final inbox = bandId != null && isMember
+    final inbox = isMember && (bandId != null || ownerUid != null)
         ? EventSuggestionsInbox(
-            bandId: bandId!,
+            bandId: bandId,
+            ownerUid: ownerUid,
             setlistId: setlist.id,
             canResolve: canEdit,
           )
@@ -225,8 +234,9 @@ class SetlistViewScreen extends ConsumerWidget {
     if (items.isEmpty && (setlist.eventKit?.isEmpty ?? true)) {
       return ListView(
         padding: const EdgeInsets.all(MonoPulseSpacing.lg),
-        children: const [
-          EmptyState(
+        children: [
+          if (bandId == null) inbox,
+          const EmptyState(
             icon: Icons.music_note,
             message: 'No songs in this setlist',
           ),
@@ -272,7 +282,6 @@ class SetlistViewScreen extends ConsumerWidget {
     );
   }
 
-
   /// Key/BPM badges shown when the row's song resolves. Mirrors the
   /// editable rows in `CreateSetlistScreen`.
   Widget _badgesFor(Song song) {
@@ -315,10 +324,7 @@ class SetlistViewScreen extends ConsumerWidget {
     context.pushNamed(
       'song',
       pathParameters: {'id': song.id},
-      queryParameters: {
-        'tab': 'sheet',
-        if (bandId case final b?) 'bandId': b,
-      },
+      queryParameters: {'tab': 'sheet', if (bandId case final b?) 'bandId': b},
       extra: bandId == null ? song : {'song': song, 'bandId': bandId},
     );
   }
@@ -357,11 +363,7 @@ class SetlistViewScreen extends ConsumerWidget {
     if (!context.mounted) return;
     final loaded = ref
         .read(metronomeProvider.notifier)
-        .loadSetlistQueue(
-          setlist,
-          availableSongs: songs,
-          sourceBandId: bandId,
-        );
+        .loadSetlistQueue(setlist, availableSongs: songs, sourceBandId: bandId);
     if (!loaded) {
       showAppSnackBar(
         context,

@@ -82,6 +82,24 @@ describe("deleteAccount callable", function () {
     assert.deepEqual(deletedFiles, ["profile_pictures/u1.jpg"]);
   });
 
+  it("removes owned personal event grants, guest invites and shares on account deletion", async () => {
+    const events = require("../src/events");
+    await db.doc("users/u1").set({ name: "Owner" });
+    await db.doc("users/u1/setlists/personal-event").set({ name: "Event" });
+    await events.writeGrants({ ownerUid: "u1" }, "personal-event", [
+      { id: "guest", uid: "u2", access: { eventInfo: "view" } },
+    ]);
+    await db.doc("eventShares/personal-share").set({ ownerUid: "u1" });
+    await db.doc("eventShares/other-share").set({ ownerUid: "u2" });
+    const { fn } = build();
+    await fn(req("u1"));
+    for (const path of ["users/u1/setlists/personal-event/grants/u2", "users/u2/eventInvites/personal-event", "eventShares/personal-share"]) {
+      assert.equal((await db.doc(path).get()).exists, false, path);
+    }
+    assert.equal((await db.doc("eventShares/other-share").get()).exists, true);
+    await db.doc("eventShares/other-share").delete();
+  });
+
   it("wipes the audio notes, which nobody could read once the account is gone", async () => {
     await db.collection("users").doc("u1").set({ name: "A" });
     const { fn, deletedPrefixes } = build();

@@ -124,7 +124,9 @@ class Setlist {
     required this.id,
     required this.bandId,
     required this.name,
-    required this.createdAt, required this.updatedAt, this.description,
+    required this.createdAt,
+    required this.updatedAt,
+    this.description,
     this.eventDateTime,
     this.eventLocation,
     this.songIds = const [],
@@ -132,6 +134,7 @@ class Setlist {
     this.totalDuration,
     this.assignments = const {},
     this.eventKit,
+    this.ownerUid,
   });
 
   factory Setlist.fromJson(Map<String, dynamic> json) =>
@@ -141,6 +144,10 @@ class Setlist {
   final String id;
   @JsonKey(defaultValue: '')
   final String bandId;
+
+  /// Personal event scope carried by invites and scoped event views.
+  @JsonKey(includeIfNull: false)
+  final String? ownerUid;
   @JsonKey(defaultValue: '')
   final String name;
   final String? description;
@@ -172,6 +179,7 @@ class Setlist {
   Setlist copyWith({
     String? id,
     String? bandId,
+    Object? ownerUid = _sentinel,
     String? name,
     Object? description = _sentinel,
     Object? eventDateTime = _sentinel,
@@ -187,6 +195,7 @@ class Setlist {
     return Setlist(
       id: id ?? this.id,
       bandId: bandId ?? this.bandId,
+      ownerUid: ownerUid == _sentinel ? this.ownerUid : ownerUid as String?,
       name: name ?? this.name,
       description: description == _sentinel
           ? this.description
@@ -377,8 +386,7 @@ List<Map<String, dynamic>> _itemsToJson(List<SetlistItem> value) {
   return value.map((item) => item.toJson()).toList();
 }
 
-EventKit? _eventKitFromJson(dynamic value) => value is Map
-    ? EventKit.fromJson(Map<String, dynamic>.from(value))
-    : null;
+EventKit? _eventKitFromJson(dynamic value) =>
+    value is Map ? EventKit.fromJson(Map<String, dynamic>.from(value)) : null;
 
 Map<String, dynamic>? _eventKitToJson(EventKit? kit) => kit?.toJson();

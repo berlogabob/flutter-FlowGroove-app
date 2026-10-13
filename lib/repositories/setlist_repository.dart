@@ -45,7 +45,6 @@ abstract class SetlistRepository {
     String? uid,
   });
 
-
   /// Watches setlists for a band in real-time.
   Stream<List<Setlist>> watchBandSetlists(String bandId);
 
@@ -53,14 +52,15 @@ abstract class SetlistRepository {
   /// member of any of them.
   Stream<List<Setlist>> watchGuestEvents(String uid);
 
-  /// Suggestions people made about ONE event, band-side.
+  /// Suggestions people made about ONE event, for members or its owner.
   ///
-  /// The subcollection is readable by band members alone, so this is the
-  /// members' view of the inbox. A guest sees their own through
+  /// The subcollection is readable by band members or the personal owner, so this is the
+  /// organizers' view of the inbox. A guest sees their own through
   /// `getEventView.mySuggestions` — an anonymous link holder has no uid for a
   /// security rule to match on.
   Stream<List<EventSuggestion>> watchSetlistSuggestions(
-    String bandId,
-    String setlistId,
-  );
+    String? bandId,
+    String setlistId, {
+    String? ownerUid,
+  });
 }

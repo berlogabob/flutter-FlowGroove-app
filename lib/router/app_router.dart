@@ -227,7 +227,10 @@ GoRouter createAppRouter({
             // Not logged in and not on auth pages -> go to login.
             // If a join link (with ?code=) was opened while logged out, stash
             // the code so the login flow can resume the join afterwards.
-            if (!isLoggedIn && !isLoggingIn && !isRegistering && !isJoinWelcome) {
+            if (!isLoggedIn &&
+                !isLoggingIn &&
+                !isRegistering &&
+                !isJoinWelcome) {
               if (state.matchedLocation == '/main/join-band' &&
                   joinCode != null &&
                   joinCode.isNotEmpty) {
@@ -300,9 +303,8 @@ List<RouteBase> _buildAppRoutes() {
     GoRoute(
       path: '/join-welcome',
       name: 'join-welcome',
-      builder: (context, state) => JoinWelcomeScreen(
-        code: state.uri.queryParameters['code'] ?? '',
-      ),
+      builder: (context, state) =>
+          JoinWelcomeScreen(code: state.uri.queryParameters['code'] ?? ''),
     ),
 
     // Shared event link (`https://app.flowgroove.app/#/event?t=<id>.<secret>`).
@@ -310,8 +312,11 @@ List<RouteBase> _buildAppRoutes() {
     GoRoute(
       path: '/event',
       name: 'event-share',
-      builder: (context, state) =>
-          EventShareScreen(token: state.uri.queryParameters['t'] ?? ''),
+      builder: (context, state) => EventShareScreen(
+        token: state.uri.queryParameters['t'],
+        ownerUid: state.uri.queryParameters['ownerUid'],
+        setlistId: state.uri.queryParameters['setlistId'],
+      ),
     ),
 
     // Main app shell - using StatefulShellRoute.indexedStack for proper bottom nav

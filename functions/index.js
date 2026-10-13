@@ -48,6 +48,7 @@ exports.resolveSuggestion = events.resolveSuggestion;
 // orphaned grants and phantom invites, and a moved gig leaves guests reading
 // yesterday's call time.
 exports.onBandSetlistWritten = events.onBandSetlistWritten;
+exports.onUserSetlistWritten = events.onUserSetlistWritten;
 exports.onBandDeleted = events.onBandDeleted;
 
 // Account deletion (server-authoritative; Google Play data-deletion requirement)

@@ -11,6 +11,7 @@ import 'package:flowgroove/screens/setlists/create_setlist_screen.dart'
 import 'package:flowgroove/screens/setlists/setlist_view_screen.dart';
 import 'package:flowgroove/widgets/menu_items_scope.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -145,6 +146,9 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
+          currentUserProvider.overrideWithValue(
+            const AsyncValue<User?>.data(null),
+          ),
           // The shell's DemoModeBanner watches appUserProvider; without an
           // override the real notifier throws (no Firebase in tests) and
           // Riverpod's retry timer trips the pending-timer check.

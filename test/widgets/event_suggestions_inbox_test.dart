@@ -11,7 +11,10 @@ import 'package:flutter_test/flutter_test.dart';
 class _Recorder {
   final calls = <({String suggestionId, bool accept})>[];
 
-  Future<Map<String, dynamic>> call(String name, Map<String, dynamic> args) async {
+  Future<Map<String, dynamic>> call(
+    String name,
+    Map<String, dynamic> args,
+  ) async {
     if (name == 'resolveSuggestion') {
       calls.add((
         suggestionId: args['suggestionId'] as String,
@@ -23,6 +26,55 @@ class _Recorder {
 }
 
 void main() {
+  testWidgets('personal owner resolves a request with ownerUid and no bandId', (
+    tester,
+  ) async {
+    Map<String, dynamic>? payload;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          personalSetlistSuggestionsProvider(('owner', 'sl1')).overrideWith(
+            (ref) => Stream.value([
+              const EventSuggestion(
+                id: 'request',
+                type: 'note',
+                text: 'Encore',
+                status: 'open',
+              ),
+            ]),
+          ),
+          eventShareServiceProvider.overrideWithValue(
+            EventShareService(
+              invoker: (name, args) async {
+                expect(name, 'resolveSuggestion');
+                payload = args;
+                return {};
+              },
+            ),
+          ),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(
+            body: EventSuggestionsInbox(
+              ownerUid: 'owner',
+              setlistId: 'sl1',
+              canResolve: true,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Accept'));
+    await tester.pumpAndSettle();
+    expect(payload, {
+      'ownerUid': 'owner',
+      'setlistId': 'sl1',
+      'suggestionId': 'request',
+      'accept': true,
+    });
+  });
+
   EventSuggestion suggestion({
     String id = 'sug-1',
     String status = 'open',
@@ -44,9 +96,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          setlistSuggestionsProvider(('band-1', 'sl-1')).overrideWith(
-            (ref) => Stream.value(suggestions),
-          ),
+          setlistSuggestionsProvider((
+            'band-1',
+            'sl-1',
+          )).overrideWith((ref) => Stream.value(suggestions)),
           eventShareServiceProvider.overrideWithValue(
             EventShareService(invoker: recorder.call),
           ),
@@ -103,10 +156,7 @@ void main() {
   testWidgets('an already-answered request shows its outcome, not buttons', (
     tester,
   ) async {
-    await pump(
-      tester,
-      suggestions: [suggestion(status: 'accepted')],
-    );
+    await pump(tester, suggestions: [suggestion(status: 'accepted')]);
     expect(find.text('Accepted'), findsOneWidget);
     expect(find.text('Accept'), findsNothing);
     expect(find.text('Decline'), findsNothing);

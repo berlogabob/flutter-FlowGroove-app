@@ -9,6 +9,7 @@ import '../../services/event_share_service.dart';
 import '../../theme/mono_pulse_theme.dart';
 import '../../utils/music_role_icon.dart';
 import '../../utils/snackbar.dart';
+import 'event_kit_editor_screen.dart';
 
 /// What someone opening a shared event link sees — a venue's art director, a
 /// wedding couple, a sound engineer, a guest musician.
@@ -21,9 +22,18 @@ import '../../utils/snackbar.dart';
 /// Works signed out on purpose. Suggesting needs no account — a client or a
 /// venue will not complete a signup — while anyone who *edits* signs in first.
 class EventShareScreen extends ConsumerStatefulWidget {
-  const EventShareScreen({required this.token, super.key});
+  const EventShareScreen({
+    this.token,
+    this.bandId,
+    this.ownerUid,
+    this.setlistId,
+    super.key,
+  });
 
-  final String token;
+  final String? token;
+  final String? bandId;
+  final String? ownerUid;
+  final String? setlistId;
 
   @override
   ConsumerState<EventShareScreen> createState() => _EventShareScreenState();
@@ -48,7 +58,12 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
     try {
       final view = await ref
           .read(eventShareServiceProvider)
-          .getEventView(token: widget.token);
+          .getEventView(
+            token: widget.token,
+            bandId: widget.bandId,
+            ownerUid: widget.ownerUid,
+            setlistId: widget.setlistId,
+          );
       if (!mounted) return;
       setState(() {
         _view = view;
@@ -73,7 +88,7 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
   Future<void> _signInToEdit() async {
     await ref
         .read(pendingEventTokenStoreProvider)
-        .setPendingEventToken(widget.token);
+        .setPendingEventToken(widget.token!);
     if (!mounted) return;
     context.go('/login');
   }
@@ -88,11 +103,16 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
     );
     if (text == null || text.trim().isEmpty) return;
     try {
-      await ref.read(eventShareServiceProvider).submitSuggestion(
-        token: widget.token,
-        type: 'note',
-        text: text,
-      );
+      await ref
+          .read(eventShareServiceProvider)
+          .submitSuggestion(
+            token: widget.token,
+            bandId: widget.bandId,
+            ownerUid: widget.ownerUid,
+            setlistId: widget.setlistId,
+            type: 'note',
+            text: text,
+          );
       if (mounted) showAppSnackBar(context, 'Sent to the band. Thanks!');
     } catch (e) {
       if (mounted) showAppSnackBar(context, 'Could not send that: $e');
@@ -123,11 +143,41 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
     // Anyone granted an EDIT level has to sign in before they can use it —
     // editing carries an author, reading and suggesting never do. Without this
     // the link is a dead end for exactly the people given the most access.
-    final needsSignIn = !_signedIn &&
+    final needsSignIn =
+        widget.token != null &&
+        !_signedIn &&
         EventArea.all.any((a) => canEditArea(view.access, a));
 
     return Scaffold(
-      appBar: AppBar(title: Text(view.name)),
+      appBar: AppBar(
+        title: Text(view.name),
+        actions: [
+          if (_signedIn &&
+              widget.ownerUid != null &&
+              (view.canSee(EventArea.stage) || view.canSee(EventArea.rider)))
+            IconButton(
+              tooltip: 'Event kit',
+              icon: const Icon(Icons.theater_comedy_outlined),
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => EventKitEditorScreen(
+                      setlist: setlistFromEventView(
+                        view,
+                        null,
+                        ownerUid: widget.ownerUid,
+                      ),
+                      ownerUid: widget.ownerUid,
+                      access: view.access,
+                      isMember: false,
+                    ),
+                  ),
+                );
+                if (mounted) await _load();
+              },
+            ),
+        ],
+      ),
       floatingActionButton: needsSignIn
           ? FloatingActionButton.extended(
               onPressed: _signInToEdit,
@@ -282,9 +332,10 @@ class _EventShareScreenState extends ConsumerState<EventShareScreen> {
                 leading: Text('$n', style: MonoPulseTypography.bodySmall),
                 title: Text('${song['title']}'),
                 subtitle: Text(
-                  [song['artist'], if (meta.isNotEmpty) meta]
-                      .where((s) => s != null && '$s'.isNotEmpty)
-                      .join(' · '),
+                  [
+                    song['artist'],
+                    if (meta.isNotEmpty) meta,
+                  ].where((s) => s != null && '$s'.isNotEmpty).join(' · '),
                 ),
               );
             },

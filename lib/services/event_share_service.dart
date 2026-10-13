@@ -17,9 +17,14 @@ import '../models/song.dart';
 /// from the scoped payload instead, which is why the running order is empty
 /// unless `runningOrder` was granted, and the roster carries names and roles
 /// but never uids.
-Setlist setlistFromEventView(EventView view, String bandId) => Setlist(
+Setlist setlistFromEventView(
+  EventView view,
+  String? bandId, {
+  String? ownerUid,
+}) => Setlist(
   id: view.setlistId,
-  bandId: bandId,
+  bandId: bandId ?? '',
+  ownerUid: ownerUid,
   name: view.name,
   description: view.description,
   eventDateTime: view.eventDateTime,
@@ -186,7 +191,10 @@ class EventView {
 /// and Firebase, so a test can assert the name and the arguments a wrapper
 /// sends without standing up a mock of the whole Functions SDK.
 typedef CallableInvoker =
-    Future<Map<String, dynamic>> Function(String name, Map<String, dynamic> args);
+    Future<Map<String, dynamic>> Function(
+      String name,
+      Map<String, dynamic> args,
+    );
 
 class EventShareService {
   EventShareService({FirebaseFunctions? functions, CallableInvoker? invoker})
@@ -228,12 +236,14 @@ class EventShareService {
   /// The raw token is returned ONCE and never stored — only its hash is kept
   /// server-side, so this is the only moment the link can be captured.
   Future<String> createShare({
-    required String bandId,
+    String? bandId,
+    String? ownerUid,
     required String setlistId,
     required String participantId,
   }) async {
     final out = await _call('createEventShare', {
       'bandId': bandId,
+      'ownerUid': ownerUid,
       'setlistId': setlistId,
       'participantId': participantId,
     });
@@ -248,11 +258,13 @@ class EventShareService {
   Future<EventView> getEventView({
     String? token,
     String? bandId,
+    String? ownerUid,
     String? setlistId,
   }) async {
     final out = await _call('getEventView', {
       'token': token,
       'bandId': bandId,
+      'ownerUid': ownerUid,
       'setlistId': setlistId,
     });
     return EventView.fromMap(out);
@@ -266,6 +278,7 @@ class EventShareService {
   Future<void> submitSuggestion({
     String? token,
     String? bandId,
+    String? ownerUid,
     String? setlistId,
     required String type,
     String? songId,
@@ -273,6 +286,7 @@ class EventShareService {
   }) => _call('submitSuggestion', {
     'token': token,
     'bandId': bandId,
+    'ownerUid': ownerUid,
     'setlistId': setlistId,
     'type': type,
     'songId': songId,
@@ -280,12 +294,14 @@ class EventShareService {
   });
 
   Future<void> resolveSuggestion({
-    required String bandId,
+    String? bandId,
+    String? ownerUid,
     required String setlistId,
     required String suggestionId,
     required bool accept,
   }) => _call('resolveSuggestion', {
     'bandId': bandId,
+    'ownerUid': ownerUid,
     'setlistId': setlistId,
     'suggestionId': suggestionId,
     'accept': accept,

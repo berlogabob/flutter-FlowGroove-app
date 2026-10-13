@@ -286,11 +286,22 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
                   if (event.eventLocation != null) event.eventLocation!,
                 ].join(' · '),
               ),
-              onTap: () => context.pushNamed(
-                'band-setlist-view',
-                pathParameters: {'id': event.bandId, 'setlistId': event.id},
-                extra: event,
-              ),
+              onTap: () => event.bandId.isNotEmpty
+                  ? context.pushNamed(
+                      'band-setlist-view',
+                      pathParameters: {
+                        'id': event.bandId,
+                        'setlistId': event.id,
+                      },
+                      extra: event,
+                    )
+                  : context.pushNamed(
+                      'event-share',
+                      queryParameters: {
+                        'ownerUid': ?event.ownerUid,
+                        'setlistId': event.id,
+                      },
+                    ),
             ),
         ],
       ),

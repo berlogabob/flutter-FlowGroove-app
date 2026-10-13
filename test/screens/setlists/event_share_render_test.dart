@@ -27,6 +27,7 @@ class FakeEventShareService implements EventShareService {
   Future<EventView> getEventView({
     String? token,
     String? bandId,
+    String? ownerUid,
     String? setlistId,
   }) async => view;
 
@@ -34,6 +35,7 @@ class FakeEventShareService implements EventShareService {
   Future<void> submitSuggestion({
     String? token,
     String? bandId,
+    String? ownerUid,
     String? setlistId,
     required String type,
     String? songId,
@@ -83,7 +85,9 @@ void main() {
         overrides: [
           eventShareServiceProvider.overrideWithValue(fake),
           // Signed out — the state every share link starts in.
-          currentUserProvider.overrideWithValue(const AsyncValue<User?>.data(null)),
+          currentUserProvider.overrideWithValue(
+            const AsyncValue<User?>.data(null),
+          ),
         ],
         child: MaterialApp(home: const EventShareScreen(token: 't.s')),
       ),
