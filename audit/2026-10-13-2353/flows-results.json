@@ -1,0 +1,9 @@
+[
+ {"name":"first-launch-to-demo-home","passed":true,"duration_s":25,"steps":3,"errors":["first frame after cold start is blank white ~10s (debug build)"]},
+ {"name":"browse-core-tabs","passed":true,"duration_s":20,"steps":4,"errors":[]},
+ {"name":"open-song-detail-sheet-lab","passed":true,"duration_s":15,"steps":4,"errors":[]},
+ {"name":"open-setlist-detail","passed":true,"duration_s":6,"steps":2,"errors":[]},
+ {"name":"band-detail-songs-rehearsals","passed":true,"duration_s":15,"steps":4,"errors":[]},
+ {"name":"tools-tuner-metronome-recorder-practice","passed":true,"duration_s":25,"steps":5,"errors":[]},
+ {"name":"create-song-create-band-write-path","passed":false,"duration_s":10,"steps":2,"errors":["not completed: demo account is read-only, forms opened but save not attempted"]}
+]

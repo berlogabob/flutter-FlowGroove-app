@@ -1,0 +1,1553 @@
+{
+  "band_create": {
+    "elements": 22,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Create a new band",
+        "w": 338.0,
+        "h": 24.9,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "You can invite members after creating",
+        "w": 338.0,
+        "h": 21.7,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Create Band",
+        "w": 89.6,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "band_detail": {
+    "elements": 30,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "T",
+        "w": 13.7,
+        "h": 31.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "The Cover Collective",
+        "w": 156.7,
+        "h": 24.9,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "2 members",
+        "w": 79.4,
+        "h": 21.7,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Band library",
+        "w": 100.4,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Quick Actions",
+        "w": 115.6,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "The Cover Collective",
+        "w": 148.1,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "band_rehearsals": {
+    "elements": 16,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "No rehearsals yet",
+        "w": 145.9,
+        "h": 24.9,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Proposed rehearsals will appear here",
+        "w": 264.3,
+        "h": 21.7,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "The Cover Collective Rehearsals",
+        "w": 186.3,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "band_songs": {
+    "elements": 39,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "All",
+        "w": 88.8,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "demo",
+        "w": 84.9,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "The Cover Collective Songs",
+        "w": 186.3,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "home": {
+    "elements": 35,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Quick Actions",
+        "w": 115.6,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Tools",
+        "w": 44.8,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Home",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Songs",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Bands",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Setlists",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [
+      {
+        "edges_px": [
+          850,
+          851
+        ],
+        "offset": 1
+      }
+    ],
+    "low_contrast_estimates": []
+  },
+  "login": {
+    "elements": 22,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "FlowGroove",
+        "w": 338.0,
+        "h": 30.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign in to manage your band",
+        "w": 338.0,
+        "h": 21.7,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Don't have an account?",
+        "w": 166.1,
+        "h": 21.7,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Just looking around?",
+        "w": 338.0,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Read-only access to explore all features",
+        "w": 338.0,
+        "h": 16.2,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [
+      {
+        "label": "container@(72, 72)",
+        "items": 12,
+        "limit": 9
+      }
+    ],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "menu": {
+    "elements": 16,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Menu",
+        "w": 355.3,
+        "h": 32.5,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Settings",
+        "w": 390.0,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "quick_add_song": {
+    "elements": 30,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Metronome Settings",
+        "w": 355.3,
+        "h": 11.9,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Add Song",
+        "w": 70.8,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "setlist_detail": {
+    "elements": 29,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Saturday Night Set",
+        "w": 137.2,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "settings": {
+    "elements": 29,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Share usage analytics\nHelps us see which features get used",
+        "w": 346.7,
+        "h": 6.5,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Settings",
+        "w": 59.9,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "settings_scrolled": {
+    "elements": 30,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Settings",
+        "w": 59.9,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "song_detail": {
+    "elements": 33,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Billie Jean",
+        "w": 117.4,
+        "h": 32.5,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Michael Jackson \u00b7 F#m \u00b7 117 BPM",
+        "w": 243.0,
+        "h": 21.7,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Notes\nNo notes",
+        "w": 355.3,
+        "h": 7.6,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Billie Jean",
+        "w": 72.2,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "song_lab": {
+    "elements": 31,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Billie Jean",
+        "w": 117.4,
+        "h": 32.5,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Michael Jackson \u00b7 F#m \u00b7 117 BPM",
+        "w": 243.0,
+        "h": 21.7,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "The story of this song starts here",
+        "w": 278.8,
+        "h": 24.9,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Billie Jean",
+        "w": 72.2,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [
+      {
+        "label": "container@(0, 195)",
+        "items": 16,
+        "limit": 9
+      }
+    ],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "song_sheet": {
+    "elements": 22,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Billie Jean",
+        "w": 117.4,
+        "h": 32.5,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Michael Jackson \u00b7 F#m \u00b7 117 BPM",
+        "w": 243.0,
+        "h": 21.7,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "No lyrics or chords yet.",
+        "w": 194.3,
+        "h": 24.9,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Billie Jean",
+        "w": 72.2,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "tab_bands": {
+    "elements": 37,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Home",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Songs",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Bands",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Setlists",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [
+      {
+        "edges_px": [
+          850,
+          851
+        ],
+        "offset": 1
+      }
+    ],
+    "low_contrast_estimates": []
+  },
+  "tab_setlists": {
+    "elements": 36,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Home",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Songs",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Bands",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Setlists",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [
+      {
+        "edges_px": [
+          850,
+          851
+        ],
+        "offset": 1
+      }
+    ],
+    "low_contrast_estimates": []
+  },
+  "tab_songs": {
+    "elements": 52,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "All",
+        "w": 81.2,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "rock (3)",
+        "w": 99.3,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "pop (3)",
+        "w": 96.8,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "80s (2)",
+        "w": 52.0,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Filters:",
+        "w": 50.6,
+        "h": 21.7,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "10 songs",
+        "w": 55.6,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "",
+        "w": 390.0,
+        "h": 32.5,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Light My Fire\nThe Doors\nC",
+        "w": 390.0,
+        "h": 32.5,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Home",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Songs",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Bands",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Setlists",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [
+      {
+        "edges_px": [
+          850,
+          851
+        ],
+        "offset": 1
+      }
+    ],
+    "low_contrast_estimates": []
+  },
+  "tool_metronome": {
+    "elements": 29,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Beats",
+        "w": 33.6,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "",
+        "w": 43.3,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Main beat 1",
+        "w": 32.5,
+        "h": 52.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Main beat 2",
+        "w": 32.5,
+        "h": 52.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Main beat 3",
+        "w": 32.5,
+        "h": 52.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Main beat 4",
+        "w": 32.5,
+        "h": 52.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "4",
+        "w": 43.3,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Subdivision",
+        "w": 45.5,
+        "h": 11.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Subdivision 1",
+        "w": 32.5,
+        "h": 52.0,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "1",
+        "w": 43.3,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Metronome",
+        "w": 83.1,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [
+      {
+        "label": "container@(0, 195)",
+        "items": 17,
+        "limit": 9
+      }
+    ],
+    "alignment_near_misses": [
+      {
+        "edges_px": [
+          425,
+          429
+        ],
+        "offset": 4
+      },
+      {
+        "edges_px": [
+          798,
+          801
+        ],
+        "offset": 3
+      }
+    ],
+    "low_contrast_estimates": []
+  },
+  "tool_practice": {
+    "elements": 28,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Homework",
+        "w": 355.3,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Nothing open. Add tasks to a song from its Lab (song card \u2192 ",
+        "w": 355.3,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Quick start",
+        "w": 355.3,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Recent sessions",
+        "w": 355.3,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "No sessions yet \u2014 every metronome run lands here automatical",
+        "w": 355.3,
+        "h": 43.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Practice",
+        "w": 58.5,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [
+      {
+        "label": "container@(0, 75)",
+        "items": 11,
+        "limit": 9
+      }
+    ],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "tool_recorder": {
+    "elements": 19,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Recordings",
+        "w": 355.3,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Recorder",
+        "w": 65.7,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [],
+    "low_contrast_estimates": []
+  },
+  "tool_rehearsals": {
+    "elements": 25,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Demo mode \u2014 changes are not saved",
+        "w": 266.1,
+        "h": 17.3,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Sign Up",
+        "w": 69.7,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Home",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Songs",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Bands",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Setlists",
+        "w": 74.8,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 74.4,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [],
+    "alignment_near_misses": [
+      {
+        "edges_px": [
+          850,
+          851
+        ],
+        "offset": 1
+      }
+    ],
+    "low_contrast_estimates": []
+  },
+  "tool_tuner": {
+    "elements": 28,
+    "scale": 2.77,
+    "small_tap_targets": [
+      {
+        "label": "Auto",
+        "w": 88.1,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Manual",
+        "w": 103.3,
+        "h": 26.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Select note B",
+        "w": 47.7,
+        "h": 35.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Select note C",
+        "w": 47.7,
+        "h": 10.1,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Select note A#",
+        "w": 35.0,
+        "h": 47.7,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Select note A",
+        "w": 10.1,
+        "h": 47.7,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Select note G#",
+        "w": 35.0,
+        "h": 47.7,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Select note C#",
+        "w": 47.7,
+        "h": 35.0,
+        "min_required": 44,
+        "assumed": false
+      },
+      {
+        "label": "Back",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Tuner",
+        "w": 41.2,
+        "h": 18.4,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "Menu",
+        "w": 93.2,
+        "h": 33.6,
+        "min_required": 44,
+        "assumed": true
+      },
+      {
+        "label": "android:id/statusBarBackground",
+        "w": 390.0,
+        "h": 27.1,
+        "min_required": 44,
+        "assumed": true
+      }
+    ],
+    "oversized_groups": [
+      {
+        "label": "A4 440 Hz \u00b7 \u00b15 cents",
+        "items": 12,
+        "limit": 9
+      }
+    ],
+    "alignment_near_misses": [
+      {
+        "edges_px": [
+          180,
+          183
+        ],
+        "offset": 3
+      },
+      {
+        "edges_px": [
+          269,
+          275
+        ],
+        "offset": 6
+      },
+      {
+        "edges_px": [
+          793,
+          798
+        ],
+        "offset": 5
+      }
+    ],
+    "low_contrast_estimates": []
+  }
+}

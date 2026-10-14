@@ -1,0 +1,325 @@
+{
+ "app": "FlowGroove",
+ "version": "0.25.0+363",
+ "platform": "android",
+ "device": "Huawei ELE-L29 (P30), Android 10, debug build, Demo account",
+ "date": "2026-10-14",
+ "screens_audited": 22,
+ "flows": [
+  {
+   "name": "first-launch-to-demo-home",
+   "passed": true,
+   "duration_s": 25,
+   "steps": 3,
+   "errors": [
+    "first frame after cold start is blank white ~10s (debug build)"
+   ]
+  },
+  {
+   "name": "browse-core-tabs",
+   "passed": true,
+   "duration_s": 20,
+   "steps": 4,
+   "errors": []
+  },
+  {
+   "name": "open-song-detail-sheet-lab",
+   "passed": true,
+   "duration_s": 15,
+   "steps": 4,
+   "errors": []
+  },
+  {
+   "name": "open-setlist-detail",
+   "passed": true,
+   "duration_s": 6,
+   "steps": 2,
+   "errors": []
+  },
+  {
+   "name": "band-detail-songs-rehearsals",
+   "passed": true,
+   "duration_s": 15,
+   "steps": 4,
+   "errors": []
+  },
+  {
+   "name": "tools-tuner-metronome-recorder-practice",
+   "passed": true,
+   "duration_s": 25,
+   "steps": 5,
+   "errors": []
+  },
+  {
+   "name": "create-song-create-band-write-path",
+   "passed": false,
+   "duration_s": 10,
+   "steps": 2,
+   "errors": [
+    "not completed: demo account is read-only, forms opened but save not attempted"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "criterion": "ST-LOAD",
+   "screen": "launch",
+   "severity": 3,
+   "evidence": "First frame after cold start is blank white ~10s, no splash/spinner; app is dark-themed (debug build, unverified on release).",
+   "screenshot": "screens/android/launch.png",
+   "measurement": "flows-results: first-launch-to-demo-home",
+   "recommendation": "Native dark splash + progress; re-measure on release.",
+   "id": "F-001"
+  },
+  {
+   "criterion": "DS-FORM-1",
+   "screen": "settings",
+   "severity": 3,
+   "evidence": "Theme segmented control wraps selected 'Dark' to 'Dar/k'; selected state is flat grey, not the orange accent used by chips/toggles.",
+   "screenshot": "screens/android/settings.png",
+   "measurement": null,
+   "recommendation": "Equal flexible segment widths, drop checkmark or shrink; use the shared selected-state token.",
+   "id": "F-002"
+  },
+  {
+   "criterion": "DS-BTN-1",
+   "screen": "tool_tuner",
+   "severity": 3,
+   "evidence": "Three different mode-switch styles; Auto/Manual toggle 26dp tall; dial note-select targets ~10dp on one axis.",
+   "screenshot": "screens/android/tool_tuner.png",
+   "measurement": "Auto 88.1x26.0, Manual 103.3x26.0; note selectors 47.7x10.1",
+   "recommendation": "One segmented component; pad note hit areas to >=44dp.",
+   "id": "F-003"
+  },
+  {
+   "criterion": "DS-A11Y-1",
+   "screen": "tool_metronome",
+   "severity": 3,
+   "evidence": "Beat dots 32.5dp wide; 'Subdivision' label smaller than 'Beats'; controls on mismatched grids; badges overlap + buttons.",
+   "screenshot": "screens/android/tool_metronome.png",
+   "measurement": "Main beat 1-4 32.5x52.0; near-misses 3-4px; group 17 vs 9",
+   "recommendation": "Beat targets >=44dp, one label style, shared grid.",
+   "id": "F-004"
+  },
+  {
+   "criterion": "H5",
+   "screen": "band_create",
+   "severity": 3,
+   "evidence": "Demo user gets a fillable Create Band form; the read-only reason appears only after arrival as a red error card; Create Band disabled without explanation.",
+   "screenshot": "screens/android/band_create.png",
+   "measurement": null,
+   "recommendation": "Gate the entry (locked state / Sign Up prompt) before opening the form; use informational, not error, styling.",
+   "id": "F-005"
+  },
+  {
+   "criterion": "LAW-FITTS-1",
+   "screen": "home",
+   "severity": 2,
+   "evidence": "Demo-banner 'Sign Up' action is 69.7x26dp, top edge, present on every screen.",
+   "screenshot": "screens/android/home.png",
+   "measurement": "69.7x26.0 (min 44), flagged on 15 of 20 screens",
+   "recommendation": "Padded >=48dp button or whole-banner tap; make banner dismissible.",
+   "id": "F-006"
+  },
+  {
+   "criterion": "IXD-PRED",
+   "screen": "song_detail",
+   "severity": 2,
+   "evidence": "Song opens on the Edit tab with form fields and a Save Changes bar demo users cannot use; reading a song lands on a form. Save bar overlaps a clipped card.",
+   "screenshot": "screens/android/song_detail.png",
+   "measurement": null,
+   "recommendation": "Open viewers/demo on Sheet; hide or explain Save; separate the sticky footer.",
+   "id": "F-007"
+  },
+  {
+   "criterion": "H4",
+   "screen": "song_detail / song_lab / settings",
+   "severity": 2,
+   "evidence": "Selected segment is flat grey in Edit/Sheet/Lab, Entries/Tasks and Theme, but orange on Songs chips.",
+   "screenshot": "screens/android/song_detail.png",
+   "measurement": null,
+   "recommendation": "One selected-state style for all segmented controls and chips.",
+   "id": "F-008"
+  },
+  {
+   "criterion": "H8",
+   "screen": "song_lab",
+   "severity": 2,
+   "evidence": "Empty Lab shows two segmented controls, two unlabeled icon buttons and five + chips before a near-edge-to-edge empty-state paragraph.",
+   "screenshot": "screens/android/song_lab.png",
+   "measurement": "group 16 vs 9",
+   "recommendation": "Collapse add-actions into one menu, label icons, pad empty-state text 24-32dp.",
+   "id": "F-009"
+  },
+  {
+   "criterion": "HICK-1",
+   "screen": "tab_songs",
+   "severity": 2,
+   "evidence": "Header stacks search+sort (fused in one box), clipped tag chips ('80s' cut), Key/BPM filters and count: ~600px before the first song; orange practice icon on cards unlabeled; Ironman card has a BPM gap.",
+   "screenshot": "screens/android/tab_songs.png",
+   "measurement": "52 elements",
+   "recommendation": "Separate search/sort, collapse filters into one sheet, tooltip the icon, tighten cards.",
+   "id": "F-010"
+  },
+  {
+   "criterion": "ST-ERROR",
+   "screen": "all",
+   "severity": 2,
+   "evidence": "No error/offline state exercised (NOT COVERED).",
+   "screenshot": "screens/android/home.png",
+   "measurement": null,
+   "recommendation": "Test airplane mode and bad input on list, login, band load.",
+   "id": "F-011"
+  },
+  {
+   "criterion": "FLOW-1",
+   "screen": "quick_add_song / band_create",
+   "severity": 2,
+   "evidence": "Write flow incomplete: demo is read-only, so save/success feedback is unverified.",
+   "screenshot": "screens/android/quick_add_song.png",
+   "measurement": "flows-results: create-song-create-band-write-path passed=false",
+   "recommendation": "Run on a real test account; confirm demo Save gives explicit feedback.",
+   "id": "F-012"
+  },
+  {
+   "criterion": "DS-NAV-1",
+   "screen": "band_detail",
+   "severity": 2,
+   "evidence": "Detail screens swap the 5-tab bar for Back/Title/Menu (cells 33.6dp tall); header name truncated ('The Cover Collec...') yet repeated in the bar; ~40% empty space below content.",
+   "screenshot": "screens/android/band_detail.png",
+   "measurement": "Back 93.2x33.6, Menu 93.2x33.6 (min 44)",
+   "recommendation": "Full 56dp cells as targets, let name wrap, fill the empty area or add a CTA.",
+   "id": "F-013"
+  },
+  {
+   "criterion": "DS-SPACE-1",
+   "screen": "band_create",
+   "severity": 2,
+   "evidence": "Three different left margins on one screen (~63px form, ~73px error card); other screens ~42px.",
+   "screenshot": "screens/android/band_create.png",
+   "measurement": null,
+   "recommendation": "Single page-gutter token.",
+   "id": "F-014"
+  },
+  {
+   "criterion": "DS-ICON-1",
+   "screen": "quick_add_song",
+   "severity": 2,
+   "evidence": "Section icons inconsistent in weight/meaning; bare dash for unset Key & BPM; placeholders vs floating labels differ from the Edit form.",
+   "screenshot": "screens/android/quick_add_song.png",
+   "measurement": null,
+   "recommendation": "One icon family; show 'Not set'; floating labels in both forms.",
+   "id": "F-015"
+  },
+  {
+   "criterion": "VD-COL-1",
+   "screen": "home",
+   "severity": 2,
+   "evidence": "Orange used on all tile icons, banner, links and active tab, so the accent no longer signals primary action; weekly card has no CTA, day labels tiny and low contrast.",
+   "screenshot": "screens/android/home.png",
+   "measurement": null,
+   "recommendation": "Neutral tile icons; add Start practice button; raise label contrast.",
+   "id": "F-016"
+  },
+  {
+   "criterion": "VD-HIER-2",
+   "screen": "tool_tuner",
+   "severity": 2,
+   "evidence": "Note labels collide with ticks (G#); duplicate Listen controls (chip + FAB); tiny 'A4 440' caption.",
+   "screenshot": "screens/android/tool_tuner.png",
+   "measurement": "near-misses 3/5/6px; group 12 vs 9",
+   "recommendation": "Consistent radial offset, one listen control.",
+   "id": "F-017"
+  },
+  {
+   "criterion": "NAV-5",
+   "screen": "tool_rehearsals",
+   "severity": 1,
+   "evidence": "Rehearsals is per-band but listed under Tools; opens a band-picker sheet that clips against the bottom nav.",
+   "screenshot": "screens/android/tool_rehearsals.png",
+   "measurement": null,
+   "recommendation": "Move to band context or surface next rehearsal on Home.",
+   "id": "F-018"
+  },
+  {
+   "criterion": "NAV-1",
+   "screen": "tab_songs / tab_bands / tab_setlists",
+   "severity": 1,
+   "evidence": "Top-level tabs have no title; band/setlist card text truncated; dates dd.mm.yyyy in English UI; demo setlist 'тест' (test data) has no date.",
+   "screenshot": "screens/android/tab_setlists.png",
+   "measurement": null,
+   "recommendation": "Add titles, locale date format, clean demo seed.",
+   "id": "F-019"
+  },
+  {
+   "criterion": "ST-EMPTY",
+   "screen": "song_sheet / band_rehearsals",
+   "severity": 1,
+   "evidence": "Demo songs have no lyrics/chords so the core Sheet is never shown populated; empty rehearsals state has no action; CTAs dead-end in demo.",
+   "screenshot": "screens/android/song_sheet.png",
+   "measurement": null,
+   "recommendation": "Seed demo with lyrics/chords; add Propose rehearsal for editors; explain demo lock.",
+   "id": "F-020"
+  },
+  {
+   "criterion": "H2",
+   "screen": "tool_practice / tool_recorder",
+   "severity": 1,
+   "evidence": "Hint 'song card -> Song Lab' doesn't match the real path (song page > Lab tab); Recorder empty copy 'Link takes to songs later...' is unclear; Quick start labels differ in size.",
+   "screenshot": "screens/android/tool_practice.png",
+   "measurement": null,
+   "recommendation": "Reword to real paths; one label style.",
+   "id": "F-021"
+  },
+  {
+   "criterion": "VD-RESP-1",
+   "screen": "setlist_detail",
+   "severity": 1,
+   "evidence": "Titles/artists wrap because key badges take variable width; badge edges ragged.",
+   "screenshot": "screens/android/setlist_detail.png",
+   "measurement": null,
+   "recommendation": "Fixed-width key pill, ellipsize artist.",
+   "id": "F-022"
+  },
+  {
+   "criterion": "VD-HIER-1",
+   "screen": "login",
+   "severity": 1,
+   "evidence": "Outlined Try Demo competes with filled Sign In; helper text small mid-grey; link targets small.",
+   "screenshot": "screens/android/login.png",
+   "measurement": "Sign Up 69.7x26.0",
+   "recommendation": "Make Try Demo secondary; lighten helper text; 44dp link targets.",
+   "id": "F-023"
+  },
+  {
+   "criterion": "LAW-FITTS-1",
+   "screen": "settings / song_detail rows",
+   "severity": 1,
+   "evidence": "Row semantics bounds only 6.5-7.6dp (analytics toggle, Notes) - likely clipped nodes.",
+   "screenshot": "screens/android/settings.png",
+   "measurement": "346.7x6.5; 355.3x7.6",
+   "recommendation": "Single 48dp SwitchListTile rows; fix semantics bounds.",
+   "id": "F-024"
+  },
+  {
+   "criterion": "LAW-MILLER-1",
+   "screen": "song_lab / tool_metronome / tool_practice",
+   "severity": 1,
+   "evidence": "Groups exceed 9 items.",
+   "screenshot": "screens/android/song_lab.png",
+   "measurement": "16 / 17 / 11 vs 9",
+   "recommendation": "Chunk into collapsible sections.",
+   "id": "F-025"
+  },
+  {
+   "criterion": "FLOW-3",
+   "screen": "all",
+   "severity": 1,
+   "evidence": "No backgrounding/rotation/system-back pass.",
+   "screenshot": "screens/android/home.png",
+   "measurement": null,
+   "recommendation": "Run an interruption pass on song, tuner, recorder.",
+   "id": "F-026"
+  }
+ ]
+}
