@@ -237,7 +237,10 @@ class NavTab extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 48),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
+            // Fill the full bar height instead of shrinking to the icon+label
+            // content, so the Back/Menu cells get a full-height >=48px tap target.
+            // See UX audit: back/menu hit areas were only ~33.6dp tall.
+            mainAxisSize: MainAxisSize.max,
             children: [
               Stack(
                 clipBehavior: Clip.none,
