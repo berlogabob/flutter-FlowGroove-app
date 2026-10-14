@@ -522,27 +522,33 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
       MonoPulseSpacing.lg,
       0,
     ),
-    child: Wrap(
-      spacing: MonoPulseSpacing.sm,
-      children: [
-        // Record leads the row (device feedback: users looked for it and
-        // missed it as the trailing chip) — first slot, accent mic.
-        ActionChip(
-          avatar: Icon(
-            _typeIcons[LabEntryType.recording],
-            size: 18,
-            color: MonoPulseColors.accentOrange,
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: PopupMenuButton<LabEntryType>(
+        tooltip: 'Add',
+        onSelected: (t) => t == LabEntryType.recording
+            ? _composeRecording()
+            : _compose(t),
+        itemBuilder: (_) => [
+          const PopupMenuItem(
+            value: LabEntryType.recording,
+            child: Text('Record'),
           ),
-          label: const Text('+ Record'),
-          onPressed: _composeRecording,
+          for (final t in _quickTypes)
+            PopupMenuItem(value: t, child: Text(_typeLabel(t))),
+        ],
+        child: const Padding(
+          padding: EdgeInsets.all(MonoPulseSpacing.sm),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add, size: 18),
+              SizedBox(width: MonoPulseSpacing.sm),
+              Text('Add'),
+            ],
+          ),
         ),
-        for (final t in _quickTypes)
-          ActionChip(
-            avatar: Icon(_typeIcons[t], size: 18),
-            label: Text('+ ${_typeLabel(t)}'),
-            onPressed: () => _compose(t),
-          ),
-      ],
+      ),
     ),
   );
 
