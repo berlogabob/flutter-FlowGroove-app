@@ -101,7 +101,7 @@ void main() {
       expect(find.text('Title *'), findsOneWidget);
       expect(find.text('Artist'), findsOneWidget);
       expect(find.text('Key & BPM'), findsOneWidget);
-      expect(find.text('—'), findsOneWidget);
+      expect(find.text('Not set'), findsOneWidget);
       expect(find.text('C'), findsNothing);
       expect(find.text('Links'), findsOneWidget);
       expect(find.text('Song Structure'), findsOneWidget);
