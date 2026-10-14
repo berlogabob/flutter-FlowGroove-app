@@ -67,9 +67,11 @@ class ToolButton extends StatelessWidget {
     final iconSize = ResponsiveSizes.iconSize(breakpoint);
     final fontSize = ResponsiveSizes.buttonFontSize(breakpoint);
 
-    final accent = isEnabled
+    // Icon uses neutral onSurfaceVariant; the accent remains for the
+    // active/pressed (enabled) state (UX audit F-013).
+    final iconColor = isEnabled
         ? MonoPulseColors.accentOrange
-        : context.mp.textTertiary;
+        : Theme.of(context).colorScheme.onSurfaceVariant;
     // Neutral label; only the icon carries the accent (UX audit F-013).
     final labelColor = isEnabled ? context.mp.textPrimary : context.mp.textTertiary;
 
@@ -93,7 +95,7 @@ class ToolButton extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: accent, size: iconSize),
+              Icon(icon, color: iconColor, size: iconSize),
               const SizedBox(width: MonoPulseSpacing.sm),
               Expanded(
                 child: Text(
