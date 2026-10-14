@@ -283,7 +283,7 @@ class _TheBandScreenState extends ConsumerState<TheBandScreen> {
           Expanded(
             child: Text(
               band.name,
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
