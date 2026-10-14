@@ -59,7 +59,7 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
   late _SongTab _tab = switch (widget.initialTab) {
     'sheet' => _SongTab.sheet,
     'lab' => _SongTab.lab,
-    _ => _SongTab.edit,
+    _ => ref.read(isDemoUserProvider) ? _SongTab.sheet : _SongTab.edit,
   };
 
   /// Tabs are built lazily on first visit and kept alive after (IndexedStack),

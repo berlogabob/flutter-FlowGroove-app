@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
@@ -631,7 +632,7 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                       ),
                       subtitle: Text(
                         _eventDate != null
-                            ? '${_eventDate!.day.toString().padLeft(2, '0')}.${_eventDate!.month.toString().padLeft(2, '0')}.${_eventDate!.year}'
+                            ? DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(_eventDate!)
                             : 'Tap to select date',
                         style: MonoPulseTypography.bodyLarge.copyWith(
                           color: _eventDate != null

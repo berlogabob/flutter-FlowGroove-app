@@ -70,9 +70,8 @@ class _RecorderScreenState extends ConsumerState<RecorderScreen> {
           ),
           if (recordings.isEmpty)
             Text(
-              'Nothing here yet — hit Record and catch the riff before it '
-              'gets away. Link takes to songs later; linked ones move into '
-              "the song's Lab.",
+              'Hit Record to capture an idea. You can attach recordings '
+              'to a song later.',
               style: MonoPulseTypography.bodySmall.copyWith(
                 color: context.mp.textSecondary,
               ),

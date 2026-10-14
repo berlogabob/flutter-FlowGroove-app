@@ -51,19 +51,19 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(MonoPulseRadius.small),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline,
-          width: 0.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          // Filter input
-          Expanded(
+    return Row(
+      children: [
+        // Filter input
+        Expanded(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline,
+                width: 0.5,
+              ),
+            ),
             child: TextField(
               decoration: InputDecoration(
                 hintText: widget.hintText,
@@ -78,25 +78,34 @@ class _UnifiedFilterSortWidgetState extends State<UnifiedFilterSortWidget> {
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
+        ),
+        const SizedBox(width: 8),
 
-          // Sort dropdown
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
-            child: DropdownButton<SortOption>(
-              value: widget.currentSort,
-              onChanged: widget.onSortChanged,
-              items: SortOption.values.map((option) {
-                return DropdownMenuItem<SortOption>(
-                  value: option,
-                  child: Text(option.label),
-                );
-              }).toList(),
-              underline: Container(),
-              icon: Icon(Icons.sort, size: 20, color: context.mp.textSecondary),
+        // Sort dropdown
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(MonoPulseRadius.small),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outline,
+              width: 0.5,
             ),
           ),
-        ],
-      ),
+          padding: const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
+          child: DropdownButton<SortOption>(
+            value: widget.currentSort,
+            onChanged: widget.onSortChanged,
+            items: SortOption.values.map((option) {
+              return DropdownMenuItem<SortOption>(
+                value: option,
+                child: Text(option.label),
+              );
+            }).toList(),
+            underline: Container(),
+            icon: Icon(Icons.sort, size: 20, color: context.mp.textSecondary),
+          ),
+        ),
+      ],
     );
   }
 }

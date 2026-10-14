@@ -33,10 +33,10 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
 
     // Dynamic sizing for compact layout
     final horizontalMargin = isSmallScreen
-        ? MonoPulseSpacing.xxl
+        ? MonoPulseSpacing.xs
         : MonoPulseSpacing.xxxl;
     final blockPadding = isSmallScreen
-        ? MonoPulseSpacing.md
+        ? MonoPulseSpacing.sm
         : MonoPulseSpacing.lg;
     final rowSpacing = isSmallScreen ? 8.0 : MonoPulseSpacing.md;
 
@@ -139,19 +139,16 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
 const double _kMaxCircleContainer = 48;
 
 /// Smaller maximum used on narrow screens.
-const double _kMaxCircleContainerSmall = 40;
+const double _kMaxCircleContainerSmall = 44;
 
 /// Minimum tap-target extent (Material 48dp). The visible dot stays small, but
 /// the touchable area is padded up to this so beat toggles aren't mis-tap-prone
 /// when the strip shrinks to fit many beats (UX audit F-006).
 const double _kMinTapTarget = 48;
 
-/// Absolute floor for a circle cell. A beat indicator is a real-time status
-/// display first: every beat must stay visible, so we keep shrinking down to
-/// this floor rather than scrolling. At the app's max of 12 beats this still
-/// fits on any phone ~360dp or wider; the scroll fallback only ever engages on
-/// extremely narrow (legacy) screens, to avoid clipping.
-const double _kMinCircleContainer = 14;
+/// Minimum tappable width for a circle cell. Four cells fit at 360dp; longer
+/// strips scroll when they cannot fit without shrinking the tap targets.
+const double _kMinCircleContainer = 44;
 
 /// Spacing between circles, used only by the (rare) scroll fallback. In the
 /// normal fit-to-width layout each cell carries its own padding around the dot,
@@ -162,7 +159,7 @@ const double _kCircleGap = MonoPulseSpacing.sm;
 ///
 /// `containerSize` is shrunk so that all circles fit the available width.
 /// `needsScroll` is true only when even the floor cell size cannot fit every
-/// circle (legacy ultra-narrow screens), in which case the strip degrades to a
+/// circle, in which case the strip degrades to a
 /// horizontal scroll view instead of clipping.
 ///
 /// `count` is the SHARED grid count — max(beats, subdivisions) — not the number

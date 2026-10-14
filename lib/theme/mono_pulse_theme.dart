@@ -706,6 +706,24 @@ class MonoPulseTheme {
         ),
       ),
 
+      // Buttons - Segmented
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) return null;
+            return states.contains(WidgetState.selected)
+                ? MonoPulseColors.accentOrange
+                : null;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) return null;
+            return states.contains(WidgetState.selected)
+                ? MonoPulseColors.black
+                : null;
+          }),
+        ),
+      ),
+
       // Input Fields
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

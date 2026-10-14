@@ -103,7 +103,7 @@ void main() {
 
       expect(find.text('Record'), findsOneWidget);
       expect(find.text('Recordings'), findsOneWidget);
-      expect(find.textContaining('Nothing here yet'), findsOneWidget);
+      expect(find.textContaining('Hit Record'), findsOneWidget);
     });
 
     testWidgets('lists inbox recordings as cards', (tester) async {

@@ -84,16 +84,30 @@ class CentralDial extends ConsumerWidget {
         // Circle diameter: 50-60% of screen width, clamped to 280-320px
         final circleSize = constraints.maxWidth * 0.55;
         final clampedSize = circleSize.clamp(280.0, 320.0);
+        final noteRadius = clampedSize / 2 * 1.08;
+        final hitTestSize = noteRadius * 2 + 44;
+        final hitTestRadius = math.min(
+          noteRadius,
+          (constraints.biggest.shortestSide - 44) / 2,
+        );
 
         return Center(
           child: SizedBox(
-            width: clampedSize,
-            height: clampedSize,
+            width: hitTestSize,
+            height: hitTestSize,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 // Note scale ruler around the perimeter
-                const NoteScaleRuler(dialSize: 320),
+                ExcludeSemantics(
+                  child: IgnorePointer(
+                    child: SizedBox(
+                      width: clampedSize,
+                      height: clampedSize,
+                      child: const NoteScaleRuler(dialSize: 320),
+                    ),
+                  ),
+                ),
 
                 // Tick marks around the circle
                 TickMarks(size: clampedSize),
@@ -127,6 +141,46 @@ class CentralDial extends ConsumerWidget {
                   referenceA4: state.referenceA4,
                   onFrequencyChanged: notifier.updateFrequency,
                 ),
+
+                // Keep note hit areas outside the ruler's clipped paint bounds.
+                ...List.generate(12, (index) {
+                  const notes = [
+                    'C',
+                    'C#',
+                    'D',
+                    'D#',
+                    'E',
+                    'F',
+                    'F#',
+                    'G',
+                    'G#',
+                    'A',
+                    'A#',
+                    'B',
+                  ];
+                  final angle = TunerDialGeometry.angleForNoteIndex(index);
+
+                  return Align(
+                    child: Transform.translate(
+                      offset: Offset(
+                        hitTestRadius * math.cos(angle),
+                        hitTestRadius * math.sin(angle),
+                      ),
+                      child: Semantics(
+                        button: true,
+                        label: 'Select note ${notes[index]}',
+                        child: GestureDetector(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            notifier.setTargetNoteByIndex(index);
+                          },
+                          behavior: HitTestBehavior.opaque,
+                          child: const SizedBox(width: 44, height: 44),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
               ],
             ),
           ),

@@ -46,8 +46,7 @@ class PracticeScreen extends ConsumerWidget {
           if (homework.isEmpty)
             _quietText(
               context,
-              'Nothing open. Add tasks to a song from its Lab '
-              '(song card → Song Lab).',
+              'Nothing open. Open a song, then its Lab tab, to add tasks.',
             )
           else
             for (final item in homework.take(10)) _homeworkRow(context, item),
@@ -111,7 +110,10 @@ class PracticeScreen extends ConsumerWidget {
         side: BorderSide(color: context.mp.borderDefault),
       ),
       icon: Icon(icon),
-      label: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1)),
+      label: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(label, maxLines: 1, style: MonoPulseTypography.bodySmall),
+      ),
     ),
   );
 

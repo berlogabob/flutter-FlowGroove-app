@@ -98,17 +98,24 @@ void main() {
   }
 
   group('SongLabScreen (#67)', () {
-    testWidgets('shows quick-add chips and empty state', (tester) async {
+    testWidgets('shows Add menu and empty state', (tester) async {
       await pump(tester);
 
-      expect(find.text('+ Note'), findsOneWidget);
-      expect(find.text('+ Decision'), findsOneWidget);
-      expect(find.text('+ Experiment'), findsOneWidget);
-      expect(find.text('+ Problem'), findsOneWidget);
+      expect(find.text('Add'), findsOneWidget);
+      expect(find.byType(PopupMenuButton<LabEntryType>), findsOneWidget);
       expect(
         find.text('The story of this song starts here'),
         findsOneWidget,
       );
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PopupMenuItem<LabEntryType>), findsNWidgets(5));
+      expect(find.text('Record'), findsOneWidget);
+      expect(find.text('Note'), findsOneWidget);
+      expect(find.text('Decision'), findsOneWidget);
+      expect(find.text('Experiment'), findsOneWidget);
+      expect(find.text('Problem'), findsOneWidget);
     });
 
     testWidgets('composing a note saves an entry and renders it', (
@@ -116,7 +123,9 @@ void main() {
     ) async {
       final repo = await pump(tester);
 
-      await tester.tap(find.text('+ Note'));
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Note'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(TextField, 'What happened?'),
@@ -136,7 +145,9 @@ void main() {
     ) async {
       final repo = await pump(tester);
 
-      await tester.tap(find.text('+ Decision'));
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Decision'));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.widgetWithText(TextField, 'What happened?'),
