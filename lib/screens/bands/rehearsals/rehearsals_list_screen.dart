@@ -63,7 +63,7 @@ class RehearsalsListScreen extends ConsumerWidget {
               hint: canEdit
                   ? 'Propose a time and let the band vote'
                   : 'Proposed rehearsals will appear here',
-              actionLabel: canEdit ? 'New rehearsal' : null,
+              actionLabel: canEdit ? 'Propose rehearsal' : null,
               onAction: canEdit ? () => _create(context) : null,
             );
           }
