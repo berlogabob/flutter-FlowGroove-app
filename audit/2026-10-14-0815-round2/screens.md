@@ -1,0 +1,1 @@
+Round 2 (0.25.0+363 + remediation through 70db754a), P30, Demo account. launch.png = ~1s after launch. resume_song_detail = home key then relaunch; rotated_song_detail = landscape; offline_* = Wi-Fi+data disabled then relaunch; signout_confirm/login/home_relogin = sign out flow (home_relogin shows 'Unable to connect' because Wi-Fi had not reconnected).
