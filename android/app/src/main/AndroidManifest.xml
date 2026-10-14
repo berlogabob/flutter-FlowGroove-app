@@ -30,6 +30,10 @@
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme"
             />
+            <meta-data
+                android:name="io.flutter.embedding.android.SplashScreenDrawable"
+                android:resource="@drawable/launch_background"
+            />
             <!-- Enables Flutter/go_router to receive App Link deep links. -->
             <meta-data
                 android:name="flutter_deeplinking_enabled"
