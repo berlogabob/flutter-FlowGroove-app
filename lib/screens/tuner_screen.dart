@@ -239,7 +239,11 @@ class _TunerScreenState extends ConsumerState<TunerScreen>
           // Detection mode toggle (only in Listen mode)
           if (state.mode == TunerMode.listen) ...[
             const SizedBox(height: MonoPulseSpacing.lg),
-            const DetectionModeToggle(),
+            // Minimum 44 logical px per segment for touch targets (WCAG 2.5.5).
+            ConstrainedBox(
+              constraints: BoxConstraints(minHeight: 44),
+              child: const DetectionModeToggle(),
+            ),
             // Mic-privacy copy lives in Settings only (Mono Pulse: "main window
             // stays clean") — it was duplicated here.
             if (state.errorMessage != null) ...[
