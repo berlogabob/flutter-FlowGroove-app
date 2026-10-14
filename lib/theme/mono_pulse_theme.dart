@@ -709,6 +709,7 @@ class MonoPulseTheme {
       // Buttons - Segmented
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
+          shape: const WidgetStatePropertyAll(StadiumBorder()),
           backgroundColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.disabled)) return null;
             return states.contains(WidgetState.selected)

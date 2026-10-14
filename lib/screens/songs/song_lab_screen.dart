@@ -537,9 +537,10 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
           for (final t in _quickTypes)
             PopupMenuItem(value: t, child: Text(_typeLabel(t))),
         ],
-        child: const Padding(
-          padding: EdgeInsets.all(MonoPulseSpacing.sm),
-          child: Row(
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.all(MonoPulseSpacing.sm),
+          child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.add, size: 18),
