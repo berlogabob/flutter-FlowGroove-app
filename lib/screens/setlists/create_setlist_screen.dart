@@ -891,8 +891,10 @@ class _CreateSetlistScreenState extends ConsumerState<CreateSetlistScreen> {
                                         ),
                                       ),
                                       Container(
+                                        width: 44,
+                                        alignment: Alignment.center,
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: MonoPulseSpacing.md,
+                                          horizontal: MonoPulseSpacing.xs,
                                           vertical: MonoPulseSpacing.xs,
                                         ),
                                         decoration: BoxDecoration(

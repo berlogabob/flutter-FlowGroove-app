@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../theme/mono_pulse_theme.dart';
 import '../band_avatar.dart';
@@ -211,7 +212,10 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
       final meta = Text(
         [
           '$songCount ${songCount == 1 ? 'song' : 'songs'}',
-          if (setlist.eventDateTime != null) setlist.formattedEventDate,
+          if (setlist.eventDateTime != null)
+            DateFormat.yMMMd(
+              Localizations.localeOf(context).toString(),
+            ).format(setlist.eventDateTime!),
         ].join(' · '),
         style: MonoPulseTypography.bodySmall,
       );

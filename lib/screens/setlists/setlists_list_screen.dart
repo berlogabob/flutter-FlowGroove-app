@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/setlist.dart';
 import '../../models/song.dart';
@@ -282,7 +283,10 @@ class _SetlistsListScreenState extends ConsumerState<SetlistsListScreen> {
               title: Text(event.name),
               subtitle: Text(
                 [
-                  if (event.eventDateTime != null) event.formattedEventDate,
+                  if (event.eventDateTime != null)
+                    DateFormat.yMMMd(
+                      Localizations.localeOf(context).toString(),
+                    ).format(event.eventDateTime!),
                   if (event.eventLocation != null) event.eventLocation!,
                 ].join(' · '),
               ),

@@ -140,7 +140,7 @@ void main() {
       // #86 rail: counts and event date share one line, dot-separated.
       expect(find.textContaining('3 songs'), findsOneWidget);
       expect(find.textContaining('1 song'), findsOneWidget);
-      expect(find.textContaining('10.05.2026'), findsOneWidget);
+      expect(find.textContaining('May 10, 2026'), findsOneWidget);
       expect(find.byIcon(Icons.playlist_play), findsWidgets);
     });
 
