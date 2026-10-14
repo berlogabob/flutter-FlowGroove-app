@@ -70,7 +70,7 @@ class ToolButton extends StatelessWidget {
     // Icon uses neutral onSurfaceVariant; the accent remains for the
     // active/pressed (enabled) state (UX audit F-013).
     final iconColor = isEnabled
-        ? MonoPulseColors.accentOrange
+        ? context.mp.textSecondary
         : Theme.of(context).colorScheme.onSurfaceVariant;
     // Neutral label; only the icon carries the accent (UX audit F-013).
     final labelColor = isEnabled ? context.mp.textPrimary : context.mp.textTertiary;
