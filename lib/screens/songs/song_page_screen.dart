@@ -338,7 +338,9 @@ class _SongPageScreenState extends ConsumerState<SongPageScreen>
               ),
               const SizedBox(height: MonoPulseSpacing.xl),
               // Second door into the Edit tab — hidden with it for viewers.
-              if (canEdit)
+              if (ref.watch(isDemoUserProvider))
+                const Text('Demo songs are read-only.')
+              else if (canEdit)
                 FilledButton.icon(
                   onPressed: () => _selectTab(_SongTab.edit),
                   icon: const Icon(Icons.edit_note),
