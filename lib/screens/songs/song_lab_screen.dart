@@ -336,16 +336,24 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
             if (entries.isNotEmpty) _filterRow(),
             Expanded(
               child: visible.isEmpty
-                  ? EmptyState(
-                      icon: Icons.science_outlined,
-                      message: entries.isEmpty
-                          ? 'The story of this song starts here'
-                          : 'Nothing of this type yet',
-                      hint: entries.isEmpty
-                          ? 'Capture ideas, decisions ("why we play it '
-                                'this way"), experiments and problems — '
-                                'so the band never loses the context.'
-                          : null,
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 420),
+                          child: EmptyState(
+                            icon: Icons.science_outlined,
+                            message: entries.isEmpty
+                                ? 'The story of this song starts here'
+                                : 'Nothing of this type yet',
+                            hint: entries.isEmpty
+                                ? 'Capture ideas, decisions ("why we play it '
+                                      'this way"), experiments and problems — '
+                                      'so the band never loses the context.'
+                                : null,
+                          ),
+                        ),
+                      ),
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.only(bottom: 96),
