@@ -2,10 +2,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/music_mode.dart';
 import '../../providers/tuner_provider.dart';
 import '../../services/audio/pitch_analysis.dart';
 import '../../theme/mono_pulse_theme.dart';
-import 'note_scale_ruler.dart';
 import 'tick_marks.dart';
 
 /// Angle math shared by the tuner dial's drag tracking and handle rotation.
@@ -98,17 +98,6 @@ class CentralDial extends ConsumerWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Note scale ruler around the perimeter
-                ExcludeSemantics(
-                  child: IgnorePointer(
-                    child: SizedBox(
-                      width: clampedSize,
-                      height: clampedSize,
-                      child: const NoteScaleRuler(dialSize: 320),
-                    ),
-                  ),
-                ),
-
                 // Tick marks around the circle
                 TickMarks(size: clampedSize),
 
@@ -140,6 +129,21 @@ class CentralDial extends ConsumerWidget {
                       : null,
                   referenceA4: state.referenceA4,
                   onFrequencyChanged: notifier.updateFrequency,
+                ),
+
+                // Paint above the dial so its surface cannot hide inset labels.
+                IgnorePointer(
+                  child: CustomPaint(
+                    size: Size.square(clampedSize),
+                    painter: _DialNotesPainter(
+                      currentNoteIndex: _noteNameToIndex(
+                        state.note.replaceAll(RegExp(r'\d'), ''),
+                      ),
+                      scaleIntervals:
+                          allMusicModes[state.musicModeIndex].intervals,
+                      textTertiary: context.mp.textTertiary,
+                    ),
+                  ),
                 ),
 
                 // Keep note hit areas outside the ruler's clipped paint bounds.
@@ -188,6 +192,109 @@ class CentralDial extends ConsumerWidget {
       },
     );
   }
+}
+
+class _DialNotesPainter extends CustomPainter {
+  _DialNotesPainter({
+    required this.currentNoteIndex,
+    required this.scaleIntervals,
+    required this.textTertiary,
+  });
+
+  final int currentNoteIndex;
+  final List<int> scaleIntervals;
+  final Color textTertiary;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const notes = [
+      'C',
+      'C#',
+      'D',
+      'D#',
+      'E',
+      'F',
+      'F#',
+      'G',
+      'G#',
+      'A',
+      'A#',
+      'B',
+    ];
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    // Use the longest tick for every label, regardless of selection or scale.
+    final labelRadius = radius - 14 - 10;
+    final textPainter = TextPainter(
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    );
+
+    for (var i = 0; i < notes.length; i++) {
+      final isCurrent = i == currentNoteIndex;
+      final isInScale = scaleIntervals.contains(i);
+      final color =
+          (isCurrent
+                  ? MonoPulseColors.accentOrange
+                  : isInScale
+                  ? MonoPulseColors.white
+                  : textTertiary)
+              .withValues(alpha: isCurrent ? 1.0 : 0.5);
+      final direction = Offset(
+        math.cos(TunerDialGeometry.angleForNoteIndex(i)),
+        math.sin(TunerDialGeometry.angleForNoteIndex(i)),
+      );
+      final tickLength = isCurrent
+          ? 14.0
+          : isInScale
+          ? 10.0
+          : 6.0;
+      canvas.drawLine(
+        center + direction * (radius - tickLength),
+        center + direction * (radius + 2),
+        Paint()
+          ..color = color
+          ..strokeWidth = isCurrent
+              ? 3.0
+              : isInScale
+              ? 2.0
+              : 1.0
+          ..strokeCap = StrokeCap.round,
+      );
+      textPainter
+        ..text = TextSpan(
+          text: notes[i],
+          style: TextStyle(
+            fontSize: isCurrent
+                ? 16.0
+                : isInScale
+                ? 13.0
+                : 11.0,
+            fontWeight: isCurrent
+                ? MonoPulseTypography.bold
+                : isInScale
+                ? MonoPulseTypography.medium
+                : MonoPulseTypography.regular,
+            color: color,
+            letterSpacing: 0.5,
+          ),
+        )
+        ..layout();
+      textPainter.paint(
+        canvas,
+        center +
+            direction * labelRadius -
+            Offset(textPainter.width / 2, textPainter.height / 2),
+      );
+    }
+    textPainter.dispose();
+  }
+
+  @override
+  bool shouldRepaint(covariant _DialNotesPainter oldDelegate) =>
+      oldDelegate.currentNoteIndex != currentNoteIndex ||
+      oldDelegate.scaleIntervals != scaleIntervals ||
+      oldDelegate.textTertiary != textTertiary;
 }
 
 class _InteractiveDial extends StatefulWidget {
