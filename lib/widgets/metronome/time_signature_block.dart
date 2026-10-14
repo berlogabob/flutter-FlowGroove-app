@@ -200,12 +200,13 @@ class _StripMetrics {
 }
 
 /// Lays out [children] as a strip: evenly spread when they fit, or a
-/// horizontal scroll view when the metrics report `needsScroll`.
+/// wrap or horizontal scroll view when the metrics report `needsScroll`.
 Widget _buildCircleStrip({
   required BuildContext context,
   required _StripMetrics metrics,
   required List<Widget> children,
   required Key scrollKey,
+  bool wrapWhenNeeded = false,
 }) {
   if (!metrics.needsScroll) {
     // MainAxisAlignment.start, not spaceEvenly: spaceEvenly divides the leftover
@@ -213,6 +214,11 @@ Widget _buildCircleStrip({
     // offsets and land 3-4px apart. With a shared cell width, start-alignment
     // puts cell i at the same x in both rows. F-019.
     return Row(children: children);
+  }
+
+  if (wrapWhenNeeded) {
+    // Keep every main beat fully visible and tappable on narrow screens.
+    return Wrap(spacing: _kCircleGap, children: children);
   }
 
   final spaced = <Widget>[];
@@ -313,6 +319,7 @@ class _BeatsRow extends StatelessWidget {
                 context: context,
                 metrics: metrics,
                 scrollKey: const Key('main-beat-strip-scroll'),
+                wrapWhenNeeded: true,
                 children: List.generate(count, (beatIndex) {
                   // Mode for the first subdivision of this beat (for display).
                   final mode =
