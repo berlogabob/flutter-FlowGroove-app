@@ -235,6 +235,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
     final canEdit = ref.watch(
       canEditProvider,
     ); // false for the shared demo account
+    final isDemo = ref.watch(isDemoUserProvider);
     return PopScope(
       canPop: !_hasUnsavedChanges,
       onPopInvokedWithResult: (didPop, result) async {
@@ -256,81 +257,117 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
             bottom: false,
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      _isEditing ? 'Edit band details' : 'Create a new band',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _isEditing
-                          ? 'Update band information'
-                          : 'You can invite members after creating',
-                      style: TextStyle(color: context.mp.textSecondary),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-                    if (!canEdit) ...[
-                      const ErrorBanner(
-                        message:
-                            'Demo accounts are read-only — you can explore but '
-                            'not create bands.',
-                        style: ErrorBannerStyle.card,
+              child: isDemo
+                  ? Card(
+                      color: context.mp.surfaceRaised,
+                      child: Padding(
+                        padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Icon(
+                              Icons.lock_outline,
+                              color: context.mp.textSecondary,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Demo accounts are read-only',
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'You can explore bands in demo mode. Sign up to '
+                              'create and edit your own bands.',
+                              style: TextStyle(color: context.mp.textSecondary),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            TextButton(
+                              onPressed: () {
+                                ref.read(appUserProvider.notifier).signOut();
+                                if (context.mounted) {
+                                  context.goNamed('login');
+                                }
+                              },
+                              child: const Text('Sign Up'),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 24),
-                    ],
-                    // Error banner
-                    if (_currentError != null) ...[
-                      ErrorBanner(
-                        message:
-                            _currentError?.message ??
-                            'An unexpected error occurred',
-                        onRetry: _saveBand,
-                        showRetry: _currentError!.isNetwork,
-                        style: ErrorBannerStyle.card,
+                    )
+                  : Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            _isEditing
+                                ? 'Edit band details'
+                                : 'Create a new band',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _isEditing
+                                ? 'Update band information'
+                                : 'You can invite members after creating',
+                            style: TextStyle(color: context.mp.textSecondary),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 32),
+                          // Error banner
+                          if (_currentError != null) ...[
+                            ErrorBanner(
+                              message:
+                                  _currentError?.message ??
+                                  'An unexpected error occurred',
+                              onRetry: _saveBand,
+                              showRetry: _currentError!.isNetwork,
+                              style: ErrorBannerStyle.card,
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Band Name *',
+                              prefixIcon: Icon(Icons.groups),
+                            ),
+                            textInputAction: TextInputAction.next,
+                            onChanged: (_) => _markAsChanged(),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Required'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: const InputDecoration(
+                              labelText: 'Description',
+                            ),
+                            textInputAction: TextInputAction.done,
+                            onChanged: (_) => _markAsChanged(),
+                            onFieldSubmitted: (_) {
+                              if (canEdit) _saveBand();
+                            },
+                            maxLines: 3,
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                    ],
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Band Name *',
-                        prefixIcon: Icon(Icons.groups),
-                      ),
-                      textInputAction: TextInputAction.next,
-                      onChanged: (_) => _markAsChanged(),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                      ),
-                      textInputAction: TextInputAction.done,
-                      onChanged: (_) => _markAsChanged(),
-                      onFieldSubmitted: (_) {
-                        if (canEdit) _saveBand();
-                      },
-                      maxLines: 3,
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
-          bottomNavigationBar: PrimaryActionBar(
-            label: _isEditing ? 'Save Changes' : 'Create Band',
-            onPressed: (_isLoading || !canEdit) ? null : _saveBand,
-            isLoading: _isLoading,
-          ),
+          bottomNavigationBar: isDemo
+              ? null
+              : PrimaryActionBar(
+                  label: _isEditing ? 'Save Changes' : 'Create Band',
+                  onPressed: (_isLoading || !canEdit) ? null : _saveBand,
+                  isLoading: _isLoading,
+                ),
         ),
       ),
     );
