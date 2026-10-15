@@ -7,6 +7,8 @@
 /// timestamps as local ISO-8601 strings, enums stored by `.name`.
 library;
 
+import 'midi_pattern.dart';
+
 /// Timeline entry types. The UI quick-adds only note/decision/experiment/
 /// problem (v1); the rest exist so other features can append typed entries.
 enum LabEntryType {
@@ -19,7 +21,8 @@ enum LabEntryType {
   rehearsalNote,
   recording,
   versionChange,
-  reference;
+  reference,
+  midi;
 
   static LabEntryType parse(String? v) => LabEntryType.values.firstWhere(
     (e) => e.name == v,
@@ -66,6 +69,7 @@ class SongLabEntry {
     this.visibility = 'band',
     this.attachmentIds = const [],
     this.peaks = const [],
+    this.midi,
   });
 
   factory SongLabEntry.fromJson(Map<String, dynamic> json) => SongLabEntry(
@@ -92,6 +96,7 @@ class SongLabEntry {
             .map((v) => v.toInt())
             .toList() ??
         const [],
+    midi: json['midi'] as Map<String, dynamic>?,
   );
 
   final String id;
@@ -126,6 +131,11 @@ class SongLabEntry {
   /// waveform without downloading the audio. Empty for legacy/attached takes.
   final List<int> peaks;
 
+  /// Serialized [MidiPattern] for `midi` entries.
+  final Map<String, dynamic>? midi;
+
+  MidiPattern? get pattern => midi == null ? null : MidiPattern.fromJson(midi!);
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'songId': songId,
@@ -143,6 +153,7 @@ class SongLabEntry {
     'updatedAt': updatedAt.toIso8601String(),
     'attachmentIds': attachmentIds,
     if (peaks.isNotEmpty) 'peaks': peaks,
+    if (midi != null) 'midi': midi,
   };
 
   SongLabEntry copyWith({
@@ -151,6 +162,7 @@ class SongLabEntry {
     String? status,
     List<String>? attachmentIds,
     List<int>? peaks,
+    Map<String, dynamic>? midi,
   }) => SongLabEntry(
     id: id,
     songId: songId,
@@ -168,6 +180,7 @@ class SongLabEntry {
     updatedAt: DateTime.now(),
     attachmentIds: attachmentIds ?? this.attachmentIds,
     peaks: peaks ?? this.peaks,
+    midi: midi ?? this.midi,
   );
 }
 
