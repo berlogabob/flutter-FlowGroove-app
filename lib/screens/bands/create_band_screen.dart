@@ -284,7 +284,7 @@ class _CreateBandScreenState extends ConsumerState<CreateBandScreen> {
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 24),
-                            TextButton(
+                            FilledButton(
                               onPressed: () {
                                 ref.read(appUserProvider.notifier).signOut();
                                 if (context.mounted) {
