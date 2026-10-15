@@ -47,8 +47,8 @@ def ctx_files(t):
 
 def run_pi(prompt, t, iters):
     cmd = f'{q(str(PI))} {q(prompt)} ' + " ".join(q(f) for f in ctx_files(t))
-    env = {"PI_VERIFY": verify_cmd(t), "PI_MAX_ITERS": str(iters), "PI_CHECKPOINT": "0", "PI_TIMEOUT": "1200"}
-    return sh(cmd, timeout=iters * 1500 + 600, env=env)
+    env = {"PI_VERIFY": verify_cmd(t), "PI_MAX_ITERS": str(iters), "PI_CHECKPOINT": "0", "PI_TIMEOUT": "600"}
+    return sh(cmd, timeout=iters * 900 + 600, env=env)
 
 def gate():
     rc, out = sh(PRE + "flutter test 2>&1 | tail -n 25", timeout=3600)
@@ -97,7 +97,7 @@ def main():
         for attempt in (1, 2):
             attempts = attempt
             prompt = base if attempt == 1 else base + "\n\nYour previous attempt did not pass. Failure output:\n" + why + "\nFix only what this output says; keep the rest of your change."
-            rc, out = run_pi(prompt, t, 3 if attempt == 1 else 2)
+            rc, out = run_pi(prompt, t, 2 if attempt == 1 else 1)
             log += [f"## pi attempt {attempt} rc={rc} (tail)", out[-3500:]]
             changed = sh("git status --porcelain lib test")[1].strip()
             if not changed: why = "no files were changed"; continue
