@@ -243,6 +243,25 @@
     "M13"
    ],
    "status": "pending"
+  },
+  {
+   "id": "M16",
+   "executor": "codex",
+   "title": "Drums follow metronome transport",
+   "finding": "MIDI",
+   "files": [
+    "lib/providers/data/drum_practice_provider.dart",
+    "lib/widgets/metronome/drum_practice_panel.dart",
+    "test/midi/drum_sync_test.dart",
+    "test/midi/drum_practice_provider_test.dart",
+    "test/midi/drum_practice_panel_test.dart"
+   ],
+   "prompt": "Add an opt-in 'Sync with click' switch (default ON) to DrumPracticePanel, stored in drumPracticeProvider state (syncWithClick). When ON and a pattern is loaded: starting the metronome (find the playing flag in metronomeProvider / metronome_runtime_state) calls drum start() in the same frame, stopping the metronome stops the drums, and the panel's own Play/Stop still works independently of the click when the metronome is not running. Use ref.listen on the metronome playing flag inside the drum notifier (like the existing bpm listener); never call the drum player when no pattern is loaded; switching song clears the loaded pattern and stops drums. Do not touch lib/services/audio/engine/* or metronome_provider.dart. Test with a fake DrumPlayer and the existing metronome test overrides: sync on -> metronome start starts drums, stop stops them; sync off -> unaffected; no pattern -> no player calls. Existing tests must stay green; you may update test/midi/drum_practice_provider_test.dart and test/midi/drum_practice_panel_test.dart if they conflict. Print DONE.",
+   "verify": "flutter test test/midi 2>&1 | tail -25 | tee /dev/stderr | rg -q 'All tests passed' && ! (dart analyze lib 2>&1 | rg '^\\s*error -')",
+   "after": [
+    "M15"
+   ],
+   "status": "pending"
   }
  ]
 }
