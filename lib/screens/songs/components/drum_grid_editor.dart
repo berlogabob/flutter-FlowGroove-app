@@ -233,7 +233,12 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: ChoiceChip(
-                        label: Text('$bars ${bars == 1 ? 'bar' : 'bars'}'),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('$bars ${bars == 1 ? 'bar' : 'bars'}'),
+                        ),
+                        showCheckmark: false,
+                        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                         selected: _bars == bars,
                         onSelected: canEdit && !_busy
                             ? (_) {
