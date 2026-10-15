@@ -358,18 +358,22 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                 ],
               ),
             ],
-            Wrap(
-              spacing: 8,
+            Row(
               children: [
-                OutlinedButton.icon(
-                  onPressed: canImport && !_busy ? _import : null,
-                  icon: const Icon(Icons.file_upload_outlined),
-                  label: const Text('Import .mid'),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: canImport && !_busy ? _import : null,
+                    icon: const Icon(Icons.file_upload_outlined),
+                    label: const Text('Import .mid'),
+                  ),
                 ),
-                TextButton.icon(
-                  onPressed: _busy ? null : _openEditor,
-                  icon: const Icon(Icons.add),
-                  label: const Text('New pattern'),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _busy ? null : _openEditor,
+                    icon: const Icon(Icons.add),
+                    label: const Text('New pattern'),
+                  ),
                 ),
               ],
             ),

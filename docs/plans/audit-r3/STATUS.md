@@ -4,8 +4,8 @@
 |---|---|---|---|---|---|---|
 | R01 | F-004 | Chip selected color orange app-wide | pass | 1 | 236 | f4e10366 |
 | R02 | F-003 | Drums sheet empty state | pass | 0 | 0 | manual |
-| R03 | F-003 | Hide Play and speed until a pattern is loaded | pass | 1 | 177 |  |
-| R04 | F-003 | Import and New pattern as an equal-width row | pending |  |  |  |
+| R03 | F-003 | Hide Play and speed until a pattern is loaded | pass | 1 | 177 | 945494b6 |
+| R04 | F-003 | Import and New pattern as an equal-width row | pass | 1 | 132 |  |
 | R05 | F-011 | Play and speed above the kit view | pending |  |  |  |
 | R06 | F-012 | Selected pattern row neutral with radio icon | pass | 1 | 213 | 14bfaab5 |
 | R07 | F-006 | Editor: remove duplicate heading | pass | 1 | 133 | 86ff31e5 |
@@ -40,5 +40,5 @@
 | R36 | F-023 | Panel logs drum analytics | pass | 1 | 254 | 87e327f3 |
 | R37 | F-023 | Editor logs pattern saved | pass | 1 | 159 | b9b77478 |
 
-35/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 16:50:54
+36/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 16:53:06

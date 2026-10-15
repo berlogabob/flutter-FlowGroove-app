@@ -33,4 +33,5 @@
 {"id": "R36", "finding": "F-023", "title": "Panel logs drum analytics", "verdict": "pass", "attempts": 1, "secs": 254, "why": "", "diff": "4 files changed, 30 insertions(+), 8 deletions(-)", "commit": "87e327f3"}
 {"id": "R37", "finding": "F-023", "title": "Editor logs pattern saved", "verdict": "pass", "attempts": 1, "secs": 159, "why": "", "diff": "4 files changed, 9 insertions(+), 5 deletions(-)", "commit": "b9b77478"}
 {"id": "R02", "finding": "F-003", "title": "Drums sheet empty state", "verdict": "pass", "attempts": 0, "secs": 0, "why": "", "diff": "by hand (a828783c): test viewport 900->1600", "commit": "manual"}
-{"id": "R03", "finding": "F-003", "title": "Hide Play and speed until a pattern is loaded", "verdict": "pass", "attempts": 1, "secs": 177, "why": "", "diff": "2 files changed, 33 insertions(+), 30 deletions(-)"}
+{"id": "R03", "finding": "F-003", "title": "Hide Play and speed until a pattern is loaded", "verdict": "pass", "attempts": 1, "secs": 177, "why": "", "diff": "2 files changed, 33 insertions(+), 30 deletions(-)", "commit": "945494b6"}
+{"id": "R04", "finding": "F-003", "title": "Import and New pattern as an equal-width row", "verdict": "pass", "attempts": 1, "secs": 132, "why": "", "diff": "3 files changed, 16 insertions(+), 12 deletions(-)"}
