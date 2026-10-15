@@ -27,8 +27,8 @@
 | R23 | F-013 | Drums button shows active state | pass | 1 | 257 | 80b90ee6 |
 | R24 | F-014 | BPM number stays white while playing | pass | 1 | 104 | 632a304a |
 | R25 | F-015 | Fast tempo hint | pass | 1 | 134 | 3f21f686 |
-| R26 | F-018 | Steppers 48dp on small screens | pass | 1 | 161 |  |
-| R27 | F-021 | Practice card: Tap to start readable | pending |  |  |  |
+| R26 | F-018 | Steppers 48dp on small screens | pass | 1 | 161 | a9e07ae6 |
+| R27 | F-021 | Practice card: Tap to start readable | pass | 1 | 123 |  |
 | R28 | F-021 | Quick action labels with verbs | pending |  |  |  |
 | R29 | F-017 | Rehearsals sheet: demo users sign up | pending |  |  |  |
 | R30 | F-017 | Create band demo: Sign Up as filled button | pending |  |  |  |
@@ -40,5 +40,5 @@
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-22/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 16:15:49
+23/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 16:17:52

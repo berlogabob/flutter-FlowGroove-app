@@ -77,12 +77,26 @@ class PracticeDashboardCard extends ConsumerWidget {
           ),
           const SizedBox(height: 2),
           Text('No practice yet', style: MonoPulseTypography.titleMedium),
-          Text(
-            tappable ? 'Tap to start' : 'Start the metronome to log time',
-            style: MonoPulseTypography.bodySmall.copyWith(
-              color: context.mp.textSecondary,
+          if (tappable)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Tap to start',
+                  style: MonoPulseTypography.bodySmall.copyWith(
+                    color: context.mp.textPrimary.withOpacity(0.85),
+                  ),
+                ),
+                const Icon(Icons.chevron_right, size: 16),
+              ],
             ),
-          ),
+          if (!tappable)
+            Text(
+              'Start the metronome to log time',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: context.mp.textSecondary,
+              ),
+            ),
         ],
       );
     }
