@@ -8,8 +8,8 @@
 | R04 | F-003 | Import and New pattern as an equal-width row | pending |  |  |  |
 | R05 | F-011 | Play and speed above the kit view | pending |  |  |  |
 | R06 | F-012 | Selected pattern row neutral with radio icon | pass | 1 | 213 | 14bfaab5 |
-| R07 | F-006 | Editor: remove duplicate heading | pass | 1 | 133 |  |
-| R08 | F-006 | Editor: bar chips on one row | pending |  |  |  |
+| R07 | F-006 | Editor: remove duplicate heading | pass | 1 | 133 | 86ff31e5 |
+| R08 | F-006 | Editor: bar chips on one row | pass | 1 | 139 |  |
 | R09 | F-007 | Editor: beat tint instead of orange outline | pending |  |  |  |
 | R10 | F-001 | Editor: visible horizontal scrollbar | pending |  |  |  |
 | R11 | F-001 | Editor: legend above the grid | pending |  |  |  |
@@ -40,5 +40,5 @@
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-3/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 14:58:03
+4/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 15:00:22

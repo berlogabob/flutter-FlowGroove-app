@@ -212,22 +212,28 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
+            Row(
               children: [
-                for (var bars = 1; bars <= 4; bars++)
-                  ChoiceChip(
-                    label: Text('$bars ${bars == 1 ? 'bar' : 'bars'}'),
-                    selected: _bars == bars,
-                    onSelected: canEdit && !_busy
-                        ? (_) {
-                            setState(() {
-                              _bars = bars;
-                              _hits.removeWhere((hit) => hit.step >= bars * 16);
-                            });
-                            unawaited(_practice.stop());
-                          }
-                        : null,
+                for (final bars in [1, 2, 3, 4])
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ChoiceChip(
+                        label: Text('$bars ${bars == 1 ? 'bar' : 'bars'}'),
+                        selected: _bars == bars,
+                        onSelected: canEdit && !_busy
+                            ? (_) {
+                                setState(() {
+                                  _bars = bars;
+                                  _hits.removeWhere(
+                                    (hit) => hit.step >= bars * 16,
+                                  );
+                                });
+                                unawaited(_practice.stop());
+                              }
+                            : null,
+                      ),
+                    ),
                   ),
               ],
             ),
