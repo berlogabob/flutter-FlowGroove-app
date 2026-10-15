@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/midi_pattern.dart';
 import '../../services/audio/midi/drum_map.dart';
 import '../../services/audio/midi/drum_player.dart';
+import 'drum_active_provider.dart';
 import 'metronome_provider.dart';
 
 const Object _notSet = Object();
@@ -113,6 +114,7 @@ class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
   Future<void> clearPattern() {
     final stopping = stop();
     state = state.copyWith(pattern: null, entryId: null);
+    ref.read(drumActiveProvider.notifier).set(null);
     return stopping;
   }
 
@@ -131,12 +133,14 @@ class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
   Future<void> start() async {
     if (state.playing || state.pattern == null) return;
     state = state.copyWith(playing: true, currentStep: 0);
+    ref.read(drumActiveProvider.notifier).set(state.pattern?.name ?? 'Drums');
     await _reload();
   }
 
   Future<void> stop() async {
     ++_operationId;
     state = state.copyWith(playing: false, currentStep: 0);
+    ref.read(drumActiveProvider.notifier).set(null);
     if (state.pattern != null) await _player.stop();
   }
 

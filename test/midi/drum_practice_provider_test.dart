@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flowgroove/models/metronome_state.dart';
 import 'package:flowgroove/models/midi_pattern.dart';
 import 'package:flowgroove/models/song.dart';
+import 'package:flowgroove/providers/data/drum_active_provider.dart';
 import 'package:flowgroove/providers/data/drum_practice_provider.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/services/audio/midi/drum_map.dart';
@@ -130,8 +131,10 @@ void main() {
     expect(player.loads.last, (pattern, 90.0));
     expect(player.playing, isTrue);
     expect(container.read(drumPracticeProvider).playing, isTrue);
+    expect(container.read(drumActiveProvider), 'Rock');
     await notifier.start();
     expect(player.startCalls, 1);
+    expect(container.read(drumActiveProvider), 'Rock');
   });
 
   test('mute toggles only its lane and preserves earlier state', () async {
@@ -265,6 +268,7 @@ void main() {
     expect(player.playing, isFalse);
     expect(container.read(drumPracticeProvider).playing, isFalse);
     expect(container.read(drumPracticeProvider).currentStep, 0);
+    expect(container.read(drumActiveProvider), isNull);
     player.steps.add(8);
     expect(container.read(drumPracticeProvider).currentStep, 0);
   });
