@@ -63,7 +63,9 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: MaterialApp(
-          home: Scaffold(body: DrumGridEditor(songId: 'song', dirty: dirty)),
+          home: Scaffold(
+            body: DrumGridEditor(songId: 'song', dirty: dirty),
+          ),
         ),
       ),
     );
@@ -108,60 +110,18 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('lane labels stay fixed while compact grouped steps scroll', (
+  testWidgets('steps are shown 8 per page and page chips switch the page', (
     tester,
   ) async {
     await open(tester);
-    final scroll = find.byWidgetPredicate(
-      (widget) =>
-          widget is SingleChildScrollView &&
-          widget.scrollDirection == Axis.horizontal,
-    );
-    const labels = [
-      'Kick',
-      'Snare',
-      'Closed hat',
-      'Open hat',
-      'High tom',
-      'Mid tom',
-      'Floor tom',
-      'Crash',
-      'Ride',
-    ];
-    final positions = [
-      for (final label in labels) tester.getTopLeft(find.text(label)),
-    ];
-    for (final label in labels) {
-      expect(
-        find.descendant(of: scroll, matching: find.text(label)),
-        findsNothing,
-      );
-    }
-    expect(tester.getSize(cell(0)), const Size(36, 48));
-    expect(
-      tester.getRect(cell(7)).left,
-      lessThan(tester.getRect(scroll).right),
-    );
-    expect(
-      tester.getRect(cell(4)).left - tester.getRect(cell(3)).right,
-      greaterThan(0),
-    );
-    expect(
-      tester.widget<Text>(find.text('5')).style!.fontWeight,
-      FontWeight.bold,
-    );
-    final before = tester.getTopLeft(cell(0));
-    await tester.drag(scroll, const Offset(-500, 0));
+    expect(find.byKey(const ValueKey('drum-step-7')), findsOneWidget);
+    expect(find.byKey(const ValueKey('drum-step-8')), findsNothing);
+    expect(find.text('Kick'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('drum-page-1')));
     await tester.pumpAndSettle();
-    expect(tester.getTopLeft(cell(0)).dx, lessThan(before.dx));
-    for (var i = 0; i < labels.length; i++) {
-      expect(tester.getTopLeft(find.text(labels[i])), positions[i]);
-    }
-    final semantics = tester.ensureSemantics();
-    await tester.tap(cell(15));
-    await tester.pumpAndSettle();
-    expect(tester.getSemantics(cell(15)).value, 'Normal (90)');
-    semantics.dispose();
+    expect(find.byKey(const ValueKey('drum-step-8')), findsOneWidget);
+    expect(find.byKey(const ValueKey('drum-step-7')), findsNothing);
+    expect(find.text('Kick'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

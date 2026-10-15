@@ -50,7 +50,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
   late int _bars;
   late List<MidiHit> _hits;
   bool _busy = false;
-  final ScrollController _gridScroll = ScrollController();
+  int _page = 0;
 
   bool get _canEdit =>
       widget.bandId == null || ref.read(canEditBandProvider(widget.bandId!));
@@ -97,7 +97,6 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
   void dispose() {
     // Riverpod updates must run after the widget tree finishes unmounting.
     scheduleMicrotask(() => unawaited(_practice.stop()));
-    _gridScroll.dispose();
     _name.dispose();
     super.dispose();
   }
@@ -184,7 +183,12 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save drum pattern: $error')),
+          SnackBar(
+            content: Text('Failed to save drum pattern: $error'),
+            behavior: SnackBarBehavior.floating,
+            // Float above the pinned Play/Save row instead of covering it.
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 88),
+          ),
         );
       }
     } finally {
@@ -213,152 +217,172 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 12),
-            TextField(
-              controller: _name,
-              enabled: canEdit && !_busy,
-              decoration: const InputDecoration(labelText: 'Name'),
-              onChanged: (_) {
-                setState(() {});
-                widget.dirty?.value = true;
-              },
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                for (final bars in [1, 2, 3, 4])
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: ChoiceChip(
-                        label: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text('$bars ${bars == 1 ? 'bar' : 'bars'}'),
-                        ),
-                        showCheckmark: false,
-                        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                        selected: _bars == bars,
-                        onSelected: canEdit && !_busy
-                            ? (_) {
-                                setState(() {
-                                  _bars = bars;
-                                  _hits.removeWhere(
-                                    (hit) => hit.step >= bars * 16,
-                                  );
-                                  widget.dirty?.value = true;
-                                });
-                                unawaited(_practice.stop());
-                              }
-                            : null,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Tap: Off → Normal (90) → Accent (120) → Ghost (40) → Off',
-            ),
-            const SizedBox(height: 16),
-            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: 64,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 24),
-                      for (final lane in DrumLane.values)
-                        SizedBox(
-                          height: 48,
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(laneLabel(lane)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _name,
+                  enabled: canEdit && !_busy,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  onChanged: (_) {
+                    setState(() {});
+                    widget.dirty?.value = true;
+                  },
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    for (final bars in [1, 2, 3, 4])
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: ChoiceChip(
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                '$bars ${bars == 1 ? 'bar' : 'bars'}',
+                              ),
+                            ),
+                            showCheckmark: false,
+                            labelPadding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                            ),
+                            selected: _bars == bars,
+                            onSelected: canEdit && !_busy
+                                ? (_) {
+                                    setState(() {
+                                      _bars = bars;
+                                      _page = 0;
+                                      _hits.removeWhere(
+                                        (hit) => hit.step >= bars * 16,
+                                      );
+                                      widget.dirty?.value = true;
+                                    });
+                                    unawaited(_practice.stop());
+                                  }
+                                : null,
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
-                Expanded(
-                  child: Scrollbar(
-                    controller: _gridScroll,
-                    thumbVisibility: true,
-                    child: SingleChildScrollView(
-                      controller: _gridScroll,
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                      children: [
-                        for (var step = 0; step < _bars * 16; step++)
-                          Container(
-                            key: ValueKey('drum-step-$step'),
-                            margin: EdgeInsets.only(
-                              left: step > 0 && step % 4 == 0 ? 4 : 0,
+                const SizedBox(height: 16),
+                const Text(
+                  'Tap: Off → Normal (90) → Accent (120) → Ghost (40) → Off',
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (var page = 0; page < _bars * 2; page++)
+                      ChoiceChip(
+                        key: ValueKey('drum-page-$page'),
+                        label: Text('${page * 8 + 1}-${page * 8 + 8}'),
+                        showCheckmark: false,
+                        selected: _page == page,
+                        onSelected: (_) => setState(() => _page = page),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 64,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          for (final lane in DrumLane.values)
+                            SizedBox(
+                              height: 48,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(laneLabel(lane)),
+                              ),
                             ),
-                            color: playing && currentStep == step
-                                ? colors.secondaryContainer
-                                : null,
-                            child: Column(
-                              children: [
-                                SizedBox(
-                                  width: 36,
-                                  height: 24,
-                                  child: Center(
-                                    child: Text(
-                                      '${step + 1}',
-                                      style: TextStyle(
-                                        fontWeight: step % 4 == 0
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                        color: step % 4 == 0
-                                            ? colors.primary
-                                            : null,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                for (final lane in DrumLane.values)
-                                  _cell(lane, step, canEdit && !_busy, colors),
-                              ],
-                            ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          for (var column = 0; column < 8; column++)
+                            Expanded(
+                              child: _stepColumn(
+                                _page * 8 + column,
+                                canEdit && !_busy,
+                                colors,
+                                playing && currentStep == _page * 8 + column,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
               ],
             ),
-            SafeArea(
-              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: _busy ? null : _play,
-                      icon: Icon(playing ? Icons.stop : Icons.play_arrow),
-                      label: Text(playing ? 'Stop' : 'Play'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: canEdit && !_busy && _name.text.trim().isNotEmpty
-                          ? _save
-                          : null,
-                      child: const Text('Save'),
-                    ),
-                  ),
-                ],
+          ),
+        ),
+        SafeArea(
+          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: _busy ? null : _play,
+                  icon: Icon(playing ? Icons.stop : Icons.play_arrow),
+                  label: Text(playing ? 'Stop' : 'Play'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: canEdit && !_busy && _name.text.trim().isNotEmpty
+                      ? _save
+                      : null,
+                  child: const Text('Save'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepColumn(
+    int step,
+    bool enabled,
+    ColorScheme colors,
+    bool highlighted,
+  ) {
+    return Container(
+      key: ValueKey('drum-step-$step'),
+      color: highlighted ? colors.secondaryContainer : null,
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 24,
+            child: Center(
+              child: Text(
+                '${step + 1}',
+                style: TextStyle(
+                  fontWeight: step % 4 == 0
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: step % 4 == 0 ? colors.primary : null,
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          for (final lane in DrumLane.values)
+            _cell(lane, step, enabled, colors),
+        ],
       ),
-      ),
-      ],
     );
   }
 
@@ -371,7 +395,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
       _ => 'Accent',
     };
     return SizedBox(
-      width: 36,
+      width: double.infinity,
       height: 48,
       child: Semantics(
         label: '${laneLabel(lane)} step ${step + 1}',
@@ -387,9 +411,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                   ? (step % 4 == 0 ? colors.surfaceContainerHigh : null)
                   : colors.primary.withValues(alpha: velocity / 127),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: colors.outline,
-              ),
+              border: Border.all(color: colors.outline),
             ),
             alignment: Alignment.center,
             child: velocity == 0 ? null : Text('$velocity'),

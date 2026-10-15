@@ -128,6 +128,14 @@ void main() {
   Finder cell(DrumLane lane, int step) =>
       find.byKey(ValueKey('drum-cell-${lane.name}-$step'));
 
+  /// Steps are shown 8 per page: open the page that holds [step], then tap it.
+  Future<void> tapCell(WidgetTester tester, DrumLane lane, int step) async {
+    await tester.tap(find.byKey(ValueKey('drum-page-${step ~/ 8}')));
+    await tester.pump();
+    await tester.tap(cell(lane, step));
+    await tester.pump();
+  }
+
   Future<MidiPattern> preview(WidgetTester tester) async {
     await tester.ensureVisible(find.text('Play'));
     await tester.tap(find.text('Play'));
@@ -147,8 +155,7 @@ void main() {
       await tester.enterText(find.byType(TextField), '  Groove  ');
       const notes = [36, 38, 42, 46, 50, 47, 43, 49, 51];
       for (var i = 0; i < DrumLane.values.length; i++) {
-        await tester.tap(cell(DrumLane.values[i], i));
-        await tester.pump();
+        await tapCell(tester, DrumLane.values[i], i);
       }
       final pattern = await preview(tester);
       expect(pattern.name, 'Groove');
@@ -169,8 +176,7 @@ void main() {
     (tester) async {
       await open(tester);
       for (final velocity in [90, 120, 40, 0]) {
-        await tester.tap(cell(DrumLane.kick, 0));
-        await tester.pump();
+        await tapCell(tester, DrumLane.kick, 0);
         final pattern = await preview(tester);
         if (velocity == 0) {
           expect(pattern.hits, isEmpty);
@@ -190,13 +196,12 @@ void main() {
     'bars resize from 16 to 64 cells per lane and discard trimmed hits',
     (tester) async {
       await open(tester);
-      await tester.tap(cell(DrumLane.kick, 0));
+      await tapCell(tester, DrumLane.kick, 0);
       await tester.tap(find.text('4 bars'));
       await tester.pumpAndSettle();
-      expect(cell(DrumLane.ride, 63), findsOneWidget);
-      await tester.ensureVisible(cell(DrumLane.kick, 63));
-      await tester.tap(cell(DrumLane.kick, 63));
-      await tester.pump();
+      expect(find.byKey(const ValueKey('drum-page-7')), findsOneWidget);
+      expect(find.byKey(const ValueKey('drum-page-8')), findsNothing);
+      await tapCell(tester, DrumLane.kick, 63);
       final expanded = await preview(tester);
       expect(expanded.totalSteps, 64);
       expect(expanded.hits.map((h) => h.step), [0, 63]);
@@ -204,8 +209,11 @@ void main() {
         await tester.tap(find.text('$bars ${bars == 1 ? 'bar' : 'bars'}'));
         await tester.pumpAndSettle();
         expect(dirty.value, isTrue);
-        expect(cell(DrumLane.ride, bars * 16 - 1), findsOneWidget);
-        expect(cell(DrumLane.ride, bars * 16), findsNothing);
+        expect(
+          find.byKey(ValueKey('drum-page-${bars * 2 - 1}')),
+          findsOneWidget,
+        );
+        expect(find.byKey(ValueKey('drum-page-${bars * 2}')), findsNothing);
         final resized = await preview(tester);
         expect(resized.bars, bars);
         expect(resized.totalSteps, bars * 16);
@@ -218,7 +226,7 @@ void main() {
     testWidgets('saves a new MIDI entry with scope $bandId', (tester) async {
       await open(tester, bandId: bandId);
       await tester.enterText(find.byType(TextField), 'Beat');
-      await tester.tap(cell(DrumLane.snare, 4));
+      await tapCell(tester, DrumLane.snare, 4);
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       final entry = repo.saved.single;
