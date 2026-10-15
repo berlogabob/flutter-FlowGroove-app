@@ -6,8 +6,9 @@ import json, os, subprocess, sys, time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-PLAN = REPO / "docs/plans/ux-remediation"
-WT = REPO.parent / "flutter_repsync_ux"  # git worktree, isolates the user's dirty main tree
+PLAN = REPO / os.environ.get("PLAN_DIR", "docs/plans/ux-remediation")
+WT = REPO.parent / os.environ.get("PLAN_WT", "flutter_repsync_ux")
+PFX = os.environ.get("PLAN_PREFIX", "fix(ux)")  # git worktree, isolates the user's dirty main tree
 PI = Path.home() / ".claude/skills/pi-delegate/scripts/pi-run.sh"
 LEDGER = PLAN / "ledger.jsonl"
 PRE = "set -o pipefail; "
@@ -68,7 +69,7 @@ def main():
             rec = dict(id=t["id"], finding=t["finding"], executor=ex, attempt=n, secs=round(time.time() - t0),
                        exec_rc=rc, verdict="pass" if ok else "fail", diff=stat, verify_tail=vout if not ok else "")
             if ok:
-                sh(f'git add -A && git commit -qm "fix(ux): {t["id"]} {t["title"]} [{t["finding"]}] via {ex}"')
+                sh(f'git add -A && git commit -qm "{PFX}: {t["id"]} {t["title"]} [{t["finding"]}] via {ex}"')
                 done.add(t["id"])
             else:
                 rollback()

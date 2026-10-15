@@ -1,0 +1,64 @@
+{
+ "branch": "feat/midi-drums",
+ "tasks": [
+  {
+   "id": "M01",
+   "executor": "pi",
+   "title": "MidiPattern model",
+   "finding": "MIDI",
+   "files": [
+    "lib/models/midi_pattern.dart"
+   ],
+   "prompt": "Create class MidiHit{final int step,note,vel; const ctor with named required args; toJson/fromJson} and class MidiPattern{final String name; int bars, beatsPerBar, stepsPerBeat; List<MidiHit> hits; named-arg ctor; int get totalSteps => bars*beatsPerBar*stepsPerBeat; Map<String,dynamic> toJson(); factory fromJson(Map<String,dynamic>)}. fromJson defaults: name '', bars 1, beatsPerBar 4, stepsPerBeat 4, hits [] and tolerates missing/null fields. No json_serializable. Must satisfy test/midi/midi_pattern_test.dart. Edit only the listed file(s); create it if missing; match existing style; do not modify tests. When done print DONE.",
+   "verify": "flutter test test/midi/midi_pattern_test.dart --plain-name 'pattern json' 2>&1 | tail -3 | rg -q 'All tests passed'",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "M02",
+   "executor": "pi",
+   "title": "Drum map",
+   "finding": "MIDI",
+   "files": [
+    "lib/services/audio/midi/drum_map.dart"
+   ],
+   "prompt": "Create enum DrumLane{kick,snare,hatClosed,hatOpen,tomHigh,tomMid,tomFloor,crash,ride} and DrumLane? laneForNote(int note) using General MIDI drum notes: kick 35,36; snare 37,38,40; hatClosed 42,44; hatOpen 46; tomFloor 41,43; tomMid 45,47; tomHigh 48,50; crash 49,57; ride 51,53,59; else null. Must satisfy 'drum map' in test/midi/midi_pattern_test.dart. Edit only the listed file(s); create it if missing; match existing style; do not modify tests. When done print DONE.",
+   "verify": "flutter test test/midi/midi_pattern_test.dart 2>&1 | tail -3 | rg -q 'All tests passed'",
+   "after": [
+    "M01"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M03",
+   "executor": "pi",
+   "title": "SMF drum parser",
+   "finding": "MIDI",
+   "files": [
+    "lib/services/audio/midi/smf_parser.dart"
+   ],
+   "prompt": "Create MidiPattern parseDrumSmf(Uint8List bytes,{int maxBars=4,int stepsPerBeat=4}) importing models/midi_pattern.dart. Parse a Standard MIDI File (format 0 or 1): MThd, ppq, all MTrk chunks, variable-length deltas, running status, skip meta/sysex events. Collect NOTE ON (status 0x99, velocity>0) on MIDI channel 10 only; step = round(tick/ppq*stepsPerBeat). Assume 4/4: bars = clamp(ceil((lastStep+1)/(4*stepsPerBeat)),1,maxBars); drop hits with step >= maxBars*4*stepsPerBeat. name = 'Imported'. Throw FormatException on bad header or truncated data. Must satisfy test/midi/smf_parser_test.dart. Edit only the listed file(s); create it if missing; match existing style; do not modify tests. When done print DONE.",
+   "verify": "flutter test test/midi/smf_parser_test.dart 2>&1 | tail -3 | rg -q 'All tests passed'",
+   "after": [
+    "M01"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M04",
+   "executor": "pi",
+   "title": "Drum lane renderer",
+   "finding": "MIDI",
+   "files": [
+    "lib/services/audio/midi/drum_loop_renderer.dart"
+   ],
+   "prompt": "Create Float32List renderLane(MidiPattern p, DrumLane lane, double bpm, Float32List sample,{int sampleRate=44100}). Output length = (p.totalSteps/p.stepsPerBeat*60/bpm*sampleRate).round(). For each hit whose laneForNote(hit.note)==lane, add sample*(vel/127) starting at frame round(step/stepsPerBeat*60/bpm*sampleRate); samples that run past the end wrap to the start (loop). Overlaps sum. Must satisfy test/midi/drum_loop_renderer_test.dart. Edit only the listed file(s); create it if missing; match existing style; do not modify tests. When done print DONE.",
+   "verify": "flutter test test/midi/drum_loop_renderer_test.dart 2>&1 | tail -3 | rg -q 'All tests passed'",
+   "after": [
+    "M01",
+    "M02"
+   ],
+   "status": "pending"
+  }
+ ]
+}
