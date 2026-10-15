@@ -12,3 +12,9 @@ You are editing a Flutter app (package `flowgroove`). Make the SMALLEST edit tha
 - You cannot run commands. The runner runs the tests for you and shows you the errors: fix only what they say.
 - Existing strings that tests look for must stay exactly as they are unless the task says to change them.
 - When done print DONE.
+
+## Test trap (cost us 77 minutes once)
+Widget tests pump the sheet/editor in a FIXED viewport (`tester.view.physicalSize`, e.g. 400x900). When you make the UI taller,
+a button can fall out of the lazily built ListView and the test fails with `Bad state: No element` (e.g. in `ensureVisible`).
+That is a TEST problem, not a bug in your change: make the test viewport taller (e.g. `Size(400, 1600)`) or call
+`await tester.scrollUntilVisible(finder, 200)` before using the finder. Do not undo your UI change.

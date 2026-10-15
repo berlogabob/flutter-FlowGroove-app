@@ -47,6 +47,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
   late int _bars;
   late List<MidiHit> _hits;
   bool _busy = false;
+  final ScrollController _gridScroll = ScrollController();
 
   bool get _canEdit =>
       widget.bandId == null || ref.read(canEditBandProvider(widget.bandId!));
@@ -93,6 +94,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
   void dispose() {
     // Riverpod updates must run after the widget tree finishes unmounting.
     scheduleMicrotask(() => unawaited(_practice.stop()));
+    _gridScroll.dispose();
     _name.dispose();
     super.dispose();
   }
@@ -259,9 +261,13 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                   ),
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
+                  child: Scrollbar(
+                    controller: _gridScroll,
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      controller: _gridScroll,
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
                       children: [
                         for (var step = 0; step < _bars * 16; step++)
                           Container(
@@ -300,6 +306,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                     ),
                   ),
                 ),
+              ),
               ],
             ),
             const SizedBox(height: 16),
