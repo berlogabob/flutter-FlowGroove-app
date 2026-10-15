@@ -140,29 +140,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
           state,
           canEditSource: canEditSource,
         ),
-        mainWidget: Stack(
-          children: [
-            const Positioned.fill(child: _MetronomePerformanceSurface()),
-            if (state.activeSong != null)
-              Positioned(
-                top: 0,
-                right: 8,
-                child: IconButton(
-                  tooltip: 'Drums',
-                  icon: const Icon(Icons.album_outlined),
-                  onPressed: () => showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    showDragHandle: true,
-                    builder: (_) => DrumPracticePanel(
-                      songId: state.activeSong!.id,
-                      bandId: state.sourceBandId,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        mainWidget: const _MetronomePerformanceSurface(),
       ),
     );
   }
@@ -387,17 +365,21 @@ class _MetronomePortrait extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = MediaQuery.sizeOf(context).width < 375
+        ? MonoPulseSpacing.md
+        : MonoPulseSpacing.lg;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
-        child: const SingleChildScrollView(
+        child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
-            MonoPulseSpacing.lg,
+            horizontalPadding,
             MonoPulseSpacing.sm,
-            MonoPulseSpacing.lg,
+            horizontalPadding,
             MonoPulseSpacing.md,
           ),
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TimeSignatureBlock(),
@@ -406,7 +388,7 @@ class _MetronomePortrait extends StatelessWidget {
               SizedBox(height: MonoPulseSpacing.md),
               _MetronomeTransport(),
               SizedBox(height: MonoPulseSpacing.md),
-              SongLibraryBlock(),
+              _MetronomeSongLibrary(),
             ],
           ),
         ),
@@ -444,13 +426,48 @@ class _MetronomeLandscape extends StatelessWidget {
                   SizedBox(height: MonoPulseSpacing.sm),
                   _MetronomeTransport(),
                   SizedBox(height: MonoPulseSpacing.md),
-                  SongLibraryBlock(),
+                  _MetronomeSongLibrary(),
                 ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _MetronomeSongLibrary extends ConsumerWidget {
+  const _MetronomeSongLibrary();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(metronomeProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SongLibraryBlock(),
+        if (state.activeSong != null) ...[
+          const SizedBox(height: MonoPulseSpacing.sm),
+          Tooltip(
+            message: 'Drums',
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.album_outlined),
+              label: const Text('Drums'),
+              onPressed: () => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                showDragHandle: true,
+                builder: (_) => DrumPracticePanel(
+                  songId: state.activeSong!.id,
+                  bandId: state.sourceBandId,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
