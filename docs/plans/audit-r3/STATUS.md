@@ -21,8 +21,8 @@
 | R17 | F-009 | Editor uses shared labels | pass | 1 | 147 | 9e8cdd9e |
 | R18 | F-009 | Kit pads: contrast, stroke, 12sp labels | pass | 1 | 163 | 34f027d0 |
 | R19 | F-010 | Lane dots bigger with visible ring | pass | 1 | 109 | 7cdbbac0 |
-| R20 | F-008 | M/S chips less cramped | pass | 1 | 106 |  |
-| R21 | F-002 | Drums button always visible | pending |  |  |  |
+| R20 | F-008 | M/S chips less cramped | pass | 1 | 106 | 2f88891c |
+| R21 | F-002 | Drums button always visible | pass | 2 | 480 |  |
 | R22 | F-013 | Drum practice notifier mirrors playing state | pending |  |  |  |
 | R23 | F-013 | Drums button shows active state | pending |  |  |  |
 | R24 | F-014 | BPM number stays white while playing | pending |  |  |  |
@@ -40,5 +40,5 @@
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-16/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 15:54:30
+17/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 16:02:30

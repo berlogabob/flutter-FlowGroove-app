@@ -50,11 +50,15 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Drums button is hidden without an active song', (tester) async {
+  testWidgets('Drums button shown without an active song, disabled', (
+    tester,
+  ) async {
     await pumpScreen(tester, const Size(360, 800));
 
-    expect(drumsButton, findsNothing);
-    expect(find.byIcon(Icons.album_outlined), findsNothing);
+    expect(drumsButton, findsOneWidget);
+    expect(find.byIcon(Icons.album_outlined), findsOneWidget);
+    expect(tester.widget<OutlinedButton>(drumsButton).enabled, isFalse);
+    expect(find.text('Pick a song first'), findsOneWidget);
     expect(find.byType(DrumPracticePanel), findsNothing);
     expect(tester.takeException(), isNull);
   });

@@ -139,7 +139,9 @@ void main() {
     'hidden without a song; providers stay lazy until Drums is tapped',
     (tester) async {
       await pump(tester, const MetronomeScreen());
-      expect(find.byTooltip('Drums'), findsNothing);
+      // The Drums button is always present; it is disabled (no song) and the
+      // panel providers stay lazy until the button is actually tapped.
+      expect(find.byTooltip('Drums'), findsOneWidget);
       expect(find.byType(DrumPracticePanel), findsNothing);
       expect(repoBuilds, 0);
       expect(playerBuilds, 0);

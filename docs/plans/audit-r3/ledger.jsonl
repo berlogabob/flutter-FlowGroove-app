@@ -14,4 +14,5 @@
 {"id": "R17", "finding": "F-009", "title": "Editor uses shared labels", "verdict": "pass", "attempts": 1, "secs": 147, "why": "", "diff": "4 files changed, 18 insertions(+), 18 deletions(-)", "commit": "9e8cdd9e"}
 {"id": "R18", "finding": "F-009", "title": "Kit pads: contrast, stroke, 12sp labels", "verdict": "pass", "attempts": 1, "secs": 163, "why": "", "diff": "5 files changed, 9 insertions(+), 8 deletions(-)", "commit": "34f027d0"}
 {"id": "R19", "finding": "F-010", "title": "Lane dots bigger with visible ring", "verdict": "pass", "attempts": 1, "secs": 109, "why": "", "diff": "4 files changed, 8 insertions(+), 8 deletions(-)", "commit": "7cdbbac0"}
-{"id": "R20", "finding": "F-008", "title": "M/S chips less cramped", "verdict": "pass", "attempts": 1, "secs": 106, "why": "", "diff": "4 files changed, 6 insertions(+), 6 deletions(-)"}
+{"id": "R20", "finding": "F-008", "title": "M/S chips less cramped", "verdict": "pass", "attempts": 1, "secs": 106, "why": "", "diff": "4 files changed, 6 insertions(+), 6 deletions(-)", "commit": "2f88891c"}
+{"id": "R21", "finding": "F-002", "title": "Drums button always visible", "verdict": "pass", "attempts": 2, "secs": 480, "why": "", "diff": "6 files changed, 38 insertions(+), 27 deletions(-)"}

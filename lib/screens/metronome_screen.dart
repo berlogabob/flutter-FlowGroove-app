@@ -448,25 +448,30 @@ class _MetronomeSongLibrary extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SongLibraryBlock(),
-        if (state.activeSong != null) ...[
-          const SizedBox(height: MonoPulseSpacing.sm),
-          Tooltip(
-            message: 'Drums',
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.album_outlined),
-              label: const Text('Drums'),
-              onPressed: () => showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                showDragHandle: true,
-                builder: (_) => DrumPracticePanel(
-                  songId: state.activeSong!.id,
-                  bandId: state.sourceBandId,
-                ),
-              ),
-            ),
+        const SizedBox(height: MonoPulseSpacing.sm),
+        Tooltip(
+          message: 'Drums',
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.album_outlined),
+            label: const Text('Drums'),
+            onPressed: state.activeSong == null
+                ? null
+                : () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      showDragHandle: true,
+                      builder: (_) => DrumPracticePanel(
+                        songId: state.activeSong!.id,
+                        bandId: state.sourceBandId,
+                      ),
+                    ),
           ),
-        ],
+        ),
+        if (state.activeSong == null)
+          Text(
+            'Pick a song first',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
       ],
     );
   }
