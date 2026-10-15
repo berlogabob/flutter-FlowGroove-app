@@ -59,6 +59,142 @@
     "M02"
    ],
    "status": "pending"
+  },
+  {
+   "id": "M05",
+   "executor": "codex",
+   "title": "Synth drum samples",
+   "finding": "MIDI",
+   "files": [
+    "lib/services/audio/midi/drum_samples.dart",
+    "test/midi/drum_samples_test.dart"
+   ],
+   "prompt": "Create Float32List drumSample(DrumLane lane,{int sampleRate=44100}) synthesizing each drum in pure Dart (no assets): kick = decaying sine sweep ~150->50 Hz ~300ms; snare = decaying noise + 190 Hz tone ~200ms; hatClosed = highpassed noise ~60ms; hatOpen = same ~350ms; toms = sine sweeps at three pitches ~300ms; crash = long noise ~1.2s; ride = metallic inharmonic partials ~800ms. Deterministic (seeded Random), peak normalized to <=0.9, ending at 0. Test: every lane non-empty, abs<=1, last sample ~0, deterministic across calls. Follow existing code style and patterns in the repo; keep the change minimal; do not touch lib/services/audio/engine/* (metronome scheduler/renderer/sink) or firestore.rules. Write the named test file with meaningful assertions. Existing pure-Dart pieces to reuse: lib/models/midi_pattern.dart, lib/services/audio/midi/{drum_map,smf_parser,drum_loop_renderer}.dart. Print DONE when finished.",
+   "verify": "flutter test test/midi/drum_samples_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M04"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M06",
+   "executor": "codex",
+   "title": "DrumPlayer native+web",
+   "finding": "MIDI",
+   "files": [
+    "lib/services/audio/midi/drum_player.dart",
+    "lib/services/audio/midi/drum_player_soloud.dart",
+    "lib/services/audio/midi/drum_player_web.dart",
+    "lib/services/audio/engine/../audio_engine_web.dart",
+    "test/midi/drum_player_test.dart"
+   ],
+   "prompt": "Create abstract DrumPlayer{Future<void> load(MidiPattern p,double bpm); Future<void> start(); Future<void> stop(); void setLaneGain(DrumLane lane,double gain); bool get playing; Stream<int> get stepStream;} plus a conditional-export factory createDrumPlayer() using the same `if (dart.library.js_interop)` pattern as lib/services/audio/tone_generator.dart. Native impl: for each lane that has hits, renderLane() -> 16-bit PCM WAV bytes in memory -> flutter_soloud loadMem, play looped with per-lane volume (setVolume) all started in the same call; reload on bpm change. Web impl: Web Audio AudioBufferSourceNode loop=true per lane + GainNode, started at the same context time; add a small helper to lib/services/audio/audio_engine_web.dart only if needed (additive, no changes to existing functions). stepStream emits the current step index using a Stopwatch-based timer (see lib/services/audio/wall_clock_scheduler.dart). Put the pure logic (WAV encoding, step index math) in testable top-level functions and test those in test/midi/drum_player_test.dart (WAV header/length, step index at given elapsed/bpm). Follow existing code style and patterns in the repo; keep the change minimal; do not touch lib/services/audio/engine/* (metronome scheduler/renderer/sink) or firestore.rules. Write the named test file with meaningful assertions. Existing pure-Dart pieces to reuse: lib/models/midi_pattern.dart, lib/services/audio/midi/{drum_map,smf_parser,drum_loop_renderer}.dart. Print DONE when finished.",
+   "verify": "flutter test test/midi/drum_player_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M05"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M07",
+   "executor": "codex",
+   "title": "Lab entry midi type",
+   "finding": "MIDI",
+   "files": [
+    "lib/models/song_lab.dart",
+    "test/midi/lab_midi_entry_test.dart"
+   ],
+   "prompt": "Add LabEntryType.midi (append at the END of the enum so existing indexes/strings are unchanged) and an optional nullable field `midi` (Map<String,dynamic>? holding MidiPattern.toJson()) on SongLabEntry with toJson/fromJson/copyWith support; omit the key from toJson when null. Unknown types must keep falling back to note. Also add a helper `MidiPattern? get pattern` on SongLabEntry. Test: round trip with and without midi, old json without key parses, enum parse of 'midi'. Check lib/ for exhaustive switches over LabEntryType and cover the new case (label/icon) so analyze has no errors. Follow existing code style and patterns in the repo; keep the change minimal; do not touch lib/services/audio/engine/* (metronome scheduler/renderer/sink) or firestore.rules. Write the named test file with meaningful assertions. Existing pure-Dart pieces to reuse: lib/models/midi_pattern.dart, lib/services/audio/midi/{drum_map,smf_parser,drum_loop_renderer}.dart. Print DONE when finished.",
+   "verify": "flutter test test/midi/lab_midi_entry_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M01"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M08",
+   "executor": "codex",
+   "title": "Drum practice controller",
+   "finding": "MIDI",
+   "files": [
+    "lib/providers/data/drum_practice_provider.dart",
+    "test/midi/drum_practice_provider_test.dart"
+   ],
+   "prompt": "Create a Riverpod notifier drumPracticeProvider (follow the style of lib/providers/data/metronome_provider.dart) with state {MidiPattern? pattern, String? entryId, Set<DrumLane> muted, DrumLane? solo, bool playing, int currentStep, double speed(1.0)}; methods loadPattern(entryId,pattern), toggleMute(lane), toggleSolo(lane), start(), stop(), setSpeed. It reads the BPM from metronomeProvider (song tempo follow) times speed, and calls a DrumPlayer (inject via a provider so tests use a fake). Effective gain per lane: solo set -> only that lane 1 else 0; else muted -> 0 else 1. Changing bpm while playing reloads the player. Test with a fake DrumPlayer: mute/solo gain logic, bpm change reloads, stop resets step. Follow existing code style and patterns in the repo; keep the change minimal; do not touch lib/services/audio/engine/* (metronome scheduler/renderer/sink) or firestore.rules. Write the named test file with meaningful assertions. Existing pure-Dart pieces to reuse: lib/models/midi_pattern.dart, lib/services/audio/midi/{drum_map,smf_parser,drum_loop_renderer}.dart. Print DONE when finished.",
+   "verify": "flutter test test/midi/drum_practice_provider_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M06",
+    "M07"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M09",
+   "executor": "codex",
+   "title": "DrumKitView widget",
+   "finding": "MIDI",
+   "files": [
+    "lib/widgets/midi/drum_kit_view.dart",
+    "test/midi/drum_kit_view_test.dart"
+   ],
+   "prompt": "Create DrumKitView(currentStep, pattern, muted, solo, onToggleMute, onToggleSolo): a CustomPainter top-down kit (kick, snare, hats, 3 toms, crash, ride as circles) where a pad flashes (color + scale) when the pattern has a hit for that lane at currentStep (decay ~120ms using the step change), plus a strip below with one lane row per used lane showing the next 16 steps as dots (hits filled, current step highlighted), and per-lane M/S chips. Use theme colors, 48dp tap targets for the chips. Widget test: renders without error, tapping M/S chips calls the callbacks, pump with changing currentStep. Follow existing code style and patterns in the repo; keep the change minimal; do not touch lib/services/audio/engine/* (metronome scheduler/renderer/sink) or firestore.rules. Write the named test file with meaningful assertions. Existing pure-Dart pieces to reuse: lib/models/midi_pattern.dart, lib/services/audio/midi/{drum_map,smf_parser,drum_loop_renderer}.dart. Print DONE when finished.",
+   "verify": "flutter test test/midi/drum_kit_view_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M01",
+    "M02"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M10",
+   "executor": "codex",
+   "title": "Practice panel in MetronomeScreen",
+   "finding": "MIDI",
+   "files": [
+    "lib/widgets/metronome/drum_practice_panel.dart",
+    "lib/screens/metronome_screen.dart",
+    "test/midi/drum_practice_panel_test.dart"
+   ],
+   "prompt": "Create DrumPracticePanel(consumer) shown inside MetronomeScreen (portrait+landscape; keep the existing layout otherwise unchanged) only when metronomeProvider.activeSong != null. It lists the song's lab entries of type midi (use labRepository via the existing providers in lib/providers/data/data_providers.dart; follow how Song Lab lists entries), lets the user pick one (loads into drumPracticeProvider), shows DrumKitView, a Play/Stop button, speed chips (50/75/100%), and an 'Import .mid' button: FilePicker.pickFile(type: FileType.any / extensions mid,midi) like lib/screens/songs/components/lab_recording_sheet.dart, parseDrumSmf(bytes), preview then save as a SongLabEntry type midi via the lab repository honoring bandId scope and canEditBandProvider (band viewers cannot import). Show FormatException as a snackbar. Widget test with provider overrides: panel hidden without active song, shows entries, Play toggles provider state. Follow existing code style and patterns in the repo; keep the change minimal; do not touch lib/services/audio/engine/* (metronome scheduler/renderer/sink) or firestore.rules. Write the named test file with meaningful assertions. Existing pure-Dart pieces to reuse: lib/models/midi_pattern.dart, lib/services/audio/midi/{drum_map,smf_parser,drum_loop_renderer}.dart. Print DONE when finished.",
+   "verify": "flutter test test/midi/drum_practice_panel_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M08",
+    "M09"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M11",
+   "executor": "codex",
+   "title": "Drum grid editor",
+   "finding": "MIDI",
+   "files": [
+    "lib/screens/songs/components/drum_grid_editor.dart",
+    "test/midi/drum_grid_editor_test.dart"
+   ],
+   "prompt": "Create DrumGridEditor screen/sheet (base the structure on lib/screens/songs/components/metronome_pattern_editor.dart): lanes (kick, snare, closed hat, open hat, 3 toms, crash, ride) x steps (16 per bar, 1-4 bars selectable), tap toggles a hit, tap again cycles velocity ghost(40)/normal(90)/accent(120)/off, a name field, preview Play using drumPracticeProvider, Save writes/updates a SongLabEntry type midi (new entry id or edit existing) through the lab repository with bandId scope + canEdit gating, same as the import flow in M10. Entry point: 'New drum pattern' button in DrumPracticePanel and edit action on a listed pattern (small additive edit to the panel). Widget test: toggling cells builds the expected MidiPattern, velocity cycle, bars change resizes. Follow existing code style and patterns in the repo; keep the change minimal; do not touch lib/services/audio/engine/* (metronome scheduler/renderer/sink) or firestore.rules. Write the named test file with meaningful assertions. Existing pure-Dart pieces to reuse: lib/models/midi_pattern.dart, lib/services/audio/midi/{drum_map,smf_parser,drum_loop_renderer}.dart. Print DONE when finished.",
+   "verify": "flutter test test/midi/drum_grid_editor_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M10"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M12",
+   "executor": "codex",
+   "title": "Practice session links pattern",
+   "finding": "MIDI",
+   "files": [
+    "lib/models/metronome_session.dart",
+    "lib/providers/data/drum_practice_provider.dart",
+    "test/midi/session_midi_link_test.dart"
+   ],
+   "prompt": "Add optional nullable String? midiEntryId to MetronomeSession (toJson omit when null, fromJson tolerant, copyWith) and make the metronome session recorder (find where MetronomeSession is created/saved, likely lib/providers/data/metronome_provider.dart or a session provider) set it from drumPracticeProvider when a pattern was playing during the session. Do not change firestore.rules. Test serialization round trip and old json without the key. Follow existing code style and patterns in the repo; keep the change minimal; do not touch lib/services/audio/engine/* (metronome scheduler/renderer/sink) or firestore.rules. Write the named test file with meaningful assertions. Existing pure-Dart pieces to reuse: lib/models/midi_pattern.dart, lib/services/audio/midi/{drum_map,smf_parser,drum_loop_renderer}.dart. Print DONE when finished.",
+   "verify": "flutter test test/midi/session_midi_link_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M08"
+   ],
+   "status": "pending"
   }
  ]
 }
