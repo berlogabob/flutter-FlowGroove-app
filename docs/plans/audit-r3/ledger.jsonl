@@ -27,4 +27,5 @@
 {"id": "R30", "finding": "F-017", "title": "Create band demo: Sign Up as filled button", "verdict": "pass", "attempts": 1, "secs": 105, "why": "", "diff": "5 files changed, 7 insertions(+), 7 deletions(-)", "commit": "cd5541d8"}
 {"id": "R31", "finding": "F-019", "title": "Song card: muted -- BPM placeholder", "verdict": "pass", "attempts": 1, "secs": 137, "why": "", "diff": "5 files changed, 35 insertions(+), 6 deletions(-)", "commit": "9e722e4c"}
 {"id": "R32", "finding": "F-022", "title": "Filter sheet: chips aligned to the gutter", "verdict": "pass", "attempts": 1, "secs": 146, "why": "", "diff": "4 files changed, 21 insertions(+), 23 deletions(-)", "commit": "5ed2b820"}
-{"id": "R33", "finding": "F-016", "title": "Audio note: microphone caption", "verdict": "pass", "attempts": 1, "secs": 127, "why": "", "diff": "5 files changed, 21 insertions(+), 5 deletions(-)"}
+{"id": "R33", "finding": "F-016", "title": "Audio note: microphone caption", "verdict": "pass", "attempts": 1, "secs": 127, "why": "", "diff": "5 files changed, 21 insertions(+), 5 deletions(-)", "commit": "239f8685"}
+{"id": "R34", "finding": "F-023", "title": "Analytics: drum event names", "verdict": "pass", "attempts": 1, "secs": 205, "why": "", "diff": "5 files changed, 105 insertions(+), 5 deletions(-)"}

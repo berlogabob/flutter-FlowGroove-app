@@ -78,6 +78,47 @@ void main() {
         expect(eventData.parameters['artist_name'], equals('Test Artist'));
       });
 
+      test('Drum events register with the correct event names', () {
+        expect(AnalyticsEvents.drumPatternImported, equals('drum_pattern_imported'));
+        expect(AnalyticsEvents.drumPatternSaved, equals('drum_pattern_saved'));
+        expect(AnalyticsEvents.drumPlayStarted, equals('drum_play_started'));
+        expect(AnalyticsEvents.drumSyncToggled, equals('drum_sync_toggled'));
+      });
+
+      test('DrumParams register the new parameter names', () {
+        expect(AnalyticsParams.syncWithClick, equals('sync_with_click'));
+        expect(AnalyticsParams.hitCount, equals('hit_count'));
+      });
+
+      test('DrumPatternImportedEventData creates correct event', () {
+        final eventData = DrumPatternImportedEventData(filePath: 'pat.dmx');
+
+        expect(eventData.eventName, AnalyticsEvents.drumPatternImported);
+        expect(eventData.parameters['file_path'], equals('pat.dmx'));
+      });
+
+      test('DrumPatternSavedEventData creates correct event', () {
+        final eventData = DrumPatternSavedEventData(drumPatternId: 'p1', hitCount: 42);
+
+        expect(eventData.eventName, AnalyticsEvents.drumPatternSaved);
+        expect(eventData.parameters['drum_pattern_id'], equals('p1'));
+        expect(eventData.parameters['hit_count'], equals(42));
+      });
+
+      test('DrumPlayStartedEventData creates correct event', () {
+        final eventData = DrumPlayStartedEventData(bpm: 120);
+
+        expect(eventData.eventName, AnalyticsEvents.drumPlayStarted);
+        expect(eventData.parameters['bpm'], equals(120));
+      });
+
+      test('DrumSyncToggledEventData creates correct event', () {
+        final eventData = DrumSyncToggledEventData(syncWithClick: true);
+
+        expect(eventData.eventName, AnalyticsEvents.drumSyncToggled);
+        expect(eventData.parameters['sync_with_click'], isTrue);
+      });
+
       test('SetlistCreatedEventData creates correct event', () {
         final setlist = Setlist(
           id: 'test-setlist',
