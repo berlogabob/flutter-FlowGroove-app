@@ -1,12 +1,73 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart' show rootBundle;
+
 import 'drum_map.dart';
+
+/// Real recorded hits (assets/sounds/drums/<lane>.wav, see LICENSE.txt there).
+/// Filled by [preloadDrumSamples]; [drumSample] falls back to the synthesized
+/// sound for any lane that is not loaded, so a missing asset never mutes drums.
+final Map<DrumLane, Float32List> _recorded = {};
+Future<void>? _preloading;
+
+/// Loads the recorded samples once. Safe to call repeatedly and never throws.
+Future<void> preloadDrumSamples() => _preloading ??= _preload();
+
+Future<void> _preload() async {
+  for (final lane in DrumLane.values) {
+    try {
+      final data = await rootBundle.load(
+        'assets/sounds/drums/${lane.name}.wav',
+      );
+      final decoded = decodeWavMono16(
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      );
+      if (decoded != null) _recorded[lane] = decoded;
+    } on Object {
+      // Missing/corrupt asset: keep the synthesized fallback for this lane.
+    }
+  }
+}
+
+/// Decodes a 16-bit PCM mono 44.1 kHz WAV into floats, or null if it is not one.
+Float32List? decodeWavMono16(Uint8List bytes) {
+  if (bytes.length < 44) return null;
+  final view = ByteData.sublistView(bytes);
+  String tag(int o) => String.fromCharCodes(bytes.sublist(o, o + 4));
+  if (tag(0) != 'RIFF' || tag(8) != 'WAVE') return null;
+  var pos = 12;
+  var channels = 0;
+  var bits = 0;
+  var rate = 0;
+  while (pos + 8 <= bytes.length) {
+    final id = tag(pos);
+    final size = view.getUint32(pos + 4, Endian.little);
+    final body = pos + 8;
+    if (id == 'fmt ' && body + 16 <= bytes.length) {
+      channels = view.getUint16(body + 2, Endian.little);
+      rate = view.getUint32(body + 4, Endian.little);
+      bits = view.getUint16(body + 14, Endian.little);
+    } else if (id == 'data') {
+      if (channels != 1 || bits != 16 || rate != 44100) return null;
+      final count = (size.clamp(0, bytes.length - body)) ~/ 2;
+      final out = Float32List(count);
+      for (var i = 0; i < count; i++) {
+        out[i] = view.getInt16(body + i * 2, Endian.little) / 32768.0;
+      }
+      return out;
+    }
+    pos = body + size + (size.isOdd ? 1 : 0);
+  }
+  return null;
+}
 
 Float32List drumSample(DrumLane lane, {int sampleRate = 44100}) {
   if (sampleRate <= 0) {
     throw ArgumentError.value(sampleRate, 'sampleRate', 'Must be positive');
   }
+  final recorded = _recorded[lane];
+  if (recorded != null && sampleRate == 44100) return recorded;
 
   final duration = switch (lane) {
     DrumLane.kick ||

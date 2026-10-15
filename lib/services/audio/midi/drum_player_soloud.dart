@@ -42,6 +42,7 @@ class _SoLoudDrumPlayer implements DrumPlayer {
     if (!SoLoud.instance.isInitialized) {
       await SoLoud.instance.init(bufferSize: 512, channels: Channels.mono);
     }
+    await preloadDrumSamples();
     final loaded = <DrumLane, AudioSource>{};
     try {
       for (final lane in DrumLane.values) {

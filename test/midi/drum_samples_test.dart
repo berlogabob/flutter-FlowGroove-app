@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:math' as math;
 
 import 'package:flowgroove/services/audio/midi/drum_map.dart';
@@ -85,4 +86,32 @@ void main() {
       );
     }
   });
+  realSamplesTests();
+}
+
+void realSamplesTests() {
+  test('decodeWavMono16 rejects non-wav and wrong formats', () {
+    expect(decodeWavMono16(Uint8List.fromList([1, 2, 3])), isNull);
+    expect(decodeWavMono16(Uint8List(60)), isNull);
+  });
+
+  test(
+    'every lane has a recorded asset that decodes and beats the synth length',
+    () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final synth = {for (final l in DrumLane.values) l: drumSample(l)};
+      await preloadDrumSamples();
+      for (final lane in DrumLane.values) {
+        final real = drumSample(lane);
+        expect(
+          real,
+          isNot(same(synth[lane])),
+          reason: '${lane.name} not recorded',
+        );
+        expect(real.length, greaterThan(1000), reason: lane.name);
+        final peak = real.fold<double>(0, (m, v) => v.abs() > m ? v.abs() : m);
+        expect(peak, inInclusiveRange(0.5, 1.0), reason: lane.name);
+      }
+    },
+  );
 }

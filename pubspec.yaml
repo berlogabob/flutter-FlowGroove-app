@@ -111,6 +111,7 @@ flutter:
 
   assets:
     - assets/sounds/
+    - assets/sounds/drums/
     - assets/data/
     - assets/logo_clean.png
     - assets/google_logo.png

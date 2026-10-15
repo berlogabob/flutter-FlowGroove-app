@@ -18,6 +18,7 @@ Play Store `versionCode`).
   Normal / Accent / Ghost / Off) with Play preview and a pinned Save row.
 - **Logbook.** Patterns are saved as Song Lab entries (type "Midi") on the song, for
   personal and band songs; band viewers can listen but not save.
+- **Real drum sounds.** The nine drum voices are now recorded hits (public-domain "SM Drums" samples, 0.7 MB total); the synthesized sounds remain as a fallback.
 - Drums are native-only for now: the button is hidden on web.
 - Old app builds show a saved drum pattern as an ordinary note, and re-saving it there
   drops the pattern. Update before editing patterns.

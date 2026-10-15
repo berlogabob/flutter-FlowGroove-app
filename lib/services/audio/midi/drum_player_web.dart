@@ -39,6 +39,7 @@ class _WebDrumPlayer implements DrumPlayer {
     if (operationId != _operationId) return;
     _buffers.clear();
     _pattern = null;
+    await preloadDrumSamples();
     final context = _context ??= web.AudioContext();
     for (final lane in DrumLane.values) {
       if (!p.hits.any((hit) => laneForNote(hit.note) == lane)) continue;
