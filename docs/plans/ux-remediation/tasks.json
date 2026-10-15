@@ -281,6 +281,118 @@
    "verify": "! rg -q 'windowBackground\">\\?android:colorBackground' android/app/src/main/res/values/styles.xml",
    "after": [],
    "status": "pending"
+  },
+  {
+   "id": "T22",
+   "executor": "codex",
+   "title": "Native splash drawable over FlutterView (white cold-start frame)",
+   "finding": "F-001",
+   "files": [
+    "android/app/src/main/AndroidManifest.xml"
+   ],
+   "prompt": "On device the first frame after launch is still white although LaunchTheme/NormalTheme windowBackground are black: the white is the FlutterView before the first Dart frame. In AndroidManifest.xml add inside the MainActivity <activity> the meta-data io.flutter.embedding.android.SplashScreenDrawable with android:resource=\"@drawable/launch_background\" (check it is not already present). Keep the diff minimal; change nothing unrelated. Print DONE.",
+   "verify": "rg -q 'SplashScreenDrawable' android/app/src/main/AndroidManifest.xml",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T23",
+   "executor": "codex",
+   "title": "Band detail: header name wraps instead of truncating",
+   "finding": "F-013",
+   "files": [
+    "lib/screens/bands/the_band_screen.dart"
+   ],
+   "prompt": "The band name in the header card of lib/screens/bands/the_band_screen.dart is truncated with an ellipsis ('The Cover Collec...'). Allow it to wrap to 2 lines (maxLines: 2). Change ONLY that; keep every other text (including '1 member' / member counts and the 'Band library' heading) exactly as is. Print DONE.",
+   "verify": "dart analyze lib/screens/bands && flutter test test/screens/bands",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T24",
+   "executor": "codex",
+   "title": "Setlist card + detail: locale dates, no null gap, fixed key pill",
+   "finding": "F-019",
+   "files": [],
+   "prompt": "1) Find where setlist list cards show an event date as dd.MM.yyyy (tab Setlists, e.g. '04.07.2026'; start with rg \"padLeft\\(2\" lib/widgets lib/screens | rg -i setlist) and use DateFormat.yMMMd(Localizations.localeOf(context).toString()); when the date is null render nothing. 2) In the setlist detail rows (screens/setlists), give the key badge a fixed width (e.g. 44) so titles and artists don't wrap differently per row. Keep the diff minimal; change nothing unrelated. If an existing test asserts the old dd.MM.yyyy text, update that test to expect the DateFormat.yMMMd output for the same date. Print DONE. REQUIRED: the test test/screens/setlists/setlists_list_screen_test.dart line ~143 expects text containing '10.05.2026'; change it to the DateFormat.yMMMd en_US output for that same date ('May 10, 2026'). Run that test file yourself and fix until it passes.",
+   "verify": "dart analyze lib && flutter test test/screens/setlists test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T25",
+   "executor": "codex",
+   "title": "Add Song: show 'Not set' instead of a bare dash for unset Key & BPM",
+   "finding": "F-015",
+   "files": [],
+   "prompt": "Locate the Add/Edit song form row 'Key & BPM' whose empty value is a bare dash (rg \"'\u2014'\" lib/screens/songs lib/widgets | head) and show 'Not set' instead. Edit only that one place. Keep the diff minimal; change nothing unrelated. The existing test 'displays all form fields with an unset key preview' asserts the old dash; update it to expect 'Not set'. Files you may edit: the form source and test/screens/songs/add_song_screen_test.dart. Print DONE.",
+   "verify": "dart analyze lib/screens/songs lib/widgets && flutter test test/screens/songs",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T26",
+   "executor": "codex",
+   "title": "Tuner dial: note labels not colliding with ticks",
+   "finding": "F-017",
+   "files": [
+    "lib/widgets/tuner/central_dial.dart"
+   ],
+   "prompt": "On device the note labels A# and G# collide with their tick marks. Paint every note label at one consistent radius inside the tick ring (radius minus tick length minus ~10dp) so no label overlaps a tick. Keep tests passing. Keep the diff minimal; change nothing unrelated. The note names are drawn by a painter in lib/widgets/tuner/ (rg \"'A#'|C#|noteNames|TextPainter\" lib/widgets/tuner); you may edit any file in lib/widgets/tuner/. You MUST make a change; if the labels already use one radius, subtract the tick length plus 10dp from it. Print DONE.",
+   "verify": "dart analyze lib/widgets/tuner && flutter test test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T27",
+   "executor": "pi",
+   "title": "Home/tool tiles: neutral icon color",
+   "finding": "F-016",
+   "files": [
+    "lib/widgets/tool_button.dart"
+   ],
+   "prompt": "Tool tile icons are still orange. Use Theme.of(context).colorScheme.onSurfaceVariant for the icon color; keep the active/pressed accent. Keep the diff minimal; change nothing unrelated. Print DONE.",
+   "verify": "dart analyze lib/widgets/tool_button.dart && flutter test test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T28",
+   "executor": "codex",
+   "title": "Practice Quick start buttons: one label style",
+   "finding": "F-021",
+   "files": [
+    "lib/screens/practice_screen.dart"
+   ],
+   "prompt": "The three Quick start buttons (Metronome, Tuner, Recorder) render labels in different sizes. Give all three exactly the same TextStyle (use the larger one). Keep the diff minimal; change nothing unrelated. Last attempt left test/screens/practice_screen_test.dart failing to load (compile error); run `dart analyze lib/screens/practice_screen.dart test/screens/practice_screen_test.dart` and make both clean. Prefer setting the label style in the shared _quickStartButton helper only. Print DONE.",
+   "verify": "dart analyze lib/screens/practice_screen.dart && flutter test test/screens/practice_screen_test.dart",
+   "after": [],
+   "status": "pending",
+   "skip": "won't fix: FittedBox scale-down is intentional (keeps one-line labels at phone width); verify path was also wrong"
+  },
+  {
+   "id": "T29",
+   "executor": "codex",
+   "title": "Song Lab: Add button 48dp, tooltips, selected segment corner clip",
+   "finding": "F-009",
+   "files": [],
+   "prompt": "1) In lib/screens/songs/song_lab_screen.dart make the 'Add' menu button at least 48dp tall and add tooltips to the two unlabeled icon buttons beside the Entries/Tasks toggle. 2) The selected orange segment of SegmentedButtons has square corners poking out of the pill; find the segmentedButtonTheme added in the app theme (rg segmentedButtonTheme lib) and fix so the selected segment follows the pill radius (usually remove a custom shape or set the same StadiumBorder on style and selected overlay). Keep the diff minimal; change nothing unrelated. Print DONE.",
+   "verify": "dart analyze lib && flutter test test/screens/songs test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T30",
+   "executor": "codex",
+   "title": "Demo Sheet empty state: no dead-end CTA",
+   "finding": "F-020",
+   "files": [
+    "lib/screens/songs/song_page_screen.dart"
+   ],
+   "prompt": "In the Sheet tab empty state ('No lyrics or chords yet.' with button 'Add lyrics & chords'), when isDemoUserProvider is true hide the button and show the text 'Demo songs are read-only.' instead. Other users unchanged. Keep the diff minimal; change nothing unrelated. Print DONE.",
+   "verify": "dart analyze lib/screens/songs && flutter test test/screens/songs",
+   "after": [],
+   "status": "pending"
   }
  ]
 }
