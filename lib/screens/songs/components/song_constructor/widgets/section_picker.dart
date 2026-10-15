@@ -229,16 +229,20 @@ class _SectionPickerState extends State<SectionPicker>
               horizontal: MonoPulseSpacing.sm,
               vertical: MonoPulseSpacing.md,
             ),
-            child: Text(
-              template,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: MonoPulseTypography.labelLarge.copyWith(
-                fontWeight: FontWeight.w700,
-                color: color != null
-                    ? SectionColorPalette.getContrastingTextColor(color)
-                    : Theme.of(context).colorScheme.onSecondaryContainer,
+            // One line, scaled down: long names ("Instrumental", "Pre-Chorus")
+            // used to break mid-word in the 3-column grid.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                template,
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                style: MonoPulseTypography.labelLarge.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: color != null
+                      ? SectionColorPalette.getContrastingTextColor(color)
+                      : Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
               ),
             ),
           ),
