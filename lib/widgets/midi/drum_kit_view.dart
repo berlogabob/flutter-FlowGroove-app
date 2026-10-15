@@ -214,7 +214,7 @@ class DrumKitPainter extends CustomPainter {
           scaledRadius,
           Paint()
             ..color = Color.lerp(
-              colors.surfaceContainerHighest,
+              colors.surfaceContainerHigh,
               colors.primary,
               strength,
             )!,
@@ -224,6 +224,7 @@ class DrumKitPainter extends CustomPainter {
           scaledRadius,
           Paint()
             ..color = colors.outline
+            ..strokeWidth = 1.5
             ..style = PaintingStyle.stroke,
         );
       final label = TextPainter(
@@ -231,7 +232,7 @@ class DrumKitPainter extends CustomPainter {
           text: lanePadLabel(entry.key),
           style: TextStyle(
             color: strength > 0.5 ? colors.onPrimary : colors.onSurface,
-            fontSize: 10,
+            fontSize: 12,
           ),
         ),
         textDirection: TextDirection.ltr,

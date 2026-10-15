@@ -11,4 +11,5 @@
 {"id": "R14", "finding": "F-005", "title": "Panel: discard-changes prompt on closing the editor", "verdict": "pass", "attempts": 1, "secs": 261, "why": "", "diff": "4 files changed, 43 insertions(+), 14 deletions(-)", "commit": "dd6d438e"}
 {"id": "R15", "finding": "F-009", "title": "Shared lane labels in drum_map", "verdict": "pass", "attempts": 1, "secs": 100, "why": "", "diff": "5 files changed, 38 insertions(+), 5 deletions(-)", "commit": "51fa09cd"}
 {"id": "R16", "finding": "F-009", "title": "Kit view uses shared labels", "verdict": "pass", "attempts": 1, "secs": 148, "why": "", "diff": "4 files changed, 9 insertions(+), 34 deletions(-)", "commit": "af9d294c"}
-{"id": "R17", "finding": "F-009", "title": "Editor uses shared labels", "verdict": "pass", "attempts": 1, "secs": 147, "why": "", "diff": "4 files changed, 18 insertions(+), 18 deletions(-)"}
+{"id": "R17", "finding": "F-009", "title": "Editor uses shared labels", "verdict": "pass", "attempts": 1, "secs": 147, "why": "", "diff": "4 files changed, 18 insertions(+), 18 deletions(-)", "commit": "9e8cdd9e"}
+{"id": "R18", "finding": "F-009", "title": "Kit pads: contrast, stroke, 12sp labels", "verdict": "pass", "attempts": 1, "secs": 163, "why": "", "diff": "5 files changed, 9 insertions(+), 8 deletions(-)"}

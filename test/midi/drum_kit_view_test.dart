@@ -143,7 +143,7 @@ void main() {
       kit,
       paints..circle(
         radius: height * 0.17,
-        color: painter(tester).colors.surfaceContainerHighest,
+        color: painter(tester).colors.surfaceContainerHigh,
       ),
     );
 
