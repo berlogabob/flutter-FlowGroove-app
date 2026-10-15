@@ -40,4 +40,5 @@
 {"id": "R39", "finding": "F-024", "title": "Drums button shows the pattern title, not Imported", "verdict": "pass", "attempts": 1, "secs": 177, "why": "", "diff": "3 files changed, 12 insertions(+), 4 deletions(-)", "commit": "10159a57"}
 {"id": "R40", "finding": "F-025", "title": "Regression test for readPickedBytes", "verdict": "pass", "attempts": 1, "secs": 328, "why": "", "diff": "2 files changed, 3 insertions(+), 3 deletions(-)", "commit": "8b8112d2"}
 {"id": "R41", "finding": "F-027", "title": "Cold start: disable the OS starting-window preview", "verdict": "fail", "attempts": 2, "secs": 49, "why": "no files were changed", "diff": "3 files changed, 3 insertions(+), 2 deletions(-)"}
-{"id": "R43", "finding": "F-028", "title": "Login: Retry on connection errors", "verdict": "pass", "attempts": 1, "secs": 255, "why": "", "diff": "4 files changed, 14 insertions(+), 4 deletions(-)"}
+{"id": "R43", "finding": "F-028", "title": "Login: Retry on connection errors", "verdict": "pass", "attempts": 1, "secs": 255, "why": "", "diff": "4 files changed, 14 insertions(+), 4 deletions(-)", "commit": "117d10a6"}
+{"id": "R44", "finding": "F-029", "title": "Tuner: note labels away from the tick marks", "verdict": "pass", "attempts": 1, "secs": 226, "why": "", "diff": "4 files changed, 4 insertions(+), 3 deletions(-)"}

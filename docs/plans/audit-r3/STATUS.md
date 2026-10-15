@@ -44,9 +44,9 @@
 | R40 | F-025 | Regression test for readPickedBytes | pass | 1 | 328 | 8b8112d2 |
 | R41 | F-027 | Cold start: disable the OS starting-window preview | fail | 2 | 49 |  |
 | R42 | F-027 | Cold start (night theme) | pending |  |  |  |
-| R43 | F-028 | Login: Retry on connection errors | pass | 1 | 255 |  |
-| R44 | F-029 | Tuner: note labels away from the tick marks | pending |  |  |  |
+| R43 | F-028 | Login: Retry on connection errors | pass | 1 | 255 | 117d10a6 |
+| R44 | F-029 | Tuner: note labels away from the tick marks | pass | 1 | 226 |  |
 | R45 | F-001 | Editor: pages of 8 steps instead of a scrolling grid | pending |  |  |  |
 
-41/45 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 18:01:03
+42/45 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 18:04:50

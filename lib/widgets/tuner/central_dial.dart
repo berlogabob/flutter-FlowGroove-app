@@ -224,7 +224,7 @@ class _DialNotesPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
     // Use the longest tick for every label, regardless of selection or scale.
-    final labelRadius = radius - 14 - 10;
+    final labelRadius = radius - 14 - 18;
     final textPainter = TextPainter(
       textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
