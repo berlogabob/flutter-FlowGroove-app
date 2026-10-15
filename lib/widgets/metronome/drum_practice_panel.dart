@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../models/midi_pattern.dart';
 import '../../models/song_lab.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
 import '../../providers/data/drum_practice_provider.dart';
 import '../../providers/permissions_provider.dart';
+import '../../repositories/firestore_lab_repository.dart';
+import '../../screens/songs/components/drum_grid_editor.dart';
 import '../../services/audio/midi/smf_parser.dart';
 import '../midi/drum_kit_view.dart';
 
@@ -50,6 +53,63 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('$error')));
+  }
+
+  Future<void> _openEditor([SongLabEntry? entry]) async {
+    final parent = ProviderScope.containerOf(context, listen: false);
+    final editorScope = ProviderContainer(
+      overrides: [
+        firebaseAuthProvider.overrideWithValue(
+          parent.read(firebaseAuthProvider),
+        ),
+        drumPracticeProvider.overrideWith(() => _EditorPractice(parent)),
+        // Draft editing and preview are available even without save access.
+        canEditBandProvider.overrideWith((ref, bandId) => true),
+        labRepositoryProvider.overrideWith(
+          (ref) => _EditorRepository(
+            firestore: parent.read(firebaseFirestoreProvider),
+            auth: parent.read(firebaseAuthProvider),
+            save: (entry, bandId) {
+              if (!parent.read(canEditProvider)) {
+                throw StateError(
+                  'Cannot save: demo or read-only accounts cannot save patterns.',
+                );
+              }
+              if (bandId != null && !parent.read(canEditBandProvider(bandId))) {
+                throw StateError(
+                  'Cannot save: you do not have permission to edit this band.',
+                );
+              }
+              return parent
+                  .read(labRepositoryProvider)
+                  .saveEntry(entry, bandId: bandId);
+            },
+          ),
+        ),
+      ],
+    );
+    final route = MaterialPageRoute<SongLabEntry>(
+      fullscreenDialog: true,
+      builder: (_) => UncontrolledProviderScope(
+        container: editorScope,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(entry == null ? 'New pattern' : 'Edit pattern'),
+          ),
+          body: DrumGridEditor(
+            songId: widget.songId,
+            bandId: widget.bandId,
+            entry: entry,
+          ),
+        ),
+      ),
+    );
+    try {
+      await Navigator.of(context, rootNavigator: true).push(route);
+      await route.completed;
+    } finally {
+      editorScope.dispose();
+    }
   }
 
   Future<void> _import() async {
@@ -136,6 +196,13 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                     for (final entry in midi)
                       ListTile(
                         title: Text(entry.title ?? 'MIDI pattern'),
+                        trailing: IconButton(
+                          tooltip: 'Edit pattern',
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: !_busy && entry.midi != null
+                              ? () => _openEditor(entry)
+                              : null,
+                        ),
                         selected: _selectedId == entry.id,
                         enabled: !_busy && entry.midi != null,
                         onTap: () {
@@ -180,10 +247,20 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                   ),
               ],
             ),
-            OutlinedButton.icon(
-              onPressed: canImport && !_busy ? _import : null,
-              icon: const Icon(Icons.file_upload_outlined),
-              label: const Text('Import .mid'),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: canImport && !_busy ? _import : null,
+                  icon: const Icon(Icons.file_upload_outlined),
+                  label: const Text('Import .mid'),
+                ),
+                TextButton.icon(
+                  onPressed: _busy ? null : _openEditor,
+                  icon: const Icon(Icons.add),
+                  label: const Text('New pattern'),
+                ),
+              ],
             ),
             if (_preview != null)
               FilledButton(
@@ -195,4 +272,47 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
       ),
     );
   }
+}
+
+// Keep the editor's persistence guard separate from its local draft permissions.
+class _EditorRepository extends FirestoreLabRepository {
+  _EditorRepository({
+    required super.firestore,
+    required super.auth,
+    required this.save,
+  });
+
+  final Future<void> Function(SongLabEntry entry, String? bandId) save;
+
+  @override
+  Future<void> saveEntry(SongLabEntry entry, {String? bandId}) =>
+      save(entry, bandId);
+}
+
+// Share playback while isolating draft permissions from the app's provider scope.
+class _EditorPractice extends DrumPracticeNotifier {
+  _EditorPractice(this.parent);
+
+  final ProviderContainer parent;
+  DrumPracticeNotifier get _practice =>
+      parent.read(drumPracticeProvider.notifier);
+
+  @override
+  DrumPracticeState build() {
+    final subscription = parent.listen(drumPracticeProvider, (_, next) {
+      state = next;
+    });
+    ref.onDispose(subscription.close);
+    return parent.read(drumPracticeProvider);
+  }
+
+  @override
+  Future<void> loadPattern(String entryId, MidiPattern pattern) =>
+      _practice.loadPattern(entryId, pattern);
+
+  @override
+  Future<void> start() => _practice.start();
+
+  @override
+  Future<void> stop() => _practice.stop();
 }
