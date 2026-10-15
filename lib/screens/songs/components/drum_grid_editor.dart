@@ -10,6 +10,7 @@ import '../../../providers/auth/auth_provider.dart';
 import '../../../providers/data/data_providers.dart';
 import '../../../providers/data/drum_practice_provider.dart';
 import '../../../providers/permissions_provider.dart';
+import '../../../services/analytics_service.dart';
 import '../../../services/audio/midi/drum_map.dart';
 
 const _lanes = <DrumLane, int>{
@@ -176,6 +177,9 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
       await ref
           .read(labRepositoryProvider)
           .saveEntry(entry, bandId: widget.bandId);
+      unawaited(
+        AnalyticsService.logDrumPatternSaved(hitCount: pattern.hits.length),
+      );
       if (mounted) Navigator.of(context).pop(entry);
     } catch (error) {
       if (mounted) {
