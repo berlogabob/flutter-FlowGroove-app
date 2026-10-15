@@ -126,6 +126,19 @@ void main() {
     expect(find.text('320'), findsOneWidget);
   });
 
+  testWidgets('BPM sub-label shows double-time hint at/above 240', (tester) async {
+    await pumpDial(tester);
+
+    expect(find.text('BPM'), findsOneWidget);
+    expect(find.text('BPM · double-time?'), findsNothing);
+
+    container.read(metronomeProvider.notifier).setBpm(240);
+    await tester.pump();
+
+    expect(find.text('BPM'), findsNothing);
+    expect(find.text('BPM · double-time?'), findsOneWidget);
+  });
+
   testWidgets('does not scale or pop the dial while playing', (tester) async {
     await pumpDial(tester);
 

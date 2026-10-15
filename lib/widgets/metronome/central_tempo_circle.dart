@@ -88,7 +88,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
                             ),
                           ),
                           Text(
-                            'BPM',
+                            state.bpm >= 240 ? 'BPM · double-time?' : 'BPM',
                             style: MonoPulseTypography.bodyLarge.copyWith(
                               color: context.mp.textSecondary.withValues(
                                 alpha: 0.7,
