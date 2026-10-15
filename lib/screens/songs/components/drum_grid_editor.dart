@@ -194,16 +194,18 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
       drumPracticeProvider.select((s) => s.currentStep),
     );
     final colors = Theme.of(context).colorScheme;
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          8,
-          16,
-          8,
-          16 + MediaQuery.viewInsetsOf(context).bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              8,
+              16,
+              8,
+              16 + MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 12),
@@ -313,26 +315,34 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
               ),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                FilledButton.icon(
-                  onPressed: _busy ? null : _play,
-                  icon: Icon(playing ? Icons.stop : Icons.play_arrow),
-                  label: Text(playing ? 'Stop' : 'Play'),
-                ),
-                const SizedBox(width: 16),
-                FilledButton(
-                  onPressed: canEdit && !_busy && _name.text.trim().isNotEmpty
-                      ? _save
-                      : null,
-                  child: const Text('Save'),
-                ),
-              ],
+            SafeArea(
+              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _busy ? null : _play,
+                      icon: Icon(playing ? Icons.stop : Icons.play_arrow),
+                      label: Text(playing ? 'Stop' : 'Play'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: canEdit && !_busy && _name.text.trim().isNotEmpty
+                          ? _save
+                          : null,
+                      child: const Text('Save'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
+      ),
+      ],
     );
   }
 
