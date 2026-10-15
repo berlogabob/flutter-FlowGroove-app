@@ -1,0 +1,7 @@
+Drum samples in this folder come from "SM Drums" by Scott McLean, Tod Stillwell
+and Suleiman Ali, released into the Public Domain.
+Source: https://sfzinstruments.github.io/drums/sm_drums
+Each file is one hit (upper-middle velocity, first round-robin), converted to mono,
+44.1 kHz, 16-bit, trimmed with a short fade-out and peak-normalised to -3 dBFS.
+Mapping: kick=Kik, snare=Snare65 Reg, hatClosed=Hat Tight, hatOpen=Hat Open,
+tomHigh=Tom1, tomMid=Tom2, tomFloor=Tom4, crash=Crash 16in, ride=Ride 20in tip.
