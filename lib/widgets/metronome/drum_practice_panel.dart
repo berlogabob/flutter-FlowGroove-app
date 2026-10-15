@@ -35,6 +35,19 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
     _practice = ref.read(drumPracticeProvider.notifier);
   }
 
+  @override
+  void didUpdateWidget(covariant DrumPracticePanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.songId != widget.songId ||
+        oldWidget.bandId != widget.bandId) {
+      _preview = null;
+      _selectedId = null;
+      scheduleMicrotask(() {
+        if (mounted) unawaited(_practice.clearPattern());
+      });
+    }
+  }
+
   SongLabEntry? _preview;
   String? _selectedId;
   bool _busy = false;
@@ -44,7 +57,7 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
 
   @override
   void dispose() {
-    unawaited(_practice.stop());
+    unawaited(_practice.clearPattern());
     super.dispose();
   }
 
@@ -218,6 +231,12 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                   ],
                 );
               },
+            ),
+            SwitchListTile(
+              title: const Text('Sync with click'),
+              value: state.syncWithClick,
+              onChanged: (enabled) =>
+                  _practice.setSyncWithClick(enabled: enabled),
             ),
             if (_preview != null) Text('Preview: ${_preview!.title}'),
             if (pattern != null)

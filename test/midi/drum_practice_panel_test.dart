@@ -213,6 +213,43 @@ void main() {
     },
   );
 
+  testWidgets('Sync with click defaults on and updates provider state', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const Scaffold(body: DrumPracticePanel(songId: 'song-1')),
+    );
+    final toggle = find.widgetWithText(SwitchListTile, 'Sync with click');
+    expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(container.read(drumPracticeProvider).syncWithClick, isFalse);
+    expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+  });
+
+  testWidgets('changing the panel song clears and stops the loaded pattern', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const Scaffold(body: DrumPracticePanel(songId: 'song-1')),
+    );
+    final practice = container.read(drumPracticeProvider.notifier);
+    await practice.loadPattern('entry', pattern);
+    await practice.start();
+    expect(player.playing, isTrue);
+    await pump(
+      tester,
+      const Scaffold(body: DrumPracticePanel(songId: 'song-2')),
+    );
+    expect(player.playing, isFalse);
+    expect(container.read(drumPracticeProvider).pattern, isNull);
+    expect(container.read(drumPracticeProvider).entryId, isNull);
+    expect(find.byType(DrumKitView), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('band viewers list scoped entries but cannot import', (
     tester,
   ) async {

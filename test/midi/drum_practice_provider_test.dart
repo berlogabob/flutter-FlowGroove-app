@@ -157,7 +157,8 @@ void main() {
 
   test(
     'solo overrides mute, switches lanes, and restores mutes when cleared',
-    () {
+    () async {
+      await notifier.loadPattern('entry-1', pattern);
       notifier
         ..toggleMute(DrumLane.kick)
         ..toggleSolo(DrumLane.kick);
@@ -205,8 +206,6 @@ void main() {
   test(
     'follows song tempo and defers stopped BPM changes until start',
     () async {
-      await notifier.loadPattern('entry-1', pattern);
-      final loadCount = player.loads.length;
       final now = DateTime(2026);
       metronome.loadSongTempo(
         Song(
@@ -219,11 +218,14 @@ void main() {
           updatedAt: now,
         ),
       );
+      await notifier.loadPattern('entry-1', pattern);
+      final loadCount = player.loads.length;
+      metronome.changeBpm(150);
       await Future<void>.delayed(Duration.zero);
       expect(player.loads.length, loadCount);
 
       await notifier.start();
-      expect(player.loads.last, (pattern, 140.0));
+      expect(player.loads.last, (pattern, 150.0));
       final playingLoads = player.loads.length;
       metronome.setVolume(0.25);
       await Future<void>.delayed(Duration.zero);

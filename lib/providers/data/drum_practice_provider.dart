@@ -19,6 +19,7 @@ class DrumPracticeState {
     this.playing = false,
     this.currentStep = 0,
     this.speed = 1,
+    this.syncWithClick = true,
   });
 
   final MidiPattern? pattern;
@@ -28,24 +29,27 @@ class DrumPracticeState {
   final bool playing;
   final int currentStep;
   final double speed;
+  final bool syncWithClick;
 
   DrumPracticeState copyWith({
-    MidiPattern? pattern,
-    String? entryId,
+    Object? pattern = _notSet,
+    Object? entryId = _notSet,
     Set<DrumLane>? muted,
     Object? solo = _notSet,
     bool? playing,
     int? currentStep,
     double? speed,
+    bool? syncWithClick,
   }) {
     return DrumPracticeState(
-      pattern: pattern ?? this.pattern,
-      entryId: entryId ?? this.entryId,
+      pattern: pattern == _notSet ? this.pattern : pattern as MidiPattern?,
+      entryId: entryId == _notSet ? this.entryId : entryId as String?,
       muted: muted == null ? this.muted : Set.unmodifiable(muted),
       solo: solo == _notSet ? this.solo : solo as DrumLane?,
       playing: playing ?? this.playing,
       currentStep: currentStep ?? this.currentStep,
       speed: speed ?? this.speed,
+      syncWithClick: syncWithClick ?? this.syncWithClick,
     );
   }
 }
@@ -65,6 +69,17 @@ class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
         state = state.copyWith(currentStep: step);
       }
     });
+    ref.listen<String?>(
+      metronomeProvider.select((value) => value.activeSong?.id),
+      (_, _) => unawaited(clearPattern()),
+    );
+    ref.listen<bool>(metronomeProvider.select((value) => value.isPlaying), (
+      _,
+      playing,
+    ) {
+      if (!state.syncWithClick || state.pattern == null) return;
+      unawaited(playing ? start() : stop());
+    });
     ref.listen<int>(metronomeProvider.select((value) => value.bpm), (_, _) {
       if (state.playing) unawaited(_reload());
     });
@@ -80,6 +95,16 @@ class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
   Future<void> loadPattern(String entryId, MidiPattern pattern) {
     state = state.copyWith(entryId: entryId, pattern: pattern, currentStep: 0);
     return _reload();
+  }
+
+  void setSyncWithClick({required bool enabled}) {
+    state = state.copyWith(syncWithClick: enabled);
+  }
+
+  Future<void> clearPattern() {
+    final stopping = stop();
+    state = state.copyWith(pattern: null, entryId: null);
+    return stopping;
   }
 
   void toggleMute(DrumLane lane) {
@@ -103,7 +128,7 @@ class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
   Future<void> stop() async {
     ++_operationId;
     state = state.copyWith(playing: false, currentStep: 0);
-    await _player.stop();
+    if (state.pattern != null) await _player.stop();
   }
 
   Future<void> setSpeed(double speed) async {
@@ -116,6 +141,7 @@ class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
   }
 
   void _syncGains() {
+    if (state.pattern == null) return;
     for (final lane in DrumLane.values) {
       final audible = state.solo != null
           ? state.solo == lane
