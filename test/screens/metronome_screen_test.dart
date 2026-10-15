@@ -1,5 +1,6 @@
 import 'package:flowgroove/models/song.dart';
 import 'package:flowgroove/providers/auth/auth_provider.dart';
+import 'package:flowgroove/providers/data/drum_active_provider.dart';
 import 'package:flowgroove/providers/data/metronome_provider.dart';
 import 'package:flowgroove/screens/metronome_screen.dart';
 import 'package:flowgroove/widgets/metronome/central_tempo_circle.dart';

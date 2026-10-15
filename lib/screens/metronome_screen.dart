@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/metronome_state.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/data/data_providers.dart';
+import '../../providers/data/drum_active_provider.dart';
 import '../../providers/data/metronome_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../router/app_router.dart';
@@ -443,6 +444,19 @@ class _MetronomeSongLibrary extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(metronomeProvider);
+    final active = ref.watch(drumActiveProvider);
+
+    final onPressed = state.activeSong == null
+        ? null
+        : () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              showDragHandle: true,
+              builder: (_) => DrumPracticePanel(
+                songId: state.activeSong!.id,
+                bandId: state.sourceBandId,
+              ),
+            );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -451,21 +465,17 @@ class _MetronomeSongLibrary extends ConsumerWidget {
         const SizedBox(height: MonoPulseSpacing.sm),
         Tooltip(
           message: 'Drums',
-          child: OutlinedButton.icon(
-            icon: const Icon(Icons.album_outlined),
-            label: const Text('Drums'),
-            onPressed: state.activeSong == null
-                ? null
-                : () => showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      showDragHandle: true,
-                      builder: (_) => DrumPracticePanel(
-                        songId: state.activeSong!.id,
-                        bandId: state.sourceBandId,
-                      ),
-                    ),
-          ),
+          child: active == null
+              ? OutlinedButton.icon(
+                  icon: const Icon(Icons.album_outlined),
+                  label: const Text('Drums'),
+                  onPressed: onPressed,
+                )
+              : FilledButton.icon(
+                  icon: const Icon(Icons.album_outlined),
+                  label: Text('Drums · $active'),
+                  onPressed: onPressed,
+                ),
         ),
         if (state.activeSong == null)
           Text(
