@@ -13,6 +13,7 @@ import '../../providers/data/drum_practice_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../repositories/firestore_lab_repository.dart';
 import '../../screens/songs/components/drum_grid_editor.dart';
+import '../../services/analytics_service.dart';
 import '../../services/audio/midi/smf_parser.dart';
 import '../../utils/picked_file.dart';
 import '../../utils/snackbar.dart' show showGlobalSnackBar;
@@ -209,6 +210,9 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
         _selectedId = entry.id;
       });
       await _practice.loadPattern(entry.id, pattern);
+      unawaited(
+        AnalyticsService.logDrumPatternImported(hitCount: pattern.hits.length),
+      );
     } on FormatException catch (error) {
       _showError(error.message);
     } catch (error) {
@@ -226,6 +230,11 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
       await ref
           .read(labRepositoryProvider)
           .saveEntry(entry, bandId: widget.bandId);
+      unawaited(
+        AnalyticsService.logDrumPatternSaved(
+          hitCount: entry.pattern?.hits.length ?? 0,
+        ),
+      );
       if (mounted) setState(() => _preview = null);
     } catch (error) {
       _showError(error);
@@ -302,8 +311,12 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
             SwitchListTile(
               title: const Text('Sync with click'),
               value: state.syncWithClick,
-              onChanged: (enabled) =>
-                  _practice.setSyncWithClick(enabled: enabled),
+              onChanged: (enabled) {
+                _practice.setSyncWithClick(enabled: enabled);
+                unawaited(
+                  AnalyticsService.logDrumSyncToggled(enabled: enabled),
+                );
+              },
             ),
             if (_preview != null) Text('Preview: ${_preview!.title}'),
             if (pattern != null)
@@ -318,7 +331,16 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
             FilledButton.icon(
               onPressed: pattern == null
                   ? null
-                  : () => state.playing ? _practice.stop() : _practice.start(),
+                  : () {
+                      if (state.playing) {
+                        _practice.stop();
+                        return;
+                      }
+                      unawaited(_practice.start());
+                      AnalyticsService.logDrumPlayStarted(
+                        syncWithClick: state.syncWithClick,
+                      );
+                    },
               icon: Icon(state.playing ? Icons.stop : Icons.play_arrow),
               label: Text(state.playing ? 'Stop' : 'Play'),
             ),

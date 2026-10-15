@@ -29,4 +29,5 @@
 {"id": "R32", "finding": "F-022", "title": "Filter sheet: chips aligned to the gutter", "verdict": "pass", "attempts": 1, "secs": 146, "why": "", "diff": "4 files changed, 21 insertions(+), 23 deletions(-)", "commit": "5ed2b820"}
 {"id": "R33", "finding": "F-016", "title": "Audio note: microphone caption", "verdict": "pass", "attempts": 1, "secs": 127, "why": "", "diff": "5 files changed, 21 insertions(+), 5 deletions(-)", "commit": "239f8685"}
 {"id": "R34", "finding": "F-023", "title": "Analytics: drum event names", "verdict": "pass", "attempts": 1, "secs": 205, "why": "", "diff": "5 files changed, 105 insertions(+), 5 deletions(-)", "commit": "88f5f572"}
-{"id": "R35", "finding": "F-023", "title": "Analytics: drum log methods", "verdict": "pass", "attempts": 1, "secs": 174, "why": "", "diff": "5 files changed, 93 insertions(+), 5 deletions(-)"}
+{"id": "R35", "finding": "F-023", "title": "Analytics: drum log methods", "verdict": "pass", "attempts": 1, "secs": 174, "why": "", "diff": "5 files changed, 93 insertions(+), 5 deletions(-)", "commit": "2bd65d82"}
+{"id": "R36", "finding": "F-023", "title": "Panel logs drum analytics", "verdict": "pass", "attempts": 1, "secs": 254, "why": "", "diff": "4 files changed, 30 insertions(+), 8 deletions(-)"}

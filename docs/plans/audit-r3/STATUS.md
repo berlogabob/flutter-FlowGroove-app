@@ -36,9 +36,9 @@
 | R32 | F-022 | Filter sheet: chips aligned to the gutter | pass | 1 | 146 | 5ed2b820 |
 | R33 | F-016 | Audio note: microphone caption | pass | 1 | 127 | 239f8685 |
 | R34 | F-023 | Analytics: drum event names | pass | 1 | 205 | 88f5f572 |
-| R35 | F-023 | Analytics: drum log methods | pass | 1 | 174 |  |
-| R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
+| R35 | F-023 | Analytics: drum log methods | pass | 1 | 174 | 2bd65d82 |
+| R36 | F-023 | Panel logs drum analytics | pass | 1 | 254 |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-31/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 16:39:23
+32/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 16:43:37
