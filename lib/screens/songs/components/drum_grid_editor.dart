@@ -12,16 +12,16 @@ import '../../../providers/data/drum_practice_provider.dart';
 import '../../../providers/permissions_provider.dart';
 import '../../../services/audio/midi/drum_map.dart';
 
-const _lanes = <DrumLane, (String, int)>{
-  DrumLane.kick: ('Kick', 36),
-  DrumLane.snare: ('Snare', 38),
-  DrumLane.hatClosed: ('Closed hat', 42),
-  DrumLane.hatOpen: ('Open hat', 46),
-  DrumLane.tomHigh: ('High tom', 50),
-  DrumLane.tomMid: ('Mid tom', 47),
-  DrumLane.tomFloor: ('Floor tom', 43),
-  DrumLane.crash: ('Crash', 49),
-  DrumLane.ride: ('Ride', 51),
+const _lanes = <DrumLane, int>{
+  DrumLane.kick: 36,
+  DrumLane.snare: 38,
+  DrumLane.hatClosed: 42,
+  DrumLane.hatOpen: 46,
+  DrumLane.tomHigh: 50,
+  DrumLane.tomMid: 47,
+  DrumLane.tomFloor: 43,
+  DrumLane.crash: 49,
+  DrumLane.ride: 51,
 };
 
 class DrumGridEditor extends ConsumerStatefulWidget {
@@ -134,7 +134,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
       );
       widget.dirty?.value = true;
       if (velocity > 0) {
-        _hits.add(MidiHit(step: step, note: _lanes[lane]!.$2, vel: velocity));
+        _hits.add(MidiHit(step: step, note: _lanes[lane]!, vel: velocity));
       }
     });
     unawaited(_practice.stop());
@@ -267,7 +267,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                           height: 48,
                           child: Align(
                             alignment: Alignment.centerLeft,
-                            child: Text(_lanes[lane]!.$1),
+                            child: Text(laneLabel(lane)),
                           ),
                         ),
                     ],
@@ -365,7 +365,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
       width: 36,
       height: 48,
       child: Semantics(
-        label: '${_lanes[lane]!.$1} step ${step + 1}',
+        label: '${laneLabel(lane)} step ${step + 1}',
         value: '$label ($velocity)',
         selected: velocity > 0,
         child: InkWell(

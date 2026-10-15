@@ -17,8 +17,8 @@
 | R13 | F-005 | Editor: dirty notifier | pass | 1 | 346 | e79d7e12 |
 | R14 | F-005 | Panel: discard-changes prompt on closing the editor | pass | 1 | 261 | dd6d438e |
 | R15 | F-009 | Shared lane labels in drum_map | pass | 1 | 100 | 51fa09cd |
-| R16 | F-009 | Kit view uses shared labels | pass | 1 | 148 |  |
-| R17 | F-009 | Editor uses shared labels | pending |  |  |  |
+| R16 | F-009 | Kit view uses shared labels | pass | 1 | 148 | af9d294c |
+| R17 | F-009 | Editor uses shared labels | pass | 1 | 147 |  |
 | R18 | F-009 | Kit pads: contrast, stroke, 12sp labels | pending |  |  |  |
 | R19 | F-010 | Lane dots bigger with visible ring | pending |  |  |  |
 | R20 | F-008 | M/S chips less cramped | pending |  |  |  |
@@ -40,5 +40,5 @@
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-12/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 15:45:44
+13/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 15:48:11
