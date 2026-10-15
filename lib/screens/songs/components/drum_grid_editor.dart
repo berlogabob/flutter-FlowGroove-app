@@ -240,6 +240,10 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
               ],
             ),
             const SizedBox(height: 16),
+            const Text(
+              'Tap: Off → Normal (90) → Accent (120) → Ghost (40) → Off',
+            ),
+            const SizedBox(height: 16),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -308,10 +312,6 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                 ),
               ),
               ],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Tap: Off → Normal (90) → Accent (120) → Ghost (40) → Off',
             ),
             const SizedBox(height: 16),
             Row(
