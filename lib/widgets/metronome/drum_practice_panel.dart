@@ -271,7 +271,31 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                 final midi = entries.where((e) => e.type == LabEntryType.midi);
                 return Column(
                   children: [
-                    if (midi.isEmpty) const Text('No MIDI patterns yet'),
+                    if (midi.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.queue_music,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'No MIDI patterns yet',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Import a MIDI drum file or build a pattern step by step to play along with the click.',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     for (final entry in midi)
                       ListTile(
                         title: Text(entry.title ?? 'MIDI pattern'),
