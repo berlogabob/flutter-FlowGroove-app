@@ -198,9 +198,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   /// Connection errors re-run the sign-in; other errors just clear the banner.
+  bool get _isConnectionError =>
+      _currentError?.message.contains('Unable to connect') ?? false;
+
   void _retry() {
-    final connection =
-        _currentError?.message.contains('Unable to connect') ?? false;
+    final connection = _isConnectionError;
     _clearError();
     if (connection) unawaited(_login());
   }
@@ -352,6 +354,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   message:
                       _currentError?.message ?? 'An unexpected error occurred',
                   onRetry: _retry,
+                  showRetry: _isConnectionError,
                 ),
                 const SizedBox(height: 24),
               ],
