@@ -19,6 +19,7 @@ import '../../theme/mono_pulse_theme.dart';
 import '../analytics_service.dart';
 import 'song_csv_parser.dart';
 import 'song_csv_serializer.dart';
+import '../../utils/picked_file.dart';
 
 /// Service for CSV import/export operations
 class SongCsvService {
@@ -187,7 +188,7 @@ class SongCsvService {
 
   Future<String?> _readPickedFile(PlatformFile file) async {
     try {
-      return utf8.decode(await file.readAsBytes(), allowMalformed: true);
+      return utf8.decode(await readPickedBytes(file), allowMalformed: true);
     } catch (_) {
       return null;
     }

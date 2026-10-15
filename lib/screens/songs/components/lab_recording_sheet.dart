@@ -11,6 +11,7 @@ import '../../../services/audio/audio_note_edit.dart';
 import '../../../services/audio/audio_note_recorder.dart';
 import '../../../theme/mono_pulse_theme.dart';
 import '../../../utils/snackbar.dart';
+import '../../../utils/picked_file.dart';
 
 enum _RecordingPermissionState {
   granted,
@@ -274,7 +275,7 @@ class _LabRecordingSheetState extends State<LabRecordingSheet> {
   Future<void> _pickFile() async {
     final file = await FilePicker.pickFile(type: FileType.audio);
     if (file == null) return;
-    final bytes = await file.readAsBytes();
+    final bytes = await readPickedBytes(file);
     setState(() {
       _bytes = bytes;
       _ext = (file.extension ?? 'm4a').toLowerCase();

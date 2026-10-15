@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../utils/snackbar.dart' show showGlobalSnackBar;
 import '../../models/midi_pattern.dart';
 import '../../models/song_lab.dart';
 import '../../providers/auth/auth_provider.dart';
@@ -15,6 +16,7 @@ import '../../repositories/firestore_lab_repository.dart';
 import '../../screens/songs/components/drum_grid_editor.dart';
 import '../../services/audio/midi/smf_parser.dart';
 import '../midi/drum_kit_view.dart';
+import '../../utils/picked_file.dart';
 
 class DrumPracticePanel extends ConsumerStatefulWidget {
   const DrumPracticePanel({required this.songId, this.bandId, super.key});
@@ -62,10 +64,8 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
   }
 
   void _showError(Object error) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$error')));
+    // Root messenger: the panel sits in a modal sheet that covers the local one.
+    showGlobalSnackBar('$error', error: true);
   }
 
   Future<void> _openEditor([SongLabEntry? entry]) async {
@@ -132,8 +132,12 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
       // Any file keeps native pickers compatible; the SMF parser validates it.
       // ignore: avoid_redundant_argument_values
       final file = await FilePicker.pickFile(type: FileType.any);
+      debugPrint('drum import: picked=${file?.name}');
       if (file == null) return;
-      final pattern = parseDrumSmf(await file.readAsBytes());
+      final bytes = await readPickedBytes(file);
+      debugPrint('drum import: bytes=${bytes.length}');
+      final pattern = parseDrumSmf(bytes);
+      debugPrint('drum import: hits=${pattern.hits.length}');
       if (!mounted) return;
       final now = DateTime.now();
       final entry = SongLabEntry(
@@ -153,8 +157,10 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
       });
       await _practice.loadPattern(entry.id, pattern);
     } on FormatException catch (error) {
+      debugPrint('drum import: format error ${error.message}');
       _showError(error.message);
-    } catch (error) {
+    } catch (error, st) {
+      debugPrint('drum import: error $error\n$st');
       _showError(error);
     } finally {
       if (mounted) setState(() => _busy = false);
