@@ -922,6 +922,182 @@
     "R35",
     "R13"
    ]
+  },
+  {
+   "id": "R38",
+   "title": "MidiPattern.withName helper",
+   "finding": "F-024",
+   "files": [
+    "lib/models/midi_pattern.dart",
+    "test/midi/midi_pattern_test.dart"
+   ],
+   "prompt": "In lib/models/midi_pattern.dart add a method `MidiPattern withName(String name)` to MidiPattern that returns a new MidiPattern with the given name and the same bars, beatsPerBar, stepsPerBeat and hits. In test/midi/midi_pattern_test.dart add one test asserting `p.withName('x').name == 'x'` and that hits and bars are unchanged.",
+   "tests": [
+    "test/midi/midi_pattern_test.dart"
+   ],
+   "must_add": [
+    [
+     "lib/models/midi_pattern.dart",
+     "MidiPattern withName"
+    ]
+   ],
+   "must_remove": [],
+   "must_contain": [],
+   "after": []
+  },
+  {
+   "id": "R39",
+   "title": "Drums button shows the pattern title, not Imported",
+   "finding": "F-024",
+   "files": [
+    "lib/widgets/metronome/drum_practice_panel.dart"
+   ],
+   "prompt": "Patterns loaded into the practice provider carry the parser default name 'Imported'. In `_DrumPracticePanelState` use `.withName(...)` (added in MidiPattern) at every place a pattern is passed to `_practice.loadPattern(...)`: for a saved entry use `entry.pattern!.withName(entry.title ?? 'Drum pattern')` (list tap and the auto-select), and for a fresh import use the picked file name without its extension.",
+   "tests": [
+    "test/midi/drum_practice_panel_test.dart",
+    "test/midi/drum_panel_editor_entry_test.dart"
+   ],
+   "must_add": [
+    [
+     "lib/widgets/metronome/drum_practice_panel.dart",
+     "withName\\("
+    ]
+   ],
+   "must_remove": [],
+   "must_contain": [],
+   "after": [
+    "R38"
+   ]
+  },
+  {
+   "id": "R40",
+   "title": "Regression test for readPickedBytes",
+   "finding": "F-025",
+   "files": [],
+   "prompt": "Create the new file test/utils/picked_file_test.dart (use `package:flowgroove/utils/picked_file.dart` and `package:file_picker/file_picker.dart`). Add two tests for `readPickedBytes(PlatformFile)`: (1) a PlatformFile built with `bytes: Uint8List.fromList([1,2,3])` returns those bytes; (2) a PlatformFile built with `readStream: Stream.value([4,5,6])` and `size: 3` (no bytes) returns Uint8List [4,5,6]. Use `PlatformFile(name: 'a.mid', size: 3, ...)`.",
+   "tests": [
+    "test/utils/picked_file_test.dart"
+   ],
+   "must_add": [],
+   "must_remove": [],
+   "must_contain": [
+    [
+     "test/utils/picked_file_test.dart",
+     "readPickedBytes"
+    ]
+   ],
+   "after": []
+  },
+  {
+   "id": "R41",
+   "title": "Cold start: disable the OS starting-window preview",
+   "finding": "F-027",
+   "files": [
+    "android/app/src/main/res/values/styles.xml"
+   ],
+   "prompt": "In the `LaunchTheme` style add the item `<item name=\"android:windowDisablePreview\">true</item>` (keep the existing windowBackground item). Change nothing else.",
+   "tests": [],
+   "must_add": [
+    [
+     "android/app/src/main/res/values/styles.xml",
+     "windowDisablePreview"
+    ]
+   ],
+   "must_remove": [],
+   "must_contain": [],
+   "after": []
+  },
+  {
+   "id": "R42",
+   "title": "Cold start (night theme)",
+   "finding": "F-027",
+   "files": [
+    "android/app/src/main/res/values-night/styles.xml"
+   ],
+   "prompt": "In the `LaunchTheme` style of this night-mode file add the item `<item name=\"android:windowDisablePreview\">true</item>` (keep the other items). Change nothing else.",
+   "tests": [],
+   "must_add": [
+    [
+     "android/app/src/main/res/values-night/styles.xml",
+     "windowDisablePreview"
+    ]
+   ],
+   "must_remove": [],
+   "must_contain": [],
+   "after": [
+    "R41"
+   ]
+  },
+  {
+   "id": "R43",
+   "title": "Login: Retry on connection errors",
+   "finding": "F-028",
+   "files": [
+    "lib/screens/login_screen.dart"
+   ],
+   "prompt": "Where login_screen.dart shows an authentication error to the user (the message comes from ApiError, for example 'Unable to connect. Please check your internet connection.'), add a `TextButton(onPressed: <the same handler the Sign In button calls>, child: const Text('Retry'))` directly under the message. Show it only for connection errors (message contains 'Unable to connect'); other errors stay as they are. Add one test in test/screens/login_screen_test.dart only if an existing test already produces such an error; otherwise leave tests alone.",
+   "tests": [
+    "test/screens/login_screen_test.dart"
+   ],
+   "must_add": [
+    [
+     "lib/screens/login_screen.dart",
+     "'Retry'"
+    ]
+   ],
+   "must_remove": [],
+   "must_contain": [],
+   "after": []
+  },
+  {
+   "id": "R44",
+   "title": "Tuner: note labels away from the tick marks",
+   "finding": "F-029",
+   "files": [
+    "lib/widgets/tuner/central_dial.dart"
+   ],
+   "prompt": "In central_dial.dart the dial note labels sit at `labelRadius = radius - 14 - 10` and crowd the tick marks (C, C#, D#, F# touch them). Increase the inset by 8 logical pixels: `radius - 14 - 18`. Do not change font sizes. Update test/widgets/tuner/central_dial_geometry_test.dart only where it asserts the old radius.",
+   "tests": [
+    "test/widgets/tuner/central_dial_geometry_test.dart"
+   ],
+   "must_add": [
+    [
+     "lib/widgets/tuner/central_dial.dart",
+     "radius - 14 - 18"
+    ]
+   ],
+   "must_remove": [],
+   "must_contain": [],
+   "after": []
+  },
+  {
+   "id": "R45",
+   "title": "Editor: pages of 8 steps instead of a scrolling grid",
+   "finding": "F-001",
+   "files": [
+    "lib/screens/songs/components/drum_grid_editor.dart"
+   ],
+   "prompt": "Replace horizontal scrolling of the step grid with pages of 8 steps. Add `int _page = 0;` to the State (pages = _bars * 2). Above the grid show a Row of ChoiceChips, one per page, labelled with absolute step numbers ('1-8', '9-16', '17-24', ...; use a Wrap if there are more than 4), selecting one sets `_page`. The grid builds only the 8 columns of the current page (absolute step = _page * 8 + column) and no horizontal scroll view; remove `_gridScroll` and the Scrollbar if they become unused. Changing the bar count resets `_page` to 0. Update tests that tap steps with index >= 8 so they first select the right page chip.",
+   "tests": [
+    "test/midi/drum_grid_editor_test.dart",
+    "test/midi/drum_grid_editor_usability_test.dart",
+    "test/midi/drum_practice_panel_test.dart",
+    "test/midi/drum_panel_editor_entry_test.dart"
+   ],
+   "must_add": [
+    [
+     "lib/screens/songs/components/drum_grid_editor.dart",
+     "_page"
+    ]
+   ],
+   "must_remove": [
+    [
+     "lib/screens/songs/components/drum_grid_editor.dart",
+     "_gridScroll"
+    ]
+   ],
+   "must_contain": [],
+   "after": []
   }
  ]
 }

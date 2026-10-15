@@ -109,3 +109,7 @@ R23 of the plan (drum_active_provider.dart) was created by Claude at setup, so t
 | F-021 | R27, R28 |
 | F-022 | R32 |
 | F-023 | R34, R35, R36, R37 |
+
+## Batch 2 (added 2026-10-15 evening): leftovers + findings from the device verification
+R38-R39 F-024 pattern title instead of "Imported" · R40 F-025 regression test for readPickedBytes (lab audio / CSV import fix) · R41-R42 F-027 cold-start white frame (windowDisablePreview) · R43 F-028 login Retry on connection errors · R44 F-029 tuner note labels crowding · R45 F-001 editor steps in pages of 8 (no horizontal scroll).
+Deliberately NOT tasks: tap-to-halve BPM (would auto-save to the song via the tempo autosave and edit user data); the Offline banner (reflects the Wi-Fi "no validated internet" flag shown in the phone status bar, re-check on another device); hidden snackbars in other sheets (needs per-site review, backlog); menu sheet height (device re-check by Claude); deleting the test pattern in Millennium (user decision).

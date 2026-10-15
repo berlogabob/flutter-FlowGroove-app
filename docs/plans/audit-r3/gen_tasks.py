@@ -122,5 +122,32 @@ t('R36','Panel logs drum analytics','F-023',[P],
 t('R37','Editor logs pattern saved','F-023',[E],
  "After a successful save in the editor call `unawaited(AnalyticsService.logDrumPatternSaved(hitCount: <number of hits of the saved pattern>))` (import analytics_service.dart relative; import dart:async if needed).",
  ET,add=[(E,r'logDrumPatternSaved')],after=['R35','R13'])
+
+# ---- batch 2: leftovers + findings from the device verification (2026-10-15 evening)
+t('R38','MidiPattern.withName helper','F-024',['lib/models/midi_pattern.dart','test/midi/midi_pattern_test.dart'],
+ "In lib/models/midi_pattern.dart add a method `MidiPattern withName(String name)` to MidiPattern that returns a new MidiPattern with the given name and the same bars, beatsPerBar, stepsPerBeat and hits. In test/midi/midi_pattern_test.dart add one test asserting `p.withName('x').name == 'x'` and that hits and bars are unchanged.",
+ ['test/midi/midi_pattern_test.dart'],add=[('lib/models/midi_pattern.dart','MidiPattern withName')])
+t('R39','Drums button shows the pattern title, not Imported','F-024',[P],
+ "Patterns loaded into the practice provider carry the parser default name 'Imported'. In `_DrumPracticePanelState` use `.withName(...)` (added in MidiPattern) at every place a pattern is passed to `_practice.loadPattern(...)`: for a saved entry use `entry.pattern!.withName(entry.title ?? 'Drum pattern')` (list tap and the auto-select), and for a fresh import use the picked file name without its extension.",
+ PT,add=[(P,r'withName\(')],after=['R38'])
+t('R40','Regression test for readPickedBytes','F-025',[],
+ "Create the new file test/utils/picked_file_test.dart (use `package:flowgroove/utils/picked_file.dart` and `package:file_picker/file_picker.dart`). Add two tests for `readPickedBytes(PlatformFile)`: (1) a PlatformFile built with `bytes: Uint8List.fromList([1,2,3])` returns those bytes; (2) a PlatformFile built with `readStream: Stream.value([4,5,6])` and `size: 3` (no bytes) returns Uint8List [4,5,6]. Use `PlatformFile(name: 'a.mid', size: 3, ...)`.",
+ ['test/utils/picked_file_test.dart'],cont=[('test/utils/picked_file_test.dart','readPickedBytes')])
+t('R41','Cold start: disable the OS starting-window preview','F-027',['android/app/src/main/res/values/styles.xml'],
+ "In the `LaunchTheme` style add the item `<item name=\"android:windowDisablePreview\">true</item>` (keep the existing windowBackground item). Change nothing else.",
+ [],add=[('android/app/src/main/res/values/styles.xml','windowDisablePreview')])
+t('R42','Cold start (night theme)','F-027',['android/app/src/main/res/values-night/styles.xml'],
+ "In the `LaunchTheme` style of this night-mode file add the item `<item name=\"android:windowDisablePreview\">true</item>` (keep the other items). Change nothing else.",
+ [],add=[('android/app/src/main/res/values-night/styles.xml','windowDisablePreview')],after=['R41'])
+t('R43','Login: Retry on connection errors','F-028',['lib/screens/login_screen.dart'],
+ "Where login_screen.dart shows an authentication error to the user (the message comes from ApiError, for example 'Unable to connect. Please check your internet connection.'), add a `TextButton(onPressed: <the same handler the Sign In button calls>, child: const Text('Retry'))` directly under the message. Show it only for connection errors (message contains 'Unable to connect'); other errors stay as they are. Add one test in test/screens/login_screen_test.dart only if an existing test already produces such an error; otherwise leave tests alone.",
+ ['test/screens/login_screen_test.dart'],add=[('lib/screens/login_screen.dart',"'Retry'")])
+t('R44','Tuner: note labels away from the tick marks','F-029',['lib/widgets/tuner/central_dial.dart'],
+ "In central_dial.dart the dial note labels sit at `labelRadius = radius - 14 - 10` and crowd the tick marks (C, C#, D#, F# touch them). Increase the inset by 8 logical pixels: `radius - 14 - 18`. Do not change font sizes. Update test/widgets/tuner/central_dial_geometry_test.dart only where it asserts the old radius.",
+ ['test/widgets/tuner/central_dial_geometry_test.dart'],add=[('lib/widgets/tuner/central_dial.dart',r'radius - 14 - 18')])
+t('R45','Editor: pages of 8 steps instead of a scrolling grid','F-001',[E],
+ "Replace horizontal scrolling of the step grid with pages of 8 steps. Add `int _page = 0;` to the State (pages = _bars * 2). Above the grid show a Row of ChoiceChips, one per page, labelled with absolute step numbers ('1-8', '9-16', '17-24', ...; use a Wrap if there are more than 4), selecting one sets `_page`. The grid builds only the 8 columns of the current page (absolute step = _page * 8 + column) and no horizontal scroll view; remove `_gridScroll` and the Scrollbar if they become unused. Changing the bar count resets `_page` to 0. Update tests that tap steps with index >= 8 so they first select the right page chip.",
+ ET+PT,add=[(E,'_page')],rem=[(E,'_gridScroll')])
+
 json.dump(dict(branch='fix/audit-r3',tasks=T),open('docs/plans/audit-r3/tasks.json','w'),indent=1)
 print(len(T),'tasks')
