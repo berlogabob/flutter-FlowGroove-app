@@ -6,7 +6,7 @@
 | R02 | F-003 | Drums sheet empty state | pass | 0 | 0 | manual |
 | R03 | F-003 | Hide Play and speed until a pattern is loaded | pass | 1 | 177 | 945494b6 |
 | R04 | F-003 | Import and New pattern as an equal-width row | pass | 1 | 132 | b4e53e22 |
-| R05 | F-011 | Play and speed above the kit view | pass | 1 | 220 |  |
+| R05 | F-011 | Play and speed above the kit view | pass | 1 | 220 | 0b9f24b2 |
 | R06 | F-012 | Selected pattern row neutral with radio icon | pass | 1 | 213 | 14bfaab5 |
 | R07 | F-006 | Editor: remove duplicate heading | pass | 1 | 133 | 86ff31e5 |
 | R08 | F-006 | Editor: bar chips on one row | pass | 1 | 139 | 64abd528 |

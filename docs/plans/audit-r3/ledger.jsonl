@@ -35,4 +35,4 @@
 {"id": "R02", "finding": "F-003", "title": "Drums sheet empty state", "verdict": "pass", "attempts": 0, "secs": 0, "why": "", "diff": "by hand (a828783c): test viewport 900->1600", "commit": "manual"}
 {"id": "R03", "finding": "F-003", "title": "Hide Play and speed until a pattern is loaded", "verdict": "pass", "attempts": 1, "secs": 177, "why": "", "diff": "2 files changed, 33 insertions(+), 30 deletions(-)", "commit": "945494b6"}
 {"id": "R04", "finding": "F-003", "title": "Import and New pattern as an equal-width row", "verdict": "pass", "attempts": 1, "secs": 132, "why": "", "diff": "3 files changed, 16 insertions(+), 12 deletions(-)", "commit": "b4e53e22"}
-{"id": "R05", "finding": "F-011", "title": "Play and speed above the kit view", "verdict": "pass", "attempts": 1, "secs": 220, "why": "", "diff": "3 files changed, 11 insertions(+), 11 deletions(-)"}
+{"id": "R05", "finding": "F-011", "title": "Play and speed above the kit view", "verdict": "pass", "attempts": 1, "secs": 220, "why": "", "diff": "3 files changed, 11 insertions(+), 11 deletions(-)", "commit": "0b9f24b2"}
