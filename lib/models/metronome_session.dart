@@ -9,6 +9,7 @@ class MetronomeSession {
     this.presetId,
     this.songId,
     this.setlistId,
+    this.midiEntryId,
     this.endBpm,
     this.elapsedSeconds = 0,
     this.barCount = 0,
@@ -28,6 +29,7 @@ class MetronomeSession {
       presetId: json['presetId'] as String?,
       songId: json['songId'] as String?,
       setlistId: json['setlistId'] as String?,
+      midiEntryId: json['midiEntryId'] as String?,
       startBpm: (json['startBpm'] as num?)?.toInt() ?? 120,
       endBpm: (json['endBpm'] as num?)?.toInt(),
       elapsedSeconds: (json['elapsedSeconds'] as num?)?.toInt() ?? 0,
@@ -49,6 +51,7 @@ class MetronomeSession {
   final String? presetId;
   final String? songId;
   final String? setlistId;
+  final String? midiEntryId;
   final int startBpm;
   final int? endBpm;
   final int elapsedSeconds;
@@ -65,6 +68,7 @@ class MetronomeSession {
     if (presetId != null) 'presetId': presetId,
     if (songId != null) 'songId': songId,
     if (setlistId != null) 'setlistId': setlistId,
+    if (midiEntryId != null) 'midiEntryId': midiEntryId,
     'startBpm': startBpm,
     if (endBpm != null) 'endBpm': endBpm,
     'elapsedSeconds': elapsedSeconds,
@@ -74,4 +78,40 @@ class MetronomeSession {
     'usedCountIn': usedCountIn,
     if (completion != null) 'completion': completion!.name,
   };
+
+  MetronomeSession copyWith({
+    String? id,
+    DateTime? startedAt,
+    DateTime? endedAt,
+    String? presetId,
+    String? songId,
+    String? setlistId,
+    String? midiEntryId,
+    int? startBpm,
+    int? endBpm,
+    int? elapsedSeconds,
+    int? barCount,
+    bool? usedTapTempo,
+    bool? usedTempoRamp,
+    bool? usedCountIn,
+    MetronomeSessionCompletion? completion,
+  }) {
+    return MetronomeSession(
+      id: id ?? this.id,
+      startedAt: startedAt ?? this.startedAt,
+      endedAt: endedAt ?? this.endedAt,
+      presetId: presetId ?? this.presetId,
+      songId: songId ?? this.songId,
+      setlistId: setlistId ?? this.setlistId,
+      midiEntryId: midiEntryId ?? this.midiEntryId,
+      startBpm: startBpm ?? this.startBpm,
+      endBpm: endBpm ?? this.endBpm,
+      elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
+      barCount: barCount ?? this.barCount,
+      usedTapTempo: usedTapTempo ?? this.usedTapTempo,
+      usedTempoRamp: usedTempoRamp ?? this.usedTempoRamp,
+      usedCountIn: usedCountIn ?? this.usedCountIn,
+      completion: completion ?? this.completion,
+    );
+  }
 }
