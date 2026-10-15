@@ -11,14 +11,20 @@ final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 /// Shows a snackbar on the root messenger — safe to call without a
 /// BuildContext and after the originating screen is gone. No-ops when no
 /// MaterialApp carries [rootScaffoldMessengerKey] (bare-widget tests).
-void showGlobalSnackBar(String message, {bool error = false}) {
+void showGlobalSnackBar(
+  String message, {
+  bool error = false,
+  Color? backgroundColor,
+  Duration duration = const Duration(seconds: 4),
+}) {
   rootScaffoldMessengerKey.currentState
     ?..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: error ? MonoPulseColors.error : null,
-        duration: const Duration(seconds: 4),
+        backgroundColor:
+            backgroundColor ?? (error ? MonoPulseColors.error : null),
+        duration: duration,
       ),
     );
 }

@@ -4,12 +4,12 @@ import '../../../../../theme/mono_pulse_theme.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/section_color_manager.dart';
 import 'color_picker_dialog.dart';
+import '../../../../../utils/snackbar.dart' show showGlobalSnackBar;
 
 /// Bottom sheet dialog for selecting or creating a section with 2 tabs:
 /// - Parts: Section type matrix
 /// - Colors: Color assignment matrix
 class SectionPicker extends StatefulWidget {
-
   const SectionPicker({required this.onSectionSelected, super.key});
   final void Function(String) onSectionSelected;
 
@@ -266,12 +266,11 @@ class _SectionPickerState extends State<SectionPicker>
     );
 
     if (newColor != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Color for "$sectionName" updated'),
-          backgroundColor: newColor,
-          duration: const Duration(seconds: 2),
-        ),
+      // Root messenger: the picker dialog is still open and would cover a local one.
+      showGlobalSnackBar(
+        'Color for "$sectionName" updated',
+        backgroundColor: newColor,
+        duration: const Duration(seconds: 2),
       );
     }
   }

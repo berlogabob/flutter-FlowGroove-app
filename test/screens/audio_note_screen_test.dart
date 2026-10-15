@@ -254,14 +254,6 @@ void main() {
     expect(find.textContaining('No notes yet'), findsOneWidget);
   });
 
-  testWidgets('explains microphone access under the transport', (tester) async {
-    await pump(tester, _entry(peaks: _peaks));
-    expect(
-      find.textContaining('Microphone access is requested'),
-      findsOneWidget,
-    );
-  });
-
   testWidgets('without peaks, offers a slider and explains why not trim', (
     tester,
   ) async {

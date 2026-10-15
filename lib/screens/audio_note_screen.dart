@@ -334,11 +334,7 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       // Messengers show raw AAC as a grey document; the same frames in an MP4
       // box get a player. Returns null for anything that isn't ADTS, so legacy
       // m4a and wav takes fall through untouched.
-      final m4a = m4aFromAdts(
-        bytes,
-        title: _entry.title,
-        artist: 'FlowGroove',
-      );
+      final m4a = m4aFromAdts(bytes, title: _entry.title, artist: 'FlowGroove');
       if (m4a != null) {
         bytes = m4a;
         ext = 'm4a';
@@ -398,7 +394,8 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
       context: context,
       builder: (_) => const ConfirmationDialog(
         title: 'Delete recording?',
-        message: 'The audio and its notes are gone for good — there is no undo '
+        message:
+            'The audio and its notes are gone for good — there is no undo '
             'from here.',
         confirmLabel: 'Delete',
       ),
@@ -462,14 +459,6 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
           _buildScrubber(markers),
           const SizedBox(height: MonoPulseSpacing.sm),
           _buildTransport(),
-          const SizedBox(height: 8),
-          Text(
-            'Microphone access is requested the first time you record.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
           if (_canTrim && _isTrimmed) ...[
             const SizedBox(height: MonoPulseSpacing.md),
             FilledButton.icon(

@@ -264,22 +264,8 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
   Future<void> _saveCustomTuning() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      // Show error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Please enter a name for this tuning',
-            style: MonoPulseTypography.bodyMedium.copyWith(
-              color: MonoPulseColors.white,
-            ),
-          ),
-          backgroundColor: MonoPulseColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
-          ),
-        ),
-      );
+      // Root messenger: this editor is a modal sheet and would cover a local one.
+      showGlobalSnackBar('Please enter a name for this tuning', error: true);
       return;
     }
 

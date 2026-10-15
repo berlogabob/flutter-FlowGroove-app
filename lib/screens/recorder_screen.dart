@@ -71,7 +71,8 @@ class _RecorderScreenState extends ConsumerState<RecorderScreen> {
           if (recordings.isEmpty)
             Text(
               'Hit Record to capture an idea. You can attach recordings '
-              'to a song later.',
+              'to a song later. Your phone asks for microphone access the '
+              'first time you record.',
               style: MonoPulseTypography.bodySmall.copyWith(
                 color: context.mp.textSecondary,
               ),
