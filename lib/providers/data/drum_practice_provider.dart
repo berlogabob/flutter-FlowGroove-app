@@ -92,6 +92,15 @@ class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
     return const DrumPracticeState();
   }
 
+  /// Called when the Drums sheet closes: keep playing only while the click
+  /// is driving the drums, otherwise nothing on screen could stop them.
+  void releaseUnlessSynced() {
+    final clickRunning = ref.read(metronomeProvider).isPlaying;
+    if (state.playing && !(state.syncWithClick && clickRunning)) {
+      unawaited(stop());
+    }
+  }
+
   Future<void> loadPattern(String entryId, MidiPattern pattern) {
     state = state.copyWith(entryId: entryId, pattern: pattern, currentStep: 0);
     return _reload();

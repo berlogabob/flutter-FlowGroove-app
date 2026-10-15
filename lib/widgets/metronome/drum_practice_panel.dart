@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../utils/snackbar.dart' show showGlobalSnackBar;
 import '../../models/midi_pattern.dart';
 import '../../models/song_lab.dart';
 import '../../providers/auth/auth_provider.dart';
@@ -15,8 +14,9 @@ import '../../providers/permissions_provider.dart';
 import '../../repositories/firestore_lab_repository.dart';
 import '../../screens/songs/components/drum_grid_editor.dart';
 import '../../services/audio/midi/smf_parser.dart';
-import '../midi/drum_kit_view.dart';
 import '../../utils/picked_file.dart';
+import '../../utils/snackbar.dart' show showGlobalSnackBar;
+import '../midi/drum_kit_view.dart';
 
 class DrumPracticePanel extends ConsumerStatefulWidget {
   const DrumPracticePanel({required this.songId, this.bandId, super.key});
@@ -35,6 +35,30 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
   void initState() {
     super.initState();
     _practice = ref.read(drumPracticeProvider.notifier);
+    // Reopening the sheet keeps the loaded pattern; otherwise load the first
+    // saved one so Sync with click works without an extra tap.
+    _selectedId = ref.read(drumPracticeProvider).entryId;
+    ref.listenManual(
+      labEntriesProvider((widget.songId, widget.bandId)),
+      (_, next) => next.whenData(_autoSelect),
+      fireImmediately: true,
+    );
+  }
+
+  void _autoSelect(List<SongLabEntry> entries) {
+    if (_selectedId != null || ref.read(drumPracticeProvider).pattern != null) {
+      return;
+    }
+    final first = entries.where(
+      (e) => e.type == LabEntryType.midi && e.pattern != null,
+    );
+    if (first.isEmpty) return;
+    final entry = first.first;
+    scheduleMicrotask(() {
+      if (!mounted || _selectedId != null) return;
+      setState(() => _selectedId = entry.id);
+      unawaited(_practice.loadPattern(entry.id, entry.pattern!));
+    });
   }
 
   @override
@@ -59,7 +83,10 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
 
   @override
   void dispose() {
-    unawaited(_practice.clearPattern());
+    // Saved patterns stay loaded so the metronome can drive them with the
+    // sheet closed; only an unsaved import preview is discarded.
+    if (_preview != null) unawaited(_practice.clearPattern());
+    _practice.releaseUnlessSynced();
     super.dispose();
   }
 

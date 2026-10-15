@@ -186,15 +186,14 @@ void main() {
       );
       expect(find.text('note entry'), findsNothing);
       expect(find.text('midi entry'), findsOneWidget);
+      // The first saved pattern is loaded on open, no extra tap needed.
+      expect(container.read(drumPracticeProvider).entryId, 'midi');
       expect(
         tester
             .widget<FilledButton>(find.widgetWithText(FilledButton, 'Play'))
             .onPressed,
-        isNull,
+        isNotNull,
       );
-      await tester.tap(find.text('midi entry'));
-      await tester.pumpAndSettle();
-      expect(container.read(drumPracticeProvider).entryId, 'midi');
       expect(find.byType(DrumKitView), findsOneWidget);
       await tester.tap(find.text('Play'));
       await tester.pumpAndSettle();
