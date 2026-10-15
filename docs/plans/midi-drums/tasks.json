@@ -227,6 +227,22 @@
     "M10"
    ],
    "status": "pending"
+  },
+  {
+   "id": "M15",
+   "executor": "codex",
+   "title": "Grid editor usability",
+   "finding": "MIDI",
+   "files": [
+    "lib/screens/songs/components/drum_grid_editor.dart",
+    "test/midi/drum_grid_editor_usability_test.dart"
+   ],
+   "prompt": "Fix three usability problems in DrumGridEditor found on a 360dp phone: (1) the 16-step grid scrolls horizontally and the lane labels (Kick, Snare, ...) scroll away with it; make the lane label column sticky (outside the horizontal scroll) and shrink cells to ~36dp wide so about 8 steps are visible, with a visible beat grouping (stronger gap/number every 4 steps, step labels 1 e & a style or 1..16 with beat starts emphasised). (2) The first tap on an empty cell currently sets Ghost (40); make the cycle Off -> Normal(90) -> Accent(120) -> Ghost(40) -> Off and update the hint text and the existing test expectations in test/midi/drum_grid_editor_test.dart accordingly. (3) While previewing, highlight the currently playing step column using drumPracticeProvider's currentStep. Keep tap targets reachable (cells >=36dp is acceptable here, explain nothing). Add a widget test for the new cycle order and the sticky label column. Do not touch lib/services/audio/engine/*. Print DONE.",
+   "verify": "flutter test test/midi/drum_grid_editor_test.dart test/midi/drum_grid_editor_usability_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M13"
+   ],
+   "status": "pending"
   }
  ]
 }
