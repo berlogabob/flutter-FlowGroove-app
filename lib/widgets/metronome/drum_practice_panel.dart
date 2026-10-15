@@ -328,33 +328,36 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                 onToggleMute: _practice.toggleMute,
                 onToggleSolo: _practice.toggleSolo,
               ),
-            FilledButton.icon(
-              onPressed: pattern == null
-                  ? null
-                  : () {
-                      if (state.playing) {
-                        _practice.stop();
-                        return;
-                      }
-                      unawaited(_practice.start());
-                      AnalyticsService.logDrumPlayStarted(
-                        syncWithClick: state.syncWithClick,
-                      );
-                    },
-              icon: Icon(state.playing ? Icons.stop : Icons.play_arrow),
-              label: Text(state.playing ? 'Stop' : 'Play'),
-            ),
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final speed in [0.5, 0.75, 1.0])
-                  ChoiceChip(
-                    label: Text('${(speed * 100).round()}%'),
-                    selected: state.speed == speed,
-                    onSelected: (_) => _practice.setSpeed(speed),
-                  ),
-              ],
-            ),
+            if (pattern != null) ...[
+              FilledButton.icon(
+                onPressed: pattern == null
+                    ? null
+                    : () {
+                        if (state.playing) {
+                          _practice.stop();
+                          return;
+                        }
+                        unawaited(_practice.start());
+                        AnalyticsService.logDrumPlayStarted(
+                          syncWithClick: state.syncWithClick,
+                        );
+                      },
+                icon: Icon(state.playing ? Icons.stop : Icons.play_arrow),
+                label: Text(state.playing ? 'Stop' : 'Play'),
+              ),
+              Text('Speed', style: Theme.of(context).textTheme.labelMedium),
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final speed in [0.5, 0.75, 1.0])
+                    ChoiceChip(
+                      label: Text('${(speed * 100).round()}%'),
+                      selected: state.speed == speed,
+                      onSelected: (_) => _practice.setSpeed(speed),
+                    ),
+                ],
+              ),
+            ],
             Wrap(
               spacing: 8,
               children: [
