@@ -2,12 +2,12 @@
 
 | id | finding | title | status | attempts | secs | commit |
 |---|---|---|---|---|---|---|
-| R01 | F-004 | Chip selected color orange app-wide | pass | 1 | 236 |  |
-| R02 | F-003 | Drums sheet empty state | pending |  |  |  |
+| R01 | F-004 | Chip selected color orange app-wide | pass | 1 | 236 | f4e10366 |
+| R02 | F-003 | Drums sheet empty state | fail | 2 | 4600 |  |
 | R03 | F-003 | Hide Play and speed until a pattern is loaded | pending |  |  |  |
 | R04 | F-003 | Import and New pattern as an equal-width row | pending |  |  |  |
 | R05 | F-011 | Play and speed above the kit view | pending |  |  |  |
-| R06 | F-012 | Selected pattern row neutral with radio icon | pending |  |  |  |
+| R06 | F-012 | Selected pattern row neutral with radio icon | pass | 1 | 213 |  |
 | R07 | F-006 | Editor: remove duplicate heading | pending |  |  |  |
 | R08 | F-006 | Editor: bar chips on one row | pending |  |  |  |
 | R09 | F-007 | Editor: beat tint instead of orange outline | pending |  |  |  |
@@ -40,5 +40,5 @@
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-1/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 13:35:37
+2/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 14:55:50

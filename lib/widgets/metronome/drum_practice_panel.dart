@@ -237,9 +237,19 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                     for (final entry in midi)
                       ListTile(
                         title: Text(entry.title ?? 'MIDI pattern'),
+                        selectedColor: Theme.of(context).colorScheme.onSurface,
+                        leading: Icon(
+                          _selectedId == entry.id
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                        ),
                         trailing: IconButton(
                           tooltip: 'Edit pattern',
                           icon: const Icon(Icons.edit_outlined),
+                          constraints: const BoxConstraints(
+                            minWidth: 48,
+                            minHeight: 48,
+                          ),
                           onPressed: !_busy && entry.midi != null
                               ? () => _openEditor(entry)
                               : null,
