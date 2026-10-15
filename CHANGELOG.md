@@ -4,6 +4,34 @@ All notable changes to FlowGroove are documented here. Versions follow
 `MAJOR.MINOR.PATCH+BUILD` (the build number is always strictly increasing for
 Play Store `versionCode`).
 
+## Unreleased — MIDI drum practice + audit round 3 (2026-10-15)
+
+### Drum practice (new)
+- **Drums in practice mode.** On the Metronome screen, with a song loaded, a **Drums**
+  button opens a sheet: pick a saved drum pattern, press Play, and it follows the
+  song's tempo (speed 50/75/100%). **Sync with click** (on by default) starts and
+  stops the drums with the metronome, even with the sheet closed. A kit view lights
+  up the pad that is playing, with per-lane Mute / Solo.
+- **Import a .mid file.** Channel-10 drum notes are read into a 1-4 bar pattern on a
+  16th-note grid (the file's own tempo is ignored; the song's tempo is used).
+- **Write your own.** "New pattern" opens a step editor (8 steps per page, tap cycles
+  Normal / Accent / Ghost / Off) with Play preview and a pinned Save row.
+- **Logbook.** Patterns are saved as Song Lab entries (type "Midi") on the song, for
+  personal and band songs; band viewers can listen but not save.
+- Drums are native-only for now: the button is hidden on web.
+- Old app builds show a saved drum pattern as an ordinary note, and re-saving it there
+  drops the pattern. Update before editing patterns.
+
+### Fixed / polished (UX audit round 3)
+- Selected chips are orange everywhere; empty-state and Drums button states are clearer.
+- Importing a file on Android failed silently (lab audio, CSV and .mid import).
+- Login shows **Retry** for connection errors.
+- Tuning editor and section picker messages no longer render behind their sheet.
+- Tuner: note labels no longer touch the dial ticks; long tuning names wrap by word.
+- Home quick actions read "Add song / Add band / Add setlist"; song cards show
+  "-- BPM" when a song has none; fast tempos (240+) get a "double-time?" hint.
+- Android cold start no longer flashes a white starting window.
+
 ## Unreleased — analytics instrumentation repair + cloud practice history (2026-08-11)
 
 ### Analytics — most of it was never being recorded

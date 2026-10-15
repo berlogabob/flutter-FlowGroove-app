@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -276,8 +277,10 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       if (!context.mounted) {
         // The debounced auto-save regularly fires after navigating away —
         // the root messenger keeps the failure visible instead of dropping it.
-        showGlobalSnackBar('Failed to save metronome settings: $e',
-            error: true);
+        showGlobalSnackBar(
+          'Failed to save metronome settings: $e',
+          error: true,
+        );
         return;
       }
       _showErrorSnackBar(context, 'Failed to save: $e');
@@ -317,9 +320,7 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
         ourBpm: state.bpm.toString(),
         accentBeats: state.accentBeats,
         regularBeats: state.regularBeats,
-        beatModes: state.beatModes
-            .map(List.of)
-            .toList(growable: false),
+        beatModes: state.beatModes.map(List.of).toList(growable: false),
       ),
     );
   }
@@ -449,14 +450,19 @@ class _MetronomeSongLibrary extends ConsumerWidget {
     final onPressed = state.activeSong == null
         ? null
         : () => showModalBottomSheet<void>(
-              context: context,
-              isScrollControlled: true,
-              showDragHandle: true,
-              builder: (_) => DrumPracticePanel(
-                songId: state.activeSong!.id,
-                bandId: state.sourceBandId,
-              ),
-            );
+            context: context,
+            isScrollControlled: true,
+            showDragHandle: true,
+            builder: (_) => DrumPracticePanel(
+              songId: state.activeSong!.id,
+              bandId: state.sourceBandId,
+            ),
+          );
+
+    // ponytail: drums are native-only until the web drum player has run in a
+    // real browser (it compiles, but was never exercised). Remove this guard
+    // after a manual web test.
+    if (kIsWeb) return const SongLibraryBlock();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
