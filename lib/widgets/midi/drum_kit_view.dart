@@ -170,7 +170,7 @@ class _DrumKitViewState extends State<DrumKitView>
         selected: selected,
         showCheckmark: false,
         padding: EdgeInsets.zero,
-        labelPadding: EdgeInsets.zero,
+        labelPadding: const EdgeInsets.symmetric(horizontal: 14),
         materialTapTargetSize: MaterialTapTargetSize.padded,
         onSelected: (_) => onToggle(lane),
       ),
