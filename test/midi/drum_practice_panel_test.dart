@@ -20,6 +20,7 @@ import 'package:mockito/mockito.dart';
 
 import '../helpers/metronome_test_runtime.dart';
 import '../helpers/mocks.mocks.dart';
+import 'package:flowgroove/utils/snackbar.dart' show rootScaffoldMessengerKey;
 
 class _Player implements DrumPlayer {
   @override
@@ -125,7 +126,10 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(home: child),
+        child: MaterialApp(
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
+          home: child,
+        ),
       ),
     );
     await tester.pumpAndSettle();
