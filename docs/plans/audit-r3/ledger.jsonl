@@ -37,4 +37,5 @@
 {"id": "R04", "finding": "F-003", "title": "Import and New pattern as an equal-width row", "verdict": "pass", "attempts": 1, "secs": 132, "why": "", "diff": "3 files changed, 16 insertions(+), 12 deletions(-)", "commit": "b4e53e22"}
 {"id": "R05", "finding": "F-011", "title": "Play and speed above the kit view", "verdict": "pass", "attempts": 1, "secs": 220, "why": "", "diff": "3 files changed, 11 insertions(+), 11 deletions(-)", "commit": "0b9f24b2"}
 {"id": "R38", "finding": "F-024", "title": "MidiPattern.withName helper", "verdict": "pass", "attempts": 1, "secs": 145, "why": "", "diff": "3 files changed, 28 insertions(+), 2 deletions(-)", "commit": "977e39e2"}
-{"id": "R39", "finding": "F-024", "title": "Drums button shows the pattern title, not Imported", "verdict": "pass", "attempts": 1, "secs": 177, "why": "", "diff": "3 files changed, 12 insertions(+), 4 deletions(-)"}
+{"id": "R39", "finding": "F-024", "title": "Drums button shows the pattern title, not Imported", "verdict": "pass", "attempts": 1, "secs": 177, "why": "", "diff": "3 files changed, 12 insertions(+), 4 deletions(-)", "commit": "10159a57"}
+{"id": "R40", "finding": "F-025", "title": "Regression test for readPickedBytes", "verdict": "pass", "attempts": 1, "secs": 328, "why": "", "diff": "2 files changed, 3 insertions(+), 3 deletions(-)"}
