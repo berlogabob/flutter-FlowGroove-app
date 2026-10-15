@@ -287,7 +287,9 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                           children: [
                             Icon(
                               Icons.queue_music,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -297,9 +299,12 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                             const SizedBox(height: 4),
                             Text(
                               'Import a MIDI drum file or build a pattern step by step to play along with the click.',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                             ),
                           ],
                         ),
@@ -332,7 +337,12 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                             _selectedId = entry.id;
                           });
                           unawaited(
-                            _practice.loadPattern(entry.id, entry.pattern!),
+                            _practice.loadPattern(
+                              entry.id,
+                              entry.pattern!.withName(
+                                entry.title ?? 'Drum pattern',
+                              ),
+                            ),
                           );
                         },
                       ),
