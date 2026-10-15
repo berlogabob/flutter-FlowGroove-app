@@ -265,7 +265,7 @@
   },
   {
    "id": "M17",
-   "executor": "codex",
+   "executor": "pi",
    "title": "Drums survive closing the panel",
    "finding": "MIDI",
    "files": [
@@ -274,8 +274,7 @@
     "lib/screens/metronome_screen.dart",
     "test/midi/drum_practice_provider_test.dart",
     "test/midi/drum_practice_panel_test.dart",
-    "test/midi/drum_sync_test.dart",
-    "test/midi/drum_persist_test.dart"
+    "test/midi/drum_sync_test.dart"
    ],
    "prompt": "BUG found on a real device: DrumPracticePanel.dispose() calls clearPattern(), so when the user closes the Drums bottom sheet the loaded pattern is cleared and 'Sync with click' can never work (metronome Play does not start the drums because nothing is loaded). Fix: (1) the loaded pattern, mute/solo state and the sync listener must live in drumPracticeProvider independent of the panel widget: remove clearPattern() from panel dispose and from the saved/unsaved preview flow (only an unsaved import preview may be discarded when the sheet closes); clear the pattern only when the active metronome song changes (listen to metronomeProvider activeSong id inside the notifier) or the song is removed. (2) drumPracticeProvider must stay alive while the metronome screen is open even with the sheet closed (keepAlive, or have MetronomeScreen ref.listen it WITHOUT creating the lab repository or the audio player until a pattern is actually loaded; creating the player lazily on first load/start; existing metronome tests build the screen with no overrides and must keep passing). (3) when the panel opens it must show the already loaded pattern as selected (no re-tap needed) and, if nothing is loaded and the song has saved midi entries, auto-select the first one. (4) after a saved pattern is selected, closing the sheet then pressing the metronome Play starts the drums in the same frame and Stop stops them (sync on). Tests with a fake DrumPlayer: close panel then metronome start starts drums; song change clears; reopening shows selection; no pattern -> no player calls. Follow existing style; minimal change; do not modify existing tests except where the new behavior requires it (update them and say so in code comments only if needed); do not touch lib/services/audio/engine/*. test/screens/metronome_* must stay green unchanged. Print DONE.",
    "verify": "flutter test test/midi 2>&1 | tail -25 | tee /dev/stderr | rg -q 'All tests passed' && ! (dart analyze lib 2>&1 | rg '^\\s*error -')",
@@ -286,12 +285,11 @@
   },
   {
    "id": "M18",
-   "executor": "codex",
+   "executor": "pi",
    "title": "Kit view and lane strip layout fixes",
    "finding": "MIDI",
    "files": [
-    "lib/widgets/midi/drum_kit_view.dart",
-    "test/midi/drum_kit_view_layout_test.dart"
+    "lib/widgets/midi/drum_kit_view.dart"
    ],
    "prompt": "Two layout bugs seen on a 360dp phone in DrumKitView: (1) pad labels ('Closed hat', 'Open hat', 'High tom', 'Floor tom') are wider than their small circles and spill outside; fix by making the kit layout use a minimum pad diameter of ~64dp, a smaller label style with maxLines 1 + FittedBox/scaleDown inside the circle, and adjust the arrangement so pads do not overlap each other (kit area height can grow to ~280dp). (2) In the lane rows below the kit the 16 step dots + M chip + S chip overflow the row on the right (the S chip is clipped). Make the dots flexible (Expanded/LayoutBuilder, dot size derived from available width) so label + dots + M + S always fit within the screen width without horizontal clipping, with 40dp minimum chip tap targets if width allows else 36dp. Add a widget test at 360x800 and 320x640 asserting no overflow exceptions and that every pad label stays within its pad bounds (use tester.getRect) and the S chip right edge <= screen width. Follow existing style; minimal change; do not modify existing tests except where the new behavior requires it (update them and say so in code comments only if needed); do not touch lib/services/audio/engine/*. test/screens/metronome_* must stay green unchanged. Print DONE.",
    "verify": "flutter test test/midi 2>&1 | tail -25 | tee /dev/stderr | rg -q 'All tests passed' && ! (dart analyze lib 2>&1 | rg '^\\s*error -')",
