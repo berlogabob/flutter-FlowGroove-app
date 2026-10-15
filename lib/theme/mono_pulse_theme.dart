@@ -807,6 +807,9 @@ class MonoPulseTheme {
       chipTheme: ChipThemeData(
         backgroundColor: p.surfaceRaised,
         labelStyle: TextStyle(color: p.textPrimary),
+        secondaryLabelStyle: TextStyle(color: MonoPulseColors.black),
+        selectedColor: MonoPulseColors.accentOrange,
+        checkmarkColor: MonoPulseColors.black,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(MonoPulseRadius.medium),
           side: BorderSide(color: p.borderDefault),

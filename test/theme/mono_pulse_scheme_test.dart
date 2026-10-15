@@ -61,4 +61,20 @@ void main() {
       });
     }
   });
+
+  // A selected ChoiceChip/FilterChip must render as orange with readable
+  // (black) text and a black checkmark — the secondaryLabelStyle foreground
+  // matches the filled-button on-accentOrange foreground.
+  group('chipTheme selected state', () {
+    test('selectedColor is accentOrange with black checkmark and black label', () {
+      final chip = MonoPulseTheme.theme.chipTheme;
+      expect(chip.selectedColor, MonoPulseColors.accentOrange);
+      expect(chip.checkmarkColor, MonoPulseColors.black);
+      expect(
+        chip.secondaryLabelStyle,
+        isNotNull,
+      );
+      expect(chip.secondaryLabelStyle!.color, MonoPulseColors.black);
+    });
+  });
 }

@@ -2,7 +2,7 @@
 
 | id | finding | title | status | attempts | secs | commit |
 |---|---|---|---|---|---|---|
-| R01 | F-004 | Chip selected color orange app-wide | pending |  |  |  |
+| R01 | F-004 | Chip selected color orange app-wide | pass | 1 | 236 |  |
 | R02 | F-003 | Drums sheet empty state | pending |  |  |  |
 | R03 | F-003 | Hide Play and speed until a pattern is loaded | pending |  |  |  |
 | R04 | F-003 | Import and New pattern as an equal-width row | pending |  |  |  |
@@ -40,5 +40,5 @@
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-0/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 13:31:31
+1/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 13:35:37

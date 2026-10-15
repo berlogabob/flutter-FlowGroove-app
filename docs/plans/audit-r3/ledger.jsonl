@@ -1,0 +1,1 @@
+{"id": "R01", "finding": "F-004", "title": "Chip selected color orange app-wide", "verdict": "pass", "attempts": 1, "secs": 236, "why": "", "diff": "3 files changed, 20 insertions(+), 1 deletion(-)"}
