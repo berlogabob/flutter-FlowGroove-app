@@ -353,18 +353,18 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
             if (_preview != null) Text('Preview: ${_preview!.title}'),
             if (pattern != null) ...[
               FilledButton.icon(
-                onPressed: pattern == null
-                    ? null
-                    : () {
-                        if (state.playing) {
-                          _practice.stop();
-                          return;
-                        }
-                        unawaited(_practice.start());
-                        AnalyticsService.logDrumPlayStarted(
-                          syncWithClick: state.syncWithClick,
-                        );
-                      },
+                onPressed: () {
+                  if (state.playing) {
+                    _practice.stop();
+                    return;
+                  }
+                  unawaited(_practice.start());
+                  unawaited(
+                    AnalyticsService.logDrumPlayStarted(
+                      syncWithClick: state.syncWithClick,
+                    ),
+                  );
+                },
                 icon: Icon(state.playing ? Icons.stop : Icons.play_arrow),
                 label: Text(state.playing ? 'Stop' : 'Play'),
               ),
