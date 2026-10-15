@@ -119,10 +119,10 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
   void _toggle(DrumLane lane, int step) {
     if (!_canEdit || _busy) return;
     final velocity = switch (_velocity(lane, step)) {
-      0 => 40,
-      <= 40 => 90,
+      0 => 90,
+      <= 40 => 0,
       <= 90 => 120,
-      _ => 0,
+      _ => 40,
     };
     setState(() {
       _hits.removeWhere(
@@ -188,13 +188,16 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
     final canEdit =
         widget.bandId == null || ref.watch(canEditBandProvider(widget.bandId!));
     final playing = ref.watch(drumPracticeProvider.select((s) => s.playing));
+    final currentStep = ref.watch(
+      drumPracticeProvider.select((s) => s.currentStep),
+    );
     final colors = Theme.of(context).colorScheme;
     return SafeArea(
       child: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
+          8,
           16,
-          16,
-          16,
+          8,
           16 + MediaQuery.viewInsetsOf(context).bottom,
         ),
         child: Column(
@@ -229,36 +232,74 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
               ],
             ),
             const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Column(
-                children: [
-                  Row(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 64,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(width: 88),
-                      for (var step = 0; step < _bars * 16; step++)
+                      const SizedBox(height: 24),
+                      for (final lane in DrumLane.values)
                         SizedBox(
-                          width: 48,
-                          child: Text(
-                            '${step + 1}',
-                            textAlign: TextAlign.center,
+                          height: 48,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(_lanes[lane]!.$1),
                           ),
                         ),
                     ],
                   ),
-                  for (final lane in DrumLane.values)
-                    Row(
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
                       children: [
-                        SizedBox(width: 88, child: Text(_lanes[lane]!.$1)),
                         for (var step = 0; step < _bars * 16; step++)
-                          _cell(lane, step, canEdit && !_busy, colors),
+                          Container(
+                            key: ValueKey('drum-step-$step'),
+                            margin: EdgeInsets.only(
+                              left: step > 0 && step % 4 == 0 ? 4 : 0,
+                            ),
+                            color: playing && currentStep == step
+                                ? colors.secondaryContainer
+                                : null,
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  width: 36,
+                                  height: 24,
+                                  child: Center(
+                                    child: Text(
+                                      '${step + 1}',
+                                      style: TextStyle(
+                                        fontWeight: step % 4 == 0
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: step % 4 == 0
+                                            ? colors.primary
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                for (final lane in DrumLane.values)
+                                  _cell(lane, step, canEdit && !_busy, colors),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            const Text('Tap: Ghost (40) → Normal (90) → Accent (120) → Off'),
+            const Text(
+              'Tap: Off → Normal (90) → Accent (120) → Ghost (40) → Off',
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -291,7 +332,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
       _ => 'Accent',
     };
     return SizedBox(
-      width: 48,
+      width: 36,
       height: 48,
       child: Semantics(
         label: '${_lanes[lane]!.$1} step ${step + 1}',

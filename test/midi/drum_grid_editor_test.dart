@@ -153,7 +153,7 @@ void main() {
       expect(pattern.stepsPerBeat, 4);
       expect(pattern.totalSteps, 16);
       expect(pattern.hits.map((h) => (h.step, h.note, h.vel)), [
-        for (var i = 0; i < notes.length; i++) (i, notes[i], 40),
+        for (var i = 0; i < notes.length; i++) (i, notes[i], 90),
       ]);
       expect(repo.saved, isEmpty);
       expect(tester.takeException(), isNull);
@@ -161,10 +161,10 @@ void main() {
   );
 
   testWidgets(
-    'a cell cycles ghost, normal, accent, off without duplicate hits',
+    'a cell cycles normal, accent, ghost, off without duplicate hits',
     (tester) async {
       await open(tester);
-      for (final velocity in [40, 90, 120, 0]) {
+      for (final velocity in [90, 120, 40, 0]) {
         await tester.tap(cell(DrumLane.kick, 0));
         await tester.pump();
         final pattern = await preview(tester);
@@ -227,7 +227,7 @@ void main() {
       expect(entry.pattern!.hits.single.toJson(), {
         'step': 4,
         'note': 38,
-        'vel': 40,
+        'vel': 90,
       });
       expect(find.byType(DrumGridEditor), findsNothing);
     });
@@ -252,7 +252,7 @@ void main() {
           bars: 2,
           beatsPerBar: 4,
           stepsPerBeat: 4,
-          hits: const [MidiHit(step: 0, note: 35, vel: 40)],
+          hits: const [MidiHit(step: 0, note: 35, vel: 90)],
         ).toJson(),
       );
       await open(tester, entry: entry, bandId: 'band');
@@ -270,8 +270,8 @@ void main() {
       expect(saved.tags, ['practice']);
       expect(saved.pattern!.name, 'Edited');
       expect(saved.pattern!.bars, 2);
-      expect(saved.pattern!.hits.single.vel, 90);
-      expect(entry.pattern!.hits.single.vel, 40);
+      expect(saved.pattern!.hits.single.vel, 120);
+      expect(entry.pattern!.hits.single.vel, 90);
     },
   );
 
@@ -340,7 +340,7 @@ void main() {
       repo.fail = false;
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
-      expect(repo.saved.single.pattern!.hits.single.vel, 40);
+      expect(repo.saved.single.pattern!.hits.single.vel, 90);
       expect(player.playing, isFalse);
       expect(tester.takeException(), isNull);
     },
