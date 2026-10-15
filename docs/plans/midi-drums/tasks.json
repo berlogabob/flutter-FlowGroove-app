@@ -195,6 +195,38 @@
     "M08"
    ],
    "status": "pending"
+  },
+  {
+   "id": "M13",
+   "executor": "codex",
+   "title": "Panel entry points to grid editor",
+   "finding": "MIDI",
+   "files": [
+    "lib/widgets/metronome/drum_practice_panel.dart",
+    "test/midi/drum_panel_editor_entry_test.dart"
+   ],
+   "prompt": "In DrumPracticePanel add a 'New pattern' button (next to Import .mid) that opens DrumGridEditor (lib/screens/songs/components/drum_grid_editor.dart) for a new pattern for the same songId/bandId, and an edit IconButton on each listed pattern that opens DrumGridEditor with that entry. Open it with Navigator.of(context, rootNavigator: true).push as a full-screen route (so it does not stack a second bottom bar). The editor must be usable even when the user cannot save (demo/read-only): Play preview still works, Save shows a snackbar explaining why it cannot save instead of failing silently. Add a widget test that tapping New pattern shows the editor. Follow existing style; minimal change; do not modify existing tests except to add new ones; do not touch lib/services/audio/engine/*. The metronome screen tests in test/screens/metronome_* must stay green unchanged. Print DONE.",
+   "verify": "flutter test test/midi/drum_panel_editor_entry_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M11"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "M14",
+   "executor": "codex",
+   "title": "Move Drums button off the Beats card",
+   "finding": "MIDI",
+   "files": [
+    "lib/screens/metronome_screen.dart",
+    "test/midi/drums_button_test.dart"
+   ],
+   "prompt": "In lib/screens/metronome_screen.dart the 'Drums' IconButton (Icons.album_outlined, in the Stack in mainWidget) overlaps the Beats '+' badge on the time signature card. Remove the overlay Stack and instead show a clearly labeled 'Drums' OutlinedButton.icon (album icon) only when state.activeSong != null, placed in normal layout flow directly under the existing 'Songs & Settlists' button (find where that button is built, likely in the transport or song_library_block area) so nothing overlaps at 360dp width in portrait and in landscape. Keep opening DrumPracticePanel in the same modal bottom sheet, not built until tapped. Add a widget test: button hidden without an active song, visible with one, and no overlap with the time signature card bounds. Follow existing style; minimal change; do not modify existing tests except to add new ones; do not touch lib/services/audio/engine/*. The metronome screen tests in test/screens/metronome_* must stay green unchanged. Print DONE.",
+   "verify": "flutter test test/midi/drums_button_test.dart 2>&1 | tail -3 | rg -q 'All tests passed' && ! dart analyze lib 2>&1 | rg -q '^\\s*error -'",
+   "after": [
+    "M10"
+   ],
+   "status": "pending"
   }
  ]
 }
