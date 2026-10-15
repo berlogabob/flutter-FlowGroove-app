@@ -319,15 +319,6 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
               },
             ),
             if (_preview != null) Text('Preview: ${_preview!.title}'),
-            if (pattern != null)
-              DrumKitView(
-                currentStep: state.currentStep,
-                pattern: pattern,
-                muted: state.muted,
-                solo: state.solo,
-                onToggleMute: _practice.toggleMute,
-                onToggleSolo: _practice.toggleSolo,
-              ),
             if (pattern != null) ...[
               FilledButton.icon(
                 onPressed: pattern == null
@@ -358,6 +349,15 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                 ],
               ),
             ],
+            if (pattern != null)
+              DrumKitView(
+                currentStep: state.currentStep,
+                pattern: pattern,
+                muted: state.muted,
+                solo: state.solo,
+                onToggleMute: _practice.toggleMute,
+                onToggleSolo: _practice.toggleSolo,
+              ),
             Row(
               children: [
                 Expanded(
