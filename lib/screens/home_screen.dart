@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../providers/auth/auth_provider.dart';
 import '../providers/data/data_providers.dart';
+import '../providers/permissions_provider.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/dashboard_grid.dart';
 import '../widgets/practice_dashboard_card.dart';
@@ -93,7 +95,7 @@ class HomeScreen extends ConsumerWidget {
   void _openRehearsals(BuildContext context, WidgetRef ref) {
     final bands = ref.read(bandsProvider).value ?? [];
     if (bands.isEmpty) {
-      _showRehearsalsEmptyState(context);
+      _showRehearsalsEmptyState(context, ref);
       return;
     }
     if (bands.length == 1) {
@@ -143,7 +145,8 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _showRehearsalsEmptyState(BuildContext context) {
+  void _showRehearsalsEmptyState(BuildContext context, WidgetRef ref) {
+    final isDemo = ref.read(isDemoUserProvider);
     showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -165,10 +168,17 @@ class HomeScreen extends ConsumerWidget {
               FilledButton.icon(
                 onPressed: () {
                   Navigator.pop(sheetContext);
-                  context.goNamed('create-band');
+                  if (isDemo) {
+                    ref.read(appUserProvider.notifier).signOut();
+                    if (context.mounted) {
+                      context.goNamed('login');
+                    }
+                  } else {
+                    context.goNamed('create-band');
+                  }
                 },
                 icon: const Icon(Icons.group_add),
-                label: const Text('Create a band'),
+                label: Text(isDemo ? 'Sign up to create a band' : 'Create a band'),
               ),
             ],
           ),

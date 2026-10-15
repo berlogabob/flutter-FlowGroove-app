@@ -131,6 +131,25 @@ void main() {
       expect(find.byIcon(Icons.speed), findsOneWidget);
     });
 
+    testWidgets('rehearsals empty state offers Sign up for demo users (#145)', (
+      tester,
+    ) async {
+      final demoUser = AppUser(
+        uid: 'demo',
+        createdAt: DateTime(2024),
+        accessRole: 'demo',
+      );
+
+      await pumpHomeScreen(tester, mockAuth: mockAuth, user: demoUser);
+
+      // No bands -> tapping Rehearsals opens the empty-state sheet.
+      await tester.tap(find.text('Rehearsals'));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Sign up to create a band'), findsOneWidget);
+    });
+
     testWidgets('has responsive layout', (tester) async {
       final mockUser = MockDataHelper.createMockAppUser();
 
