@@ -36,7 +36,7 @@ def verify_cmd(t):
     return PRE + " && ".join(parts) if parts else "true"
 
 def rollback():
-    sh("git checkout -- lib test && git clean -fdq lib test")
+    sh("git checkout -- lib test android && git clean -fdq lib test android")
 
 def ctx_files(t):
     fs = [str(PLAN.relative_to(WT) / "CONTEXT.md")] + t["files"] + t["tests"]
@@ -99,7 +99,7 @@ def main():
             prompt = base if attempt == 1 else base + "\n\nYour previous attempt did not pass. Failure output:\n" + why + "\nFix only what this output says; keep the rest of your change."
             rc, out = run_pi(prompt, t, 2 if attempt == 1 else 1)
             log += [f"## pi attempt {attempt} rc={rc} (tail)", out[-3500:]]
-            changed = sh("git status --porcelain lib test")[1].strip()
+            changed = sh("git status --porcelain lib test android")[1].strip()
             if not changed: why = "no files were changed"; continue
             vrc, vout = sh(verify_cmd(t), timeout=1800)
             log += [f"## verify rc={vrc}", vout[-1500:]]
@@ -119,7 +119,7 @@ def main():
         with LEDGER.open("a") as f: f.write(json.dumps(rec, ensure_ascii=False) + "\n")
         write_status(tasks)
         if ok:
-            sh(f'git add lib test docs/plans/audit-r3 && git commit -qm {q("fix(audit-r3): " + t["id"] + " " + t["title"] + " [" + t["finding"] + "] via pi")}')
+            sh(f'git add lib test android docs/plans/audit-r3 && git commit -qm {q("fix(audit-r3): " + t["id"] + " " + t["title"] + " [" + t["finding"] + "] via pi")}')
             rec["commit"] = sh("git rev-parse --short HEAD")[1].strip()
             lines = [json.dumps(r, ensure_ascii=False) for r in read_ledger()[:-1]] + [json.dumps(rec, ensure_ascii=False)]
             LEDGER.write_text("\n".join(lines) + "\n"); write_status(tasks)
