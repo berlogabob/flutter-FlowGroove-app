@@ -15,6 +15,19 @@ const _labels = <DrumLane, String>{
   DrumLane.ride: 'Ride',
 };
 
+// Short names for the pad faces; the lane rows keep the full labels.
+const _padLabels = <DrumLane, String>{
+  DrumLane.kick: 'Kick',
+  DrumLane.snare: 'Snare',
+  DrumLane.hatClosed: 'HH',
+  DrumLane.hatOpen: 'OH',
+  DrumLane.tomHigh: 'T1',
+  DrumLane.tomMid: 'T2',
+  DrumLane.tomFloor: 'Floor',
+  DrumLane.crash: 'Crash',
+  DrumLane.ride: 'Ride',
+};
+
 class DrumKitView extends StatefulWidget {
   const DrumKitView({
     required this.currentStep,
@@ -102,80 +115,65 @@ class _DrumKitViewState extends State<DrumKitView>
             ),
           ),
         ),
-        LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SizedBox(
-              width: constraints.maxWidth.clamp(360.0, double.infinity),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (final lane in DrumLane.values)
-                    if (hits.containsKey(lane))
-                      Row(
-                        key: ValueKey('lane-${lane.name}'),
-                        children: [
-                          SizedBox(
-                            width: 72,
-                            child: Text(
-                              _labels[lane]!,
-                              style: Theme.of(context).textTheme.labelSmall,
-                            ),
-                          ),
-                          for (var offset = 0; offset < 16; offset++)
-                            Expanded(
-                              child: Center(
-                                child: Semantics(
-                                  label:
-                                      '${_labels[lane]} step ${(current + offset) % steps + 1}',
-                                  value:
-                                      hits[lane]!.contains(
-                                        (current + offset) % steps,
-                                      )
-                                      ? 'Hit'
-                                      : 'Rest',
-                                  selected: offset == 0,
-                                  child: Container(
-                                    key: ValueKey('dot-${lane.name}-$offset'),
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color:
-                                          hits[lane]!.contains(
-                                            (current + offset) % steps,
-                                          )
-                                          ? colors.primary
-                                          : null,
-                                      border: Border.all(
-                                        color: offset == 0
-                                            ? colors.tertiary
-                                            : colors.outlineVariant,
-                                        width: offset == 0 ? 2 : 1,
-                                      ),
-                                    ),
-                                  ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final lane in DrumLane.values)
+              if (hits.containsKey(lane))
+                Row(
+                  key: ValueKey('lane-${lane.name}'),
+                  children: [
+                    SizedBox(
+                      width: 56,
+                      child: Text(
+                        _labels[lane]!,
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ),
+                    for (var offset = 0; offset < 16; offset++)
+                      Expanded(
+                        child: Center(
+                          child: Semantics(
+                            label:
+                                '${_labels[lane]} step ${(current + offset) % steps + 1}',
+                            value:
+                                hits[lane]!.contains((current + offset) % steps)
+                                ? 'Hit'
+                                : 'Rest',
+                            selected: offset == 0,
+                            child: Container(
+                              key: ValueKey('dot-${lane.name}-$offset'),
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    hits[lane]!.contains(
+                                      (current + offset) % steps,
+                                    )
+                                    ? colors.primary
+                                    : null,
+                                border: Border.all(
+                                  color: offset == 0
+                                      ? colors.tertiary
+                                      : colors.outlineVariant,
+                                  width: offset == 0 ? 2 : 1,
                                 ),
                               ),
                             ),
-                          _chip(
-                            lane,
-                            'M',
-                            widget.muted.contains(lane),
-                            widget.onToggleMute,
                           ),
-                          _chip(
-                            lane,
-                            'S',
-                            widget.solo == lane,
-                            widget.onToggleSolo,
-                          ),
-                        ],
+                        ),
                       ),
-                ],
-              ),
-            ),
-          ),
+                    _chip(
+                      lane,
+                      'M',
+                      widget.muted.contains(lane),
+                      widget.onToggleMute,
+                    ),
+                    _chip(lane, 'S', widget.solo == lane, widget.onToggleSolo),
+                  ],
+                ),
+          ],
         ),
       ],
     );
@@ -197,7 +195,7 @@ class _DrumKitViewState extends State<DrumKitView>
         selected: selected,
         showCheckmark: false,
         padding: EdgeInsets.zero,
-        labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+        labelPadding: EdgeInsets.zero,
         materialTapTargetSize: MaterialTapTargetSize.padded,
         onSelected: (_) => onToggle(lane),
       ),
@@ -219,8 +217,8 @@ class DrumKitPainter extends CustomPainter {
   static const _pads = <DrumLane, (double, double, double)>{
     DrumLane.kick: (0.50, 0.68, 0.17),
     DrumLane.snare: (0.26, 0.66, 0.11),
-    DrumLane.hatClosed: (0.10, 0.42, 0.07),
-    DrumLane.hatOpen: (0.10, 0.67, 0.07),
+    DrumLane.hatClosed: (0.10, 0.42, 0.09),
+    DrumLane.hatOpen: (0.10, 0.67, 0.09),
     DrumLane.tomHigh: (0.36, 0.30, 0.10),
     DrumLane.tomMid: (0.60, 0.30, 0.11),
     DrumLane.tomFloor: (0.79, 0.68, 0.12),
@@ -255,7 +253,7 @@ class DrumKitPainter extends CustomPainter {
         );
       final label = TextPainter(
         text: TextSpan(
-          text: _labels[entry.key],
+          text: _padLabels[entry.key],
           style: TextStyle(
             color: strength > 0.5 ? colors.onPrimary : colors.onSurface,
             fontSize: 10,
