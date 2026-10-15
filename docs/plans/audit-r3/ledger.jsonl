@@ -9,4 +9,5 @@
 {"id": "R12", "finding": "F-005", "title": "Editor: Play and Save pinned at the bottom", "verdict": "pass", "attempts": 1, "secs": 875, "why": "", "diff": "4 files changed, 41 insertions(+), 31 deletions(-)", "commit": "44cc7486"}
 {"id": "R13", "finding": "F-005", "title": "Editor: dirty notifier", "verdict": "pass", "attempts": 1, "secs": 346, "why": "", "diff": "6 files changed, 24 insertions(+), 8 deletions(-)", "commit": "e79d7e12"}
 {"id": "R14", "finding": "F-005", "title": "Panel: discard-changes prompt on closing the editor", "verdict": "pass", "attempts": 1, "secs": 261, "why": "", "diff": "4 files changed, 43 insertions(+), 14 deletions(-)", "commit": "dd6d438e"}
-{"id": "R15", "finding": "F-009", "title": "Shared lane labels in drum_map", "verdict": "pass", "attempts": 1, "secs": 100, "why": "", "diff": "5 files changed, 38 insertions(+), 5 deletions(-)"}
+{"id": "R15", "finding": "F-009", "title": "Shared lane labels in drum_map", "verdict": "pass", "attempts": 1, "secs": 100, "why": "", "diff": "5 files changed, 38 insertions(+), 5 deletions(-)", "commit": "51fa09cd"}
+{"id": "R16", "finding": "F-009", "title": "Kit view uses shared labels", "verdict": "pass", "attempts": 1, "secs": 148, "why": "", "diff": "4 files changed, 9 insertions(+), 34 deletions(-)"}

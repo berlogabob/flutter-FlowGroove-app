@@ -3,31 +3,6 @@ import 'package:flutter/material.dart';
 import '../../models/midi_pattern.dart';
 import '../../services/audio/midi/drum_map.dart';
 
-const _labels = <DrumLane, String>{
-  DrumLane.kick: 'Kick',
-  DrumLane.snare: 'Snare',
-  DrumLane.hatClosed: 'Closed hat',
-  DrumLane.hatOpen: 'Open hat',
-  DrumLane.tomHigh: 'High tom',
-  DrumLane.tomMid: 'Mid tom',
-  DrumLane.tomFloor: 'Floor tom',
-  DrumLane.crash: 'Crash',
-  DrumLane.ride: 'Ride',
-};
-
-// Short names for the pad faces; the lane rows keep the full labels.
-const _padLabels = <DrumLane, String>{
-  DrumLane.kick: 'Kick',
-  DrumLane.snare: 'Snare',
-  DrumLane.hatClosed: 'HH',
-  DrumLane.hatOpen: 'OH',
-  DrumLane.tomHigh: 'T1',
-  DrumLane.tomMid: 'T2',
-  DrumLane.tomFloor: 'Floor',
-  DrumLane.crash: 'Crash',
-  DrumLane.ride: 'Ride',
-};
-
 class DrumKitView extends StatefulWidget {
   const DrumKitView({
     required this.currentStep,
@@ -126,7 +101,7 @@ class _DrumKitViewState extends State<DrumKitView>
                     SizedBox(
                       width: 56,
                       child: Text(
-                        _labels[lane]!,
+                        laneLabel(lane),
                         style: Theme.of(context).textTheme.labelSmall,
                       ),
                     ),
@@ -135,7 +110,7 @@ class _DrumKitViewState extends State<DrumKitView>
                         child: Center(
                           child: Semantics(
                             label:
-                                '${_labels[lane]} step ${(current + offset) % steps + 1}',
+                                '${laneLabel(lane)} step ${(current + offset) % steps + 1}',
                             value:
                                 hits[lane]!.contains((current + offset) % steps)
                                 ? 'Hit'
@@ -191,7 +166,7 @@ class _DrumKitViewState extends State<DrumKitView>
       child: FilterChip(
         key: ValueKey('$label-${lane.name}'),
         label: Text(label),
-        tooltip: '${label == 'M' ? 'Mute' : 'Solo'} ${_labels[lane]}',
+        tooltip: '${label == 'M' ? 'Mute' : 'Solo'} ${laneLabel(lane)}',
         selected: selected,
         showCheckmark: false,
         padding: EdgeInsets.zero,
@@ -253,7 +228,7 @@ class DrumKitPainter extends CustomPainter {
         );
       final label = TextPainter(
         text: TextSpan(
-          text: _padLabels[entry.key],
+          text: lanePadLabel(entry.key),
           style: TextStyle(
             color: strength > 0.5 ? colors.onPrimary : colors.onSurface,
             fontSize: 10,
