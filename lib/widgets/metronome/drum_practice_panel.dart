@@ -96,6 +96,7 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
   }
 
   Future<void> _openEditor([SongLabEntry? entry]) async {
+    final dirty = ValueNotifier<bool>(false);
     final parent = ProviderScope.containerOf(context, listen: false);
     final editorScope = ProviderContainer(
       overrides: [
@@ -130,16 +131,43 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
     );
     final route = MaterialPageRoute<SongLabEntry>(
       fullscreenDialog: true,
-      builder: (_) => UncontrolledProviderScope(
+      builder: (ctx) => UncontrolledProviderScope(
         container: editorScope,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(entry == null ? 'New pattern' : 'Edit pattern'),
-          ),
-          body: DrumGridEditor(
-            songId: widget.songId,
-            bandId: widget.bandId,
-            entry: entry,
+        child: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) async {
+            if (didPop) return;
+            if (!dirty.value) {
+              Navigator.of(ctx).pop();
+              return;
+            }
+            final discard = await showDialog<bool>(
+              context: ctx,
+              builder: (dc) => AlertDialog(
+                title: const Text('Discard changes?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dc).pop(false),
+                    child: const Text('Keep editing'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.of(dc).pop(true),
+                    child: const Text('Discard'),
+                  ),
+                ],
+              ),
+            );
+            if (discard == true && ctx.mounted) Navigator.of(ctx).pop();
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(entry == null ? 'New pattern' : 'Edit pattern'),
+            ),
+            body: DrumGridEditor(
+              songId: widget.songId,
+              bandId: widget.bandId,
+              entry: entry,
+            ),
           ),
         ),
       ),
@@ -149,6 +177,7 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
       await route.completed;
     } finally {
       editorScope.dispose();
+      dirty.dispose();
     }
   }
 
