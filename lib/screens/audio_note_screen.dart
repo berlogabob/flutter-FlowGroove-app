@@ -462,6 +462,14 @@ class _AudioNoteScreenState extends ConsumerState<AudioNoteScreen> {
           _buildScrubber(markers),
           const SizedBox(height: MonoPulseSpacing.sm),
           _buildTransport(),
+          const SizedBox(height: 8),
+          Text(
+            'Microphone access is requested the first time you record.',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
           if (_canTrim && _isTrimmed) ...[
             const SizedBox(height: MonoPulseSpacing.md),
             FilledButton.icon(

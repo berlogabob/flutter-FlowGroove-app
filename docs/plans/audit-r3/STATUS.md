@@ -33,12 +33,12 @@
 | R29 | F-017 | Rehearsals sheet: demo users sign up | pass | 1 | 260 | 4dc78122 |
 | R30 | F-017 | Create band demo: Sign Up as filled button | pass | 1 | 105 | cd5541d8 |
 | R31 | F-019 | Song card: muted -- BPM placeholder | pass | 1 | 137 | 9e722e4c |
-| R32 | F-022 | Filter sheet: chips aligned to the gutter | pass | 1 | 146 |  |
-| R33 | F-016 | Audio note: microphone caption | pending |  |  |  |
+| R32 | F-022 | Filter sheet: chips aligned to the gutter | pass | 1 | 146 | 5ed2b820 |
+| R33 | F-016 | Audio note: microphone caption | pass | 1 | 127 |  |
 | R34 | F-023 | Analytics: drum event names | pending |  |  |  |
 | R35 | F-023 | Analytics: drum log methods | pending |  |  |  |
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-28/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 16:30:57
+29/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 16:33:04
