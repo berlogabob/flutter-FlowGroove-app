@@ -41,12 +41,12 @@
 | R37 | F-023 | Editor logs pattern saved | pass | 1 | 159 | b9b77478 |
 | R38 | F-024 | MidiPattern.withName helper | pass | 1 | 145 | 977e39e2 |
 | R39 | F-024 | Drums button shows the pattern title, not Imported | pass | 1 | 177 | 10159a57 |
-| R40 | F-025 | Regression test for readPickedBytes | pass | 1 | 328 |  |
-| R41 | F-027 | Cold start: disable the OS starting-window preview | pending |  |  |  |
+| R40 | F-025 | Regression test for readPickedBytes | pass | 1 | 328 | 8b8112d2 |
+| R41 | F-027 | Cold start: disable the OS starting-window preview | fail | 2 | 49 |  |
 | R42 | F-027 | Cold start (night theme) | pending |  |  |  |
-| R43 | F-028 | Login: Retry on connection errors | pending |  |  |  |
+| R43 | F-028 | Login: Retry on connection errors | pass | 1 | 255 |  |
 | R44 | F-029 | Tuner: note labels away from the tick marks | pending |  |  |  |
 | R45 | F-001 | Editor: pages of 8 steps instead of a scrolling grid | pending |  |  |  |
 
-40/45 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 17:55:59
+41/45 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 18:01:03

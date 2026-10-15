@@ -345,6 +345,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       _currentError?.message ?? 'An unexpected error occurred',
                   onRetry: _clearError,
                 ),
+                if (_currentError?.message.contains('Unable to connect') ??
+                    false) ...[
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _clearError,
+                    child: const Text('Retry'),
+                  ),
+                ],
                 const SizedBox(height: 24),
               ],
               TextFormField(
