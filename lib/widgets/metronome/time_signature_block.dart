@@ -283,7 +283,7 @@ class _BeatsRow extends StatelessWidget {
     final addBtnSpacing = isSmallScreen
         ? MonoPulseSpacing.xs
         : MonoPulseSpacing.sm;
-    final buttonSize = isSmallScreen ? 40.0 : 48.0;
+    final buttonSize = 48.0;
 
     return Row(
       children: [
@@ -398,7 +398,7 @@ class _SubdivisionsRow extends StatelessWidget {
     final addBtnSpacing = isSmallScreen
         ? MonoPulseSpacing.xs
         : MonoPulseSpacing.sm;
-    final buttonSize = isSmallScreen ? 40.0 : 48.0;
+    final buttonSize = 48.0;
 
     return Row(
       children: [
@@ -674,7 +674,7 @@ class _BeatButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Smaller buttons on small screens
-    final size = buttonSize ?? (isSmallScreen ? 40.0 : 48.0);
+    final size = buttonSize ?? 48.0;
     final iconSize = isSmallScreen ? 16.0 : 20.0;
     final badgeSize = isSmallScreen ? 14.0 : 18.0;
     final badgeFontSize = isSmallScreen ? 8.0 : 10.0;

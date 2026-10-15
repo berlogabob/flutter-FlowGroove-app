@@ -19,4 +19,5 @@
 {"id": "R22", "finding": "F-013", "title": "Drum practice notifier mirrors playing state", "verdict": "pass", "attempts": 1, "secs": 142, "why": "", "diff": "5 files changed, 13 insertions(+), 5 deletions(-)", "commit": "2e96b479"}
 {"id": "R23", "finding": "F-013", "title": "Drums button shows active state", "verdict": "pass", "attempts": 1, "secs": 257, "why": "", "diff": "6 files changed, 33 insertions(+), 21 deletions(-)", "commit": "80b90ee6"}
 {"id": "R24", "finding": "F-014", "title": "BPM number stays white while playing", "verdict": "pass", "attempts": 1, "secs": 104, "why": "", "diff": "4 files changed, 7 insertions(+), 9 deletions(-)", "commit": "632a304a"}
-{"id": "R25", "finding": "F-015", "title": "Fast tempo hint", "verdict": "pass", "attempts": 1, "secs": 134, "why": "", "diff": "5 files changed, 19 insertions(+), 6 deletions(-)"}
+{"id": "R25", "finding": "F-015", "title": "Fast tempo hint", "verdict": "pass", "attempts": 1, "secs": 134, "why": "", "diff": "5 files changed, 19 insertions(+), 6 deletions(-)", "commit": "3f21f686"}
+{"id": "R26", "finding": "F-018", "title": "Steppers 48dp on small screens", "verdict": "pass", "attempts": 1, "secs": 161, "why": "", "diff": "4 files changed, 8 insertions(+), 8 deletions(-)"}
