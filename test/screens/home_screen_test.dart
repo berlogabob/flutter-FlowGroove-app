@@ -89,9 +89,9 @@ void main() {
       await pumpHomeScreen(tester, mockAuth: mockAuth, user: mockUser);
 
       expect(find.byType(QuickActionButton), findsNWidgets(4));
-      expect(find.text('Song'), findsOneWidget);
-      expect(find.text('Band'), findsOneWidget);
-      expect(find.text('Setlist'), findsOneWidget);
+      expect(find.text('Add song'), findsOneWidget);
+      expect(find.text('Add band'), findsOneWidget);
+      expect(find.text('Add setlist'), findsOneWidget);
       expect(find.text('Practice'), findsOneWidget);
     });
 

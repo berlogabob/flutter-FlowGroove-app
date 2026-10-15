@@ -21,4 +21,5 @@
 {"id": "R24", "finding": "F-014", "title": "BPM number stays white while playing", "verdict": "pass", "attempts": 1, "secs": 104, "why": "", "diff": "4 files changed, 7 insertions(+), 9 deletions(-)", "commit": "632a304a"}
 {"id": "R25", "finding": "F-015", "title": "Fast tempo hint", "verdict": "pass", "attempts": 1, "secs": 134, "why": "", "diff": "5 files changed, 19 insertions(+), 6 deletions(-)", "commit": "3f21f686"}
 {"id": "R26", "finding": "F-018", "title": "Steppers 48dp on small screens", "verdict": "pass", "attempts": 1, "secs": 161, "why": "", "diff": "4 files changed, 8 insertions(+), 8 deletions(-)", "commit": "a9e07ae6"}
-{"id": "R27", "finding": "F-021", "title": "Practice card: Tap to start readable", "verdict": "pass", "attempts": 1, "secs": 123, "why": "", "diff": "4 files changed, 24 insertions(+), 10 deletions(-)"}
+{"id": "R27", "finding": "F-021", "title": "Practice card: Tap to start readable", "verdict": "pass", "attempts": 1, "secs": 123, "why": "", "diff": "4 files changed, 24 insertions(+), 10 deletions(-)", "commit": "23a9ebdc"}
+{"id": "R28", "finding": "F-021", "title": "Quick action labels with verbs", "verdict": "pass", "attempts": 1, "secs": 136, "why": "", "diff": "6 files changed, 14 insertions(+), 14 deletions(-)"}

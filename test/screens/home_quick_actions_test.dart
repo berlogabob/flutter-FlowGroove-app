@@ -101,7 +101,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Quick Actions'), findsOneWidget);
-      expect(find.text('Song'), findsOneWidget);
+      expect(find.text('Add song'), findsOneWidget);
       // #145: one-tap capture in Quick Actions, full Recorder in Tools.
       expect(find.text('Audio note'), findsOneWidget);
       expect(find.text('Recorder'), findsOneWidget);
@@ -133,7 +133,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Song'));
+      await tester.tap(find.text('Add song'));
       await tester.pumpAndSettle();
 
       expect(currentRouterUri(router).path, '/main/songs/add');

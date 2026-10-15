@@ -33,17 +33,17 @@ class HomeScreen extends ConsumerWidget {
       quickActions: [
         QuickActionButton(
           icon: Icons.add,
-          label: 'Song',
+          label: 'Add song',
           onTap: () => context.goNamed('add-song'),
         ),
         QuickActionButton(
           icon: Icons.group_add,
-          label: 'Band',
+          label: 'Add band',
           onTap: () => context.goNamed('create-band'),
         ),
         QuickActionButton(
           icon: Icons.playlist_add,
-          label: 'Setlist',
+          label: 'Add setlist',
           onTap: () => context.goNamed('create-setlist'),
         ),
         // One tap, recording already running (#145 feedback).
