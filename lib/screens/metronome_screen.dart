@@ -15,8 +15,9 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
-import '../widgets/metronome/metronome_sheets.dart';
 import '../utils/snackbar.dart' show showGlobalSnackBar;
+import '../widgets/metronome/drum_practice_panel.dart';
+import '../widgets/metronome/metronome_sheets.dart';
 import '../widgets/metronome/song_library_block.dart';
 import '../widgets/metronome/tempo_control_cluster.dart';
 import '../widgets/metronome/time_signature_block.dart';
@@ -139,7 +140,29 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
           state,
           canEditSource: canEditSource,
         ),
-        mainWidget: const _MetronomePerformanceSurface(),
+        mainWidget: Stack(
+          children: [
+            const Positioned.fill(child: _MetronomePerformanceSurface()),
+            if (state.activeSong != null)
+              Positioned(
+                top: 0,
+                right: 8,
+                child: IconButton(
+                  tooltip: 'Drums',
+                  icon: const Icon(Icons.album_outlined),
+                  onPressed: () => showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    showDragHandle: true,
+                    builder: (_) => DrumPracticePanel(
+                      songId: state.activeSong!.id,
+                      bandId: state.sourceBandId,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
