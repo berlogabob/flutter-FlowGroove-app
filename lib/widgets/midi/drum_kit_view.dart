@@ -118,8 +118,8 @@ class _DrumKitViewState extends State<DrumKitView>
                             selected: offset == 0,
                             child: Container(
                               key: ValueKey('dot-${lane.name}-$offset'),
-                              width: 8,
-                              height: 8,
+                              width: 10,
+                              height: 10,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color:
@@ -131,7 +131,7 @@ class _DrumKitViewState extends State<DrumKitView>
                                 border: Border.all(
                                   color: offset == 0
                                       ? colors.tertiary
-                                      : colors.outlineVariant,
+                                      : colors.outline,
                                   width: offset == 0 ? 2 : 1,
                                 ),
                               ),
