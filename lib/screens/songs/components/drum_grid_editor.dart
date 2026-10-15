@@ -204,7 +204,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Drum pattern', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
             TextField(
               controller: _name,
               enabled: canEdit && !_busy,
