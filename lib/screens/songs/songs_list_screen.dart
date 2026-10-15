@@ -470,26 +470,24 @@ class _SongsListScreenState extends ConsumerState<SongsListScreen>
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  Row(
+                  Wrap(
+                    alignment: WrapAlignment.start,
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      Expanded(
-                        child: AppFilterChip(
-                          label: 'Major',
-                          selected: !keyIsMinor,
-                          onSelected: (_) {
-                            setModalState(() => keyIsMinor = false);
-                          },
-                        ),
+                      AppFilterChip(
+                        label: 'Major',
+                        selected: !keyIsMinor,
+                        onSelected: (_) {
+                          setModalState(() => keyIsMinor = false);
+                        },
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: AppFilterChip(
-                          label: 'Minor',
-                          selected: keyIsMinor,
-                          onSelected: (_) {
-                            setModalState(() => keyIsMinor = true);
-                          },
-                        ),
+                      AppFilterChip(
+                        label: 'Minor',
+                        selected: keyIsMinor,
+                        onSelected: (_) {
+                          setModalState(() => keyIsMinor = true);
+                        },
                       ),
                     ],
                   ),
