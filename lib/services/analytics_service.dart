@@ -500,6 +500,72 @@ class AnalyticsService {
     }
   }
 
+  // ============================================================
+  // DRUM MACHINE EVENTS
+  // ============================================================
+
+  /// Log an imported drum pattern.
+  static Future<void> logDrumPatternImported({required int hitCount}) async {
+    try {
+      await _analytics.logEvent(
+        name: AnalyticsEvents.drumPatternImported,
+        parameters: {AnalyticsParams.hitCount: hitCount},
+      );
+      if (_debugMode) {
+        debugPrint('📊 Event: drum_pattern_imported (hit_count: $hitCount)');
+      }
+    } catch (e) {
+      _logError('logDrumPatternImported', e);
+    }
+  }
+
+  /// Log a saved drum pattern.
+  static Future<void> logDrumPatternSaved({required int hitCount}) async {
+    try {
+      await _analytics.logEvent(
+        name: AnalyticsEvents.drumPatternSaved,
+        parameters: {AnalyticsParams.hitCount: hitCount},
+      );
+      if (_debugMode) {
+        debugPrint('📊 Event: drum_pattern_saved (hit_count: $hitCount)');
+      }
+    } catch (e) {
+      _logError('logDrumPatternSaved', e);
+    }
+  }
+
+  /// Log drum play started.
+  static Future<void> logDrumPlayStarted({required bool syncWithClick}) async {
+    try {
+      await _analytics.logEvent(
+        name: AnalyticsEvents.drumPlayStarted,
+        parameters: {AnalyticsParams.syncWithClick: syncWithClick},
+      );
+      if (_debugMode) {
+        debugPrint(
+          '📊 Event: drum_play_started (sync_with_click: $syncWithClick)',
+        );
+      }
+    } catch (e) {
+      _logError('logDrumPlayStarted', e);
+    }
+  }
+
+  /// Log drum sync toggled.
+  static Future<void> logDrumSyncToggled({required bool enabled}) async {
+    try {
+      await _analytics.logEvent(
+        name: AnalyticsEvents.drumSyncToggled,
+        parameters: {AnalyticsParams.syncWithClick: enabled},
+      );
+      if (_debugMode) {
+        debugPrint('📊 Event: drum_sync_toggled (sync_with_click: $enabled)');
+      }
+    } catch (e) {
+      _logError('logDrumSyncToggled', e);
+    }
+  }
+
   // Navigation: `screen_view` comes from the router's FirebaseAnalyticsObserver
   // (see createAppRouter), not from anything in this file.
 

@@ -140,6 +140,28 @@ void main() {
       });
     });
 
+    group('Drum service methods', () {
+      // These route straight through `_analytics.logEvent` (like the legacy
+      // methods), so the calls are swallowed by the try/catch in the unit test
+      // environment where Firebase isn't initialized. We only assert they don't
+      // throw.
+      test('logDrumPatternImported logs without throwing', () async {
+        await AnalyticsService.logDrumPatternImported(hitCount: 42);
+      });
+
+      test('logDrumPatternSaved logs without throwing', () async {
+        await AnalyticsService.logDrumPatternSaved(hitCount: 42);
+      });
+
+      test('logDrumPlayStarted logs without throwing', () async {
+        await AnalyticsService.logDrumPlayStarted(syncWithClick: true);
+      });
+
+      test('logDrumSyncToggled logs without throwing', () async {
+        await AnalyticsService.logDrumSyncToggled(enabled: true);
+      });
+    });
+
     group('Analytics Constants', () {
       test('AnalyticsEvents has all required event names', () {
         // Authentication

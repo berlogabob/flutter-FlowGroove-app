@@ -35,10 +35,10 @@
 | R31 | F-019 | Song card: muted -- BPM placeholder | pass | 1 | 137 | 9e722e4c |
 | R32 | F-022 | Filter sheet: chips aligned to the gutter | pass | 1 | 146 | 5ed2b820 |
 | R33 | F-016 | Audio note: microphone caption | pass | 1 | 127 | 239f8685 |
-| R34 | F-023 | Analytics: drum event names | pass | 1 | 205 |  |
-| R35 | F-023 | Analytics: drum log methods | pending |  |  |  |
+| R34 | F-023 | Analytics: drum event names | pass | 1 | 205 | 88f5f572 |
+| R35 | F-023 | Analytics: drum log methods | pass | 1 | 174 |  |
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-30/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 16:36:29
+31/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 16:39:23
