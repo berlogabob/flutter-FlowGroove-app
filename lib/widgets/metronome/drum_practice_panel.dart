@@ -16,7 +16,6 @@ import '../../screens/songs/components/drum_grid_editor.dart';
 import '../../services/analytics_service.dart';
 import '../../services/audio/midi/smf_parser.dart';
 import '../../utils/picked_file.dart';
-import '../../utils/snackbar.dart' show showGlobalSnackBar;
 import '../midi/drum_kit_view.dart';
 
 class DrumPracticePanel extends ConsumerStatefulWidget {
@@ -81,6 +80,7 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
   }
 
   SongLabEntry? _preview;
+  String? _error;
   String? _selectedId;
   bool _busy = false;
 
@@ -97,8 +97,8 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
   }
 
   void _showError(Object error) {
-    // Root messenger: the panel sits in a modal sheet that covers the local one.
-    showGlobalSnackBar('$error', error: true);
+    // Inline: a snackbar would render behind this bottom sheet.
+    if (mounted) setState(() => _error = '$error');
   }
 
   Future<void> _openEditor([SongLabEntry? entry]) async {
@@ -189,7 +189,10 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
 
   Future<void> _import() async {
     if (!_canImport) return;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
       // Any file keeps native pickers compatible; the SMF parser validates it.
       // ignore: avoid_redundant_argument_values
@@ -233,7 +236,10 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
   Future<void> _save() async {
     final entry = _preview;
     if (entry == null || !_canImport) return;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
       await ref
           .read(labRepositoryProvider)
@@ -399,6 +405,19 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
                 solo: state.solo,
                 onToggleMute: _practice.toggleMute,
                 onToggleSolo: _practice.toggleSolo,
+              ),
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
               ),
             Row(
               children: [

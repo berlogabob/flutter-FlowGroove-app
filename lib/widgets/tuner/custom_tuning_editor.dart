@@ -25,6 +25,7 @@ class CustomTuningEditor extends ConsumerStatefulWidget {
 
 class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
   final _nameController = TextEditingController();
+  String? _nameError;
   late List<String> _selectedNotes;
   late int _stringCount;
   late List<String> _stringLabels;
@@ -174,10 +175,14 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
             ),
             child: TextField(
               controller: _nameController,
+              onChanged: (_) {
+                if (_nameError != null) setState(() => _nameError = null);
+              },
               style: MonoPulseTypography.bodyLarge.copyWith(
                 color: context.mp.textHighEmphasis,
               ),
               decoration: InputDecoration(
+                errorText: _nameError,
                 hintText: 'Tuning name (e.g., My Open G)',
                 hintStyle: MonoPulseTypography.bodyMedium.copyWith(
                   color: context.mp.textTertiary,
@@ -264,8 +269,8 @@ class _CustomTuningEditorState extends ConsumerState<CustomTuningEditor> {
   Future<void> _saveCustomTuning() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      // Root messenger: this editor is a modal sheet and would cover a local one.
-      showGlobalSnackBar('Please enter a name for this tuning', error: true);
+      // Inline: a snackbar would render behind this bottom sheet.
+      setState(() => _nameError = 'Please enter a name for this tuning');
       return;
     }
 
