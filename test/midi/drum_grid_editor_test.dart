@@ -56,12 +56,14 @@ void main() {
   late _Player player;
   late _Repository repo;
   late bool canEdit;
+  late ValueNotifier<bool> dirty;
 
   setUp(() {
     runtime = MetronomeTestRuntime();
     player = _Player();
     repo = _Repository();
     canEdit = true;
+    dirty = ValueNotifier(false);
     final auth = MockFirebaseAuth();
     final user = MockUser();
     when(auth.currentUser).thenReturn(user);
@@ -86,6 +88,7 @@ void main() {
     WidgetTester tester, {
     SongLabEntry? entry,
     String? bandId,
+    ValueNotifier<bool>? dirtyNotifier,
   }) async {
     tester.view.physicalSize = const Size(1100, 1000);
     tester.view.devicePixelRatio = 1;
@@ -107,6 +110,7 @@ void main() {
                       songId: 'song',
                       bandId: bandId,
                       entry: entry,
+                      dirty: dirtyNotifier ?? dirty,
                     ),
                   ),
                   child: const Text('Open'),
@@ -199,6 +203,7 @@ void main() {
       for (final bars in [3, 2, 1, 4]) {
         await tester.tap(find.text('$bars ${bars == 1 ? 'bar' : 'bars'}'));
         await tester.pumpAndSettle();
+        expect(dirty.value, isTrue);
         expect(cell(DrumLane.ride, bars * 16 - 1), findsOneWidget);
         expect(cell(DrumLane.ride, bars * 16), findsNothing);
         final resized = await preview(tester);
@@ -261,6 +266,7 @@ void main() {
       await tester.tap(cell(DrumLane.kick, 0));
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
+      expect(dirty.value, isTrue);
       final saved = repo.saved.single;
       expect(saved.id, entry.id);
       expect(saved.createdAt, entry.createdAt);

@@ -29,12 +29,14 @@ class DrumGridEditor extends ConsumerStatefulWidget {
     required this.songId,
     this.bandId,
     this.entry,
+    this.dirty,
     super.key,
   });
 
   final String songId;
   final String? bandId;
   final SongLabEntry? entry;
+  final ValueNotifier<bool>? dirty;
 
   @override
   ConsumerState<DrumGridEditor> createState() => _DrumGridEditorState();
@@ -130,6 +132,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
       _hits.removeWhere(
         (hit) => hit.step == step && laneForNote(hit.note) == lane,
       );
+      widget.dirty?.value = true;
       if (velocity > 0) {
         _hits.add(MidiHit(step: step, note: _lanes[lane]!.$2, vel: velocity));
       }
@@ -213,7 +216,10 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
               controller: _name,
               enabled: canEdit && !_busy,
               decoration: const InputDecoration(labelText: 'Name'),
-              onChanged: (_) => setState(() {}),
+              onChanged: (_) {
+                setState(() {});
+                widget.dirty?.value = true;
+              },
             ),
             const SizedBox(height: 16),
             Row(
@@ -232,6 +238,7 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
                                   _hits.removeWhere(
                                     (hit) => hit.step >= bars * 16,
                                   );
+                                  widget.dirty?.value = true;
                                 });
                                 unawaited(_practice.stop());
                               }

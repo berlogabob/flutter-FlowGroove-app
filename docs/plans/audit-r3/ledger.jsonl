@@ -6,4 +6,5 @@
 {"id": "R09", "finding": "F-007", "title": "Editor: beat tint instead of orange outline", "verdict": "pass", "attempts": 1, "secs": 220, "why": "", "diff": "5 files changed, 6 insertions(+), 8 deletions(-)", "commit": "e0f1c49a"}
 {"id": "R10", "finding": "F-001", "title": "Editor: visible horizontal scrollbar", "verdict": "pass", "attempts": 1, "secs": 498, "why": "", "diff": "5 files changed, 21 insertions(+), 8 deletions(-)", "commit": "34532613"}
 {"id": "R11", "finding": "F-001", "title": "Editor: legend above the grid", "verdict": "pass", "attempts": 1, "secs": 273, "why": "", "diff": "4 files changed, 9 insertions(+), 9 deletions(-)", "commit": "0a8f7d21"}
-{"id": "R12", "finding": "F-005", "title": "Editor: Play and Save pinned at the bottom", "verdict": "pass", "attempts": 1, "secs": 875, "why": "", "diff": "4 files changed, 41 insertions(+), 31 deletions(-)"}
+{"id": "R12", "finding": "F-005", "title": "Editor: Play and Save pinned at the bottom", "verdict": "pass", "attempts": 1, "secs": 875, "why": "", "diff": "4 files changed, 41 insertions(+), 31 deletions(-)", "commit": "44cc7486"}
+{"id": "R13", "finding": "F-005", "title": "Editor: dirty notifier", "verdict": "pass", "attempts": 1, "secs": 346, "why": "", "diff": "6 files changed, 24 insertions(+), 8 deletions(-)"}

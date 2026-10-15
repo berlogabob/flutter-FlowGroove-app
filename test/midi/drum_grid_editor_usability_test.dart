@@ -35,10 +35,12 @@ void main() {
   late ProviderContainer container;
   late MetronomeTestRuntime runtime;
   late _Player player;
+  late ValueNotifier<bool> dirty;
 
   setUp(() {
     runtime = MetronomeTestRuntime();
     player = _Player();
+    dirty = ValueNotifier(false);
     container = ProviderContainer(
       overrides: [
         ...runtime.overrides,
@@ -60,8 +62,8 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(
-          home: Scaffold(body: DrumGridEditor(songId: 'song')),
+        child: MaterialApp(
+          home: Scaffold(body: DrumGridEditor(songId: 'song', dirty: dirty)),
         ),
       ),
     );
@@ -90,6 +92,7 @@ void main() {
     ]) {
       await tester.tap(cell(0));
       await tester.pumpAndSettle();
+      expect(dirty.value, isTrue);
       expect(tester.getSemantics(cell(0)).value, '$label ($velocity)');
       await tester.ensureVisible(find.text('Play'));
       await tester.tap(find.text('Play'));
