@@ -84,9 +84,7 @@ class _CentralTempoCircleState extends ConsumerState<CentralTempoCircle> {
                             style: MonoPulseTypography.displayLarge.copyWith(
                               fontSize: 64,
                               fontWeight: FontWeight.w700,
-                              color: state.isPlaying
-                                  ? MonoPulseColors.accentOrange
-                                  : context.mp.textPrimary,
+                              color: context.mp.textPrimary,
                             ),
                           ),
                           Text(

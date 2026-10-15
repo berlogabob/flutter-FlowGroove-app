@@ -24,8 +24,8 @@
 | R20 | F-008 | M/S chips less cramped | pass | 1 | 106 | 2f88891c |
 | R21 | F-002 | Drums button always visible | pass | 2 | 480 | cac80051 |
 | R22 | F-013 | Drum practice notifier mirrors playing state | pass | 1 | 142 | 2e96b479 |
-| R23 | F-013 | Drums button shows active state | pass | 1 | 257 |  |
-| R24 | F-014 | BPM number stays white while playing | pending |  |  |  |
+| R23 | F-013 | Drums button shows active state | pass | 1 | 257 | 80b90ee6 |
+| R24 | F-014 | BPM number stays white while playing | pass | 1 | 104 |  |
 | R25 | F-015 | Fast tempo hint | pending |  |  |  |
 | R26 | F-018 | Steppers 48dp on small screens | pending |  |  |  |
 | R27 | F-021 | Practice card: Tap to start readable | pending |  |  |  |
@@ -40,5 +40,5 @@
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-19/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 16:09:09
+20/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 16:10:54

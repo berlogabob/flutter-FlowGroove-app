@@ -17,4 +17,5 @@
 {"id": "R20", "finding": "F-008", "title": "M/S chips less cramped", "verdict": "pass", "attempts": 1, "secs": 106, "why": "", "diff": "4 files changed, 6 insertions(+), 6 deletions(-)", "commit": "2f88891c"}
 {"id": "R21", "finding": "F-002", "title": "Drums button always visible", "verdict": "pass", "attempts": 2, "secs": 480, "why": "", "diff": "6 files changed, 38 insertions(+), 27 deletions(-)", "commit": "cac80051"}
 {"id": "R22", "finding": "F-013", "title": "Drum practice notifier mirrors playing state", "verdict": "pass", "attempts": 1, "secs": 142, "why": "", "diff": "5 files changed, 13 insertions(+), 5 deletions(-)", "commit": "2e96b479"}
-{"id": "R23", "finding": "F-013", "title": "Drums button shows active state", "verdict": "pass", "attempts": 1, "secs": 257, "why": "", "diff": "6 files changed, 33 insertions(+), 21 deletions(-)"}
+{"id": "R23", "finding": "F-013", "title": "Drums button shows active state", "verdict": "pass", "attempts": 1, "secs": 257, "why": "", "diff": "6 files changed, 33 insertions(+), 21 deletions(-)", "commit": "80b90ee6"}
+{"id": "R24", "finding": "F-014", "title": "BPM number stays white while playing", "verdict": "pass", "attempts": 1, "secs": 104, "why": "", "diff": "4 files changed, 7 insertions(+), 9 deletions(-)"}
