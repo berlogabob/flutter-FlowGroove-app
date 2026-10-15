@@ -144,6 +144,27 @@ void main() {
       expect(find.text('Open in Tuner'), findsOneWidget);
     });
 
+    testWidgets('shows a muted -- BPM placeholder when a song has no tempo', (
+      tester,
+    ) async {
+      final songs = [
+        createTestSong(
+          id: 'no-bpm-song',
+          title: 'No BPM Song',
+          artist: 'No Tempo Artist',
+          ourKey: 'C',
+        ),
+      ];
+
+      await pumpRoutedTestApp(
+        tester,
+        initialLocation: '/main/songs',
+        overrides: overridesFor(songs: Stream<List<Song>>.value(songs)),
+      );
+
+      expect(find.text('-- BPM'), findsOneWidget);
+    });
+
     testWidgets('shows metronome action for songs with tempo data', (
       tester,
     ) async {

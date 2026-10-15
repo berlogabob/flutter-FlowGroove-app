@@ -172,6 +172,14 @@ class UnifiedItemCard<T extends UnifiedItemModel> extends StatelessWidget {
                   ),
                 ),
               ],
+            )
+          else
+            // Speed slot kept aligned even when no tempo is set (audit).
+            Text(
+              '-- BPM',
+              style: MonoPulseTypography.bodySmall.copyWith(
+                color: context.mp.textSecondary,
+              ),
             ),
           if (song.contributedBy != null || song.isCopy)
             Row(

@@ -24,4 +24,5 @@
 {"id": "R27", "finding": "F-021", "title": "Practice card: Tap to start readable", "verdict": "pass", "attempts": 1, "secs": 123, "why": "", "diff": "4 files changed, 24 insertions(+), 10 deletions(-)", "commit": "23a9ebdc"}
 {"id": "R28", "finding": "F-021", "title": "Quick action labels with verbs", "verdict": "pass", "attempts": 1, "secs": 136, "why": "", "diff": "6 files changed, 14 insertions(+), 14 deletions(-)", "commit": "40d60ade"}
 {"id": "R29", "finding": "F-017", "title": "Rehearsals sheet: demo users sign up", "verdict": "pass", "attempts": 1, "secs": 260, "why": "", "diff": "5 files changed, 38 insertions(+), 9 deletions(-)", "commit": "4dc78122"}
-{"id": "R30", "finding": "F-017", "title": "Create band demo: Sign Up as filled button", "verdict": "pass", "attempts": 1, "secs": 105, "why": "", "diff": "5 files changed, 7 insertions(+), 7 deletions(-)"}
+{"id": "R30", "finding": "F-017", "title": "Create band demo: Sign Up as filled button", "verdict": "pass", "attempts": 1, "secs": 105, "why": "", "diff": "5 files changed, 7 insertions(+), 7 deletions(-)", "commit": "cd5541d8"}
+{"id": "R31", "finding": "F-019", "title": "Song card: muted -- BPM placeholder", "verdict": "pass", "attempts": 1, "secs": 137, "why": "", "diff": "5 files changed, 35 insertions(+), 6 deletions(-)"}

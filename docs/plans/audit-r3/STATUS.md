@@ -31,8 +31,8 @@
 | R27 | F-021 | Practice card: Tap to start readable | pass | 1 | 123 | 23a9ebdc |
 | R28 | F-021 | Quick action labels with verbs | pass | 1 | 136 | 40d60ade |
 | R29 | F-017 | Rehearsals sheet: demo users sign up | pass | 1 | 260 | 4dc78122 |
-| R30 | F-017 | Create band demo: Sign Up as filled button | pass | 1 | 105 |  |
-| R31 | F-019 | Song card: muted -- BPM placeholder | pending |  |  |  |
+| R30 | F-017 | Create band demo: Sign Up as filled button | pass | 1 | 105 | cd5541d8 |
+| R31 | F-019 | Song card: muted -- BPM placeholder | pass | 1 | 137 |  |
 | R32 | F-022 | Filter sheet: chips aligned to the gutter | pending |  |  |  |
 | R33 | F-016 | Audio note: microphone caption | pending |  |  |  |
 | R34 | F-023 | Analytics: drum event names | pending |  |  |  |
@@ -40,5 +40,5 @@
 | R36 | F-023 | Panel logs drum analytics | pending |  |  |  |
 | R37 | F-023 | Editor logs pattern saved | pending |  |  |  |
 
-26/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 16:26:13
+27/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 16:28:30
