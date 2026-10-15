@@ -58,7 +58,12 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
     scheduleMicrotask(() {
       if (!mounted || _selectedId != null) return;
       setState(() => _selectedId = entry.id);
-      unawaited(_practice.loadPattern(entry.id, entry.pattern!));
+      unawaited(
+        _practice.loadPattern(
+          entry.id,
+          entry.pattern!.withName(entry.title ?? 'Drum pattern'),
+        ),
+      );
     });
   }
 
@@ -209,7 +214,10 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
         _preview = entry;
         _selectedId = entry.id;
       });
-      await _practice.loadPattern(entry.id, pattern);
+      await _practice.loadPattern(
+        entry.id,
+        pattern.withName(file.name.split('.').first),
+      );
       unawaited(
         AnalyticsService.logDrumPatternImported(hitCount: pattern.hits.length),
       );
