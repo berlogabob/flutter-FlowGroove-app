@@ -1,0 +1,398 @@
+{
+ "branch": "fix/ux-audit-2026-10-14",
+ "tasks": [
+  {
+   "id": "T01",
+   "executor": "pi",
+   "title": "Dark native launch background",
+   "finding": "ST-LOAD",
+   "files": [
+    "android/app/src/main/res/drawable/launch_background.xml"
+   ],
+   "prompt": "Replace the white item (@android:color/white) with the solid color #000000 so the cold-start frame is dark. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "! rg -q 'android:color/white' android/app/src/main/res/drawable/launch_background.xml && rg -q '#000000' android/app/src/main/res/drawable/launch_background.xml",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T02",
+   "executor": "pi",
+   "title": "Theme SegmentedButton: no wrapped label",
+   "finding": "DS-FORM-1",
+   "files": [
+    "lib/screens/settings/app_settings_screen.dart"
+   ],
+   "prompt": "In the SegmentedButton<ThemeMode>, add showSelectedIcon: false so the selected label 'Dark' does not wrap. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "rg -q 'showSelectedIcon: false' lib/screens/settings/app_settings_screen.dart && dart analyze lib/screens/settings/app_settings_screen.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T03",
+   "executor": "codex",
+   "title": "One selected-state style for all segmented controls",
+   "finding": "H4",
+   "files": [],
+   "prompt": "Find the app ThemeData builder (rg 'ThemeData(' lib/theme* lib/core). Add a segmentedButtonTheme whose selected state uses the app's orange accent tint (same as the selected filter chips on the Songs screen) with readable foreground, for light and dark. Do not edit screens. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "rg -q 'segmentedButtonTheme' lib && dart analyze lib",
+   "after": [
+    "T02"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "T04",
+   "executor": "pi",
+   "title": "Demo banner Sign Up tap target >=48dp",
+   "finding": "LAW-FITTS-1",
+   "files": [
+    "lib/widgets/demo_mode_banner.dart"
+   ],
+   "prompt": "Make the 'Sign Up' action at least 48 logical px tall (minimumSize Size(64,48) on the button style or a ConstrainedBox minHeight 48) without making the banner taller than 48. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "rg -q '48' lib/widgets/demo_mode_banner.dart && dart analyze lib/widgets/demo_mode_banner.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T05",
+   "executor": "pi",
+   "title": "Tuner Auto/Manual toggle >=44dp tall",
+   "finding": "DS-BTN-1",
+   "files": [
+    "lib/screens/tuner_screen.dart"
+   ],
+   "prompt": "Find the Auto/Manual mode toggle and make each segment at least 44 logical px tall (e.g. style minimumSize/ visualDensity or ConstrainedBox minHeight 44). Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "rg -q '44' lib/screens/tuner_screen.dart && dart analyze lib/screens/tuner_screen.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T06",
+   "executor": "codex",
+   "title": "Tuner dial note-select hit areas >=44dp",
+   "finding": "DS-BTN-1",
+   "files": [
+    "lib/widgets/tuner/central_dial.dart"
+   ],
+   "prompt": "Each 'Select note X' semantics/tap target on the dial is about 10dp on one axis. Make every note target's hit area at least 44x44 (pad the hit-test region radially) without changing the painted look. Keep existing tests passing. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "dart analyze lib/widgets/tuner && flutter test test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T07",
+   "executor": "pi",
+   "title": "Metronome beat dots >=44dp wide",
+   "finding": "DS-A11Y-1",
+   "files": [
+    "lib/widgets/metronome/time_signature_block.dart"
+   ],
+   "prompt": "Each main-beat toggle is 32.5dp wide. Make its tappable width at least 44 (wrap in SizedBox/ConstrainedBox minWidth 44 or adjust padding) while keeping 4 dots on one row at 360dp width. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "rg -q '44' lib/widgets/metronome/time_signature_block.dart && dart analyze lib/widgets/metronome/time_signature_block.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T08",
+   "executor": "pi",
+   "title": "Metronome 'Subdivision' label same style as 'Beats'",
+   "finding": "DS-A11Y-1",
+   "files": [
+    "lib/widgets/metronome/time_signature_block.dart"
+   ],
+   "prompt": "The 'Subdivision' label uses a smaller text style than the 'Beats' label. Give both the same TextStyle. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "dart analyze lib/widgets/metronome/time_signature_block.dart",
+   "after": [
+    "T07"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "T09",
+   "executor": "codex",
+   "title": "Create Band: locked state for demo users",
+   "finding": "H5",
+   "files": [
+    "lib/screens/bands/create_band_screen.dart",
+    "test/screens/bands/create_band_demo_test.dart"
+   ],
+   "prompt": "When isDemoUserProvider is true, do not show the fillable form. Show a neutral (not error-red) locked panel: 'Demo accounts are read-only', explanation, and a Sign Up button reusing the demo banner's sign-up action. Real users keep the existing form. Add a small widget test covering both states. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "dart analyze lib/screens/bands && flutter test test/screens/bands/create_band_demo_test.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T10",
+   "executor": "codex",
+   "title": "Song page opens on Sheet for demo users",
+   "finding": "IXD-PRED",
+   "files": [
+    "lib/screens/songs/song_page_screen.dart"
+   ],
+   "prompt": "In the _SongPageScreenState `late _SongTab _tab = switch (widget.initialTab)` initializer, change the default arm `_ => _SongTab.edit` to `_ => ref.read(isDemoUserProvider) ? _SongTab.sheet : _SongTab.edit` (import isDemoUserProvider from where other files import it; rg 'isDemoUserProvider' lib). Edit only lib/screens/songs/song_page_screen.dart. Print DONE.",
+   "verify": "rg -q 'isDemoUserProvider' lib/screens/songs/song_page_screen.dart && dart analyze lib/screens/songs && flutter test test/screens/songs",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T11",
+   "executor": "pi",
+   "title": "Detail bottom bar cells >=48dp",
+   "finding": "DS-NAV-1",
+   "files": [
+    "lib/widgets/bottom_nav_or_action_bar.dart"
+   ],
+   "prompt": "The Back and Menu cells in the detail-screen bar are 33.6dp tall hit areas. Make each cell fill the full bar height with minHeight 48. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "rg -q '48' lib/widgets/bottom_nav_or_action_bar.dart && dart analyze lib/widgets/bottom_nav_or_action_bar.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T12",
+   "executor": "pi",
+   "title": "Song Lab empty-state padding",
+   "finding": "VD-TYPE-3",
+   "files": [
+    "lib/screens/songs/song_lab_screen.dart"
+   ],
+   "prompt": "The empty-state paragraph ('The story of this song starts...') touches the screen edges. Wrap it in Padding horizontal 24 and ConstrainedBox maxWidth 420, centered. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "rg -q 'horizontal: 24' lib/screens/songs/song_lab_screen.dart && dart analyze lib/screens/songs/song_lab_screen.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T13",
+   "executor": "codex",
+   "title": "Song Lab: one Add menu instead of five chips",
+   "finding": "H8",
+   "files": [
+    "lib/screens/songs/song_lab_screen.dart",
+    "test/screens/songs/song_lab_screen_test.dart"
+   ],
+   "prompt": "Replace the five '+ Record / + Note / + Decision / + Experiment / + Problem' chips with one 'Add' PopupMenuButton (same five actions, same handlers) and add tooltips to the two unlabeled icon buttons next to the Entries/Tasks toggle. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE. Decision made by the owner: the chips are replaced, so update test #67 ('shows quick-add chips and empty state') in test/screens/songs/song_lab_screen_test.dart to assert the single Add menu (open it, find the five actions) instead of five chips.",
+   "verify": "dart analyze lib/screens/songs && flutter test test/screens/songs",
+   "after": [
+    "T12"
+   ],
+   "status": "pending"
+  },
+  {
+   "id": "T14",
+   "executor": "codex",
+   "title": "Songs header: separate search and sort",
+   "finding": "HICK-1",
+   "files": [
+    "lib/widgets/unified_item/unified_filter_sort_widget.dart"
+   ],
+   "prompt": "Search field and the Alphabetical sort are fused into one bordered box. Render them as two visually separate controls with an 8px gap; keep behavior. Also add a Tooltip to the unlabeled orange practice icon on song cards if it is in this file. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "dart analyze lib/widgets/unified_item && flutter test test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T15",
+   "executor": "pi",
+   "title": "Home tool tile icons neutral",
+   "finding": "VD-COL-1",
+   "files": [
+    "lib/widgets/dashboard_grid.dart"
+   ],
+   "prompt": "All tile icons are orange. Color them with Theme.of(context).colorScheme.onSurfaceVariant instead; keep the Quick Actions and active-state accents. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "dart analyze lib/widgets/dashboard_grid.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T16",
+   "executor": "codex",
+   "title": "Locale-aware setlist dates",
+   "finding": "NAV-1",
+   "files": [
+    "lib/screens/setlists/create_setlist_screen.dart"
+   ],
+   "prompt": "Around line 634 the event date is hand-formatted as dd.MM.yyyy via padLeft. Replace with DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(_eventDate!) (import package:intl/intl.dart if missing). Edit only this file. Print DONE.",
+   "verify": "! rg -q \"padLeft\\(2, '0'\\)\\}\\.\\$\" lib/screens/setlists/create_setlist_screen.dart; dart analyze lib/screens/setlists && flutter test test/screens/setlists",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T17",
+   "executor": "pi",
+   "title": "Practice Homework hint wording",
+   "finding": "H2",
+   "files": [
+    "lib/screens/practice_screen.dart"
+   ],
+   "prompt": "Reword the Homework empty hint 'Add tasks to a song from its Lab (song card -> Song Lab)' to 'Open a song, then its Lab tab, to add tasks.' Also give the three Quick start buttons (Metronome, Tuner, Recorder) the same label TextStyle. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "rg -q 'Lab tab' lib/screens/practice_screen.dart && dart analyze lib/screens/practice_screen.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T18",
+   "executor": "pi",
+   "title": "Recorder empty-state copy",
+   "finding": "H2",
+   "files": [
+    "lib/screens/recorder_screen.dart"
+   ],
+   "prompt": "Replace the confusing empty text that mentions 'Link takes to songs later; linked ones move into the song's Lab' with: 'Hit Record to capture an idea. You can attach recordings to a song later.' Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "rg -q 'attach recordings' lib/screens/recorder_screen.dart && dart analyze lib/screens/recorder_screen.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T19",
+   "executor": "codex",
+   "title": "Rehearsals empty state: propose action",
+   "finding": "ST-EMPTY",
+   "files": [
+    "lib/screens/bands/rehearsals/rehearsals_list_screen.dart"
+   ],
+   "prompt": "In the 'No rehearsals yet' empty state, add a 'Propose rehearsal' button for users who can edit the band (canEditBandProvider, see existing propose/create rehearsal action in this screen's FAB or app bar); hide it for viewers and demo users. Edit only the listed file(s); change nothing else; no refactors; match existing style. When done print DONE.",
+   "verify": "dart analyze lib/screens/bands/rehearsals",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T20",
+   "executor": "codex",
+   "title": "Fix collapsed 4th metronome beat dot (T07 regression)",
+   "finding": "VD-RESP-1",
+   "files": [
+    "lib/widgets/metronome/time_signature_block.dart",
+    "test/widgets/metronome_beats_row_test.dart"
+   ],
+   "prompt": "Regression found on device: with beats=4 the Metronome beat row draws only 3 dots; 'Main beat 4' is squeezed to ~13dp wide. Fix the beat row in time_signature_block.dart so every beat from 1 to 12 gets a tappable width of at least 44dp, on a 360dp wide screen the row may wrap to a second line or scroll horizontally instead of squeezing. Add a widget test (test/widgets/metronome_beats_row_test.dart) that pumps the block with 4 beats at width 360 and asserts 4 beat dots each with width >= 44 (and same for 8 beats). Do not change other files.",
+   "verify": "dart analyze lib/widgets/metronome && flutter test test/widgets/metronome_beats_row_test.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T21",
+   "executor": "pi",
+   "title": "Dark window background after launch",
+   "finding": "ST-LOAD",
+   "files": [
+    "android/app/src/main/res/values/styles.xml",
+    "android/app/src/main/res/values-night/styles.xml"
+   ],
+   "prompt": "In both files, in the style NormalTheme, change the item android:windowBackground from ?android:colorBackground to @drawable/launch_background (which is solid black). Change nothing else.",
+   "verify": "! rg -q 'windowBackground\">\\?android:colorBackground' android/app/src/main/res/values/styles.xml",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T22",
+   "executor": "codex",
+   "title": "Native splash drawable over FlutterView (white cold-start frame)",
+   "finding": "F-001",
+   "files": [
+    "android/app/src/main/AndroidManifest.xml"
+   ],
+   "prompt": "On device the first frame after launch is still white although LaunchTheme/NormalTheme windowBackground are black: the white is the FlutterView before the first Dart frame. In AndroidManifest.xml add inside the MainActivity <activity> the meta-data io.flutter.embedding.android.SplashScreenDrawable with android:resource=\"@drawable/launch_background\" (check it is not already present). Keep the diff minimal; change nothing unrelated. Print DONE.",
+   "verify": "rg -q 'SplashScreenDrawable' android/app/src/main/AndroidManifest.xml",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T23",
+   "executor": "codex",
+   "title": "Band detail: header name wraps instead of truncating",
+   "finding": "F-013",
+   "files": [
+    "lib/screens/bands/the_band_screen.dart"
+   ],
+   "prompt": "The band name in the header card of lib/screens/bands/the_band_screen.dart is truncated with an ellipsis ('The Cover Collec...'). Allow it to wrap to 2 lines (maxLines: 2). Change ONLY that; keep every other text (including '1 member' / member counts and the 'Band library' heading) exactly as is. Print DONE.",
+   "verify": "dart analyze lib/screens/bands && flutter test test/screens/bands",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T24",
+   "executor": "codex",
+   "title": "Setlist card + detail: locale dates, no null gap, fixed key pill",
+   "finding": "F-019",
+   "files": [],
+   "prompt": "1) Find where setlist list cards show an event date as dd.MM.yyyy (tab Setlists, e.g. '04.07.2026'; start with rg \"padLeft\\(2\" lib/widgets lib/screens | rg -i setlist) and use DateFormat.yMMMd(Localizations.localeOf(context).toString()); when the date is null render nothing. 2) In the setlist detail rows (screens/setlists), give the key badge a fixed width (e.g. 44) so titles and artists don't wrap differently per row. Keep the diff minimal; change nothing unrelated. If an existing test asserts the old dd.MM.yyyy text, update that test to expect the DateFormat.yMMMd output for the same date. Print DONE. REQUIRED: the test test/screens/setlists/setlists_list_screen_test.dart line ~143 expects text containing '10.05.2026'; change it to the DateFormat.yMMMd en_US output for that same date ('May 10, 2026'). Run that test file yourself and fix until it passes.",
+   "verify": "dart analyze lib && flutter test test/screens/setlists test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T25",
+   "executor": "codex",
+   "title": "Add Song: show 'Not set' instead of a bare dash for unset Key & BPM",
+   "finding": "F-015",
+   "files": [],
+   "prompt": "Locate the Add/Edit song form row 'Key & BPM' whose empty value is a bare dash (rg \"'\u2014'\" lib/screens/songs lib/widgets | head) and show 'Not set' instead. Edit only that one place. Keep the diff minimal; change nothing unrelated. The existing test 'displays all form fields with an unset key preview' asserts the old dash; update it to expect 'Not set'. Files you may edit: the form source and test/screens/songs/add_song_screen_test.dart. Print DONE.",
+   "verify": "dart analyze lib/screens/songs lib/widgets && flutter test test/screens/songs",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T26",
+   "executor": "codex",
+   "title": "Tuner dial: note labels not colliding with ticks",
+   "finding": "F-017",
+   "files": [
+    "lib/widgets/tuner/central_dial.dart"
+   ],
+   "prompt": "On device the note labels A# and G# collide with their tick marks. Paint every note label at one consistent radius inside the tick ring (radius minus tick length minus ~10dp) so no label overlaps a tick. Keep tests passing. Keep the diff minimal; change nothing unrelated. The note names are drawn by a painter in lib/widgets/tuner/ (rg \"'A#'|C#|noteNames|TextPainter\" lib/widgets/tuner); you may edit any file in lib/widgets/tuner/. You MUST make a change; if the labels already use one radius, subtract the tick length plus 10dp from it. Print DONE.",
+   "verify": "dart analyze lib/widgets/tuner && flutter test test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T27",
+   "executor": "pi",
+   "title": "Home/tool tiles: neutral icon color",
+   "finding": "F-016",
+   "files": [
+    "lib/widgets/tool_button.dart"
+   ],
+   "prompt": "Tool tile icons are still orange. Use Theme.of(context).colorScheme.onSurfaceVariant for the icon color; keep the active/pressed accent. Keep the diff minimal; change nothing unrelated. Print DONE.",
+   "verify": "dart analyze lib/widgets/tool_button.dart && flutter test test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T28",
+   "executor": "codex",
+   "title": "Practice Quick start buttons: one label style",
+   "finding": "F-021",
+   "files": [
+    "lib/screens/practice_screen.dart"
+   ],
+   "prompt": "The three Quick start buttons (Metronome, Tuner, Recorder) render labels in different sizes. Give all three exactly the same TextStyle (use the larger one). Keep the diff minimal; change nothing unrelated. Last attempt left test/screens/practice_screen_test.dart failing to load (compile error); run `dart analyze lib/screens/practice_screen.dart test/screens/practice_screen_test.dart` and make both clean. Prefer setting the label style in the shared _quickStartButton helper only. Print DONE.",
+   "verify": "dart analyze lib/screens/practice_screen.dart && flutter test test/screens/practice_screen_test.dart",
+   "after": [],
+   "status": "pending",
+   "skip": "won't fix: FittedBox scale-down is intentional (keeps one-line labels at phone width); verify path was also wrong"
+  },
+  {
+   "id": "T29",
+   "executor": "codex",
+   "title": "Song Lab: Add button 48dp, tooltips, selected segment corner clip",
+   "finding": "F-009",
+   "files": [],
+   "prompt": "1) In lib/screens/songs/song_lab_screen.dart make the 'Add' menu button at least 48dp tall and add tooltips to the two unlabeled icon buttons beside the Entries/Tasks toggle. 2) The selected orange segment of SegmentedButtons has square corners poking out of the pill; find the segmentedButtonTheme added in the app theme (rg segmentedButtonTheme lib) and fix so the selected segment follows the pill radius (usually remove a custom shape or set the same StadiumBorder on style and selected overlay). Keep the diff minimal; change nothing unrelated. Print DONE.",
+   "verify": "dart analyze lib && flutter test test/screens/songs test/widgets",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "T30",
+   "executor": "codex",
+   "title": "Demo Sheet empty state: no dead-end CTA",
+   "finding": "F-020",
+   "files": [
+    "lib/screens/songs/song_page_screen.dart"
+   ],
+   "prompt": "In the Sheet tab empty state ('No lyrics or chords yet.' with button 'Add lyrics & chords'), when isDemoUserProvider is true hide the button and show the text 'Demo songs are read-only.' instead. Other users unchanged. Keep the diff minimal; change nothing unrelated. Print DONE.",
+   "verify": "dart analyze lib/screens/songs && flutter test test/screens/songs",
+   "after": [],
+   "status": "pending"
+  }
+ ]
+}
