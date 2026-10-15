@@ -38,7 +38,7 @@
 | R34 | F-023 | Analytics: drum event names | pass | 1 | 205 | 88f5f572 |
 | R35 | F-023 | Analytics: drum log methods | pass | 1 | 174 | 2bd65d82 |
 | R36 | F-023 | Panel logs drum analytics | pass | 1 | 254 | 87e327f3 |
-| R37 | F-023 | Editor logs pattern saved | pass | 1 | 159 |  |
+| R37 | F-023 | Editor logs pattern saved | pass | 1 | 159 | b9b77478 |
 
 33/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
 Updated 2026-10-15 16:46:17
