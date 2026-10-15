@@ -351,11 +351,11 @@ class _DrumGridEditorState extends ConsumerState<DrumGridEditor> {
             margin: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               color: velocity == 0
-                  ? null
+                  ? (step % 4 == 0 ? colors.surfaceContainerHigh : null)
                   : colors.primary.withValues(alpha: velocity / 127),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: step % 4 == 0 ? colors.primary : colors.outlineVariant,
+                color: colors.outline,
               ),
             ),
             alignment: Alignment.center,

@@ -19,7 +19,7 @@ t('R02','Drums sheet empty state','F-003',[P],
  PT,add=[(P,'Import a MIDI drum file')],cont=[(P,"No MIDI patterns yet")])
 t('R03','Hide Play and speed until a pattern is loaded','F-003',[P],
  "In `_DrumPracticePanelState.build` wrap the Play `FilledButton.icon(...)` and the speed chips `Wrap(...)` (ChoiceChips 0.5/0.75/1.0) so they are only built when `pattern != null` (use `if (pattern != null) ...[ ... ]` inside the ListView children). Directly above the speed `Wrap` add `Text('Speed', style: Theme.of(context).textTheme.labelMedium)`. Update only the test assertions that expect Play/speed chips to exist while no pattern is loaded.",
- PT,add=[(P,r"if \(pattern != null\)"),(P,"'Speed'")],after=['R02'])
+ PT,add=[(P,r"if \(pattern != null\)"),(P,"'Speed'")])
 t('R04','Import and New pattern as an equal-width row','F-003',[P],
  "Replace the `Wrap` that contains `OutlinedButton.icon` (label 'Import .mid') and `TextButton.icon` (label 'New pattern') with `Row(children: [Expanded(child: <the OutlinedButton.icon unchanged>), const SizedBox(width: 12), Expanded(child: FilledButton.icon(<same icon, label, onPressed as the New pattern button>))])`. Keep both labels and both onPressed handlers exactly.",
  PT,add=[(P,'Expanded'),(P,r'FilledButton\.icon')],rem=[(P,r'TextButton\.icon')],after=['R03'])
