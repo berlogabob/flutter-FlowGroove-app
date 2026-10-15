@@ -132,12 +132,9 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
       // Any file keeps native pickers compatible; the SMF parser validates it.
       // ignore: avoid_redundant_argument_values
       final file = await FilePicker.pickFile(type: FileType.any);
-      debugPrint('drum import: picked=${file?.name}');
       if (file == null) return;
       final bytes = await readPickedBytes(file);
-      debugPrint('drum import: bytes=${bytes.length}');
       final pattern = parseDrumSmf(bytes);
-      debugPrint('drum import: hits=${pattern.hits.length}');
       if (!mounted) return;
       final now = DateTime.now();
       final entry = SongLabEntry(
@@ -157,10 +154,8 @@ class _DrumPracticePanelState extends ConsumerState<DrumPracticePanel> {
       });
       await _practice.loadPattern(entry.id, pattern);
     } on FormatException catch (error) {
-      debugPrint('drum import: format error ${error.message}');
       _showError(error.message);
-    } catch (error, st) {
-      debugPrint('drum import: error $error\n$st');
+    } catch (error) {
       _showError(error);
     } finally {
       if (mounted) setState(() => _busy = false);
