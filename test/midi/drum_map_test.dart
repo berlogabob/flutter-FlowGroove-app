@@ -12,4 +12,9 @@ void main() {
     expect(laneForNote(51), DrumLane.ride);
     expect(laneForNote(1), isNull);
   });
+
+  test('lane labels', () {
+    expect(laneLabel(DrumLane.hatClosed), 'Closed hat');
+    expect(lanePadLabel(DrumLane.tomHigh), 'Hi');
+  });
 }

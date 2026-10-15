@@ -24,3 +24,31 @@ DrumLane? laneForNote(int note) {
     _ => null,
   };
 }
+
+String laneLabel(DrumLane lane) {
+  return switch (lane) {
+    DrumLane.kick => 'Kick',
+    DrumLane.snare => 'Snare',
+    DrumLane.hatClosed => 'Closed hat',
+    DrumLane.hatOpen => 'Open hat',
+    DrumLane.tomHigh => 'High tom',
+    DrumLane.tomMid => 'Mid tom',
+    DrumLane.tomFloor => 'Floor tom',
+    DrumLane.crash => 'Crash',
+    DrumLane.ride => 'Ride',
+  };
+}
+
+String lanePadLabel(DrumLane lane) {
+  return switch (lane) {
+    DrumLane.kick => 'Kick',
+    DrumLane.snare => 'Snare',
+    DrumLane.hatClosed => 'C-hat',
+    DrumLane.hatOpen => 'O-hat',
+    DrumLane.tomHigh => 'Hi',
+    DrumLane.tomMid => 'Mid',
+    DrumLane.tomFloor => 'Floor',
+    DrumLane.crash => 'Crash',
+    DrumLane.ride => 'Ride',
+  };
+}
