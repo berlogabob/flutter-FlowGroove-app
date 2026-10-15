@@ -39,6 +39,14 @@
 | R35 | F-023 | Analytics: drum log methods | pass | 1 | 174 | 2bd65d82 |
 | R36 | F-023 | Panel logs drum analytics | pass | 1 | 254 | 87e327f3 |
 | R37 | F-023 | Editor logs pattern saved | pass | 1 | 159 | b9b77478 |
+| R38 | F-024 | MidiPattern.withName helper | pass | 1 | 145 |  |
+| R39 | F-024 | Drums button shows the pattern title, not Imported | pending |  |  |  |
+| R40 | F-025 | Regression test for readPickedBytes | pending |  |  |  |
+| R41 | F-027 | Cold start: disable the OS starting-window preview | pending |  |  |  |
+| R42 | F-027 | Cold start (night theme) | pending |  |  |  |
+| R43 | F-028 | Login: Retry on connection errors | pending |  |  |  |
+| R44 | F-029 | Tuner: note labels away from the tick marks | pending |  |  |  |
+| R45 | F-001 | Editor: pages of 8 steps instead of a scrolling grid | pending |  |  |  |
 
-37/37 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
-Updated 2026-10-15 16:56:46
+38/45 passed. Logs: docs/plans/audit-r3/logs/<id>.log, ledger: ledger.jsonl
+Updated 2026-10-15 17:47:33

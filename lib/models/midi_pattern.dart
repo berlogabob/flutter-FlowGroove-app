@@ -47,6 +47,14 @@ class MidiPattern {
 
   int get totalSteps => bars * beatsPerBar * stepsPerBeat;
 
+  MidiPattern withName(String name) => MidiPattern(
+    name: name,
+    bars: bars,
+    beatsPerBar: beatsPerBar,
+    stepsPerBeat: stepsPerBeat,
+    hits: List<MidiHit>.of(hits),
+  );
+
   Map<String, dynamic> toJson() => <String, dynamic>{
     'name': name,
     'bars': bars,
