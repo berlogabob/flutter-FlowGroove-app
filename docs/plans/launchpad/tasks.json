@@ -179,7 +179,7 @@
     "test/utils/quantize_test.dart",
     "lib/utils/quantize.dart"
    ],
-   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/utils/quantize_test.dart with tickFrames 23414.64, ticksPerBeat 1, ticksPerBar 4: bar now=0 -> 0; bar now=1 -> 93659; bar now=93659 -> 93659; bar now=93660 -> 187317; beat now=1 -> 23415; bar with leadFrames 100 now=0 -> 93659; now with lead 50 now=10 -> 60; epochFrame 1000 bar now=1000 -> 1000.",
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Replace the contents of test/utils/quantize_test.dart (it currently tests an older function; delete those cases) with tests for nextBoundaryFrame only. Use tickFrames 23414.64, ticksPerBeat 1, ticksPerBar 4: bar now=0 -> 0; bar now=1 -> 93659; bar now=93659 -> 93659; bar now=93660 -> 187317; beat now=1 -> 23415; bar with leadFrames 100 now=0 -> 93659; now with lead 50 now=10 -> 60; epochFrame 1000 bar now=1000 -> 1000.",
    "verify": "flutter test test/utils/quantize_test.dart",
    "after": [
     "L09"

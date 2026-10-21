@@ -39,7 +39,7 @@ def run_exec(ex, task):
 
 def guard(task):
     """Fail closed: only allowlisted files may change; must_contain symbols must exist (pi once passed an empty interface + a stray file)."""
-    out = sh("git status --porcelain")[1].splitlines()
+    out = sh("git status --porcelain --untracked-files=all")[1].splitlines()
     changed = [l[3:].strip() for l in out]
     allowed = task["files"]
     stray = [c for c in changed if not any(c == a or c.startswith(a.rstrip("/") + "/") for a in allowed)]
@@ -78,7 +78,10 @@ def main():
         for n, ex in enumerate(order, 1):
             t0 = time.time(); rollback()
             rc, log = run_exec(ex, t)
-            ok, vout = verify(t) if sh("git status --porcelain")[1].strip() else (False, "no changes made")
+            dirty = bool(sh("git status --porcelain")[1].strip())
+            ok, vout = verify(t)  # no diff is fine when the real verify already passes at HEAD
+            if not dirty and ok:
+                ok = all((WT / f).is_file() for f in t["files"] if f.endswith(".dart")); vout = "noop: already satisfied" if ok else "no changes made"
             if ok:
                 ok, vout = guard(t)
             stat = diffstat()
@@ -87,9 +90,9 @@ def main():
                 if rc2 != 0: ok, vout = False, 'FULL SUITE FAILED: ' + o2[-400:]
             rec = dict(id=t["id"], finding=t["finding"], executor=ex, attempt=n, secs=round(time.time() - t0),
                        exec_rc=rc, verdict="pass" if ok else "fail", diff=stat, verify_tail=vout if not ok else "")
-            if ok:
+            if ok and dirty:
                 sh(f'git add -A && git commit -qm "{PFX}: {t["id"]} {t["title"]} [{t["finding"]}] via {ex}"')
-                done.add(t["id"])
+            if ok: done.add(t["id"])
             else:
                 rollback()
             with LEDGER.open("a") as f: f.write(json.dumps(rec, ensure_ascii=False) + "\n")

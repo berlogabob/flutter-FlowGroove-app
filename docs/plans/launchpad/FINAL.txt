@@ -1,16 +1,16 @@
-flutter test exit=1
-01:08 +2728 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
-01:08 +2729 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
-01:08 +2730 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
-01:08 +2731 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
-01:08 +2732 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
-01:08 +2733 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
-Ticks fired: 60 (skipped: 0)
-Cumulative absolute drift: 120ms
-Average drift per tick: 2.00ms
-Max single-tick drift: 3ms
-Final tick drift: 2ms
-01:15 +2734 ~3 -1: Some tests failed.
-
-Failing tests:
-  /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/models/midi_song_meta_roundtrip_test.dart: loading /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/models/midi_song_meta_roundtrip_test.dart
+flutter test exit=0
+01:26 +2730 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/history_restored_extra_test.dart: the-band renders when extra is history-restored JSON
+01:26 +2731 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/history_restored_extra_test.dart: the-band renders when extra is history-restored JSON
+01:26 +2732 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/history_restored_extra_test.dart: the-band renders when extra is history-restored JSON
+❌ Analytics Error in band_opened: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+01:26 +2733 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_add_flows_return_to_band_test.dart: band add flows (cross-branch push) add-song pushed from band-songs returns on back
+01:26 +2733 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/history_restored_extra_test.dart: setlist-view renders when extra is history-restored JSON
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+01:26 +2734 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_add_flows_return_to_band_test.dart: band add flows (cross-branch push) add-song pushed from band-songs returns on back
+01:26 +2735 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_add_flows_return_to_band_test.dart: band add flows (cross-branch push) create-setlist pushed from band-setlists returns on back
+01:28 +2736 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-songs pushed from the-band returns to the-band on back
+01:29 +2737 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-songs pushed from the-band returns to the-band on back
+01:29 +2738 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/branch_stack_observer_test.dart: BranchStackObserver a re-mounted branch navigator heals a leaked count (logout→login)
+01:29 +2739 ~3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-setlists pushed from the-band returns to the-band on back
+01:29 +2740 ~3: All tests passed!

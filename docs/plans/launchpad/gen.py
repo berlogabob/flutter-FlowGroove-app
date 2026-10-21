@@ -34,7 +34,7 @@ add("L09","pi","quantize impl",["lib/utils/quantize.dart"],
 "Create lib/utils/quantize.dart: `enum Quantize { now, beat, bar }` and `int nextBoundaryFrame({required int nowFrame, required Quantize q, required double tickFrames, required int ticksPerBeat, required int ticksPerBar, int leadFrames = 0, int epochFrame = 0})`. now -> nowFrame + leadFrames. beat/bar: unit = ticksPerBeat or ticksPerBar; k = ceil((nowFrame + leadFrames - epochFrame) / (unit * tickFrames)) clamped to >= 0; return epochFrame + (k * unit * tickFrames).round().",
 "dart analyze lib/utils/quantize.dart")
 add("L10","pi","quantize test",["test/utils/quantize_test.dart","lib/utils/quantize.dart"],
-"Create test/utils/quantize_test.dart with tickFrames 23414.64, ticksPerBeat 1, ticksPerBar 4: bar now=0 -> 0; bar now=1 -> 93659; bar now=93659 -> 93659; bar now=93660 -> 187317; beat now=1 -> 23415; bar with leadFrames 100 now=0 -> 93659; now with lead 50 now=10 -> 60; epochFrame 1000 bar now=1000 -> 1000.",
+"Replace the contents of test/utils/quantize_test.dart (it currently tests an older function; delete those cases) with tests for nextBoundaryFrame only. Use tickFrames 23414.64, ticksPerBeat 1, ticksPerBar 4: bar now=0 -> 0; bar now=1 -> 93659; bar now=93659 -> 93659; bar now=93660 -> 187317; beat now=1 -> 23415; bar with leadFrames 100 now=0 -> 93659; now with lead 50 now=10 -> 60; epochFrame 1000 bar now=1000 -> 1000.",
 "flutter test test/utils/quantize_test.dart",["L09"])
 
 # ---- B: the single-clock mixer (codex), Dart reference first, Kotlin parity second ----

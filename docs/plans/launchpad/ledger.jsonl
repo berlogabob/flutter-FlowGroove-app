@@ -39,3 +39,16 @@
 {"id": "L32", "finding": "LAUNCHPAD", "executor": "pi", "attempt": 1, "secs": 240, "exec_rc": 142, "verdict": "fail", "diff": "", "verify_tail": "no changes made"}
 {"id": "L32", "finding": "LAUNCHPAD", "executor": "codex", "attempt": 2, "secs": 50, "exec_rc": 0, "verdict": "invalidated", "diff": "", "verify_tail": ""}
 {"id": "L33", "finding": "LAUNCHPAD", "executor": "pi", "attempt": 1, "secs": 244, "exec_rc": 142, "verdict": "invalidated", "diff": "1 file changed, 3 insertions(+), 1 deletion(-)", "verify_tail": ""}
+{"id": "L09", "finding": "LAUNCHPAD", "executor": "pi", "attempt": 1, "secs": 75, "exec_rc": 0, "verdict": "fail", "diff": "2 files changed, 22 insertions(+), 27 deletions(-)", "verify_tail": "files outside allowlist: test/utils/quantize_test.dart"}
+{"id": "L09", "finding": "LAUNCHPAD", "executor": "codex", "attempt": 2, "secs": 76, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 16 insertions(+)", "verify_tail": ""}
+{"id": "L10", "finding": "LAUNCHPAD", "executor": "pi", "attempt": 1, "secs": 88, "exec_rc": 0, "verdict": "fail", "diff": "", "verify_tail": "files outside allowlist: test/utils/.gitkeep"}
+{"id": "L10", "finding": "LAUNCHPAD", "executor": "codex", "attempt": 2, "secs": 44, "exec_rc": 0, "verdict": "fail", "diff": "", "verify_tail": "no changes made"}
+{"id": "L12", "finding": "LAUNCHPAD", "executor": "codex", "attempt": 1, "secs": 111, "exec_rc": 0, "verdict": "fail", "diff": "1 file changed, 5 insertions(+)", "verify_tail": "files outside allowlist: android/app/src/test/"}
+{"id": "L14", "finding": "LAUNCHPAD", "executor": "pi", "attempt": 1, "secs": 14, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 59 insertions(+)", "verify_tail": ""}
+{"id": "L21", "finding": "LAUNCHPAD", "executor": "codex", "attempt": 1, "secs": 248, "exec_rc": 0, "verdict": "pass", "diff": "2 files changed, 10 insertions(+)", "verify_tail": ""}
+{"id": "L24", "finding": "LAUNCHPAD", "executor": "pi", "attempt": 1, "secs": 243, "exec_rc": 142, "verdict": "fail", "diff": "", "verify_tail": "files outside allowlist: lib/widgets/practice/"}
+{"id": "L24", "finding": "LAUNCHPAD", "executor": "codex", "attempt": 2, "secs": 83, "exec_rc": 0, "verdict": "fail", "diff": "", "verify_tail": "files outside allowlist: lib/widgets/practice/"}
+{"id": "L32", "finding": "LAUNCHPAD", "executor": "pi", "attempt": 1, "secs": 27, "exec_rc": 0, "verdict": "fail", "diff": "2 files changed, 8 insertions(+), 10 deletions(-)", "verify_tail": "files outside allowlist: test/services/audio/midi/gm_names_test.dart"}
+{"id": "L32", "finding": "LAUNCHPAD", "executor": "codex", "attempt": 2, "secs": 51, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 5 insertions(+), 3 deletions(-)", "verify_tail": ""}
+{"id": "L33", "finding": "LAUNCHPAD", "executor": "pi", "attempt": 1, "secs": 239, "exec_rc": 0, "verdict": "fail", "diff": "", "verify_tail": "no changes made"}
+{"id": "L33", "finding": "LAUNCHPAD", "executor": "codex", "attempt": 2, "secs": 52, "exec_rc": 0, "verdict": "fail", "diff": "", "verify_tail": "no changes made"}
