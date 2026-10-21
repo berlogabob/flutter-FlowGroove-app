@@ -1,5 +1,5 @@
 /// General MIDI 1 instrument names indexed by zero-based program number.
-const gmNames = <String>[
+const List<String> gmProgramNames = [
   'Acoustic Grand Piano',
   'Bright Acoustic Piano',
   'Electric Grand Piano',
@@ -130,9 +130,11 @@ const gmNames = <String>[
   'Gunshot',
 ];
 
+const gmNames = gmProgramNames;
+
 String gmName(int program) => gmProgramName(program);
 
 String gmProgramName(int program) {
-  if (program < 0 || program >= gmNames.length) return 'Instrument';
-  return gmNames[program];
+  if (program < 0 || program >= gmProgramNames.length) return 'Instrument';
+  return gmProgramNames[program];
 }
