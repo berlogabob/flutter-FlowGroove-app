@@ -10,7 +10,7 @@ add("L01","pi","bar_math impl",["lib/utils/bar_math.dart"],
 "Create lib/utils/bar_math.dart with exactly: `double tickIntervalFrames(int intervalMicros, int sampleRate) => intervalMicros * sampleRate / 1000000.0;` and `int barStartFrame({required int bar, required int ticksPerBar, required int intervalMicros, required int sampleRate, int epochFrame = 0})` returning epochFrame + (bar * ticksPerBar * tickIntervalFrames(intervalMicros, sampleRate)).round(). Doc comment: mirrors the Android click grid Math.round(j * intervalFrames).",
 "dart analyze lib/utils/bar_math.dart")
 add("L02","pi","bar_math test",["test/utils/bar_math_test.dart","lib/utils/bar_math.dart"],
-"Create test/utils/bar_math_test.dart (package:flutter_test). Cases with intervalMicros 487805, sampleRate 48000, ticksPerBar 4: tickIntervalFrames == closeTo(23414.64, 1e-9); barStartFrame bar 0 == 0; bar 1 == 93659; bar 400 == 9365856; with epochFrame 1000 bar 1 == 94659.",
+"Create test/utils/bar_math_test.dart (package:flutter_test). Cases with intervalMicros 487805, sampleRate 48000, ticksPerBar 4: tickIntervalFrames == closeTo(23414.64, 1e-9); barStartFrame bar 0 == 0; bar 1 == 93659; bar 100 == 9365856; with epochFrame 1000 bar 1 == 94659.",
 "flutter test test/utils/bar_math_test.dart",["L01"])
 add("L03","pi","SectionSpan model",["lib/models/section_span.dart"],
 "Create lib/models/section_span.dart: `@immutable class SectionSpan` with const ctor `SectionSpan({required this.sectionId, required this.startBar, required this.bars})` (String, int, int), `factory SectionSpan.fromJson(Map<String, dynamic>)` (missing ints default 0, missing sectionId default ''), `Map<String, dynamic> toJson()`, `==` and `hashCode` over all fields.",

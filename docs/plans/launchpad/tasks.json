@@ -25,7 +25,7 @@
     "test/utils/bar_math_test.dart",
     "lib/utils/bar_math.dart"
    ],
-   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/utils/bar_math_test.dart (package:flutter_test). Cases with intervalMicros 487805, sampleRate 48000, ticksPerBar 4: tickIntervalFrames == closeTo(23414.64, 1e-9); barStartFrame bar 0 == 0; bar 1 == 93659; bar 400 == 9365856; with epochFrame 1000 bar 1 == 94659.",
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create test/utils/bar_math_test.dart (package:flutter_test). Cases with intervalMicros 487805, sampleRate 48000, ticksPerBar 4: tickIntervalFrames == closeTo(23414.64, 1e-9); barStartFrame bar 0 == 0; bar 1 == 93659; bar 100 == 9365856; with epochFrame 1000 bar 1 == 94659.",
    "verify": "flutter test test/utils/bar_math_test.dart",
    "after": [
     "L01"

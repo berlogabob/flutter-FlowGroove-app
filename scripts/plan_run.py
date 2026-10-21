@@ -28,6 +28,8 @@ def verify(task):
 def run_exec(ex, task):
     files = " ".join(task["files"])
     if ex == "pi":
+        # pi-run.sh treats file args as files to READ and aborts on missing ones (new files)
+        files = " ".join(f for f in task["files"] if (WT / f).is_file())
         env = {"PI_VERIFY": "", "PI_MAX_ITERS": "1", "PI_CHECKPOINT": "0", "PI_TIMEOUT": str(task.get("timeout", 900))}
         cmd = f'"{PI}" {json.dumps(task["prompt"])} {files}'
         return sh(cmd, env=env, timeout=task.get("timeout", 900) + 60)
