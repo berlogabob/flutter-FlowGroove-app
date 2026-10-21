@@ -72,6 +72,7 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
   MidiSongMeta? _meta;
   FutureOr<void> Function(SongLabEntry)? _onPersist;
   Timer? _debounce;
+  int _loadId = 0;
   int _operationId = 0;
   int? _loadedBpm;
   bool _disposed = false;
@@ -107,15 +108,16 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
   }) async {
     _onPersist = onPersist;
     _debounce?.cancel();
-    final operationId = ++_operationId;
+    final loadId = ++_loadId;
+    ++_operationId;
     _loadedBpm = null;
     _song = null;
     state = const MidiSongPracticeState(loading: true);
     try {
       await _player.stop();
-      if (!_current(operationId)) return;
+      if (!_currentLoad(loadId)) return;
       final song = await ref.read(midiSongProvider(entry).future);
-      if (!_current(operationId)) return;
+      if (!_currentLoad(loadId)) return;
       if (song == null) throw StateError('No MIDI song file available');
       _song = song;
       _meta = buildMidiSongMeta(
@@ -126,7 +128,7 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
       state = state.copyWith(tracks: _meta!.tracks);
       await _reload();
     } catch (error) {
-      if (_current(operationId)) await _fail(error);
+      if (_currentLoad(loadId)) await _fail(error);
     }
   }
 
@@ -217,6 +219,8 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
   }
 
   bool _current(int operationId) => !_disposed && operationId == _operationId;
+
+  bool _currentLoad(int loadId) => !_disposed && loadId == _loadId;
 
   Future<void> _reload() async {
     final song = _song;

@@ -116,6 +116,7 @@ void main() {
   late MidiSongPracticeNotifier notifier;
   late bool failFetch;
   late int fetches;
+  Completer<Uint8List>? pendingFetch;
 
   MidiSongPracticeState current() =>
       container.read(midiSongPracticeProvider(entry));
@@ -125,6 +126,7 @@ void main() {
     metronome = _Metronome();
     failFetch = false;
     fetches = 0;
+    pendingFetch = null;
     entry = SongLabEntry(
       id: 'entry',
       songId: 'song',
@@ -159,6 +161,7 @@ void main() {
         midiSongBytesFetcherProvider.overrideWithValue((url) async {
           fetches++;
           if (failFetch) throw StateError('fetch failed');
+          if (pendingFetch != null) return pendingFetch!.future;
           return _smf();
         }),
       ],
@@ -290,6 +293,22 @@ void main() {
     },
   );
 
+  test('stop during a pending fetch still loads tracks', () async {
+    final pending = pendingFetch = Completer<Uint8List>();
+    metronome.playing(value: true);
+    final loading = notifier.loadEntry();
+    await _until(() => fetches == 1);
+    metronome.playing(value: false);
+    pending.complete(_smf());
+    await loading;
+    expect(current().tracks, hasLength(2));
+    expect(player.loads.single, hasLength(2));
+    expect(current().loading, isFalse);
+    expect(current().error, isNull);
+    expect(current().playing, isFalse);
+    expect(player.starts, 0);
+  });
+
   test('stop during a pending load prevents a late start', () async {
     final pending = player.pendingLoad = Completer<void>();
     metronome.playing(value: true);
@@ -301,6 +320,32 @@ void main() {
     expect(player.starts, 0);
     expect(current().playing, isFalse);
     expect(current().loading, isFalse);
+  });
+
+  test('a newer entry load supersedes a pending fetch', () async {
+    final pending = pendingFetch = Completer<Uint8List>();
+    final first = notifier.loadEntry();
+    await _until(() => fetches == 1);
+    final second = notifier.loadEntry();
+    await pumpEventQueue();
+    pending.complete(_smf());
+    await Future.wait([first, second]);
+    expect(current().tracks, hasLength(2));
+    expect(player.loads, hasLength(1));
+    expect(current().loading, isFalse);
+    expect(current().error, isNull);
+  });
+
+  test('dispose discards a pending fetch', () async {
+    final pending = pendingFetch = Completer<Uint8List>();
+    final loading = notifier.loadEntry();
+    await _until(() => fetches == 1);
+    container.dispose();
+    pending.complete(_smf());
+    await loading;
+    await pumpEventQueue();
+    expect(player.loads, isEmpty);
+    expect(player.disposed, isTrue);
   });
 
   test('fetch failures surface in state', () async {
