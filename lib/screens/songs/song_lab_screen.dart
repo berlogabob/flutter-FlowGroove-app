@@ -26,6 +26,7 @@ import '../../utils/snackbar.dart';
 import '../../widgets/app_filter_chip.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/midi/midi_song_panel.dart';
 import '../../widgets/standard_screen_scaffold.dart';
 import 'components/lab_recording_sheet.dart';
 import 'midi_import_screen.dart';
@@ -692,7 +693,13 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
         vertical: MonoPulseSpacing.xs,
       ),
       child: ListTile(
-        onTap: e.type == LabEntryType.recording && e.attachmentIds.isNotEmpty
+        onTap: !kIsWeb && e.type == LabEntryType.midi && e.midiSong != null
+            ? () => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => MidiSongPanel(entry: e, bandId: widget.bandId),
+              )
+            : e.type == LabEntryType.recording && e.attachmentIds.isNotEmpty
             ? () => context.goAudioNote(e, bandId: widget.bandId)
             : null,
         leading: Icon(
