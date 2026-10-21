@@ -75,9 +75,9 @@ class FirestoreLabRepository {
     final url = data == null
         ? null
         : SongLabEntry.fromJson(data).midiSong?.fileUrl;
-    if (url != null) await _pendingStorageDeletes.enqueue(url);
     await doc.delete();
     if (url != null) {
+      await _pendingStorageDeletes.enqueue(url);
       unawaited(_pendingStorageDeletes.flushAfter(url, undoGracePeriod));
     }
   }

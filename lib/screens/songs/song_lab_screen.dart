@@ -165,7 +165,9 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
 
   bool get _canImportMidi =>
       !kIsWeb &&
-      (widget.bandId == null || ref.read(canEditBandProvider(widget.bandId!)));
+      (widget.bandId == null
+          ? ref.read(canEditProvider)
+          : ref.read(canEditBandProvider(widget.bandId!)));
 
   Future<void> _importMidi() async {
     if (_importingMidi || !_canImportMidi) return;
@@ -635,7 +637,7 @@ class _SongLabScreenState extends ConsumerState<SongLabScreen> {
               ),
             ),
           ),
-          if (!kIsWeb)
+          if (!kIsWeb && (widget.bandId != null || ref.watch(canEditProvider)))
             TextButton.icon(
               onPressed: _importingMidi ? null : _importMidi,
               icon: const Icon(Icons.file_upload_outlined),
