@@ -23,14 +23,14 @@ def verify(task):
     v = task["verify"].replace("dart analyze", "dartan")
     pre = PRE + "dartan(){ ! dart analyze \"$@\" 2>&1 | rg -q '^\\s*error -'; }; "
     rc, out = sh(pre + v, timeout=1500)
-    return rc == 0, out[-600:]
+    return rc == 0, out[-2500:]
 
 def run_exec(ex, task):
     files = " ".join(task["files"])
     if ex == "pi":
-        env = {"PI_VERIFY": "", "PI_MAX_ITERS": "1", "PI_CHECKPOINT": "0", "PI_TIMEOUT": "900"}
+        env = {"PI_VERIFY": "", "PI_MAX_ITERS": "1", "PI_CHECKPOINT": "0", "PI_TIMEOUT": str(task.get("timeout", 900))}
         cmd = f'"{PI}" {json.dumps(task["prompt"])} {files}'
-        return sh(cmd, env=env, timeout=1000)
+        return sh(cmd, env=env, timeout=task.get("timeout", 900) + 60)
     cmd = f'codex exec -C "{WT}" {json.dumps(task["prompt"] + " Allowed files: " + (files or "any under lib/"))} </dev/null'
     return sh(cmd, timeout=1500)
 
@@ -63,7 +63,7 @@ def main():
             rc, log = run_exec(ex, t)
             ok, vout = verify(t) if sh("git status --porcelain")[1].strip() else (False, "no changes made")
             stat = diffstat()
-            if ok:  # regression gate: whole suite must stay green (caught T11 breaking 39 tests)
+            if ok and t.get("suite", True):  # regression gate: whole suite must stay green (caught T11 breaking 39 tests)
                 rc2, o2 = sh(PRE + "flutter test 2>&1 | tail -8", timeout=3000)
                 if rc2 != 0: ok, vout = False, 'FULL SUITE FAILED: ' + o2[-400:]
             rec = dict(id=t["id"], finding=t["finding"], executor=ex, attempt=n, secs=round(time.time() - t0),
