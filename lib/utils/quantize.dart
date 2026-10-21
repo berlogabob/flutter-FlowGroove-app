@@ -1,5 +1,21 @@
 enum Quantize { now, beat, bar }
 
+int nextBoundaryFrame({
+  required int nowFrame,
+  required Quantize q,
+  required double tickFrames,
+  required int ticksPerBeat,
+  required int ticksPerBar,
+  int leadFrames = 0,
+  int epochFrame = 0,
+}) {
+  if (q == Quantize.now) return nowFrame + leadFrames;
+
+  final unit = q == Quantize.beat ? ticksPerBeat : ticksPerBar;
+  final k = ((nowFrame + leadFrames - epochFrame) / (unit * tickFrames)).ceil();
+  return epochFrame + ((k < 0 ? 0 : k) * unit * tickFrames).round();
+}
+
 int quantizeFrame({
   required Quantize mode,
   required int nowFrame,
