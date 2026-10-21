@@ -5,9 +5,15 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 import 'drum_player.dart';
 import 'midi_song_player.dart';
 
-MidiSongPlayer createMidiSongPlayer() => _SoLoudMidiSongPlayer();
+MidiSongPlayer createMidiSongPlayer({SoLoud? soloud}) =>
+    _SoLoudMidiSongPlayer(soloud ?? SoLoud.instance);
 
 class _SoLoudMidiSongPlayer implements MidiSongPlayer {
+  _SoLoudMidiSongPlayer(this._soloud);
+
+  final SoLoud _soloud;
+  List<Int16List> _trackBuffers = [];
+  int _sampleRate = 44100;
   final _stopwatch = Stopwatch();
   final _sources = <AudioSource>[];
   final _handles = <int, SoundHandle>{};
@@ -37,11 +43,15 @@ class _SoLoudMidiSongPlayer implements MidiSongPlayer {
     _stopwatch.reset();
     await stopping;
     for (final source in oldSources) {
-      await SoLoud.instance.disposeSource(source);
+      if (_soloud.isInitialized && _soloud.isValidAudioSource(source)) {
+        await _soloud.disposeSource(source);
+      }
     }
     if (operationId != _operationId) return;
-    if (!SoLoud.instance.isInitialized) {
-      await SoLoud.instance.init(bufferSize: 512, channels: Channels.mono);
+    _trackBuffers = trackBuffers;
+    _sampleRate = sampleRate;
+    if (!_soloud.isInitialized) {
+      await _soloud.init(bufferSize: 512, channels: Channels.mono);
     }
     final loaded = <AudioSource>[];
     try {
@@ -54,7 +64,7 @@ class _SoLoudMidiSongPlayer implements MidiSongPlayer {
           samples[i] = buffer[i] / (buffer[i] < 0 ? 32768 : 32767);
         }
         loaded.add(
-          await SoLoud.instance.loadMem(
+          await _soloud.loadMem(
             'song-${identityHashCode(this)}-$operationId-$index.wav',
             encodeDrumWav(samples, sampleRate: sampleRate),
           ),
@@ -67,7 +77,9 @@ class _SoLoudMidiSongPlayer implements MidiSongPlayer {
       if (restart) await start();
     } finally {
       for (final source in loaded) {
-        await SoLoud.instance.disposeSource(source);
+        if (_soloud.isInitialized && _soloud.isValidAudioSource(source)) {
+          await _soloud.disposeSource(source);
+        }
       }
     }
   }
@@ -75,12 +87,23 @@ class _SoLoudMidiSongPlayer implements MidiSongPlayer {
   @override
   Future<void> start() async {
     if (_disposed) throw StateError('MidiSongPlayer has been disposed');
-    if (_stopwatch.isRunning) return;
     if (!_loaded) throw StateError('Load a song before starting');
     try {
+      // The metronome can destroy our sources and reopen the shared engine.
+      if (!_soloud.isInitialized ||
+          _sources.any((source) => !_soloud.isValidAudioSource(source))) {
+        _stopwatch.stop();
+        final loading = load(_trackBuffers, sampleRate: _sampleRate);
+        final operationId = _operationId;
+        await loading;
+        if (operationId != _operationId || !_loaded) return;
+      }
+      if (_stopwatch.isRunning) return;
+      // SoLoud's 1024-voice pool accepts at most 1023 active voices.
+      _soloud.setMaxActiveVoiceCount((_sources.length + 8).clamp(16, 1023));
       // No awaits between tracks: enqueue all voices in the same call.
       for (var index = 0; index < _sources.length; index++) {
-        _handles[index] = SoLoud.instance.play(
+        _handles[index] = _soloud.play(
           _sources[index],
           volume: _gains[index] ?? 1,
         );
@@ -98,9 +121,14 @@ class _SoLoudMidiSongPlayer implements MidiSongPlayer {
   Future<void> stop() async {
     ++_operationId;
     _stopwatch.stop();
-    final handles = _handles.values.toList();
+    final handles = [
+      for (final entry in _handles.entries)
+        if (_soloud.isInitialized &&
+            _soloud.isValidAudioSource(_sources[entry.key]))
+          entry.value,
+    ];
     _handles.clear();
-    await Future.wait(handles.map(SoLoud.instance.stop));
+    await Future.wait(handles.map(_soloud.stop));
   }
 
   @override
@@ -108,7 +136,11 @@ class _SoLoudMidiSongPlayer implements MidiSongPlayer {
     final volume = gain.clamp(0.0, 1.0);
     _gains[index] = volume;
     final handle = _handles[index];
-    if (handle != null) SoLoud.instance.setVolume(handle, volume);
+    if (handle != null &&
+        _soloud.isInitialized &&
+        _soloud.isValidAudioSource(_sources[index])) {
+      _soloud.setVolume(handle, volume);
+    }
   }
 
   @override
@@ -119,8 +151,11 @@ class _SoLoudMidiSongPlayer implements MidiSongPlayer {
     final sources = _sources.toList();
     _sources.clear();
     _loaded = false;
+    _trackBuffers = [];
     for (final source in sources) {
-      await SoLoud.instance.disposeSource(source);
+      if (_soloud.isInitialized && _soloud.isValidAudioSource(source)) {
+        await _soloud.disposeSource(source);
+      }
     }
   }
 }
