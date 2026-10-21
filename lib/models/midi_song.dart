@@ -204,6 +204,10 @@ class MidiSongMeta {
     this.fileUrl,
     this.loopSpan = const SectionSpan(sectionId: '', startBar: 0, bars: 0),
     this.loopBehavior = LoopBehavior.loop,
+    this.startBar = 0,
+    this.sectionMap = const [],
+    this.useFileTempo = false,
+    this.endBehavior = 'loop',
   });
 
   factory MidiSongMeta.fromJson(Map<String, dynamic> json) => MidiSongMeta(
@@ -212,6 +216,14 @@ class MidiSongMeta {
     initialBpm: (json['initialBpm'] as num?)?.toDouble() ?? 120.0,
     loopSpan: _loopSpanFromJson(json['loopSpan']),
     loopBehavior: LoopBehavior.parse(json['loopBehavior'] as String?),
+    startBar: (json['startBar'] as num?)?.toInt() ?? 0,
+    sectionMap:
+        (json['sectionMap'] as List<dynamic>?)
+            ?.map((span) => SectionSpan.fromJson(span as Map<String, dynamic>))
+            .toList() ??
+        <SectionSpan>[],
+    useFileTempo: json['useFileTempo'] as bool? ?? false,
+    endBehavior: LoopBehavior.parse(json['endBehavior'] as String?).name,
     tracks:
         (json['tracks'] as List<dynamic>?)
             ?.map(
@@ -228,6 +240,10 @@ class MidiSongMeta {
   final double initialBpm;
   final SectionSpan loopSpan;
   final LoopBehavior loopBehavior;
+  final int startBar;
+  final List<SectionSpan> sectionMap;
+  final bool useFileTempo;
+  final String endBehavior;
   final List<MidiTrackMeta> tracks;
 
   MidiSongMeta copyWith({
@@ -236,6 +252,10 @@ class MidiSongMeta {
     double? initialBpm,
     SectionSpan? loopSpan,
     LoopBehavior? loopBehavior,
+    int? startBar,
+    List<SectionSpan>? sectionMap,
+    bool? useFileTempo,
+    String? endBehavior,
     List<MidiTrackMeta>? tracks,
   }) => MidiSongMeta(
     fileUrl: identical(fileUrl, _unchanged) ? this.fileUrl : fileUrl as String?,
@@ -243,6 +263,10 @@ class MidiSongMeta {
     initialBpm: initialBpm ?? this.initialBpm,
     loopSpan: loopSpan ?? this.loopSpan,
     loopBehavior: loopBehavior ?? this.loopBehavior,
+    startBar: startBar ?? this.startBar,
+    sectionMap: sectionMap ?? this.sectionMap,
+    useFileTempo: useFileTempo ?? this.useFileTempo,
+    endBehavior: endBehavior ?? this.endBehavior,
     tracks: tracks ?? this.tracks,
   );
 
@@ -253,9 +277,14 @@ class MidiSongMeta {
     'initialBpm': initialBpm,
     'loopSpan': loopSpan.toJson(),
     'loopBehavior': loopBehavior.name,
+    'startBar': startBar,
+    'sectionMap': sectionMap.map((span) => span.toJson()).toList(),
+    'useFileTempo': useFileTempo,
+    'endBehavior': endBehavior,
     'tracks': tracks.map((track) => track.toJson()).toList(),
   };
 }
 
-SectionSpan _loopSpanFromJson(Object? value) =>
-    value is Map<String, dynamic> ? SectionSpan.fromJson(value) : const SectionSpan(sectionId: '', startBar: 0, bars: 0);
+SectionSpan _loopSpanFromJson(Object? value) => value is Map<String, dynamic>
+    ? SectionSpan.fromJson(value)
+    : const SectionSpan(sectionId: '', startBar: 0, bars: 0);
