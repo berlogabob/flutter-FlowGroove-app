@@ -8,6 +8,7 @@
 library;
 
 import 'midi_pattern.dart';
+import 'midi_song.dart';
 
 /// Timeline entry types. The UI quick-adds only note/decision/experiment/
 /// problem (v1); the rest exist so other features can append typed entries.
@@ -51,6 +52,15 @@ DateTime _parseDate(dynamic v) =>
 DateTime? _parseDateOrNull(dynamic v) =>
     v is String ? DateTime.tryParse(v) : null;
 
+MidiSongMeta? _parseMidiSong(Object? v) {
+  if (v is! Map<String, dynamic>) return null;
+  try {
+    return MidiSongMeta.fromJson(v);
+  } catch (_) {
+    return null;
+  }
+}
+
 class SongLabEntry {
   SongLabEntry({
     required this.id,
@@ -70,6 +80,7 @@ class SongLabEntry {
     this.attachmentIds = const [],
     this.peaks = const [],
     this.midi,
+    this.midiSong,
   });
 
   factory SongLabEntry.fromJson(Map<String, dynamic> json) => SongLabEntry(
@@ -97,6 +108,7 @@ class SongLabEntry {
             .toList() ??
         const [],
     midi: json['midi'] as Map<String, dynamic>?,
+    midiSong: _parseMidiSong(json['midiSong']),
   );
 
   final String id;
@@ -134,6 +146,8 @@ class SongLabEntry {
   /// Serialized [MidiPattern] for `midi` entries.
   final Map<String, dynamic>? midi;
 
+  final MidiSongMeta? midiSong;
+
   MidiPattern? get pattern => midi == null ? null : MidiPattern.fromJson(midi!);
 
   Map<String, dynamic> toJson() => {
@@ -154,6 +168,7 @@ class SongLabEntry {
     'attachmentIds': attachmentIds,
     if (peaks.isNotEmpty) 'peaks': peaks,
     if (midi != null) 'midi': midi,
+    if (midiSong != null) 'midiSong': midiSong!.toJson(),
   };
 
   SongLabEntry copyWith({
@@ -163,6 +178,7 @@ class SongLabEntry {
     List<String>? attachmentIds,
     List<int>? peaks,
     Map<String, dynamic>? midi,
+    MidiSongMeta? midiSong,
   }) => SongLabEntry(
     id: id,
     songId: songId,
@@ -181,6 +197,7 @@ class SongLabEntry {
     attachmentIds: attachmentIds ?? this.attachmentIds,
     peaks: peaks ?? this.peaks,
     midi: midi ?? this.midi,
+    midiSong: midiSong ?? this.midiSong,
   );
 }
 
