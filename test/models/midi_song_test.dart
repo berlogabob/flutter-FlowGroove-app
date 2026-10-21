@@ -195,7 +195,7 @@ void main() {
     expect(empty.maxPitch, 0);
   });
 
-  test('parsed song uses the first tempo and defaults to 120 BPM', () {
+  test('parsed song uses the tempo at tick zero and defaults to 120 BPM', () {
     const song = MidiSongData(
       ppq: 480,
       tempos: [
@@ -211,6 +211,13 @@ void main() {
     expect(song.timeSigs.single.denominator, 4);
     const empty = MidiSongData(ppq: 480, tempos: [], timeSigs: [], tracks: []);
     expect(empty.initialBpm, 120);
+    const delayed = MidiSongData(
+      ppq: 480,
+      tempos: [TempoChange(tick: 480, microsPerQuarter: 400000)],
+      timeSigs: [],
+      tracks: [],
+    );
+    expect(delayed.initialBpm, 120);
   });
 
   test('64-track metadata JSON stays under 20000 characters', () {

@@ -380,14 +380,26 @@ void main() {
 
   test('stopped BPM changes debounce and render at the latest scale', () async {
     await notifier.loadEntry();
-    final length = player.loads.single.first.length;
+    final song = (await container.read(midiSongProvider(entry).future))!;
+    expect(song.initialBpm, 120);
     notifier.setMute(1, mute: true);
     metronome
       ..bpm(180)
       ..bpm(240);
     expect(player.loads, hasLength(1));
     await _until(() => player.loads.length == 2 && !current().loading);
-    expect(player.loads.last.first.length, length ~/ 2);
+    expect(
+      player.loads.last.first,
+      orderedEquals(
+        renderMidiTrack(
+          song: song,
+          track: song.tracks.first,
+          role: MidiRole.bass,
+          sampleRate: 22050,
+          bpmScale: 2,
+        ),
+      ),
+    );
     expect(player.gains[1], 0);
     expect(player.starts, 0);
     expect(fetches, 1);
@@ -403,13 +415,55 @@ void main() {
       await _until(() => current().playing);
       await Future<void>.delayed(const Duration(milliseconds: 200));
       expect(player.loads, hasLength(2));
+      final song = (await container.read(midiSongProvider(entry).future))!;
+      expect(song.initialBpm, 120);
       expect(
-        player.loads.last.first.length,
-        player.loads.first.first.length ~/ 2,
+        player.loads.last.first,
+        orderedEquals(
+          renderMidiTrack(
+            song: song,
+            track: song.tracks.first,
+            role: MidiRole.bass,
+            sampleRate: 22050,
+            bpmScale: 2,
+          ),
+        ),
       );
       expect(player.starts, 1);
     },
   );
+
+  test('BPM scale uses the tempo at tick zero or the default 120', () async {
+    for (final tempoTick in [0, 96]) {
+      const track = MidiTrackData(
+        index: 1,
+        name: '',
+        channel: 0,
+        program: 0,
+        notes: [MidiNote(tick: 0, dur: 192, pitch: 60, vel: 100)],
+      );
+      final song = MidiSongData(
+        ppq: 96,
+        tempos: [TempoChange(tick: tempoTick, microsPerQuarter: 400000)],
+        timeSigs: [],
+        tracks: [track],
+      );
+      await loadSong(song);
+      expect(song.initialBpm, tempoTick == 0 ? 150 : 120);
+      expect(
+        player.loads.single.single,
+        orderedEquals(
+          renderMidiTrack(
+            song: song,
+            track: track,
+            role: MidiRole.bass,
+            sampleRate: 22050,
+            bpmScale: tempoTick == 0 ? 120 / 150 : 1,
+          ),
+        ),
+      );
+    }
+  });
 
   test('stop during a pending fetch still loads tracks', () async {
     final pending = pendingFetch = Completer<Uint8List>();

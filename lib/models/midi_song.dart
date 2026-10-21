@@ -85,8 +85,9 @@ class MidiSongData {
   final List<TimeSigChange> timeSigs;
   final List<MidiTrackData> tracks;
 
-  double get initialBpm =>
-      tempos.isEmpty ? 120.0 : 60000000 / tempos.first.microsPerQuarter;
+  double get initialBpm => tempos.isEmpty || tempos.first.tick != 0
+      ? 120.0
+      : 60000000 / tempos.first.microsPerQuarter;
 }
 
 const _unchanged = Object();

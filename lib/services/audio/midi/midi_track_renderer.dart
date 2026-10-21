@@ -6,10 +6,9 @@ import 'drum_map.dart';
 import 'drum_samples.dart';
 import 'voice_synth.dart';
 
-/// Renders mono PCM, ending at the last note-off or [maxSeconds].
+/// Renders mono PCM, including drum and voice release tails up to [maxSeconds].
 ///
 /// [bpmScale] is playback BPM / song.initialBpm; 2 plays twice as fast.
-/// Drum and voice release tails are clipped to the output length.
 Int16List renderMidiTrack({
   required MidiSongData song,
   required MidiTrackData track,
@@ -52,6 +51,9 @@ Int16List renderMidiTrack({
     return micros / 1000000 / bpmScale;
   }
 
+  final samples = <DrumLane, Float32List>{};
+  final release = math.max(2, (sampleRate * 0.03).round());
+  final maxLength = (maxSeconds * sampleRate).round();
   final notes = <({MidiNote note, int start, int end})>[];
   var length = 0;
   for (final note in track.notes) {
@@ -64,11 +66,23 @@ Int16List renderMidiTrack({
             .round();
     if (end <= start) continue;
     notes.add((note: note, start: start, end: end));
-    length = math.max(length, end);
+    var tailEnd = end;
+    if (role == MidiRole.drums) {
+      final lane = laneForNote(note.pitch);
+      if (lane != null) {
+        final sample = samples.putIfAbsent(
+          lane,
+          () => drumSample(lane, sampleRate: sampleRate),
+        );
+        tailEnd = math.max(end, start + sample.length);
+      }
+    } else {
+      tailEnd += release;
+    }
+    length = math.max(length, math.min(tailEnd, maxLength));
   }
 
   final mix = Float64List(length);
-  final samples = <DrumLane, Float32List>{};
   for (final timed in notes) {
     final note = timed.note;
     if (role == MidiRole.drums) {
@@ -87,10 +101,7 @@ Int16List renderMidiTrack({
       final duration = timed.end - timed.start;
       // addVoice writes Float32; sum separate voices in Float64 precision.
       final voice = Float32List(
-        math.min(
-          length - timed.start,
-          duration + math.max(2, (sampleRate * 0.03).round()),
-        ),
+        math.min(length - timed.start, duration + release),
       );
       addVoice(
         voice,
