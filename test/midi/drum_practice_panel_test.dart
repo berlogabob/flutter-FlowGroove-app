@@ -141,19 +141,21 @@ void main() {
       await pump(tester, const MetronomeScreen());
       // The Drums button is always present; it is disabled (no song) and the
       // panel providers stay lazy until the button is actually tapped.
-      expect(find.byTooltip('Drums'), findsOneWidget);
+      expect(find.byTooltip('Backing tracks'), findsOneWidget);
       expect(find.byType(DrumPracticePanel), findsNothing);
       expect(repoBuilds, 0);
       expect(playerBuilds, 0);
 
       container.read(metronomeProvider.notifier).loadSongTempo(song);
       await tester.pumpAndSettle();
-      expect(find.byTooltip('Drums'), findsOneWidget);
+      expect(find.byTooltip('Backing tracks'), findsOneWidget);
       expect(find.byType(DrumPracticePanel), findsNothing);
       expect(repoBuilds, 0);
       expect(playerBuilds, 0);
 
-      await tester.tap(find.byTooltip('Drums'));
+      await tester.tap(find.byTooltip('Backing tracks'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Drum pattern'));
       await tester.pumpAndSettle();
       expect(find.byType(DrumPracticePanel), findsOneWidget);
       expect(find.byType(DraggableScrollableSheet), findsOneWidget);

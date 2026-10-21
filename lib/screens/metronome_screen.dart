@@ -18,7 +18,7 @@ import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
 import '../utils/snackbar.dart' show showGlobalSnackBar;
-import '../widgets/metronome/drum_practice_panel.dart';
+import '../widgets/metronome/backing_sheet.dart';
 import '../widgets/metronome/metronome_sheets.dart';
 import '../widgets/metronome/song_library_block.dart';
 import '../widgets/metronome/tempo_control_cluster.dart';
@@ -453,7 +453,7 @@ class _MetronomeSongLibrary extends ConsumerWidget {
             context: context,
             isScrollControlled: true,
             showDragHandle: true,
-            builder: (_) => DrumPracticePanel(
+            builder: (_) => BackingSheet(
               songId: state.activeSong!.id,
               bandId: state.sourceBandId,
             ),
@@ -470,11 +470,11 @@ class _MetronomeSongLibrary extends ConsumerWidget {
         const SongLibraryBlock(),
         const SizedBox(height: MonoPulseSpacing.sm),
         Tooltip(
-          message: 'Drums',
+          message: 'Backing tracks',
           child: active == null
               ? OutlinedButton.icon(
                   icon: const Icon(Icons.album_outlined),
-                  label: const Text('Drums'),
+                  label: const Text('Backing tracks'),
                   onPressed: onPressed,
                 )
               : FilledButton.icon(

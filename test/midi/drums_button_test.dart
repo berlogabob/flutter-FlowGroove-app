@@ -35,7 +35,7 @@ void main() {
     await runtime.dispose();
   });
 
-  final drumsButton = find.widgetWithText(OutlinedButton, 'Drums');
+  final drumsButton = find.widgetWithText(OutlinedButton, 'Backing tracks');
 
   Future<void> pumpScreen(WidgetTester tester, Size size) async {
     tester.view.physicalSize = size;
