@@ -22,6 +22,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/menu_items_scope.dart';
 import '../../widgets/setlist_break_row.dart';
 import '../../widgets/setlist_song_row.dart';
+import '../concert_mode_screen.dart';
 import 'create_setlist_screen.dart' show SetlistStorageScope;
 import 'event_kit_editor_screen.dart';
 
@@ -110,6 +111,11 @@ class SetlistViewScreen extends ConsumerWidget {
             icon: Icons.av_timer,
             label: 'Open in Metronome',
             onTap: () => _openInMetronome(context, ref, liveSetlist),
+          ),
+          AppMenuItem(
+            icon: Icons.theaters_outlined,
+            label: 'Concert mode',
+            onTap: () => _openConcertMode(context, ref, liveSetlist),
           ),
           AppMenuItem(
             icon: Icons.share_outlined,
@@ -374,6 +380,31 @@ class SetlistViewScreen extends ConsumerWidget {
       return;
     }
     await context.pushNamed('metronome');
+  }
+
+  Future<void> _openConcertMode(
+    BuildContext context,
+    WidgetRef ref,
+    Setlist setlist,
+  ) async {
+    final songs = await _resolveSongs(ref, setlist);
+    if (!context.mounted) return;
+    final loaded = ref
+        .read(metronomeProvider.notifier)
+        .loadSetlistQueue(setlist, availableSongs: songs, sourceBandId: bandId);
+    if (!loaded) {
+      showAppSnackBar(
+        context,
+        'This setlist is empty or has unavailable songs.',
+      );
+      return;
+    }
+    await Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const ConcertModeScreen(),
+        fullscreenDialog: true,
+      ),
+    );
   }
 
   Future<void> _share(
