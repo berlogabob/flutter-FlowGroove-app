@@ -96,6 +96,27 @@ void main() {
     expect(saved.name, 'Old name');
   });
 
+  test('truncates track names to 80 Unicode characters', () {
+    final name = '🎵' * 81;
+    final meta = buildMidiSongMeta(
+      MidiSongData(
+        ppq: 96,
+        tempos: [],
+        timeSigs: [],
+        tracks: [
+          MidiTrackData(
+            index: 0,
+            name: name,
+            channel: 0,
+            program: 0,
+            notes: [],
+          ),
+        ],
+      ),
+    );
+    expect(meta.tracks.single.name, '🎵' * 80);
+  });
+
   test('handles empty songs and tracks', () {
     const empty = MidiSongData(ppq: 480, tempos: [], timeSigs: [], tracks: []);
     final meta = buildMidiSongMeta(empty);

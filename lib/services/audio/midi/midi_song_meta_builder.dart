@@ -21,7 +21,7 @@ MidiSongMeta buildMidiSongMeta(
       final maxPitch = track.maxPitch;
       return MidiTrackMeta(
         index: track.index,
-        name: track.name,
+        name: String.fromCharCodes(track.name.runes.take(80)),
         channel: track.channel,
         program: track.program,
         detectedRole: detectRole(

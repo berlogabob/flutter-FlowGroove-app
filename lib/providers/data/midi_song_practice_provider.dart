@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -19,6 +20,7 @@ class MidiSongPracticeState {
     this.tracks = const [],
     this.playing = false,
     this.soloed = const {},
+    this.skippedTracks = const {},
   });
 
   final bool loading;
@@ -27,18 +29,39 @@ class MidiSongPracticeState {
   final bool playing;
   final Set<int> soloed;
 
+  /// Positions in [tracks] omitted from playback to stay within the PCM budget.
+  final Set<int> skippedTracks;
+
+  String? get notice => skippedTracks.isEmpty
+      ? null
+      : '${skippedTracks.length} tracks skipped to limit playback memory.';
+
+  List<double> get gains => [
+    for (var i = 0; i < tracks.length; i++)
+      if (skippedTracks.contains(i) ||
+          tracks[i].mute ||
+          (soloed.isNotEmpty && !soloed.contains(i)))
+        0
+      else
+        tracks[i].volume,
+  ];
+
   MidiSongPracticeState copyWith({
     bool? loading,
     String? error,
     List<MidiTrackMeta>? tracks,
     bool? playing,
     Set<int>? soloed,
+    Set<int>? skippedTracks,
   }) => MidiSongPracticeState(
     loading: loading ?? this.loading,
     error: error,
     tracks: tracks == null ? this.tracks : List.unmodifiable(tracks),
     playing: playing ?? this.playing,
     soloed: soloed == null ? this.soloed : Set.unmodifiable(soloed),
+    skippedTracks: skippedTracks == null
+        ? this.skippedTracks
+        : Set.unmodifiable(skippedTracks),
   );
 }
 
@@ -53,15 +76,74 @@ typedef _RenderRequest = ({
   double bpmScale,
 });
 
-List<Int16List> _renderTracks(_RenderRequest request) => [
-  for (var i = 0; i < request.song.tracks.length; i++)
-    renderMidiTrack(
-      song: request.song,
-      track: request.song.tracks[i],
-      role: request.tracks[i].effectiveRole,
-      bpmScale: request.bpmScale,
-    ),
-];
+const _sampleRate = 22050;
+
+typedef _RenderedTracks = ({List<Int16List> buffers, Set<int> skipped});
+
+_RenderedTracks _renderTracks(_RenderRequest request) {
+  final song = request.song;
+  final tempos = [...song.tempos]..sort((a, b) => a.tick.compareTo(b.tick));
+  double secondsAt(int tick) {
+    var previousTick = 0;
+    var microsPerQuarter = 500000;
+    var micros = 0.0;
+    for (final tempo in tempos) {
+      if (tempo.tick > tick) break;
+      micros += (tempo.tick - previousTick) * microsPerQuarter / song.ppq;
+      previousTick = tempo.tick;
+      microsPerQuarter = tempo.microsPerQuarter;
+    }
+    micros += (tick - previousTick) * microsPerQuarter / song.ppq;
+    return micros / 1000000 / request.bpmScale;
+  }
+
+  // Match the renderer's note timing and 600-second clipping before allocating PCM.
+  final lengths = [
+    for (final track in song.tracks)
+      track.notes.fold<int>(0, (length, note) {
+        if (note.tick < 0 || note.dur <= 0) return length;
+        final start = secondsAt(note.tick);
+        if (start >= 600) return length;
+        final end =
+            (math.min(secondsAt(note.tick + note.dur), 600) * _sampleRate)
+                .round();
+        return end > (start * _sampleRate).round()
+            ? math.max(length, end)
+            : length;
+      }),
+  ];
+  final ranked = List.generate(song.tracks.length, (i) => i)
+    ..sort((a, b) {
+      final byNotes = song.tracks[b].noteCount.compareTo(
+        song.tracks[a].noteCount,
+      );
+      return byNotes == 0 ? a.compareTo(b) : byNotes;
+    });
+  final selected = <int>{};
+  var frames = 0;
+  for (final i in ranked) {
+    if (selected.length >= 12 || frames + lengths[i] > 30000000) continue;
+    selected.add(i);
+    frames += lengths[i];
+  }
+  return (
+    buffers: [
+      for (var i = 0; i < song.tracks.length; i++)
+        if (selected.contains(i))
+          renderMidiTrack(
+            song: song,
+            track: song.tracks[i],
+            role: request.tracks[i].effectiveRole,
+            sampleRate: _sampleRate,
+            bpmScale: request.bpmScale,
+          ),
+    ],
+    skipped: {
+      for (var i = 0; i < song.tracks.length; i++)
+        if (!selected.contains(i)) i,
+    },
+  );
+}
 
 class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
   MidiSongPracticeNotifier(this.entry);
@@ -179,12 +261,12 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
 
   void _syncGains() {
     try {
-      // Player indices are buffer positions, whereas MIDI indices may be sparse.
+      // Player indices are compact buffer positions, not MIDI or UI indices.
+      final gains = state.gains;
+      var bufferIndex = 0;
       for (var i = 0; i < state.tracks.length; i++) {
-        final track = state.tracks[i];
-        final audible =
-            !track.mute && (state.soloed.isEmpty || state.soloed.contains(i));
-        _player.setTrackGain(i, audible ? track.volume : 0);
+        if (state.skippedTracks.contains(i)) continue;
+        _player.setTrackGain(bufferIndex++, gains[i]);
       }
     } catch (error) {
       state = state.copyWith(error: error.toString());
@@ -230,16 +312,16 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
     _loadedBpm = null;
     state = state.copyWith(loading: true, playing: false);
     try {
-      final buffers = await compute(_renderTracks, (
+      final rendered = await compute(_renderTracks, (
         song: song,
         tracks: state.tracks,
         bpmScale: bpm / song.initialBpm,
       ));
       if (!_current(operationId)) return;
-      await _player.load(buffers);
+      await _player.load(rendered.buffers, sampleRate: _sampleRate);
       if (!_current(operationId)) return;
       _loadedBpm = bpm;
-      state = state.copyWith(loading: false);
+      state = state.copyWith(loading: false, skippedTracks: rendered.skipped);
       _syncGains();
       if (ref.read(metronomeProvider).isPlaying) await start();
     } catch (error) {

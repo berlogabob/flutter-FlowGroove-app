@@ -6,17 +6,24 @@ import 'package:flowgroove/services/audio/midi/smf_parser.dart';
 import 'package:flowgroove/services/midi_song_import.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Uint8List smf({int channel = 0, int trackCount = 1, String? name}) {
+Uint8List smf({
+  int channel = 0,
+  int trackCount = 1,
+  String? name,
+  int hits = 1,
+}) {
   final track = [
     if (name != null) ...[0, 0xff, 3, name.length, ...name.codeUnits],
-    0,
-    0x90 | channel,
-    36,
-    100,
-    96,
-    0x80 | channel,
-    36,
-    0,
+    for (var i = 0; i < hits; i++) ...[
+      0,
+      0x90 | channel,
+      36,
+      100,
+      if (i == hits - 1) 96 else 0,
+      0x80 | channel,
+      36,
+      0,
+    ],
     0,
     0xff,
     0x2f,
@@ -35,10 +42,10 @@ Uint8List smf({int channel = 0, int trackCount = 1, String? name}) {
     0,
     96,
     ...'MTrk'.codeUnits,
-    0,
-    0,
-    0,
-    track.length,
+    (track.length >> 24) & 255,
+    (track.length >> 16) & 255,
+    (track.length >> 8) & 255,
+    track.length & 255,
     ...track,
   ]);
 }
@@ -142,6 +149,41 @@ void main() {
     final entry = await import(bytes);
     expect(entry.midi, parseDrumSmf(bytes).toJson());
     expect(entry.pattern!.hits.single.note, 36);
+  });
+
+  for (final hits in [4000, 4001]) {
+    test('legacy drum pattern budget with $hits hits', () async {
+      final entry = await import(smf(channel: 9, hits: hits));
+      expect(uploads, 1);
+      expect(entry.midiSong!.fileUrl, url);
+      if (hits == 4000) {
+        expect(entry.pattern!.hits, hasLength(4000));
+      } else {
+        expect(entry.midi, isNull);
+        expect(entry.toJson().containsKey('midi'), isFalse);
+      }
+    });
+  }
+
+  test('rejects oversized serialized metadata before uploading', () async {
+    final bytes = smf();
+    final meta = previewMidiImport(bytes).meta;
+    await expectLater(
+      import(
+        bytes,
+        meta: meta.copyWith(
+          tracks: [meta.tracks.single.copyWith(name: 'x' * 900000)],
+        ),
+      ),
+      throwsA(
+        isA<Exception>().having(
+          (error) => error.toString(),
+          'message',
+          'Exception: MIDI import is too large to save',
+        ),
+      ),
+    );
+    expect(uploads, 0);
   });
 
   test('preserves previous settings and uses the effective role', () async {

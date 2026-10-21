@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import '../models/midi_song.dart';
@@ -48,10 +49,30 @@ Future<SongLabEntry> saveMidiImport({
   if (meta.tracks.any((track) => track.effectiveRole == MidiRole.drums)) {
     try {
       final pattern = parseDrumSmf(bytes);
-      if (pattern.hits.isNotEmpty) midi = pattern.toJson();
+      if (pattern.hits.isNotEmpty && pattern.hits.length <= 4000) {
+        midi = pattern.toJson();
+      }
     } catch (_) {
       // Legacy compatibility must not prevent importing the full song.
     }
+  }
+
+  final now = DateTime.now();
+  SongLabEntry buildEntry(String? fileUrl) => SongLabEntry(
+    id: entryId,
+    songId: songId,
+    bandId: bandId,
+    type: LabEntryType.midi,
+    title: title,
+    authorId: createdBy,
+    createdAt: now,
+    updatedAt: now,
+    midiSong: meta.copyWith(fileUrl: fileUrl),
+    midi: midi,
+  );
+  final entry = buildEntry(null);
+  if (jsonEncode(entry.toJson()).length >= 900000) {
+    throw Exception('MIDI import is too large to save');
   }
 
   final url = await upload(
@@ -62,17 +83,5 @@ Future<SongLabEntry> saveMidiImport({
     ext: 'mid',
     contentType: 'audio/midi',
   );
-  final now = DateTime.now();
-  return SongLabEntry(
-    id: entryId,
-    songId: songId,
-    bandId: bandId,
-    type: LabEntryType.midi,
-    title: title,
-    authorId: createdBy,
-    createdAt: now,
-    updatedAt: now,
-    midiSong: meta.copyWith(fileUrl: url),
-    midi: midi,
-  );
+  return buildEntry(url);
 }

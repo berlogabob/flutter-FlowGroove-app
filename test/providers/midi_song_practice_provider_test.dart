@@ -24,6 +24,7 @@ class _Metronome extends MetronomeNotifier {
 class _Player implements MidiSongPlayer {
   final loads = <List<Int16List>>[];
   final gains = <int, double>{};
+  int? loadedSampleRate;
   int starts = 0;
   int stops = 0;
   bool disposed = false;
@@ -38,6 +39,7 @@ class _Player implements MidiSongPlayer {
   @override
   Future<void> load(List<Int16List> buffers, {int sampleRate = 44100}) async {
     if (failLoad) throw StateError('load failed');
+    loadedSampleRate = sampleRate;
     loads.add(buffers);
     await pendingLoad?.future;
   }
@@ -195,11 +197,127 @@ void main() {
             song: song,
             track: song.tracks.first,
             role: MidiRole.bass,
+            sampleRate: 22050,
           ),
         ),
       );
+      expect(player.loadedSampleRate, 22050);
+      expect(current().skippedTracks, isEmpty);
+      expect(current().notice, isNull);
       expect(fetches, 1);
       expect(current().playing, isFalse);
+    },
+  );
+
+  Future<void> loadSong(MidiSongData song) async {
+    container.dispose();
+    await pumpEventQueue();
+    metronome = _Metronome();
+    player = _Player();
+    container = ProviderContainer(
+      overrides: [
+        metronomeProvider.overrideWith(() => metronome),
+        midiSongPlayerProvider.overrideWith((ref, entry) => player),
+        midiSongProvider(entry).overrideWith((ref) async => song),
+      ],
+    )..listen(midiSongPracticeProvider(entry), (_, _) {});
+    notifier = container.read(midiSongPracticeProvider(entry).notifier);
+    await notifier.loadEntry();
+    expect(current().error, isNull);
+  }
+
+  test(
+    'selects 12 busiest tracks and keeps buffer and control order',
+    () async {
+      final song = MidiSongData(
+        ppq: 96,
+        tempos: [],
+        timeSigs: [],
+        tracks: [
+          for (var i = 0; i < 14; i++)
+            MidiTrackData(
+              index: i + 20,
+              name: 'Track $i',
+              channel: 9,
+              program: 0,
+              notes: [
+                for (var n = 0; n <= i; n++)
+                  MidiNote(tick: n, dur: 1, pitch: 36, vel: 100),
+              ],
+            ),
+        ],
+      );
+      await loadSong(song);
+      expect(current().tracks, hasLength(14));
+      expect(current().skippedTracks, {0, 1});
+      expect(current().notice, contains('2 tracks skipped'));
+      expect(current().gains.take(2), [0, 0]);
+      expect(player.loads.single, hasLength(12));
+      for (var i = 0; i < 12; i++) {
+        expect(
+          player.loads.single[i],
+          orderedEquals(
+            renderMidiTrack(
+              song: song,
+              track: song.tracks[i + 2],
+              role: MidiRole.drums,
+              sampleRate: 22050,
+            ),
+          ),
+        );
+      }
+      notifier.setVolume(2, 0.3);
+      expect(player.gains[0], 0.3);
+      notifier.setVolume(0, 0.8);
+      expect(current().gains[0], 0);
+      expect(player.gains[0], 0.3);
+      notifier.toggleSolo(3);
+      expect(player.gains[0], 0);
+      expect(player.gains[1], 1);
+      expect(current().skippedTracks, {0, 1});
+    },
+  );
+
+  test(
+    'skips long tracks before rendering when total frames exceed budget',
+    () async {
+      await loadSong(
+        MidiSongData(
+          ppq: 96,
+          tempos: const [
+            TempoChange(tick: 0, microsPerQuarter: 500000),
+            TempoChange(tick: 96, microsPerQuarter: 1000000),
+          ],
+          timeSigs: [],
+          tracks: [
+            for (var i = 0; i < 4; i++)
+              MidiTrackData(
+                index: i,
+                name: '',
+                channel: 9,
+                program: 0,
+                notes: [
+                  MidiNote(
+                    tick: i == 3 ? 0 : 57600,
+                    dur: i == 3 ? 1 : 200,
+                    pitch: 1,
+                    vel: 100,
+                  ),
+                ],
+              ),
+          ],
+        ),
+      );
+      expect(current().skippedTracks, {2});
+      expect(current().gains, [1, 1, 0, 1]);
+      final buffers = player.loads.single;
+      expect(buffers, hasLength(3));
+      expect(buffers[0].length, 13230000);
+      expect(buffers[1].length, 13230000);
+      expect(
+        buffers.fold<int>(0, (sum, buffer) => sum + buffer.length),
+        lessThanOrEqualTo(30000000),
+      );
     },
   );
 
