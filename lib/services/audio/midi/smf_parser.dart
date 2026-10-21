@@ -11,7 +11,7 @@ MidiPattern parseDrumSmf(
     throw ArgumentError('maxBars and stepsPerBeat must be positive');
   }
 
-  final reader = _SmfReader(bytes);
+  final reader = SmfReader(bytes);
   if (reader.readInt(4) != 0x4D546864) {
     throw const FormatException('Missing MThd header');
   }
@@ -94,8 +94,8 @@ MidiPattern parseDrumSmf(
   );
 }
 
-class _SmfReader {
-  _SmfReader(this.bytes);
+class SmfReader {
+  SmfReader(this.bytes);
 
   final Uint8List bytes;
   int _offset = 0;
@@ -140,9 +140,9 @@ class _SmfReader {
     _offset += length;
   }
 
-  _SmfReader readChunk(int length) {
+  SmfReader readChunk(int length) {
     _require(length);
-    final chunk = _SmfReader(
+    final chunk = SmfReader(
       Uint8List.sublistView(bytes, _offset, _offset + length),
     );
     _offset += length;
