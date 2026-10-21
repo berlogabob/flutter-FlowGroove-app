@@ -1,3 +1,5 @@
+import '../models/section_span.dart';
+
 enum MidiRole {
   drums,
   bass,
@@ -12,6 +14,18 @@ enum MidiRole {
   static MidiRole parse(String? value) => MidiRole.values.firstWhere(
     (role) => role.name == value,
     orElse: () => MidiRole.other,
+  );
+}
+
+/// What to do once a practice loop section finishes.
+enum LoopBehavior {
+  loop,
+  next,
+  stop;
+
+  static LoopBehavior parse(String? value) => LoopBehavior.values.firstWhere(
+    (behavior) => behavior.name == value,
+    orElse: () => LoopBehavior.loop,
   );
 }
 
@@ -188,12 +202,16 @@ class MidiSongMeta {
     required this.initialBpm,
     required this.tracks,
     this.fileUrl,
+    this.loopSpan = const SectionSpan(sectionId: '', startBar: 0, bars: 0),
+    this.loopBehavior = LoopBehavior.loop,
   });
 
   factory MidiSongMeta.fromJson(Map<String, dynamic> json) => MidiSongMeta(
     fileUrl: json['fileUrl'] as String?,
     ppq: (json['ppq'] as num?)?.toInt() ?? 480,
     initialBpm: (json['initialBpm'] as num?)?.toDouble() ?? 120.0,
+    loopSpan: _loopSpanFromJson(json['loopSpan']),
+    loopBehavior: LoopBehavior.parse(json['loopBehavior'] as String?),
     tracks:
         (json['tracks'] as List<dynamic>?)
             ?.map(
@@ -208,17 +226,23 @@ class MidiSongMeta {
   final String? fileUrl;
   final int ppq;
   final double initialBpm;
+  final SectionSpan loopSpan;
+  final LoopBehavior loopBehavior;
   final List<MidiTrackMeta> tracks;
 
   MidiSongMeta copyWith({
     Object? fileUrl = _unchanged,
     int? ppq,
     double? initialBpm,
+    SectionSpan? loopSpan,
+    LoopBehavior? loopBehavior,
     List<MidiTrackMeta>? tracks,
   }) => MidiSongMeta(
     fileUrl: identical(fileUrl, _unchanged) ? this.fileUrl : fileUrl as String?,
     ppq: ppq ?? this.ppq,
     initialBpm: initialBpm ?? this.initialBpm,
+    loopSpan: loopSpan ?? this.loopSpan,
+    loopBehavior: loopBehavior ?? this.loopBehavior,
     tracks: tracks ?? this.tracks,
   );
 
@@ -227,6 +251,11 @@ class MidiSongMeta {
     if (fileUrl != null) 'fileUrl': fileUrl,
     'ppq': ppq,
     'initialBpm': initialBpm,
+    'loopSpan': loopSpan.toJson(),
+    'loopBehavior': loopBehavior.name,
     'tracks': tracks.map((track) => track.toJson()).toList(),
   };
 }
+
+SectionSpan _loopSpanFromJson(Object? value) =>
+    value is Map<String, dynamic> ? SectionSpan.fromJson(value) : const SectionSpan(sectionId: '', startBar: 0, bars: 0);
