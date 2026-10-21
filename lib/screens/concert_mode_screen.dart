@@ -110,7 +110,7 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
                       ? PerformanceSheetView(
                           key: ValueKey(song.id),
                           sections: song.sections,
-                          bpm: song.ourBPM ?? song.originalBPM,
+                          bpm: state.bpm,
                         )
                       : _Readout(
                           bpm: state.bpm,
