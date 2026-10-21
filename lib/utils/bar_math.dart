@@ -8,7 +8,7 @@ double tickIntervalFrames(double intervalMicros, int sampleRate) {
   return intervalMicros * sampleRate / 1_000_000.0;
 }
 
-int barFrame({
+int barStartFrame({
   required int bar,
   required int ticksPerBar,
   required double intervalMicros,
@@ -16,5 +16,6 @@ int barFrame({
   required int epochFrame,
 }) {
   return epochFrame +
-      (bar * ticksPerBar * tickIntervalFrames(intervalMicros, sampleRate)).round();
+      (bar * ticksPerBar * tickIntervalFrames(intervalMicros, sampleRate))
+          .round();
 }
