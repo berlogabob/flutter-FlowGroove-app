@@ -11,11 +11,12 @@ WT = REPO.parent / os.environ.get("PLAN_WT", "flutter_repsync_ux")
 PFX = os.environ.get("PLAN_PREFIX", "fix(ux)")  # git worktree, isolates the user's dirty main tree
 PI = Path.home() / ".claude/skills/pi-delegate/scripts/pi-run.sh"
 LEDGER = PLAN / "ledger.jsonl"
+JBR = "/Applications/Android Studio.app/Contents/jbr/Contents/Home"  # env JAVA_HOME is stale; gradle needs this
 PRE = "set -o pipefail; "
 
 def sh(cmd, cwd=WT, timeout=1800, env=None):
     p = subprocess.run(["bash", "-c", cmd], cwd=cwd, capture_output=True, text=True, timeout=timeout,
-                       env={**os.environ, **(env or {})})
+                       env={**os.environ, "JAVA_HOME": JBR, **(env or {})})
     return p.returncode, (p.stdout + p.stderr)
 
 def verify(task):
