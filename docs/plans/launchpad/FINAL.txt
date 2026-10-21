@@ -1,0 +1,16 @@
+flutter test exit=1
+01:08 +2728 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:08 +2729 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:08 +2730 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:08 +2731 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:08 +2732 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+01:08 +2733 ~3 -1: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/services/scheduler_drift_test.dart: WallClockScheduler drift test cumulative drift < 50ms over 30 seconds at 120 BPM
+Ticks fired: 60 (skipped: 0)
+Cumulative absolute drift: 120ms
+Average drift per tick: 2.00ms
+Max single-tick drift: 3ms
+Final tick drift: 2ms
+01:15 +2734 ~3 -1: Some tests failed.
+
+Failing tests:
+  /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/models/midi_song_meta_roundtrip_test.dart: loading /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/models/midi_song_meta_roundtrip_test.dart

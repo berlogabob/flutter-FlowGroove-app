@@ -49,7 +49,7 @@ MIX+"Implement it in Dart: lib/services/audio/engine/backing_mixer.dart (use lib
 add("L12","codex","Kotlin BarMath + BackingMixer parity",
 ["android/app/build.gradle","android/app/build.gradle.kts","android/app/src/main/kotlin/com/flowgroove/app/BackingMixer.kt","android/app/src/test/kotlin/com/flowgroove/app/BackingMixerTest.kt"],
 MIX+"Implement the same in pure Kotlin (no android imports; out is DoubleArray) at android/app/src/main/kotlin/com/flowgroove/app/BackingMixer.kt incl. barStartFrame using Math.round exactly like MetronomeEngine.kt. Add JUnit 4 testImplementation to the android app gradle file that exists (build.gradle or build.gradle.kts, edit only the one present). Test BackingMixerTest.kt reads the SAME fixture test/fixtures/backing_golden.json (path: System.getProperty(\"user.dir\") + \"/../../test/fixtures/backing_golden.json\") and asserts the same expectations. Parse JSON with org.json only if available on the unit-test classpath, otherwise add testImplementation 'org.json:json:20231013'.",
-"cd android && ./gradlew testDebugUnitTest --tests '*BackingMixerTest*' -q",["L11"],timeout=1500)
+"cd android && ./gradlew :app:testDebugUnitTest --tests '*BackingMixerTest*' -q",["L11"],timeout=1500)
 add("L13","codex","Wire mixer into MetronomeEngine + channel",
 ["android/app/src/main/kotlin/com/flowgroove/app/MetronomeEngine.kt","android/app/src/main/kotlin/com/flowgroove/app/MainActivity.kt"],
 "Wire android/.../BackingMixer.kt into MetronomeEngine.renderLoop: after the click ticks are mixed into `scratch` and before the PCM conversion, call backing.mix(scratch, chunkStart, engineBpm, epochFrame, ticksPerBar, intervalMicros). Pass bpm and ticksPerBar from the start/update config (add fields to NativeMetronomeConfig; keep defaults so old callers work). Apply the existing latency offset to backing identically to the click. When pendingConfig changes epochFrame, the mixer sees the new epochFrame (it stops itself). Expose on the existing MethodChannel 'com.flowgroove/metronome' in MainActivity: engineSampleRate() -> Int; backingLoad({paths: List<String> of raw little-endian Int16 mono files, sampleRate, renderBpm, ticksPerBar, intervalMicros}); backingCommand({token, kind, fromBar, bars, loop, atBar}); backingGain({stem, gain}); backingClear(). Native to Dart: invokeMethod('backingState', {token, state, bar}) and invokeMethod('bar', {index}) on each transport bar start (from the render loop, posted to the main handler like onTick). Never allocate inside the render loop per chunk beyond existing patterns. If sampleRate of the load differs from the engine rate, reject with a channel error.",
@@ -149,5 +149,18 @@ add("L34","codex","Distinct instrument names in the mixer",
 "P30 finding F3: all five tracks of AUD_CT1445.mid show the same title 'Back to black' (format-0 file split by channel keeps the song title). Track display name rule: if the file's track name is empty or equal to another track's name, use '<GM program name> · ch N' (gm_names.dart; program = value at the channel's first note; drums = 'Drums · ch 10'). Persist nothing new: compute the display name where tracks are built so the panel and the launchpad instrument strip read the same value. Test: a synthetic 3-channel format-0 song titled 'Song' yields three distinct names containing 'Bass', 'Piano', 'Drums'.",
 "flutter test test/widgets/midi_song_panel_names_test.dart test/midi test/services/audio/midi && dart analyze lib/services/audio/midi lib/widgets/midi",["L33","L21"],timeout=1800,suite=True)
 
+MUST = {
+ "L01": ["double tickIntervalFrames(", "int barStartFrame("],
+ "L03": ["class SectionSpan", "fromJson", "toJson", "props"],
+ "L05": ["List<int> splitBars(int bars, int parts)"],
+ "L07": ["enum PadState", "padStateFor(", "padStateLabel("],
+ "L09": ["enum Quantize", "int nextBoundaryFrame("],
+ "L14": ["class BackingStems", "enum BackingKind", "class BackingCommand", "enum BackingStateKind", "class BackingState", "abstract class BackingEngine", "Stream<BackingState> get states", "Stream<int> get bars", "Future<int> engineSampleRate()"],
+ "L19": ["startBar", "sectionMap", "useFileTempo", "endBehavior"],
+ "L24": ["class SectionPad", "padStateLabel", "Semantics"],
+ "L32": ["gmProgramNames", "String gmProgramName(int program)"],
+}
+for t in T:
+    if t["id"] in MUST: t["must_contain"] = MUST[t["id"]]
 json.dump(dict(branch="feat/launchpad", tasks=T), open("docs/plans/launchpad/tasks.json","w"), indent=1)
 print(len(T), "tasks;", sum(t["executor"]=="pi" for t in T), "pi,", sum(t["executor"]=="codex" for t in T), "codex")

@@ -14,7 +14,11 @@
    "after": [],
    "status": "pending",
    "timeout": 240,
-   "suite": false
+   "suite": false,
+   "must_contain": [
+    "double tickIntervalFrames(",
+    "int barStartFrame("
+   ]
   },
   {
    "id": "L02",
@@ -47,7 +51,13 @@
    "after": [],
    "status": "pending",
    "timeout": 240,
-   "suite": false
+   "suite": false,
+   "must_contain": [
+    "class SectionSpan",
+    "fromJson",
+    "toJson",
+    "props"
+   ]
   },
   {
    "id": "L04",
@@ -80,7 +90,10 @@
    "after": [],
    "status": "pending",
    "timeout": 240,
-   "suite": false
+   "suite": false,
+   "must_contain": [
+    "List<int> splitBars(int bars, int parts)"
+   ]
   },
   {
    "id": "L06",
@@ -113,7 +126,12 @@
    "after": [],
    "status": "pending",
    "timeout": 240,
-   "suite": false
+   "suite": false,
+   "must_contain": [
+    "enum PadState",
+    "padStateFor(",
+    "padStateLabel("
+   ]
   },
   {
    "id": "L08",
@@ -146,7 +164,11 @@
    "after": [],
    "status": "pending",
    "timeout": 240,
-   "suite": false
+   "suite": false,
+   "must_contain": [
+    "enum Quantize",
+    "int nextBoundaryFrame("
+   ]
   },
   {
    "id": "L10",
@@ -197,7 +219,7 @@
     "android/app/src/test/kotlin/com/flowgroove/app/BackingMixerTest.kt"
    ],
    "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Backing mixer contract (identical in Dart and Kotlin). Class BackingMixer(sampleRate). load(stems: Int16 arrays, one mono stem per instrument group, each covering the whole song; renderBpm; ticksPerBar; intervalMicros). A song bar b starts at stem sample barStartFrame(bar: b, epochFrame 0). mix(out, chunkStart, engineBpm, epochFrame, ticksPerBar, intervalMicros) ADDS stem*gain/32768 into out for absolute frames [chunkStart, chunkStart+out.length). Audible only while |renderBpm-engineBpm|<0.001 and intervalMicros equal; else silence. command(token, kind launch|stop, fromBar, bars, loop, atBar): transport bar t starts at barStartFrame(t, epochFrame). A command takes effect at the start of transport bar atBar (queued before that: emit state queued). For t>=atBar the song bar is fromBar+((t-atBar) mod bars) if loop, fromBar+(t-atBar) while < fromBar+bars otherwise (then stopped). Within transport bar t, frame f maps to stem sample songBarStart(songBar)+(f-barStart(t)), zero-padded or truncated at the song bar's length (re-anchor every bar: drift can never exceed one frame). A stop command with atBar stops at that bar start. setGain(stem, gain) ramps linearly over 5 ms. A change of epochFrame or engine intervalMicros between mix calls stops playback and emits state stopped(reason epoch). State callback: onState(token, state queued|playing|stopped, transportBar). Implement the same in pure Kotlin (no android imports; out is DoubleArray) at android/app/src/main/kotlin/com/flowgroove/app/BackingMixer.kt incl. barStartFrame using Math.round exactly like MetronomeEngine.kt. Add JUnit 4 testImplementation to the android app gradle file that exists (build.gradle or build.gradle.kts, edit only the one present). Test BackingMixerTest.kt reads the SAME fixture test/fixtures/backing_golden.json (path: System.getProperty(\"user.dir\") + \"/../../test/fixtures/backing_golden.json\") and asserts the same expectations. Parse JSON with org.json only if available on the unit-test classpath, otherwise add testImplementation 'org.json:json:20231013'.",
-   "verify": "cd android && ./gradlew testDebugUnitTest --tests '*BackingMixerTest*' -q",
+   "verify": "cd android && ./gradlew :app:testDebugUnitTest --tests '*BackingMixerTest*' -q",
    "after": [
     "L11"
    ],
@@ -238,7 +260,18 @@
    ],
    "status": "pending",
    "timeout": 240,
-   "suite": false
+   "suite": false,
+   "must_contain": [
+    "class BackingStems",
+    "enum BackingKind",
+    "class BackingCommand",
+    "enum BackingStateKind",
+    "class BackingState",
+    "abstract class BackingEngine",
+    "Stream<BackingState> get states",
+    "Stream<int> get bars",
+    "Future<int> engineSampleRate()"
+   ]
   },
   {
    "id": "L15",
@@ -332,7 +365,13 @@
    ],
    "status": "pending",
    "timeout": 240,
-   "suite": false
+   "suite": false,
+   "must_contain": [
+    "startBar",
+    "sectionMap",
+    "useFileTempo",
+    "endBehavior"
+   ]
   },
   {
    "id": "L20",
@@ -429,7 +468,12 @@
    ],
    "status": "pending",
    "timeout": 240,
-   "suite": false
+   "suite": false,
+   "must_contain": [
+    "class SectionPad",
+    "padStateLabel",
+    "Semantics"
+   ]
   },
   {
    "id": "L25",
@@ -585,7 +629,11 @@
    "after": [],
    "status": "pending",
    "timeout": 240,
-   "suite": false
+   "suite": false,
+   "must_contain": [
+    "gmProgramNames",
+    "String gmProgramName(int program)"
+   ]
   },
   {
    "id": "L33",
