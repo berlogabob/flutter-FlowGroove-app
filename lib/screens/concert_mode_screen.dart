@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/data/metronome_provider.dart';
 import '../providers/wakelock_provider.dart';
 import '../theme/mono_pulse_theme.dart';
-import 'performance_sheet_screen.dart';
+import '../widgets/performance_sheet_view.dart';
 
 /// Full-screen "stage" view of the metronome (Mono Pulse Concert Mode).
 ///
@@ -26,6 +26,7 @@ class ConcertModeScreen extends ConsumerStatefulWidget {
 class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
+  bool _showSheet = false;
 
   @override
   void initState() {
@@ -67,6 +68,7 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
         : -1;
 
     final song = state.activeSong;
+    final showSheet = _showSheet && song != null && song.hasSheetContent;
 
     return Scaffold(
       backgroundColor: context.mp.black,
@@ -83,8 +85,7 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
-            // Open the loaded song's lyrics+chords sheet (seeded with the live
-            // tempo). The metronome keeps running underneath.
+            // Toggle the loaded song's inline lyrics+chords sheet.
             if (song != null && song.hasSheetContent)
               Positioned(
                 top: MonoPulseSpacing.sm,
@@ -92,36 +93,31 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
                 child: IconButton(
                   icon: Icon(
                     Icons.lyrics_outlined,
-                    color: context.mp.textSecondary,
+                    color: showSheet
+                        ? MonoPulseColors.accentOrange
+                        : context.mp.textSecondary,
                   ),
                   iconSize: 28,
-                  tooltip: 'Lyrics & chords',
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => PerformanceSheetScreen(
-                        title: song.title.trim().isEmpty
-                            ? 'Song'
-                            : song.title.trim(),
-                        sections: song.sections,
-                        song: song,
-                        songKey: song.ourKey,
-                        bpm: state.bpm,
-                        timeTop: song.accentBeats,
-                      ),
-                    ),
-                  ),
+                  tooltip: showSheet ? 'Show BPM' : 'Lyrics & chords',
+                  onPressed: () => setState(() => _showSheet = !_showSheet),
                 ),
               ),
             Padding(
               padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
               child: OrientationBuilder(
                 builder: (context, orientation) {
-                  final readout = _Readout(
-                    bpm: state.bpm,
-                    pulse: _pulse,
-                    isPlaying: state.isPlaying,
-                    songTitle: state.activeSong?.title,
-                  );
+                  final readout = showSheet
+                      ? PerformanceSheetView(
+                          key: ValueKey(song.id),
+                          sections: song.sections,
+                          bpm: song.ourBPM ?? song.originalBPM,
+                        )
+                      : _Readout(
+                          bpm: state.bpm,
+                          pulse: _pulse,
+                          isPlaying: state.isPlaying,
+                          songTitle: song?.title,
+                        );
                   final controls = _Controls(
                     isPlaying: state.isPlaying,
                     numerator: numerator,
@@ -153,7 +149,12 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
                   }
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [readout, controls],
+                    children: [
+                      if (showSheet) Expanded(child: readout) else readout,
+                      if (showSheet)
+                        const SizedBox(height: MonoPulseSpacing.lg),
+                      controls,
+                    ],
                   );
                 },
               ),
