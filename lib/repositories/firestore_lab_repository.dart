@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/song_lab.dart';
+import '../services/pending_storage_deletes.dart';
 
 /// Firestore access for Song Lab subcollections (#66) under a song doc:
 /// `labEntries`, `tasks`, `versions` — for personal songs
@@ -10,12 +13,18 @@ import '../models/song_lab.dart';
 ///
 /// ponytail: single concrete class, no interface — one implementation exists.
 class FirestoreLabRepository {
-  FirestoreLabRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
+  FirestoreLabRepository({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+    PendingStorageDeletes? pendingStorageDeletes,
+  })
     : _firestore = firestore ?? FirebaseFirestore.instance,
-      _auth = auth ?? FirebaseAuth.instance;
+      _auth = auth ?? FirebaseAuth.instance,
+      _pendingStorageDeletes = pendingStorageDeletes ?? PendingStorageDeletes();
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final PendingStorageDeletes _pendingStorageDeletes;
 
   String get _uid {
     final user = _auth.currentUser;
@@ -43,20 +52,35 @@ class FirestoreLabRepository {
             (s) => s.docs.map((d) => SongLabEntry.fromJson(d.data())).toList(),
           );
 
-  Future<void> saveEntry(SongLabEntry entry, {String? bandId}) =>
-      _songDoc(entry.songId, bandId: bandId)
-          .collection('labEntries')
-          .doc(entry.id)
-          .set(entry.toJson(), SetOptions(merge: true));
+  Future<void> saveEntry(SongLabEntry entry, {String? bandId}) async {
+    final url = entry.midiSong?.fileUrl;
+    // Undo restores the entry through this method, so preserve its MIDI file.
+    if (url != null) await _pendingStorageDeletes.cancel(url);
+    await _songDoc(entry.songId, bandId: bandId)
+        .collection('labEntries')
+        .doc(entry.id)
+        .set(entry.toJson(), SetOptions(merge: true));
+  }
 
   Future<void> deleteEntry(
     String songId,
     String entryId, {
     String? bandId,
-  }) => _songDoc(songId, bandId: bandId)
-      .collection('labEntries')
-      .doc(entryId)
-      .delete();
+  }) async {
+    final doc = _songDoc(
+      songId,
+      bandId: bandId,
+    ).collection('labEntries').doc(entryId);
+    final data = (await doc.get()).data();
+    final url = data == null
+        ? null
+        : SongLabEntry.fromJson(data).midiSong?.fileUrl;
+    if (url != null) await _pendingStorageDeletes.enqueue(url);
+    await doc.delete();
+    if (url != null) {
+      unawaited(_pendingStorageDeletes.flushAfter(url, undoGracePeriod));
+    }
+  }
 
   // ---- Tasks ----
 
