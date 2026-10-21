@@ -1,0 +1,231 @@
+enum MidiRole {
+  drums,
+  bass,
+  guitar,
+  keys,
+  strings,
+  vocal,
+  lead,
+  synth,
+  other;
+
+  static MidiRole parse(String? value) => MidiRole.values.firstWhere(
+    (role) => role.name == value,
+    orElse: () => MidiRole.other,
+  );
+}
+
+class MidiNote {
+  const MidiNote({
+    required this.tick,
+    required this.dur,
+    required this.pitch,
+    required this.vel,
+  });
+
+  final int tick;
+  final int dur;
+  final int pitch;
+  final int vel;
+}
+
+class TempoChange {
+  const TempoChange({required this.tick, required this.microsPerQuarter});
+
+  final int tick;
+  final int microsPerQuarter;
+}
+
+class TimeSigChange {
+  const TimeSigChange({
+    required this.tick,
+    required this.numerator,
+    required this.denominator,
+  });
+
+  final int tick;
+  final int numerator;
+  final int denominator;
+}
+
+class MidiTrackData {
+  const MidiTrackData({
+    required this.index,
+    required this.name,
+    required this.channel,
+    required this.program,
+    required this.notes,
+  });
+
+  final int index;
+  final String name;
+  final int channel;
+  final int program;
+  final List<MidiNote> notes;
+
+  int get noteCount => notes.length;
+  int get minPitch => notes.isEmpty
+      ? 0
+      : notes.map((note) => note.pitch).reduce((a, b) => a < b ? a : b);
+  int get maxPitch => notes.isEmpty
+      ? 0
+      : notes.map((note) => note.pitch).reduce((a, b) => a > b ? a : b);
+}
+
+class MidiSongData {
+  const MidiSongData({
+    required this.ppq,
+    required this.tempos,
+    required this.timeSigs,
+    required this.tracks,
+  });
+
+  final int ppq;
+  final List<TempoChange> tempos;
+  final List<TimeSigChange> timeSigs;
+  final List<MidiTrackData> tracks;
+
+  double get initialBpm =>
+      tempos.isEmpty ? 120.0 : 60000000 / tempos.first.microsPerQuarter;
+}
+
+const _unchanged = Object();
+
+/// Stored track settings and statistics; note events stay in [MidiTrackData].
+class MidiTrackMeta {
+  const MidiTrackMeta({
+    required this.index,
+    required this.name,
+    required this.channel,
+    required this.program,
+    required this.detectedRole,
+    required this.noteCount,
+    required this.minPitch,
+    required this.maxPitch,
+    this.roleOverride,
+    this.mute = false,
+    this.volume = 1.0,
+  }) : assert(volume >= 0 && volume <= 1, 'Volume must be between 0 and 1');
+
+  factory MidiTrackMeta.fromJson(Map<String, dynamic> json) => MidiTrackMeta(
+    index: (json['index'] as num?)?.toInt() ?? 0,
+    name: json['name'] as String? ?? '',
+    channel: (json['channel'] as num?)?.toInt() ?? 0,
+    program: (json['program'] as num?)?.toInt() ?? 0,
+    detectedRole: MidiRole.parse(json['detectedRole'] as String?),
+    roleOverride: json['roleOverride'] == null
+        ? null
+        : MidiRole.parse(json['roleOverride'] as String?),
+    mute: json['mute'] as bool? ?? false,
+    volume: (json['volume'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 1.0,
+    noteCount: (json['noteCount'] as num?)?.toInt() ?? 0,
+    minPitch: (json['minPitch'] as num?)?.toInt() ?? 0,
+    maxPitch: (json['maxPitch'] as num?)?.toInt() ?? 0,
+  );
+
+  final int index;
+  final String name;
+  final int channel;
+  final int program;
+  final MidiRole detectedRole;
+  final MidiRole? roleOverride;
+  final bool mute;
+  final double volume;
+  final int noteCount;
+  final int minPitch;
+  final int maxPitch;
+
+  MidiRole get effectiveRole => roleOverride ?? detectedRole;
+
+  MidiTrackMeta copyWith({
+    int? index,
+    String? name,
+    int? channel,
+    int? program,
+    MidiRole? detectedRole,
+    Object? roleOverride = _unchanged,
+    bool? mute,
+    double? volume,
+    int? noteCount,
+    int? minPitch,
+    int? maxPitch,
+  }) => MidiTrackMeta(
+    index: index ?? this.index,
+    name: name ?? this.name,
+    channel: channel ?? this.channel,
+    program: program ?? this.program,
+    detectedRole: detectedRole ?? this.detectedRole,
+    roleOverride: identical(roleOverride, _unchanged)
+        ? this.roleOverride
+        : roleOverride as MidiRole?,
+    mute: mute ?? this.mute,
+    volume: volume ?? this.volume,
+    noteCount: noteCount ?? this.noteCount,
+    minPitch: minPitch ?? this.minPitch,
+    maxPitch: maxPitch ?? this.maxPitch,
+  );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'index': index,
+    'name': name,
+    'channel': channel,
+    'program': program,
+    'detectedRole': detectedRole.name,
+    if (roleOverride != null) 'roleOverride': roleOverride!.name,
+    'mute': mute,
+    'volume': volume,
+    'noteCount': noteCount,
+    'minPitch': minPitch,
+    'maxPitch': maxPitch,
+  };
+}
+
+/// Serializable song metadata, without parsed note events.
+class MidiSongMeta {
+  const MidiSongMeta({
+    required this.ppq,
+    required this.initialBpm,
+    required this.tracks,
+    this.fileUrl,
+  });
+
+  factory MidiSongMeta.fromJson(Map<String, dynamic> json) => MidiSongMeta(
+    fileUrl: json['fileUrl'] as String?,
+    ppq: (json['ppq'] as num?)?.toInt() ?? 480,
+    initialBpm: (json['initialBpm'] as num?)?.toDouble() ?? 120.0,
+    tracks:
+        (json['tracks'] as List<dynamic>?)
+            ?.map(
+              (track) => MidiTrackMeta.fromJson(track as Map<String, dynamic>),
+            )
+            .toList() ??
+        <MidiTrackMeta>[],
+  );
+
+  static const int schemaVersion = 1;
+
+  final String? fileUrl;
+  final int ppq;
+  final double initialBpm;
+  final List<MidiTrackMeta> tracks;
+
+  MidiSongMeta copyWith({
+    Object? fileUrl = _unchanged,
+    int? ppq,
+    double? initialBpm,
+    List<MidiTrackMeta>? tracks,
+  }) => MidiSongMeta(
+    fileUrl: identical(fileUrl, _unchanged) ? this.fileUrl : fileUrl as String?,
+    ppq: ppq ?? this.ppq,
+    initialBpm: initialBpm ?? this.initialBpm,
+    tracks: tracks ?? this.tracks,
+  );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'schemaVersion': schemaVersion,
+    if (fileUrl != null) 'fileUrl': fileUrl,
+    'ppq': ppq,
+    'initialBpm': initialBpm,
+    'tracks': tracks.map((track) => track.toJson()).toList(),
+  };
+}
