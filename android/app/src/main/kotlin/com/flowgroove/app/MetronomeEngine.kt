@@ -38,7 +38,10 @@ internal data class NativeMetronomeConfig(
     val waveType: String,
     val volume: Float,
     val hapticsEnabled: Boolean,
-    val ticks: List<NativeMetronomeTick>
+    val ticks: List<NativeMetronomeTick>,
+    val bpm: Double = 120.0,
+    val ticksPerBar: Int = 4,
+    val latencyOffsetFrames: Long = 0L
 ) {
     companion object {
         fun from(args: Map<*, *>): NativeMetronomeConfig {
@@ -67,7 +70,12 @@ internal data class NativeMetronomeConfig(
                 volume = ((args["volume"] as? Number)?.toFloat() ?: 0.5f)
                     .coerceIn(0f, 1f),
                 hapticsEnabled = args["hapticsEnabled"] as? Boolean ?: true,
-                ticks = ticks
+                ticks = ticks,
+                bpm = ((args["bpm"] as? Number)?.toDouble() ?: 120.0)
+                    .also { require(it.isFinite() && it > 0) { "Invalid bpm" } },
+                ticksPerBar = ((args["ticksPerBar"] as? Number)?.toInt() ?: ticks.size)
+                    .also { require(it > 0) { "Invalid ticksPerBar" } },
+                latencyOffsetFrames = (args["latencyOffsetFrames"] as? Number)?.toLong() ?: 0L
             )
         }
     }
@@ -141,7 +149,8 @@ internal class AndroidMetronomeEngine(
     private val onStopped: () -> Unit
 ) {
     private val mainHandler = Handler(context.mainLooper)
-    private val sampleRate = resolveSampleRate(context)
+    private val backing = backingFor(context)
+    private val sampleRate = backing.sampleRate
     private val renderer = ClickRenderer(sampleRate)
     private val chunkFrames = max(256, sampleRate / 50) // ~20 ms
 
@@ -318,11 +327,13 @@ internal class AndroidMetronomeEngine(
         val pcm = ShortArray(chunkFrames)
         // (audibleFrame, tickIndex, shouldVibrate) for ticks awaiting UI dispatch.
         val uiQueue = ArrayDeque<Triple<Long, Int, Boolean>>()
+        val barQueue = ArrayDeque<Pair<Long, Int>>()
 
         var active = initial
         var intervalFrames = active.intervalMicros * sampleRate / 1_000_000.0
         var framesWritten = 0L
-        var epochFrame = 0L
+        var epochFrame = -active.latencyOffsetFrames
+        var nextBar = 0
 
         try {
             // Default-priority threads get starved by aggressive vendor CPU
@@ -339,7 +350,8 @@ internal class AndroidMetronomeEngine(
                 pendingConfig = null
                 active = pend
                 intervalFrames = active.intervalMicros * sampleRate / 1_000_000.0
-                epochFrame = framesWritten // restart the tick grid here, gaplessly
+                epochFrame = framesWritten - active.latencyOffsetFrames // restart the grid, gaplessly
+                nextBar = 0
             }
 
             java.util.Arrays.fill(scratch, 0.0)
@@ -376,6 +388,22 @@ internal class AndroidMetronomeEngine(
                 }
             }
 
+            synchronized(backing) {
+                backing.mix(
+                    scratch, chunkStart, active.bpm, epochFrame,
+                    active.ticksPerBar, active.intervalMicros.toDouble()
+                )
+            }
+            while (true) {
+                val barFrame = barStartFrame(
+                    nextBar, active.ticksPerBar, active.intervalMicros.toDouble(),
+                    sampleRate, epochFrame
+                )
+                if (barFrame >= chunkEnd) break
+                if (barFrame >= chunkStart) barQueue.addLast(barFrame to nextBar)
+                nextBar++
+            }
+
             for (i in 0 until chunkFrames) {
                 pcm[i] = (scratch[i].coerceIn(-1.0, 1.0) * 32767.0).toInt().toShort()
             }
@@ -391,6 +419,10 @@ internal class AndroidMetronomeEngine(
                 // ponytail: 32-bit head masked; sync would only hiccup after ~24h
                 // continuous play (audio unaffected). Wrap accounting if anyone cares.
                 val head = track.playbackHeadPosition.toLong() and 0xFFFFFFFFL
+                while (barQueue.isNotEmpty() && barQueue.first().first <= head) {
+                    val (_, index) = barQueue.removeFirst()
+                    mainHandler.post { onBar?.invoke(index) }
+                }
                 while (uiQueue.isNotEmpty() && uiQueue.first().first <= head) {
                     val (_, index, vibrate) = uiQueue.removeFirst()
                     mainHandler.post { onTick(index) }
@@ -478,15 +510,21 @@ internal class AndroidMetronomeEngine(
         }
     }
 
-    private fun resolveSampleRate(context: Context): Int {
-        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
-        val rate = audioManager
-            ?.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
-            ?.toIntOrNull()
-        return rate?.takeIf { it > 0 } ?: 48_000
-    }
-
     companion object {
         private const val TAG = "FlowGrooveMetronome"
+        private var sharedBacking: BackingMixer? = null
+        var onBar: ((Int) -> Unit)? = null
+
+        // Shared with the Activity because the foreground service owns the engine.
+        @Synchronized
+        fun backingFor(context: Context): BackingMixer {
+            sharedBacking?.let { return it }
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+            val rate = audioManager
+                ?.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
+                ?.toIntOrNull()
+                ?.takeIf { it > 0 } ?: 48_000
+            return BackingMixer(rate).also { sharedBacking = it }
+        }
     }
 }

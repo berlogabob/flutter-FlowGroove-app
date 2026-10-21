@@ -13,6 +13,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 class MainActivity : FlutterActivity() {
     private var audioRouteEmitter: AudioRouteEmitter? = null
@@ -54,8 +57,65 @@ class MainActivity : FlutterActivity() {
             "com.flowgroove/metronome"
         )
         channel = ch
+        val backing = AndroidMetronomeEngine.backingFor(applicationContext)
+        val mainHandler = Handler(mainLooper)
+        synchronized(backing) {
+            backing.onState = { token, state, bar ->
+                mainHandler.post {
+                    channel?.invokeMethod("backingState", mapOf(
+                        "token" to if (token.startsWith("n:")) token.substring(2).toLong()
+                            else token.removePrefix("s:"),
+                        "state" to state, "bar" to bar
+                    ))
+                }
+            }
+        }
+        AndroidMetronomeEngine.onBar = { index ->
+            channel?.invokeMethod("bar", mapOf("index" to index))
+        }
         ch.setMethodCallHandler { call, result ->
             when (call.method) {
+                "engineSampleRate" -> result.success(backing.sampleRate)
+                "backingLoad" -> handleMetronomeCall(call, result) { args ->
+                    val sampleRate = (args["sampleRate"] as? Number)?.toInt()
+                    require(sampleRate == backing.sampleRate) { "Backing sampleRate must match engine rate" }
+                    val paths = requireNotNull(args["paths"] as? List<*>) { "Expected paths list" }
+                    val stems = paths.mapIndexed { index, path ->
+                        val bytes = File(requireNotNull(path as? String) { "Invalid backing path" }).readBytes()
+                        require(bytes.size % 2 == 0) { "Expected raw Int16 mono PCM" }
+                        val buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+                        index.toString() to ShortArray(buffer.remaining()).also { buffer.get(it) }
+                    }.toMap()
+                    val renderBpm = requireNotNull(args["renderBpm"] as? Number) { "Missing renderBpm" }.toDouble()
+                    val ticksPerBar = requireNotNull(args["ticksPerBar"] as? Number) { "Missing ticksPerBar" }.toInt()
+                    val intervalMicros = requireNotNull(args["intervalMicros"] as? Number) { "Missing intervalMicros" }.toDouble()
+                    synchronized(backing) {
+                        backing.load(stems, renderBpm, ticksPerBar, intervalMicros)
+                    }
+                }
+                "backingCommand" -> handleMetronomeCall(call, result) { args ->
+                    val token = requireNotNull(args["token"]) { "Missing token" }
+                    require(token is String || token is Int || token is Long) { "Invalid token" }
+                    val kind = requireNotNull(args["kind"] as? String) { "Missing kind" }
+                    val atBar = requireNotNull(args["atBar"] as? Number) { "Missing atBar" }.toInt()
+                    synchronized(backing) {
+                        backing.command(
+                            (if (token is String) "s:$token" else "n:$token"), kind,
+                            (args["fromBar"] as? Number)?.toInt() ?: 0,
+                            (args["bars"] as? Number)?.toInt() ?: 0,
+                            args["loop"] as? Boolean ?: true, atBar
+                        )
+                    }
+                }
+                "backingGain" -> handleMetronomeCall(call, result) { args ->
+                    val stem = requireNotNull(args["stem"]) { "Missing stem" }.toString()
+                    val gain = requireNotNull(args["gain"] as? Number) { "Missing gain" }.toDouble()
+                    synchronized(backing) { backing.setGain(stem, gain) }
+                }
+                "backingClear" -> {
+                    synchronized(backing) { backing.load(emptyMap(), 120.0, 4, 500_000.0) }
+                    result.success(null)
+                }
                 "start" -> handleMetronomeCall(call, result) { args ->
                     ensureServiceStartedAndBound()
                     val svc = service
@@ -128,6 +188,9 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         audioRouteEmitter?.dispose()
         audioRouteEmitter = null
+        val backing = AndroidMetronomeEngine.backingFor(applicationContext)
+        synchronized(backing) { backing.onState = null }
+        AndroidMetronomeEngine.onBar = null
         channel = null
         super.onDestroy()
     }
