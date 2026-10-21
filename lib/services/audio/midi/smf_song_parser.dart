@@ -26,6 +26,7 @@ MidiSongData parseSmfSong(Uint8List bytes) {
 
   final tempos = <TempoChange>[];
   final timeSigs = <TimeSigChange>[];
+  final markers = <({int tick, String text})>[];
   final tracks = <MidiTrackData>[];
   var tracksRead = 0;
   var noteCount = 0;
@@ -99,6 +100,11 @@ MidiSongData parseSmfSong(Uint8List bytes) {
               denominator: 1 << exponent,
             ),
           );
+        } else if (type == 0x06 || type == 0x07) {
+          markers.add((
+            tick: tick,
+            text: utf8.decode(data.bytes, allowMalformed: true),
+          ));
         } else if (type == 0x03) {
           final trackName = utf8.decode(data.bytes, allowMalformed: true);
           if (trackName.isNotEmpty) name = trackName;
@@ -163,10 +169,12 @@ MidiSongData parseSmfSong(Uint8List bytes) {
   }
   tempos.sort((a, b) => a.tick.compareTo(b.tick));
   timeSigs.sort((a, b) => a.tick.compareTo(b.tick));
+  markers.sort((a, b) => a.tick.compareTo(b.tick));
   return MidiSongData(
     ppq: ppq,
     tempos: tempos,
     timeSigs: timeSigs,
     tracks: tracks,
+    markers: markers,
   );
 }

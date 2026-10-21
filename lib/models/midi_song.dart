@@ -92,12 +92,14 @@ class MidiSongData {
     required this.tempos,
     required this.timeSigs,
     required this.tracks,
+    this.markers = const [],
   });
 
   final int ppq;
   final List<TempoChange> tempos;
   final List<TimeSigChange> timeSigs;
   final List<MidiTrackData> tracks;
+  final List<({int tick, String text})> markers;
 
   double get initialBpm => tempos.isEmpty || tempos.first.tick != 0
       ? 120.0
