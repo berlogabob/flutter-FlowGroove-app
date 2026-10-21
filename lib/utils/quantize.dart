@@ -12,7 +12,13 @@ int nextBoundaryFrame({
   if (q == Quantize.now) return nowFrame + leadFrames;
 
   final unit = q == Quantize.beat ? ticksPerBeat : ticksPerBar;
-  final k = ((nowFrame + leadFrames - epochFrame) / (unit * tickFrames)).ceil();
+  var k = ((nowFrame + leadFrames - epochFrame) / (unit * tickFrames)).ceil();
+  // Keep a boundary that rounds to the requested frame.
+  if (k > 0 &&
+      epochFrame + ((k - 1) * unit * tickFrames).round() ==
+          nowFrame + leadFrames) {
+    k--;
+  }
   return epochFrame + ((k < 0 ? 0 : k) * unit * tickFrames).round();
 }
 

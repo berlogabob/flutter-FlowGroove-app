@@ -2,14 +2,14 @@ import 'package:flowgroove/utils/quantize.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('quantizeFrame', () {
+  group('nextBoundaryFrame', () {
     int quantize({
       Quantize mode = Quantize.bar,
       required int nowFrame,
       int leadFrames = 0,
       int epochFrame = 0,
-    }) => quantizeFrame(
-      mode: mode,
+    }) => nextBoundaryFrame(
+      q: mode,
       nowFrame: nowFrame,
       leadFrames: leadFrames,
       epochFrame: epochFrame,
