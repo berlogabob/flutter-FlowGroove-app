@@ -1,5 +1,7 @@
 # Practice Timeline + Backing Sync Implementation Plan
 
+> **SUPERSEDED by `2026-10-22-launchpad-transport.md`** (Dart-side bar-tick restarts cannot be sample-accurate on Android: the click runs in a separate native engine).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans. Steps use checkbox (`- [ ]`) syntax. Builds on `docs/superpowers/plans/2026-10-21-practice-backing-ux.md` (Tasks 1-2 there are prerequisites: persistent `backingProvider`, single active source).
 
 **Goal:** Load a MIDI backing (e.g. Back to Black) onto a song and practise it against the song's own Intro/Verse/Chorus sections: locked to the click, looping a chosen section, with that section's lyrics and chords on screen.
