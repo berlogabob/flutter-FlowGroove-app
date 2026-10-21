@@ -1,0 +1,126 @@
+import 'dart:typed_data';
+
+import 'package:flutter_soloud/flutter_soloud.dart';
+
+import 'drum_player.dart';
+import 'midi_song_player.dart';
+
+MidiSongPlayer createMidiSongPlayer() => _SoLoudMidiSongPlayer();
+
+class _SoLoudMidiSongPlayer implements MidiSongPlayer {
+  final _stopwatch = Stopwatch();
+  final _sources = <AudioSource>[];
+  final _handles = <int, SoundHandle>{};
+  final _gains = <int, double>{};
+  int _operationId = 0;
+  bool _loaded = false;
+  bool _disposed = false;
+
+  @override
+  Duration get position => _stopwatch.elapsed;
+
+  @override
+  Future<void> load(
+    List<Int16List> trackBuffers, {
+    int sampleRate = 44100,
+  }) async {
+    if (_disposed) throw StateError('MidiSongPlayer has been disposed');
+    if (sampleRate <= 0) {
+      throw ArgumentError.value(sampleRate, 'sampleRate', 'Must be positive');
+    }
+    final restart = _stopwatch.isRunning;
+    final stopping = stop();
+    final operationId = _operationId;
+    final oldSources = _sources.toList();
+    _sources.clear();
+    _loaded = false;
+    _stopwatch.reset();
+    await stopping;
+    for (final source in oldSources) {
+      await SoLoud.instance.disposeSource(source);
+    }
+    if (operationId != _operationId) return;
+    if (!SoLoud.instance.isInitialized) {
+      await SoLoud.instance.init(bufferSize: 512, channels: Channels.mono);
+    }
+    final loaded = <AudioSource>[];
+    try {
+      for (var index = 0; index < trackBuffers.length; index++) {
+        if (operationId != _operationId) return;
+        final buffer = trackBuffers[index];
+        final samples = Float32List(buffer.length);
+        for (var i = 0; i < buffer.length; i++) {
+          // Invert encodeDrumWav's signed scaling to preserve the PCM samples.
+          samples[i] = buffer[i] / (buffer[i] < 0 ? 32768 : 32767);
+        }
+        loaded.add(
+          await SoLoud.instance.loadMem(
+            'song-${identityHashCode(this)}-$operationId-$index.wav',
+            encodeDrumWav(samples, sampleRate: sampleRate),
+          ),
+        );
+      }
+      if (operationId != _operationId) return;
+      _sources.addAll(loaded);
+      loaded.clear();
+      _loaded = true;
+      if (restart) await start();
+    } finally {
+      for (final source in loaded) {
+        await SoLoud.instance.disposeSource(source);
+      }
+    }
+  }
+
+  @override
+  Future<void> start() async {
+    if (_disposed) throw StateError('MidiSongPlayer has been disposed');
+    if (_stopwatch.isRunning) return;
+    if (!_loaded) throw StateError('Load a song before starting');
+    try {
+      // No awaits between tracks: enqueue all voices in the same call.
+      for (var index = 0; index < _sources.length; index++) {
+        _handles[index] = SoLoud.instance.play(
+          _sources[index],
+          volume: _gains[index] ?? 1,
+        );
+      }
+      _stopwatch
+        ..reset()
+        ..start();
+    } catch (_) {
+      await stop();
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> stop() async {
+    ++_operationId;
+    _stopwatch.stop();
+    final handles = _handles.values.toList();
+    _handles.clear();
+    await Future.wait(handles.map(SoLoud.instance.stop));
+  }
+
+  @override
+  void setTrackGain(int index, double gain) {
+    final volume = gain.clamp(0.0, 1.0);
+    _gains[index] = volume;
+    final handle = _handles[index];
+    if (handle != null) SoLoud.instance.setVolume(handle, volume);
+  }
+
+  @override
+  Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
+    await stop();
+    final sources = _sources.toList();
+    _sources.clear();
+    _loaded = false;
+    for (final source in sources) {
+      await SoLoud.instance.disposeSource(source);
+    }
+  }
+}
