@@ -1,0 +1,80 @@
+{
+ "branch": "feat/midi-song",
+ "tasks": [
+  {
+   "id": "F01",
+   "executor": "codex",
+   "finding": "REVIEW-F01",
+   "title": "Delete order and demo gate",
+   "files": [
+    "lib/repositories/firestore_lab_repository.dart",
+    "lib/screens/songs/song_lab_screen.dart",
+    "test/repositories/"
+   ],
+   "prompt": "Two review findings. (1) lib/repositories/firestore_lab_repository.dart deleteEntry: the MIDI file URL is enqueued into PendingStorageDeletes BEFORE doc.delete() succeeds, so a failed/interrupted delete can later destroy the file of a retained entry. Fix: await doc.delete() first, then enqueue and flushAfter. (2) lib/screens/songs/song_lab_screen.dart: personal-song MIDI import (bandId == null) bypasses the demo/read-only check; require the app's existing can-edit provider for personal songs (find canEditProvider or the equivalent used elsewhere, e.g. isDemoUserProvider) in BOTH the button visibility gate and the async permission check inside the import handler. Keep changes minimal, match surrounding style, add or adjust tests for each fix, change nothing unrelated, keep all existing tests green.",
+   "verify": "flutter test test/repositories/ test/screens/songs/ && dart analyze lib/repositories lib/screens/songs/song_lab_screen.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "F02",
+   "executor": "codex",
+   "finding": "REVIEW-F02",
+   "title": "Soloud engine teardown and voice limit",
+   "files": [
+    "lib/services/audio/midi/midi_song_player_soloud.dart",
+    "lib/services/audio/midi/midi_song_player.dart",
+    "lib/providers/data/midi_song_practice_provider.dart"
+   ],
+   "prompt": "Two review findings in the multi-track song player. (1) The unified metronome can deinitialize the shared SoLoud engine on stop and on audio route recovery, but MidiSongPlayerSoloud keeps `_loaded` and stale sources, so replay uses destroyed handles. Study how lib/services/audio/midi/drum_player_soloud.dart and the metronome engine handle engine re-init/route changes and mirror it: detect that the engine was reinitialized (e.g. SoLoud.instance.isInitialized false or a generation/epoch the metronome engine exposes) in start(), and reload the sources from the retained buffers before playing; keep the rendered buffers until dispose. (2) SoLoud's default maximum active voices is 16, so many tracks plus the metronome silence some voices: set the maximum active voice count high enough (tracks + 8, capped at the engine limit) before starting, using SoLoud's API (setMaxActiveVoiceCount) if available in flutter_soloud 5.x; check the installed package source under ~/.pub-cache. Keep changes minimal, match surrounding style, add or adjust tests for each fix, change nothing unrelated, keep all existing tests green.",
+   "verify": "dart analyze lib/services/audio/midi lib/providers/data/midi_song_practice_provider.dart && flutter test test/midi/ test/providers/",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "F03",
+   "executor": "codex",
+   "finding": "REVIEW-F03",
+   "title": "Memory budget and doc-size bounds",
+   "files": [
+    "lib/providers/data/midi_song_practice_provider.dart",
+    "lib/services/midi_song_import.dart",
+    "lib/services/audio/midi/midi_song_meta_builder.dart"
+   ],
+   "prompt": "Two review findings. (1) Memory: lib/providers/data/midi_song_practice_provider.dart renders every track to PCM; 64 long tracks could need GBs. Add a budget: render at most 12 tracks and at most 30,000,000 total frames across tracks (sampleRate 22050); choose tracks by descending note count, keep their original order, and tracks skipped for budget are listed in state (e.g. `skippedTracks`) with a short inline notice string the UI can show; skipped tracks have gain 0 and are not loaded. (2) Firestore size: lib/services/midi_song_import.dart saveMidiImport can produce an entry doc over 1 MiB (long track names, dense legacy drum hits). Truncate track names to 80 characters in buildMidiSongMeta (lib/services/audio/midi/midi_song_meta_builder.dart), cap the legacy `midi` hits at 4000 (drop the legacy midi field entirely if exceeded), and validate jsonEncode(entry.toJson()).length < 900000 BEFORE uploading the .mid (throw Exception('MIDI import is too large to save')). Keep changes minimal, match surrounding style, add or adjust tests for each fix, change nothing unrelated, keep all existing tests green. NOTE: a previous attempt broke the existing test 'loads every track with saved roles and volume in buffer order' in test/providers/midi_song_practice_provider_test.dart. Run `flutter test test/providers/midi_song_practice_provider_test.dart` yourself if you can, keep that test's intent (every track under the budget still loads in order with saved roles/volume), and only adjust the test if its fixture violates the new budget. Also ignore the flaky scheduler_drift_test (timing).",
+   "verify": "flutter test test/providers/ test/midi/ test/services/midi_song_import_test.dart",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "F04",
+   "executor": "codex",
+   "finding": "REVIEW-F04",
+   "title": "Tempo base and drum tail",
+   "files": [
+    "lib/models/midi_song.dart",
+    "lib/services/audio/midi/midi_track_renderer.dart",
+    "test/models/midi_song_test.dart",
+    "test/midi/midi_track_renderer_test.dart"
+   ],
+   "prompt": "Two review findings. (1) MidiSongData.initialBpm in lib/models/midi_song.dart uses the first tempo event even when it occurs at a later tick; the renderer correctly uses 120 BPM (500000 us/quarter) before the first event. Make initialBpm return the tempo only if the first tempo event is at tick 0, otherwise 120. (2) lib/services/audio/midi/midi_track_renderer.dart truncates the output at the final note-off, so a last drum hit (1-tick duration) or a last voice release tail is cut off. Extend the output length to include the full drum sample length for drum hits and the voice release tail (use the constants/lengths already defined in the synth/drum helpers) while still respecting maxSeconds. Add tests for both. Keep changes minimal, match surrounding style, add or adjust tests for each fix, change nothing unrelated, keep all existing tests green. NOTE: a previous attempt broke the tests 'starting before debounce renders current BPM and starts once' and 'stopped BPM changes debounce and render at the latest scale' in test/providers/midi_song_practice_provider_test.dart because their fixtures use a first tempo event not at tick 0 or assume the old initialBpm. Update those test fixtures to put the tempo event at tick 0 (or fix expectations to the new rule: initialBpm is 120 unless a tempo event is at tick 0), and verify the provider's bpmScale = metronome bpm / song.initialBpm still behaves.",
+   "verify": "flutter test test/models/midi_song_test.dart test/midi/ test/providers/",
+   "after": [],
+   "status": "pending"
+  },
+  {
+   "id": "F05",
+   "executor": "codex",
+   "finding": "REVIEW-F05",
+   "title": "Stop during load",
+   "files": [
+    "lib/providers/data/midi_song_practice_provider.dart",
+    "test/providers/midi_song_practice_provider_test.dart"
+   ],
+   "prompt": "Review finding: in lib/providers/data/midi_song_practice_provider.dart, stopping playback (metronome stop) invalidates the in-flight loadEntry() operation so its downloaded/rendered result is discarded, leaving the panel with no tracks and Play disabled until reopened. Separate the two concerns: stop/BPM-change cancellation must not cancel the initial load of an entry; only a newer load request or dispose may supersede a load. Add a test: start loading with a slow fake fetcher, trigger a stop, then complete the fetch; tracks must be loaded. Keep changes minimal, match surrounding style, add or adjust tests for each fix, change nothing unrelated, keep all existing tests green.",
+   "verify": "flutter test test/providers/midi_song_practice_provider_test.dart",
+   "after": [],
+   "status": "pending"
+  }
+ ]
+}

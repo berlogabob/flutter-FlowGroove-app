@@ -1,0 +1,45 @@
+{
+ "branch": "feat/midi-song",
+ "tasks": [
+  {
+   "id": "P01", "executor": "codex", "finding": "MIDI-SYNTH",
+   "title": "Pitched voice synth",
+   "files": ["lib/services/audio/midi/voice_synth.dart"],
+   "prompt": "Create lib/services/audio/midi/voice_synth.dart (pure Dart, only dart:math and dart:typed_data, plus `import '../../../models/midi_song.dart';` which defines enum MidiRole {drums,bass,guitar,keys,strings,vocal,lead,synth,other}). The top-level function MUST be named exactly addVoice (other code depends on this exact name). Implement `void addVoice(Float64List buf, MidiRole role, int pitch, int startSample, int lengthSamples, double velocity01, int sampleRate)` that MIXES (adds) one note into buf (clip writes to buf bounds). Frequency = 440*2^((pitch-69)/12). Voices: guitar and bass = Karplus-Strong plucked string (decaying noise-burst delay line, use a deterministic seeded pseudo-random so output is reproducible; bass additionally lowpassed); keys = sum of harmonics 1..4 with exponential decay; strings and synth = slightly detuned saw-ish additive (harmonics 1..6, amplitude 1/n) with slow attack (30 ms) and release; vocal and lead = sine + 2nd/3rd harmonic with 20 ms attack and vibrato 5.5 Hz depth 0.4%; other = triangle. Every voice needs a short release (about 30 ms) so notes end without clicks; amplitude = velocity01 * 0.25 scale so mixes stay safe. Keep it small and readable, no classes.",
+   "verify": "dart analyze lib/services/audio/midi/voice_synth.dart && rg -q 'addVoice' lib/services/audio/midi/voice_synth.dart",
+   "after": [], "status": "pending"
+  },
+  {
+   "id": "P02", "executor": "codex", "finding": "MIDI-RENDER",
+   "title": "Track renderer and tests",
+   "files": ["lib/services/audio/midi/midi_track_renderer.dart", "lib/services/audio/midi/voice_synth.dart", "test/midi/midi_track_renderer_test.dart"],
+   "prompt": "Create lib/services/audio/midi/midi_track_renderer.dart exporting `Int16List renderMidiTrack(MidiTrackData track, MidiRole role, MidiSongData song, {required double bpmScale, int sampleRate = 22050, double maxSeconds = 300})`: converts every note's tick/dur to seconds using song.tempos (tempo map; default 500000 microsPerQuarter if empty) and song.ppq, divided by bpmScale (bpmScale = playbackBpm / song.initialBpm; >1 faster), mixes it into a Float64List via addVoice from voice_synth.dart for pitched roles; for role drums use the existing drum sample/synth machinery: study lib/services/audio/midi/drum_map.dart (laneForNote) and drum_samples.dart / drum_loop_renderer.dart and mix each hit with the lane's sample (reuse their functions; do not duplicate sample synthesis; if the existing API is lane-loop-only, add a small helper next to it). Total length = last note end (capped by maxSeconds, notes past the cap are dropped). Output normalized only if peak > 1.0 (scale down), converted to Int16. Empty track -> empty Int16List. Tests: a single 440 Hz note renders non-silent with the expected length; tempo change doubles speed correctly (note after a tempo change starts at the expected sample); bpmScale 2 halves the length; maxSeconds drops late notes; drums hit non-silent; all samples within int16. Fix voice_synth.dart only if tests expose a real bug.",
+   "verify": "flutter test test/midi/midi_track_renderer_test.dart",
+   "after": ["P01"], "status": "pending"
+  },
+  {
+   "id": "P03", "executor": "codex", "finding": "MIDI-PLAYER",
+   "title": "Multi-track song player (soloud + web stub)",
+   "files": ["lib/services/audio/midi/midi_song_player.dart", "lib/services/audio/midi/midi_song_player_soloud.dart", "lib/services/audio/midi/midi_song_player_web.dart"],
+   "prompt": "Study lib/services/audio/midi/drum_player.dart, drum_player_soloud.dart, drum_player_web.dart (conditional export pattern, encodeDrumWav, SoLoud.loadMem usage, synchronized start, gains) and create the equivalent for a whole song with several tracks: lib/services/audio/midi/midi_song_player.dart defines `abstract class MidiSongPlayer` (members: Future<void> load(List<Int16List> trackBuffers, {int sampleRate}); Future<void> start(); Future<void> stop(); void setTrackGain(int index, double gain); Duration get position; Future<void> dispose();) plus a conditional export/factory `createMidiSongPlayer()` choosing the soloud implementation natively and the web stub otherwise, exactly mirroring how drum_player.dart does it. midi_song_player_soloud.dart: one non-looping SoLoud source per track loaded via loadMem from a WAV (reuse encodeDrumWav or its WAV encoder, at the given sample rate), all started in the same call so tracks stay sample-aligned, per-track gain via the same mechanism the drum player uses, position from a Stopwatch started at start(). midi_song_player_web.dart: no-op implementation (web is not supported yet). Do not change DrumPlayer. Keep SoLoud initialization handled the same way DrumPlayer does it (shared engine, no second init).",
+   "verify": "dart analyze lib/services/audio/midi/ && rg -q 'createMidiSongPlayer' lib/services/audio/midi/midi_song_player.dart",
+   "after": ["P02"], "status": "pending"
+  },
+  {
+   "id": "P04", "executor": "codex", "finding": "MIDI-PRACTICE",
+   "title": "Song practice provider",
+   "files": ["lib/providers/data/midi_song_practice_provider.dart", "test/providers/midi_song_practice_provider_test.dart"],
+   "prompt": "Study lib/providers/data/drum_practice_provider.dart (how it follows the metronome: play/stop listeners, BPM changes, per-lane mute/solo/gain, error handling) and lib/providers/data/midi_song_provider.dart (midiSongDataProvider, fetcher override). Create lib/providers/data/midi_song_practice_provider.dart: a Notifier `MidiSongPracticeNotifier` + provider (family by SongLabEntry) with state {bool loading, String? error, List<MidiTrackMeta> tracks (effective roles/mute/volume from entry.midiSong), bool playing, Set<int> soloed}. loadEntry: get MidiSongData via midiSongDataProvider, render every track with renderMidiTrack (lib/services/audio/midi/midi_track_renderer.dart) using bpmScale = current metronome bpm / song.initialBpm, in a background isolate via compute() when buffers are large (keep it simple: compute for all tracks), load them into a MidiSongPlayer from createMidiSongPlayer() (injectable through an overridable provider `midiSongPlayerFactoryProvider` for tests). setMute/setVolume/toggleSolo update gains immediately (muted or non-soloed tracks gain 0). Follow the metronome exactly like DrumPracticeNotifier: start when the metronome starts, stop when it stops, re-render+reload (debounced) when metronome BPM changes while stopped, and stop on dispose. Persist mute/volume changes back into entry.midiSong via an optional callback `onMetaChanged(MidiSongMeta)` supplied by the UI (do not touch Firestore here). Errors become state.error text. Tests with a fake player and fake fetcher: tracks load, mute sets gain 0, solo silences others, metronome start triggers player.start, error surfaces in state.",
+   "verify": "flutter test test/providers/midi_song_practice_provider_test.dart",
+   "after": ["P03"], "status": "pending"
+  },
+  {
+   "id": "P05", "executor": "codex", "finding": "MIDI-PANEL",
+   "title": "Song practice panel in Song Lab",
+   "files": ["lib/widgets/midi/midi_song_panel.dart", "lib/screens/songs/song_lab_screen.dart", "test/widgets/midi_song_panel_test.dart"],
+   "prompt": "Create lib/widgets/midi/midi_song_panel.dart: `MidiSongPanel` ConsumerWidget taking a SongLabEntry (with midiSong) plus optional bandId, bound to midiSongPracticeProvider (lib/providers/data/midi_song_practice_provider.dart). Shows loading/error states INLINE (no snackbar), a header with the entry title and BPM, a list of tracks (name, role label, mute switch, volume slider, solo button) and a Play/Stop button that toggles the shared metronome (see how lib/widgets/metronome/drum_practice_panel.dart starts the metronome, reuse it). Track edits call the provider and persist meta through FirestoreLabRepository.saveEntry only when the user can edit (canEditBandProvider for bands, personal otherwise); viewers see controls but changes are local only. Use MonoPulse tokens and style like drum_practice_panel.dart. Hide on web (kIsWeb). In lib/screens/songs/song_lab_screen.dart: where a lab entry of type midi is shown/tapped, if entry.midiSong != null open MidiSongPanel in a bottom sheet (use the same sheet helper other lab entries use); legacy midi entries keep their current behavior. Widget test with fakes: tracks render, mute toggles call the provider, error text shows inline.",
+   "verify": "flutter test test/widgets/midi_song_panel_test.dart test/screens/songs/",
+   "after": ["P04"], "status": "pending"
+  }
+ ]
+}

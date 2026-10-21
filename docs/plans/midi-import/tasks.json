@@ -1,0 +1,61 @@
+{
+ "branch": "feat/midi-song",
+ "tasks": [
+  {
+   "id": "X01", "executor": "codex", "finding": "MIDI-HARDEN",
+   "title": "Parser tolerance and caps",
+   "files": ["lib/services/audio/midi/smf_song_parser.dart", "test/midi/smf_song_parser_test.dart"],
+   "prompt": "In lib/services/audio/midi/smf_song_parser.dart (parseSmfSong): (1) do NOT throw when the header track count differs from the number of MTrk chunks actually found (real files lie): accept whatever MTrk chunks exist, but still throw FormatException if zero MTrk chunks. (2) For format 0 do not require trackCount==1. Keep rejecting SMPTE timing, format 2, bad header, truncated data. (3) Add hard caps: throw FormatException('Too many notes') when total notes exceed 200000 and FormatException('Too many tracks') when resulting tracks exceed 64. (4) Add a doc comment on parseSmfSong stating that a track's program is the program active at that channel's first note and later program changes are ignored. Update tests in test/midi/smf_song_parser_test.dart: replace any test asserting a track-count-mismatch throw with one asserting it parses; add tests for the two caps (build large fixtures programmatically) and for zero-MTrk failure. Do not touch parseDrumSmf behavior.",
+   "verify": "flutter test test/midi/",
+   "after": [], "status": "pending"
+  },
+  {
+   "id": "X02", "executor": "codex", "finding": "MIDI-IMPORT-SVC",
+   "title": "MIDI song import service",
+   "files": ["lib/services/midi_song_import.dart", "test/services/midi_song_import_test.dart"],
+   "prompt": "Create lib/services/midi_song_import.dart. Provide `class MidiImportPreview { final MidiSongData data; final MidiSongMeta meta; }` and `MidiImportPreview previewMidiImport(Uint8List bytes, {MidiSongMeta? previous})` = parseSmfSong + buildMidiSongMeta (lib/services/audio/midi/smf_song_parser.dart, midi_song_meta_builder.dart, models in lib/models/midi_song.dart). Provide `Future<SongLabEntry> saveMidiImport({required Uint8List bytes, required MidiSongMeta meta, required String songId, required String? bandId, required String entryId, required String title, required String createdBy, required Future<String> Function(Uint8List bytes, {required String? bandId, required String songId, required String entryId, String ext, String contentType}) upload})` which enforces bytes.length < 25*1024*1024 (else throw Exception('MIDI file is larger than 25MB')), calls upload with ext 'mid' and contentType 'audio/midi' (this matches StorageService.uploadLabAudio in lib/services/storage_service.dart), and returns a SongLabEntry (see lib/models/song_lab.dart; copy how lib/widgets/metronome/drum_practice_panel.dart `_save` builds a midi-type SongLabEntry for required fields) with type LabEntryType.midi, midiSong = meta.copyWith(fileUrl: url), and, ONLY if the parsed song has a drums-role track (effective role), also the legacy `midi` map (MidiPattern.toJson) built via the existing parseDrumSmf(bytes) so older app builds still show the drum pattern; if parseDrumSmf throws or yields no hits leave midi null. The function must NOT touch Firestore (pure, injectable). Tests with a fake upload: url stored, size guard, drum file gets legacy midi, non-drum file leaves midi null.",
+   "verify": "flutter test test/services/midi_song_import_test.dart",
+   "after": ["X01"], "status": "pending"
+  },
+  {
+   "id": "X03", "executor": "codex", "finding": "MIDI-LOAD",
+   "title": "Load and cache midi song",
+   "files": ["lib/providers/data/midi_song_provider.dart", "test/providers/midi_song_provider_test.dart"],
+   "prompt": "Create lib/providers/data/midi_song_provider.dart: a Riverpod FutureProvider.family<MidiSongData?, SongLabEntry> `midiSongDataProvider` that returns null when entry.midiSong?.fileUrl is null, otherwise fetches the .mid bytes from the URL and returns parseSmfSong(bytes). Study how lab audio bytes/URLs are fetched and cached in lib/providers/data/data_providers.dart (~line 51) and lib/services/ for an existing http/cache helper and REUSE it (do not add dependencies). Add an in-memory cache keyed by fileUrl so replays do not refetch. The byte fetcher must be an overridable provider (`midiBytesFetcherProvider`) so tests can fake it. Tests with a fake fetcher: null when no url, parsed data when url present, cache hit fetches once. Mind the Riverpod autoDispose .future gotcha: use ref.keepAlive or non-autoDispose.",
+   "verify": "flutter test test/providers/midi_song_provider_test.dart",
+   "after": ["X01"], "status": "pending"
+  },
+  {
+   "id": "X04", "executor": "pi", "finding": "MIDI-PREVIEW-UI",
+   "title": "MIDI import preview screen",
+   "files": ["lib/screens/songs/midi_import_screen.dart"],
+   "prompt": "Create lib/screens/songs/midi_import_screen.dart: `class MidiImportScreen extends StatefulWidget` taking `MidiImportPreview preview` (from lib/services/midi_song_import.dart), `String title`, and `Future<void> Function(MidiSongMeta meta) onSave`. Shows a Scaffold with title text and a ListView of one row per meta.tracks entry: track name, noteCount, pitch range (minPitch-maxPitch), a DropdownButton<MidiRole> bound to the track role (setting roleOverride via copyWith; list all MidiRole values with capitalized names), a Switch for mute (inverted label 'On'), and a Slider for volume 0..1. A bottom Save button calls onSave with the edited meta, shows a progress state while awaiting, and on exception shows the error text INLINE in the screen (not a snackbar). Use theme tokens like lib/screens/concert_mode_screen.dart (context.mp.*, MonoPulseSpacing, MonoPulseTypography). Inline English strings. Keep it one StatefulWidget plus one private row widget.",
+   "verify": "dart analyze lib/screens/songs/midi_import_screen.dart && rg -q 'class MidiImportScreen' lib/screens/songs/midi_import_screen.dart",
+   "after": ["X02"], "status": "pending"
+  },
+  {
+   "id": "X05", "executor": "codex", "finding": "MIDI-PREVIEW-TEST",
+   "title": "Import preview screen test",
+   "files": ["test/screens/songs/midi_import_screen_test.dart"],
+   "prompt": "Create test/screens/songs/midi_import_screen_test.dart for MidiImportScreen (lib/screens/songs/midi_import_screen.dart). Build a MidiImportPreview by hand (MidiSongData + MidiSongMeta, lib/models/midi_song.dart) with a drums track and a bass track. Tests: rows render track names; changing the dropdown to guitar and tapping Save calls onSave with that track roleOverride == guitar; muting a track is reflected in onSave meta; when onSave throws, the error text is shown inline and the screen stays. Fix lib/screens/songs/midi_import_screen.dart only if tests expose a real bug; keep fixes minimal.",
+   "verify": "flutter test test/screens/songs/midi_import_screen_test.dart",
+   "after": ["X04"], "status": "pending"
+  },
+  {
+   "id": "X06", "executor": "codex", "finding": "MIDI-ENTRY",
+   "title": "Import MIDI entry point in Song Lab",
+   "files": ["lib/screens/songs/song_lab_screen.dart"],
+   "prompt": "In the Song Lab screen (lib/screens/songs/song_lab_screen.dart; find where audio/other entries are added and where editors are gated by band edit permission, e.g. canEditBandProvider usage) add an 'Import MIDI' action next to the existing add-entry actions, shown only when the user can edit (same gate as other add actions) and not on web (kIsWeb). Flow: pick a file with the same helper the drum import uses (lib/widgets/metronome/drum_practice_panel.dart `_import`: FilePicker.pickFile + readPickedBytes from lib/utils/picked_file.dart), call previewMidiImport (lib/services/midi_song_import.dart), push MidiImportScreen (lib/screens/songs/midi_import_screen.dart) with onSave that calls saveMidiImport with the real StorageService.uploadLabAudio (lib/services/storage_service.dart) and saves the returned entry through the same lab repository path other entries use (FirestoreLabRepository.saveEntry), then pops. A FormatException from parsing must show an inline/dialog message 'Not a valid MIDI file' (not a snackbar behind a sheet). Log an analytics event: add `logMidiSongImported(int trackCount)` to the analytics service following the existing logDrumPatternImported pattern in lib/services/analytics_events.dart / analytics service, and call it after a successful save. Do not change drum import behavior. Do not change existing tests' expectations; add a widget test only if existing song_lab_screen tests make it easy.",
+   "verify": "dart analyze lib/screens/songs/song_lab_screen.dart && rg -q 'MidiImportScreen' lib/screens/songs/song_lab_screen.dart && flutter test test/screens/songs/",
+   "after": ["X02", "X04"], "status": "pending"
+  },
+  {
+   "id": "X07", "executor": "codex", "finding": "MIDI-DELETE",
+   "title": "Delete midi file with the lab entry",
+   "files": ["lib/repositories/firestore_lab_repository.dart"],
+   "prompt": "Find how deleting a Song Lab entry with an audio file cleans up its Storage object (search for PendingStorageDeletes usage in lib/ and the lab entry delete path in lib/repositories/firestore_lab_repository.dart and screens). Extend that same path so an entry whose midiSong?.fileUrl is non-null also queues/deletes that file the same way the audio url is handled. Minimal change, reuse the existing mechanism, no new abstractions. Add or extend a test next to the existing lab delete tests if one exists.",
+   "verify": "flutter test test/repositories/ test/models/ && rg -q 'midiSong' lib/repositories/firestore_lab_repository.dart lib/screens lib/providers",
+   "after": ["X06"], "status": "pending"
+  }
+ ]
+}

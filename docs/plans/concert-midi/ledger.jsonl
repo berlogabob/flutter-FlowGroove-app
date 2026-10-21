@@ -1,0 +1,4 @@
+{"id": "C01", "finding": "CONCERT-SHEET", "executor": "codex", "attempt": 1, "secs": 271, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 27 insertions(+), 26 deletions(-)", "verify_tail": ""}
+{"id": "C02", "finding": "CONCERT-NAV", "executor": "codex", "attempt": 1, "secs": 126, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 81 insertions(+), 59 deletions(-)", "verify_tail": ""}
+{"id": "C03", "finding": "CONCERT-ENTRY", "executor": "codex", "attempt": 1, "secs": 110, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 31 insertions(+)", "verify_tail": ""}
+{"id": "C04", "finding": "CONCERT-TEST", "executor": "codex", "attempt": 1, "secs": 352, "exec_rc": 0, "verdict": "pass", "diff": "", "verify_tail": ""}

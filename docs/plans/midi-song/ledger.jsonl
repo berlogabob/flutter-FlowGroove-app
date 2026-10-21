@@ -1,0 +1,7 @@
+{"id": "M01", "finding": "MIDI-MODEL", "executor": "codex", "attempt": 1, "secs": 261, "exec_rc": 0, "verdict": "pass", "diff": "", "verify_tail": ""}
+{"id": "M02", "finding": "MIDI-DETECT", "executor": "pi", "attempt": 1, "secs": 1, "exec_rc": 1, "verdict": "fail", "diff": "", "verify_tail": "no changes made"}
+{"id": "M02", "finding": "MIDI-DETECT", "executor": "codex", "attempt": 2, "secs": 147, "exec_rc": 0, "verdict": "pass", "diff": "", "verify_tail": ""}
+{"id": "M03", "finding": "MIDI-DETECT-TEST", "executor": "codex", "attempt": 1, "secs": 190, "exec_rc": 0, "verdict": "pass", "diff": "", "verify_tail": ""}
+{"id": "M04", "finding": "MIDI-PARSER", "executor": "codex", "attempt": 1, "secs": 303, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 5 insertions(+), 5 deletions(-)", "verify_tail": ""}
+{"id": "M05", "finding": "MIDI-META", "executor": "codex", "attempt": 1, "secs": 301, "exec_rc": 0, "verdict": "pass", "diff": "", "verify_tail": ""}
+{"id": "M06", "finding": "MIDI-LABFIELD", "executor": "codex", "attempt": 1, "secs": 263, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 17 insertions(+)", "verify_tail": ""}

@@ -1,0 +1,7 @@
+{"id": "P01", "finding": "MIDI-SYNTH", "executor": "pi", "attempt": 1, "secs": 0, "exec_rc": 1, "verdict": "fail", "diff": "", "verify_tail": "no changes made"}
+{"id": "P01", "finding": "MIDI-SYNTH", "executor": "codex", "attempt": 2, "secs": 103, "exec_rc": 0, "verdict": "fail", "diff": "", "verify_tail": ""}
+{"id": "P01", "finding": "MIDI-SYNTH", "executor": "codex", "attempt": 1, "secs": 174, "exec_rc": 0, "verdict": "pass", "diff": "", "verify_tail": ""}
+{"id": "P02", "finding": "MIDI-RENDER", "executor": "codex", "attempt": 1, "secs": 267, "exec_rc": 0, "verdict": "pass", "diff": "", "verify_tail": ""}
+{"id": "P03", "finding": "MIDI-PLAYER", "executor": "codex", "attempt": 1, "secs": 231, "exec_rc": 0, "verdict": "pass", "diff": "", "verify_tail": ""}
+{"id": "P04", "finding": "MIDI-PRACTICE", "executor": "codex", "attempt": 1, "secs": 394, "exec_rc": 0, "verdict": "pass", "diff": "", "verify_tail": ""}
+{"id": "P05", "finding": "MIDI-PANEL", "executor": "codex", "attempt": 1, "secs": 314, "exec_rc": 0, "verdict": "pass", "diff": "1 file changed, 8 insertions(+), 1 deletion(-)", "verify_tail": ""}

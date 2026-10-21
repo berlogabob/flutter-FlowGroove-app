@@ -1,7 +1,7 @@
 name: flowgroove
 description: "FlowGroove - Band repertoire management for cover bands"
 publish_to: "none"
-version: 0.26.1+365
+version: 0.27.0+366
 
 environment:
   sdk: ^3.12.0
