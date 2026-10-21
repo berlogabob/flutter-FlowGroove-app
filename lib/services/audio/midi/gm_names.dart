@@ -130,7 +130,9 @@ const gmNames = <String>[
   'Gunshot',
 ];
 
-String gmName(int program) {
+String gmName(int program) => gmProgramName(program);
+
+String gmProgramName(int program) {
   if (program < 0 || program >= gmNames.length) return 'Instrument';
   return gmNames[program];
 }
