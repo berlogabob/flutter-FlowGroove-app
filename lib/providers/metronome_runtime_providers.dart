@@ -760,17 +760,35 @@ class WebAudioLookaheadPlaybackClient extends FlutterMetronomePlaybackClient {
   WebAudioLookaheadPlaybackClient({
     required WebAudioMetronomeAudioClient webAudioClient,
     required super.hapticsClient,
+    double? Function()? clock,
   }) : _webAudio = webAudioClient,
+       _clock = clock ?? (() => webAudioClient.engine.currentContextTime),
        super(audioClient: _MutedMetronomeAudioClient());
 
   final WebAudioMetronomeAudioClient _webAudio;
+  final double? Function() _clock;
   Timer? _pumpTimer;
-  double _nextAudioTime = 0;
+  double _epochSeconds = 0;
+  double _tickIntervalSeconds = 0;
+  int _gridTickNumber = 0;
   int _audioTickIndex = -1;
   int _audioTickNumber = 0;
 
-  static const double _lookaheadSeconds = 0.25;
   static const Duration _pumpInterval = Duration(milliseconds: 100);
+
+  double get epochSeconds => _epochSeconds;
+  double get tickIntervalSeconds => _tickIntervalSeconds;
+  int get ticksPerBar => _config?.totalTicks ?? 0;
+
+  /// AudioContext time of the first tick of a transport bar, including count-in.
+  double barTimeSeconds(int bar) =>
+      epochSeconds + bar * ticksPerBar * tickIntervalSeconds;
+
+  double get lookaheadSeconds =>
+      max(3, 2 * ticksPerBar * tickIntervalSeconds);
+
+  double get _nextAudioTime =>
+      epochSeconds + _gridTickNumber * tickIntervalSeconds;
 
   @override
   Future<void> start(
@@ -792,6 +810,17 @@ class WebAudioLookaheadPlaybackClient extends FlutterMetronomePlaybackClient {
     _pumpTimer?.cancel();
     _pumpTimer = Timer.periodic(_pumpInterval, (_) => _pump());
     _pump();
+  }
+
+  @override
+  Future<void> update(MetronomePlaybackConfig config) async {
+    final interval = config.interval.inMicroseconds / 1e6;
+    if (interval != tickIntervalSeconds) {
+      final nextAudioTime = _nextAudioTime;
+      _tickIntervalSeconds = interval;
+      _epochSeconds = nextAudioTime - _gridTickNumber * interval;
+    }
+    await super.update(config);
   }
 
   @override
@@ -820,20 +849,21 @@ class WebAudioLookaheadPlaybackClient extends FlutterMetronomePlaybackClient {
   }
 
   void _anchorNextTick(MetronomePlaybackConfig config) {
-    final contextTime = _webAudio.engine.currentContextTime ?? 0;
-    _nextAudioTime = contextTime + config.interval.inMicroseconds / 1e6;
+    final contextTime = _clock() ?? 0;
+    _tickIntervalSeconds = config.interval.inMicroseconds / 1e6;
+    _epochSeconds = contextTime + tickIntervalSeconds;
+    _gridTickNumber = 0;
   }
 
   void _pump() {
     final config = _config;
     if (config == null || config.totalTicks <= 0) return;
     final engine = _webAudio.engine;
-    final contextTime = engine.currentContextTime;
+    final contextTime = _clock();
     if (contextTime == null) return;
-    final interval = config.interval.inMicroseconds / 1e6;
-    if (interval <= 0) return;
+    if (tickIntervalSeconds <= 0) return;
 
-    final horizon = contextTime + _lookaheadSeconds;
+    final horizon = contextTime + lookaheadSeconds;
     final countInTotal = config.countInBars * config.totalTicks;
     while (_nextAudioTime < horizon) {
       _audioTickIndex = (_audioTickIndex + 1) % config.totalTicks;
@@ -852,7 +882,7 @@ class WebAudioLookaheadPlaybackClient extends FlutterMetronomePlaybackClient {
         }
       }
       _audioTickNumber++;
-      _nextAudioTime += interval;
+      _gridTickNumber++;
     }
   }
 }
