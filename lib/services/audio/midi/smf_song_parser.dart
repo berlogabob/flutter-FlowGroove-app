@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import '../../../models/midi_song.dart';
 import 'smf_parser.dart';
 
+/// Parses a song using the program active at each channel's first note for its
+/// track; later program changes are ignored.
 MidiSongData parseSmfSong(Uint8List bytes) {
   final reader = SmfReader(bytes);
   if (reader.readInt(4) != 0x4D546864) {
@@ -16,13 +18,9 @@ MidiSongData parseSmfSong(Uint8List bytes) {
   }
   final header = reader.readChunk(headerLength);
   final format = header.readInt(2);
-  final trackCount = header.readInt(2);
+  header.readInt(2); // Real files may declare an incorrect track count.
   final ppq = header.readInt(2);
-  if (format > 1 ||
-      trackCount == 0 ||
-      (format == 0 && trackCount != 1) ||
-      ppq == 0 ||
-      (ppq & 0x8000) != 0) {
+  if (format > 1 || ppq == 0 || (ppq & 0x8000) != 0) {
     throw const FormatException('Unsupported MIDI header');
   }
 
@@ -30,6 +28,7 @@ MidiSongData parseSmfSong(Uint8List bytes) {
   final timeSigs = <TimeSigChange>[];
   final tracks = <MidiTrackData>[];
   var tracksRead = 0;
+  var noteCount = 0;
   while (!reader.isAtEnd) {
     final chunkType = reader.readInt(4);
     final track = reader.readChunk(reader.readInt(4));
@@ -121,6 +120,9 @@ MidiSongData parseSmfSong(Uint8List bytes) {
         if (type == 0xC0) {
           programs[channel] = data1;
         } else if (type == 0x90 && data2 > 0) {
+          if (++noteCount > 200000) {
+            throw const FormatException('Too many notes');
+          }
           // The model stores one program per channel track, at its first note.
           notePrograms.putIfAbsent(channel, () => programs[channel]);
           notes.putIfAbsent(channel, () => <MidiNote>[]);
@@ -140,6 +142,9 @@ MidiSongData parseSmfSong(Uint8List bytes) {
     }
     final channels = notes.keys.toList()..sort();
     for (final channel in channels) {
+      if (tracks.length >= 64) {
+        throw const FormatException('Too many tracks');
+      }
       final channelNotes = notes[channel]!
         ..sort((a, b) => a.tick.compareTo(b.tick));
       tracks.add(
@@ -153,8 +158,8 @@ MidiSongData parseSmfSong(Uint8List bytes) {
       );
     }
   }
-  if (tracksRead != trackCount) {
-    throw const FormatException('MIDI track count mismatch');
+  if (tracksRead == 0) {
+    throw const FormatException('Missing MTrk chunk');
   }
   tempos.sort((a, b) => a.tick.compareTo(b.tick));
   timeSigs.sort((a, b) => a.tick.compareTo(b.tick));

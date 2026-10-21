@@ -188,15 +188,103 @@ void main() {
     for (final bytes in [
       _smf([[]], ppq: 0xE728),
       _smf([[]], format: 2),
-      _smf([[], []], format: 0),
-      _smf([]),
       _smf([[]], ppq: 0),
       Uint8List.fromList([...'BAD!'.codeUnits, 0, 0, 0, 6]),
       Uint8List.fromList([...'MThd'.codeUnits, 0, 0, 0, 5]),
-      _smf([[]])..[11] = 2, // declared track missing
     ]) {
       expect(() => parseSmfSong(bytes), throwsFormatException);
     }
+  });
+
+  test('accepts incorrect declared track counts, including format 0', () {
+    for (final format in [0, 1]) {
+      for (final declaredCount in [0, 1, 3]) {
+        final bytes = _smf([
+          [0, 0x90, 60, 100],
+          [0, 0x91, 64, 100],
+        ], format: format)..[11] = declaredCount;
+        final song = parseSmfSong(bytes);
+        expect(song.tracks.map((t) => t.notes.single.pitch), [60, 64]);
+      }
+    }
+  });
+
+  test('rejects files without MTrk chunks regardless of declared count', () {
+    for (final declaredCount in [0, 1]) {
+      final bytes = _smf([])..[11] = declaredCount;
+      expect(() => parseSmfSong(bytes), throwsFormatException);
+      final unknownChunk = Uint8List.fromList([
+        ...bytes,
+        ...'JUNK'.codeUnits,
+        ..._intBytes(0, 4),
+      ]);
+      expect(() => parseSmfSong(unknownChunk), throwsFormatException);
+    }
+  });
+
+  test('accepts 200000 total notes and rejects the next note', () {
+    for (final closeNotes in [false, true]) {
+      final events = <int>[
+        for (var i = 0; i < 100000; i++) ...[
+          0,
+          0x90,
+          60,
+          100,
+          if (closeNotes) ...[1, 0x80, 60, 0],
+        ],
+      ];
+      final song = parseSmfSong(_smf([events, events]));
+      expect(song.tracks.fold<int>(0, (n, t) => n + t.notes.length), 200000);
+      expect(
+        () => parseSmfSong(
+          _smf([
+            events,
+            [...events, 0, 0x91, 64, 100],
+          ]),
+        ),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            'Too many notes',
+          ),
+        ),
+      );
+    }
+  });
+
+  test('accepts 64 resulting channel tracks and rejects the next track', () {
+    final tracks = List.generate(
+      4,
+      (_) => <int>[
+        for (var channel = 0; channel < 16; channel++) ...[
+          0,
+          0x90 | channel,
+          60,
+          100,
+        ],
+      ],
+    );
+    expect(parseSmfSong(_smf(tracks)).tracks, hasLength(64));
+    expect(
+      () => parseSmfSong(
+        _smf([
+          ...tracks,
+          [0, 0x90, 60, 100],
+        ]),
+      ),
+      throwsA(
+        isA<FormatException>().having(
+          (e) => e.message,
+          'message',
+          'Too many tracks',
+        ),
+      ),
+    );
+    expect(
+      parseSmfSong(_smf(List.generate(65, (_) => <int>[]))).tracks,
+      isEmpty,
+    );
   });
 
   test('truncations throughout a valid file throw FormatException', () {
