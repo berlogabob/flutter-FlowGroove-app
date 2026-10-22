@@ -1,0 +1,16 @@
+flutter test exit=1
+01:29 +2798 ~4 -3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/branch_stack_observer_test.dart: BranchStackObserver root = depth 0, pushed child = depth 1, pop = depth 0
+01:29 +2799 ~4 -3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/branch_stack_observer_test.dart: BranchStackObserver a re-mounted branch navigator heals a leaked count (logout→login)
+01:29 +2800 ~4 -3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/band_subscreens_return_to_band_test.dart: band sub-screens return to band-detail on back band-songs pushed from the-band returns to the-band on back
+01:30 +2801 ~4 -3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/history_restored_extra_test.dart: the-band renders when extra is history-restored JSON
+01:30 +2802 ~4 -3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/history_restored_extra_test.dart: the-band renders when extra is history-restored JSON
+❌ Analytics Error in band_opened: [core/no-app] No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp()
+01:30 +2803 ~4 -3: /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/router/history_restored_extra_test.dart: setlist-view renders when extra is history-restored JSON
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+FirebaseAuth is unavailable for authStateProvider; falling back to signed-out state.
+01:30 +2804 ~4 -3: Some tests failed.
+
+Failing tests:
+  /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/screens/concert_mode_screen_test.dart: ConcertModeScreen Next song restores BPM when the next song has no sheet
+  /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/screens/concert_mode_screen_test.dart: ConcertModeScreen Previous is disabled on the first song
+  /Users/berloga/Documents/GitHub/flutter_repsync_lp/test/screens/concert_mode_screen_test.dart: ConcertModeScreen sheet toggle shows the sheet and hides the BPM readout
