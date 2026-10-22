@@ -40,6 +40,7 @@ class SectionPad extends StatelessWidget {
       onLongPress: onLongPress,
       excludeSemantics: true,
       child: Stack(
+        fit: StackFit.passthrough,
         children: [
           Material(
             color: playing ? color : context.mp.blackSurface,
@@ -57,7 +58,7 @@ class SectionPad extends StatelessWidget {
               onTap: onTap,
               onLongPress: onLongPress,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 64),
+                constraints: const BoxConstraints(minHeight: 96),
                 child: Padding(
                   padding: const EdgeInsets.all(MonoPulseSpacing.lg),
                   child: Column(
@@ -71,7 +72,7 @@ class SectionPad extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '$bars bars',
+                        bars == 1 ? '1 bar' : '$bars bars',
                         style: MonoPulseTypography.bodySmall.copyWith(
                           color: playing
                               ? foreground

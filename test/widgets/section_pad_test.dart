@@ -35,6 +35,13 @@ void main() {
   }
 
   group('SectionPad', () {
+    testWidgets('fills the width it is given regardless of label', (
+      tester,
+    ) async {
+      await pump(tester, width: 180);
+      expect(tester.getSize(find.byType(SectionPad)).width, 180);
+    });
+
     testWidgets('idle shows name and bar count', (tester) async {
       await pump(tester);
 
