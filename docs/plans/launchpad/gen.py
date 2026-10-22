@@ -95,7 +95,7 @@ add("L22","codex","backingTransportProvider",
 "flutter test test/providers/backing_transport_test.dart && dart analyze lib/providers/data",["L17","L18","L20","L21","L08","L10"],timeout=1800)
 add("L23","codex","Stop SoLoud MIDI playback on Android and web",
 ["lib/providers/data/midi_song_practice_provider.dart","lib/widgets/midi/midi_song_panel.dart","test/providers/midi_song_practice_test.dart"],
-"On Android and web the MIDI song must no longer play through midiSongPlayerProvider/SoLoud: the practice notifier keeps parsing, role detection and per-track mute/solo/volume state but delegates audio to backingTransportProvider (attach/setGain). iOS and other platforms keep the existing player path unchanged (branch on defaultTargetPlatform/kIsWeb in ONE place). The panel stops owning playback (header 'Mixer', no Play button on Android/web; the big metronome Play button plus pads launch). Update the existing tests; keep all green.",
+"On Android and web the MIDI song must no longer play through midiSongPlayerProvider/SoLoud: the practice notifier keeps parsing, role detection and per-track mute/solo/volume state but delegates audio to backingTransportProvider (attach/setGain). iOS and other platforms keep the existing player path unchanged (branch on defaultTargetPlatform/kIsWeb in ONE place). The panel stops owning playback (header 'Mixer', no Play button on Android/web; the big metronome Play button plus pads launch). Update the existing tests; keep all green. You MUST edit the files; if you think nothing needs changing, implement the delegation anyway.",
 "flutter test test/providers test/midi test/widgets && dart analyze lib/providers lib/widgets/midi",["L22"],timeout=1800,suite=True)
 
 # ---- F: Launchpad UI ----
@@ -129,7 +129,7 @@ add("L29","codex","Sync diagnostic stem + measure script",
 # ---- I: drums as a stem ----
 add("L30","codex","Drum pattern as a stem",
 ["lib/services/audio/midi/drum_loop_renderer.dart","lib/providers/data/drum_practice_provider.dart","lib/providers/data/backing_transport_provider.dart","test/providers/drum_stem_test.dart"],
-"On Android and web, a selected drum pattern plays as a one-stem BackingStems (render the pattern with drum_loop_renderer at the engine rate, padded to whole bars) through backingTransportProvider, looping over the pattern's bars, instead of drum_player_soloud; selecting a pattern replaces any active MIDI backing and vice versa (single active source). iOS keeps the old path. Keep the existing drum panel UI. Tests with the fake engine: pattern of 2 bars sends launch(bars 2, loop) and a 1-stem load; selecting a MIDI backing clears the pattern.",
+"On Android and web, a selected drum pattern plays as a one-stem BackingStems (render the pattern with drum_loop_renderer at the engine rate, padded to whole bars) through backingTransportProvider, looping over the pattern's bars, instead of drum_player_soloud; selecting a pattern replaces any active MIDI backing and vice versa (single active source). iOS keeps the old path. Keep the existing drum panel UI unchanged (test/midi/drum_practice_panel_test.dart must still pass; the 'Import .mid' button must remain visible there). Tests with the fake engine: pattern of 2 bars sends launch(bars 2, loop) and a 1-stem load; selecting a MIDI backing clears the pattern.",
 "flutter test test/providers/drum_stem_test.dart test/midi && dart analyze lib/providers/data lib/services/audio/midi",["L22"],timeout=1800,suite=True)
 
 

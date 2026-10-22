@@ -444,7 +444,7 @@
     "lib/widgets/midi/midi_song_panel.dart",
     "test/providers/midi_song_practice_test.dart"
    ],
-   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. On Android and web the MIDI song must no longer play through midiSongPlayerProvider/SoLoud: the practice notifier keeps parsing, role detection and per-track mute/solo/volume state but delegates audio to backingTransportProvider (attach/setGain). iOS and other platforms keep the existing player path unchanged (branch on defaultTargetPlatform/kIsWeb in ONE place). The panel stops owning playback (header 'Mixer', no Play button on Android/web; the big metronome Play button plus pads launch). Update the existing tests; keep all green.",
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. On Android and web the MIDI song must no longer play through midiSongPlayerProvider/SoLoud: the practice notifier keeps parsing, role detection and per-track mute/solo/volume state but delegates audio to backingTransportProvider (attach/setGain). iOS and other platforms keep the existing player path unchanged (branch on defaultTargetPlatform/kIsWeb in ONE place). The panel stops owning playback (header 'Mixer', no Play button on Android/web; the big metronome Play button plus pads launch). Update the existing tests; keep all green. You MUST edit the files; if you think nothing needs changing, implement the delegation anyway.",
    "verify": "flutter test test/providers test/midi test/widgets && dart analyze lib/providers lib/widgets/midi",
    "after": [
     "L22"
@@ -589,7 +589,7 @@
     "lib/providers/data/backing_transport_provider.dart",
     "test/providers/drum_stem_test.dart"
    ],
-   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. On Android and web, a selected drum pattern plays as a one-stem BackingStems (render the pattern with drum_loop_renderer at the engine rate, padded to whole bars) through backingTransportProvider, looping over the pattern's bars, instead of drum_player_soloud; selecting a pattern replaces any active MIDI backing and vice versa (single active source). iOS keeps the old path. Keep the existing drum panel UI. Tests with the fake engine: pattern of 2 bars sends launch(bars 2, loop) and a 1-stem load; selecting a MIDI backing clears the pattern.",
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. On Android and web, a selected drum pattern plays as a one-stem BackingStems (render the pattern with drum_loop_renderer at the engine rate, padded to whole bars) through backingTransportProvider, looping over the pattern's bars, instead of drum_player_soloud; selecting a pattern replaces any active MIDI backing and vice versa (single active source). iOS keeps the old path. Keep the existing drum panel UI unchanged (test/midi/drum_practice_panel_test.dart must still pass; the 'Import .mid' button must remain visible there). Tests with the fake engine: pattern of 2 bars sends launch(bars 2, loop) and a 1-stem load; selecting a MIDI backing clears the pattern.",
    "verify": "flutter test test/providers/drum_stem_test.dart test/midi && dart analyze lib/providers/data lib/services/audio/midi",
    "after": [
     "L22"
