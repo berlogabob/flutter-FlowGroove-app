@@ -12,7 +12,9 @@
 | 8 | Low-latency AudioTrack granted (logcat "FAST granted") | P30 | P30 FAIL-ACCEPTED (HAL denies FAST); A24 PASS (FAST granted mono) |
 | 9 | Backing tracks button visible with no song | P30 | PASS (L39) |
 | 10 | Battery sheet shows once, Settings tile, vendor deep link opens | P30 | PASS (sheet shows once after Play, steps for Huawei) |
-| 11 | Same checks 1-3, 6-8 | A24 | PARTIAL: A24 installs, pads 3-col grid, FAST granted mono, exemption dialog + allowlist, 2 min screen-off playing, lock-screen media control, system pause stops cleanly; UI-after-pause not checked (device locked) |
+| 11 | Same checks 1-3, 6-8 | A24 | PARTIAL: A24 installs, 3-col grid, FAST granted, exemption dialog, 2 min screen-off, lock-screen media control, media pause stops cleanly. Bluetooth drop/connect and acoustic offset on A24 pending (A24 face-locked) |
 | 12 | Web: pads, per-bar scheduling, tab hidden 60 s, BPM change | Chrome | COMPILES; browser smoke PASS (demo login, metronome Play, 0 console errors); MIDI backing not exercisable on web without a login + MIDI song |
 | 13 | Full suite, analyzer, Gradle tests on second01 | Mac | PASS at 2026-10-22 merge; rerun after L37-L40 |
 | 14 | Web deploy (app-hosting + pages) incl. wiki metronome page | Mac | after release |
+| 15 | System media pause (KEYCODE_MEDIA_PAUSE) returns UI to Play/Idle | P30 | PASS (A24 same code path, not re-run) |
+| 16 | UI beat dots follow the audible frame across routes | P30 | PASS: lead 250 ms BT -> 59 ms speaker, live through a headset drop |
