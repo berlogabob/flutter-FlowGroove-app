@@ -1,0 +1,302 @@
+import 'dart:async';
+
+import 'package:flowgroove/models/metronome_state.dart';
+import 'package:flowgroove/models/midi_song.dart';
+import 'package:flowgroove/models/section.dart';
+import 'package:flowgroove/models/section_span.dart';
+import 'package:flowgroove/models/song_lab.dart';
+import 'package:flowgroove/providers/data/backing_transport_provider.dart';
+import 'package:flowgroove/providers/data/metronome_provider.dart';
+import 'package:flowgroove/providers/data/midi_song_provider.dart';
+import 'package:flowgroove/services/audio/backing_engine.dart';
+import 'package:flowgroove/utils/pad_state.dart';
+import 'package:flowgroove/utils/quantize.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+class FakeMetronome extends MetronomeNotifier {
+  @override
+  MetronomeState build() => MetronomeState.initial().copyWith(countInBars: 2);
+
+  @override
+  void start() => state = state.copyWith(isPlaying: true, completedBars: 0);
+
+  @override
+  void stop() => state = state.copyWith(isPlaying: false);
+
+  void tempo(int bpm) => state = state.copyWith(bpm: bpm);
+}
+
+class FakeBackingEngine implements BackingEngine {
+  final events = StreamController<BackingState>.broadcast(sync: true);
+  final barEvents = StreamController<int>.broadcast(sync: true);
+  final commands = <BackingCommand>[];
+  final loads = <BackingStems>[];
+  final calls = <String>[];
+  final gains = <int, double>{};
+  Completer<void>? loadGate;
+
+  @override
+  Stream<BackingState> get states => events.stream;
+  @override
+  Stream<int> get bars => barEvents.stream;
+  @override
+  Future<int> engineSampleRate() async => 8000;
+  @override
+  Future<void> load(BackingStems stems) async {
+    calls.add('load');
+    loads.add(stems);
+    await loadGate?.future;
+  }
+
+  @override
+  Future<void> command(BackingCommand c) async {
+    commands.add(c);
+    events.add(BackingState(c.token, BackingStateKind.queued, c.atBar));
+  }
+
+  void playing(BackingCommand c) =>
+      events.add(BackingState(c.token, BackingStateKind.playing, c.atBar));
+
+  @override
+  void setGain(int stem, double gain) => gains[stem] = gain;
+  @override
+  Future<void> clear() async => calls.add('clear');
+  @override
+  Future<void> dispose() async {
+    await events.close();
+    await barEvents.close();
+  }
+}
+
+const song = MidiSongData(
+  ppq: 480,
+  tempos: [TempoChange(tick: 0, microsPerQuarter: 500000)],
+  timeSigs: [],
+  tracks: [
+    MidiTrackData(
+      index: 0,
+      name: 'Bass',
+      channel: 0,
+      program: 33,
+      notes: [MidiNote(tick: 0, dur: 480, pitch: 40, vel: 100)],
+    ),
+    MidiTrackData(
+      index: 1,
+      name: 'Drums',
+      channel: 9,
+      program: 0,
+      notes: [MidiNote(tick: 0, dur: 480, pitch: 36, vel: 100)],
+    ),
+  ],
+);
+
+SongLabEntry entry({
+  bool fileTempo = false,
+  List<SectionSpan> spans = const [],
+}) => SongLabEntry(
+  id: 'midi',
+  songId: 'song',
+  type: LabEntryType.midi,
+  authorId: 'author',
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+  midiSong: MidiSongMeta(
+    ppq: 480,
+    initialBpm: 120,
+    tracks: const [],
+    sectionMap: spans,
+    useFileTempo: fileTempo,
+  ),
+);
+
+void main() {
+  late FakeBackingEngine engine;
+  late FakeMetronome metro;
+  late ProviderContainer container;
+  late BackingTransportNotifier transport;
+  final sections = [
+    Section(id: 'verse', name: 'Verse', duration: 4),
+    Section(id: 'chorus', name: 'Chorus', duration: 8),
+  ];
+
+  setUp(() {
+    engine = FakeBackingEngine();
+    metro = FakeMetronome();
+    container = ProviderContainer(
+      overrides: [
+        backingEngineProvider.overrideWithValue(engine),
+        metronomeProvider.overrideWith(() => metro),
+        midiSongProvider.overrideWith((ref, entry) async => song),
+      ],
+    );
+    transport = container.read(backingTransportProvider.notifier);
+  });
+
+  tearDown(() async {
+    container.dispose();
+    await engine.dispose();
+  });
+
+  test('stopped launch starts metronome and respects count-in', () async {
+    await transport.attach(entry(), sections);
+    transport
+      ..setLoop(false)
+      ..setQuantize(Quantize.beat);
+    await transport.launch('chorus');
+    final command = engine.commands.single;
+    expect(container.read(metronomeProvider).isPlaying, isTrue);
+    expect(command.kind, BackingKind.launch);
+    expect(command.atBar, 2);
+    expect(command.fromBar, 4);
+    expect(command.bars, 8);
+    expect(command.loop, isFalse);
+    expect(container.read(backingTransportProvider).quantize, Quantize.beat);
+  });
+
+  test(
+    'playing launch remains queued until engine confirms playback',
+    () async {
+      await transport.attach(entry(), sections);
+      await transport.launch('verse');
+      engine.playing(engine.commands.last);
+      engine.barEvents.add(5);
+      await transport.launch('chorus');
+      final command = engine.commands.last;
+      expect(command.atBar, 6);
+      var state = container.read(backingTransportProvider);
+      expect(state.playingId, 'verse');
+      expect(state.queuedId, 'chorus');
+      expect(state.padState('chorus'), PadState.queued);
+      engine.playing(command);
+      state = container.read(backingTransportProvider);
+      expect(state.playingId, 'chorus');
+      expect(state.queuedId, isNull);
+      engine.barEvents.add(7);
+      expect(container.read(backingTransportProvider).songBar, 5);
+    },
+  );
+
+  test('tempo changes clear, debounce, reload and resume next bar', () async {
+    await transport.attach(entry(), sections);
+    await transport.launch('verse');
+    final previous = engine.commands.last;
+    engine.playing(previous);
+    engine.barEvents.add(3);
+    metro.tempo(130);
+    expect(container.read(backingTransportProvider).rendering, isTrue);
+    expect(container.read(backingTransportProvider).playingId, isNull);
+    engine.playing(previous);
+    await transport.launch('chorus');
+    expect(engine.commands, hasLength(1));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(engine.calls.last, 'clear');
+    metro.tempo(140);
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    expect(engine.loads, hasLength(2));
+    expect(engine.calls, ['clear', 'load', 'clear', 'clear', 'load']);
+    expect(engine.loads.last.renderBpm, 140);
+    expect(engine.commands.last.atBar, 4);
+    expect(container.read(backingTransportProvider).playingId, isNull);
+    expect(container.read(backingTransportProvider).queuedId, 'verse');
+    engine.playing(engine.commands.last);
+    expect(container.read(backingTransportProvider).playingId, 'verse');
+  });
+
+  test(
+    'rendering lasts until load finishes and blocks audible state',
+    () async {
+      engine.loadGate = Completer<void>();
+      final attaching = transport.attach(entry(), sections);
+      while (engine.loads.isEmpty) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(container.read(backingTransportProvider).rendering, isTrue);
+      await transport.launch('verse');
+      engine.events.add(const BackingState(1, BackingStateKind.playing, 0));
+      expect(engine.commands, isEmpty);
+      expect(container.read(backingTransportProvider).playingId, isNull);
+      expect(container.read(metronomeProvider).isPlaying, isFalse);
+      engine.loadGate!.complete();
+      await attaching;
+      expect(container.read(backingTransportProvider).rendering, isFalse);
+    },
+  );
+
+  test('minus-one, mute and solo set gains by stem role', () async {
+    await transport.attach(entry(), sections);
+    final bass = engine.loads.single.names.indexOf('Bass');
+    final drums = engine.loads.single.names.indexOf('Drums');
+    transport.minusOne('Bass');
+    expect(engine.gains[bass], 0);
+    expect(engine.gains[drums], 1);
+    transport
+      ..muteStem('Bass', mute: false)
+      ..soloStem('Bass');
+    expect(engine.gains[bass], 1);
+    expect(engine.gains[drums], 0);
+    transport.soloStem('Bass', solo: false);
+    expect(engine.gains[drums], 1);
+  });
+
+  test('uses mapped spans and file tempo when requested', () async {
+    metro.tempo(90);
+    const span = SectionSpan(sectionId: 'verse', startBar: 2, bars: 3);
+    await transport.attach(entry(fileTempo: true, spans: [span]), sections);
+    expect(engine.loads.single.renderBpm, 120);
+    expect(container.read(backingTransportProvider).spans, [span]);
+    await transport.launch('verse');
+    expect(engine.commands.single.fromBar, 2);
+    expect(engine.commands.single.bars, 3);
+  });
+
+  test('bar stop waits for engine stopped event', () async {
+    await transport.attach(entry(), sections);
+    await transport.launch('verse');
+    engine.playing(engine.commands.last);
+    engine.barEvents.add(4);
+    await transport.stop(atBar: true);
+    final stop = engine.commands.last;
+    expect(stop.kind, BackingKind.stop);
+    expect(stop.atBar, 5);
+    expect(container.read(backingTransportProvider).playingId, 'verse');
+    engine.events.add(BackingState(stop.token, BackingStateKind.stopped, 5));
+    expect(container.read(backingTransportProvider).playingId, isNull);
+    expect(container.read(backingTransportProvider).queuedId, isNull);
+  });
+
+  test('metronome stop clears pad state and permits another launch', () async {
+    await transport.attach(entry(), sections);
+    await transport.launch('verse');
+    engine.playing(engine.commands.last);
+    metro.stop();
+    expect(container.read(backingTransportProvider).playingId, isNull);
+    expect(container.read(backingTransportProvider).queuedId, isNull);
+    expect(engine.commands.last.kind, BackingKind.stop);
+    await transport.launch('chorus');
+    expect(engine.commands.last.kind, BackingKind.launch);
+    expect(engine.commands.last.atBar, 2);
+    expect(engine.loads, hasLength(1));
+  });
+
+  test('tempo reload preserves stem gains', () async {
+    await transport.attach(entry(), sections);
+    transport.minusOne('Bass');
+    metro.tempo(160);
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    expect(engine.gains[engine.loads.last.names.indexOf('Bass')], 0);
+    expect(engine.loads, hasLength(2));
+  });
+
+  test('stop during tempo rendering cancels automatic resume', () async {
+    await transport.attach(entry(), sections);
+    await transport.launch('verse');
+    engine.playing(engine.commands.last);
+    metro.tempo(150);
+    await transport.stop();
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    expect(engine.loads, hasLength(2));
+    expect(engine.commands, hasLength(1));
+    expect(container.read(backingTransportProvider).playingId, isNull);
+  });
+}

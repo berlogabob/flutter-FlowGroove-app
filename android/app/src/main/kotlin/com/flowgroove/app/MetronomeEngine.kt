@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioFormat
 import android.media.AudioManager
+import android.media.AudioTimestamp
 import android.media.AudioTrack
 import android.os.Build
 import android.os.Handler
@@ -38,7 +39,10 @@ internal data class NativeMetronomeConfig(
     val waveType: String,
     val volume: Float,
     val hapticsEnabled: Boolean,
-    val ticks: List<NativeMetronomeTick>
+    val ticks: List<NativeMetronomeTick>,
+    val bpm: Double = 120.0,
+    val ticksPerBar: Int = 4,
+    val latencyOffsetFrames: Long = 0L
 ) {
     companion object {
         fun from(args: Map<*, *>): NativeMetronomeConfig {
@@ -67,7 +71,12 @@ internal data class NativeMetronomeConfig(
                 volume = ((args["volume"] as? Number)?.toFloat() ?: 0.5f)
                     .coerceIn(0f, 1f),
                 hapticsEnabled = args["hapticsEnabled"] as? Boolean ?: true,
-                ticks = ticks
+                ticks = ticks,
+                bpm = ((args["bpm"] as? Number)?.toDouble() ?: 120.0)
+                    .also { require(it.isFinite() && it > 0) { "Invalid bpm" } },
+                ticksPerBar = ((args["ticksPerBar"] as? Number)?.toInt() ?: ticks.size)
+                    .also { require(it > 0) { "Invalid ticksPerBar" } },
+                latencyOffsetFrames = (args["latencyOffsetFrames"] as? Number)?.toLong() ?: 0L
             )
         }
     }
@@ -141,9 +150,18 @@ internal class AndroidMetronomeEngine(
     private val onStopped: () -> Unit
 ) {
     private val mainHandler = Handler(context.mainLooper)
-    private val sampleRate = resolveSampleRate(context)
+    private val backing = backingFor(context)
+    private val sampleRate = backing.sampleRate
     private val renderer = ClickRenderer(sampleRate)
-    private val chunkFrames = max(256, sampleRate / 50) // ~20 ms
+    private val burstFrames = (context.getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+        .getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)
+        ?.toIntOrNull()
+        ?.takeIf { it > 0 } ?: 256
+    private val chunkFrames = burstFrames * 2
+
+    private class PlaybackLatency(val running: AtomicBoolean) {
+        @Volatile var millis = -1
+    }
 
     @Volatile private var pendingConfig: NativeMetronomeConfig? = null
     // Per-session running flag captured by the render thread, which is the sole
@@ -202,9 +220,11 @@ internal class AndroidMetronomeEngine(
         acquireWakeLock()
         requestAudioFocus()
         val sessionRunning = AtomicBoolean(true)
+        val latency = PlaybackLatency(sessionRunning)
+        playbackLatency = latency
         running = sessionRunning
         renderThread = Thread(
-            { renderLoop(track, sessionRunning, parsed) },
+            { renderLoop(track, sessionRunning, parsed, latency) },
             "FlowGrooveMetronomeAudio"
         ).also { it.start() }
     }
@@ -312,17 +332,20 @@ internal class AndroidMetronomeEngine(
     private fun renderLoop(
         track: AudioTrack,
         running: AtomicBoolean,
-        initial: NativeMetronomeConfig
+        initial: NativeMetronomeConfig,
+        latency: PlaybackLatency
     ) {
         val scratch = DoubleArray(chunkFrames)
         val pcm = ShortArray(chunkFrames)
         // (audibleFrame, tickIndex, shouldVibrate) for ticks awaiting UI dispatch.
         val uiQueue = ArrayDeque<Triple<Long, Int, Boolean>>()
+        val barQueue = ArrayDeque<Pair<Long, Int>>()
 
         var active = initial
         var intervalFrames = active.intervalMicros * sampleRate / 1_000_000.0
         var framesWritten = 0L
-        var epochFrame = 0L
+        var epochFrame = -active.latencyOffsetFrames
+        var nextBar = 0
 
         try {
             // Default-priority threads get starved by aggressive vendor CPU
@@ -334,12 +357,16 @@ internal class AndroidMetronomeEngine(
                 Log.w(TAG, "setThreadPriority failed", e)
             }
             track.play()
+            val playbackStartedNanos = System.nanoTime()
+            var nextTimestampNanos = playbackStartedNanos + 1_000_000_000L
+            val timestamp = AudioTimestamp()
             while (running.get()) {
                 pendingConfig?.let { pend ->
                 pendingConfig = null
                 active = pend
                 intervalFrames = active.intervalMicros * sampleRate / 1_000_000.0
-                epochFrame = framesWritten // restart the tick grid here, gaplessly
+                epochFrame = framesWritten - active.latencyOffsetFrames // restart the grid, gaplessly
+                nextBar = 0
             }
 
             java.util.Arrays.fill(scratch, 0.0)
@@ -376,6 +403,22 @@ internal class AndroidMetronomeEngine(
                 }
             }
 
+            synchronized(backing) {
+                backing.mix(
+                    scratch, chunkStart, active.bpm, epochFrame,
+                    active.ticksPerBar, active.intervalMicros.toDouble()
+                )
+            }
+            while (true) {
+                val barFrame = barStartFrame(
+                    nextBar, active.ticksPerBar, active.intervalMicros.toDouble(),
+                    sampleRate, epochFrame
+                )
+                if (barFrame >= chunkEnd) break
+                if (barFrame >= chunkStart) barQueue.addLast(barFrame to nextBar)
+                nextBar++
+            }
+
             for (i in 0 until chunkFrames) {
                 pcm[i] = (scratch[i].coerceIn(-1.0, 1.0) * 32767.0).toInt().toShort()
             }
@@ -384,13 +427,30 @@ internal class AndroidMetronomeEngine(
                 Log.e(TAG, "AudioTrack write error: $written")
                 break
             }
-            framesWritten += chunkFrames
+            framesWritten += written
+
+                val now = System.nanoTime()
+                if (now >= nextTimestampNanos) {
+                    latency.millis = if (track.getTimestamp(timestamp)) {
+                        // Project the timestamp's presentation frame to now.
+                        val queuedMillis = (framesWritten - timestamp.framePosition) * 1000.0 / sampleRate -
+                            (now - timestamp.nanoTime) / 1_000_000.0
+                        queuedMillis.roundToInt().coerceAtLeast(0)
+                    } else {
+                        -1
+                    }
+                    nextTimestampNanos = now + 1_000_000_000L
+                }
 
                 // Fire UI ticks + haptics once the audible head reaches them, so
                 // the beat highlight and vibration line up with what is playing.
                 // ponytail: 32-bit head masked; sync would only hiccup after ~24h
                 // continuous play (audio unaffected). Wrap accounting if anyone cares.
                 val head = track.playbackHeadPosition.toLong() and 0xFFFFFFFFL
+                while (barQueue.isNotEmpty() && barQueue.first().first <= head) {
+                    val (_, index) = barQueue.removeFirst()
+                    mainHandler.post { onBar?.invoke(index) }
+                }
                 while (uiQueue.isNotEmpty() && uiQueue.first().first <= head) {
                     val (_, index, vibrate) = uiQueue.removeFirst()
                     mainHandler.post { onTick(index) }
@@ -400,6 +460,7 @@ internal class AndroidMetronomeEngine(
         } catch (e: Exception) {
             Log.e(TAG, "render loop error", e)
         } finally {
+            running.set(false)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 try {
                     Log.i(TAG, "session AudioTrack underruns: ${track.underrunCount}")
@@ -411,13 +472,8 @@ internal class AndroidMetronomeEngine(
     }
 
     private fun buildTrack(): AudioTrack? {
-        val minBuf = AudioTrack.getMinBufferSize(
-            sampleRate,
-            AudioFormat.CHANNEL_OUT_MONO,
-            AudioFormat.ENCODING_PCM_16BIT
-        )
-        if (minBuf <= 0) return null
-        val bufferBytes = max(minBuf, chunkFrames * 2 * 4) // ~4 chunks of 16-bit mono
+        val bufferFrames = burstFrames * 4
+        val bufferBytes = bufferFrames * 2 // 16-bit mono
 
         val builder = AudioTrack.Builder()
             .setAudioAttributes(
@@ -445,6 +501,13 @@ internal class AndroidMetronomeEngine(
                 track.release()
                 null
             } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    track.setBufferSizeInFrames(bufferFrames)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    track.performanceMode != AudioTrack.PERFORMANCE_MODE_LOW_LATENCY) {
+                    Log.w(TAG, "AudioTrack low latency denied; performanceMode=${track.performanceMode}")
+                }
                 track
             }
         } catch (e: Exception) {
@@ -478,15 +541,27 @@ internal class AndroidMetronomeEngine(
         }
     }
 
-    private fun resolveSampleRate(context: Context): Int {
-        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
-        val rate = audioManager
-            ?.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
-            ?.toIntOrNull()
-        return rate?.takeIf { it > 0 } ?: 48_000
-    }
-
     companion object {
         private const val TAG = "FlowGrooveMetronome"
+        private var sharedBacking: BackingMixer? = null
+        @Volatile private var playbackLatency: PlaybackLatency? = null
+        var onBar: ((Int) -> Unit)? = null
+
+        fun engineLatencyMs(): Int {
+            val latency = playbackLatency ?: return -1
+            return if (latency.running.get()) latency.millis else -1
+        }
+
+        // Shared with the Activity because the foreground service owns the engine.
+        @Synchronized
+        fun backingFor(context: Context): BackingMixer {
+            sharedBacking?.let { return it }
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+            val rate = audioManager
+                ?.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
+                ?.toIntOrNull()
+                ?.takeIf { it > 0 } ?: 48_000
+            return BackingMixer(rate).also { sharedBacking = it }
+        }
     }
 }

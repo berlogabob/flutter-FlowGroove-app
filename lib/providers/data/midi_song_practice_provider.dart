@@ -6,10 +6,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/midi_song.dart';
+import '../../models/section.dart';
 import '../../models/song_lab.dart';
 import '../../services/audio/midi/midi_song_meta_builder.dart';
 import '../../services/audio/midi/midi_song_player.dart';
 import '../../services/audio/midi/midi_track_renderer.dart';
+import 'backing_transport_provider.dart';
 import 'metronome_provider.dart';
 import 'midi_song_provider.dart';
 
@@ -64,6 +66,10 @@ class MidiSongPracticeState {
         : Set.unmodifiable(skippedTracks),
   );
 }
+
+final useBackingTransportProvider = Provider<bool>(
+  (ref) => kIsWeb || defaultTargetPlatform == TargetPlatform.android,
+);
 
 final midiSongPlayerProvider = Provider.autoDispose
     .family<MidiSongPlayer, SongLabEntry>(
@@ -150,6 +156,8 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
 
   final SongLabEntry entry;
   late MidiSongPlayer _player;
+  bool _useBackingTransport = false;
+
   MidiSongData? _song;
   MidiSongMeta? _meta;
   FutureOr<void> Function(SongLabEntry)? _onPersist;
@@ -159,17 +167,42 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
   int? _loadedBpm;
   bool _disposed = false;
 
+  bool get usesBackingTransport => _useBackingTransport;
+
   @override
   MidiSongPracticeState build() {
-    _player = ref.watch(midiSongPlayerProvider(entry));
+    _useBackingTransport = ref.watch(useBackingTransportProvider);
+    if (!_useBackingTransport) {
+      _player = ref.watch(midiSongPlayerProvider(entry));
+    } else {
+      ref.listen(backingTransportProvider, (previous, next) {
+        state = state.copyWith(
+          playing: next.playingId != null,
+          loading: next.rendering,
+        );
+      });
+    }
     ref.listen<bool>(metronomeProvider.select((s) => s.isPlaying), (
       _,
       playing,
     ) {
-      unawaited(playing ? start() : stop());
+      if (!_useBackingTransport) {
+        unawaited(playing ? start() : stop());
+      } else if (playing) {
+        // Pad launches queue their command before this fallback runs.
+        unawaited(
+          Future<void>.microtask(() async {
+            if (!_disposed) await start();
+          }),
+        );
+      }
     });
     ref.listen<int>(metronomeProvider.select((s) => s.bpm), (_, _) {
-      if (ref.read(metronomeProvider).isPlaying || _song == null) return;
+      if (_useBackingTransport ||
+          ref.read(metronomeProvider).isPlaying ||
+          _song == null) {
+        return;
+      }
       _debounce?.cancel();
       _debounce = Timer(const Duration(milliseconds: 150), () {
         unawaited(_reload());
@@ -179,7 +212,7 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
       _disposed = true;
       ++_operationId;
       _debounce?.cancel();
-      unawaited(_disposePlayer());
+      if (!_useBackingTransport) unawaited(_disposePlayer());
     });
     return const MidiSongPracticeState();
   }
@@ -196,7 +229,7 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
     _song = null;
     state = const MidiSongPracticeState(loading: true);
     try {
-      await _player.stop();
+      if (!_useBackingTransport) await _player.stop();
       if (!_currentLoad(loadId)) return;
       final song = await ref.read(midiSongProvider(entry).future);
       if (!_currentLoad(loadId)) return;
@@ -207,6 +240,13 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
         fileUrl: entry.midiSong?.fileUrl,
         previous: entry.midiSong,
       );
+      if (_useBackingTransport && entry.midiSong != null) {
+        _meta = entry.midiSong!.copyWith(
+          ppq: song.ppq,
+          initialBpm: song.initialBpm,
+          tracks: _meta!.tracks,
+        );
+      }
       state = state.copyWith(tracks: _meta!.tracks);
       await _reload();
     } catch (error) {
@@ -260,6 +300,13 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
   }
 
   void _syncGains() {
+    if (_useBackingTransport) {
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 150), () {
+        unawaited(_reload());
+      });
+      return;
+    }
     try {
       // Player indices are compact buffer positions, not MIDI or UI indices.
       final gains = state.gains;
@@ -274,6 +321,24 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
   }
 
   Future<void> start() async {
+    if (_useBackingTransport) {
+      final transport = ref.read(backingTransportProvider);
+      if (_song == null ||
+          transport.rendering ||
+          transport.playingId != null ||
+          transport.queuedId != null ||
+          transport.spans.isEmpty) {
+        return;
+      }
+      try {
+        await ref
+            .read(backingTransportProvider.notifier)
+            .launch(transport.spans.first.sectionId);
+      } catch (error) {
+        if (!_disposed) state = state.copyWith(error: error.toString());
+      }
+      return;
+    }
     if (_song == null || state.playing) return;
     _debounce?.cancel();
     if (state.loading || _loadedBpm != ref.read(metronomeProvider).bpm) {
@@ -290,6 +355,10 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
   }
 
   Future<void> stop() async {
+    if (_useBackingTransport) {
+      await ref.read(backingTransportProvider.notifier).stop();
+      return;
+    }
     ++_operationId;
     _debounce?.cancel();
     state = state.copyWith(playing: false, loading: false);
@@ -312,6 +381,47 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
     _loadedBpm = null;
     state = state.copyWith(loading: true, playing: false);
     try {
+      if (_useBackingTransport) {
+        final transport = ref.read(backingTransportProvider);
+        final resume = transport.playingId ?? transport.queuedId;
+        final spans = transport.spans;
+        final endTick = song.tracks.fold<int>(
+          0,
+          (end, track) => track.notes.fold<int>(
+            end,
+            (end, note) => math.max(end, note.tick + note.dur),
+          ),
+        );
+        // Stem rendering applies per-track gains before tracks sharing a role mix.
+        final meta = _meta!.copyWith(
+          sectionMap: _meta!.sectionMap.isNotEmpty || spans.isEmpty
+              ? _meta!.sectionMap
+              : spans,
+          tracks: [
+            for (var i = 0; i < state.tracks.length; i++)
+              state.tracks[i].copyWith(volume: state.gains[i]),
+          ],
+        );
+        await ref
+            .read(backingTransportProvider.notifier)
+            .attach(entry.copyWith(midiSong: meta), [
+              Section(
+                id: 'song',
+                name: 'Song',
+                duration:
+                    (endTick /
+                            song.ppq /
+                            ref.read(metronomeProvider).timeSignature.numerator)
+                        .ceil(),
+              ),
+            ]);
+        if (!_current(operationId)) return;
+        state = state.copyWith(loading: false);
+        if (resume != null && ref.read(metronomeProvider).isPlaying) {
+          await ref.read(backingTransportProvider.notifier).launch(resume);
+        }
+        return;
+      }
       final rendered = await compute(_renderTracks, (
         song: song,
         tracks: state.tracks,
@@ -336,7 +446,7 @@ class MidiSongPracticeNotifier extends Notifier<MidiSongPracticeState> {
       error: error.toString(),
     );
     try {
-      await _player.stop();
+      if (!_useBackingTransport) await _player.stop();
     } catch (_) {
       // Preserve the original playback error if cleanup also fails.
     }
