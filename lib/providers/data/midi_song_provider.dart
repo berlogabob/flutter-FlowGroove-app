@@ -4,14 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/midi_song.dart';
 import '../../models/song_lab.dart';
+import '../../services/audio/midi/midi_bytes_cache.dart';
 import '../../services/audio/midi/smf_song_parser.dart';
 import 'data_providers.dart';
 
 /// Reuses the lab audio download helper and can be overridden in tests.
 final midiSongBytesFetcherProvider =
-    Provider<Future<Uint8List> Function(String)>(
-      (ref) => ref.watch(audioBytesFetcherProvider),
-    );
+    Provider<Future<Uint8List> Function(String)>((ref) {
+      final network = ref.watch(audioBytesFetcherProvider);
+      return (url) => cachedMidiBytes(url, network);
+    });
 
 // A non-autoDispose URL family is the in-memory cache, shared across entries
 // and retained for replays until the provider container is disposed.
