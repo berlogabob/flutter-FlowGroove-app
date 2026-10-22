@@ -106,7 +106,10 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Android plays from a foreground service so a concert survives screen-off;
+    // stopping here only desyncs the UI from the still-running native engine.
     if (!kIsWeb &&
+        defaultTargetPlatform != TargetPlatform.android &&
         (state == AppLifecycleState.paused ||
             state == AppLifecycleState.detached ||
             state == AppLifecycleState.hidden)) {

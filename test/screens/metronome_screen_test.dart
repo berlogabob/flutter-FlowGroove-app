@@ -492,6 +492,41 @@ void main() {
       expect(find.byKey(const Key('main_beat_dot_3')), findsNothing);
     });
 
+    testWidgets('Android keeps playing when the app is paused', (tester) async {
+      tester.view.physicalSize = const Size(400, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final runtime = MetronomeTestRuntime();
+      final container = ProviderContainer(overrides: runtime.overrides);
+      addTearDown(() async {
+        container.dispose();
+        await runtime.dispose();
+      });
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(size: Size(400, 800)),
+              child: MetronomeScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.play_arrow));
+      await tester.pump();
+      expect(container.read(metronomeProvider).isPlaying, isTrue);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+
+      expect(container.read(metronomeProvider).isPlaying, isTrue);
+    });
+
     testWidgets('has offline indicator', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
