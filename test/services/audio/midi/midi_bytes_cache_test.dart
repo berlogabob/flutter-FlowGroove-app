@@ -3,44 +3,36 @@ import 'dart:typed_data';
 
 import 'package:flowgroove/services/audio/midi/midi_bytes_cache.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
 
 void main() {
   late Directory dir;
-  late Box<dynamic> box;
+  setUp(() async => dir = await Directory.systemTemp.createTemp('midi_cache'));
+  tearDown(() async => dir.delete(recursive: true));
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp('midi_cache_test');
-    Hive.init(dir.path);
-    box = await Hive.openBox<dynamic>('midi_test');
-  });
+  Future<Directory> dirFn() async => dir;
+  final bytes = Uint8List.fromList([
+    ...'MThd'.codeUnits,
+    0, 0, 0, 6, 0, 1, 0, 1, 1, 0xE0, // header
+  ]);
 
-  tearDown(() async {
-    await box.deleteFromDisk();
-    await Hive.close();
-    await dir.delete(recursive: true);
-  });
-
-  final bytes = Uint8List.fromList([1, 2, 3]);
-
-  test('fetches once, then serves from the cache', () async {
+  test('fetches once, then serves from disk', () async {
     var calls = 0;
     Future<Uint8List> fetch(String _) async {
       calls++;
       return bytes;
     }
 
-    expect(await cachedMidiBytes('u', fetch, openBox: () async => box), bytes);
-    expect(await cachedMidiBytes('u', fetch, openBox: () async => box), bytes);
+    expect(await cachedMidiBytes('u', fetch, cacheDir: dirFn), bytes);
+    expect(await cachedMidiBytes('u', fetch, cacheDir: dirFn), bytes);
     expect(calls, 1);
   });
 
   test('works offline once cached', () async {
-    await cachedMidiBytes('u', (_) async => bytes, openBox: () async => box);
+    await cachedMidiBytes('u', (_) async => bytes, cacheDir: dirFn);
     final offline = await cachedMidiBytes(
       'u',
       (_) async => throw const SocketException('offline'),
-      openBox: () async => box,
+      cacheDir: dirFn,
     );
     expect(offline, bytes);
   });
@@ -50,18 +42,33 @@ void main() {
       cachedMidiBytes(
         'other',
         (_) async => throw const SocketException('offline'),
-        openBox: () async => box,
+        cacheDir: dirFn,
       ),
       throwsA(isA<SocketException>()),
     );
   });
 
-  test('falls back to the network when the cache cannot open', () async {
-    final got = await cachedMidiBytes(
-      'u',
-      (_) async => bytes,
-      openBox: () async => throw StateError('Hive not initialised'),
+  test('a corrupt cached file is refetched', () async {
+    await File('${dir.path}/${midiCacheName('u')}.mid').writeAsBytes([1, 2, 3]);
+    expect(
+      await cachedMidiBytes('u', (_) async => bytes, cacheDir: dirFn),
+      bytes,
     );
-    expect(got, bytes);
+  });
+
+  test('falls back to the network when the cache directory fails', () async {
+    expect(
+      await cachedMidiBytes(
+        'u',
+        (_) async => bytes,
+        cacheDir: () async => throw StateError('no storage'),
+      ),
+      bytes,
+    );
+  });
+
+  test('different urls get different files', () {
+    expect(midiCacheName('a'), isNot(midiCacheName('b')));
+    expect(midiCacheName('a'), midiCacheName('a'));
   });
 }
