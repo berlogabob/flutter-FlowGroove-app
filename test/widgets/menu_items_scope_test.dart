@@ -64,7 +64,10 @@ void main() {
       data('Wedding Party Set'),
     );
 
-    expect(MenuScopeRegistry.pushedEntryFor(1, roots: roots)?.title, 'Song Title');
+    expect(
+      MenuScopeRegistry.pushedEntryFor(1, roots: roots)?.title,
+      'Song Title',
+    );
     expect(
       MenuScopeRegistry.pushedEntryFor(2, roots: roots)?.title,
       'Wedding Party Set',

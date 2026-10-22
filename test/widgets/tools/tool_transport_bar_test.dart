@@ -5,9 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ToolTransportBar', () {
-    testWidgets('renders with required parameters', (
-      tester,
-    ) async {
+    testWidgets('renders with required parameters', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -17,9 +15,7 @@ void main() {
       expect(find.byType(ToolTransportBar), findsOneWidget);
     });
 
-    testWidgets('renders play button when not playing', (
-      tester,
-    ) async {
+    testWidgets('renders play button when not playing', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -29,9 +25,7 @@ void main() {
       expect(find.byIcon(Icons.play_arrow), findsOneWidget);
     });
 
-    testWidgets('renders pause button when playing', (
-      tester,
-    ) async {
+    testWidgets('renders pause button when playing', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: true, onPlayPause: _noOp),
@@ -41,9 +35,7 @@ void main() {
       expect(find.byIcon(Icons.pause), findsOneWidget);
     });
 
-    testWidgets('play/pause button uses accentOrange color', (
-      tester,
-    ) async {
+    testWidgets('play/pause button uses accentOrange color', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -133,9 +125,7 @@ void main() {
       expect(wasPressed, isTrue);
     });
 
-    testWidgets('toggles between play and pause icons', (
-      tester,
-    ) async {
+    testWidgets('toggles between play and pause icons', (tester) async {
       bool isPlaying = false;
 
       await tester.pumpWidget(
@@ -198,10 +188,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: ToolTransportBar(
-            isPlaying: false,
-            onPlayPause: _noOp,
-          ),
+          home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
         ),
       );
 
@@ -234,9 +221,7 @@ void main() {
       expect(nextIcon.color, MonoPulseColors.textDisabled);
     });
 
-    testWidgets('calls onPrevious when previous button tapped', (
-      tester,
-    ) async {
+    testWidgets('calls onPrevious when previous button tapped', (tester) async {
       bool previousCalled = false;
 
       await tester.pumpWidget(
@@ -257,9 +242,7 @@ void main() {
       expect(previousCalled, isTrue);
     });
 
-    testWidgets('calls onNext when next button tapped', (
-      tester,
-    ) async {
+    testWidgets('calls onNext when next button tapped', (tester) async {
       bool nextCalled = false;
 
       await tester.pumpWidget(
@@ -280,9 +263,7 @@ void main() {
       expect(nextCalled, isTrue);
     });
 
-    testWidgets('navigation buttons use surfaceRaised color', (
-      tester,
-    ) async {
+    testWidgets('navigation buttons use surfaceRaised color', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -307,9 +288,7 @@ void main() {
       expect(hasSurfaceRaisedButton, isTrue);
     });
 
-    testWidgets('navigation buttons have borderSubtle border', (
-      tester,
-    ) async {
+    testWidgets('navigation buttons have borderSubtle border', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -379,10 +358,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: ToolTransportBar(
-            isPlaying: false,
-            onPlayPause: _noOp,
-          ),
+          home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
         ),
       );
 
@@ -406,9 +382,7 @@ void main() {
       expect(find.byIcon(Icons.settings), findsNothing);
     });
 
-    testWidgets('calls onSettings when settings button tapped', (
-      tester,
-    ) async {
+    testWidgets('calls onSettings when settings button tapped', (tester) async {
       bool settingsCalled = false;
 
       await tester.pumpWidget(
@@ -449,9 +423,7 @@ void main() {
       expect(heightContainer.constraints, isNotNull);
     });
 
-    testWidgets('has horizontal margin using ToolSpacing.xxxl', (
-      tester,
-    ) async {
+    testWidgets('has horizontal margin using ToolSpacing.xxxl', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -462,9 +434,7 @@ void main() {
       expect(find.byType(ToolTransportBar), findsOneWidget);
     });
 
-    testWidgets('has vertical margin using ToolSpacing.lg', (
-      tester,
-    ) async {
+    testWidgets('has vertical margin using ToolSpacing.lg', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -486,9 +456,7 @@ void main() {
       expect(row.mainAxisAlignment, equals(MainAxisAlignment.center));
     });
 
-    testWidgets('play/pause button icon uses on-accent color', (
-      tester,
-    ) async {
+    testWidgets('play/pause button icon uses on-accent color', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -499,9 +467,7 @@ void main() {
       expect(playIcon.color, equals(MonoPulseColors.black));
     });
 
-    testWidgets('pause button icon uses on-accent color', (
-      tester,
-    ) async {
+    testWidgets('pause button icon uses on-accent color', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: true, onPlayPause: _noOp),
@@ -512,9 +478,7 @@ void main() {
       expect(pauseIcon.color, equals(MonoPulseColors.black));
     });
 
-    testWidgets('render multiple buttons together', (
-      tester,
-    ) async {
+    testWidgets('render multiple buttons together', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -537,9 +501,7 @@ void main() {
   });
 
   group('ToolTransportBar Haptic Feedback', () {
-    testWidgets('play/pause button triggers interaction', (
-      tester,
-    ) async {
+    testWidgets('play/pause button triggers interaction', (tester) async {
       bool wasPressed = false;
 
       await tester.pumpWidget(
@@ -557,9 +519,7 @@ void main() {
       expect(wasPressed, isTrue);
     });
 
-    testWidgets('navigation buttons trigger interaction', (
-      tester,
-    ) async {
+    testWidgets('navigation buttons trigger interaction', (tester) async {
       bool previousCalled = false;
       bool nextCalled = false;
 
@@ -584,9 +544,7 @@ void main() {
       expect(nextCalled, isTrue);
     });
 
-    testWidgets('settings button triggers interaction', (
-      tester,
-    ) async {
+    testWidgets('settings button triggers interaction', (tester) async {
       bool settingsCalled = false;
 
       await tester.pumpWidget(
@@ -608,9 +566,7 @@ void main() {
   });
 
   group('ToolTransportBar Accessibility', () {
-    testWidgets('play/pause button meets minimum touch target', (
-      tester,
-    ) async {
+    testWidgets('play/pause button meets minimum touch target', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -630,9 +586,7 @@ void main() {
       expect(circularContainers.isNotEmpty, isTrue);
     });
 
-    testWidgets('navigation buttons have adequate size', (
-      tester,
-    ) async {
+    testWidgets('navigation buttons have adequate size', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -650,9 +604,7 @@ void main() {
       expect(find.byIcon(Icons.skip_next), findsOneWidget);
     });
 
-    testWidgets('all buttons are circular for easy tapping', (
-      tester,
-    ) async {
+    testWidgets('all buttons are circular for easy tapping', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -701,9 +653,7 @@ void main() {
       expect(orangeContainer.decoration, isNotNull);
     });
 
-    testWidgets('navigation buttons use surfaceRaised', (
-      tester,
-    ) async {
+    testWidgets('navigation buttons use surfaceRaised', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(
@@ -776,9 +726,7 @@ void main() {
   });
 
   group('_PlayPauseButton', () {
-    testWidgets('renders play icon when not playing', (
-      tester,
-    ) async {
+    testWidgets('renders play icon when not playing', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -798,9 +746,7 @@ void main() {
       expect(find.byIcon(Icons.pause), findsOneWidget);
     });
 
-    testWidgets('icon size is proportional to button size', (
-      tester,
-    ) async {
+    testWidgets('icon size is proportional to button size', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(isPlaying: false, onPlayPause: _noOp),
@@ -831,9 +777,7 @@ void main() {
       expect(find.byIcon(Icons.skip_next), findsOneWidget);
     });
 
-    testWidgets('icon size is proportional to button size', (
-      tester,
-    ) async {
+    testWidgets('icon size is proportional to button size', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: ToolTransportBar(

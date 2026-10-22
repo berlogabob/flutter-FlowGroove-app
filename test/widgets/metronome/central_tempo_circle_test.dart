@@ -126,7 +126,9 @@ void main() {
     expect(find.text('320'), findsOneWidget);
   });
 
-  testWidgets('BPM sub-label shows double-time hint at/above 240', (tester) async {
+  testWidgets('BPM sub-label shows double-time hint at/above 240', (
+    tester,
+  ) async {
     await pumpDial(tester);
 
     expect(find.text('BPM'), findsOneWidget);

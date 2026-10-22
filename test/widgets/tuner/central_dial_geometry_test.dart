@@ -55,33 +55,44 @@ void main() {
       );
     });
 
-    test('angle -> frequency -> angle round trip is identity for all notes',
-        () {
-      for (final referenceA4 in <double>[415, 440, 442, 466]) {
-        for (var i = 0; i < 12; i++) {
-          final angle = TunerDialGeometry.angleForNoteIndex(i);
-          final frequency = TunerDialGeometry.frequencyForAngle(
-            angle,
-            referenceA4,
-          );
-          expect(
-            TunerDialGeometry.chromaticIndexForFrequency(
-              frequency,
+    test(
+      'angle -> frequency -> angle round trip is identity for all notes',
+      () {
+        for (final referenceA4 in <double>[415, 440, 442, 466]) {
+          for (var i = 0; i < 12; i++) {
+            final angle = TunerDialGeometry.angleForNoteIndex(i);
+            final frequency = TunerDialGeometry.frequencyForAngle(
+              angle,
               referenceA4,
-            ),
-            i,
-            reason: 'index $i at A4=$referenceA4',
-          );
+            );
+            expect(
+              TunerDialGeometry.chromaticIndexForFrequency(
+                frequency,
+                referenceA4,
+              ),
+              i,
+              reason: 'index $i at A4=$referenceA4',
+            );
+          }
         }
-      }
-    });
+      },
+    );
 
     test('frequencyForAngle honours the A4 calibration', () {
       final aAngle = TunerDialGeometry.angleForNoteIndex(9); // A
-      expect(TunerDialGeometry.frequencyForAngle(aAngle, 440), closeTo(440, 0.01));
-      expect(TunerDialGeometry.frequencyForAngle(aAngle, 442), closeTo(442, 0.01));
+      expect(
+        TunerDialGeometry.frequencyForAngle(aAngle, 440),
+        closeTo(440, 0.01),
+      );
+      expect(
+        TunerDialGeometry.frequencyForAngle(aAngle, 442),
+        closeTo(442, 0.01),
+      );
       final cAngle = TunerDialGeometry.angleForNoteIndex(0); // C4
-      expect(TunerDialGeometry.frequencyForAngle(cAngle, 440), closeTo(261.63, 0.01));
+      expect(
+        TunerDialGeometry.frequencyForAngle(cAngle, 440),
+        closeTo(261.63, 0.01),
+      );
     });
   });
 }

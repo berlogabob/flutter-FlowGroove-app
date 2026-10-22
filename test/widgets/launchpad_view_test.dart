@@ -224,11 +224,9 @@ void main() {
     await tester.pump();
     expect(tester.getRect(row), before);
     expect(find.text('Play').hitTestable(), findsOneWidget);
-    expect(find.text('Stop').hitTestable(), findsOneWidget);
+    expect(find.text('Stop'), findsNothing);
     expect(find.text('Loop').hitTestable(), findsOneWidget);
     expect(find.text('Quantize: Bar').hitTestable(), findsOneWidget);
-    await tester.tap(find.text('Stop'));
-    expect(transport.stops, [false]);
     expect(tester.takeException(), isNull);
   });
 
@@ -257,9 +255,27 @@ void main() {
     await tester.pump();
     expect(transport.state.quantize, Quantize.beat);
     expect(find.text('Quantize: Beat'), findsOneWidget);
-    await tester.longPress(find.text('Stop'));
     expect(transport.launches, ['s0']);
-    expect(transport.stops, [true]);
+  });
+
+  testWidgets('one Play/Stop button: Stop while playing, same column as Play', (
+    tester,
+  ) async {
+    final idle = _Transport(_state(2));
+    await _pump(tester, idle);
+    final playRect = tester.getRect(find.text('Play'));
+    final loopRect = tester.getRect(find.text('Loop'));
+
+    await tester.pumpWidget(const SizedBox());
+    final playing = _Transport(_state(2, playing: 's0'));
+    await _pump(tester, playing);
+    expect(find.text('Play'), findsNothing);
+    expect(tester.getRect(find.text('Stop')).center.dx, playRect.center.dx);
+    expect(tester.getRect(find.text('Loop')).center.dx, loopRect.center.dx);
+    await tester.tap(find.text('Stop'));
+    expect(playing.stops, [false]);
+    await tester.longPress(find.text('Stop'));
+    expect(playing.stops, [false, true]);
   });
 
   testWidgets('instrument chips mute, solo and toggle minus one', (
@@ -296,7 +312,9 @@ void main() {
     await tester.tap(find.text('Section 1'), warnIfMissed: false);
     expect(transport.launches, isEmpty);
     expect(
-      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Play'))
+          .onPressed,
       isNull,
     );
   });
@@ -344,7 +362,7 @@ void main() {
     await tester.ensureVisible(find.byType(InstrumentStrip));
     await tester.pump();
     expect(tester.getRect(row), before);
-    expect(find.text('Stop').hitTestable(), findsOneWidget);
+    expect(find.text('Play').hitTestable(), findsOneWidget);
   });
 
   testWidgets('iOS hides launchpad without attaching backing', (tester) async {

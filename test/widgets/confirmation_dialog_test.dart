@@ -30,9 +30,7 @@ void main() {
       expect(findText('Are you sure you want to proceed?'), findsOneWidget);
     });
 
-    testWidgets('renders warning icon for destructive action', (
-      tester,
-    ) async {
+    testWidgets('renders warning icon for destructive action', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -44,9 +42,7 @@ void main() {
       expect(findIcon(Icons.warning_amber), findsOneWidget);
     });
 
-    testWidgets('renders info icon for non-destructive action', (
-      tester,
-    ) async {
+    testWidgets('renders info icon for non-destructive action', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -59,9 +55,7 @@ void main() {
       expect(findIcon(Icons.info_outline), findsOneWidget);
     });
 
-    testWidgets('renders custom icon when provided', (
-      tester,
-    ) async {
+    testWidgets('renders custom icon when provided', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -74,9 +68,7 @@ void main() {
       expect(findIcon(Icons.star), findsOneWidget);
     });
 
-    testWidgets('renders confirm button with default label', (
-      tester,
-    ) async {
+    testWidgets('renders confirm button with default label', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
@@ -93,9 +85,7 @@ void main() {
       );
     });
 
-    testWidgets('renders confirm button with custom label', (
-      tester,
-    ) async {
+    testWidgets('renders confirm button with custom label', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -116,9 +106,7 @@ void main() {
       );
     });
 
-    testWidgets('renders cancel button with default label', (
-      tester,
-    ) async {
+    testWidgets('renders cancel button with default label', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(title: 'Confirm', message: 'Are you sure?'),
@@ -127,9 +115,7 @@ void main() {
       expect(findText('Cancel'), findsOneWidget);
     });
 
-    testWidgets('renders cancel button with custom label', (
-      tester,
-    ) async {
+    testWidgets('renders cancel button with custom label', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -147,10 +133,7 @@ void main() {
     ) async {
       await pumpAppWidget(
         tester,
-        const ConfirmationDialog(
-          title: 'Delete',
-          message: 'Are you sure?',
-        ),
+        const ConfirmationDialog(title: 'Delete', message: 'Are you sure?'),
       );
 
       // Find the ElevatedButton and verify it exists
@@ -206,9 +189,7 @@ void main() {
   });
 
   group('ConfirmationDialog.showDeleteDialog', () {
-    testWidgets('shows delete dialog with default title', (
-      tester,
-    ) async {
+    testWidgets('shows delete dialog with default title', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -224,9 +205,7 @@ void main() {
       );
     });
 
-    testWidgets('shows delete dialog with custom title', (
-      tester,
-    ) async {
+    testWidgets('shows delete dialog with custom title', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -240,9 +219,7 @@ void main() {
       expect(findText('Delete'), findsOneWidget);
     });
 
-    testWidgets('shows delete dialog with custom message', (
-      tester,
-    ) async {
+    testWidgets('shows delete dialog with custom message', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(
@@ -278,9 +255,7 @@ void main() {
       expect(findText('Custom Message'), findsOneWidget);
     });
 
-    testWidgets('shows confirm dialog with custom icon', (
-      tester,
-    ) async {
+    testWidgets('shows confirm dialog with custom icon', (tester) async {
       await pumpAppWidget(
         tester,
         const ConfirmationDialog(

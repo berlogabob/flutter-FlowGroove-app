@@ -7,9 +7,9 @@ void main() {
   Widget host(Widget child) => MaterialApp(home: Scaffold(body: child));
 
   testWidgets('shows initials when no photoURL', (tester) async {
-    await tester.pumpWidget(host(
-      const UserAvatar(photoURL: null, displayName: 'Andre Berloga'),
-    ));
+    await tester.pumpWidget(
+      host(const UserAvatar(photoURL: null, displayName: 'Andre Berloga')),
+    );
     expect(find.text('A'), findsOneWidget);
   });
 
@@ -28,12 +28,14 @@ void main() {
       savedHandler?.call(details);
     };
 
-    await tester.pumpWidget(host(
-      const UserAvatar(
-        photoURL: 'https://example.com/u1.jpg',
-        displayName: 'Andre',
+    await tester.pumpWidget(
+      host(
+        const UserAvatar(
+          photoURL: 'https://example.com/u1.jpg',
+          displayName: 'Andre',
+        ),
       ),
-    ));
+    );
     final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
     expect(avatar.backgroundImage, isA<CachedNetworkImageProvider>());
 
@@ -41,20 +43,22 @@ void main() {
   });
 
   testWidgets('falls back to ? when name is empty', (tester) async {
-    await tester.pumpWidget(host(
-      const UserAvatar(photoURL: null, displayName: ''),
-    ));
+    await tester.pumpWidget(
+      host(const UserAvatar(photoURL: null, displayName: '')),
+    );
     expect(find.text('?'), findsOneWidget);
   });
 
   testWidgets('applies backgroundColor when provided', (tester) async {
-    await tester.pumpWidget(host(
-      const UserAvatar(
-        photoURL: null,
-        displayName: 'Andre',
-        backgroundColor: Colors.orange,
+    await tester.pumpWidget(
+      host(
+        const UserAvatar(
+          photoURL: null,
+          displayName: 'Andre',
+          backgroundColor: Colors.orange,
+        ),
       ),
-    ));
+    );
     final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
     expect(avatar.backgroundColor, Colors.orange);
   });

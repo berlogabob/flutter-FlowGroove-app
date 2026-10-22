@@ -6,9 +6,7 @@ import '../helpers/test_helpers.dart';
 
 void main() {
   group('CustomButton', () {
-    testWidgets('renders primary button with label', (
-      tester,
-    ) async {
+    testWidgets('renders primary button with label', (tester) async {
       await pumpAppWidget(tester, const CustomButton(label: 'Click Me'));
 
       expect(findText('Click Me'), findsOneWidget);
@@ -68,9 +66,7 @@ void main() {
       expect(findText('Loading'), findsOneWidget);
     });
 
-    testWidgets('renders loading state without label', (
-      tester,
-    ) async {
+    testWidgets('renders loading state without label', (tester) async {
       await pumpAppWidget(
         tester,
         const CustomButton(label: '', isLoading: true),
@@ -93,15 +89,10 @@ void main() {
       expect(wasPressed, isTrue);
     });
 
-    testWidgets('does not call onPressed when disabled', (
-      tester,
-    ) async {
+    testWidgets('does not call onPressed when disabled', (tester) async {
       const bool wasPressed = false;
 
-      await pumpAppWidget(
-        tester,
-        const CustomButton(label: 'Disabled'),
-      );
+      await pumpAppWidget(tester, const CustomButton(label: 'Disabled'));
 
       await tester.tap(findText('Disabled'));
       await tester.pump();
@@ -109,9 +100,7 @@ void main() {
       expect(wasPressed, isFalse);
     });
 
-    testWidgets('does not call onPressed when loading', (
-      tester,
-    ) async {
+    testWidgets('does not call onPressed when loading', (tester) async {
       bool wasPressed = false;
 
       await pumpAppWidget(
@@ -152,10 +141,7 @@ void main() {
     });
 
     testWidgets('renders medium button', (tester) async {
-      await pumpAppWidget(
-        tester,
-        const CustomButton(label: 'Medium'),
-      );
+      await pumpAppWidget(tester, const CustomButton(label: 'Medium'));
 
       expect(findText('Medium'), findsOneWidget);
     });

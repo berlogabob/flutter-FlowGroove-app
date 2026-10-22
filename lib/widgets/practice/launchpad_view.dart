@@ -197,31 +197,72 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
           top: false,
           child: Padding(
             padding: const EdgeInsets.all(MonoPulseSpacing.sm),
-            child: Wrap(
-              key: const ValueKey('launchpad-transport'),
-              spacing: MonoPulseSpacing.sm,
-              crossAxisAlignment: WrapCrossAlignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (state.playingId == null && state.queuedId == null)
-                  FilledButton.icon(
-                    onPressed: disabled
-                        ? null
-                        : () => launch(spans.first.sectionId),
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Play'),
-                  ),
-                Tooltip(
-                  message: 'Hold to stop at the next bar',
-                  child: OutlinedButton(
-                    // Tap stops everything (click + backing); hold stops the
-                    // backing at the next bar and leaves the click running.
-                    onPressed: () {
-                      unawaited(transport.stop());
-                      ref.read(metronomeProvider.notifier).stop();
-                    },
-                    onLongPress: () => unawaited(transport.stop(atBar: true)),
-                    child: const Text('Stop'),
-                  ),
+                // Three equal columns that never move: Play/Stop, Loop, Quantize.
+                Row(
+                  key: const ValueKey('launchpad-transport'),
+                  children: [
+                    Expanded(
+                      child: state.playingId == null && state.queuedId == null
+                          ? FilledButton.icon(
+                              style: _transportStyle,
+                              onPressed: disabled
+                                  ? null
+                                  : () => launch(spans.first.sectionId),
+                              icon: const Icon(Icons.play_arrow),
+                              label: const Text('Play'),
+                            )
+                          : Tooltip(
+                              message: 'Hold to stop at the next bar',
+                              child: FilledButton.tonalIcon(
+                                style: _transportStyle,
+                                // Tap stops everything (click + backing); hold
+                                // stops the backing at the next bar and leaves
+                                // the click running.
+                                onPressed: () {
+                                  unawaited(transport.stop());
+                                  ref.read(metronomeProvider.notifier).stop();
+                                },
+                                onLongPress: () =>
+                                    unawaited(transport.stop(atBar: true)),
+                                icon: const Icon(Icons.stop),
+                                label: const Text('Stop'),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(width: MonoPulseSpacing.sm),
+                    Expanded(
+                      child: state.loop
+                          ? FilledButton.tonalIcon(
+                              style: _transportStyle,
+                              onPressed: () => transport.setLoop(false),
+                              icon: const Icon(Icons.check),
+                              label: const Text('Loop'),
+                            )
+                          : OutlinedButton(
+                              style: _transportStyle,
+                              onPressed: () => transport.setLoop(true),
+                              child: const Text('Loop'),
+                            ),
+                    ),
+                    const SizedBox(width: MonoPulseSpacing.sm),
+                    Expanded(
+                      child: OutlinedButton(
+                        style: _transportStyle,
+                        onPressed: () => transport.setQuantize(
+                          state.quantize == Quantize.bar
+                              ? Quantize.beat
+                              : Quantize.bar,
+                        ),
+                        child: Text(
+                          'Quantize: ${state.quantize == Quantize.beat ? 'Beat' : 'Bar'}',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 if (kDebugMode)
                   OutlinedButton(
@@ -230,21 +271,6 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                         : () => unawaited(transport.launchDiagnostic()),
                     child: const Text('Sync test'),
                   ),
-                FilterChip(
-                  label: const Text('Loop'),
-                  selected: state.loop,
-                  onSelected: transport.setLoop,
-                ),
-                ActionChip(
-                  label: Text(
-                    'Quantize: ${state.quantize == Quantize.beat ? 'Beat' : 'Bar'}',
-                  ),
-                  onPressed: () => transport.setQuantize(
-                    state.quantize == Quantize.bar
-                        ? Quantize.beat
-                        : Quantize.bar,
-                  ),
-                ),
               ],
             ),
           ),
@@ -253,6 +279,13 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
     );
   }
 }
+
+final _transportStyle = ButtonStyle(
+  minimumSize: WidgetStateProperty.all(const Size.fromHeight(52)),
+  padding: WidgetStateProperty.all(
+    const EdgeInsets.symmetric(horizontal: MonoPulseSpacing.sm),
+  ),
+);
 
 int? _songBars(MidiSongData? song, int beatsPerBar) {
   if (song == null) return null;

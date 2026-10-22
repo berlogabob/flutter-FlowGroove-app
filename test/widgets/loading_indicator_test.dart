@@ -54,9 +54,7 @@ void main() {
       expect(find.byType(Center), findsOneWidget);
     });
 
-    testWidgets('renders message with default style', (
-      tester,
-    ) async {
+    testWidgets('renders message with default style', (tester) async {
       await pumpAppWidget(
         tester,
         const LoadingIndicator(message: 'Please wait'),
@@ -65,9 +63,7 @@ void main() {
       expect(findText('Please wait'), findsOneWidget);
     });
 
-    testWidgets('renders message with custom style', (
-      tester,
-    ) async {
+    testWidgets('renders message with custom style', (tester) async {
       await pumpAppWidget(
         tester,
         const LoadingIndicator(
@@ -104,9 +100,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('renders with white color by default', (
-      tester,
-    ) async {
+    testWidgets('renders with white color by default', (tester) async {
       await pumpAppWidget(tester, const LoadingSpinner());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);

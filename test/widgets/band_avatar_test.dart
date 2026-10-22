@@ -7,9 +7,9 @@ void main() {
   Widget host(Widget child) => MaterialApp(home: Scaffold(body: child));
 
   testWidgets('shows band initial when no photoURL', (tester) async {
-    await tester.pumpWidget(host(
-      const BandAvatar(photoURL: null, bandName: 'Nightcrawlers'),
-    ));
+    await tester.pumpWidget(
+      host(const BandAvatar(photoURL: null, bandName: 'Nightcrawlers')),
+    );
     expect(find.text('N'), findsOneWidget);
   });
 
@@ -28,12 +28,14 @@ void main() {
       savedHandler?.call(details);
     };
 
-    await tester.pumpWidget(host(
-      const BandAvatar(
-        photoURL: 'https://example.com/b1.jpg',
-        bandName: 'Nightcrawlers',
+    await tester.pumpWidget(
+      host(
+        const BandAvatar(
+          photoURL: 'https://example.com/b1.jpg',
+          bandName: 'Nightcrawlers',
+        ),
       ),
-    ));
+    );
     final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
     expect(avatar.backgroundImage, isA<CachedNetworkImageProvider>());
 

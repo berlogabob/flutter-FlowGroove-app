@@ -8,12 +8,8 @@ void main() {
   Future<void> pump(WidgetTester tester, PracticeStats stats) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          practiceStatsProvider.overrideWith((ref) async => stats),
-        ],
-        child: const MaterialApp(
-          home: Scaffold(body: PracticeDashboardCard()),
-        ),
+        overrides: [practiceStatsProvider.overrideWith((ref) async => stats)],
+        child: const MaterialApp(home: Scaffold(body: PracticeDashboardCard())),
       ),
     );
     await tester.pump();
