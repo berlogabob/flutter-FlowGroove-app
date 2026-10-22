@@ -367,6 +367,8 @@ internal class AndroidMetronomeEngine(
             val playbackStartedNanos = System.nanoTime()
             var nextTimestampNanos = playbackStartedNanos + 1_000_000_000L
             val timestamp = AudioTimestamp()
+            var tsValid = false
+            var nextLeadLogNanos = playbackStartedNanos + 3_000_000_000L
             while (running.get()) {
                 pendingConfig?.let { pend ->
                 pendingConfig = null
@@ -460,6 +462,7 @@ internal class AndroidMetronomeEngine(
                         releaseTrack(track)
                         track = replacement
                         headBase = framesWritten + offset / channelCount
+                        tsValid = false
                         track.play()
                         stalls = 0
                         continue
@@ -474,7 +477,8 @@ internal class AndroidMetronomeEngine(
 
                 val now = System.nanoTime()
                 if (now >= nextTimestampNanos) {
-                    latency.millis = if (track.getTimestamp(timestamp)) {
+                    tsValid = track.getTimestamp(timestamp)
+                    latency.millis = if (tsValid) {
                         // Project the timestamp's presentation frame to now.
                         val queuedMillis = (framesWritten - (headBase + timestamp.framePosition)) * 1000.0 / sampleRate -
                             (now - timestamp.nanoTime) / 1_000_000.0
@@ -482,14 +486,28 @@ internal class AndroidMetronomeEngine(
                     } else {
                         -1
                     }
-                    nextTimestampNanos = now + 1_000_000_000L
+                    nextTimestampNanos = now + TIMESTAMP_REFRESH_NANOS
                 }
 
-                // Fire UI ticks + haptics once the audible head reaches them, so
-                // the beat highlight and vibration line up with what is playing.
+                // Fire UI ticks + haptics once the sound is actually presented, so
+                // the beat highlight and vibration line up with what is heard.
+                // The hardware-presented frame (getTimestamp, projected to now) lags the
+                // playback head by the HAL/Bluetooth delay when the HAL reports it; never
+                // fire earlier than the head. Falls back to the head without a timestamp.
                 // ponytail: 32-bit head masked; sync would only hiccup after ~24h
                 // continuous play (audio unaffected). Wrap accounting if anyone cares.
-                val head = headBase + (track.playbackHeadPosition.toLong() and 0xFFFFFFFFL)
+                val rawHead = headBase + (track.playbackHeadPosition.toLong() and 0xFFFFFFFFL)
+                val head = if (tsValid) {
+                    val presented = headBase + timestamp.framePosition +
+                        (System.nanoTime() - timestamp.nanoTime) * sampleRate / 1_000_000_000L
+                    minOf(rawHead, presented)
+                } else {
+                    rawHead
+                }
+                if (now >= nextLeadLogNanos) {
+                    Log.i(TAG, "ui lead behind head: ${(rawHead - head) * 1000 / sampleRate} ms (timestamp=$tsValid)")
+                    nextLeadLogNanos = now + 5_000_000_000L
+                }
                 while (barQueue.isNotEmpty() && barQueue.first().first <= head) {
                     val (_, index) = barQueue.removeFirst()
                     mainHandler.post { onBar?.invoke(index) }
@@ -608,6 +626,7 @@ internal class AndroidMetronomeEngine(
     }
 
     companion object {
+        private const val TIMESTAMP_REFRESH_NANOS = 100_000_000L
         private const val MAX_WRITE_STALLS = 300 // x10 ms = 3 s
         private const val WRITE_STALL_SLEEP_MS = 10L
         private const val MAX_TRACK_REBUILDS = 5

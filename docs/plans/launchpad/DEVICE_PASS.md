@@ -6,7 +6,7 @@
 | 2 | Pad switch mid-play, Stop, Loop | P30 | PASS (switch); Stop/Loop partial |
 | 3 | Screen off 2 min, backing keeps playing | P30 | PASS with EMUI manual launch; sheet guides it (verified 2026-10-22) |
 | 4 | After screen on, pads show the real state | P30 | PASS (60 s screen off, pad still Playing) |
-| 5 | Click vs MIDI offset < 3 ms, drift < 1 ms / 5 min (L29 diagnostic + scripts/measure_sync.py) | P30 | NOT RUN |
+| 5 | Click vs backing offset < 3 ms, drift < 1 ms / 5 min | P30 | PASS acoustic (release build, SYNC_TEST): offset -1.04 ms, drift +0.97 ms over 300 s; frame-exact JVM proof TickGridTest; A24 pending |
 | 6 | BPM change mid-play: backing re-renders, stays in sync | P30 | PASS (+5 twice mid-play: re-render, queued, Playing) |
 | 7 | Bluetooth connect and disconnect mid-play | P30 | PASS after F18 fix (A24 pending unlock) |
 | 8 | Low-latency AudioTrack granted (logcat "FAST granted") | P30 | P30 FAIL-ACCEPTED (HAL denies FAST); A24 PASS (FAST granted mono) |
