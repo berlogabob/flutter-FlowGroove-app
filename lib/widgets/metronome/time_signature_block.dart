@@ -34,7 +34,7 @@ class _TimeSignatureBlockState extends ConsumerState<TimeSignatureBlock> {
     // Dynamic sizing for compact layout
     final horizontalMargin = isSmallScreen
         ? MonoPulseSpacing.xs
-        : MonoPulseSpacing.xxxl;
+        : MonoPulseSpacing.md;
     final blockPadding = isSmallScreen
         ? MonoPulseSpacing.sm
         : MonoPulseSpacing.lg;
@@ -287,19 +287,6 @@ class _BeatsRow extends StatelessWidget {
 
     return Row(
       children: [
-        SizedBox(
-          width: isSmallScreen ? 42 : 52,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Beats',
-              style: MonoPulseTypography.labelSmall.copyWith(
-                color: context.mp.textSecondary,
-              ),
-            ),
-          ),
-        ),
         _BeatButton(
           key: const Key('main-beats-decrement'),
           icon: Icons.remove,
@@ -402,19 +389,6 @@ class _SubdivisionsRow extends StatelessWidget {
 
     return Row(
       children: [
-        SizedBox(
-          width: isSmallScreen ? 42 : 52,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Subdivision',
-              style: MonoPulseTypography.labelSmall.copyWith(
-                color: context.mp.textSecondary,
-              ),
-            ),
-          ),
-        ),
         _BeatButton(
           key: const Key('subdivisions-decrement'),
           icon: Icons.remove,
