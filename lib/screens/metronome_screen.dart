@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,12 +17,14 @@ import '../../theme/mono_pulse_theme.dart';
 import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
+import '../models/song_lab.dart';
 import '../utils/snackbar.dart' show showGlobalSnackBar;
 import '../widgets/metronome/backing_sheet.dart';
 import '../widgets/metronome/metronome_sheets.dart';
 import '../widgets/metronome/song_library_block.dart';
 import '../widgets/metronome/tempo_control_cluster.dart';
 import '../widgets/metronome/time_signature_block.dart';
+import '../widgets/practice/launchpad_view.dart';
 import 'concert_mode_screen.dart';
 import 'songs/models/song_form_data.dart';
 
@@ -343,17 +345,36 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
   }
 }
 
+final _activeMidiBackingProvider = Provider<SongLabEntry?>((ref) {
+  if (kIsWeb || defaultTargetPlatform == TargetPlatform.iOS) return null;
+  final state = ref.watch(metronomeProvider);
+  final song = state.activeSong;
+  if (song == null || ref.watch(authStateProvider).value == null) return null;
+  final entries = ref
+      .watch(labEntriesProvider((song.id, state.sourceBandId)))
+      .value;
+  for (final entry in entries ?? <SongLabEntry>[]) {
+    if (entry.type == LabEntryType.midi && entry.midiSong?.fileUrl != null) {
+      return entry;
+    }
+  }
+  return null;
+});
+
 /// Adaptive metronome layout (Mono Pulse audit A6).
 ///
 /// Portrait: a centered, max-width, scrollable column — phone fills the width,
 /// web/tablet centers with gutters. Landscape: the dial moves to the left and
 /// the beat map / transport / tools / library stack on the right, so the dial
 /// no longer clips under the app bar on short heights.
-class _MetronomePerformanceSurface extends StatelessWidget {
+class _MetronomePerformanceSurface extends ConsumerWidget {
   const _MetronomePerformanceSurface();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(_activeMidiBackingProvider) != null) {
+      return const _MetronomeSongLibrary();
+    }
     return OrientationBuilder(
       builder: (context, orientation) => orientation == Orientation.landscape
           ? const _MetronomeLandscape()
@@ -462,7 +483,29 @@ class _MetronomeSongLibrary extends ConsumerWidget {
     // ponytail: drums are native-only until the web drum player has run in a
     // real browser (it compiles, but was never exercised). Remove this guard
     // after a manual web test.
-    if (kIsWeb) return const SongLibraryBlock();
+    if (kIsWeb || defaultTargetPlatform == TargetPlatform.iOS) {
+      return const SongLibraryBlock();
+    }
+
+    final entry = ref.watch(_activeMidiBackingProvider);
+    if (entry != null) {
+      return LaunchpadView(
+        key: ValueKey(entry.id),
+        entry: entry,
+        sections: state.activeSong!.sections,
+        header: const Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TimeSignatureBlock(),
+            SizedBox(height: MonoPulseSpacing.sm),
+            TempoControlCluster(),
+            SizedBox(height: MonoPulseSpacing.md),
+            SongLibraryBlock(),
+            SizedBox(height: MonoPulseSpacing.md),
+          ],
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
