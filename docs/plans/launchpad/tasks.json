@@ -675,6 +675,60 @@
    "status": "pending",
    "timeout": 1800,
    "suite": true
+  },
+  {
+   "id": "L35",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "MediaSession + media-style notification",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/MetronomeForegroundService.kt"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Chinese ROM battery managers (Huawei PowerGenie, MIUI, ColorOS, Funtouch) spare apps that hold an ACTIVE PLAYING media session. In MetronomeForegroundService create an android.media.session.MediaSession (tag 'FlowGroove', no new dependency) when the service starts: setFlags for transport controls, setPlaybackState(PlaybackState.Builder with STATE_PLAYING, position 0, speed 1f, actions ACTION_STOP|ACTION_PAUSE|ACTION_PLAY_PAUSE), setMetadata(title 'FlowGroove', artist = '$currentBpm BPM' when known), setCallback so onStop/onPause/onPlay-pause stop the service the same way ACTION_STOP does, isActive = true; keep the playback state and metadata in step whenever the notification is rebuilt; release the session in onDestroy and whenever playback stops. buildNotification uses android.app.Notification.MediaStyle with setMediaSession(session.sessionToken) and setShowActionsInCompactView(0), category CATEGORY_TRANSPORT, keep the Stop action, ongoing, silent, channel unchanged. Keep startForeground with FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK. Do not change other behaviour.",
+   "verify": "cd android && ./gradlew :app:compileDebugKotlin -q",
+   "after": [],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L36",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "OEM power-manager deep links",
+   "files": [
+    "android/app/src/main/kotlin/com/flowgroove/app/OemPowerSettings.kt",
+    "android/app/src/main/kotlin/com/flowgroove/app/MainActivity.kt",
+    "android/app/src/main/AndroidManifest.xml"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create OemPowerSettings.kt (object, package com.flowgroove.app): `fun family(): String` from Build.MANUFACTURER+Build.BRAND lowercased: huawei (huawei, honor), xiaomi (xiaomi, redmi, poco), oppo (oppo, realme, oneplus), vivo (vivo, iqoo), samsung, asus, meizu, else 'other'. `fun candidates(context): List<Intent>` per family, each Intent built with ComponentName and FLAG_ACTIVITY_NEW_TASK, only those where context.packageManager.resolveActivity(intent, 0) != null AND the activity is exported: huawei com.huawei.systemmanager/.startupmgr.ui.StartupNormalAppListActivity then com.huawei.systemmanager/.optimize.process.ProtectActivity then Intent(Intent.ACTION_POWER_USAGE_SUMMARY); xiaomi com.miui.securitycenter/com.miui.permcenter.autostart.AutoStartManagementActivity then com.miui.powerkeeper/.ui.HiddenAppsConfigActivity; oppo com.coloros.safecenter/.permission.startup.StartupAppListActivity then com.oppo.safe/.permission.startup.StartupAppListActivity then com.coloros.oppoguardelf/com.coloros.powermanager.fuelgaue.PowerUsageModelActivity; vivo com.vivo.permissionmanager/.activity.BgStartUpManagerActivity then com.iqoo.secure/.ui.phoneoptimize.AddWhiteListActivity; samsung com.samsung.android.lool/com.samsung.android.sm.battery.ui.BatteryActivity; asus com.asus.mobilemanager/.autostart.AutoStartActivity; meizu com.meizu.safe/.permission.SmartBGActivity; every family finally falls back to Settings.ACTION_APPLICATION_DETAILS_SETTINGS for this package. `fun open(context): Boolean` starts the first candidate that does not throw (catch SecurityException/ActivityNotFoundException and try the next), returns true when one started. In MainActivity extend the existing 'com.flowgroove/battery' MethodChannel with 'oemFamily' (returns the family string) and 'openOemSettings' (returns the Boolean). Add <queries> entries to AndroidManifest.xml only if package visibility requires them for resolveActivity on API 30+.",
+   "verify": "cd android && ./gradlew :app:compileDebugKotlin -q",
+   "after": [],
+   "status": "pending",
+   "timeout": 1500,
+   "suite": false
+  },
+  {
+   "id": "L37",
+   "executor": "codex",
+   "finding": "LAUNCHPAD",
+   "title": "Keep-timing-reliable setup sheet + settings tile",
+   "files": [
+    "lib/services/power_reliability.dart",
+    "lib/widgets/metronome/reliability_sheet.dart",
+    "lib/screens/metronome_screen.dart",
+    "lib/screens/settings/app_settings_screen.dart",
+    "test/services/power_reliability_test.dart"
+   ],
+   "prompt": "Match surrounding style. Change only the allowed files. No new dependencies. Create lib/services/power_reliability.dart: `class PowerReliability` (constructor takes optional MethodChannel, default 'com.flowgroove/battery'; Android only, every method returns safe defaults off-Android or on MissingPluginException): `Future<String> family()` ('other' default), `Future<bool> ignoringOptimizations()`, `Future<void> requestIgnoreOptimizations()`, `Future<bool> openVendorSettings()`, `static String steps(String family)` returning the manual-steps copy for that family, e.g. huawei 'Settings > Battery > App launch > FlowGroove > Manage manually > turn on Auto-launch, Secondary launch and Run in background', xiaomi 'Security > Permissions > Autostart: allow FlowGroove; Settings > Apps > FlowGroove > Battery saver > No restrictions', oppo 'Settings > Battery > FlowGroove > Allow background activity; allow auto-launch', vivo 'Settings > Battery > Background power consumption > FlowGroove > Allow', samsung 'Settings > Battery > Background usage limits > Never sleeping apps > add FlowGroove', and a generic 'Allow unrestricted battery use for FlowGroove'. Also `Future<bool> setupSeen()` / `markSetupSeen()` persisted with SharedPreferences key 'power_setup_seen'. Create widgets/metronome/reliability_sheet.dart: `Future<void> showReliabilitySheet(BuildContext context, {PowerReliability? power})` bottom sheet titled 'Keep timing reliable' with one-line reason ('Some phones stop audio apps when the screen turns off. Concerts need exact timing.'), the family steps, buttons 'Allow unrestricted battery' (requestIgnoreOptimizations) and 'Open phone battery settings' (openVendorSettings) and 'Done' (markSetupSeen, pop). Show it ONCE (setupSeen false) the first time the user presses Play with a backing/MIDI launchpad on Android, from metronome_screen.dart (do not block playback; show after starting). In app_settings_screen.dart add a tile 'Keep timing reliable' that always opens the sheet. Tests with a fake MethodChannel: family mapping default 'other' on MissingPluginException; steps(...) contains 'Run in background' for huawei; setupSeen false then true after markSetupSeen (SharedPreferences.setMockInitialValues).",
+   "verify": "flutter test test/services/power_reliability_test.dart test/screens test/widgets && dart analyze lib/services lib/widgets/metronome lib/screens",
+   "after": [
+    "L36",
+    "L28"
+   ],
+   "status": "pending",
+   "timeout": 1800,
+   "suite": true
   }
  ]
 }
