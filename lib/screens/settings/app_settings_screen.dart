@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +28,12 @@ class AppSettingsScreen extends ConsumerStatefulWidget {
   ConsumerState<AppSettingsScreen> createState() => _AppSettingsScreenState();
 }
 
-class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
+class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen>
+    with WidgetsBindingObserver {
+  static const _batteryChannel = MethodChannel('com.flowgroove/battery');
+  bool? _ignoringBatteryOptimizations;
+  bool get _isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
   static const _latencyKey = 'metronome_latency_offset_ms';
   int _latencyMs = 0;
   String _version = 'Loading...';
@@ -34,6 +41,8 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadBatteryState();
     SharedPreferences.getInstance().then((prefs) {
       if (mounted) {
         setState(() => _latencyMs = prefs.getInt(_latencyKey) ?? 0);
@@ -42,6 +51,52 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
     loadAppVersionString().then((v) {
       if (mounted) setState(() => _version = v);
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _loadBatteryState();
+  }
+
+  Future<void> _loadBatteryState() async {
+    if (!_isAndroid) return;
+    try {
+      final ignoring = await _batteryChannel.invokeMethod<bool>(
+        'isIgnoringBatteryOptimizations',
+      );
+      if (mounted) setState(() => _ignoringBatteryOptimizations = ignoring);
+    } on PlatformException catch (e) {
+      debugPrint('[Settings] Cannot check battery optimization: $e');
+    } on MissingPluginException {
+      // Older hosts may not expose the battery settings channel yet.
+    }
+  }
+
+  Future<void> _requestBatteryExemption() async {
+    try {
+      await _batteryChannel.invokeMethod<void>(
+        'requestIgnoreBatteryOptimizations',
+      );
+      await _loadBatteryState();
+    } on PlatformException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not open battery settings: ${e.message}'),
+        ),
+      );
+    } on MissingPluginException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Battery settings are unavailable')),
+      );
+    }
   }
 
   Future<void> _setLatency(int ms) async {
@@ -109,9 +164,15 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                   padding: const EdgeInsets.only(top: MonoPulseSpacing.sm),
                   child: SegmentedButton<ThemeMode>(
                     segments: const [
-                      ButtonSegment(value: ThemeMode.system, label: Text('Auto')),
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        label: Text('Auto'),
+                      ),
                       ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-                      ButtonSegment(value: ThemeMode.light, label: Text('Light')),
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        label: Text('Light'),
+                      ),
                     ],
                     selected: {themeMode},
                     showSelectedIcon: false,
@@ -204,6 +265,29 @@ class _AppSettingsScreenState extends ConsumerState<AppSettingsScreen> {
                   ],
                 ),
               ),
+              if (_isAndroid)
+                ListTile(
+                  leading: const Icon(
+                    Icons.battery_saver_outlined,
+                    color: MonoPulseColors.accentOrange,
+                  ),
+                  title: const Text('Keep timing reliable'),
+                  subtitle: Text(
+                    '${switch (_ignoringBatteryOptimizations) {
+                      true => 'Exempt',
+                      false => 'Battery optimized',
+                      null => 'Checking',
+                    }} — Allow unrestricted battery use to keep timing reliable.',
+                  ),
+                  trailing: Icon(
+                    _ignoringBatteryOptimizations == true
+                        ? Icons.check
+                        : Icons.chevron_right,
+                  ),
+                  onTap: _ignoringBatteryOptimizations == true
+                      ? null
+                      : _requestBatteryExemption,
+                ),
             ]),
             const SizedBox(height: MonoPulseSpacing.lg),
             _section(context, 'Support', [

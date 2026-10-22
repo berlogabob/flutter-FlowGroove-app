@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/data/metronome_provider.dart';
+import '../providers/metronome_runtime_providers.dart';
 import '../providers/wakelock_provider.dart';
+import '../services/wakelock_controller.dart';
 import '../theme/mono_pulse_theme.dart';
 import '../widgets/performance_sheet_view.dart';
 
@@ -35,18 +37,14 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
       vsync: this,
       duration: MonoPulseAnimation.durationMedium,
     );
-    ref.read(wakelockProvider).enable();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   @override
   void dispose() {
     _pulse.dispose();
-    // Restore the system chrome and release the wakelock. Reading the provider
-    // in dispose is safe here — the controller is owned by the (still-mounted)
-    // metronome screen underneath.
+    // Restore the system chrome on exit.
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    ref.read(wakelockProvider).disable();
     super.dispose();
   }
 
@@ -70,96 +68,106 @@ class _ConcertModeScreenState extends ConsumerState<ConcertModeScreen>
     final song = state.activeSong;
     final showSheet = _showSheet && song != null && song.hasSheetContent;
 
-    return Scaffold(
-      backgroundColor: context.mp.black,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned(
-              top: MonoPulseSpacing.sm,
-              right: MonoPulseSpacing.sm,
-              child: IconButton(
-                icon: Icon(Icons.close, color: context.mp.textSecondary),
-                iconSize: 28,
-                tooltip: 'Exit Concert Mode',
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-            // Toggle the loaded song's inline lyrics+chords sheet.
-            if (song != null && song.hasSheetContent)
+    return ScreenWakelock(
+      controller: ref.watch(wakelockProvider),
+      isPlaying: state.isPlaying,
+      onWebResume: () => ref
+          .read(metronomePlaybackClientProvider)
+          .resetPhase(
+            MetronomePlaybackConfig.fromState(ref.read(metronomeProvider)),
+          ),
+      child: Scaffold(
+        backgroundColor: context.mp.black,
+        body: SafeArea(
+          child: Stack(
+            children: [
               Positioned(
                 top: MonoPulseSpacing.sm,
-                left: MonoPulseSpacing.sm,
+                right: MonoPulseSpacing.sm,
                 child: IconButton(
-                  icon: Icon(
-                    Icons.lyrics_outlined,
-                    color: showSheet
-                        ? MonoPulseColors.accentOrange
-                        : context.mp.textSecondary,
-                  ),
+                  icon: Icon(Icons.close, color: context.mp.textSecondary),
                   iconSize: 28,
-                  tooltip: showSheet ? 'Show BPM' : 'Lyrics & chords',
-                  onPressed: () => setState(() => _showSheet = !_showSheet),
+                  tooltip: 'Exit Concert Mode',
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
-              child: OrientationBuilder(
-                builder: (context, orientation) {
-                  final readout = showSheet
-                      ? PerformanceSheetView(
-                          key: ValueKey(song.id),
-                          sections: song.sections,
-                          bpm: state.bpm,
-                        )
-                      : _Readout(
-                          bpm: state.bpm,
-                          pulse: _pulse,
-                          isPlaying: state.isPlaying,
-                          songTitle: song?.title,
-                        );
-                  final controls = _Controls(
-                    isPlaying: state.isPlaying,
-                    numerator: numerator,
-                    currentBeat: currentMainBeat,
-                    onToggle: () =>
-                        ref.read(metronomeProvider.notifier).toggle(),
-                    onAdjust: (d) =>
-                        ref.read(metronomeProvider.notifier).adjustTempoFine(d),
-                    onPrevious: state.canGoToPreviousSetlistSong
-                        ? () => ref
-                              .read(metronomeProvider.notifier)
-                              .previousSetlistSong()
-                        : null,
-                    onNext: state.canGoToNextSetlistSong
-                        ? () => ref
-                              .read(metronomeProvider.notifier)
-                              .nextSetlistSong()
-                        : null,
-                    hasSetlist: state.loadedSetlist != null,
-                  );
+              // Toggle the loaded song's inline lyrics+chords sheet.
+              if (song != null && song.hasSheetContent)
+                Positioned(
+                  top: MonoPulseSpacing.sm,
+                  left: MonoPulseSpacing.sm,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.lyrics_outlined,
+                      color: showSheet
+                          ? MonoPulseColors.accentOrange
+                          : context.mp.textSecondary,
+                    ),
+                    iconSize: 28,
+                    tooltip: showSheet ? 'Show BPM' : 'Lyrics & chords',
+                    onPressed: () => setState(() => _showSheet = !_showSheet),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(MonoPulseSpacing.xxl),
+                child: OrientationBuilder(
+                  builder: (context, orientation) {
+                    final readout = showSheet
+                        ? PerformanceSheetView(
+                            key: ValueKey(song.id),
+                            sections: song.sections,
+                            bpm: state.bpm,
+                          )
+                        : _Readout(
+                            bpm: state.bpm,
+                            pulse: _pulse,
+                            isPlaying: state.isPlaying,
+                            songTitle: song?.title,
+                          );
+                    final controls = _Controls(
+                      isPlaying: state.isPlaying,
+                      numerator: numerator,
+                      currentBeat: currentMainBeat,
+                      onToggle: () =>
+                          ref.read(metronomeProvider.notifier).toggle(),
+                      onAdjust: (d) => ref
+                          .read(metronomeProvider.notifier)
+                          .adjustTempoFine(d),
+                      onPrevious: state.canGoToPreviousSetlistSong
+                          ? () => ref
+                                .read(metronomeProvider.notifier)
+                                .previousSetlistSong()
+                          : null,
+                      onNext: state.canGoToNextSetlistSong
+                          ? () => ref
+                                .read(metronomeProvider.notifier)
+                                .nextSetlistSong()
+                          : null,
+                      hasSetlist: state.loadedSetlist != null,
+                    );
 
-                  if (orientation == Orientation.landscape) {
-                    return Row(
+                    if (orientation == Orientation.landscape) {
+                      return Row(
+                        children: [
+                          Expanded(child: Center(child: readout)),
+                          Expanded(child: Center(child: controls)),
+                        ],
+                      );
+                    }
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Expanded(child: Center(child: readout)),
-                        Expanded(child: Center(child: controls)),
+                        if (showSheet) Expanded(child: readout) else readout,
+                        if (showSheet)
+                          const SizedBox(height: MonoPulseSpacing.lg),
+                        controls,
                       ],
                     );
-                  }
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      if (showSheet) Expanded(child: readout) else readout,
-                      if (showSheet)
-                        const SizedBox(height: MonoPulseSpacing.lg),
-                      controls,
-                    ],
-                  );
-                },
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

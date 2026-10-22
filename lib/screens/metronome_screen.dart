@@ -18,6 +18,9 @@ import '../../widgets/app_menu_sheet.dart';
 import '../../widgets/tools/tool_scaffold.dart';
 import '../../widgets/tools/tool_transport_bar.dart';
 import '../models/song_lab.dart';
+import '../providers/metronome_runtime_providers.dart';
+import '../providers/wakelock_provider.dart';
+import '../services/wakelock_controller.dart';
 import '../utils/snackbar.dart' show showGlobalSnackBar;
 import '../widgets/metronome/backing_sheet.dart';
 import '../widgets/metronome/metronome_sheets.dart';
@@ -103,9 +106,10 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached ||
-        state == AppLifecycleState.hidden) {
+    if (!kIsWeb &&
+        (state == AppLifecycleState.paused ||
+            state == AppLifecycleState.detached ||
+            state == AppLifecycleState.hidden)) {
       _stopSafely();
     }
   }
@@ -134,17 +138,26 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
       _scheduleTempoAutoSave(canEditSource);
     });
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: ToolScreenScaffold(
-        title: 'Metronome',
-        menuItems: _buildMenuItems(
-          context,
-          metronome,
-          state,
-          canEditSource: canEditSource,
+    return ScreenWakelock(
+      controller: ref.watch(wakelockProvider),
+      isPlaying: state.isPlaying,
+      onWebResume: () => ref
+          .read(metronomePlaybackClientProvider)
+          .resetPhase(
+            MetronomePlaybackConfig.fromState(ref.read(metronomeProvider)),
+          ),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: ToolScreenScaffold(
+          title: 'Metronome',
+          menuItems: _buildMenuItems(
+            context,
+            metronome,
+            state,
+            canEditSource: canEditSource,
+          ),
+          mainWidget: const _MetronomePerformanceSurface(),
         ),
-        mainWidget: const _MetronomePerformanceSurface(),
       ),
     );
   }

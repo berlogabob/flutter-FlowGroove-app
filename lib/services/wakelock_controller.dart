@@ -5,7 +5,10 @@
 /// Screen Wake Lock API).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 /// Service that manages wakelock state for the app.
@@ -13,13 +16,45 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 /// Usage:
 /// ```dart
 /// final wakelock = WakelockController();
-/// await wakelock.enable();  // Call when metronome starts playing
-/// await wakelock.disable(); // Call when metronome stops/pauses
+/// final screen = Object();
+/// await wakelock.setScreenVisible(screen, visible: true);
+/// await wakelock.setScreenVisible(screen, visible: false);
 /// ```
 class WakelockController {
   bool _isEnabled = false;
   bool _isDisposed = false;
   bool _alwaysOn = false;
+  final Set<Object> _visibleScreens = {};
+  Future<bool> _pending = Future.value(true);
+
+  /// Each visible screen holds its own lock, independently of playback.
+  Future<void> setScreenVisible(Object screen, {required bool visible}) async {
+    if (_isDisposed) return;
+    if (visible) {
+      _visibleScreens.add(screen);
+      // Browsers may release the platform lock while the document is hidden.
+      await _setEnabled(true, force: true);
+    } else {
+      _visibleScreens.remove(screen);
+      await disable();
+    }
+  }
+
+  Future<bool> _setEnabled(bool enabled, {bool force = false}) {
+    return _pending = _pending.then((_) async {
+      if (_isDisposed) return false;
+      if (!enabled && (_alwaysOn || _visibleScreens.isNotEmpty)) return true;
+      if (!force && _isEnabled == enabled) return true;
+      try {
+        await WakelockPlus.toggle(enable: enabled);
+        _isEnabled = enabled;
+        return true;
+      } catch (e) {
+        debugPrint('[Wakelock] Failed to set enabled=$enabled: $e');
+        return false;
+      }
+    });
+  }
 
   /// Whether the wakelock is currently active.
   bool get isEnabled => _isEnabled;
@@ -48,57 +83,10 @@ class WakelockController {
   ///
   /// Safe to call multiple times — only the first call has effect.
   /// Returns `true` if successfully enabled, `false` if unsupported or disposed.
-  Future<bool> enable() async {
-    if (_isDisposed) {
-      debugPrint('[Wakelock] Cannot enable: controller disposed');
-      return false;
-    }
-    if (_isEnabled) {
-      debugPrint('[Wakelock] Already enabled, skipping');
-      return true;
-    }
+  Future<bool> enable() => _setEnabled(true);
 
-    try {
-      await WakelockPlus.enable();
-      _isEnabled = true;
-      debugPrint('[Wakelock] Enabled');
-      return true;
-    } catch (e) {
-      debugPrint('[Wakelock] Failed to enable: $e');
-      return false;
-    }
-  }
-
-  /// Disable the wakelock to allow the screen to sleep.
-  ///
-  /// Safe to call multiple times — only the first call has effect.
-  /// Returns `true` if successfully disabled, `false` if error.
-  Future<bool> disable() async {
-    if (_isDisposed) {
-      debugPrint('[Wakelock] Cannot disable: controller disposed');
-      return false;
-    }
-    if (_alwaysOn) {
-      // ponytail: user's global keep-screen-on holds the lock; ignore
-      // per-screen disable so leaving a practice screen doesn't drop it.
-      debugPrint('[Wakelock] alwaysOn active, ignoring disable');
-      return true;
-    }
-    if (!_isEnabled) {
-      debugPrint('[Wakelock] Already disabled, skipping');
-      return true;
-    }
-
-    try {
-      await WakelockPlus.disable();
-      _isEnabled = false;
-      debugPrint('[Wakelock] Disabled');
-      return true;
-    } catch (e) {
-      debugPrint('[Wakelock] Failed to disable: $e');
-      return false;
-    }
-  }
+  /// Release a playback lock, preserving visible screens and the global setting.
+  Future<bool> disable() => _setEnabled(false);
 
   /// Toggle the wakelock state.
   Future<bool> toggle() async {
@@ -122,10 +110,110 @@ class WakelockController {
   /// Dispose the controller and release the wakelock.
   Future<void> dispose() async {
     if (_isDisposed) return;
-    if (_isEnabled) {
-      await disable();
-    }
+    _alwaysOn = false;
+    _visibleScreens.clear();
+    await disable();
     _isDisposed = true;
     debugPrint('[Wakelock] Controller disposed');
+  }
+}
+
+/// Route and app visibility ownership shared by the two metronome views.
+class ScreenWakelock extends StatefulWidget {
+  const ScreenWakelock({
+    required this.controller,
+    required this.isPlaying,
+    required this.onWebResume,
+    required this.child,
+    super.key,
+  });
+
+  final WakelockController controller;
+  final bool isPlaying;
+  final VoidCallback onWebResume;
+  final Widget child;
+
+  @override
+  State<ScreenWakelock> createState() => _ScreenWakelockState();
+}
+
+class _ScreenWakelockState extends State<ScreenWakelock>
+    with WidgetsBindingObserver {
+  bool _routeVisible = false;
+  bool _foreground = true;
+  bool _hiddenWhilePlaying = false;
+  bool _timingWarning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = WidgetsBinding.instance.lifecycleState;
+    _foreground =
+        state == null ||
+        state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.inactive;
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final visible = ModalRoute.isCurrentOf(context) ?? true;
+    if (_routeVisible == visible) return;
+    _routeVisible = visible;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _updateLock();
+    });
+  }
+
+  void _updateLock() {
+    unawaited(
+      widget.controller.setScreenVisible(
+        this,
+        visible: _routeVisible && _foreground,
+      ),
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive) return;
+    _foreground = state == AppLifecycleState.resumed;
+    if (kIsWeb && !_foreground && widget.isPlaying && _routeVisible) {
+      _hiddenWhilePlaying = true;
+      setState(() => _timingWarning = true);
+    }
+    _updateLock();
+    if (kIsWeb && _foreground && _routeVisible && _hiddenWhilePlaying) {
+      _hiddenWhilePlaying = false;
+      if (widget.isPlaying) widget.onWebResume();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(widget.controller.setScreenVisible(this, visible: false));
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (_timingWarning && widget.isPlaying)
+          Material(
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            child: const SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: Text('Keep this tab visible for exact timing'),
+              ),
+            ),
+          ),
+        Expanded(child: widget.child),
+      ],
+    );
   }
 }
