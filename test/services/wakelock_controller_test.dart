@@ -109,26 +109,28 @@ void main() {
     expect(controller.isEnabled, isFalse);
   });
 
-  testWidgets('battery tile is hidden off Android, including web', (
-    tester,
-  ) async {
-    debugDefaultTargetPlatformOverride = kIsWeb
-        ? TargetPlatform.android
-        : TargetPlatform.iOS;
-    SharedPreferences.setMockInitialValues({});
-    await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: AppSettingsScreen())),
-    );
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('Audio latency offset'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('Keep timing reliable'), findsNothing);
-    await tester.pumpWidget(const SizedBox());
-    debugDefaultTargetPlatformOverride = null;
-  });
+  testWidgets(
+    'only the manual setup tile is shown off Android, including web',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = kIsWeb
+          ? TargetPlatform.android
+          : TargetPlatform.iOS;
+      SharedPreferences.setMockInitialValues({});
+      await tester.pumpWidget(
+        const ProviderScope(child: MaterialApp(home: AppSettingsScreen())),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Audio latency offset'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Keep timing reliable'), findsOneWidget);
+      expect(find.textContaining('Checking —'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+      debugDefaultTargetPlatformOverride = null;
+    },
+  );
 
   testWidgets('Android tile checks state and requests only when tapped', (
     tester,
@@ -154,14 +156,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(calls, ['isIgnoringBatteryOptimizations']);
     await tester.scrollUntilVisible(
-      find.text('Keep timing reliable'),
+      find.textContaining('Battery optimized'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.ensureVisible(find.text('Keep timing reliable'));
+    await tester.ensureVisible(find.textContaining('Battery optimized'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Battery optimized'), findsOneWidget);
-    await tester.tap(find.text('Keep timing reliable'));
+    await tester.tap(find.textContaining('Battery optimized'));
     await tester.pumpAndSettle();
     expect(calls, contains('requestIgnoreBatteryOptimizations'));
     expect(find.textContaining('Exempt'), findsOneWidget);
