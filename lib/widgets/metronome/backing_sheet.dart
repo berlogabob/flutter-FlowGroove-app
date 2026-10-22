@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/song_lab.dart';
 import '../../providers/data/data_providers.dart';
+import '../midi/arrangement_sheet.dart';
 import '../midi/midi_song_panel.dart';
 import 'drum_practice_panel.dart';
 
@@ -41,24 +42,24 @@ class BackingSheet extends ConsumerWidget {
             leading: const Icon(Icons.album_outlined),
             title: const Text('Drum pattern'),
             subtitle: const Text('Grid, import, sync with click'),
-            onTap: () => open(
-              (_) => DrumPracticePanel(songId: songId, bandId: bandId),
-            ),
+            onTap: () =>
+                open((_) => DrumPracticePanel(songId: songId, bandId: bandId)),
           ),
           for (final e in midiSongs)
             ListTile(
               leading: const Icon(Icons.piano_outlined),
-              title: Text(
-                e.title?.isNotEmpty == true ? e.title! : 'MIDI song',
-              ),
+              title: Text(e.title?.isNotEmpty == true ? e.title! : 'MIDI song'),
               subtitle: Text('${e.midiSong!.tracks.length} instruments'),
-              onTap: () =>
-                  open((_) => MidiSongPanel(entry: e, bandId: bandId)),
+              onTap: () => open(
+                (_) => e.midiSong!.sectionMap.isEmpty
+                    ? ArrangementSheet(entry: e, bandId: bandId)
+                    : MidiSongPanel(entry: e, bandId: bandId),
+              ),
             ),
           if (midiSongs.isEmpty)
             const ListTile(
               title: Text('No MIDI songs yet'),
-              subtitle: Text('Import one from the song\'s Song Lab.'),
+              subtitle: Text("Import one from the song's Song Lab."),
             ),
         ],
       ),
