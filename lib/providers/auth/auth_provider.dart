@@ -45,10 +45,7 @@ class AnalyticsClient {
     required AppUser user,
     required int bandCount,
   }) {
-    return AnalyticsService.setUserProperties(
-      user: user,
-      bandCount: bandCount,
-    );
+    return AnalyticsService.setUserProperties(user: user, bandCount: bandCount);
   }
 }
 
@@ -207,19 +204,20 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
         }
 
         final telegramConsent = data['telegramConsent'] == true;
-        final telegramUsername =
-            telegramConsent ? data['telegramUsername'] as String? : null;
-        final telegramPhotoURL =
-            telegramConsent ? data['telegramPhotoURL'] as String? : null;
+        final telegramUsername = telegramConsent
+            ? data['telegramUsername'] as String?
+            : null;
+        final telegramPhotoURL = telegramConsent
+            ? data['telegramPhotoURL'] as String?
+            : null;
 
         if (displayName == 'User' && telegramUsername != null) {
           displayName = telegramUsername;
         }
         // Avatar precedence: the doc's photoURL is the user's chosen avatar
         // and is authoritative; fall back to Telegram, then auth photo.
-        final photoURL = (data['photoURL'] as String?) ??
-            telegramPhotoURL ??
-            user.photoURL;
+        final photoURL =
+            (data['photoURL'] as String?) ?? telegramPhotoURL ?? user.photoURL;
 
         return AsyncValue.data(
           AppUser(
@@ -228,10 +226,12 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
             displayName: displayName,
             photoURL: photoURL,
             accessRole: (data['accessRole'] as String?) ?? 'member',
-            musicRoles:
-                List<String>.from((data['musicRoles'] as List?) ?? const []),
-            systemTags:
-                List<String>.from((data['systemTags'] as List?) ?? const []),
+            musicRoles: List<String>.from(
+              (data['musicRoles'] as List?) ?? const [],
+            ),
+            systemTags: List<String>.from(
+              (data['systemTags'] as List?) ?? const [],
+            ),
             createdAt: DateTime.now(),
           ),
         );
@@ -265,10 +265,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
     );
     Future(() async {
       try {
-        await analytics.setUserProperties(
-          user: snapshot,
-          bandCount: bandCount,
-        );
+        await analytics.setUserProperties(user: snapshot, bandCount: bandCount);
       } catch (e) {
         debugPrint('Error setting user properties: $e');
       }
@@ -432,7 +429,9 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
       // v7 only exposes an ID token here; that is sufficient for Firebase.
       final idToken = googleUser.authentication.idToken;
       if (idToken == null) {
-        throw ApiError.auth(message: 'Google sign-in failed: missing ID token.');
+        throw ApiError.auth(
+          message: 'Google sign-in failed: missing ID token.',
+        );
       }
       return _signInWithGoogleIdToken(auth, idToken);
     });
@@ -682,9 +681,7 @@ class AppUserNotifier extends Notifier<AsyncValue<AppUser?>> {
           exception: e,
         );
       case 'network-request-failed':
-        return ApiError.network(
-          exception: e,
-        );
+        return ApiError.network(exception: e);
       case 'too-many-requests':
         return ApiError.auth(
           message: 'Too many failed attempts. Please try again later.',

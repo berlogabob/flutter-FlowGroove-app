@@ -53,6 +53,14 @@ class BackingState {
 /// Set by the Android engine; the click client forwards native backing calls here.
 Future<void> Function(MethodCall call)? backingNativeSink;
 
+/// What the web backing engine needs from the click engine: its AudioContext
+/// (an Object so this file stays platform-free), the transport bar time and bpm.
+typedef BackingWebHooks = ({
+  Object? context,
+  double Function(int) barTimeSeconds,
+  double Function() bpm,
+});
+
 abstract class BackingEngine {
   Future<int> engineSampleRate();
   Future<void> load(BackingStems stems);

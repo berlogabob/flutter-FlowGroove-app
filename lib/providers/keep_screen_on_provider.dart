@@ -35,5 +35,6 @@ class KeepScreenOn extends Notifier<bool> {
   }
 }
 
-final keepScreenOnProvider =
-    NotifierProvider<KeepScreenOn, bool>(KeepScreenOn.new);
+final keepScreenOnProvider = NotifierProvider<KeepScreenOn, bool>(
+  KeepScreenOn.new,
+);

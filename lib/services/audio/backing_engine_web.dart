@@ -7,16 +7,19 @@ import 'package:web/web.dart' as web;
 
 import 'backing_engine.dart';
 import 'backing_engine_factory.dart';
+import 'backing_engine_stub.dart' show StubBackingEngine;
 
-BackingEngine createBackingEngine({
-  required web.AudioContext context,
-  required double Function(int) barTimeSeconds,
-  required double Function() bpm,
-}) => WebBackingEngine(
-  context: context,
-  barTimeSeconds: barTimeSeconds,
-  bpm: bpm,
-);
+BackingEngine createBackingEngine({BackingWebHooks? hooks}) {
+  final context = hooks?.context;
+  if (hooks == null || context is! web.AudioContext) {
+    return StubBackingEngine();
+  }
+  return WebBackingEngine(
+    context: context,
+    barTimeSeconds: hooks.barTimeSeconds,
+    bpm: hooks.bpm,
+  );
+}
 
 /// Pass the click engine's context and the click client's barTimeSeconds.
 /// This engine never creates or closes an AudioContext.

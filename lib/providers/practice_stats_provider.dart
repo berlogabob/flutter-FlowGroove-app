@@ -93,8 +93,9 @@ PracticeStats computePracticeStats(
   );
 }
 
-final metronomeSessionRepositoryProvider =
-    Provider<MetronomeSessionRepository>((ref) => MetronomeSessionRepository());
+final metronomeSessionRepositoryProvider = Provider<MetronomeSessionRepository>(
+  (ref) => MetronomeSessionRepository(),
+);
 
 final practiceStatsProvider = FutureProvider.autoDispose<PracticeStats>((
   ref,
@@ -106,11 +107,10 @@ final practiceStatsProvider = FutureProvider.autoDispose<PracticeStats>((
 });
 
 /// All sessions, newest first — the Practice screen's logbook.
-final practiceSessionsProvider = FutureProvider.autoDispose<
-  List<MetronomeSession>
->((ref) async {
-  final sessions = await ref
-      .watch(metronomeSessionRepositoryProvider)
-      .listAll();
-  return sessions.where((s) => s.elapsedSeconds > 0).toList();
-});
+final practiceSessionsProvider =
+    FutureProvider.autoDispose<List<MetronomeSession>>((ref) async {
+      final sessions = await ref
+          .watch(metronomeSessionRepositoryProvider)
+          .listAll();
+      return sessions.where((s) => s.elapsedSeconds > 0).toList();
+    });

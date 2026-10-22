@@ -56,5 +56,6 @@ class HapticsEnabled extends Notifier<bool> {
   Future<void> toggle() => set(!state);
 }
 
-final hapticsEnabledProvider =
-    NotifierProvider<HapticsEnabled, bool>(HapticsEnabled.new);
+final hapticsEnabledProvider = NotifierProvider<HapticsEnabled, bool>(
+  HapticsEnabled.new,
+);

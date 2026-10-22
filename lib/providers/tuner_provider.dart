@@ -19,7 +19,6 @@ import '../services/tuner_preferences.dart';
 enum TunerMode { generate, listen }
 
 class NoteData {
-
   const NoteData({
     required this.note,
     required this.octave,
@@ -38,7 +37,6 @@ class NoteData {
 const Object _notSet = Object();
 
 class TunerState {
-
   const TunerState({
     this.mode = TunerMode.listen,
     this.frequency = 440,
@@ -229,7 +227,6 @@ class TunerState {
 }
 
 class TunerNotifier extends Notifier<TunerState> {
-
   TunerNotifier({
     ToneGenerator? toneGenerator,
     PitchDetector? pitchDetector,
@@ -291,9 +288,8 @@ class TunerNotifier extends Notifier<TunerState> {
         droneEnabled: values['droneEnabled'] as bool? ?? false,
         recentPresetIds:
             (values['recentPresetIds'] as List<String>?) ?? const [],
-        transpositionSemitones: ((values['transposition'] as num?)?.toInt() ??
-                0)
-            .clamp(0, 11),
+        transpositionSemitones:
+            ((values['transposition'] as num?)?.toInt() ?? 0).clamp(0, 11),
       );
     } catch (error) {
       debugPrint('Unable to restore tuner preferences: $error');

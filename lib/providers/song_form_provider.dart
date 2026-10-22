@@ -33,7 +33,6 @@ final songFormStateProvider =
 
 /// State class for song form management.
 class SongFormState {
-
   const SongFormState({
     required this.formData,
     this.error,
@@ -274,7 +273,6 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     );
     markAsChanged();
   }
-
 
   /// Initialize beat modes.
   void initializeBeatModes() {
@@ -679,7 +677,10 @@ class SongFormStateNotifier extends Notifier<SongFormState> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning_amber_rounded, color: MonoPulseColors.warning),
+        icon: const Icon(
+          Icons.warning_amber_rounded,
+          color: MonoPulseColors.warning,
+        ),
         title: const Text('Similar Song Exists'),
         content: Column(
           mainAxisSize: MainAxisSize.min,

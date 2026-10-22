@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/midi_pattern.dart';
@@ -15,12 +16,26 @@ import '../../services/audio/midi/drum_samples.dart';
 import '../../utils/bar_math.dart';
 import '../../utils/pad_state.dart';
 import '../../utils/quantize.dart';
+import '../metronome_runtime_providers.dart';
 import 'drum_practice_provider.dart';
 import 'metronome_provider.dart';
 import 'midi_song_provider.dart';
 
 final backingEngineProvider = Provider<BackingEngine>((ref) {
-  final engine = createBackingEngine();
+  BackingWebHooks? hooks;
+  if (kIsWeb) {
+    final client = ref.read(metronomePlaybackClientProvider);
+    final audio = ref.read(metronomeAudioClientProvider);
+    if (client is WebAudioLookaheadPlaybackClient &&
+        audio is WebAudioMetronomeAudioClient) {
+      hooks = (
+        context: audio.audioContextForBacking(),
+        barTimeSeconds: client.barTimeSeconds,
+        bpm: () => ref.read(metronomeProvider).bpm.toDouble(),
+      );
+    }
+  }
+  final engine = createBackingEngine(hooks: hooks);
   ref.onDispose(() => unawaited(engine.dispose()));
   return engine;
 });

@@ -180,7 +180,9 @@ final eventPermissionsProvider = Provider.autoDispose
       if (!isGuest) {
         return (
           isMember: true,
-          access: {for (final area in EventArea.all) area: EventAccessLevel.edit},
+          access: {
+            for (final area in EventArea.all) area: EventAccessLevel.edit,
+          },
           canSuggest: false,
         );
       }

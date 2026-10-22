@@ -41,5 +41,6 @@ class AnalyticsConsent extends Notifier<bool> {
   }
 }
 
-final analyticsConsentProvider =
-    NotifierProvider<AnalyticsConsent, bool>(AnalyticsConsent.new);
+final analyticsConsentProvider = NotifierProvider<AnalyticsConsent, bool>(
+  AnalyticsConsent.new,
+);

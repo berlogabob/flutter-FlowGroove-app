@@ -95,6 +95,12 @@ class WebAudioMetronomeAudioClient implements MetronomeAudioClient {
 
   final AudioEngine _engine = AudioEngine();
 
+  /// Creates the AudioContext now (no awaits inside initialize) and returns it.
+  Object? audioContextForBacking() {
+    unawaited(_engine.initialize());
+    return _engine.audioContext;
+  }
+
   @override
   Future<void> initialize() => _engine.initialize();
 
@@ -430,8 +436,8 @@ class PcmTimelineMetronomePlaybackClient implements MetronomePlaybackClient {
     final base = config.tickForIndex(_uiTick);
     final isCountIn = _uiCountInTicksRemaining > 0;
     if (isCountIn) {
-      _uiCountInTicksRemaining =
-          (_uiCountInTicksRemaining - (1 + skipped)).clamp(0, 1 << 30);
+      _uiCountInTicksRemaining = (_uiCountInTicksRemaining - (1 + skipped))
+          .clamp(0, 1 << 30);
     }
     onTick(
       MetronomePlaybackTick(
@@ -785,8 +791,7 @@ class WebAudioLookaheadPlaybackClient extends FlutterMetronomePlaybackClient {
   double barTimeSeconds(int bar) =>
       epochSeconds + bar * ticksPerBar * tickIntervalSeconds;
 
-  double get lookaheadSeconds =>
-      max(3, 2 * ticksPerBar * tickIntervalSeconds);
+  double get lookaheadSeconds => max(3, 2 * ticksPerBar * tickIntervalSeconds);
 
   double get _nextAudioTime =>
       epochSeconds + _gridTickNumber * tickIntervalSeconds;
@@ -1109,8 +1114,8 @@ final metronomePlaybackClientProvider = Provider<MetronomePlaybackClient>((
   // both unavailable. Schedule clicks ahead on the AudioContext clock.
   if (kIsWeb) {
     final webAudio = ref.read(metronomeAudioClientProvider);
-    final MetronomePlaybackClient client = webAudio
-            is WebAudioMetronomeAudioClient
+    final MetronomePlaybackClient client =
+        webAudio is WebAudioMetronomeAudioClient
         ? WebAudioLookaheadPlaybackClient(
             webAudioClient: webAudio,
             hapticsClient: ref.read(metronomeHapticsProvider),
