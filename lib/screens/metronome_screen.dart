@@ -186,7 +186,9 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
             state,
             canEditSource: canEditSource,
           ),
-          mainWidget: const _MetronomePerformanceSurface(),
+          mainWidget: _MetronomePerformanceSurface(
+            bottomInset: MediaQuery.paddingOf(context).bottom,
+          ),
         ),
       ),
     );
@@ -411,7 +413,9 @@ final _activeMidiBackingProvider = Provider<SongLabEntry?>((ref) {
 /// the beat map / transport / tools / library stack on the right, so the dial
 /// no longer clips under the app bar on short heights.
 class _MetronomePerformanceSurface extends ConsumerWidget {
-  const _MetronomePerformanceSurface();
+  const _MetronomePerformanceSurface({required this.bottomInset});
+
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -420,14 +424,16 @@ class _MetronomePerformanceSurface extends ConsumerWidget {
     }
     return OrientationBuilder(
       builder: (context, orientation) => orientation == Orientation.landscape
-          ? const _MetronomeLandscape()
-          : const _MetronomePortrait(),
+          ? _MetronomeLandscape(bottomInset: bottomInset)
+          : _MetronomePortrait(bottomInset: bottomInset),
     );
   }
 }
 
 class _MetronomePortrait extends StatelessWidget {
-  const _MetronomePortrait();
+  const _MetronomePortrait({required this.bottomInset});
+
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
@@ -443,7 +449,7 @@ class _MetronomePortrait extends StatelessWidget {
             horizontalPadding,
             MonoPulseSpacing.sm,
             horizontalPadding,
-            MonoPulseSpacing.md,
+            bottomInset + MonoPulseSpacing.md,
           ),
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -464,28 +470,31 @@ class _MetronomePortrait extends StatelessWidget {
 }
 
 class _MetronomeLandscape extends StatelessWidget {
-  const _MetronomeLandscape();
+  const _MetronomeLandscape({required this.bottomInset});
+
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(
+    return Padding(
+      padding: const EdgeInsets.symmetric(
         horizontal: MonoPulseSpacing.lg,
         vertical: MonoPulseSpacing.sm,
       ),
       child: Row(
         children: [
           // Left: the dial, scaled to fit the available height.
-          Expanded(
+          const Expanded(
             child: Center(
               child: SingleChildScrollView(child: TempoControlCluster()),
             ),
           ),
-          SizedBox(width: MonoPulseSpacing.xl),
+          const SizedBox(width: MonoPulseSpacing.xl),
           // Right: beat map, transport, tools, library.
           Expanded(
             child: SingleChildScrollView(
-              child: Column(
+              padding: EdgeInsets.only(bottom: bottomInset),
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   TimeSignatureBlock(),
@@ -511,17 +520,30 @@ class _MetronomeSongLibrary extends ConsumerWidget {
     final state = ref.watch(metronomeProvider);
     final active = ref.watch(drumActiveProvider);
 
-    final onPressed = state.activeSong == null
-        ? null
-        : () => showModalBottomSheet<void>(
-            context: context,
-            isScrollControlled: true,
-            showDragHandle: true,
-            builder: (_) => BackingSheet(
-              songId: state.activeSong!.id,
-              bandId: state.sourceBandId,
-            ),
-          );
+    void onPressed() {
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (_) => state.activeSong == null
+            ? SafeArea(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: const [
+                    ListTile(
+                      title: Text(
+                        'Pick a song first, then add a MIDI file or drum pattern to it',
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : BackingSheet(
+                songId: state.activeSong!.id,
+                bandId: state.sourceBandId,
+              ),
+      );
+    }
 
     // ponytail: drums are native-only until the web drum player has run in a
     // real browser (it compiles, but was never exercised). Remove this guard
@@ -569,11 +591,6 @@ class _MetronomeSongLibrary extends ConsumerWidget {
                   onPressed: onPressed,
                 ),
         ),
-        if (state.activeSong == null)
-          Text(
-            'Pick a song first',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
       ],
     );
   }
