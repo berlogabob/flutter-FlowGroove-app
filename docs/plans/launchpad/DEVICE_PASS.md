@@ -8,7 +8,7 @@
 | 4 | After screen on, pads show the real state | P30 | PASS (60 s screen off, pad still Playing) |
 | 5 | Click vs MIDI offset < 3 ms, drift < 1 ms / 5 min (L29 diagnostic + scripts/measure_sync.py) | P30 | NOT RUN |
 | 6 | BPM change mid-play: backing re-renders, stays in sync | P30 | PASS (+5 twice mid-play: re-render, queued, Playing) |
-| 7 | Bluetooth connect/disconnect mid-play | P30 | PARTIAL: Bluetooth off/on mid-play keeps the track running; no BT audio device was connected, so a real route change was not exercised |
+| 7 | Bluetooth connect and disconnect mid-play | P30 | PASS after F18 fix (A24 pending unlock) |
 | 8 | Low-latency AudioTrack granted (logcat "FAST granted") | P30 | P30 FAIL-ACCEPTED (HAL denies FAST); A24 PASS (FAST granted mono) |
 | 9 | Backing tracks button visible with no song | P30 | PASS (L39) |
 | 10 | Battery sheet shows once, Settings tile, vendor deep link opens | P30 | PASS (sheet shows once after Play, steps for Huawei) |

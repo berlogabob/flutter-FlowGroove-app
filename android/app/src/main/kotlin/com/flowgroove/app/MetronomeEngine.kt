@@ -331,12 +331,17 @@ internal class AndroidMetronomeEngine(
     }
 
     private fun renderLoop(
-        track: AudioTrack,
+        initialTrack: AudioTrack,
         running: AtomicBoolean,
         initial: NativeMetronomeConfig,
         latency: PlaybackLatency
     ) {
+        var track = initialTrack
         val channelCount = track.channelCount
+        // Frames played by tracks that were replaced after a route change; the new
+        // track's head restarts at 0 but the UI queues are keyed by absolute frame.
+        var headBase = 0L
+        var rebuilds = 0
         val scratch = DoubleArray(chunkFrames)
         val pcm = ShortArray(chunkFrames * channelCount)
         // (audibleFrame, tickIndex, shouldVibrate) for ticks awaiting UI dispatch.
@@ -428,14 +433,42 @@ internal class AndroidMetronomeEngine(
                 }
             }
             var offset = 0
+            var stalls = 0
             while (offset < pcm.size && running.get()) {
                 val written = track.write(pcm, offset, pcm.size - offset)
-                if (written <= 0) {
-                    Log.e(TAG, "AudioTrack write error: $written")
-                    running.set(false)
-                    break
+                if (written > 0) {
+                    offset += written
+                    stalls = 0
+                    continue
                 }
-                offset += written
+                // 0 = the system is re-creating the track after a route change
+                // (Bluetooth drop/connect); the same frames are retried, so the
+                // click and backing stay one stream. Negative = a dead track:
+                // rebuild it once per event, then give up.
+                if (written == 0 && stalls < MAX_WRITE_STALLS) {
+                    stalls++
+                    Thread.sleep(WRITE_STALL_SLEEP_MS)
+                    continue
+                }
+                if (rebuilds < MAX_TRACK_REBUILDS) {
+                    val replacement = buildTrack(
+                        if (channelCount == 1) AudioFormat.CHANNEL_OUT_MONO else AudioFormat.CHANNEL_OUT_STEREO
+                    )
+                    if (replacement != null && replacement.channelCount == channelCount) {
+                        Log.w(TAG, "AudioTrack write returned $written; rebuilt track after route change")
+                        rebuilds++
+                        releaseTrack(track)
+                        track = replacement
+                        headBase = framesWritten + offset / channelCount
+                        track.play()
+                        stalls = 0
+                        continue
+                    }
+                    replacement?.release()
+                }
+                Log.e(TAG, "AudioTrack write error: $written")
+                running.set(false)
+                break
             }
             framesWritten += offset / channelCount
 
@@ -443,7 +476,7 @@ internal class AndroidMetronomeEngine(
                 if (now >= nextTimestampNanos) {
                     latency.millis = if (track.getTimestamp(timestamp)) {
                         // Project the timestamp's presentation frame to now.
-                        val queuedMillis = (framesWritten - timestamp.framePosition) * 1000.0 / sampleRate -
+                        val queuedMillis = (framesWritten - (headBase + timestamp.framePosition)) * 1000.0 / sampleRate -
                             (now - timestamp.nanoTime) / 1_000_000.0
                         queuedMillis.roundToInt().coerceAtLeast(0)
                     } else {
@@ -456,7 +489,7 @@ internal class AndroidMetronomeEngine(
                 // the beat highlight and vibration line up with what is playing.
                 // ponytail: 32-bit head masked; sync would only hiccup after ~24h
                 // continuous play (audio unaffected). Wrap accounting if anyone cares.
-                val head = track.playbackHeadPosition.toLong() and 0xFFFFFFFFL
+                val head = headBase + (track.playbackHeadPosition.toLong() and 0xFFFFFFFFL)
                 while (barQueue.isNotEmpty() && barQueue.first().first <= head) {
                     val (_, index) = barQueue.removeFirst()
                     mainHandler.post { onBar?.invoke(index) }
@@ -575,6 +608,9 @@ internal class AndroidMetronomeEngine(
     }
 
     companion object {
+        private const val MAX_WRITE_STALLS = 300 // x10 ms = 3 s
+        private const val WRITE_STALL_SLEEP_MS = 10L
+        private const val MAX_TRACK_REBUILDS = 5
         private const val TAG = "FlowGrooveMetronome"
         private var sharedBacking: BackingMixer? = null
         @Volatile private var playbackLatency: PlaybackLatency? = null
