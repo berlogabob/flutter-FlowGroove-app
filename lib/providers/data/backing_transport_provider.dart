@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../models/midi_pattern.dart';
 import '../../models/section.dart';
 import '../../models/section_span.dart';
 import '../../models/song_lab.dart';
@@ -9,9 +10,12 @@ import '../../services/audio/backing_engine.dart';
 import '../../services/audio/backing_engine_factory.dart';
 import '../../services/audio/midi/backing_stem_builder.dart';
 import '../../services/audio/midi/diagnostic_stem.dart';
+import '../../services/audio/midi/drum_loop_renderer.dart';
+import '../../services/audio/midi/drum_samples.dart';
 import '../../utils/bar_math.dart';
 import '../../utils/pad_state.dart';
 import '../../utils/quantize.dart';
+import 'drum_practice_provider.dart';
 import 'metronome_provider.dart';
 import 'midi_song_provider.dart';
 
@@ -145,7 +149,67 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
     return ++_generation;
   }
 
+  void _clearPattern() {
+    if (ref.exists(drumPracticeProvider)) {
+      unawaited(ref.read(drumPracticeProvider.notifier).clearPattern());
+    }
+  }
+
+  Future<void> attachPattern(MidiPattern pattern, double bpm) async {
+    _entry = null;
+    _resumeId = null;
+    _muted.clear();
+    _solo = null;
+    final generation = _beginRender();
+    final metro = ref.read(metronomeProvider);
+    final ticks = metro.timeSignature.numerator * metro.regularBeats;
+    final interval = (60000000 / metro.bpm / metro.regularBeats).round();
+    final sampleRate = await _engine.engineSampleRate();
+    await preloadDrumSamples();
+    if (!ref.mounted || generation != _generation) return;
+    final patternBars =
+        pattern.bars *
+        pattern.beatsPerBar *
+        metro.bpm /
+        (bpm * metro.timeSignature.numerator);
+    final nearestBar = patternBars.round();
+    final bars = (patternBars - nearestBar).abs() < 1e-9
+        ? nearestBar
+        : patternBars.ceil();
+    final frames = barStartFrame(
+      bar: bars,
+      ticksPerBar: ticks,
+      intervalMicros: interval.toDouble(),
+      sampleRate: sampleRate,
+      epochFrame: 0,
+    );
+    final stems = BackingStems(
+      stems: [
+        renderDrumLoop(pattern, bpm, sampleRate: sampleRate, frames: frames),
+      ],
+      names: const ['Drums'],
+      sampleRate: sampleRate,
+      renderBpm: metro.bpm.toDouble(),
+      ticksPerBar: ticks,
+      intervalMicros: interval,
+    );
+    await _serialize(() async {
+      if (!ref.mounted || generation != _generation) return;
+      await _engine.load(stems);
+    });
+    if (!ref.mounted || generation != _generation) return;
+    _names = stems.names;
+    _applyGains();
+    state = state.copyWith(
+      rendering: false,
+      spans: [SectionSpan(sectionId: 'drum-pattern', startBar: 0, bars: bars)],
+      songBar: 0,
+      loop: true,
+    );
+  }
+
   Future<void> attach(SongLabEntry entry, List<Section> sections) async {
+    _clearPattern();
     _entry = entry;
     _resumeId = null;
     _muted.clear();
@@ -242,6 +306,7 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
   Future<void> launchDiagnostic() async {
     const bars = 4;
     const id = 'sync-test';
+    _clearPattern();
     _entry = null;
     _resumeId = null;
     _muted.clear();

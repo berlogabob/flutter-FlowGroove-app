@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/midi_pattern.dart';
 import '../../services/audio/midi/drum_map.dart';
 import '../../services/audio/midi/drum_player.dart';
+import 'backing_transport_provider.dart';
 import 'drum_active_provider.dart';
 import 'metronome_provider.dart';
 
@@ -55,7 +56,75 @@ class DrumPracticeState {
   }
 }
 
-final drumPlayerProvider = Provider<DrumPlayer>((ref) => createDrumPlayer());
+final drumPlayerProvider = Provider<DrumPlayer>((ref) {
+  if (kIsWeb || defaultTargetPlatform == TargetPlatform.android) {
+    return _BackingDrumPlayer(ref);
+  }
+  return createDrumPlayer();
+});
+
+class _BackingDrumPlayer implements DrumPlayer {
+  _BackingDrumPlayer(this.ref);
+
+  final Ref ref;
+  final _clock = DrumStepClock();
+  final _gains = <DrumLane, double>{};
+  MidiPattern? _pattern;
+  double _bpm = 120;
+  int _operationId = 0;
+
+  @override
+  bool get playing => _clock.playing;
+
+  @override
+  Stream<int> get stepStream => _clock.stream;
+
+  @override
+  Future<void> load(MidiPattern pattern, double bpm) async {
+    drumStepIndex(Duration.zero, bpm, pattern.stepsPerBeat, pattern.totalSteps);
+    ++_operationId;
+    _clock.stop();
+    _pattern = pattern;
+    _bpm = bpm;
+    await ref
+        .read(backingTransportProvider.notifier)
+        .attachPattern(
+          MidiPattern(
+            name: pattern.name,
+            bars: pattern.bars,
+            beatsPerBar: pattern.beatsPerBar,
+            stepsPerBeat: pattern.stepsPerBeat,
+            hits: pattern.hits.where((hit) {
+              final lane = laneForNote(hit.note);
+              return lane != null && (_gains[lane] ?? 1) > 0;
+            }).toList(),
+          ),
+          bpm,
+        );
+  }
+
+  @override
+  Future<void> start() async {
+    final operationId = _operationId;
+    await ref.read(backingTransportProvider.notifier).launch('drum-pattern');
+    if (ref.mounted && operationId == _operationId && _pattern != null) {
+      _clock.start(_pattern!, _bpm);
+    }
+  }
+
+  @override
+  Future<void> stop() async {
+    ++_operationId;
+    _clock.stop();
+    await ref.read(backingTransportProvider.notifier).stop();
+  }
+
+  @override
+  void setLaneGain(DrumLane lane, double gain) => _gains[lane] = gain;
+
+  @override
+  Future<void> dispose() => _clock.dispose();
+}
 
 class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
   late DrumPlayer _player;
@@ -122,12 +191,12 @@ class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
     final muted = {...state.muted};
     if (!muted.remove(lane)) muted.add(lane);
     state = state.copyWith(muted: muted);
-    _syncGains();
+    _updateGains();
   }
 
   void toggleSolo(DrumLane lane) {
     state = state.copyWith(solo: state.solo == lane ? null : lane);
-    _syncGains();
+    _updateGains();
   }
 
   Future<void> start() async {
@@ -151,6 +220,14 @@ class DrumPracticeNotifier extends Notifier<DrumPracticeState> {
     if (state.speed == speed) return;
     state = state.copyWith(speed: speed);
     if (state.playing) await _reload();
+  }
+
+  void _updateGains() {
+    if (_player is _BackingDrumPlayer) {
+      unawaited(_reload());
+    } else {
+      _syncGains();
+    }
   }
 
   void _syncGains() {
