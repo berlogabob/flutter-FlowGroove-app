@@ -451,7 +451,8 @@ class _MetronomeScreenState extends ConsumerState<MetronomeScreen>
 }
 
 final _activeMidiBackingProvider = Provider<SongLabEntry?>((ref) {
-  if (kIsWeb || defaultTargetPlatform == TargetPlatform.iOS) return null;
+  // Native iOS keeps the old path; Android and web use the shared transport.
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) return null;
   final state = ref.watch(metronomeProvider);
   final song = state.activeSong;
   if (song == null || ref.watch(authStateProvider).value == null) return null;
@@ -605,10 +606,7 @@ class _MetronomeSongLibrary extends ConsumerWidget {
       );
     }
 
-    // ponytail: drums are native-only until the web drum player has run in a
-    // real browser (it compiles, but was never exercised). Remove this guard
-    // after a manual web test.
-    if (kIsWeb || defaultTargetPlatform == TargetPlatform.iOS) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
       return const SongLibraryBlock();
     }
 
