@@ -218,6 +218,13 @@ class _LaunchpadViewState extends ConsumerState<LaunchpadView> {
                     child: const Text('Stop'),
                   ),
                 ),
+                if (kDebugMode)
+                  OutlinedButton(
+                    onPressed: state.rendering
+                        ? null
+                        : () => unawaited(transport.launchDiagnostic()),
+                    child: const Text('Sync test'),
+                  ),
                 FilterChip(
                   label: const Text('Loop'),
                   selected: state.loop,

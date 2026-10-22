@@ -8,6 +8,7 @@ import '../../models/song_lab.dart';
 import '../../services/audio/backing_engine.dart';
 import '../../services/audio/backing_engine_factory.dart';
 import '../../services/audio/midi/backing_stem_builder.dart';
+import '../../services/audio/midi/diagnostic_stem.dart';
 import '../../utils/bar_math.dart';
 import '../../utils/pad_state.dart';
 import '../../utils/quantize.dart';
@@ -236,6 +237,39 @@ class BackingTransportNotifier extends Notifier<BackingTransportState> {
       leadFrames: 1,
     );
     return (boundary / ticks).ceil();
+  }
+
+  Future<void> launchDiagnostic() async {
+    const bars = 4;
+    const id = 'sync-test';
+    _entry = null;
+    _resumeId = null;
+    _muted.clear();
+    _solo = null;
+    final generation = _beginRender();
+    final metro = ref.read(metronomeProvider);
+    final sampleRate = await _engine.engineSampleRate();
+    final stems = diagnosticStems(
+      sampleRate: sampleRate,
+      intervalMicros: (60000000 / metro.bpm / metro.regularBeats).round(),
+      ticksPerBar: metro.timeSignature.numerator * metro.regularBeats,
+      renderBpm: metro.bpm.toDouble(),
+      bars: bars,
+    );
+    await _serialize(() async {
+      if (!ref.mounted || generation != _generation) return;
+      await _engine.load(stems);
+    });
+    if (!ref.mounted || generation != _generation) return;
+    _names = stems.names;
+    _applyGains();
+    state = state.copyWith(
+      rendering: false,
+      spans: const [SectionSpan(sectionId: id, startBar: 0, bars: bars)],
+      songBar: 0,
+      loop: true,
+    );
+    await launch(id);
   }
 
   Future<void> launch(String sectionId) async {
