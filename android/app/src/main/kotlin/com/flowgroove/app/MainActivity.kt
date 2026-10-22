@@ -98,6 +98,7 @@ class MainActivity : FlutterActivity() {
         ch.setMethodCallHandler { call, result ->
             when (call.method) {
                 "engineSampleRate" -> result.success(backing.sampleRate)
+                "engineLatencyMs" -> result.success(AndroidMetronomeEngine.engineLatencyMs())
                 "backingLoad" -> handleMetronomeCall(call, result) { args ->
                     val sampleRate = (args["sampleRate"] as? Number)?.toInt()
                     require(sampleRate == backing.sampleRate) { "Backing sampleRate must match engine rate" }

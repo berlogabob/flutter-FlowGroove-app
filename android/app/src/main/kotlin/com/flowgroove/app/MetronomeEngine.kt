@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioFormat
 import android.media.AudioManager
+import android.media.AudioTimestamp
 import android.media.AudioTrack
 import android.os.Build
 import android.os.Handler
@@ -152,7 +153,15 @@ internal class AndroidMetronomeEngine(
     private val backing = backingFor(context)
     private val sampleRate = backing.sampleRate
     private val renderer = ClickRenderer(sampleRate)
-    private val chunkFrames = max(256, sampleRate / 50) // ~20 ms
+    private val burstFrames = (context.getSystemService(Context.AUDIO_SERVICE) as AudioManager)
+        .getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)
+        ?.toIntOrNull()
+        ?.takeIf { it > 0 } ?: 256
+    private val chunkFrames = burstFrames * 2
+
+    private class PlaybackLatency(val running: AtomicBoolean) {
+        @Volatile var millis = -1
+    }
 
     @Volatile private var pendingConfig: NativeMetronomeConfig? = null
     // Per-session running flag captured by the render thread, which is the sole
@@ -211,9 +220,11 @@ internal class AndroidMetronomeEngine(
         acquireWakeLock()
         requestAudioFocus()
         val sessionRunning = AtomicBoolean(true)
+        val latency = PlaybackLatency(sessionRunning)
+        playbackLatency = latency
         running = sessionRunning
         renderThread = Thread(
-            { renderLoop(track, sessionRunning, parsed) },
+            { renderLoop(track, sessionRunning, parsed, latency) },
             "FlowGrooveMetronomeAudio"
         ).also { it.start() }
     }
@@ -321,7 +332,8 @@ internal class AndroidMetronomeEngine(
     private fun renderLoop(
         track: AudioTrack,
         running: AtomicBoolean,
-        initial: NativeMetronomeConfig
+        initial: NativeMetronomeConfig,
+        latency: PlaybackLatency
     ) {
         val scratch = DoubleArray(chunkFrames)
         val pcm = ShortArray(chunkFrames)
@@ -345,6 +357,9 @@ internal class AndroidMetronomeEngine(
                 Log.w(TAG, "setThreadPriority failed", e)
             }
             track.play()
+            val playbackStartedNanos = System.nanoTime()
+            var nextTimestampNanos = playbackStartedNanos + 1_000_000_000L
+            val timestamp = AudioTimestamp()
             while (running.get()) {
                 pendingConfig?.let { pend ->
                 pendingConfig = null
@@ -412,7 +427,20 @@ internal class AndroidMetronomeEngine(
                 Log.e(TAG, "AudioTrack write error: $written")
                 break
             }
-            framesWritten += chunkFrames
+            framesWritten += written
+
+                val now = System.nanoTime()
+                if (now >= nextTimestampNanos) {
+                    latency.millis = if (track.getTimestamp(timestamp)) {
+                        // Project the timestamp's presentation frame to now.
+                        val queuedMillis = (framesWritten - timestamp.framePosition) * 1000.0 / sampleRate -
+                            (now - timestamp.nanoTime) / 1_000_000.0
+                        queuedMillis.roundToInt().coerceAtLeast(0)
+                    } else {
+                        -1
+                    }
+                    nextTimestampNanos = now + 1_000_000_000L
+                }
 
                 // Fire UI ticks + haptics once the audible head reaches them, so
                 // the beat highlight and vibration line up with what is playing.
@@ -432,6 +460,7 @@ internal class AndroidMetronomeEngine(
         } catch (e: Exception) {
             Log.e(TAG, "render loop error", e)
         } finally {
+            running.set(false)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 try {
                     Log.i(TAG, "session AudioTrack underruns: ${track.underrunCount}")
@@ -443,13 +472,8 @@ internal class AndroidMetronomeEngine(
     }
 
     private fun buildTrack(): AudioTrack? {
-        val minBuf = AudioTrack.getMinBufferSize(
-            sampleRate,
-            AudioFormat.CHANNEL_OUT_MONO,
-            AudioFormat.ENCODING_PCM_16BIT
-        )
-        if (minBuf <= 0) return null
-        val bufferBytes = max(minBuf, chunkFrames * 2 * 4) // ~4 chunks of 16-bit mono
+        val bufferFrames = burstFrames * 4
+        val bufferBytes = bufferFrames * 2 // 16-bit mono
 
         val builder = AudioTrack.Builder()
             .setAudioAttributes(
@@ -477,6 +501,13 @@ internal class AndroidMetronomeEngine(
                 track.release()
                 null
             } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    track.setBufferSizeInFrames(bufferFrames)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    track.performanceMode != AudioTrack.PERFORMANCE_MODE_LOW_LATENCY) {
+                    Log.w(TAG, "AudioTrack low latency denied; performanceMode=${track.performanceMode}")
+                }
                 track
             }
         } catch (e: Exception) {
@@ -513,7 +544,13 @@ internal class AndroidMetronomeEngine(
     companion object {
         private const val TAG = "FlowGrooveMetronome"
         private var sharedBacking: BackingMixer? = null
+        @Volatile private var playbackLatency: PlaybackLatency? = null
         var onBar: ((Int) -> Unit)? = null
+
+        fun engineLatencyMs(): Int {
+            val latency = playbackLatency ?: return -1
+            return if (latency.running.get()) latency.millis else -1
+        }
 
         // Shared with the Activity because the foreground service owns the engine.
         @Synchronized
